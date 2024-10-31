@@ -22,7 +22,7 @@ const char* gtk_str()
 }
 
 static void* gtk_handle = NULL;
-#define gtk_func(func) dl_def_func(gtk_handle, func, gtk_str())
+#define gtk_func(func) dl_def_func(gtk_handle, func, gtk_str(), "libgtk-3.so")
 
 void dl_gtk_init()
 {

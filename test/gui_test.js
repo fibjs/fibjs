@@ -5,11 +5,25 @@ var gui = require("gui");
 const url = require('url');
 const path = require('path');
 var coroutine = require("coroutine");
+var child_process = require("child_process");
 
 var win32 = process.platform === "win32";
 var darwin64 = process.platform === "darwin";
 
-describe("gui", () => {
+var gui_env = "gui";
+
+var vfb;
+if (process.platform === "linux") {
+    if (process.env.DISPLAY === undefined) {
+        try {
+            vfb = child_process.spawn("Xvfb", [":99", "-screen", "0", "1024x768x24"]);
+            process.env.DISPLAY = ":99";
+            gui_env = "gui in Xvfb";
+        } catch (e) { }
+    }
+}
+
+describe(gui_env, () => {
     var wins = [];
 
     after(() => {
@@ -18,6 +32,12 @@ describe("gui", () => {
                 win.close();
             } catch (e) { }
         });
+
+        if (vfb) {
+            try {
+                vfb.kill(9);
+            } catch (e) { }
+        }
     });
 
     beforeEach(() => {
@@ -678,10 +698,166 @@ describe("gui", () => {
             win.close();
         });
 
-        describe("focus/blur event", () => {
-            function test_focus(opts) {
+        if (vfb === undefined) {
+            describe("focus/blur event", () => {
+                function test_focus(opts) {
+                    const win = gui.open({
+                        ...opts,
+                        left: 100,
+                        top: 100,
+                        width: 100,
+                        height: 100
+                    });
+                    wins.push(win);
+
+                    var focus = 0;
+                    var blur = 0;
+                    var last_focus, last_blur;
+
+                    win.on("focus", () => {
+                        focus++;
+                    });
+
+                    win.on("blur", () => {
+                        blur++;
+                    });
+
+                    last_focus = focus;
+                    for (var i = 0; i < 500; i++) {
+                        if (focus > last_focus)
+                            break;
+                        coroutine.sleep(100);
+                    }
+
+                    assert.equal(focus, last_focus + 1);
+
+                    last_blur = blur;
+                    const win1 = gui.open({
+                        left: 200,
+                        top: 200,
+                        width: 100,
+                        height: 100
+                    });
+                    wins.push(win1);
+
+                    for (var i = 0; i < 500; i++) {
+                        if (blur > last_blur)
+                            break;
+                        coroutine.sleep(100);
+                    }
+
+                    assert.equal(blur, last_blur + 1);
+
+                    last_focus = focus;
+
+                    win1.close();
+                    for (var i = 0; i < 500; i++) {
+                        if (focus > last_focus)
+                            break;
+                        coroutine.sleep(100);
+                    }
+
+                    assert.equal(focus, last_focus + 1);
+
+                    win.close();
+                }
+
+                it("normal window", () => {
+                    test_focus({});
+                });
+
+                it("no caption", () => {
+                    test_focus({
+                        caption: false
+                    });
+                });
+
+                it("maximize", () => {
+                    test_focus({
+                        maximize: true
+                    });
+                });
+
+                it("no frame", () => {
+                    test_focus({
+                        frame: false
+                    });
+                });
+
+                it("fullscreen", () => {
+                    test_focus({
+                        fullscreen: true
+                    });
+                });
+            });
+
+            it("active", () => {
                 const win = gui.open({
-                    ...opts,
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(100);
+                    if (win.isActived()) {
+                        break;
+                    }
+                }
+                assert.equal(win.isActived(), true);
+
+                const win1 = gui.open({
+                    left: 100,
+                    top: 100,
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win1);
+
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(100);
+                    if (win1.isActived()) {
+                        break;
+                    }
+                }
+                assert.equal(win1.isActived(), true);
+                assert.equal(win.isActived(), false);
+
+                win.active();
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(100);
+                    if (win.isActived()) {
+                        break;
+                    }
+                }
+                assert.equal(win.isActived(), true);
+                assert.equal(win1.isActived(), false);
+
+                win1.close();
+                win.close();
+            });
+
+            it("auto focus webview", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(100);
+                    var result = win.eval(`document.hasFocus()?"True":"False"`);
+                    if (result == "True") {
+                        break;
+                    }
+                }
+                win.close();
+
+                assert.equal(result, "True");
+            });
+
+            it("auto focus webview after blur", () => {
+                const win = gui.open({
                     left: 100,
                     top: 100,
                     width: 100,
@@ -689,28 +865,8 @@ describe("gui", () => {
                 });
                 wins.push(win);
 
-                var focus = 0;
-                var blur = 0;
-                var last_focus, last_blur;
+                win.setTitle("Test");
 
-                win.on("focus", () => {
-                    focus++;
-                });
-
-                win.on("blur", () => {
-                    blur++;
-                });
-
-                last_focus = focus;
-                for (var i = 0; i < 500; i++) {
-                    if (focus > last_focus)
-                        break;
-                    coroutine.sleep(100);
-                }
-
-                assert.equal(focus, last_focus + 1);
-
-                last_blur = blur;
                 const win1 = gui.open({
                     left: 200,
                     top: 200,
@@ -718,154 +874,20 @@ describe("gui", () => {
                     height: 100
                 });
                 wins.push(win1);
-
-                for (var i = 0; i < 500; i++) {
-                    if (blur > last_blur)
-                        break;
-                    coroutine.sleep(100);
-                }
-
-                assert.equal(blur, last_blur + 1);
-
-                last_focus = focus;
-
                 win1.close();
-                for (var i = 0; i < 500; i++) {
-                    if (focus > last_focus)
-                        break;
+
+                for (var i = 0; i < 1000; i++) {
                     coroutine.sleep(100);
+                    var result = win.eval(`document.hasFocus()?"True":"False"`);
+                    if (result == "True") {
+                        break;
+                    }
                 }
-
-                assert.equal(focus, last_focus + 1);
-
                 win.close();
-            }
 
-            it("normal window", () => {
-                test_focus({});
+                assert.equal(result, "True");
             });
-
-            it("no caption", () => {
-                test_focus({
-                    caption: false
-                });
-            });
-
-            it("maximize", () => {
-                test_focus({
-                    maximize: true
-                });
-            });
-
-            it("no frame", () => {
-                test_focus({
-                    frame: false
-                });
-            });
-
-            it("fullscreen", () => {
-                test_focus({
-                    fullscreen: true
-                });
-            });
-        });
-
-        it("active", () => {
-            const win = gui.open({
-                width: 100,
-                height: 100
-            });
-            wins.push(win);
-
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(100);
-                if (win.isActived()) {
-                    break;
-                }
-            }
-            assert.equal(win.isActived(), true);
-
-            const win1 = gui.open({
-                left: 100,
-                top: 100,
-                width: 100,
-                height: 100
-            });
-            wins.push(win1);
-
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(100);
-                if (win1.isActived()) {
-                    break;
-                }
-            }
-            assert.equal(win1.isActived(), true);
-            assert.equal(win.isActived(), false);
-
-            win.active();
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(100);
-                if (win.isActived()) {
-                    break;
-                }
-            }
-            assert.equal(win.isActived(), true);
-            assert.equal(win1.isActived(), false);
-
-            win1.close();
-            win.close();
-        });
-
-        it("auto focus webview", () => {
-            const win = gui.open({
-                width: 100,
-                height: 100
-            });
-            wins.push(win);
-
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(100);
-                var result = win.eval(`document.hasFocus()?"True":"False"`);
-                if (result == "True") {
-                    break;
-                }
-            }
-            win.close();
-
-            assert.equal(result, "True");
-        });
-
-        it("auto focus webview after blur", () => {
-            const win = gui.open({
-                left: 100,
-                top: 100,
-                width: 100,
-                height: 100
-            });
-            wins.push(win);
-
-            win.setTitle("Test");
-
-            const win1 = gui.open({
-                left: 200,
-                top: 200,
-                width: 100,
-                height: 100
-            });
-            wins.push(win1);
-            win1.close();
-
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(100);
-                var result = win.eval(`document.hasFocus()?"True":"False"`);
-                if (result == "True") {
-                    break;
-                }
-            }
-            win.close();
-
-            assert.equal(result, "True");
-        });
+        }
 
         it("capturePage", () => {
             const win = gui.open();
@@ -1290,6 +1312,14 @@ describe("gui", () => {
                 assert.equal(menu.getMenuItemById("item3").label, "Item 3");
             });
         });
+    });
+
+    it("tray", () => {
+        const tray = gui.createTray({
+            icon: path.join(__dirname, "gui_files", "toolbox.512.png")
+        });
+        assert.isObject(tray);
+        tray.close();
     });
 });
 

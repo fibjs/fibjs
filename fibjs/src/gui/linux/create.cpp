@@ -27,16 +27,8 @@ static char* get_string_from_js_result(WebKitJavascriptResult* r)
 {
     char* s;
 
-    // JSCValue* value = webkit_javascript_result_get_js_value(r);
-    // s = jsc_value_to_string(value);
-
-    JSGlobalContextRef ctx = webkit_javascript_result_get_global_context(r);
-    JSValueRef value = webkit_javascript_result_get_value(r);
-    JSStringRef js = JSValueToStringCopy(ctx, value, nullptr);
-    size_t n = JSStringGetMaximumUTF8CStringSize(js);
-    s = g_new(char, n);
-    JSStringGetUTF8CString(js, s, n);
-    JSStringRelease(js);
+    JSCValue* value = webkit_javascript_result_get_js_value(r);
+    s = jsc_value_to_string(value);
 
     return s;
 }

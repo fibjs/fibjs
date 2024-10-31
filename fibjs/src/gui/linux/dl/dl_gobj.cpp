@@ -22,7 +22,7 @@ const char* gobj_str()
 }
 
 static void* gobj_handle = NULL;
-#define gobj_func(func) dl_def_func(gobj_handle, func, gobj_str())
+#define gobj_func(func) dl_def_func(gobj_handle, func, gobj_str(), "libgobject-2.0.so")
 
 void dl_gobj_init()
 {

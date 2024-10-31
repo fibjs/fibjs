@@ -5,6 +5,8 @@ WORKS_DIR=$(dirname "$CUR")
 
 if [ "$2" == "alpine" ]; then
     IMAGE="fibjs/alpine-build-env:$1"
+elif [[ "$1" =~ (ubuntu[0-9]+|centos[0-9]+) ]]; then
+    IMAGE="fibjs/linux-test-env:$1"
 else
     IMAGE="fibjs/linux-build-env:$1"
 fi
