@@ -12,6 +12,8 @@
 #include "Buffer.h"
 #include "loaders.h"
 #include "ifs/util.h"
+#include "ifs/url.h"
+
 namespace fibjs {
 class esm_importer : public object_base {
 private:
@@ -507,6 +509,14 @@ void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local
 
     meta->Set(context, isolate->NewString("dirname"), isolate->NewString(path_name)).IsJust();
     meta->Set(context, isolate->NewString("filename"), isolate->NewString(sb->m_pending_module)).IsJust();
+
+    obj_ptr<UrlObject_base> u;
+    url_base::pathToFileURL(sb->m_pending_module, u);
+
+    exlib::string url;
+    u->get_href(url);
+
+    meta->Set(context, isolate->NewString("url"), isolate->NewString(url)).IsJust();
 }
 
 v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::string base)
