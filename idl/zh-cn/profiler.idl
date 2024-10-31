@@ -1,9 +1,61 @@
 /*! @brief 内存 profiler 模块
 
- 使用方法：
- ```JavaScript
- var profiler = require('profiler');
- ```
+`profiler` 模块是一个用于分析和监控 JavaScript 应用程序内存使用情况的工具。它提供了一系列方法，可以帮助开发者深入了解应用程序的内存分配和垃圾回收行为，从而优化性能和内存使用。
+
+在 JavaScript 中，内存管理是由垃圾回收机制自动处理的。然而，对于复杂的应用程序，特别是那些处理大量数据或长时间运行的应用程序，内存泄漏和不必要的内存占用可能会成为性能瓶颈。通过使用 `profiler` 模块，开发者可以获取详细的内存使用情况，并识别和解决潜在的内存问题。
+
+`profiler` 模块提供了以下主要功能：
+
+1. **获取堆内存统计信息**：包括堆内存的总体使用情况、各个堆空间的详细使用情况以及堆中代码的统计信息。
+2. **堆快照**：可以保存和加载堆快照，记录特定时间点的堆内存状态。
+3. **堆快照对比**：执行给定的函数，并对比执行前后堆内存的变化，帮助识别内存分配和回收的差异。
+4. **运行状态采样**：启动一次运行状态采样日志，记录指定时间段内的内存使用情况。
+
+以下是一些使用 `profiler` 模块的示例代码，展示了如何获取堆内存统计信息、保存和加载堆快照以及启动运行状态采样。
+
+```javascript
+// 引入 profiler 模块
+var profiler = require('profiler');
+
+// 获取堆内存统计信息
+var heapStats = profiler.getHeapStatistics();
+console.log('Heap Statistics:', heapStats);
+
+// 获取堆空间统计信息
+var heapSpaceStats = profiler.getHeapSpaceStatistics();
+console.log('Heap Space Statistics:', heapSpaceStats);
+
+// 保存堆快照
+profiler.saveSnapshot('snapshot1');
+
+// 加载堆快照
+var snapshot = profiler.loadSnapshot('snapshot1');
+console.log('Loaded Snapshot:', snapshot);
+
+// 获取当前时间节点的堆快照
+var currentSnapshot = profiler.takeSnapshot();
+console.log('Current Snapshot:', currentSnapshot);
+
+// 对比执行前后的堆内存变化
+function testFunction() {
+    // 模拟一些内存分配操作
+    var arr = [];
+    for (var i = 0; i < 10000; i++) {
+        arr.push({index: i});
+    }
+}
+var diffResult = profiler.diff(testFunction);
+console.log('Heap Diff Result:', diffResult);
+
+// 启动运行状态采样日志
+var timer = profiler.start('samplingLog', 60000, 100);
+console.log('Sampling started, timer:', timer);
+
+// 停止采样
+// timer.clear();
+```
+
+通过这些功能和方法，开发者可以更好地监控和优化 JavaScript 应用程序的内存使用情况，提高应用程序的性能和稳定性。
  */
 module profiler
 {

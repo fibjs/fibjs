@@ -3,26 +3,46 @@
 /**
  * @description registry 模块是一个操作 Windows 注册表（Registry）的模块。它提供了访问注册表的方法和常量，可以读取、修改、删除、添加等操作。registry 模块提供的操作方式和 Windows 应用程序使用的方式类似，但却是在 FibJS 中提供了能力。常量有常见的 Root、 数据类型等常量，还有一些用于不同操作的返回值的常量
  * 
- * 常用的函数有：
- * 1. get(root, key[, flags])：获取指定注册表项的值。
- * 2. set(root, key, value[, type])：设置指定注册表项的值。
- * 3. del(root, key)：删除指定注册表项。
+ * `registry` 模块是一个用于操作 Windows 注册表（Registry）的模块。注册表是一个分层数据库，用于存储系统和应用程序的配置信息。Windows 操作系统和许多应用程序都依赖注册表来存储和检索配置信息。
  * 
- * 接下来，我们验证某个注册表项在指定注册表分支上的键值是否存在，然后将该键值读取。如果不存在，就将该键值写入到指定注册表项。代码如下所示：
+ * Windows 注册表包含多个根键（Root Key），每个根键下包含多个子键（Sub Key）和键值（Value）。常见的根键包括：
+ * 
+ * - `HKEY_CLASSES_ROOT`：存储文件类型和关联的应用程序信息。
+ * - `HKEY_CURRENT_USER`：存储当前用户的配置信息。
+ * - `HKEY_LOCAL_MACHINE`：存储计算机上所有用户的配置信息。
+ * - `HKEY_USERS`：存储所有用户的配置信息。
+ * - `HKEY_CURRENT_CONFIG`：存储当前硬件配置的信息。
+ * 
+ * 注册表中的数据类型包括字符串（SZ）、扩展字符串（EXPAND_SZ）、32 位数值（DWORD）、64 位数值（QWORD）等。
+ * 
+ * `registry` 模块提供了一系列函数，用于读取、修改、删除和添加注册表项。常用的函数包括：
+ * 
+ * - `get(root, key[, flags])`：获取指定注册表项的值。
+ * - `set(root, key, value[, type])`：设置指定注册表项的值。
+ * - `del(root, key)`：删除指定注册表项。
+ * 
+ * 以下是一个使用 `registry` 模块的示例代码，展示了如何验证某个注册表项是否存在，如果不存在则写入该项，并读取其值：
+ * 
  * ```JavaScript
  * var registry = require('registry');
  * 
- * // specify the key name
+ * // 指定键名
  * var key = "Software\\Fibjs\\Test\\KeyName";
- * if(!registry.get(registry.CLASSES_ROOT, key)) {
+ * 
+ * // 检查注册表项是否存在
+ * if (!registry.get(registry.CLASSES_ROOT, key)) {
+ *     // 如果不存在，则写入注册表
  *     registry.set(registry.CLASSES_ROOT, key, "test_value");
  * }
- * // specify the key name
+ * 
+ * // 读取注册表项的值
  * var value = registry.get(registry.CLASSES_ROOT, key);
  * console.log(value);
  * ```
- * 该程序首先验证注册表项是否存在，如果不存在，则写入注册表，键名为 Software\Fibjs\Test\KeyName，并将值设置为 test_value。最后，读取该注册表的键值并在控制台输出。
- * 上面的代码展示了 registry 模块的基本用法，可以通过这个模块很方便地读取、修改、添加、删除注册表中的信息。
+ * 
+ * 该程序首先检查注册表项 `Software\Fibjs\Test\KeyName` 是否存在，如果不存在，则将其值设置为 `test_value`。最后，读取该注册表项的值并输出到控制台。
+ * 
+ * `registry` 模块提供了一个方便的接口，用于在 FibJS 中操作 Windows 注册表。通过该模块，可以轻松地读取、修改、添加和删除注册表中的信息，从而实现对系统和应用程序配置的管理。
  *  
  */
 declare module 'registry' {
@@ -132,7 +152,7 @@ declare module 'registry' {
      * @description 设置指定键值为多字符串
      *      @param root 指定注册表根
      *      @param key 指定键值
-     *      @param value 指定多字符串数组
+     *      @param values 指定多字符串数组
      *      
      */
     function set(root: number, key: string, values: string): void;
@@ -173,7 +193,7 @@ declare module 'registry' {
      *      @param root 指定注册表根
      *      @param key 指定键值
      *      @param name 指定数值名称
-     *      @param value 指定多字符串数组
+     *      @param values 指定多字符串数组
      *      
      */
     function set(root: number, key: string, name: string, values: string): void;
