@@ -23,8 +23,7 @@ namespace fibjs {
 static void onClick(GtkStatusIcon* status_icon, gpointer user_data)
 {
     Tray* _tray = static_cast<Tray*>(user_data);
-    obj_ptr<EventInfo> ei = new EventInfo(_tray, "click");
-    _tray->_emit("click", ei);
+    (new EventInfo(_tray, "click"))->emit();
 }
 
 std::string calculateHash(const uint8_t* data, size_t length)

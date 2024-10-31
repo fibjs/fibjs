@@ -491,13 +491,13 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
                 m_code = 1006;
                 m_reason = "Abnormal Closure";
 
-                _emit("error", new EventInfo(this, "error", code, reason));
+                (new EventInfo(this, "error", code, reason))->emit();
             } else {
                 m_code = code;
                 m_reason = reason;
             }
 
-            _emit("close", new EventInfo(this, "close", m_code, m_reason));
+            (new EventInfo(this, "close", m_code, m_reason))->emit();
         }
 
         if (m_stream)

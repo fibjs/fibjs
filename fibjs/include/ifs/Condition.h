@@ -30,8 +30,8 @@ public:
     virtual result_t notifyAll() = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Condition_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -70,8 +70,7 @@ inline void Condition_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     __new(args);
 }
 
-template <typename T>
-void Condition_base::__new(const T& args)
+inline void Condition_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Condition_base> vr;
 
@@ -88,6 +87,25 @@ void Condition_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Condition_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Condition_base>& retVal)
+{
+    obj_ptr<Condition_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Lock_base>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)

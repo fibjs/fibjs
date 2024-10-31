@@ -38,8 +38,8 @@ public:
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpRequest_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -89,8 +89,7 @@ inline void HttpRequest_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& 
     __new(args);
 }
 
-template <typename T>
-void HttpRequest_base::__new(const T& args)
+inline void HttpRequest_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpRequest_base> vr;
 
@@ -101,6 +100,19 @@ void HttpRequest_base::__new(const T& args)
     hr = _new(vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t HttpRequest_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpRequest_base>& retVal)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void HttpRequest_base::s_get_response(const v8::FunctionCallbackInfo<v8::Value>& args)

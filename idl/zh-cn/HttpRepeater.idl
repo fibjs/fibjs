@@ -34,12 +34,12 @@ interface HttpRepeater : Handler
     /*! @brief HttpRepeater 构造函数，创建一个新的 HttpRepeater 对象
      @param urls 指定一组后端服务器 url
     */
-    HttpRepeater(Array urls);
+    HttpRepeater(String urls[]);
 
     /*! @brief 加载一组新的后端 url
      @param urls 指定一组后端服务器 url
     */
-    load(Array urls);
+    load(String urls[]);
 
     /*! @brief 查询当前后端服务器 url 列表*/
     readonly NArray urls;

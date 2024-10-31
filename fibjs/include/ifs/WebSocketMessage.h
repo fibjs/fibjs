@@ -33,8 +33,8 @@ public:
     virtual result_t set_maxSize(int32_t newVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<WebSocketMessage_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,8 +75,7 @@ inline void WebSocketMessage_base::s__new(const v8::FunctionCallbackInfo<v8::Val
     __new(args);
 }
 
-template <typename T>
-void WebSocketMessage_base::__new(const T& args)
+inline void WebSocketMessage_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<WebSocketMessage_base> vr;
 
@@ -92,6 +91,24 @@ void WebSocketMessage_base::__new(const T& args)
     hr = _new(v0, v1, v2, v3, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t WebSocketMessage_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<WebSocketMessage_base>& retVal)
+{
+    obj_ptr<WebSocketMessage_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(4, 0);
+
+    OPT_ARG(int32_t, 0, ws_base::C_BINARY);
+    OPT_ARG(bool, 1, true);
+    OPT_ARG(bool, 2, false);
+    OPT_ARG(int32_t, 3, 67108864);
+
+    hr = _new(v0, v1, v2, v3, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void WebSocketMessage_base::s_get_masked(const v8::FunctionCallbackInfo<v8::Value>& args)

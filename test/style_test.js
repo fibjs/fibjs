@@ -21,15 +21,15 @@ gui.open({
     icon: path.join(__dirname, "gui_files", "toolbox.512.png"),
     left: 100,
     top: 100,
-    width: 400,
+    width: 300,
     height: 200,
     menu: menu_template
 }).setHtml(`<H1>title, resize</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
 
 gui.open({
-    left: 550,
+    left: 450,
     top: 100,
-    width: 400,
+    width: 300,
     height: 200,
     caption: false,
     menu: menu_template
@@ -39,16 +39,16 @@ gui.open({
     icon: path.join(__dirname, "gui_files", "icon512.png"),
     left: 100,
     top: 350,
-    width: 400,
+    width: 300,
     height: 200,
     resizable: false,
     menu: menu_template
 }).setHtml(`<H1>title, no resize</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
 
 gui.open({
-    left: 550,
+    left: 450,
     top: 350,
-    width: 400,
+    width: 300,
     height: 200,
     caption: false,
     resizable: false,
@@ -58,7 +58,7 @@ gui.open({
 gui.open({
     left: 100,
     top: 600,
-    width: 400,
+    width: 300,
     height: 200,
     frame: false,
     menu: menu_template
@@ -81,25 +81,25 @@ const chared_menu = gui.createMenu([
 ]);
 
 gui.open({
-    left: 1000,
+    left: 800,
     top: 100,
-    width: 400,
+    width: 300,
     height: 200,
     menu: chared_menu
 }).setHtml(`<H1>shared  menu</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
 
 gui.open({
-    left: 1000,
+    left: 800,
     top: 350,
-    width: 400,
+    width: 300,
     height: 200,
     menu: chared_menu
 }).setHtml(`<H1>shared  menu</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
 
-// gui.open({
-//     maximize: true
-// }).setHtml(`<H1>Maximize</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
+gui.open({
+    maximize: true
+}).setHtml(`<H1>Maximize</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
 
-// gui.open({
-//     fullscreen: true
-// }).setHtml(`<H1>Fullscreen</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);
+gui.open({
+    fullscreen: true
+}).setHtml(`<H1>Fullscreen</H1><button onclick="window.close()" style="font-size: 50px;">Close</button>`);

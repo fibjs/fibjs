@@ -23,13 +23,13 @@ class Chain_base : public Handler_base {
 
 public:
     // Chain_base
-    static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t append(v8::Local<v8::Array> hdlrs) = 0;
+    static result_t _new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t append(std::vector<obj_ptr<Handler_base>>& hdlrs) = 0;
     virtual result_t append(Handler_base* hdlr) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Chain_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -61,8 +61,7 @@ inline void Chain_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     __new(args);
 }
 
-template <typename T>
-void Chain_base::__new(const T& args)
+inline void Chain_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Chain_base> vr;
 
@@ -70,11 +69,26 @@ void Chain_base::__new(const T& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Chain_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Chain_base>& retVal)
+{
+    obj_ptr<Chain_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -84,7 +98,7 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = pInst->append(v0);
 

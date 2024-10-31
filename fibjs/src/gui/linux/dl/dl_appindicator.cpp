@@ -21,6 +21,8 @@ void dl_appindicator_init()
 {
 }
 
+extern "C" {
+
 AppIndicator* app_indicator_new(const gchar* id, const gchar* icon_name, AppIndicatorCategory category)
 {
     appindicator_func(app_indicator_new);
@@ -55,6 +57,8 @@ void app_indicator_set_menu(AppIndicator* self, GtkMenu* menu)
 {
     appindicator_func(app_indicator_set_menu);
     s_app_indicator_set_menu(self, menu);
+}
+
 }
 
 #endif

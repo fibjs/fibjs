@@ -125,7 +125,7 @@ declare module 'registry' {
      *      @param value 指定多字符串数组
      *      
      */
-    function set(root: number, key: string, value: any[]): void;
+    function set(root: number, key: string, values: string): void;
 
     /**
      * @description 设置指定键值为二进制
@@ -135,6 +135,15 @@ declare module 'registry' {
      *      
      */
     function set(root: number, key: string, value: Class_Buffer): void;
+
+    /**
+     * @description 检查指定键值是否存在
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @return 返回键值是否存在
+     *      
+     */
+    function has(root: number, key: string): boolean;
 
     /**
      * @description 删除指定键值的数值

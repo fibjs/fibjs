@@ -28,6 +28,8 @@ void dl_gtk_init()
 {
 }
 
+extern "C" {
+
 gboolean gtk_init_check(int* argc, char*** argv)
 {
     gtk_func(gtk_init_check);
@@ -68,6 +70,18 @@ void gtk_window_get_size(GtkWindow* window, gint* width, gint* height)
 {
     gtk_func(gtk_window_get_size);
     s_gtk_window_get_size(window, width, height);
+}
+
+gboolean gtk_window_is_active(GtkWindow* window)
+{
+    gtk_func(gtk_window_is_active);
+    return s_gtk_window_is_active(window);
+}
+
+void gtk_window_present(GtkWindow* window)
+{
+    gtk_func(gtk_window_present);
+    s_gtk_window_present(window);
 }
 
 void gtk_container_add(GtkContainer* container, GtkWidget* widget)
@@ -158,6 +172,18 @@ void gtk_window_fullscreen(GtkWindow* window)
 {
     gtk_func(gtk_window_fullscreen);
     s_gtk_window_fullscreen(window);
+}
+
+void gtk_window_set_geometry_hints(GtkWindow* window, GtkWidget* geometry_widget, GdkGeometry* geometry, GdkWindowHints geom_mask)
+{
+    gtk_func(gtk_window_set_geometry_hints);
+    s_gtk_window_set_geometry_hints(window, geometry_widget, geometry, geom_mask);
+}
+
+gboolean gtk_widget_get_visible(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_get_visible);
+    return s_gtk_widget_get_visible(widget);
 }
 
 void gtk_widget_show_all(GtkWidget* widget)
@@ -479,6 +505,67 @@ GtkWidget* gtk_separator_menu_item_new(void)
     return s_gtk_separator_menu_item_new();
 }
 
+GtkWidget* gtk_file_chooser_dialog_new_(const char* title, GtkWindow* parent,
+    GtkFileChooserAction action, const char* b1, GtkResponseType t1, const char* b2, GtkResponseType t2)
+{
+    gtk_func(gtk_file_chooser_dialog_new);
+    return s_gtk_file_chooser_dialog_new(title, parent, action, b1, t1, b2, t2, NULL);
+}
+
+GType gtk_file_chooser_get_type(void)
+{
+    gtk_func(gtk_file_chooser_get_type);
+    return s_gtk_file_chooser_get_type();
+}
+
+gboolean gtk_file_chooser_set_current_folder(GtkFileChooser* chooser, const gchar* filename)
+{
+    gtk_func(gtk_file_chooser_set_current_folder);
+    return s_gtk_file_chooser_set_current_folder(chooser, filename);
+}
+
+void gtk_file_chooser_set_select_multiple(GtkFileChooser* chooser, gboolean select_multiple)
+{
+    gtk_func(gtk_file_chooser_set_select_multiple);
+    s_gtk_file_chooser_set_select_multiple(chooser, select_multiple);
+}
+
+GSList* gtk_file_chooser_get_filenames(GtkFileChooser* chooser)
+{
+    gtk_func(gtk_file_chooser_get_filenames);
+    return s_gtk_file_chooser_get_filenames(chooser);
+}
+
+char* gtk_file_chooser_get_filename(GtkFileChooser* chooser)
+{
+    gtk_func(gtk_file_chooser_get_filename);
+    return s_gtk_file_chooser_get_filename(chooser);
+}
+
+void gtk_file_chooser_add_filter(GtkFileChooser* chooser, GtkFileFilter* filter)
+{
+    gtk_func(gtk_file_chooser_add_filter);
+    s_gtk_file_chooser_add_filter(chooser, filter);
+}
+
+GtkFileFilter* gtk_file_filter_new(void)
+{
+    gtk_func(gtk_file_filter_new);
+    return s_gtk_file_filter_new();
+}
+
+void gtk_file_filter_set_name(GtkFileFilter* filter, const gchar* name)
+{
+    gtk_func(gtk_file_filter_set_name);
+    s_gtk_file_filter_set_name(filter, name);
+}
+
+void gtk_file_filter_add_pattern(GtkFileFilter* filter, const gchar* pattern)
+{
+    gtk_func(gtk_file_filter_add_pattern);
+    s_gtk_file_filter_add_pattern(filter, pattern);
+}
+
 const PangoFontDescription* gtk_style_context_get_font(GtkStyleContext* context, GtkStateFlags state)
 {
     gtk_func(gtk_style_context_get_font);
@@ -521,6 +608,30 @@ void gtk_widget_show(GtkWidget* widget)
     s_gtk_widget_show(widget);
 }
 
+GtkWidget* gtk_message_dialog_new_(GtkWindow* parent, GtkDialogFlags flags, GtkMessageType type, GtkButtonsType buttons, const gchar* message)
+{
+    gtk_func(gtk_message_dialog_new);
+    return s_gtk_message_dialog_new(parent, flags, type, buttons, "%s", message);
+}
+
+GType gtk_dialog_get_type(void)
+{
+    gtk_func(gtk_dialog_get_type);
+    return s_gtk_dialog_get_type();
+}
+
+gint gtk_dialog_run(GtkDialog* dialog)
+{
+    gtk_func(gtk_dialog_run);
+    return s_gtk_dialog_run(dialog);
+}
+
+void gtk_window_set_modal(GtkWindow* window, gboolean modal)
+{
+    gtk_func(gtk_window_set_modal);
+    s_gtk_window_set_modal(window, modal);
+}
+
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
 {
     gtk_func(g_main_loop_new);
@@ -549,6 +660,7 @@ GQuark g_io_error_quark(void)
 {
     gtk_func(g_io_error_quark);
     return s_g_io_error_quark();
+}
 }
 
 #endif

@@ -70,6 +70,8 @@ if(m.memType == 'method'){
             if(p.type)
                 ps += p.type + ' ';
             ps += p.name;
+            if(p.isarray)
+                ps += "[]";
     
             if(p.default)
                 ps += ' = ' + def_value(p.default, p);

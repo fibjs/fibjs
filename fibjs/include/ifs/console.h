@@ -90,6 +90,9 @@ public:
             isolate->NewString("not a constructor"));
     }
 
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<console_base>& retVal)
+    { return CALL_E_TYPEMISMATCH; }
+
 public:
     static void s_static_get_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);

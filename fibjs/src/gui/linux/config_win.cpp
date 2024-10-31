@@ -14,6 +14,7 @@
 #include <webkit2/webkit2.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/mime.h"
@@ -70,14 +71,14 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
     });
 }
 
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     dl_init();
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
     webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "fs", fs_scheme_request_callback, NULL, NULL);
 
-    gui_ready.set();
+    g_gui_ready.set();
 
     g_main_loop_run(main_loop);
 }
@@ -85,6 +86,14 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 static gboolean on_close(GObject* object, GParamSpec* pspec, gpointer data)
 {
     WebView* webview = (WebView*)data;
+
+    if (webview->m_options->hideOnClose.value()) {
+        if (gtk_widget_get_visible(GTK_WIDGET(webview->m_window))) {
+            gtk_widget_hide(GTK_WIDGET(webview->m_window));
+        }
+        return TRUE;
+    }
+
     webview->release();
     return FALSE;
 }
@@ -110,7 +119,7 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
         ei->add("left", x);
         ei->add("top", y);
 
-        webview->_emit("move", ei);
+        ei->emit();
     }
 
     if (width != webview->m_width || height != webview->m_height) {
@@ -121,7 +130,7 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
         ei->add("width", width);
         ei->add("height", height);
 
-        webview->_emit("resize", ei);
+        ei->emit();
     }
 
     return FALSE;
@@ -133,9 +142,7 @@ static gboolean on_focus_event(GtkWidget* widget, GdkEvent* event, gpointer data
         GdkEventFocus* focus_event = (GdkEventFocus*)event;
         if (focus_event->in) {
             WebView* webview = (WebView*)data;
-
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
-            webview->_emit("focus", ei);
+            (new EventInfo(webview, "focus"))->emit();
         }
     }
     return FALSE;
@@ -147,9 +154,7 @@ static gboolean on_blur_event(GtkWidget* widget, GdkEvent* event, gpointer data)
         GdkEventFocus* focus_event = (GdkEventFocus*)event;
         if (!focus_event->in) {
             WebView* webview = (WebView*)data;
-
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
-            webview->_emit("blur", ei);
+            (new EventInfo(webview, "blur"))->emit();
         }
     }
     return FALSE;
@@ -236,6 +241,13 @@ void WebView::config()
     if (y == CW_USEDEFAULT)
         y = (screen_height - nHeight) / 2;
 
+    GdkGeometry hints;
+    hints.min_width = m_options->minWidth.value();
+    hints.min_height = m_options->minHeight.value();
+    hints.max_width = m_options->maxWidth.value_or(__INT32_MAX__);
+    hints.max_height = m_options->maxHeight.value_or(__INT32_MAX__);
+    gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &hints, (GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
+
     gtk_window_move(window, x, y);
     gtk_window_set_default_size(window, nWidth, nHeight);
     if (m_options->fullscreen.value())
@@ -262,7 +274,8 @@ void WebView::config()
         g_object_unref(loader);
     }
 
-    gtk_widget_show_all(GTK_WIDGET(window));
+    if (m_options->visible.value())
+        gtk_widget_show_all(GTK_WIDGET(window));
 
     gtk_window_get_position(window, &m_x, &m_y);
     gtk_window_get_size(window, &m_width, &m_height);
@@ -274,7 +287,6 @@ void WebView::config()
 
     Ref();
     m_ready->set();
-    _emit("open");
 }
 
 }

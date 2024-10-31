@@ -28,6 +28,8 @@ void dl_webkit_init()
 {
 }
 
+extern "C" {
+
 GtkWidget* webkit_web_view_new()
 {
     webkit_func(webkit_web_view_new);
@@ -44,6 +46,24 @@ WebKitUserContentManager* webkit_user_content_manager_new(void)
 {
     webkit_func(webkit_user_content_manager_new);
     return s_webkit_user_content_manager_new();
+}
+
+const gchar* webkit_settings_get_user_agent(WebKitSettings* settings)
+{
+    webkit_func(webkit_settings_get_user_agent);
+    return s_webkit_settings_get_user_agent(settings);
+}
+
+void webkit_settings_set_user_agent(WebKitSettings* settings, const gchar* user_agent)
+{
+    webkit_func(webkit_settings_set_user_agent);
+    s_webkit_settings_set_user_agent(settings, user_agent);
+}
+
+gboolean webkit_web_view_is_loading(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_is_loading);
+    return s_webkit_web_view_is_loading(web_view);
 }
 
 WebKitUserScript* webkit_user_script_new(const gchar* source, WebKitUserContentInjectedFrames injected_frames,
@@ -70,6 +90,24 @@ void webkit_web_view_run_javascript(WebKitWebView* web_view, const gchar* script
 {
     webkit_func(webkit_web_view_run_javascript);
     s_webkit_web_view_run_javascript(web_view, script, cancellable, callback, user_data);
+}
+
+WebKitJavascriptResult* webkit_web_view_run_javascript_finish(WebKitWebView* web_view, GAsyncResult* result, GError** error)
+{
+    webkit_func(webkit_web_view_run_javascript_finish);
+    return s_webkit_web_view_run_javascript_finish(web_view, result, error);
+}
+
+GQuark webkit_javascript_error_quark(void)
+{
+    webkit_func(webkit_javascript_error_quark);
+    return s_webkit_javascript_error_quark();
+}
+
+void webkit_javascript_result_unref(WebKitJavascriptResult* js_result)
+{
+    webkit_func(webkit_javascript_result_unref);
+    s_webkit_javascript_result_unref(js_result);
 }
 
 JSCValue* webkit_javascript_result_get_js_value(WebKitJavascriptResult* js_result)
@@ -179,6 +217,33 @@ void webkit_web_view_go_forward(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_go_forward);
     s_webkit_web_view_go_forward(web_view);
+}
+
+void webkit_web_view_get_snapshot(WebKitWebView* web_view, WebKitSnapshotRegion region, WebKitSnapshotOptions options,
+    GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    webkit_func(webkit_web_view_get_snapshot);
+    s_webkit_web_view_get_snapshot(web_view, region, options, cancellable, callback, user_data);
+}
+
+cairo_surface_t* webkit_web_view_get_snapshot_finish(WebKitWebView* web_view, GAsyncResult* result, GError** error)
+{
+    webkit_func(webkit_web_view_get_snapshot_finish);
+    return s_webkit_web_view_get_snapshot_finish(web_view, result, error);
+}
+
+cairo_status_t cairo_surface_write_to_png_stream(cairo_surface_t* surface, cairo_write_func_t write_func, void* closure)
+{
+    webkit_func(cairo_surface_write_to_png_stream);
+    return s_cairo_surface_write_to_png_stream(surface, write_func, closure);
+}
+
+void cairo_surface_destroy(cairo_surface_t* surface)
+{
+    webkit_func(cairo_surface_destroy);
+    s_cairo_surface_destroy(surface);
+}
+
 }
 
 #endif

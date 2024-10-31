@@ -11,7 +11,9 @@
 #include <windows.h>
 #include <wrl.h>
 #include <shlwapi.h>
+#include <shlobj.h>
 #include "loader/WebView2.h"
+#include "loader/WebView2EnvironmentOptions.h"
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -25,7 +27,7 @@
 
 namespace fibjs {
 
-extern ICoreWebView2Environment* g_env;
+ICoreWebView2Environment* g_env = nullptr;
 extern const wchar_t* szWndClassMain;
 
 exlib::string fs_url_to_path(const exlib::string& url)
@@ -44,8 +46,64 @@ exlib::string fs_url_to_path(const exlib::string& url)
     return path;
 }
 
+std::wstring GetUserDataFolderPath()
+{
+    wchar_t path[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
+        return std::wstring(path) + L"\\.fibjs";
+    }
+    return L"";
+}
+
+Microsoft::WRL::ComPtr<CoreWebView2EnvironmentOptions> GetWebView2Options()
+{
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
+    if (SUCCEEDED(options.As(&options4))) {
+        auto scheme = Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"fs");
+        const wchar_t* everything = L"*";
+        scheme->SetAllowedOrigins(1, &everything);
+        scheme->put_TreatAsSecure(TRUE);
+        scheme->put_HasAuthorityComponent(FALSE);
+
+        std::vector<ICoreWebView2CustomSchemeRegistration*> registrations;
+        registrations.push_back(scheme.Get());
+        options4->SetCustomSchemeRegistrations(registrations.size(),
+            registrations.data());
+    }
+    return options;
+}
+
+void init_WebView_Environment()
+{
+    if (!g_env) {
+        std::wstring userDataFolder = GetUserDataFolderPath();
+        auto options = GetWebView2Options();
+        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), options.Get(),
+            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+                    if (FAILED(result)) {
+                        printf("Failed to create WebView2 environment. Error: 0x%08X\n", result);
+                        exit(-1);
+                    }
+
+                    g_env = env;
+                    g_env->AddRef();
+
+                    return S_OK;
+                })
+                .Get());
+        if (FAILED(hr)) {
+            printf("Failed to create WebView2 environment. Error: 0x%08X\n", hr);
+            exit(-1);
+        }
+    }
+}
+
 result_t WebView::createWebView()
 {
+    init_WebView_Environment();
+
     HINSTANCE hInstance = GetModuleHandle(NULL);
     m_window = CreateWindowExW(0, szWndClassMain, L"",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -68,6 +126,8 @@ result_t WebView::createWebView()
 
                 ICoreWebView2* webView = nullptr;
                 controller->get_CoreWebView2(&webView);
+
+                controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
 
                 if (!m_options->devtools.value()) {
                     ICoreWebView2Settings* settings = nullptr;
@@ -124,9 +184,27 @@ result_t WebView::createWebView()
                         .Get(),
                     nullptr);
 
-                webView->add_NavigationCompleted(
-                    Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                        [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                webView->add_NavigationStarting(
+                    Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+                        [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                            m_isLoading = true;
+
+                            obj_ptr<EventInfo> ei = new EventInfo(this, "loading");
+
+                            LPWSTR uri = nullptr;
+                            args->get_Uri(&uri);
+                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            CoTaskMemFree(uri);
+
+                            ei->emit();
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr);
+
+                webView->add_ContentLoading(
+                    Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
+                        [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                             const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
                                                     "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
                                                     "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
@@ -136,8 +214,24 @@ result_t WebView::createWebView()
 
                             m_webview = sender;
                             m_ready->set();
-                            _emit("open");
 
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr);
+
+                webView->add_NavigationCompleted(
+                    Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+                        [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                            m_isLoading = false;
+                            obj_ptr<EventInfo> ei = new EventInfo(this, "load");
+
+                            LPWSTR uri = nullptr;
+                            sender->get_Source(&uri);
+                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            CoTaskMemFree(uri);
+
+                            ei->emit();
                             return S_OK;
                         })
                         .Get(),

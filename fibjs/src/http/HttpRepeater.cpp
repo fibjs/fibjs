@@ -43,7 +43,7 @@ result_t HttpRepeater_base::_new(exlib::string url, obj_ptr<HttpRepeater_base>& 
     return 0;
 }
 
-result_t HttpRepeater_base::_new(v8::Local<v8::Array> urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This)
+result_t HttpRepeater_base::_new(std::vector<exlib::string>& urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<HttpRepeater> repeater = new HttpRepeater();
     result_t hr = repeater->load(urls);
@@ -66,11 +66,11 @@ HttpRepeater::HttpRepeater()
     m_idx = 0;
 }
 
-result_t HttpRepeater::load(v8::Local<v8::Array> urls)
+result_t HttpRepeater::load(std::vector<exlib::string>& urls)
 {
     std::vector<obj_ptr<Url>> _urls;
     result_t hr;
-    int32_t len = urls->Length();
+    int32_t len = urls.size();
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
@@ -78,14 +78,7 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     for (int32_t i = 0; i < len; i++) {
-        JSValue v = urls->Get(context, i);
-        exlib::string url;
-
-        hr = GetArgumentValue(isolate, v, url, true);
-        if (hr < 0)
-            return hr;
-
-        hr = add_url(_urls, url);
+        hr = add_url(_urls, urls[i]);
         if (hr < 0)
             return hr;
     }

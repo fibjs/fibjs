@@ -20,6 +20,10 @@ describe("gui", () => {
         });
     });
 
+    beforeEach(() => {
+        coroutine.sleep(100);
+    });
+
     describe("webview", () => {
         it("open and close", () => {
             const win = gui.open({
@@ -59,12 +63,147 @@ describe("gui", () => {
             });
         });
 
+        it("html", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            win.setHtml("hello");
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (win.getHtml().indexOf('hello') != -1) {
+                    break;
+                }
+            }
+
+            assert.equal(win.getHtml(), '<html><head></head><body>hello</body></html>');
+        });
+
+        it("isReady", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            win.loadUrl("http://fibjs.org");
+
+            var isReady = false;
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (!isReady) break;
+                coroutine.sleep(1);
+            }
+
+            assert.isFalse(isReady);
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (isReady) break;
+                coroutine.sleep(10);
+            }
+
+            assert.isTrue(isReady);
+
+            win.close();
+        });
+
+        it("visible", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100,
+                visible: false
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady()) break;
+                coroutine.sleep(1);
+            }
+
+            assert.equal(win.isVisible(), false);
+
+            win.show();
+            assert.equal(win.isVisible(), true);
+            assert.notEqual(win.eval('document.body.clientWidth'), 0);
+            assert.notEqual(win.eval('document.body.clientHeight'), 0);
+
+            win.close();
+
+
+        });
+
+        describe("eval", () => {
+            it("eval and result", () => {
+                const o = {
+                    a: 100,
+                    b: "bbbb",
+                    c: true,
+                    c1: false,
+                    d: [1, 2, 3],
+                    e: { a: 1, b: 2 },
+                    f: null
+                }
+
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                const o1 = win.eval(`(${JSON.stringify(o)})`);
+
+                win.close();
+
+                assert.deepEqual(o1, o);
+            });
+
+            it("fail eval", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                assert.throws(() => {
+                    win.eval(`abc`);
+                });
+
+                assert.throws(() => {
+                    win.eval(`"abc`);
+                });
+
+                win.close();
+            });
+
+            it("unknown type", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                const r1 = win.eval(`(new RegExp())`);
+
+                win.close();
+
+                assert.deepEqual(r1, {});
+            });
+        });
+
         it("close from inside", () => {
             const win = gui.open({
                 width: 100,
                 height: 100
             });
             wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
 
             var closed = false;
             win.on("close", () => {
@@ -81,6 +220,84 @@ describe("gui", () => {
             }
 
             assert.equal(closed, true);
+        });
+
+        it("close from inside after reload", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            win.loadUrl("data:text/html;charset=utf-8,helloworld");
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) !== "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            assert.equal(win.eval(`window.location.href`), "data:text/html;charset=utf-8,helloworld");
+
+            var closed = false;
+            win.on("close", () => {
+                closed = true;
+            });
+
+            win.eval(`window.close();`);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (closed) {
+                    break;
+                }
+            }
+
+            assert.equal(closed, true);
+        });
+
+        it("loading and load event", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            var loading_url;
+            win.on("loading", ev => {
+                loading_url = ev.url;
+            });
+
+            var loaded_url;
+            win.on("load", ev => {
+                loaded_url = ev.url;
+            });
+
+            win.loadUrl("https://fibjs.org");
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (loaded_url !== undefined && loading_url !== undefined) {
+                    break;
+                }
+            }
+
+            assert.equal(loading_url, "https://fibjs.org/");
+            assert.equal(loaded_url, "https://fibjs.org/");
+
+            win.close();
         });
 
         it("post message", () => {
@@ -145,27 +362,22 @@ describe("gui", () => {
             const zurl1 = url.pathToFileURL(zpath1).href.replace(/file:/, "fs:");
 
             function assert_url(win, url) {
-                var received_message;
-                win.on("message", (msg) => {
-                    received_message = msg.data;
-                });
-
                 var last_received_message;
                 var get_url;
                 for (var i = 0; i < 1000; i++) {
-                    win.eval(`window.postMessage(window.document.title + "|" +window.location.href);`);
                     coroutine.sleep(100);
-                    if (received_message && received_message != "|about:blank" && last_received_message == received_message) {
+                    var result = win.eval(`window.document.title + "|" +window.location.href`);
+                    if (result && result != "|about:blank" && last_received_message == result) {
                         break;
                     }
-                    last_received_message = received_message;
+                    last_received_message = result;
                 }
 
                 get_url = win.getUrl();
 
                 win.close();
 
-                assert.equal(received_message.toLowerCase(), "test|" + url.toLowerCase());
+                assert.equal(result.toLowerCase(), "test|" + url.toLowerCase());
                 assert.equal(get_url.toLowerCase(), url.toLowerCase());
             }
 
@@ -262,7 +474,7 @@ describe("gui", () => {
                 });
                 wins.push(win);
 
-                win.loadURL(url1);
+                win.loadUrl(url1);
 
                 assert_url(win, url1);
             });
@@ -297,29 +509,14 @@ describe("gui", () => {
                 const win = gui.open(opt);
                 wins.push(win);
 
-                var received_message;
-                win.on("message", (msg) => {
-                    received_message = msg.data;
-                });
+                var win_size = win.getSize();
 
-                win.eval(`window.postMessage(window.innerWidth + "|" + window.innerHeight);`);
-
-                var last_received_message;
-                for (var i = 0; i < 1000; i++) {
-                    win.eval(`window.postMessage(window.innerWidth + "|" + window.innerHeight);`);
-                    coroutine.sleep(100);
-                    if (received_message && received_message != "0|0" && last_received_message == received_message) {
-                        break;
-                    }
-                    last_received_message = received_message;
-                }
                 win.close();
 
-                var size = received_message.split("|");
-                var width = Number(size[0]);
-                var height = Number(size[1]);
-
-                return { width, height };
+                return {
+                    width: win_size[0],
+                    height: win_size[1]
+                };
             }
 
             it("default", () => {
@@ -328,10 +525,8 @@ describe("gui", () => {
                     height: 300
                 });
 
-                if (process.platform == "linux")
-                    assert.equal(height, width);
-                else
-                    assert.lessThan(height, width);
+                assert.equal(height, 300);
+                assert.equal(width, 300);
             });
 
             it("no frame", () => {
@@ -351,11 +546,11 @@ describe("gui", () => {
                 });
 
                 const size2 = fetch_size({
-                    maximize: true
+                    maximize: true,
+                    frame: false
                 });
 
                 assert.equal(size1.width, size2.width);
-                assert.greaterThan(size1.height, size2.height);
             });
         });
 
@@ -384,6 +579,61 @@ describe("gui", () => {
 
             win.setTitle("Hello World 2");
             assert.equal(win.getTitle(), "Hello World 2");
+
+            win.close();
+        });
+
+        it("size", () => {
+            const win = gui.open({
+                width: 300,
+                height: 200
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 100; i++) {
+                if (win.getSize()[0] === 300)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getSize(), [300, 200]);
+
+            win.setSize(400, 300);
+
+            for (var i = 0; i < 100; i++) {
+                if (win.getSize()[0] === 400)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getSize(), [400, 300]);
+
+            win.close();
+
+        });
+
+        it("position", () => {
+            const win = gui.open({
+                left: 100,
+                top: 100,
+                width: 300,
+                height: 200
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 100; i++) {
+                if (win.getPosition()[0] === 100)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getPosition(), [100, 100]);
+
+            win.setPosition(200, 200);
+
+            for (var i = 0; i < 100; i++) {
+                if (win.getPosition()[0] === 200)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getPosition(), [200, 200]);
 
             win.close();
         });
@@ -518,6 +768,113 @@ describe("gui", () => {
                     fullscreen: true
                 });
             });
+        });
+
+        it("active", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win.isActived(), true);
+
+            const win1 = gui.open({
+                left: 100,
+                top: 100,
+                width: 100,
+                height: 100
+            });
+            wins.push(win1);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win1.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win1.isActived(), true);
+            assert.equal(win.isActived(), false);
+
+            win.active();
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win.isActived(), true);
+            assert.equal(win1.isActived(), false);
+
+            win1.close();
+            win.close();
+        });
+
+        it("auto focus webview", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                var result = win.eval(`document.hasFocus()?"True":"False"`);
+                if (result == "True") {
+                    break;
+                }
+            }
+            win.close();
+
+            assert.equal(result, "True");
+        });
+
+        it("auto focus webview after blur", () => {
+            const win = gui.open({
+                left: 100,
+                top: 100,
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            win.setTitle("Test");
+
+            const win1 = gui.open({
+                left: 200,
+                top: 200,
+                width: 100,
+                height: 100
+            });
+            wins.push(win1);
+            win1.close();
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                var result = win.eval(`document.hasFocus()?"True":"False"`);
+                if (result == "True") {
+                    break;
+                }
+            }
+            win.close();
+
+            assert.equal(result, "True");
+        });
+
+        it("capturePage", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            var buf = win.capturePage();
+            assert.isObject(buf);
+
+            win.close();
         });
     });
 

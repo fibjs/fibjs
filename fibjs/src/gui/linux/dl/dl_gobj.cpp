@@ -28,6 +28,8 @@ void dl_gobj_init()
 {
 }
 
+extern "C" {
+
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {
     gobj_func(g_type_check_instance_cast);
@@ -59,10 +61,22 @@ void g_object_unref(gpointer object)
     s_g_object_unref(object);
 }
 
+void g_slist_free(GSList* list)
+{
+    gobj_func(g_slist_free);
+    s_g_slist_free(list);
+}
+
 GError* g_error_new_valist(GQuark domain, gint code, const gchar* format, va_list args)
 {
     gobj_func(g_error_new_valist);
     return s_g_error_new_valist(domain, code, format, args);
+}
+
+gboolean g_error_matches(const GError* error, GQuark domain, gint code)
+{
+    gobj_func(g_error_matches);
+    return s_g_error_matches(error, domain, code);
 }
 
 GError* g_error_new(GQuark domain, gint code, const gchar* format, ...)
@@ -75,10 +89,17 @@ GError* g_error_new(GQuark domain, gint code, const gchar* format, ...)
     return ret;
 }
 
+void g_clear_error(GError** error)
+{
+    gobj_func(g_clear_error);
+    s_g_clear_error(error);
+}
+
 void g_error_free(GError* error)
 {
     gobj_func(g_error_free);
     s_g_error_free(error);
+}
 }
 
 #endif

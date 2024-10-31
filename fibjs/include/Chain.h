@@ -157,7 +157,7 @@ public:
 
 public:
     // Chain_base
-    virtual result_t append(v8::Local<v8::Array> hdlrs);
+    virtual result_t append(std::vector<obj_ptr<Handler_base>>& hdlrs);
     virtual result_t append(Handler_base* hdlr);
 
 private:

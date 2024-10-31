@@ -42,14 +42,14 @@ declare class Class_HttpRepeater extends Class_Handler {
      *      @param urls 指定一组后端服务器 url
      *     
      */
-    constructor(urls: any[]);
+    constructor(urls: string);
 
     /**
      * @description 加载一组新的后端 url
      *      @param urls 指定一组后端服务器 url
      *     
      */
-    load(urls: any[]): void;
+    load(urls: string): void;
 
     /**
      * @description 查询当前后端服务器 url 列表

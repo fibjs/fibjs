@@ -61,8 +61,8 @@ public:
     virtual result_t set_ontrack(v8::Local<v8::Function> newVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCPeerConnection_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -162,8 +162,7 @@ inline void RTCPeerConnection_base::s__new(const v8::FunctionCallbackInfo<v8::Va
     __new(args);
 }
 
-template <typename T>
-void RTCPeerConnection_base::__new(const T& args)
+inline void RTCPeerConnection_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<RTCPeerConnection_base> vr;
 
@@ -176,6 +175,21 @@ void RTCPeerConnection_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t RTCPeerConnection_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCPeerConnection_base>& retVal)
+{
+    obj_ptr<RTCPeerConnection_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void RTCPeerConnection_base::s_createDataChannel(const v8::FunctionCallbackInfo<v8::Value>& args)

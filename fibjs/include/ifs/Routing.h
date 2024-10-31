@@ -47,8 +47,8 @@ public:
     virtual result_t find(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Routing_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -96,8 +96,7 @@ inline void Routing_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args
     __new(args);
 }
 
-template <typename T>
-void Routing_base::__new(const T& args)
+inline void Routing_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
@@ -117,6 +116,28 @@ void Routing_base::__new(const T& args)
     hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Routing_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Routing_base>& retVal)
+{
+    obj_ptr<Routing_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    hr = _new(v0, v1, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)

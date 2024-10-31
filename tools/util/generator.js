@@ -50,7 +50,7 @@ const _formatMethodReturnType = (member) => {
 const _formatParamTypeName = (param) => {
     if (param.type === '...')
         return `...${param.name}`
-    return `${param.type} ${param.name}`
+    return `${param.type} ${param.name}${param.isarray?"[]":""}`
 }
 
 const _formatConstructorObject = (member) => {

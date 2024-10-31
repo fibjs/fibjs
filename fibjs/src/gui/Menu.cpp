@@ -14,14 +14,14 @@
 
 namespace fibjs {
 
-result_t gui_base::createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal)
+result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
 {
     obj_ptr<Menu> menu = new Menu();
     retVal = menu;
     return menu->_append_items(items);
 }
 
-result_t Menu::create(v8::Local<v8::Array> items, obj_ptr<Menu>& retVal)
+result_t Menu::create(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu>& retVal)
 {
     obj_ptr<Menu> menu = new Menu();
     retVal = menu;
@@ -176,7 +176,8 @@ result_t MenuItem::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
 {
     obj_ptr<MenuItem> mi;
-    result_t hr = MenuItem::load(item, mi);
+    Isolate* isolate = Isolate::current(item);
+    result_t hr = MenuItem::load(isolate, item, mi);
     if (hr < 0)
         return hr;
 
@@ -251,20 +252,10 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
     return 0;
 }
 
-result_t Menu::_append_items(v8::Local<v8::Array> items)
+result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    result_t hr;
-    int32_t len = items->Length();
-
-    for (int32_t i = 0; i < len; i++) {
-        v8::Local<v8::Value> item = items->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        if (!IsJSObject(item))
-            return Runtime::setError("Menu: Invalid menu item");
-
-        v8::Local<v8::Object> o = item.As<v8::Object>();
-        hr = append(o);
+    for (auto& item : items) {
+        result_t hr = append(item);
         if (hr < 0)
             return hr;
     }

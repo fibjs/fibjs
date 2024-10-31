@@ -107,7 +107,7 @@ private:
 public:
     void onError(result_t hr, const char* msg)
     {
-        _emit("error", new EventInfo(this, "error", hr, msg));
+        (new EventInfo(this, "error", hr, msg))->emit();
     }
 
 public:

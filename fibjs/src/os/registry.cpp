@@ -306,24 +306,19 @@ result_t registry_base::set(int32_t root, exlib::string key, exlib::string value
         (int32_t)(sizeof(wchar_t) * (wvalue.length() + 1)));
 }
 
-result_t registry_base::set(int32_t root, exlib::string key, v8::Local<v8::Array> value)
+result_t registry_base::set(int32_t root, exlib::string key, std::vector<exlib::string>& values)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
-    int32_t len = value->Length();
+    int32_t len = values.size();
     int32_t i;
     result_t hr;
     exlib::wstring data;
 
     for (i = 0; i < len; i++) {
-        exlib::string v;
         exlib::wstring wv;
 
-        hr = GetArgumentValue(isolate, JSValue(value->Get(context, i)), v, false);
-        if (hr < 0)
-            return hr;
-
-        wv = utf8to16String(v);
+        wv = utf8to16String(values[i]);
         data.append(wv.c_str(), wv.length() + 1);
     }
 
@@ -337,6 +332,26 @@ result_t registry_base::set(int32_t root, exlib::string key, Buffer_base* value)
 
     value->toString(data);
     return set_reg(root, key, REG_BINARY, data.c_str(), (int32_t)data.length());
+}
+
+result_t registry_base::has(int32_t root, exlib::string key, bool& retVal)
+{
+    Registry r;
+    result_t hr = r.open(root, key);
+    if (hr < 0) {
+        retVal = false;
+        return 0;
+    }
+
+    DWORD dwType = 0;
+    LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, NULL);
+    if (lResult != ERROR_SUCCESS) {
+        retVal = false;
+        return 0;
+    }
+
+    retVal = true;
+    return 0;
 }
 
 result_t registry_base::del(int32_t root, exlib::string key)

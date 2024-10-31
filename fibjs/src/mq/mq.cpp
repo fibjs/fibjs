@@ -35,7 +35,7 @@ result_t Handler_base::_new(exlib::string hdlr, obj_ptr<Handler_base>& retVal,
     return 0;
 }
 
-result_t Handler_base::_new(v8::Local<v8::Array> hdlrs, obj_ptr<Handler_base>& retVal,
+result_t Handler_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<Handler_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<Chain_base> chain;

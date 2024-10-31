@@ -19,6 +19,7 @@
 #include "ifs/encoding.h"
 #include "WebView.h"
 #include "EventInfo.h"
+#include <regex>
 
 namespace fibjs {
 
@@ -48,7 +49,7 @@ static void handle_message(WebKitUserContentManager* manager, WebKitJavascriptRe
     WebView* _webView = (WebView*)user_data;
     obj_ptr<EventInfo> ei = new EventInfo(_webView, "message");
     ei->add("data", (char*)value_str);
-    _webView->_emit("message", ei);
+    ei->emit();
 
     g_free(value_str);
 }
@@ -82,11 +83,46 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
     g_free(value_str);
 }
 
+std::string filterUserAgent(const std::string& userAgent)
+{
+    std::regex androidRegex("; like Android [0-9]+\\.[0-9]+");
+    std::regex mobileRegex(" Mobile");
+
+    std::string filteredAgent = std::regex_replace(userAgent, androidRegex, "");
+    filteredAgent = std::regex_replace(filteredAgent, mobileRegex, "");
+
+    return filteredAgent;
+}
+
 static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpointer user_data)
 {
     WebView* _webView = (WebView*)user_data;
     const char* title = webkit_web_view_get_title(webview);
     gtk_window_set_title(GTK_WINDOW(_webView->m_window), title);
+}
+
+static void handle_load_changed(WebKitWebView* webview, WebKitLoadEvent load_event, gpointer user_data)
+{
+    WebView* _webView = (WebView*)user_data;
+
+    switch (load_event) {
+    case WEBKIT_LOAD_STARTED: {
+        obj_ptr<EventInfo> ei = new EventInfo(_webView, "loading");
+        ei->add("url", webkit_web_view_get_uri(webview));
+        ei->emit();
+
+        break;
+    }
+    case WEBKIT_LOAD_FINISHED: {
+        obj_ptr<EventInfo> ei = new EventInfo(_webView, "load");
+        ei->add("url", webkit_web_view_get_uri(webview));
+        ei->emit();
+
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 result_t WebView::createWebView()
@@ -112,14 +148,20 @@ result_t WebView::createWebView()
     GtkWidget* webview = webkit_web_view_new_with_user_content_manager(manager);
     m_webview = webview;
 
+    WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
+
+    const char* current_agent = webkit_settings_get_user_agent(settings);
+    std::string filtered_agent = filterUserAgent(current_agent);
+    webkit_settings_set_user_agent(settings, filtered_agent.c_str());
+
     g_signal_connect(webview, "notify::title", G_CALLBACK(handle_title_change), this);
+    g_signal_connect(webview, "load-changed", G_CALLBACK(handle_load_changed), this);
 
     GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(vbox), webview, TRUE, TRUE, 0);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
     if (m_options->devtools.value()) {
-        WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
         webkit_settings_set_enable_developer_extras(settings, TRUE);
     }
 

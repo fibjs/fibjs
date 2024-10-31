@@ -17,12 +17,13 @@
 #include "EventInfo.h"
 #import <WebKit/WebKit.h>
 
-@interface MessageHandler : NSObject <WKScriptMessageHandler, WKURLSchemeHandler>
+@interface WKWebViewHandler : WKWebView <WKScriptMessageHandler, WKURLSchemeHandler, WKNavigationDelegate>
 @property (nonatomic, assign) fibjs::WebView* webView;
 - (instancetype)initWithWebView:(fibjs::WebView*)webView;
+- (void)removeFromSuperview;
 @end
 
-@implementation MessageHandler
+@implementation WKWebViewHandler
 - (instancetype)initWithWebView:(fibjs::WebView*)webView
 {
     self = [super init];
@@ -32,33 +33,59 @@
     return self;
 }
 
+- (void)removeFromSuperview
+{
+    _webView = nil;
+    [super removeFromSuperview];
+}
+
 - (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id>*)change context:(void*)context
 {
-    if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
-        NSString* newTitle = change[NSKeyValueChangeNewKey];
-        [_webView->m_window setTitle:newTitle];
-    } else {
-        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    if (_webView) {
+        if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
+            NSString* newTitle = change[NSKeyValueChangeNewKey];
+            [_webView->m_window setTitle:newTitle];
+        }
     }
 }
 
 - (void)userContentController:(WKUserContentController*)userContentController didReceiveScriptMessage:(WKScriptMessage*)message
 {
-    if ([message.body isKindOfClass:[NSString class]]) {
-        if ([message.name isEqualToString:@"message"]) {
-            fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
-            ei->add("data", [message.body UTF8String]);
-            _webView->_emit("message", ei);
-        } else if ([message.name isEqualToString:@"command"]) {
-            if ([message.body isEqualToString:@"close"])
-                _webView->internal_close();
-            else if ([message.body isEqualToString:@"minimize"])
-                _webView->internal_minimize();
-            else if ([message.body isEqualToString:@"maximize"])
-                _webView->internal_maximize();
-            else if ([message.body isEqualToString:@"drag"])
-                [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
+    if (_webView) {
+        if ([message.body isKindOfClass:[NSString class]]) {
+            if ([message.name isEqualToString:@"message"]) {
+                fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
+                ei->add("data", [message.body UTF8String]);
+                _webView->_emit("message", ei);
+            } else if ([message.name isEqualToString:@"command"]) {
+                if ([message.body isEqualToString:@"close"])
+                    [_webView->m_window performClose:nil];
+                else if ([message.body isEqualToString:@"minimize"])
+                    _webView->internal_minimize();
+                else if ([message.body isEqualToString:@"maximize"])
+                    _webView->internal_maximize();
+                else if ([message.body isEqualToString:@"drag"])
+                    [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
+            }
         }
+    }
+}
+
+- (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
+{
+    if (_webView) {
+        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
+        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
+        _webView->_emit("loading", ei);
+    }
+}
+
+- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
+{
+    if (_webView) {
+        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
+        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
+        _webView->_emit("load", ei);
     }
 }
 
@@ -103,6 +130,29 @@
 
 namespace fibjs {
 
+std::string readSafariVersion()
+{
+    CFURLRef appURL = CFURLCreateWithString(kCFAllocatorDefault, CFSTR("/Applications/Safari.app"), NULL);
+    if (appURL) {
+        CFDictionaryRef infoDict = CFBundleCopyInfoDictionaryForURL(appURL);
+        if (infoDict) {
+            CFStringRef versionString = (CFStringRef)CFDictionaryGetValue(infoDict, CFSTR("CFBundleShortVersionString"));
+            if (versionString) {
+                NSString* version = (__bridge NSString*)versionString;
+                CFRelease(infoDict);
+                CFRelease(appURL);
+
+                return "Version/" + std::string([version UTF8String]) + " Safari/605.1.15";
+            }
+            CFRelease(infoDict);
+        }
+        CFRelease(appURL);
+    }
+
+    return "Version/17.0 Safari/605.1.15";
+}
+
+static WKProcessPool* globalProcessPool = [[WKProcessPool alloc] init];
 result_t WebView::createWebView()
 {
     NSWindow* window = [[NSWindow alloc] initWithContentRect:CGRectZero
@@ -115,11 +165,14 @@ result_t WebView::createWebView()
     m_window = window;
 
     WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
-    WKUserContentController* userContentController = [[WKUserContentController alloc] init];
+    configuration.processPool = globalProcessPool;
 
-    MessageHandler* messageHandler = [[MessageHandler alloc] initWithWebView:this];
-    [userContentController addScriptMessageHandler:messageHandler name:@"message"];
-    [userContentController addScriptMessageHandler:messageHandler name:@"command"];
+    WKWebViewHandler* webView = [[WKWebViewHandler alloc] initWithWebView:this];
+    m_webview = webView;
+
+    WKUserContentController* userContentController = [[WKUserContentController alloc] init];
+    [userContentController addScriptMessageHandler:webView name:@"message"];
+    [userContentController addScriptMessageHandler:webView name:@"command"];
 
     NSString* jsCode = @"window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
                         "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
@@ -130,7 +183,7 @@ result_t WebView::createWebView()
     [userContentController addUserScript:userScript];
 
     configuration.userContentController = userContentController;
-    [configuration setURLSchemeHandler:messageHandler forURLScheme:@"fs"];
+    [configuration setURLSchemeHandler:webView forURLScheme:@"fs"];
 
     if (m_options->devtools.value()) {
         WKPreferences* preferences = [[WKPreferences alloc] init];
@@ -138,12 +191,16 @@ result_t WebView::createWebView()
         configuration.preferences = preferences;
     }
 
-    WKWebView* webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
-    [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-    [window.contentView addSubview:webView];
-    m_webview = webView;
+    static std::string safariVersion = readSafariVersion();
+    configuration.applicationNameForUserAgent = [NSString stringWithUTF8String:safariVersion.c_str()];
 
-    [m_webview addObserver:messageHandler forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
+    [webView initWithFrame:CGRectZero configuration:configuration];
+    [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+
+    [webView addObserver:webView forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
+    [webView setNavigationDelegate:webView];
+
+    [window.contentView addSubview:webView];
 
     exlib::string url;
     if (m_options->url.has_value())

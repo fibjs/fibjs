@@ -57,8 +57,8 @@ public:
     virtual result_t set_lastError(exlib::string newVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Message_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -147,8 +147,7 @@ inline void Message_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args
     __new(args);
 }
 
-template <typename T>
-void Message_base::__new(const T& args)
+inline void Message_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Message_base> vr;
 
@@ -159,6 +158,19 @@ void Message_base::__new(const T& args)
     hr = _new(vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Message_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Message_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Message_base::s_get_value(const v8::FunctionCallbackInfo<v8::Value>& args)

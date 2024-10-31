@@ -29,8 +29,8 @@ public:
     virtual result_t trywait(bool& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Semaphore_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,8 +69,7 @@ inline void Semaphore_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     __new(args);
 }
 
-template <typename T>
-void Semaphore_base::__new(const T& args)
+inline void Semaphore_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Semaphore_base> vr;
 
@@ -83,6 +82,21 @@ void Semaphore_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Semaphore_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Semaphore_base>& retVal)
+{
+    obj_ptr<Semaphore_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(int32_t, 0, 1);
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)

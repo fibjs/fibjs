@@ -281,6 +281,22 @@ enum {
     METHOD_INSTANCE(cls)           \
     scope l(pInst);
 
+#define LOAD_ENTER()                    \
+    result_t hr = CALL_E_BADPARAMCOUNT; \
+    bool bStrict = false;               \
+    int32_t argc1 = 1;                  \
+    OptArgs args(v);                    \
+    do {                                \
+        do {
+
+#define LOAD_RETURN() \
+    CHECK_ARGUMENT()  \
+    if (hr >= 0) {    \
+        retVal = vr;  \
+        return 0;     \
+    }                 \
+    return hr;
+
 #define CHECK_ARGUMENT()                                                                                        \
     }                                                                                                           \
     while (0)                                                                                                   \
@@ -634,15 +650,18 @@ public:                                                  \
     if (hr < 0)                                                                    \
         return hr;
 
-#define LOAD_OPTIONS(Class, Members)                                        \
-    static result_t load(v8::Local<v8::Object> opt, obj_ptr<Class>& retVal) \
-    {                                                                       \
-        Isolate* isolate = Isolate::current(opt);                           \
-        obj_ptr<Class> o = new Class();                                     \
-        result_t hr = 0;                                                    \
-        BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)               \
-        retVal = o;                                                         \
-        return 0;                                                           \
+#define LOAD_OPTIONS(Class, Members)                                                       \
+    static Class* getInstance(v8::Local<v8::Value> v) { return nullptr; }                  \
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Class>& retVal) \
+    {                                                                                      \
+        if (!IsJSObject(v))                                                                \
+            return CALL_E_TYPEMISMATCH;                                                    \
+        v8::Local<v8::Object> opt = v.As<v8::Object>();                                    \
+        obj_ptr<Class> o = new Class();                                                    \
+        result_t hr = 0;                                                                   \
+        BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)                              \
+        retVal = o;                                                                        \
+        return 0;                                                                          \
     }
 
 #ifndef ARRAYSIZE
@@ -793,7 +812,6 @@ class OptArgs {
 public:
     OptArgs(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t base, int32_t argc)
         : m_args(&args)
-        , m_argv(NULL)
         , m_base(base)
         , m_argc(argc)
     {
@@ -801,27 +819,29 @@ public:
             m_base = m_argc;
     }
 
-    OptArgs(const std::vector<v8::Local<v8::Value>>& argv)
-        : m_args(NULL)
-        , m_argv(&argv)
+    OptArgs(std::vector<v8::Local<v8::Value>>& argv)
+        : m_v(argv.data())
         , m_base(0)
         , m_argc((int32_t)argv.size())
     {
     }
 
+    OptArgs(v8::Local<v8::Value>& v)
+        : m_v(&v)
+        , m_base(0)
+        , m_argc(1)
+    {
+    }
+
     OptArgs(const OptArgs& a)
         : m_args(a.m_args)
-        , m_argv(a.m_argv)
+        , m_v(a.m_v)
         , m_base(a.m_base)
         , m_argc(a.m_argc)
     {
     }
 
     OptArgs()
-        : m_args(NULL)
-        , m_argv(NULL)
-        , m_base(0)
-        , m_argc(0)
     {
     }
 
@@ -832,18 +852,23 @@ public:
 
     v8::Local<v8::Value> operator[](int32_t i) const
     {
-        if (m_argv)
-            return (*m_argv)[i];
+        if (m_v)
+            return m_v[i];
 
         return (*m_args)[i + m_base];
     }
 
+    v8::Local<v8::Object> This() const
+    {
+        return v8::Local<v8::Object>();
+    }
+
     void GetData(std::vector<v8::Local<v8::Value>>& datas)
     {
-        if (m_argv) {
+        if (m_v) {
             datas.resize(m_argc);
             for (int32_t i = 0; i < m_argc; i++)
-                datas[i] = (*m_argv)[i];
+                datas[i] = m_v[i];
             return;
         }
 
@@ -853,83 +878,23 @@ public:
     }
 
 private:
-    const v8::FunctionCallbackInfo<v8::Value>* m_args;
-    const std::vector<v8::Local<v8::Value>>* m_argv;
-    int32_t m_base;
-    int32_t m_argc;
-};
-
-class Value2Args {
-public:
-    Value2Args(v8::Isolate* isolate, v8::Local<v8::Value>& v, v8::Local<v8::Value>& vr)
-        : m_isolate(isolate)
-        , m_v(v)
-        , m_vr(vr)
-    {
-    }
-
-    int32_t Length() const
-    {
-        return 1;
-    }
-
-    bool IsConstructCall() const
-    {
-        return true;
-    }
-
-    v8::Local<v8::Object> This() const
-    {
-        return v8::Local<v8::Object>();
-    }
-
-    const Value2Args& GetReturnValue() const
-    {
-        return *this;
-    }
-
-    void Set(v8::Local<v8::Value> vr) const
-    {
-        m_vr = vr;
-    }
-
-    v8::Local<v8::Value>& operator[](size_t i) const
-    {
-        return m_v;
-    }
-
-    v8::Isolate* GetIsolate() const
-    {
-        return m_isolate;
-    }
-
-private:
-    v8::Isolate* m_isolate;
-    v8::Local<v8::Value>& m_v;
-    v8::Local<v8::Value>& m_vr;
+    const v8::FunctionCallbackInfo<v8::Value>* m_args = nullptr;
+    v8::Local<v8::Value>* m_v = nullptr;
+    int32_t m_base = 0;
+    int32_t m_argc = 0;
 };
 
 template <class T>
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
-    if (vr == NULL) {
-        if (bStrict)
-            return CALL_E_TYPEMISMATCH;
+    if (vr)
+        return 0;
 
-        TryCatch try_catch;
+    if (bStrict)
+        return CALL_E_TYPEMISMATCH;
 
-        v8::Local<v8::Value> vr1;
-        Value2Args a(isolate->m_isolate, v, vr1);
-
-        T::__new(a);
-        vr = T::getInstance(vr1);
-
-        if (vr == NULL)
-            return CALL_E_TYPEMISMATCH;
-    }
-
-    return 0;
+    return T::load(isolate, v, vr);
 }
 
 class Buffer_base;
@@ -994,6 +959,35 @@ GET_JSVALUE(Function);
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
 {
     vr = v;
+    return 0;
+}
+
+template <class T>
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::vector<T>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    if (!v->IsArray())
+        return CALL_E_TYPEMISMATCH;
+
+    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Context> context = isolate->context();
+
+    std::vector<T> r = std::vector<T>();
+
+    for (uint32_t i = 0; i < arr->Length(); i++) {
+        v8::Local<v8::Value> v1 = arr->Get(context, i).ToLocalChecked();
+        T n;
+        result_t hr = GetArgumentValue(isolate, v1, n, false);
+        if (hr < 0)
+            return hr;
+
+        r.push_back(n);
+    }
+
+    vr = r;
+
     return 0;
 }
 

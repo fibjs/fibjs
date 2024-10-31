@@ -344,7 +344,7 @@ void Buffer::proto_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
     hr = pInst->compare(v0, vr);
 
@@ -360,7 +360,7 @@ void Buffer::proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(4, 1);
 
-    ARG(obj_ptr<Buffer>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, 0);
     OPT_ARG(int32_t, 3, -1);
@@ -379,7 +379,7 @@ void Buffer::proto_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
     hr = pInst->equals(v0, vr);
 
@@ -452,7 +452,7 @@ void Buffer::proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
@@ -483,7 +483,7 @@ void Buffer::proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->lastIndexOf(v0, v1, vr);

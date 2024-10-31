@@ -11,10 +11,12 @@
 #import <objc/runtime.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "EventInfo.h"
 #include "WebView.h"
+#import <WebKit/WebKit.h>
 
-static int32_t s_window_count = 0;
+int32_t s_window_count = 0;
 
 static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 {
@@ -22,6 +24,7 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 }
 
 @interface GuiWindowDelegate : NSObject <NSWindowDelegate>
+- (BOOL)windowShouldClose:(id)sender;
 - (void)windowWillClose:(NSNotification*)willCloseNotification;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
@@ -30,6 +33,27 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 @end
 
 @implementation GuiWindowDelegate
+
+- (BOOL)windowShouldClose:(id)sender
+{
+    NSWindow* currentWindow = (NSWindow*)sender;
+    fibjs::WebView* webview = getWebViewFromNSWindow(currentWindow);
+
+    if (webview == NULL)
+        return YES;
+
+    if (webview->m_options->hideOnClose.value()) {
+        if ([currentWindow isVisible]) {
+            [currentWindow orderOut:nil];
+            if (--s_window_count == 0)
+                [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        }
+
+        return NO;
+    }
+    return YES;
+}
+
 - (void)windowWillClose:(NSNotification*)willCloseNotification
 {
     NSWindow* currentWindow = willCloseNotification.object;
@@ -38,10 +62,17 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
     if (webview == NULL)
         return;
 
+    WKWebView* webView = (WKWebView*)webview->m_webview;
+    [webView stopLoading];
+    [webView removeFromSuperview];
+    webView.navigationDelegate = nil;
+
     webview->release();
 
-    if (--s_window_count == 0)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    if ([currentWindow isVisible]) {
+        if (--s_window_count == 0)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    }
 }
 
 - (void)windowDidMove:(NSNotification*)didMoveNotification
@@ -182,14 +213,14 @@ id fetchEventFromNSRunLoop(int blocking)
                       dequeue:YES];
 }
 
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
-        gui_ready.set();
+        g_gui_ready.set();
 
         [app run];
     }
@@ -275,10 +306,15 @@ void WebView::config()
     x = screen_rect.origin.x + x;
     y = screen_rect.size.height + screen_rect.origin.y - (nHeight + y);
 
-    if (++s_window_count == 1)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+    if (m_options->visible.value()) {
+        if (++s_window_count == 1)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+    }
 
     window.styleMask = mask;
+
+    [window setContentMinSize:NSMakeSize(m_options->minWidth.value(), m_options->minHeight.value())];
+    [window setContentMaxSize:NSMakeSize(m_options->maxWidth.value_or(__INT32_MAX__), m_options->maxHeight.value_or(__INT32_MAX__))];
 
     if (m_options->fullscreen.value()) {
         [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
@@ -295,28 +331,30 @@ void WebView::config()
     if (m_options->menu.has_value()) {
         NSMenu* menu = (NSMenu*)m_options->menu.value()->create_os_menu(false);
         if (menu) {
-            [[NSApplication sharedApplication] setMainMenu:menu];
+            if (m_options->visible.value())
+                [[NSApplication sharedApplication] setMainMenu:menu];
         } else {
             NSLog(@"Failed to create menu");
         }
     }
 
-    [window makeKeyAndOrderFront:window];
-
-    [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
+    if (m_options->visible.value()) {
+        [window makeKeyAndOrderFront:window];
+        [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
+    }
 
     if (m_icon) {
         NSImage* icon = [[NSImage alloc]
             initWithData:[NSData dataWithBytes:m_icon->data() length:m_icon->length()]];
         if (icon) {
-            [[NSApplication sharedApplication] setApplicationIconImage:icon];
+            if (m_options->visible.value())
+                [[NSApplication sharedApplication] setApplicationIconImage:icon];
             [icon release];
         }
     }
 
     Ref();
     m_ready->set();
-    _emit("open");
 }
 }
 

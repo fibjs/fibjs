@@ -20,17 +20,25 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onopen)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(hideOnClose)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
         std::optional<exlib::string> url;
         std::optional<exlib::string> file;
-
         std::optional<exlib::string> icon;
-        std::optional<int32_t> width;
-        std::optional<int32_t> height;
+
         std::optional<int32_t> left;
         std::optional<int32_t> top;
+        std::optional<int32_t> width;
+        std::optional<int32_t> height;
+
+        std::optional<bool> visible = true;
+        std::optional<bool> hideOnClose = false;
+
+        std::optional<int32_t> minWidth = 0;
+        std::optional<int32_t> minHeight = 0;
+        std::optional<int32_t> maxWidth;
+        std::optional<int32_t> maxHeight;
 
         std::optional<bool> frame = true;
         std::optional<bool> caption = true;
@@ -42,7 +50,8 @@ public:
 
         std::optional<bool> devtools = false;
 
-        std::optional<v8::Local<v8::Function>> onopen;
+        std::optional<v8::Local<v8::Function>> onloading;
+        std::optional<v8::Local<v8::Function>> onload;
         std::optional<v8::Local<v8::Function>> onclose;
         std::optional<v8::Local<v8::Function>> onmove;
         std::optional<v8::Local<v8::Function>> onresize;
@@ -62,7 +71,7 @@ public:
 
 public:
     // WebView_base
-    virtual result_t loadURL(exlib::string url, AsyncEvent* ac);
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
 
     virtual result_t loadFile(exlib::string file, AsyncEvent* ac)
     {
@@ -81,32 +90,42 @@ public:
         exlib::string url;
         u->get_href(url);
 
-        return loadURL(url, ac);
+        return loadUrl(url, ac);
     }
 
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
+    virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t isReady(bool& retVal, AsyncEvent* ac);
     virtual result_t reload(AsyncEvent* ac);
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);
-    virtual result_t eval(exlib::string code, AsyncEvent* ac);
+    virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac);
     virtual result_t setTitle(exlib::string title, AsyncEvent* ac);
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t isVisible(bool& retVal, AsyncEvent* ac);
+    virtual result_t show(AsyncEvent* ac);
+    virtual result_t hide(AsyncEvent* ac);
+    virtual result_t setSize(int32_t width, int32_t height, AsyncEvent* ac);
+    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac);
+    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t isActived(bool& retVal, AsyncEvent* ac);
+    virtual result_t active(AsyncEvent* ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
+    virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
 public:
-    EVENT_FUNC(open);
+    EVENT_FUNC(loading);
+    EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
     EVENT_FUNC(focus);
     EVENT_FUNC(blur);
     EVENT_FUNC(close);
     EVENT_FUNC(message);
-
-public:
-    static void run_os_gui(exlib::Event& gui_ready);
 
 public:
     result_t createWebView();
@@ -159,6 +178,10 @@ public:
     void* m_webview = nullptr;
 
     obj_ptr<Event_base> m_ready;
+
+#ifdef _WIN32
+    bool m_isLoading = false;
+#endif
 
 public:
     int32_t m_x = 0;

@@ -14,9 +14,11 @@
 #include "WebView.h"
 #import <WebKit/WebKit.h>
 
+extern int32_t s_window_count;
+
 namespace fibjs {
 
-result_t WebView::loadURL(exlib::string url, AsyncEvent* ac)
+result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -54,6 +56,41 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WKWebView* webView = (WKWebView*)m_webview;
+    [webView evaluateJavaScript:@"document.documentElement.outerHTML.toString()"
+              completionHandler:^(NSString* html, NSError* error) {
+                  if (error == nil)
+                      retVal = [html UTF8String];
+                  ac->post(0);
+              }];
+
+    return CALL_E_PENDDING;
+}
+
+result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+{
+    bool is_win_ready = false;
+    m_ready->isSet(is_win_ready);
+    if (!is_win_ready) {
+        retVal = false;
+        return 0;
+    }
+
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(WKWebView*)m_webview isLoading] == NO;
+
+    return 0;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -87,15 +124,72 @@ result_t WebView::goForward(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::eval(exlib::string code, AsyncEvent* ac)
+static void js2Variant(id result, Variant& retVal)
+{
+    if ([result isKindOfClass:[NSArray class]]) {
+        obj_ptr<NArray> array = new NArray();
+        for (id obj in result) {
+            Variant v;
+            js2Variant(obj, v);
+            array->append(v);
+        }
+        retVal = array;
+    } else if ([result isKindOfClass:[NSDictionary class]]) {
+        obj_ptr<NObject> obj = new NObject();
+        for (id key in result) {
+            Variant v;
+            js2Variant(result[key], v);
+            obj->add([key UTF8String], v);
+        }
+        retVal = obj;
+    } else if ([result isKindOfClass:[NSDate class]]) {
+        retVal = (date_t)(1000 * [(NSDate*)result timeIntervalSince1970]);
+    } else if ([result isKindOfClass:[NSNumber class]]) {
+        const char* type = [result objCType];
+        if (strcmp(type, @encode(int)) == 0) {
+            retVal = [result intValue];
+        } else if (strcmp(type, @encode(double)) == 0) {
+            retVal = [result doubleValue];
+        } else if (strcmp(type, @encode(char)) == 0) {
+            retVal = [result boolValue] ? true : false;
+        } else {
+            retVal = [result UTF8String];
+        }
+    } else if ([result isKindOfClass:[NSString class]]) {
+        retVal = [result UTF8String];
+    } else if ([result isKindOfClass:[NSNull class]]) {
+        retVal.setNull();
+    }
+}
+
+static NSString* const WKJavaScriptExceptionMessage = @"WKJavaScriptExceptionMessage";
+result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
-    [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()] completionHandler:nil];
+    [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()]
+                            completionHandler:^(id result, NSError* error) {
+                                if (error) {
+                                    if (NSInternalSpecifierError == error.code) {
+                                        ac->post(0);
+                                    } else {
+                                        NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
+                                        if (jsExceptionMessage) {
+                                            ac->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                        } else {
+                                            NSString* errorDescription = [error localizedDescription];
+                                            ac->post(Runtime::setError([errorDescription UTF8String]));
+                                        }
+                                    }
+                                } else {
+                                    js2Variant(result, retVal);
+                                    ac->post(0);
+                                }
+                            }];
 
-    return 0;
+    return CALL_E_PENDDING;
 }
 
 result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
@@ -122,12 +216,165 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(NSWindow*)m_window isVisible];
+    return 0;
+}
+
+result_t WebView::show(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (![(NSWindow*)m_window isVisible]) {
+        if (++s_window_count == 1)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+        [(NSWindow*)m_window makeKeyAndOrderFront:nil];
+        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+    }
+
+    return 0;
+}
+
+result_t WebView::hide(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if ([(NSWindow*)m_window isVisible]) {
+        [(NSWindow*)m_window orderOut:nil];
+        if (--s_window_count == 0)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    }
+
+    return 0;
+}
+
+result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect frame = [(NSWindow*)m_window frame];
+    frame.size = NSMakeSize(width, height);
+    [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
+
+    return 0;
+}
+
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSSize size = [(NSWindow*)m_window frame].size;
+
+    retVal = new NArray();
+    retVal->append(size.width);
+    retVal->append(size.height);
+
+    return 0;
+}
+
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
+    NSRect frame = [(NSWindow*)m_window frame];
+
+    left = screen_rect.origin.x + left;
+    top = screen_rect.size.height + screen_rect.origin.y - (frame.size.height + top);
+
+    frame.origin = NSMakePoint(left, top);
+    [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
+
+    return 0;
+}
+
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect frame = [(NSWindow*)m_window frame];
+
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
+
+    retVal = new NArray();
+    retVal->append((int32_t)(frame.origin.x - screen_rect.origin.x));
+    retVal->append((int32_t)(screen_rect.size.height + screen_rect.origin.y - (frame.size.height + frame.origin.y)));
+
+    return 0;
+}
+
+result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(NSWindow*)m_window isKeyWindow];
+
+    return 0;
+}
+
+result_t WebView::active(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    [(NSWindow*)m_window makeKeyAndOrderFront:nil];
+
+    return 0;
+}
+
+result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WKSnapshotConfiguration* snapshotConfig = [[WKSnapshotConfiguration alloc] init];
+    snapshotConfig.rect = [(NSView*)m_webview bounds];
+
+    [(WKWebView*)m_webview takeSnapshotWithConfiguration:snapshotConfig
+                                       completionHandler:^(NSImage* snapshotImage, NSError* error) {
+                                           if (snapshotImage) {
+                                               NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
+                                               NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
+
+                                               retVal = new Buffer([data bytes], [data length]);
+                                               ac->post(0);
+
+                                               [snapshotConfig release];
+                                               [rep release];
+                                           }
+                                       }];
+
+    return CALL_E_PENDDING;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
+    m_options->hideOnClose = false;
     [(NSWindow*)m_window close];
 
     return 0;

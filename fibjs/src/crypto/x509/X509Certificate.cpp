@@ -301,7 +301,7 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
     return 0;
 }
 
-result_t X509Certificate_base::_new(v8::Local<v8::Array> certs, obj_ptr<X509Certificate_base>& retVal,
+result_t X509Certificate_base::_new(std::vector<obj_ptr<Buffer_base>>& certs, obj_ptr<X509Certificate_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<X509Certificate> cert_ = new X509Certificate();
@@ -313,19 +313,14 @@ result_t X509Certificate_base::_new(v8::Local<v8::Array> certs, obj_ptr<X509Cert
     return 0;
 }
 
-result_t X509Certificate::load_cert(v8::Local<v8::Array> certs)
+result_t X509Certificate::load_cert(std::vector<obj_ptr<Buffer_base>>& certs)
 {
-    int32_t len = certs->Length();
+    int32_t len = certs.size();
     X509Certificate* now = nullptr;
     result_t hr;
 
     for (int32_t i = 0; i < len; i++) {
-        obj_ptr<Buffer_base> cert;
-        hr = GetConfigValue(holder(), certs, i, cert);
-        if (hr < 0)
-            return hr;
-
-        Buffer* buf_cert = Buffer::Cast(cert);
+        Buffer* buf_cert = certs[i].As<Buffer>();
         BIOPointer bio = BIO_new_mem_buf(buf_cert->data(), buf_cert->length());
 
         while (true) {

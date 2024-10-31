@@ -34,6 +34,9 @@ public:
             isolate->NewString("not a constructor"));
     }
 
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<CryptoKey_base>& retVal)
+    { return CALL_E_TYPEMISMATCH; }
+
 public:
     static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_algorithm(const v8::FunctionCallbackInfo<v8::Value>& args);

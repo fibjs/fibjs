@@ -10,6 +10,7 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include "gui.h"
 
 #include "WebView.h"
 #include "Tray.h"
@@ -19,7 +20,13 @@ namespace fibjs {
 DECLARE_MODULE(gui);
 
 static exlib::Event s_gui;
-static exlib::Event s_gui_ready;
+exlib::Event g_gui_ready;
+
+void start_gui()
+{
+    s_gui.set();
+    g_gui_ready.wait();
+}
 
 void run_gui(int argc, char* argv[])
 {
@@ -29,13 +36,12 @@ void run_gui(int argc, char* argv[])
     Runtime rt(NULL);
 
     s_gui.wait();
-    WebView::run_os_gui(s_gui_ready);
+    run_os_gui();
 }
 
 result_t WebView::async_open()
 {
-    s_gui.set();
-    s_gui_ready.wait();
+    start_gui();
 
     wrap();
 
@@ -50,7 +56,8 @@ result_t WebView::async_open()
 }
 result_t WebView::setup(v8::Local<v8::Object> opt)
 {
-    result_t hr = OpenOptions::load(opt, m_options);
+    Isolate* isolate = Isolate::current(opt);
+    result_t hr = OpenOptions::load(isolate, opt, m_options);
     if (hr < 0)
         return hr;
 
@@ -65,8 +72,10 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
             return Runtime::setError("Window icon is empty");
     }
 
-    if (m_options->onopen.has_value())
-        set_onopen(m_options->onopen.value());
+    if (m_options->onloading.has_value())
+        set_onloading(m_options->onloading.value());
+    if (m_options->onload.has_value())
+        set_onload(m_options->onload.value());
     if (m_options->onclose.has_value())
         set_onclose(m_options->onclose.value());
     if (m_options->onmove.has_value())
@@ -158,8 +167,7 @@ result_t Tray::getMenu(obj_ptr<Menu_base>& retVal)
 
 result_t Tray::async_open()
 {
-    s_gui.set();
-    s_gui_ready.wait();
+    start_gui();
 
     wrap();
 
@@ -180,7 +188,8 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
     obj_ptr<Tray> tray = new Tray();
     retVal = tray;
 
-    result_t hr = Tray::OpenOptions::load(opt, tray->m_options);
+    Isolate* isolate = Isolate::current(opt);
+    result_t hr = Tray::OpenOptions::load(isolate, opt, tray->m_options);
     if (hr < 0)
         return hr;
 

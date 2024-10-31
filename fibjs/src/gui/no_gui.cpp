@@ -13,9 +13,6 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
-static exlib::Event s_gui;
-static exlib::Event s_gui_ready;
-
 void run_gui(int argc, char* argv[])
 {
     exlib::OSThread th;
@@ -43,7 +40,7 @@ result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal
     return Runtime::setError("Webview not supported in this platform");
 }
 
-result_t gui_base::createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal)
+result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
 {
     return Runtime::setError("Menu not supported in this platform");
 }
@@ -51,6 +48,31 @@ result_t gui_base::createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& re
 result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal)
 {
     return Runtime::setError("Tray not supported in this platform");
+}
+
+result_t gui_base::alert(exlib::string message, AsyncEvent* ac)
+{
+    return Runtime::setError("Alert not supported in this platform");
+}
+
+result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent* ac)
+{
+    return Runtime::setError("Alert not supported in this platform");
+}
+
+result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("Confirm not supported in this platform");
+}
+
+result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("Confirm not supported in this platform");
+}
+
+result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("ChooseFile not supported in this platform");
 }
 
 }

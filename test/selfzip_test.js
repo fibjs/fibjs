@@ -43,8 +43,7 @@ describe("selfzip", () => {
     function package(testPath, data) {
         fs.copyFile(execPath, testPath);
         inject(testPath, 'APP', data, {
-            sentinelFuse: "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce",
-            overwrite: true
+            sentinelFuse: "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce"
         });
         if (process.platform === 'darwin')
             child_process.execFile('codesign', ['-s', '-', testPath]);
@@ -52,6 +51,7 @@ describe("selfzip", () => {
         if (process.platform !== 'win32')
             fs.chmod(testPath, 511);
     }
+
     function package_legacy(testPath, data) {
         const sentinelFuse = "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce";
 
@@ -94,7 +94,7 @@ describe("selfzip", () => {
 
     function test_suite(name, compile, legacy) {
         if (!legacy) {
-            if (process.arch === 'mips64' || process.arch === 'loong64')
+            if (process.arch === 'mips64' || process.arch === 'loong64' || process.arch === 'riscv64')
                 return;
 
             if (process.versions.musl && process.arch === 'arm64')

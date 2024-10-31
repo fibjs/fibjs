@@ -10,20 +10,20 @@
 #include <uv/include/uv.h>
 #include <windows.h>
 #include <wrl.h>
+#include <shlwapi.h>
 #include "loader/WebView2.h"
-#include "loader/WebView2EnvironmentOptions.h"
 
 #include <commctrl.h>
 #include <shlobj.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "EventInfo.h"
 #include "WebView.h"
 
 namespace fibjs {
 
 const wchar_t* szWndClassMain = L"fibjs_window";
-ICoreWebView2Environment* g_env = nullptr;
 
 static HWND s_worker;
 void on_click_menu(uint32_t id);
@@ -47,15 +47,6 @@ LRESULT CALLBACK WorkerProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-std::wstring GetUserDataFolderPath()
-{
-    wchar_t path[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
-        return std::wstring(path) + L"\\.fibjs";
-    }
-    return L"";
-}
-
 static void RegMainClass()
 {
     HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -76,26 +67,7 @@ static void RegMainClass()
     SetWindowSubclass(s_worker, WorkerProc, 0, 0);
 }
 
-Microsoft::WRL::ComPtr<CoreWebView2EnvironmentOptions> GetWebView2Options()
-{
-    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
-    if (SUCCEEDED(options.As(&options4))) {
-        auto scheme = Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"fs");
-        const wchar_t* everything = L"*";
-        scheme->SetAllowedOrigins(1, &everything);
-        scheme->put_TreatAsSecure(TRUE);
-        scheme->put_HasAuthorityComponent(FALSE);
-
-        std::vector<ICoreWebView2CustomSchemeRegistration*> registrations;
-        registrations.push_back(scheme.Get());
-        options4->SetCustomSchemeRegistrations(registrations.size(),
-            registrations.data());
-    }
-    return options;
-}
-
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     exlib::OSThread* _thGUI = exlib::OSThread::current();
 
@@ -104,29 +76,7 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
     OleInitialize(NULL);
 
-    std::wstring userDataFolder = GetUserDataFolderPath();
-    auto options = GetWebView2Options();
-    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), options.Get(),
-        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
-                if (FAILED(result)) {
-                    printf("Failed to create WebView2 environment. Error: 0x%08X\n", result);
-                    exit(-1);
-                }
-
-                g_env = env;
-                g_env->AddRef();
-
-                return S_OK;
-            })
-            .Get());
-    if (FAILED(hr)) {
-        printf("Failed to create WebView2 environment. Error: 0x%08X\n", hr);
-        CoUninitialize();
-        exit(-1);
-    }
-
-    gui_ready.set();
+    g_gui_ready.set();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -143,7 +93,7 @@ void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
     ::ReleaseDC(hWndParent, hdc);
 }
 
-static int dpix = 0, dpiy = 0;
+int dpix = 0, dpiy = 0;
 LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
     WebView* webview = (WebView*)dwRefData;
@@ -183,13 +133,29 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         return hit;
     }
+    case WM_GETMINMAXINFO: {
+        MINMAXINFO* pMinMaxInfo = (MINMAXINFO*)lParam;
+        pMinMaxInfo->ptMinTrackSize.x = webview->m_options->minWidth.value() * dpix / 96;
+        pMinMaxInfo->ptMinTrackSize.y = webview->m_options->minHeight.value() * dpiy / 96;
+
+        if (webview->m_options->maxWidth.has_value())
+            pMinMaxInfo->ptMaxTrackSize.x = webview->m_options->maxWidth.value() * dpix / 96;
+        if (webview->m_options->maxHeight.has_value())
+            pMinMaxInfo->ptMaxTrackSize.y = webview->m_options->maxHeight.value() * dpiy / 96;
+        return 0;
+    }
     case WM_ACTIVATE: {
         if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
-            webview->_emit("focus", ei);
+            (new EventInfo(webview, "focus"))->emit();
+
+            ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
+            if (controller != nullptr) {
+                DefSubclassProc(hWnd, uMsg, wParam, lParam);
+                controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+                return 0;
+            }
         } else if (wParam == WA_INACTIVE) {
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
-            webview->_emit("blur", ei);
+            (new EventInfo(webview, "blur"))->emit();
         }
         break;
     }
@@ -201,7 +167,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         ei->add("left", (int32_t)rcWin.left * 96 / dpix);
         ei->add("top", (int32_t)rcWin.top * 96 / dpiy);
 
-        webview->_emit("move", ei);
+        ei->emit();
         break;
     }
     case WM_SIZE: {
@@ -212,7 +178,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         ei->add("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
         ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
 
-        webview->_emit("resize", ei);
+        ei->emit();
 
         ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
         if (controller != nullptr) {
@@ -225,6 +191,11 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_CLOSE: {
         ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
         if (controller != nullptr) {
+            if (webview->m_options->hideOnClose.value()) {
+                ShowWindow(hWnd, SW_HIDE);
+                return 0;
+            }
+
             controller->Release();
             SetWindowLongPtr(hWnd, 0, 0);
             webview->release();
@@ -336,16 +307,20 @@ void WebView::config()
 
     if (m_options->fullscreen.value()) {
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
-        dwStyle = WS_VISIBLE;
+
+        if (m_options->visible.value())
+            dwStyle = WS_VISIBLE;
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
     } else {
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
 
-        if (m_options->maximize.value())
-            ShowWindow(hWndParent, SW_MAXIMIZE);
-        else
-            ShowWindow(hWndParent, SW_SHOWNORMAL);
+        if (m_options->visible.value()) {
+            if (m_options->maximize.value())
+                ShowWindow(hWndParent, SW_MAXIMIZE);
+            else
+                ShowWindow(hWndParent, SW_SHOWNORMAL);
+        }
     }
 
     Ref();

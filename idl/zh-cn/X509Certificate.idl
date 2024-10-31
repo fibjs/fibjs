@@ -23,7 +23,7 @@ interface X509Certificate : object
     @param certs PEM 格式证书的数组
     @return 返回一个 X509Certificate 对象
     */
-    X509Certificate(Array certs);
+    X509Certificate(Buffer certs[]);
 
     /*! @brief 证书的主题 */
     readonly String subject;

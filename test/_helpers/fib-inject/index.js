@@ -4,8 +4,12 @@ const path = require('path');
 module.exports = inject = require(`./addon/${path.basename(__dirname)}.node`);
 module.exports.inject = function (filename, resourceName, resourceData, options) {
     const machoSegmentName = options?.machoSegmentName || "__FIBINJECT";
-    const overwrite = options?.overwrite || false;
-    let sentinelFuse = options?.sentinelFuse || "FIBINJECT_SENTINEL_d0695dd05effa072dcb0b1f8f807ac40";
+    const sentinelFuse = options?.sentinelFuse || "FIBINJECT_SENTINEL_d0695dd05effa072dcb0b1f8f807ac40";
+    const subsystem = options?.subsystem || "cui";
+
+    if (subsystem !== "cui" && subsystem !== "gui") {
+        throw new Error("Subsystem must be either 'cui' or 'gui'");
+    }
 
     if (!Buffer.isBuffer(resourceData)) {
         throw new TypeError("resourceData must be a buffer");
@@ -49,16 +53,8 @@ module.exports.inject = function (filename, resourceName, resourceData, options)
                     executable,
                     machoSegmentName,
                     sectionName,
-                    resourceData,
-                    overwrite
+                    resourceData
                 ));
-
-                if (result === inject.InjectResult.kAlreadyExists) {
-                    throw new Error(
-                        `Segment and section with that name already exists: ${machoSegmentName}/${sectionName}\n` +
-                        "Use --overwrite to overwrite the existing content"
-                    );
-                }
             }
             break;
 
@@ -71,16 +67,8 @@ module.exports.inject = function (filename, resourceName, resourceData, options)
                 ({ result, data } = inject.inject_into_elf(
                     executable,
                     sectionName,
-                    resourceData,
-                    overwrite
+                    resourceData
                 ));
-
-                if (result === inject.InjectResult.kAlreadyExists) {
-                    throw new Error(
-                        `Section with that name already exists: ${sectionName}` +
-                        "Use --overwrite to overwrite the existing content"
-                    );
-                }
             }
             break;
 
@@ -93,15 +81,8 @@ module.exports.inject = function (filename, resourceName, resourceData, options)
                     executable,
                     resourceName,
                     resourceData,
-                    overwrite
+                    subsystem === "gui"
                 ));
-
-                if (result === inject.InjectResult.kAlreadyExists) {
-                    throw new Error(
-                        `Resource with that name already exists: ${resourceName}\n` +
-                        "Use --overwrite to overwrite the existing content"
-                    );
-                }
             }
             break;
     }
