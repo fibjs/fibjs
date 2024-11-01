@@ -378,22 +378,35 @@ result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    WKSnapshotConfiguration* snapshotConfig = [[WKSnapshotConfiguration alloc] init];
-    snapshotConfig.rect = [(NSView*)m_webview bounds];
+    WKWebView* webView = (WKWebView*)m_webview;
+    [webView evaluateJavaScript:@"[document.body.scrollWidth, document.body.scrollHeight];"
+              completionHandler:^(id result, NSError* error) {
+                  if ([result isKindOfClass:[NSArray class]]) {
+                      NSArray* resultArray = (NSArray*)result;
 
-    [(WKWebView*)m_webview takeSnapshotWithConfiguration:snapshotConfig
-                                       completionHandler:^(NSImage* snapshotImage, NSError* error) {
-                                           if (snapshotImage) {
-                                               NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
-                                               NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
+                      NSRect orig = webView.frame;
+                      webView.frame = NSMakeRect(0, 0, [resultArray[0] intValue], [resultArray[1] intValue]);
 
-                                               retVal = new Buffer([data bytes], [data length]);
-                                               ac->post(0);
+                      [webView takeSnapshotWithConfiguration:nil
+                                           completionHandler:^(NSImage* snapshotImage, NSError* error) {
+                                               if (snapshotImage) {
+                                                   NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
+                                                   NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
 
-                                               [snapshotConfig release];
-                                               [rep release];
-                                           }
-                                       }];
+                                                   retVal = new Buffer([data bytes], [data length]);
+                                                   ac->post(0);
+
+                                                   [rep release];
+                                               } else {
+                                                   ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
+                                               }
+
+                                               webView.frame = orig;
+                                           }];
+                  } else {
+                      ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
+                  }
+              }];
 
     return CALL_E_PENDDING;
 }

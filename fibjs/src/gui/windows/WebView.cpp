@@ -408,33 +408,30 @@ result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
-    IStream* imageStream = nullptr;
-    CreateStreamOnHGlobal(NULL, TRUE, &imageStream);
-    webView->CapturePreview(COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, imageStream,
-        Microsoft::WRL::Callback<ICoreWebView2CapturePreviewCompletedHandler>(
-            [&retVal, ac, imageStream](HRESULT errorCode) -> HRESULT {
+    exlib::string command = R"({
+        "format": "png",
+        "fromSurface": true,
+        "captureBeyondViewport": true
+    })";
+
+    exlib::wstring wcommand = utf8to16String(command);
+    webView->CallDevToolsProtocolMethod(
+        L"Page.captureScreenshot", (LPWSTR)wcommand.c_str(),
+        Microsoft::WRL::Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
+            [&retVal, ac](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
                 if (FAILED(errorCode)) {
-                    ac->post(Runtime::setError("Failed to capture preview"));
-                    imageStream->Release();
+                    ac->post(Runtime::setError("Failed to capture screenshot"));
                     return errorCode;
                 }
 
-                STATSTG stat;
-                imageStream->Stat(&stat, STATFLAG_NONAME);
+                exlib::string result = utf16to8String((const char16_t*)resultJson);
+                auto base64Start = result.find("\"data\":\"") + 8;
+                auto base64End = result.find("\"", base64Start);
+                exlib::string base64Data = result.substr(base64Start, base64End - base64Start);
 
-                ULONG size = stat.cbSize.LowPart;
-                ULONG read = 0;
+                base64_base::decode(base64Data, retVal);
 
-                LARGE_INTEGER li = {};
-                imageStream->Seek(li, STREAM_SEEK_SET, NULL);
-
-                Buffer* buf = new Buffer(nullptr, size);
-                imageStream->Read(buf->data(), size, &read);
-
-                retVal = buf;
                 ac->post(0);
-
-                imageStream->Release();
 
                 return S_OK;
             })

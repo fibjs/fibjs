@@ -469,7 +469,7 @@ result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
         return hr;
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
-    WebKitSnapshotRegion region = WEBKIT_SNAPSHOT_REGION_VISIBLE;
+    WebKitSnapshotRegion region = WEBKIT_SNAPSHOT_REGION_FULL_DOCUMENT;
     WebKitSnapshotOptions options = WEBKIT_SNAPSHOT_OPTIONS_NONE;
 
     webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, ac));
