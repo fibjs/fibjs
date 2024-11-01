@@ -40,11 +40,11 @@ describe(gui_env, () => {
         }
     });
 
-    beforeEach(() => {
-        coroutine.sleep(100);
-    });
-
     describe("webview", () => {
+        beforeEach(() => {
+            coroutine.sleep(500);
+        });
+
         it("open and close", () => {
             const win = gui.open({
                 width: 100,
@@ -99,7 +99,10 @@ describe(gui_env, () => {
                 }
             }
 
-            assert.equal(win.getHtml(), '<html><head></head><body>hello</body></html>');
+            const html = win.getHtml();
+            win.close();
+
+            assert.equal(html, '<html><head></head><body>hello</body></html>');
         });
 
         it("isReady", () => {

@@ -23,6 +23,14 @@
 
 namespace fibjs {
 
+static const gchar* s_bridge_code
+    = "window.app = new EventTarget();"
+      "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+      "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+      "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
+      "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
+      "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
+
 static char* get_string_from_js_result(WebKitJavascriptResult* r)
 {
     char* s;
@@ -130,13 +138,9 @@ result_t WebView::createWebView()
     webkit_user_content_manager_register_script_message_handler(manager, "command");
     g_signal_connect(manager, "script-message-received::command", G_CALLBACK(handle_command), this);
 
-    const gchar* custom_js = "window.app = new EventTarget();"
-                             "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
-                             "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
-                             "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
-                             "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
-                             "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
-    webkit_user_content_manager_add_script(manager, webkit_user_script_new(custom_js, WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES, WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL));
+    webkit_user_content_manager_add_script(manager,
+        webkit_user_script_new(s_bridge_code, WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL));
 
     GtkWidget* webview = webkit_web_view_new_with_user_content_manager(manager);
     m_webview = webview;

@@ -30,6 +30,14 @@ namespace fibjs {
 ICoreWebView2Environment* g_env = nullptr;
 extern const wchar_t* szWndClassMain;
 
+static const wchar_t* s_bridge_code
+    = L"window.app = new EventTarget();"
+      "window.app.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
+      "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
+      "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
+      "window.maximize = function() { window.chrome.webview.postMessage({type:'maximize'}); };"
+      "window.drag = function() { window.chrome.webview.postMessage({type:'drag'}); };";
+
 exlib::string fs_url_to_path(const exlib::string& url)
 {
     obj_ptr<UrlObject_base> u;
@@ -205,13 +213,7 @@ result_t WebView::createWebView()
                 webView->add_ContentLoading(
                     Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
                         [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                            const wchar_t* script = L"window.app = new EventTarget();"
-                                                    "window.app.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
-                                                    "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
-                                                    "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
-                                                    "window.maximize = function() { window.chrome.webview.postMessage({type:'maximize'}); };"
-                                                    "window.drag = function() { window.chrome.webview.postMessage({type:'drag'}); };";
-                            sender->ExecuteScript(script, nullptr);
+                            sender->ExecuteScript(s_bridge_code, nullptr);
 
                             m_webview = sender;
                             m_ready->set();

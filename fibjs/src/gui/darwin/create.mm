@@ -130,6 +130,14 @@
 
 namespace fibjs {
 
+static NSString* s_bridge_code
+    = @"window.app = new EventTarget();"
+       "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+       "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+       "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
+       "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
+       "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
+
 std::string readSafariVersion()
 {
     CFURLRef appURL = CFURLCreateWithString(kCFAllocatorDefault, CFSTR("/Applications/Safari.app"), NULL);
@@ -174,13 +182,9 @@ result_t WebView::createWebView()
     [userContentController addScriptMessageHandler:webView name:@"message"];
     [userContentController addScriptMessageHandler:webView name:@"command"];
 
-    NSString* jsCode = @"window.app = new EventTarget();"
-                        "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
-                        "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
-                        "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
-                        "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
-                        "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
-    WKUserScript* userScript = [[WKUserScript alloc] initWithSource:jsCode injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+    WKUserScript* userScript = [[WKUserScript alloc] initWithSource:s_bridge_code
+                                                      injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                                   forMainFrameOnly:NO];
     [userContentController addUserScript:userScript];
 
     configuration.userContentController = userContentController;
