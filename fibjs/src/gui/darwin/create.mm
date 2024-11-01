@@ -174,7 +174,8 @@ result_t WebView::createWebView()
     [userContentController addScriptMessageHandler:webView name:@"message"];
     [userContentController addScriptMessageHandler:webView name:@"command"];
 
-    NSString* jsCode = @"window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+    NSString* jsCode = @"window.app = new EventTarget();"
+                        "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
                         "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
                         "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
                         "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"

@@ -130,7 +130,8 @@ result_t WebView::createWebView()
     webkit_user_content_manager_register_script_message_handler(manager, "command");
     g_signal_connect(manager, "script-message-received::command", G_CALLBACK(handle_command), this);
 
-    const gchar* custom_js = "window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+    const gchar* custom_js = "window.app = new EventTarget();"
+                             "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
                              "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
                              "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
                              "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"

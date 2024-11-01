@@ -387,7 +387,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
         return hr;
 
     encoding_base::jsstr(msg, false, msg);
-    exlib::string _jsCode = "window.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }))";
+    exlib::string _jsCode = "window.app.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }))";
 
     NSString* jsCode = [NSString stringWithUTF8String:_jsCode.c_str()];
     [(WKWebView*)m_webview evaluateJavaScript:jsCode completionHandler:nil];

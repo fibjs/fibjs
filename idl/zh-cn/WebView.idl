@@ -2,7 +2,7 @@
  
  由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
 
- WebView 用于通讯的对象是 window，支持方法 postMessage 和 message 事件。
+ WebView 内用于通讯的对象是 window.app，支持方法 postMessage 和 message 事件。
 
  一个简单的通讯示例代码如下：
  ```JavaScript 
@@ -18,8 +18,8 @@
  index.html 的内容如下：
  ```html
  <script>
-     window.addEventListener("message", function (msg) { 
-         window.postMessage("send back: " + msg);
+     window.app.addEventListener("message", function (msg) { 
+         window.app.postMessage("send back: " + msg);
      });
  </script>
  ```

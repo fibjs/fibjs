@@ -327,7 +327,7 @@ describe(gui_env, () => {
             });
             wins.push(win);
 
-            win.eval(`window.addEventListener("message", function (msg) { window.postMessage("send from browser: " + msg.data); });`);
+            win.eval(`window.app.addEventListener("message", function (msg) { window.app.postMessage("send from browser: " + msg.data); });`);
 
             var received_message;
             win.on("message", (msg) => {
@@ -359,8 +359,8 @@ describe(gui_env, () => {
                 received_message = msg.data;
             });
 
-            win.eval(`window.postMessage({num:1});`);
-            win.eval(`window.postMessage("Hello World");`);
+            win.eval(`window.app.postMessage({num:1});`);
+            win.eval(`window.app.postMessage("Hello World");`);
 
             for (var i = 0; i < 1000; i++) {
                 coroutine.sleep(10);

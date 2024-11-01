@@ -205,7 +205,8 @@ result_t WebView::createWebView()
                 webView->add_ContentLoading(
                     Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
                         [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                            const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
+                            const wchar_t* script = L"window.app = new EventTarget();"
+                                                    "window.app.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
                                                     "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
                                                     "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
                                                     "window.maximize = function() { window.chrome.webview.postMessage({type:'maximize'}); };"

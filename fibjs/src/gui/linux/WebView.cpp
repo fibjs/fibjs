@@ -464,7 +464,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
         return hr;
 
     encoding_base::jsstr(msg, false, msg);
-    exlib::string jsCode = "window.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }))";
+    exlib::string jsCode = "window.app.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }))";
 
     webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), jsCode.c_str(), nullptr, nullptr, nullptr);
 
