@@ -72,27 +72,6 @@ public:
 public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
-
-    virtual result_t loadFile(exlib::string file, AsyncEvent* ac)
-    {
-        result_t hr = check_status(ac);
-        if (hr < 0)
-            return hr;
-
-        obj_ptr<UrlObject_base> u;
-        hr = url_base::pathToFileURL(file, u);
-        if (hr < 0)
-            return hr;
-
-        u->set_protocol("fs:");
-        u->set_slashes(true);
-
-        exlib::string url;
-        u->get_href(url);
-
-        return loadUrl(url, ac);
-    }
-
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
@@ -116,6 +95,53 @@ public:
     virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+
+public:
+    virtual result_t loadFile(exlib::string file, AsyncEvent* ac)
+    {
+        result_t hr = check_status(ac);
+        if (hr < 0)
+            return hr;
+
+        obj_ptr<UrlObject_base> u;
+        hr = url_base::pathToFileURL(file, u);
+        if (hr < 0)
+            return hr;
+
+        u->set_protocol("fs:");
+        u->set_slashes(true);
+
+        exlib::string url;
+        u->get_href(url);
+
+        return loadUrl(url, ac);
+    }
+
+    virtual result_t waitFor(exlib::string url, AsyncEvent* ac)
+    {
+        result_t hr = check_status(ac);
+        if (hr < 0)
+            return hr;
+
+        if (internal_isReady() && (url.empty() || url == internal_getUrl()))
+            return 0;
+
+        m_waitFor.push_back({ url, ac });
+
+        return CALL_E_PENDDING;
+    }
+
+    void postWaitFor(exlib::string url)
+    {
+        for (auto it = m_waitFor.begin(); it != m_waitFor.end();) {
+            if (it->first.empty() || it->first == url) {
+                it->second->post(0);
+                it = m_waitFor.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
 
 public:
     EVENT_FUNC(loading);
@@ -142,6 +168,8 @@ public:
     void internal_close();
     void internal_minimize();
     void internal_maximize();
+    bool internal_isReady();
+    exlib::string internal_getUrl();
 
     result_t check_status(AsyncEvent* ac)
     {
@@ -178,6 +206,8 @@ public:
     void* m_webview = nullptr;
 
     obj_ptr<Event_base> m_ready;
+
+    std::vector<std::pair<exlib::string, AsyncEvent*>> m_waitFor;
 
 #ifdef _WIN32
     bool m_isLoading = false;

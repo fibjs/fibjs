@@ -56,7 +56,7 @@
             if ([message.name isEqualToString:@"message"]) {
                 fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
                 ei->add("data", [message.body UTF8String]);
-                _webView->_emit("message", ei);
+                ei->emit();
             } else if ([message.name isEqualToString:@"command"]) {
                 if ([message.body isEqualToString:@"close"])
                     [_webView->m_window performClose:nil];
@@ -76,7 +76,7 @@
     if (_webView) {
         fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
         ei->add("url", [[[webView URL] absoluteString] UTF8String]);
-        _webView->_emit("loading", ei);
+        ei->emit();
     }
 }
 
@@ -84,8 +84,10 @@
 {
     if (_webView) {
         fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
-        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
-        _webView->_emit("load", ei);
+        exlib::string url = [[[webView URL] absoluteString] UTF8String];
+        ei->add("url", url);
+        ei->emit();
+        _webView->postWaitFor(url);
     }
 }
 

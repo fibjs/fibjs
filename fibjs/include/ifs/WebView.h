@@ -31,6 +31,7 @@ public:
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
     virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t isReady(bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t waitFor(exlib::string url, AsyncEvent* ac) = 0;
     virtual result_t reload(AsyncEvent* ac) = 0;
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
@@ -86,6 +87,7 @@ public:
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isReady(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_waitFor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reload(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -129,6 +131,7 @@ public:
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getHtml, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, isReady, bool);
+    ASYNC_MEMBER1(WebView_base, waitFor, exlib::string);
     ASYNC_MEMBER0(WebView_base, reload);
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
@@ -163,6 +166,7 @@ inline ClassInfo& WebView_base::class_info()
         { "setHtml", s_setHtml, false, ClassData::ASYNC_ASYNC },
         { "getHtml", s_getHtml, false, ClassData::ASYNC_ASYNC },
         { "isReady", s_isReady, false, ClassData::ASYNC_ASYNC },
+        { "waitFor", s_waitFor, false, ClassData::ASYNC_ASYNC },
         { "reload", s_reload, false, ClassData::ASYNC_ASYNC },
         { "goBack", s_goBack, false, ClassData::ASYNC_ASYNC },
         { "goForward", s_goForward, false, ClassData::ASYNC_ASYNC },
@@ -306,6 +310,23 @@ inline void WebView_base::s_isReady(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->ac_isReady(vr);
 
     METHOD_RETURN();
+}
+
+inline void WebView_base::s_waitFor(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_waitFor(v0, cb, args);
+    else
+        hr = pInst->ac_waitFor(v0);
+
+    METHOD_VOID();
 }
 
 inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -23,6 +23,39 @@
 
 namespace fibjs {
 
+void WebView::internal_close()
+{
+    GtkWindow* window = (GtkWindow*)m_window;
+    gtk_window_close(window);
+}
+
+void WebView::internal_minimize()
+{
+    GtkWindow* window = (GtkWindow*)m_window;
+    gtk_window_iconify(window);
+}
+
+void WebView::internal_maximize()
+{
+    GtkWindow* window = (GtkWindow*)m_window;
+
+    if (gtk_window_is_maximized(window))
+        gtk_window_unmaximize(window);
+    else
+        gtk_window_maximize(window);
+}
+
+bool WebView::internal_isReady()
+{
+    return webkit_web_view_is_loading(WEBKIT_WEB_VIEW(m_webview)) == FALSE;
+}
+
+exlib::string WebView::internal_getUrl()
+{
+    const gchar* uri = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(m_webview));
+    return uri;
+}
+
 result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -40,8 +73,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    const gchar* uri = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(m_webview));
-    retVal = uri;
+    retVal = internal_getUrl();
 
     return 0;
 }
@@ -114,7 +146,7 @@ result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    retVal = webkit_web_view_is_loading(WEBKIT_WEB_VIEW(m_webview)) == FALSE;
+    retVal = internal_isReady();
 
     return 0;
 }

@@ -24,6 +24,43 @@
 
 namespace fibjs {
 
+void WebView::internal_close()
+{
+    HWND hWndParent = (HWND)m_window;
+    SendMessage(hWndParent, WM_CLOSE, 0, 0);
+}
+
+void WebView::internal_minimize()
+{
+    HWND hWndParent = (HWND)m_window;
+    ShowWindow(hWndParent, SW_MINIMIZE);
+}
+
+void WebView::internal_maximize()
+{
+    HWND hWndParent = (HWND)m_window;
+
+    if (IsZoomed(hWndParent))
+        ShowWindow(hWndParent, SW_RESTORE);
+    else
+        ShowWindow(hWndParent, SW_MAXIMIZE);
+}
+
+bool WebView::internal_isReady()
+{
+    return !m_isLoading;
+}
+
+exlib::string WebView::internal_getUrl()
+{
+    LPWSTR url = nullptr;
+    ((ICoreWebView2*)m_webview)->get_Source(&url);
+    exlib::string surl = utf16to8String((const char16_t*)url);
+    CoTaskMemFree(url);
+
+    return surl;
+}
+
 result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -32,6 +69,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 
     exlib::wstring wurl = utf8to16String(url);
     ((ICoreWebView2*)m_webview)->Navigate((LPCWSTR)wurl.c_str());
+    m_isLoading = true;
 
     return 0;
 }
@@ -42,10 +80,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    LPWSTR url = nullptr;
-    ((ICoreWebView2*)m_webview)->get_Source(&url);
-    retVal = utf16to8String((const char16_t*)url);
-    CoTaskMemFree(url);
+    retVal = internal_getUrl();
 
     return 0;
 }
@@ -58,6 +93,7 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 
     exlib::wstring whtml = utf8to16String(html);
     ((ICoreWebView2*)m_webview)->NavigateToString((LPCWSTR)whtml.c_str());
+    m_isLoading = true;
 
     return 0;
 }

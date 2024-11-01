@@ -115,8 +115,10 @@ static void handle_load_changed(WebKitWebView* webview, WebKitLoadEvent load_eve
     }
     case WEBKIT_LOAD_FINISHED: {
         obj_ptr<EventInfo> ei = new EventInfo(_webView, "load");
-        ei->add("url", webkit_web_view_get_uri(webview));
+        exlib::string url = webkit_web_view_get_uri(webview);
+        ei->add("url", url);
         ei->emit();
+        _webView->postWaitFor(url);
 
         break;
     }

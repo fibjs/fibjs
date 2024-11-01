@@ -104,6 +104,15 @@ declare class Class_WebView extends Class_EventEmitter {
     isReady(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 等待当前页面加载完成
+     *      @param url 指定等待的 url，为空表示等待当前页面
+     *     
+     */
+    waitFor(url?: string): void;
+
+    waitFor(url?: string, callback?: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 刷新当前页面 
      */
     reload(): void;

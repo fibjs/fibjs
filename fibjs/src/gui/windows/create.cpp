@@ -231,10 +231,13 @@ result_t WebView::createWebView()
 
                             LPWSTR uri = nullptr;
                             sender->get_Source(&uri);
-                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            exlib::string surl = utf16to8String((const char16_t*)uri);
+                            ei->add("url", surl);
                             CoTaskMemFree(uri);
 
                             ei->emit();
+                            postWaitFor(surl);
+
                             return S_OK;
                         })
                         .Get(),

@@ -132,6 +132,31 @@ describe(gui_env, () => {
             win.close();
         });
 
+        it("waitFor", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            win.waitFor();
+            assert.isTrue(win.isReady());
+
+            win.loadUrl("http://fibjs.org");
+            assert.isFalse(win.isReady());
+            win.waitFor("https://fibjs.org/");
+            assert.isTrue(win.isReady());
+
+            win.loadFile(path.join(__dirname, "gui_files", "test.html"));
+            assert.isFalse(win.isReady());
+            win.waitFor();
+            assert.isTrue(win.isReady());
+
+            win.setHtml("hello");
+            assert.isFalse(win.isReady());
+            win.waitFor();
+            assert.isTrue(win.isReady());
+
+            win.close();
+        });
+
         it("visible", () => {
             const win = gui.open({
                 width: 100,
@@ -140,10 +165,7 @@ describe(gui_env, () => {
             });
             wins.push(win);
 
-            for (var i = 0; i < 1000; i++) {
-                if (win.isReady()) break;
-                coroutine.sleep(1);
-            }
+            win.waitFor();
 
             assert.equal(win.isVisible(), false);
 
@@ -222,11 +244,7 @@ describe(gui_env, () => {
             });
             wins.push(win);
 
-            for (var i = 0; i < 1000; i++) {
-                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
-                    break;
-                coroutine.sleep(1);
-            }
+            win.waitFor();
 
             var closed = false;
             win.on("close", () => {
@@ -252,19 +270,11 @@ describe(gui_env, () => {
             });
             wins.push(win);
 
-            for (var i = 0; i < 1000; i++) {
-                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
-                    break;
-                coroutine.sleep(1);
-            }
+            win.waitFor();
 
             win.loadUrl("data:text/html;charset=utf-8,helloworld");
 
-            for (var i = 0; i < 1000; i++) {
-                if (win.isReady() && win.eval(`window.location.href`) !== "about:blank")
-                    break;
-                coroutine.sleep(1);
-            }
+            win.waitFor();
 
             assert.equal(win.eval(`window.location.href`), "data:text/html;charset=utf-8,helloworld");
 
@@ -292,11 +302,7 @@ describe(gui_env, () => {
             });
             wins.push(win);
 
-            for (var i = 0; i < 1000; i++) {
-                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
-                    break;
-                coroutine.sleep(1);
-            }
+            win.waitFor();
 
             var loading_url;
             win.on("loading", ev => {

@@ -18,6 +18,37 @@ extern int32_t s_window_count;
 
 namespace fibjs {
 
+void WebView::internal_close()
+{
+    NSWindow* window = (NSWindow*)m_window;
+    [window close];
+}
+
+void WebView::internal_minimize()
+{
+    NSWindow* window = (NSWindow*)m_window;
+    [window miniaturize:nil];
+}
+
+void WebView::internal_maximize()
+{
+    NSWindow* window = (NSWindow*)m_window;
+    [window zoom:nil];
+}
+
+bool WebView::internal_isReady()
+{
+    return [(WKWebView*)m_webview isLoading] == NO;
+}
+
+exlib::string WebView::internal_getUrl()
+{
+    if ([(WKWebView*)m_webview URL])
+        return [[((WKWebView*)m_webview).URL absoluteString] UTF8String];
+
+    return "";
+}
+
 result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -39,8 +70,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    if ([(WKWebView*)m_webview URL])
-        retVal = [[((WKWebView*)m_webview).URL absoluteString] UTF8String];
+    retVal = internal_getUrl();
 
     return 0;
 }
@@ -86,7 +116,7 @@ result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    retVal = [(WKWebView*)m_webview isLoading] == NO;
+    retVal = internal_isReady();
 
     return 0;
 }

@@ -74,6 +74,11 @@ interface WebView : EventEmitter
     */
     Boolean isReady() async;
 
+    /*! @brief 等待当前页面加载完成
+     @param url 指定等待的 url，为空表示等待当前页面
+    */
+    waitFor(String url = "") async;
+
     /*! @brief 刷新当前页面 */
     reload() async;
 
