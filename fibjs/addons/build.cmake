@@ -42,6 +42,8 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         test_typedarray
     )
 
+    set(BUILD_WITH_MSVC "1")
+
     foreach(addon ${addons})
         build("${CMAKE_CURRENT_SOURCE_DIR}/${addon}" "${WORK_ROOT}" "${addon}")
     endforeach()
