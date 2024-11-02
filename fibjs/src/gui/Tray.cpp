@@ -29,18 +29,27 @@ result_t Tray::async_open()
 {
     start_gui();
 
-    wrap();
-
-    Ref();
+    isolate_ref();
+    m_self = new ValueHolder(wrap());
     async([this]() {
         createTray();
         m_ready->set();
-
-        Unref();
     },
         CALL_E_GUICALL);
 
     return 0;
+}
+
+void Tray::release()
+{
+    if (m_tray) {
+        m_tray = nullptr;
+
+        _emit("close");
+
+        m_self.Release();
+        isolate_unref();
+    }
 }
 
 result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal)

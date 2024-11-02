@@ -1,5 +1,5 @@
 /*! @brief 系统状态图标，用于在系统托盘中显示一个图标 */
-interface Tray : EventEmitter
+interface Tray : object
 {
     /*! @brief 查询状态图标的菜单
      @return 返回状态图标的菜单

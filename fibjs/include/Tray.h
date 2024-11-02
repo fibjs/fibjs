@@ -33,10 +33,7 @@ public:
     Tray()
     {
         m_ready = new Event();
-        isolate_ref();
     }
-
-    EVENT_SUPPORT();
 
 public:
     // Tray_base
@@ -46,17 +43,7 @@ public:
 public:
     result_t  async_open();
     void createTray();
-    void release()
-    {
-        if (m_tray) {
-            m_tray = nullptr;
-
-            _emit("close");
-
-            isolate_unref();
-            Unref();
-        }
-    }
+    void release();
 
     result_t check_status(AsyncEvent* ac)
     {
@@ -73,6 +60,7 @@ public:
 
 public:
     obj_ptr<OpenOptions> m_options;
+    obj_ptr<ValueHolder> m_self;
 
     obj_ptr<Buffer> m_icon;
 
