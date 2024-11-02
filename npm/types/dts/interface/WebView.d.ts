@@ -3,13 +3,13 @@
 /// <reference path="../interface/Menu.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件.
- *  
- *  由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
+ * @description WebView 对象，嵌入式浏览器窗口组件。
  * 
- *  WebView 内用于通讯的对象是 window.app，支持方法 postMessage 和 message 事件。
+ *  WebView 是一个嵌入浏览器的窗口组件。由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以需要通过消息进行通讯。
  * 
- *  一个简单的通讯示例代码如下：
+ *  WebView 内可以通过 window 与 fibjs 进行消息通讯，支持 postMessage 方法和 message 事件。
+ * 
+ *  以下是一个简单的通讯示例代码：
  *  ```JavaScript 
  *  // index.js
  *  var gui = require('gui');
@@ -23,12 +23,46 @@
  *  index.html 的内容如下：
  *  ```html
  *  <script>
- *      window.app.addEventListener("message", function (msg) { 
- *          window.app.postMessage("send back: " + msg);
+ *      window.addEventListener("message", function (msg) { 
+ *          window.postMessage("send back: " + msg);
  *      });
  *  </script>
  *  ```
- *  如果需要在 WebView 内关闭窗口，可以调用 window.close。需要注意，在 mac 下的 fullscreen 窗口会因为 mac 的机制而阻止 close。
+ * 
+ *  WebView 还支持更方便的 app API 接口。WebView 内用于 API 调用的对象是 window.app，可以在创建 WebView 时通过 app 参数指定 API 接口，API 接口的方法可以在 WebView 内通过 await window.app... 调用。
+ * 
+ *  以下是一个简单的调用示例代码：
+ *  ```JavaScript 
+ *  const gui = require('gui');
+ *  const coroutine = require('coroutine');
+ * 
+ *  const win = gui.open({
+ *      devtools: true,
+ *      app: {
+ *          test: async function (a, b, c, d) {
+ *              console.log('test', a, b, c, d);
+ *              await coroutine.sleepAsync(1000);
+ *              return a + b + c + d + 1000;
+ *          },
+ *          test1: {
+ *              test2: function (a, b, c, d) {
+ *                  console.log('test2', a, b, c, d);
+ *                  coroutine.sleep(1000);
+ *                  return a + b + c + d + 2000;
+ *              }
+ *          }
+ *      }
+ *  });
+ * 
+ *  win.eval(`
+ *  (async function test() {
+ *      console.log("test(1,2,3,4): " + await window.app.test(1,2,3,4));
+ *      console.log("test1.test2(1,2,3,4): " + await window.app.test1.test2(1,2,3,4));
+ *      console.log('test');
+ *  })();`);
+ *  ```
+ *  
+ *  如果需要在 WebView 内关闭窗口，可以调用 window.close。需要注意，在 macOS 下的全屏窗口会因为 macOS 的机制而阻止关闭。
  *  ```html
  *  <script lang="JavaScript">
  *     document.getElementById('close').addEventListener('click', function () {
@@ -36,17 +70,17 @@
  *     });
  *  </script>
  *  ```
- *  在有些应用里，需要在 WebView 内实现拖动窗口的功能，可以通过以下代码实现：
+ *  在某些应用中，需要在 WebView 内实现拖动窗口的功能，可以通过以下代码实现：
  *  ```html
  *  <script>
  *     document.getElementById('dragRegion').addEventListener('mousedown', function (event) {
- *         if (event.button === 0) { // Check if the left mouse button is pressed
+ *         if (event.button === 0) { // 检查是否按下了左键
  *             window.drag();
  *         }
  *     });
  *  </script>
  *  ```
- *  
+ * 
  */
 declare class Class_WebView extends Class_EventEmitter {
     /**

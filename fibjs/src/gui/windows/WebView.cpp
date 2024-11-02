@@ -51,6 +51,12 @@ bool WebView::internal_isReady()
     return !m_isLoading;
 }
 
+void WebView::internal_eval(exlib::string code)
+{
+    exlib::wstring wcode = utf8to16String(code);
+    ((ICoreWebView2*)m_webview)->ExecuteScript((LPCWSTR)wcode.c_str(), nullptr);
+}
+
 exlib::string WebView::internal_getUrl()
 {
     LPWSTR url = nullptr;
@@ -459,7 +465,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
         return hr;
 
     encoding_base::jsstr(msg, false, msg);
-    exlib::string code = "window.app.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }));";
+    exlib::string code = "window.dispatchEvent(new MessageEvent('message', { data: '" + msg + "' }));";
 
     exlib::wstring wcode = utf8to16String(code);
     ((ICoreWebView2*)m_webview)->ExecuteScript((LPCWSTR)wcode.c_str(), nullptr);

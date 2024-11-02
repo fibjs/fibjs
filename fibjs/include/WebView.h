@@ -20,7 +20,7 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(hideOnClose)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(hideOnClose)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(app)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
         std::optional<exlib::string> url;
@@ -47,6 +47,7 @@ public:
         std::optional<bool> maximize = false;
 
         std::optional<obj_ptr<Menu>> menu;
+        std::optional<v8::Local<v8::Object>> app;
 
         std::optional<bool> devtools = false;
 
@@ -72,10 +73,12 @@ public:
 public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
+    virtual result_t loadFile(exlib::string file, AsyncEvent* ac);
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t isReady(bool& retVal, AsyncEvent* ac);
+    virtual result_t waitFor(exlib::string url, AsyncEvent* ac);
     virtual result_t reload(AsyncEvent* ac);
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);
@@ -97,51 +100,7 @@ public:
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
 public:
-    virtual result_t loadFile(exlib::string file, AsyncEvent* ac)
-    {
-        result_t hr = check_status(ac);
-        if (hr < 0)
-            return hr;
-
-        obj_ptr<UrlObject_base> u;
-        hr = url_base::pathToFileURL(file, u);
-        if (hr < 0)
-            return hr;
-
-        u->set_protocol("fs:");
-        u->set_slashes(true);
-
-        exlib::string url;
-        u->get_href(url);
-
-        return loadUrl(url, ac);
-    }
-
-    virtual result_t waitFor(exlib::string url, AsyncEvent* ac)
-    {
-        result_t hr = check_status(ac);
-        if (hr < 0)
-            return hr;
-
-        if (internal_isReady() && (url.empty() || url == internal_getUrl()))
-            return 0;
-
-        m_waitFor.push_back({ url, ac });
-
-        return CALL_E_PENDDING;
-    }
-
-    void postWaitFor(exlib::string url)
-    {
-        for (auto it = m_waitFor.begin(); it != m_waitFor.end();) {
-            if (it->first.empty() || it->first == url) {
-                it->second->post(0);
-                it = m_waitFor.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
+    void postWaitFor(exlib::string url);
 
 public:
     EVENT_FUNC(loading);
@@ -164,38 +123,18 @@ public:
     result_t openFile(exlib::string file, v8::Local<v8::Object> opt);
     result_t async_open();
 
+    void app_rpc(exlib::string json);
+
 public:
     void internal_close();
     void internal_minimize();
     void internal_maximize();
+    void internal_eval(exlib::string code);
     bool internal_isReady();
     exlib::string internal_getUrl();
 
-    result_t check_status(AsyncEvent* ac)
-    {
-        if (ac->isSync()) {
-            m_ready->ac_wait();
-            return CHECK_ERROR(CALL_E_GUICALL);
-        }
-
-        if (!m_window)
-            return Runtime::setError("WebView: webview is closed");
-
-        return 0;
-    }
-
-    void release()
-    {
-        if (m_webview) {
-            m_webview = nullptr;
-            m_window = nullptr;
-
-            _emit("close");
-
-            isolate_unref();
-            Unref();
-        }
-    }
+    result_t check_status(AsyncEvent* ac);
+    void release();
 
 public:
     obj_ptr<OpenOptions> m_options;

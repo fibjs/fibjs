@@ -41,6 +41,7 @@ declare module 'gui' {
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -77,6 +78,7 @@ declare module 'gui' {
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -110,6 +112,7 @@ declare module 'gui' {
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

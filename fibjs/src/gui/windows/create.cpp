@@ -31,8 +31,33 @@ ICoreWebView2Environment* g_env = nullptr;
 extern const wchar_t* szWndClassMain;
 
 static const wchar_t* s_bridge_code
-    = L"window.app = new EventTarget();"
-      "window.app.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
+    = L"window.app = (function(){"
+      "    function postRequest(req) { window.chrome.webview.postMessage(req); }"
+      "    const pending = {};"
+      "    function generateId() {"
+      "        while(true) { const id = Math.random().toString(36).substring(2); if(!pending[id]) return id; }"
+      "    }"
+      "    function wrap(m, fn) {"
+      "        return new Proxy(fn, {"
+      "            get: function(target, prop) {"
+      "                const method = m === '' ? prop : m + '.' + prop;"
+      "                return wrap(method, function(...params) { return new Promise((resolve, reject) => {"
+      "                    const id = generateId(); pending[id] = {resolve, reject};"
+      "                    postRequest({id, method, params});"
+      "                });});"
+      "            },"
+      "            set: function(target, method, value) { throw new Error('not allowed'); }"
+      "        });"
+      "    }"
+      "    return wrap('', function(res) {"
+      "        const p = pending[res.id];"
+      "        if (p) {"
+      "            delete pending[res.id];"
+      "            if (res.error) { p.reject(new Error(res.error)); } else { p.resolve(res.result); }"
+      "        }"
+      "    });"
+      "})();"
+      "window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
       "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
       "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
       "window.maximize = function() { window.chrome.webview.postMessage({type:'maximize'}); };"
@@ -168,7 +193,8 @@ result_t WebView::createWebView()
                                     else if (!qstrcmp(message, LR"({"type":"drag"})")) {
                                         ReleaseCapture();
                                         PostMessage((HWND)m_window, WM_NCLBUTTONDOWN, HTCAPTION, 0);
-                                    }
+                                    } else
+                                        app_rpc(utf16to8String((const char16_t*)message));
 
                                     CoTaskMemFree(message);
                                 }

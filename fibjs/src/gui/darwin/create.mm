@@ -66,6 +66,9 @@
                     _webView->internal_maximize();
                 else if ([message.body isEqualToString:@"drag"])
                     [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
+                else {
+                    _webView->app_rpc([message.body UTF8String]);
+                }
             }
         }
     }
@@ -133,8 +136,33 @@
 namespace fibjs {
 
 static NSString* s_bridge_code
-    = @"window.app = new EventTarget();"
-       "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+    = @"window.app = (function(){"
+       "    function postRequest(req) { window.webkit.messageHandlers.command.postMessage(JSON.stringify(req)); }"
+       "    const pending = {};"
+       "    function generateId() {"
+       "        while(true) { const id = Math.random().toString(36).substring(2); if(!pending[id]) return id; }"
+       "    }"
+       "    function wrap(m, fn) {"
+       "        return new Proxy(fn, {"
+       "            get: function(target, prop) {"
+       "                const method = m === '' ? prop : m + '.' + prop;"
+       "                return wrap(method, function(...params) { return new Promise((resolve, reject) => {"
+       "                    const id = generateId(); pending[id] = {resolve, reject};"
+       "                    postRequest({id, method, params});"
+       "                });});"
+       "            },"
+       "            set: function(target, method, value) { throw new Error('not allowed'); }"
+       "        });"
+       "    }"
+       "    return wrap('', function(res) {"
+       "        const p = pending[res.id];"
+       "        if (p) {"
+       "            delete pending[res.id];"
+       "            if (res.error) { p.reject(new Error(res.error)); } else { p.resolve(res.result); }"
+       "        }"
+       "    });"
+       "})();"
+       "window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
        "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
        "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
        "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"

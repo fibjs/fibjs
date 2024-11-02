@@ -330,57 +330,178 @@ describe(gui_env, () => {
             win.close();
         });
 
-        it("post message", () => {
-            const win = gui.open({
-                width: 100,
-                height: 100
-            });
-            wins.push(win);
+        describe("message", () => {
+            it("post message", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
 
-            win.eval(`window.app.addEventListener("message", function (msg) { window.app.postMessage("send from browser: " + msg.data); });`);
+                win.eval(`window.addEventListener("message", function (msg) { window.postMessage("send from browser: " + msg.data); });`);
 
-            var received_message;
-            win.on("message", (msg) => {
-                received_message = msg.data;
-            });
+                var received_message;
+                win.on("message", (msg) => {
+                    received_message = msg.data;
+                });
 
-            win.postMessage("Hello World");
+                win.postMessage("Hello World");
 
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(10);
-                if (received_message) {
-                    break;
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(10);
+                    if (received_message) {
+                        break;
+                    }
                 }
-            }
-            win.close();
+                win.close();
 
-            assert.equal(received_message, "send from browser: Hello World");
+                assert.equal(received_message, "send from browser: Hello World");
+            });
+
+            it("post non-string message", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                var received_message;
+                win.on("message", (msg) => {
+                    received_message = msg.data;
+                });
+
+                win.eval(`window.postMessage({num:1});`);
+                win.eval(`window.postMessage("Hello World");`);
+
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(10);
+                    if (received_message) {
+                        break;
+                    }
+                }
+                win.close();
+
+                assert.equal(received_message, "Hello World");
+            });
         });
 
-        it("post non-string message", () => {
-            const win = gui.open({
-                width: 100,
-                height: 100
-            });
-            wins.push(win);
+        describe("app", () => {
+            function test_app(app, code) {
+                const win = gui.open({
+                    width: 100,
+                    height: 100,
+                    app
+                });
 
-            var received_message;
-            win.on("message", (msg) => {
-                received_message = msg.data;
-            });
+                wins.push(win);
 
-            win.eval(`window.app.postMessage({num:1});`);
-            win.eval(`window.app.postMessage("Hello World");`);
+                var result;
+                win.onmessage = function (msg) {
+                    result = msg.data;
+                };
 
-            for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(10);
-                if (received_message) {
-                    break;
+                win.eval(`
+async function async_eval(func) {
+    try{
+        postMessage(JSON.stringify({
+            result: await func()
+        }));
+    } catch(e) {
+        postMessage(JSON.stringify({
+            error: e.message
+        }));
+    }
+}
+`);
+
+                win.eval(`async_eval(async function(){ return ${code}});`);
+
+                for (var i = 0; i < 1000; i++) {
+                    coroutine.sleep(10);
+                    if (result) {
+                        break;
+                    }
                 }
-            }
-            win.close();
 
-            assert.equal(received_message, "Hello World");
+                win.close();
+                return JSON.parse(result);
+            }
+
+            it("normal test", () => {
+                const result = test_app({
+                    test: function (a, b) {
+                        return a + b;
+                    }
+                }, "await window.app.test(1, 2);");
+
+                assert.deepEqual(result, {
+                    result: 3
+                });
+            });
+
+            it("subobject test", () => {
+                const result = test_app({
+                    test: {
+                        test1: function (a, b) {
+                            return a + b + 1;
+                        }
+                    }
+                }, "await window.app.test.test1(1, 2);");
+
+                assert.deepEqual(result, {
+                    result: 4
+                });
+            });
+
+            it("no app", () => {
+                const result = test_app(undefined, "await window.app.test.test1(1, 2);");
+
+                assert.deepEqual(result, {
+                    "error": "app is required"
+                });
+            });
+
+            it("method not found", () => {
+                const result = test_app({}, "await window.app.test.test1(1, 2);");
+
+                assert.deepEqual(result, {
+                    "error": "method 'test.test1' is not found"
+                });
+            });
+
+            it("method not callable", () => {
+                const result = test_app({
+                    test: {}
+                }, "await window.app.test(1, 2);");
+
+                assert.deepEqual(result, {
+                    "error": "method 'test' is not a function"
+                });
+            });
+
+            it("cutsom error", () => {
+                const result = test_app({
+                    test: function () {
+                        throw new Error("custom error");
+                    }
+                }, "await window.app.test();");
+
+                assert.deepEqual(result, {
+                    "error": "Error: custom error"
+                });
+            });
+
+            it("unsupported result type", () => {
+                const result = test_app({
+                    test: function () {
+                        return /abc/;
+                    }
+                }, "await window.app.test();");
+
+                assert.deepEqual(result, {
+                    "result": {}
+                });
+            });
         });
 
         describe("load", () => {

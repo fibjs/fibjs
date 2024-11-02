@@ -24,8 +24,33 @@
 namespace fibjs {
 
 static const gchar* s_bridge_code
-    = "window.app = new EventTarget();"
-      "window.app.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+    = "window.app = (function(){"
+      "    function postRequest(req) { window.webkit.messageHandlers.command.postMessage(JSON.stringify(req)); }"
+      "    const pending = {};"
+      "    function generateId() {"
+      "        while(true) { const id = Math.random().toString(36).substring(2); if(!pending[id]) return id; }"
+      "    }"
+      "    function wrap(m, fn) {"
+      "        return new Proxy(fn, {"
+      "            get: function(target, prop) {"
+      "                const method = m === '' ? prop : m + '.' + prop;"
+      "                return wrap(method, function(...params) { return new Promise((resolve, reject) => {"
+      "                    const id = generateId(); pending[id] = {resolve, reject};"
+      "                    postRequest({id, method, params});"
+      "                });});"
+      "            },"
+      "            set: function(target, method, value) { throw new Error('not allowed'); }"
+      "        });"
+      "    }"
+      "    return wrap('', function(res) {"
+      "        const p = pending[res.id];"
+      "        if (p) {"
+      "            delete pending[res.id];"
+      "            if (res.error) { p.reject(new Error(res.error)); } else { p.resolve(res.result); }"
+      "        }"
+      "    });"
+      "})();"
+      "window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
       "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
       "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
       "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
@@ -58,17 +83,15 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
     gpointer user_data)
 {
     gchar* value_str = get_string_from_js_result(js_result);
+    WebView* _webView = (WebView*)user_data;
 
-    if (strcmp(value_str, "close") == 0) {
-        WebView* _webView = (WebView*)user_data;
+    if (strcmp(value_str, "close") == 0)
         _webView->internal_close();
-    } else if (strcmp(value_str, "minimize") == 0) {
-        WebView* _webView = (WebView*)user_data;
+    else if (strcmp(value_str, "minimize") == 0)
         _webView->internal_minimize();
-    } else if (strcmp(value_str, "maximize") == 0) {
-        WebView* _webView = (WebView*)user_data;
+    else if (strcmp(value_str, "maximize") == 0)
         _webView->internal_maximize();
-    } else if (strcmp(value_str, "drag") == 0) {
+    else if (strcmp(value_str, "drag") == 0) {
         GdkDisplay* display = gdk_display_get_default();
         GdkSeat* seat = gdk_display_get_default_seat(display);
         GdkDevice* device = gdk_seat_get_pointer(seat);
@@ -76,9 +99,9 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
         gint x, y;
         gdk_device_get_position(device, NULL, &x, &y);
 
-        WebView* _webView = (WebView*)user_data;
         gtk_window_begin_move_drag(GTK_WINDOW(_webView->m_window), 1, x, y, 0);
-    }
+    } else
+        _webView->app_rpc(value_str);
 
     g_free(value_str);
 }
