@@ -48,7 +48,7 @@ public:
     virtual result_t isActived(bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t active(AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
-    virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onloading(v8::Local<v8::Function>& retVal) = 0;
@@ -104,7 +104,7 @@ public:
     static void s_isActived(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_active(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_capturePage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onloading(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -147,7 +147,7 @@ public:
     ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE1(WebView_base, isActived, bool);
     ASYNC_MEMBER0(WebView_base, active);
-    ASYNC_MEMBERVALUE1(WebView_base, capturePage, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE1(WebView_base, takeScreenshot, obj_ptr<Buffer_base>);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -183,7 +183,7 @@ inline ClassInfo& WebView_base::class_info()
         { "isActived", s_isActived, false, ClassData::ASYNC_ASYNC },
         { "active", s_active, false, ClassData::ASYNC_ASYNC },
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
-        { "capturePage", s_capturePage, false, ClassData::ASYNC_ASYNC },
+        { "takeScreenshot", s_takeScreenshot, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
     };
@@ -590,7 +590,7 @@ inline void WebView_base::s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_capturePage(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -600,9 +600,9 @@ inline void WebView_base::s_capturePage(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_capturePage(cb, args);
+        hr = pInst->acb_takeScreenshot(cb, args);
     else
-        hr = pInst->ac_capturePage(vr);
+        hr = pInst->ac_takeScreenshot(vr);
 
     METHOD_RETURN();
 }

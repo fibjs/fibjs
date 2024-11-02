@@ -250,9 +250,9 @@ declare class Class_WebView extends Class_EventEmitter {
      *      @return 返回截取的图像
      *     
      */
-    capturePage(): Class_Buffer;
+    takeScreenshot(): Class_Buffer;
 
-    capturePage(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    takeScreenshot(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 关闭当前窗口 

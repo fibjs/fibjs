@@ -92,7 +92,7 @@ public:
     virtual result_t isActived(bool& retVal, AsyncEvent* ac);
     virtual result_t active(AsyncEvent* ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
-    virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 

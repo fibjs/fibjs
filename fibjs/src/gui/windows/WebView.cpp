@@ -400,7 +400,7 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)

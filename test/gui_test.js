@@ -6,6 +6,7 @@ const url = require('url');
 const path = require('path');
 var coroutine = require("coroutine");
 var child_process = require("child_process");
+var PNG = require("./_helpers/png-node.js");
 
 var win32 = process.platform === "win32";
 var darwin64 = process.platform === "darwin";
@@ -898,14 +899,28 @@ describe(gui_env, () => {
             });
         }
 
-        it("capturePage", () => {
-            const win = gui.open();
+        it("takeScreenshot", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
             wins.push(win);
 
-            var buf = win.capturePage();
+            win.setHtml(`<html><body style="margin:0px;padding:0px;"><div style="width:500px;height:1000px;background-color:red"></div></body></html>`);
+
+            win.waitFor();
+            coroutine.sleep(100);
+
+            const pixelRatio = win.eval('window.devicePixelRatio');
+            var buf = win.takeScreenshot();
+            win.close();
+
             assert.isObject(buf);
 
-            win.close();
+            var png = new PNG(buf);
+
+            assert.equal(png.width, 500 * pixelRatio);
+            assert.equal(png.height, 1000 * pixelRatio);
         });
     });
 

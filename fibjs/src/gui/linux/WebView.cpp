@@ -457,12 +457,12 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
         cb_data->m_ac->post(0);
         delete cb_data;
     } else {
-        cb_data->m_ac->post(Runtime::setError("capturePage failed"));
+        cb_data->m_ac->post(Runtime::setError("Failed to capture screenshot"));
         delete cb_data;
     }
 }
 
-result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
