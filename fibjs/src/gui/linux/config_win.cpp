@@ -263,7 +263,6 @@ void WebView::config()
     g_signal_connect(window, "focus-in-event", G_CALLBACK(on_focus_event), this);
     g_signal_connect(window, "focus-out-event", G_CALLBACK(on_blur_event), this);
 
-    Ref();
     m_ready->set();
 }
 

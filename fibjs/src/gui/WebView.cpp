@@ -160,22 +160,6 @@ void WebView::app_rpc(exlib::string json)
     });
 }
 
-result_t WebView::async_open()
-{
-    start_gui();
-
-    wrap();
-
-    Ref();
-    async([this]() {
-        createWebView();
-        Unref();
-    },
-        CALL_E_GUICALL);
-
-    return 0;
-}
-
 result_t WebView::setup(v8::Local<v8::Object> opt)
 {
     Isolate* isolate = Isolate::current(opt);
@@ -230,6 +214,21 @@ result_t WebView::check_status(AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::async_open()
+{
+    start_gui();
+
+    isolate_ref();
+    m_self = new ValueHolder(wrap());
+
+    async([this]() {
+        createWebView();
+    },
+        CALL_E_GUICALL);
+
+    return 0;
+}
+
 void WebView::release()
 {
     if (m_webview) {
@@ -238,8 +237,8 @@ void WebView::release()
 
         _emit("close");
 
+        m_self.Release();
         isolate_unref();
-        Unref();
     }
 }
 

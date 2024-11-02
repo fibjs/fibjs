@@ -300,8 +300,6 @@ void WebView::config()
                 ShowWindow(hWndParent, SW_SHOWNORMAL);
         }
     }
-
-    Ref();
 }
 }
 

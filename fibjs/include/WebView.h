@@ -65,7 +65,6 @@ public:
     WebView()
     {
         m_ready = new Event();
-        isolate_ref();
     }
 
     EVENT_SUPPORT();
@@ -138,6 +137,7 @@ public:
 
 public:
     obj_ptr<OpenOptions> m_options;
+    obj_ptr<ValueHolder> m_self;
 
     obj_ptr<Buffer> m_icon;
 

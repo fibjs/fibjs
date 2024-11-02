@@ -1043,6 +1043,33 @@ async function async_eval(func) {
             assert.equal(png.width, 500 * pixelRatio);
             assert.equal(png.height, 1000 * pixelRatio);
         });
+
+        it("webview object should not be gc until close", () => {
+            var cnt = 0
+            function test_win() {
+                var win = gui.open({});
+
+                win.onmessage = function (e) {
+                    cnt++;
+                }
+
+                win.eval(`setTimeout(() => { postMessage('Hello from t1.js'); }, 100);setTimeout(() => { close(); }, 500);`);
+
+                win = null;
+            }
+
+            test_win();
+            gc();
+
+            for (var i = 0; i < 200; i++) {
+                if (cnt > 0) {
+                    break;
+                }
+                coroutine.sleep(10);
+            }
+
+            assert.equal(cnt, 1);
+        });
     });
 
     describe("menu", () => {
