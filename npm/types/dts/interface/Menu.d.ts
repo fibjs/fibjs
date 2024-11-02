@@ -1,5 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MenuItem.d.ts" />
 /**
  * @description 菜单管理对象，用于窗口显示菜单
@@ -56,7 +56,7 @@
  *   ```
  *  
  */
-declare class Class_Menu extends Class_EventEmitter {
+declare class Class_Menu extends Class_object {
     /**
      * @description 添加菜单项，将一个菜单项添加到菜单中。
      *      @param item 菜单项对象

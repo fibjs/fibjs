@@ -12,14 +12,12 @@
  */
 
 #include "../object.h"
-#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
-class EventEmitter_base;
 class MenuItem_base;
 
-class Menu_base : public EventEmitter_base {
+class Menu_base : public object_base {
     DECLARE_CLASS(Menu_base);
 
 public:
@@ -76,7 +74,7 @@ inline ClassInfo& Menu_base::class_info()
     static ClassData s_cd = {
         "Menu", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, &s_indexed, NULL,
-        &EventEmitter_base::class_info(),
+        &object_base::class_info(),
         false
     };
 

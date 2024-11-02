@@ -90,9 +90,6 @@ public:
     }
 
 public:
-    EVENT_SUPPORT();
-
-public:
     // Menu_base
     virtual result_t append(v8::Local<v8::Object> item);
     virtual result_t insert(int32_t pos, v8::Local<v8::Object> item);

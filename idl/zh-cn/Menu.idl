@@ -51,7 +51,7 @@
     });         
   ```
  */
-interface Menu : EventEmitter
+interface Menu : object
 {
     /*! @brief 添加菜单项，将一个菜单项添加到菜单中。
      @param item 菜单项对象
