@@ -137,7 +137,9 @@ public:
 
 public:
     obj_ptr<OpenOptions> m_options;
+
     obj_ptr<ValueHolder> m_self;
+    obj_ptr<ValueHolder> m_menu;
 
     obj_ptr<Buffer> m_icon;
 

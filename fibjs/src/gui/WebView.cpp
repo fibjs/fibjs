@@ -178,6 +178,9 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
             return Runtime::setError("Window icon is empty");
     }
 
+    if (m_options->menu.has_value())
+        m_menu = new ValueHolder(m_options->menu.value()->wrap());
+
     if (m_options->app.has_value())
         SetPrivate("app", m_options->app.value());
 

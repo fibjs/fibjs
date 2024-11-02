@@ -74,6 +74,9 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
     if (!tray->m_icon)
         return Runtime::setError("Tray icon is empty");
 
+    if (tray->m_options->menu.has_value())
+        tray->m_menu = new ValueHolder(tray->m_options->menu.value()->wrap());
+
     return tray->async_open();
 }
 }

@@ -78,6 +78,7 @@ public:
 
     uint32_t m_id = 0;
     obj_ptr<Buffer> m_icon;
+    obj_ptr<ValueHolder> m_submenu;
 
     void* m_menu_item = nullptr;
 };
@@ -112,6 +113,7 @@ public:
 
 public:
     std::vector<obj_ptr<MenuItem>> m_items;
+    std::vector<obj_ptr<ValueHolder>> m_itemholders;
 
     void* m_menu = nullptr;
 };

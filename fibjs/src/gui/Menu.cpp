@@ -244,6 +244,9 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
             return Runtime::setError("Menu item icon is empty");
     }
 
+    if (mi->submenu.has_value())
+        mi->m_submenu = new ValueHolder(mi->submenu.value()->wrap());
+
     if (mi->onclick.has_value())
         mi->set_onclick(mi->onclick.value());
 
@@ -274,6 +277,7 @@ result_t Menu::append(v8::Local<v8::Object> item)
         return hr;
 
     m_items.push_back(mi);
+    m_itemholders.push_back(new ValueHolder(mi->wrap()));
 
     return 0;
 }
@@ -292,6 +296,7 @@ result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
         return hr;
 
     m_items.insert(m_items.begin() + pos, mi);
+    m_itemholders.insert(m_itemholders.begin() + pos, new ValueHolder(mi->wrap()));
 
     return 0;
 }
@@ -305,6 +310,7 @@ result_t Menu::remove(int32_t pos)
         return CALL_E_OUTRANGE;
 
     m_items.erase(m_items.begin() + pos);
+    m_itemholders.erase(m_itemholders.begin() + pos);
 
     return 0;
 }
