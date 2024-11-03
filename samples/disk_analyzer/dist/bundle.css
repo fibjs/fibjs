@@ -65,7 +65,7 @@ body,
   display: flex;
   justify-content: space-between;
   cursor: pointer;
-  padding: 5px 0;
+  padding: 5px 10px;
 }
 .tree-node:hover {
   background-color: #f0f0f0;
@@ -92,7 +92,7 @@ body,
   justify-content: space-between;
   font-weight: bold;
   border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
+  padding: 5px 10px;
   margin-bottom: 10px;
 }
 .tree-header-name {

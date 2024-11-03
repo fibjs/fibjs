@@ -12,7 +12,7 @@ let rootNode = {
     expanded: false
 };
 const queue = [];
-const maxConcurrentTasks = 20;
+const maxConcurrentTasks = 32;
 let activeTasks = 0;
 let isTreeModified = false;
 
@@ -202,7 +202,8 @@ const sortTreeBySize = (node) => {
 };
 
 // 初始化数据
-refreshData();
+
+setTimeout(refreshData, 1000);
 
 module.exports = {
     fetchTreeData,
