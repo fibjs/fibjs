@@ -281,6 +281,8 @@ declare class Class_WebView extends Class_EventEmitter {
 
     /**
      * @description 截取当前窗口的图像
+     * 
+     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
      *      @return 返回截取的图像
      *     
      */
