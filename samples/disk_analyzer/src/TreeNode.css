@@ -1,0 +1,62 @@
+/* FILE: TreeNode.css */
+.tree-node {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 5px 0;
+}
+
+.tree-node:hover {
+  background-color: #f0f0f0;
+  /* 鼠标悬浮时的背景颜色 */
+}
+
+.tree-node-icon {
+  margin-right: 10px;
+  /* 增加图标和文件名之间的间距 */
+}
+
+.tree-node-name {
+  flex: 1;
+}
+
+.tree-node-details {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.tree-node-size,
+.tree-node-contents,
+.tree-node-modified {
+  width: 100px;
+  /* Adjust width as needed */
+  text-align: right;
+}
+
+.tree-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.tree-header-name {
+  flex: 1;
+}
+
+.tree-header-details {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.tree-header-size,
+.tree-header-contents,
+.tree-header-modified {
+  width: 100px;
+  /* Adjust width as needed */
+  text-align: right;
+}

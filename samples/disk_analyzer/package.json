@@ -1,0 +1,17 @@
+{
+  "name": "disk_analyzer",
+  "version": "1.0.0",
+  "description": "",
+  "repository": "",
+  "keywords": "",
+  "author": "",
+  "scripts": {
+    "build": "esbuild src/index.jsx --bundle --outfile=dist/bundle.js --loader:.jsx=jsx"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "^0.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
