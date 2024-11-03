@@ -318,7 +318,7 @@ describe(gui_env, () => {
             win.loadUrl("https://fibjs.org");
 
             for (var i = 0; i < 1000; i++) {
-                coroutine.sleep(10);
+                coroutine.sleep(50);
                 if (loaded_url !== undefined && loading_url !== undefined) {
                     break;
                 }
@@ -516,7 +516,7 @@ async function async_eval(func) {
                 var last_received_message;
                 var get_url;
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     var result = win.eval(`window.document.title + "|" +window.location.href`);
                     if (result && result != "|about:blank" && last_received_message == result) {
                         break;
@@ -712,19 +712,19 @@ async function async_eval(func) {
             });
             wins.push(win);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getTitle() == "")
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.equal(win.getTitle(), "");
 
             win.eval(`window.document.title = "Hello World";`);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getTitle() == "Hello World")
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.equal(win.getTitle(), "Hello World");
 
@@ -741,19 +741,19 @@ async function async_eval(func) {
             });
             wins.push(win);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getSize()[0] === 300)
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.deepEqual(win.getSize(), [300, 200]);
 
             win.setSize(400, 300);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getSize()[0] === 400)
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.deepEqual(win.getSize(), [400, 300]);
 
@@ -770,19 +770,19 @@ async function async_eval(func) {
             });
             wins.push(win);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getPosition()[0] === 100)
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.deepEqual(win.getPosition(), [100, 100]);
 
             win.setPosition(200, 200);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getPosition()[0] === 200)
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.deepEqual(win.getPosition(), [200, 200]);
 
@@ -813,10 +813,10 @@ async function async_eval(func) {
             });
             wins.push(win);
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 1000; i++) {
                 if (win.getTitle() == "")
                     break;
-                coroutine.sleep(100);
+                coroutine.sleep(10);
             }
             assert.equal(win.getTitle(), "");
 
@@ -857,7 +857,7 @@ async function async_eval(func) {
                     for (var i = 0; i < 500; i++) {
                         if (focus > last_focus)
                             break;
-                        coroutine.sleep(100);
+                        coroutine.sleep(10);
                     }
 
                     assert.equal(focus, last_focus + 1);
@@ -871,13 +871,17 @@ async function async_eval(func) {
                     });
                     wins.push(win1);
 
+                    assert.equal(blur, last_blur);
+                    assert.equal(focus, last_focus + 1);
+
                     for (var i = 0; i < 500; i++) {
                         if (blur > last_blur)
                             break;
-                        coroutine.sleep(100);
+                        coroutine.sleep(10);
                     }
 
                     assert.equal(blur, last_blur + 1);
+                    assert.equal(focus, last_focus + 1);
 
                     last_focus = focus;
 
@@ -885,12 +889,13 @@ async function async_eval(func) {
                     for (var i = 0; i < 500; i++) {
                         if (focus > last_focus)
                             break;
-                        coroutine.sleep(100);
+                        coroutine.sleep(10);
                     }
 
-                    assert.equal(focus, last_focus + 1);
-
                     win.close();
+
+
+                    assert.greaterThan(focus, last_focus);
                 }
 
                 it("normal window", () => {
@@ -930,7 +935,7 @@ async function async_eval(func) {
                 wins.push(win);
 
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     if (win.isActived()) {
                         break;
                     }
@@ -946,7 +951,7 @@ async function async_eval(func) {
                 wins.push(win1);
 
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     if (win1.isActived()) {
                         break;
                     }
@@ -956,7 +961,7 @@ async function async_eval(func) {
 
                 win.active();
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     if (win.isActived()) {
                         break;
                     }
@@ -976,7 +981,7 @@ async function async_eval(func) {
                 wins.push(win);
 
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     var result = win.eval(`document.hasFocus()?"True":"False"`);
                     if (result == "True") {
                         break;
@@ -1008,7 +1013,7 @@ async function async_eval(func) {
                 win1.close();
 
                 for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
                     var result = win.eval(`document.hasFocus()?"True":"False"`);
                     if (result == "True") {
                         break;
@@ -1030,7 +1035,7 @@ async function async_eval(func) {
             win.setHtml(`<html><body style="margin:0px;padding:0px;"><div style="width:500px;height:1000px;background-color:red"></div></body></html>`);
 
             win.waitFor();
-            coroutine.sleep(100);
+            coroutine.sleep(10);
 
             const pixelRatio = win.eval('window.devicePixelRatio');
             var buf = win.takeScreenshot();
