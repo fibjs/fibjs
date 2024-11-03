@@ -100,6 +100,12 @@ void g_error_free(GError* error)
     gobj_func(g_error_free);
     s_g_error_free(error);
 }
+
+const gchar* g_get_user_cache_dir()
+{
+    gobj_func(g_get_user_cache_dir);
+    return s_g_get_user_cache_dir();
+}
 }
 
 #endif

@@ -71,12 +71,25 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
     });
 }
 
+void setup_webkit()
+{
+    WebKitWebContext* context = webkit_web_context_get_default();
+
+    webkit_web_context_register_uri_scheme(context, "fs", fs_scheme_request_callback, NULL, NULL);
+
+    WebKitCookieManager* cookie_manager = webkit_web_context_get_cookie_manager(context);
+    exlib::string cookie_storage_path = g_get_user_cache_dir();
+    cookie_storage_path += "/fibjs/cookies";
+    webkit_cookie_manager_set_persistent_storage(cookie_manager, cookie_storage_path.c_str(), WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+    webkit_cookie_manager_set_accept_policy(cookie_manager, WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS);
+}
+
 void run_os_gui()
 {
     dl_init();
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
-    webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "fs", fs_scheme_request_callback, NULL, NULL);
+    setup_webkit();
 
     g_gui_ready.set();
 

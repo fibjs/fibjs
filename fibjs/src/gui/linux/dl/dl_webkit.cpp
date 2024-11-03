@@ -60,6 +60,24 @@ void webkit_settings_set_user_agent(WebKitSettings* settings, const gchar* user_
     s_webkit_settings_set_user_agent(settings, user_agent);
 }
 
+WebKitCookieManager* webkit_web_context_get_cookie_manager(WebKitWebContext* context)
+{
+    webkit_func(webkit_web_context_get_cookie_manager);
+    return s_webkit_web_context_get_cookie_manager(context);
+}
+
+void webkit_cookie_manager_set_persistent_storage(WebKitCookieManager* manager, const gchar* filename, WebKitCookiePersistentStorage storage)
+{
+    webkit_func(webkit_cookie_manager_set_persistent_storage);
+    s_webkit_cookie_manager_set_persistent_storage(manager, filename, storage);
+}
+
+void webkit_cookie_manager_set_accept_policy(WebKitCookieManager* manager, WebKitCookieAcceptPolicy policy)
+{
+    webkit_func(webkit_cookie_manager_set_accept_policy);
+    s_webkit_cookie_manager_set_accept_policy(manager, policy);
+}
+
 gboolean webkit_web_view_is_loading(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_is_loading);
@@ -243,7 +261,6 @@ void cairo_surface_destroy(cairo_surface_t* surface)
     webkit_func(cairo_surface_destroy);
     s_cairo_surface_destroy(surface);
 }
-
 }
 
 #endif
