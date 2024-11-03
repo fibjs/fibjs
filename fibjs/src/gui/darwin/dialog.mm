@@ -49,11 +49,12 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:opts->defaultPath->c_str()]]];
     }
 
-    NSView* accessoryView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 25)];
-    NSPopUpButton* formatButton = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0, 0, 200, 25)];
-
-    NSMutableArray* allowedTypes = [NSMutableArray array];
     if (opts->filters.has_value()) {
+        NSView* accessoryView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 25)];
+        NSPopUpButton* formatButton = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0, 0, 200, 25)];
+
+        NSMutableArray* allowedTypes = [NSMutableArray array];
+
         for (int32_t i = 0; i < opts->filters->size(); i++) {
             auto& filter = opts->filters->at(i);
             [formatButton addItemWithTitle:[NSString stringWithUTF8String:filter->name.c_str()]];
@@ -68,10 +69,41 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 }
             }
         }
-    }
 
-    [accessoryView addSubview:formatButton];
-    [panel setAccessoryView:accessoryView];
+        [accessoryView addSubview:formatButton];
+        [panel setAccessoryView:accessoryView];
+
+        [panel setAllowedFileTypes:allowedTypes];
+
+        void (^formatChanged)(id) = ^(id sender) {
+            NSPopUpButton* formatButton = (NSPopUpButton*)sender;
+            NSString* selectedFormat = [[formatButton selectedItem] title];
+
+            NSMutableArray* newAllowedTypes = [NSMutableArray array];
+            for (auto& filter : *opts->filters) {
+                if ([selectedFormat isEqualToString:[NSString stringWithUTF8String:filter->name.c_str()]]) {
+                    for (auto& ext : filter->extensions) {
+                        if (ext == "*") {
+                            newAllowedTypes = nil; // Allow all file types
+                            break;
+                        } else {
+                            [newAllowedTypes addObject:[NSString stringWithUTF8String:ext.c_str()]];
+                        }
+                    }
+                    break;
+                }
+            }
+
+            [panel setAllowedFileTypes:newAllowedTypes];
+        };
+
+        id target = [NSBlockOperation blockOperationWithBlock:^{
+            formatChanged(formatButton);
+        }];
+
+        [formatButton setAction:@selector(main)];
+        [formatButton setTarget:target];
+    }
 
     if (!isSaveDialog) {
         if (opts->type.value() == "openDirectory") {
@@ -86,37 +118,6 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         [panel setAllowsMultipleSelection:opts->multiSelections.value() ? YES : NO];
         [panel setAccessoryViewDisclosed:YES];
     }
-
-    [panel setAllowedFileTypes:allowedTypes];
-
-    void (^formatChanged)(id) = ^(id sender) {
-        NSPopUpButton* formatButton = (NSPopUpButton*)sender;
-        NSString* selectedFormat = [[formatButton selectedItem] title];
-
-        NSMutableArray* newAllowedTypes = [NSMutableArray array];
-        for (auto& filter : *opts->filters) {
-            if ([selectedFormat isEqualToString:[NSString stringWithUTF8String:filter->name.c_str()]]) {
-                for (auto& ext : filter->extensions) {
-                    if (ext == "*") {
-                        newAllowedTypes = nil; // Allow all file types
-                        break;
-                    } else {
-                        [newAllowedTypes addObject:[NSString stringWithUTF8String:ext.c_str()]];
-                    }
-                }
-                break;
-            }
-        }
-
-        [panel setAllowedFileTypes:newAllowedTypes];
-    };
-
-    id target = [NSBlockOperation blockOperationWithBlock:^{
-        formatChanged(formatButton);
-    }];
-
-    [formatButton setAction:@selector(main)];
-    [formatButton setTarget:target];
 
     if (++s_window_count == 1)
         [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
