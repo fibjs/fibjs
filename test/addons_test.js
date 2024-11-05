@@ -273,6 +273,7 @@ describe('addons api', () => {
 
         assert.strictEqual(binding.getDeleterCallCount(), 0);
         gc();
+        coroutine.sleep(100);
         assert.strictEqual(binding.getDeleterCallCount(), 1);
         assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
 
@@ -285,6 +286,7 @@ describe('addons api', () => {
         buffer = null;
         assert.strictEqual(binding.getDeleterCallCount(), 1);
         gc();
+        coroutine.sleep(100);
         assert.strictEqual(binding.getDeleterCallCount(), 2);
 
     });

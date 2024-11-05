@@ -310,6 +310,7 @@ public:
     typedef void (*FreeCallback)(char* data, void* hint);
 
     struct CallBackInfo {
+        Environment* env;
         FreeCallback callback;
         void* hint;
     };
@@ -317,8 +318,11 @@ public:
     static void BackingStoreDeleter(void* data, size_t length, void* arg)
     {
         CallBackInfo* info = static_cast<CallBackInfo*>(arg);
-        info->callback(static_cast<char*>(data), info->hint);
-        delete info;
+        info->env->sync([data, length, info]() -> int {
+            info->callback(static_cast<char*>(data), info->hint);
+            delete info;
+            return 0;
+        });
     }
 
     static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, char* data,
@@ -331,7 +335,7 @@ public:
 
         if (callback)
             bs = v8::ArrayBuffer::NewBackingStore(
-                data, length, BackingStoreDeleter, new CallBackInfo { callback, hint });
+                data, length, BackingStoreDeleter, new CallBackInfo { env, callback, hint });
         else
             bs = v8::ArrayBuffer::NewBackingStore(data, length, NULL, 0);
 

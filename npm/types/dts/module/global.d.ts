@@ -243,10 +243,5 @@ declare module 'global' {
      */
     function atob(data: string): Class_Buffer;
 
-    /**
-     * @description 强制要求进行垃圾回收
-     */
-    function gc(): void;
-
 }
 

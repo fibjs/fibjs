@@ -181,7 +181,4 @@ module global
 	 @return 返回解码的二进制数据
 	 */
     static Buffer atob(String data);
-
-    /*! @brief 强制要求进行垃圾回收*/
-    static gc();
 };

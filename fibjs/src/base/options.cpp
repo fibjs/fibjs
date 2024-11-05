@@ -204,5 +204,7 @@ void options(int32_t& pos, char* argv[])
 
     v8::internal::v8_flags.harmony_import_assertions = false;
     v8::internal::v8_flags.harmony_import_attributes = true;
+
+    v8::internal::v8_flags.expose_gc = true;
 }
 }

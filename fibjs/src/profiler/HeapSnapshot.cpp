@@ -44,9 +44,11 @@ private:
 
 result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
-    global_base::gc();
+    Isolate* isolate = Isolate::current();
 
-    v8::HeapProfiler* profiler = Isolate::current()->m_isolate->GetHeapProfiler();
+    isolate->m_isolate->LowMemoryNotification();
+
+    v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
     retVal = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
     return 0;
 }
@@ -57,12 +59,12 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
     v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
     obj_ptr<HeapSnapshot_base> s1, s2;
 
-    global_base::gc();
+    isolate->m_isolate->LowMemoryNotification();
     s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
     test->Call(test->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 0, NULL).IsEmpty();
 
-    global_base::gc();
+    isolate->m_isolate->LowMemoryNotification();
     s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
     return s2->diff(s1, retVal);
