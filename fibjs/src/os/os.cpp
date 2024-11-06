@@ -376,6 +376,16 @@ result_t os_base::freemem(int64_t& retVal)
     return 0;
 }
 
+#ifdef iPhone
+
+extern "C" const char* get_documents_directory();
+
+result_t os_base::homedir(exlib::string& retVal)
+{
+    retVal = get_documents_directory();
+    return 0;
+}
+#else
 result_t os_base::homedir(exlib::string& retVal)
 {
     char buf[1024] = "";
@@ -388,6 +398,7 @@ result_t os_base::homedir(exlib::string& retVal)
 
     return 0;
 }
+#endif
 
 result_t os_base::tmpdir(exlib::string& retVal)
 {
