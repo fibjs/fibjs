@@ -239,6 +239,12 @@ public:
     static void out(exlib::string& txt, bool is_error = false);
 };
 
+class nslog_logger : public logger {
+public:
+    virtual result_t write(AsyncEvent* ac);
+    static void out(exlib::string& txt, bool is_error = false);
+};
+
 class file_logger : public logger {
 public:
     virtual result_t config(Isolate* isolate, v8::Local<v8::Object> o);

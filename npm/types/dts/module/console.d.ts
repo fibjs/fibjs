@@ -108,7 +108,7 @@ declare module 'console' {
     function add(type: string): void;
 
     /**
-     * @description 添加 console 输出系统，支持的设备为 console, syslog, event 和 file，最多可以添加 10 个输出
+     * @description 添加 console 输出系统，支持的设备为 console, syslog, event, nslog 和 file，最多可以添加 10 个输出
      * 
      *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
      * 
@@ -133,6 +133,14 @@ declare module 'console' {
      *      console.add({
      *         type: "event",
      *         levels: [console.INFO, console.ERROR]
+     *      });
+     *      ```
+     * 
+     *      nslog 仅在 Darwin 平台有效：
+     *      ```JavaScript
+     *      console.add({
+     *          type: "nslog",
+     *          levels: [console.INFO, console.ERROR]
      *      });
      *      ```
      * 

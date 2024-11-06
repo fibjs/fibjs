@@ -130,6 +130,11 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
         lgr = new sys_logger();
 #endif
 
+#ifdef Darwin
+    else if (!qstrcmp(*s, "nslog"))
+        lgr = new nslog_logger();
+#endif
+
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
