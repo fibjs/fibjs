@@ -2,6 +2,7 @@ var test = require("test");
 var coroutine = require('coroutine');
 var path = require('path');
 var fs = require('fs');
+var os = require('os');
 var zip = require('zip');
 var io = require('io');
 var {
@@ -18,9 +19,11 @@ function rmdir(pathname) {
     } catch (e) { }
 }
 
-var pathname = 'test_dir' + vmid;
-var pathname1 = 'test1_dir' + vmid;
-var pathname2 = 'test2_dir' + vmid;
+var homedir = os.homedir();
+
+var pathname = path.join(homedir, 'test_dir' + vmid);
+var pathname1 = path.join(homedir, 'test1_dir' + vmid);
+var pathname2 = path.join(homedir, 'test2_dir' + vmid);
 
 var win = process.platform === 'win32';
 var linux = process.platform === 'linux';
@@ -47,13 +50,25 @@ function assert_stat_property(statObj) {
     assert.ok(statObj.birthtime instanceof Date)
 }
 
+function rmdir_recursive(pathname) {
+    if(!fs.exists(pathname)) return;
+    var files = fs.readdir(pathname);
+    for (var i = 0; i < files.length; i++) {
+        var file = path.join(pathname, files[i]);
+        if (fs.stat(file).isDirectory()) {
+            rmdir_recursive(file);
+        } else {
+            fs.unlink(file);
+        }
+    }
+    fs.rmdir(pathname);
+}
+
 describe('fs', () => {
     before(() => {
-        rmdir(path.join(pathname, pathname));
-        rmdir(path.join(pathname1, pathname));
-        rmdir(pathname);
-        rmdir(pathname1);
-        rmdir(pathname2);
+        rmdir_recursive(pathname);
+        rmdir_recursive(pathname1);
+        rmdir_recursive(pathname2);
     });
 
     after(() => {
@@ -229,9 +244,6 @@ describe('fs', () => {
             recursive: true
         });
         assert.equal(fs.exists(recursive_path), true);
-
-        fs.rmdir(recursive_path);
-        fs.rmdir(pathname);
     });
 
     it("mkdir recursive do not throw error when directory exists", () => {
@@ -803,11 +815,11 @@ describe('fs', () => {
     describe('write', () => {
         var fd;
 
-        beforeEach(() => fd = fs.open('test.txt', 'w+'));
+        beforeEach(() => fd = fs.open(path.join(homedir, 'test.txt'), 'w+'));
         afterEach(() => fs.close(fd));
         after(() => {
             try {
-                fs.unlink('test.txt');
+                fs.unlink(path.join(homedir, 'test.txt'));
             } catch (e) { }
         });
 
