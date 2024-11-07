@@ -239,7 +239,7 @@ describe('fs', () => {
     });
 
     it("mkdir recursive", () => {
-        var recursive_path = path.join(pathname, pathname);
+        var recursive_path = path.join(pathname, 'test_dir');
         fs.mkdir(recursive_path, {
             recursive: true
         });
