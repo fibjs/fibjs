@@ -13,9 +13,9 @@
 #include <uv/include/uv.h>
 #include <errno.h>
 
-static_assert(sizeof(wchar_t) == 2, "wchar_t size is not 2 bytes");
-
 #ifdef _WIN32
+
+static_assert(sizeof(wchar_t) == 2, "wchar_t size is not 2 bytes");
 
 #include <windows.h>
 
