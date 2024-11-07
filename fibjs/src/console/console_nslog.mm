@@ -16,7 +16,6 @@ namespace fibjs {
 
 void nslog_logger::out(exlib::string& txt, bool is_error)
 {
-    // 使用 NSLog 输出日志
     NSString *nsTxt = [NSString stringWithUTF8String:txt.c_str()];
     if (is_error) {
         NSLog(@"[ERROR] %@", nsTxt);
