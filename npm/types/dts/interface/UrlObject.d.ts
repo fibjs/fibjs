@@ -41,32 +41,33 @@ declare class Class_UrlObject extends Class_object {
      *      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
      *      
      */
-    constructor(args: FIBJS.GeneralObject);
+    constructor(args?: FIBJS.GeneralObject);
 
     /**
      * @description UrlObject 对象构造函数，使用 url 字符串构造
-     *      @param url 指定构造 url 字符串
-     *      @param parseQueryString 指定是否解析 query
-     *      @param slashesDenoteHost  默认为false, 如果设置为true，则从字符串'//'之后到下一个'/'之前的字符串会被解析为host，例如'//foo/bar', 结果应该是{host: 'foo', pathname: '/bar'}而不是{pathname: '//foo/bar'}
-     *      
+     *       @param url 指定需要解析的 url 字符串
+     *       @param base 指定基础 url 字符串
+     *       
      */
-    constructor(url?: string, parseQueryString?: boolean, slashesDenoteHost?: boolean);
+    constructor(url: string, base?: string);
 
     /**
      * @description 解析一个 url 字符串
      *      @param url 指定需要解析的 url 字符串
-     *      @param parseQueryString 指定是否解析 query
-     *      @param slashesDenoteHost  默认为false, 如果设置为true，则从字符串'//'之后到下一个'/'之前的字符串会被解析为host，例如'//foo/bar', 结果应该是{host: 'foo', pathname: '/bar'}而不是{pathname: '//foo/bar'}
+     *       @param base 指定基础 url 字符串
+     *       @return 返回包含解析数据的对象
      *      
      */
-    parse(url: string, parseQueryString?: boolean, slashesDenoteHost?: boolean): void;
+    static parse(url: string, base?: string): Class_UrlObject;
 
     /**
-     * @description 使用指定的参数构造 UrlObject
-     *      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
+     * @description 检查相对于 base 的 url 是否可以解析
+     *      @param url 指定需要解析的 url 字符串
+     *      @param base 指定基础 url 字符串
+     *      @return 返回是否可以解析的布尔值
      *      
      */
-    format(args: FIBJS.GeneralObject): void;
+    static canParse(url: string, base?: string): boolean;
 
     /**
      * @description 重定位 url 路径，自动识别新路径为相对路径还是绝对路径
@@ -75,12 +76,6 @@ declare class Class_UrlObject extends Class_object {
      *      
      */
     resolve(url: string): Class_UrlObject;
-
-    /**
-     * @description 标准化路径
-     *      
-     */
-    normalize(): void;
 
     /**
      * @description 查询和设置当前 UrlObject 对象中的完整 url 地址描述，此描述由其他所有属性组装而成
@@ -95,16 +90,16 @@ declare class Class_UrlObject extends Class_object {
     protocol: string;
 
     /**
-     * @description 查询和设置当前 UrlObject 对象是否包含双斜杠
+     * ! @brieg 查询当前 UrlObject 对象中的来源
      *      
      */
-    slashes: boolean;
+    readonly origin: string;
 
     /**
      * @description 查询和设置当前 UrlObject 对象中的完整验证字符串，由 username 和 password 属性组装而成
      *      
      */
-    auth: string;
+    readonly auth: string;
 
     /**
      * @description 查询和设置当前 UrlObject 对象中的验证用户
@@ -137,10 +132,10 @@ declare class Class_UrlObject extends Class_object {
     port: string;
 
     /**
-     * @description 查询和设置当前 UrlObject 对象中的请求完整路径（含请求），由 pathname 和 query 组装而成
+     * @description 查询当前 UrlObject 对象中的请求完整路径（含请求），由 pathname 和 query 组装而成
      *      
      */
-    path: string;
+    readonly path: string;
 
     /**
      * @description 查询和设置当前 UrlObject 对象中的路径

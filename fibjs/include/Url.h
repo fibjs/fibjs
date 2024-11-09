@@ -10,6 +10,7 @@
 #include "ifs/UrlObject.h"
 #include "utf8.h"
 #include "HttpCollection.h"
+#include <ada.h>
 
 namespace fibjs {
 
@@ -20,26 +21,26 @@ public:
         extMemory(1024);
     }
 
-    Url(const Url& u);
+    Url(const Url& src)
+    {
+        m_parseQuery = src.m_parseQuery;
+        m_url = src.m_url;
+        extMemory(1024);
+    }
 
 public:
     // object_base
-    result_t toString(exlib::string& retVal);
+    virtual result_t toString(exlib::string& retVal);
 
 public:
     // UrlObject_base
-    virtual result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost);
-    virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal);
-    virtual result_t normalize();
     virtual result_t get_href(exlib::string& retVal);
     virtual result_t set_href(exlib::string newVal);
     virtual result_t get_protocol(exlib::string& retVal);
     virtual result_t set_protocol(exlib::string newVal);
-    virtual result_t get_slashes(bool& retVal);
-    virtual result_t set_slashes(bool newVal);
+    virtual result_t get_origin(exlib::string& retVal);
     virtual result_t get_auth(exlib::string& retVal);
-    virtual result_t set_auth(exlib::string newVal);
     virtual result_t get_username(exlib::string& retVal);
     virtual result_t set_username(exlib::string newVal);
     virtual result_t get_password(exlib::string& retVal);
@@ -51,7 +52,6 @@ public:
     virtual result_t get_port(exlib::string& retVal);
     virtual result_t set_port(exlib::string newVal);
     virtual result_t get_path(exlib::string& retVal);
-    virtual result_t set_path(exlib::string newVal);
     virtual result_t get_pathname(exlib::string& retVal);
     virtual result_t set_pathname(exlib::string newVal);
     virtual result_t get_search(exlib::string& retVal);
@@ -63,28 +63,66 @@ public:
     virtual result_t get_searchParams(obj_ptr<HttpCollection_base>& retVal);
 
 public:
-    result_t parse(exlib::string url)
+    result_t legacy_parse(exlib::string url, bool parseQueryString);
+    result_t format(v8::Local<v8::Object> args);
+    result_t parse(exlib::string url, exlib::string base = "");
+    result_t parse_search_params();
+
+public:
+    exlib::string href() const
     {
-        return parse(url, false, false);
+        return m_url ? m_url->get_href() : std::string_view();
     }
 
-    result_t resolve(obj_ptr<Url>& u, obj_ptr<UrlObject_base>& retVal);
+    exlib::string protocol() const
+    {
+        return m_url ? m_url->get_protocol() : std::string_view();
+    }
 
-    void build_host();
+    exlib::string username() const
+    {
+        return m_url ? m_url->get_username() : std::string_view();
+    }
 
-    static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
-    static void trimUrl(exlib::string url, exlib::string& retVal);
+    exlib::string password() const
+    {
+        return m_url ? m_url->get_password() : std::string_view();
+    }
 
-private:
-    void clear();
-    bool checkHost(const char* str);
-    void parseProtocol(const char*& url);
+    exlib::string host() const
+    {
+        return m_url ? m_url->get_host() : std::string_view();
+    }
 
-    void parseAuth(const char*& url);
-    void parseHost(const char*& url);
-    void parsePath(const char*& url);
-    void parseQuery(const char*& url);
-    void parseHash(const char*& url);
+    exlib::string hostname() const
+    {
+        return m_url ? m_url->get_hostname() : std::string_view();
+    }
+
+    exlib::string port() const
+    {
+        return m_url ? m_url->get_port() : std::string_view();
+    }
+
+    exlib::string pathname() const
+    {
+        return m_url ? m_url->get_pathname() : std::string_view();
+    }
+
+    exlib::string search() const
+    {
+        return m_url ? m_url->get_search() : std::string_view();
+    }
+
+    exlib::string hash() const
+    {
+        return m_url ? m_url->get_hash() : std::string_view();
+    }
+
+    bool isIPv6() const
+    {
+        return m_url ? m_url->host_type == ada::url_host_type::IPV6 : false;
+    }
 
 public:
     inline static void decodeURI(const char* url, ssize_t sz, exlib::string& retVal, bool space = false)
@@ -205,19 +243,9 @@ public:
     }
 
 public:
-    exlib::string m_protocol;
-    bool m_slashes = false;
-    bool m_defslashes = false;
-    exlib::string m_username;
-    exlib::string m_password;
-    exlib::string m_host;
-    exlib::string m_hostname;
-    exlib::string m_port;
-    exlib::string m_pathname;
-    exlib::string m_query;
-    obj_ptr<HttpCollection> m_queryParsed;
-    exlib::string m_hash;
-    bool m_ipv6;
+    bool m_parseQuery = false;
+    ada::result<ada::url_aggregator> m_url;
+    obj_ptr<HttpCollection> m_searchParams;
 };
 
 } /* namespace fibjs */

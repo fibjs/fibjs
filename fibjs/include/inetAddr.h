@@ -106,6 +106,11 @@ union inetAddr {
         case AF_INET6:
             if (s.empty())
                 s = "::";
+            else {
+                const char* p = s.c_str();
+                if (p[0] == '[' && p[s.length() - 1] == ']')
+                    s = s.substr(1, s.length() - 2);
+            }
             return uv_ip6_addr(s.c_str(), port(), &addr6);
         }
 

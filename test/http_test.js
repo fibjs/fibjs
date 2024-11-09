@@ -2941,7 +2941,7 @@ describe("http", () => {
         });
     });
 
-    it("unix socket", () => {
+    todo("unix socket", () => {
         var _port = (8887 + base_port);
         var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
 

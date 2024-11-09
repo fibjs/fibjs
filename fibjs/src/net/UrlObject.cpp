@@ -1,0 +1,476 @@
+/*
+ * Url.cpp
+ *
+ *  Created on: Jul 14, 2012
+ *      Author: lion
+ */
+
+#include "object.h"
+#include "Url.h"
+#include "ifs/encoding.h"
+
+namespace fibjs {
+
+static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static ada::url_aggregator s_base;
+
+result_t UrlObject_base::_new(exlib::string url, exlib::string base,
+    obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This)
+{
+    return parse(url, base, retVal);
+}
+
+result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->format(args);
+    if (hr < 0)
+        return hr;
+
+    retVal = u;
+
+    return 0;
+}
+
+result_t UrlObject_base::canParse(exlib::string url, exlib::string base, bool& retVal)
+{
+    ada::result<ada::url_aggregator> _base;
+
+    if (!base.empty()) {
+        _base = ada::parse(base, &s_base);
+        if (!_base || !_base->validate()) {
+            retVal = false;
+            return 0;
+        }
+    }
+
+    ada::result<ada::url_aggregator> _url = ada::parse(url, _base ? &_base.value() : nullptr);
+    retVal = _url && _url->validate();
+
+    return 0;
+}
+
+result_t UrlObject_base::parse(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(url, base);
+    if (hr < 0)
+        return hr;
+
+    retVal = u;
+
+    return 0;
+}
+
+result_t Url::parse(exlib::string url, exlib::string base)
+{
+    ada::result<ada::url_aggregator> _base;
+
+    if (!base.empty()) {
+        _base = ada::parse(base, &s_base);
+        if (!_base || !_base->validate())
+            return Runtime::setError("url: Invalid URL '" + base + "'.");
+    }
+
+    m_url = ada::parse(url, &_base.value());
+    if (!m_url || !m_url->validate())
+        return Runtime::setError("url: Invalid URL '" + url + "'.");
+
+    return 0;
+}
+
+result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
+{
+    m_parseQuery = parseQueryString;
+
+    m_url = ada::parse(url, &s_base);
+    if (!m_url || !m_url->validate())
+        return Runtime::setError("url: Invalid URL '" + url + "'.");
+
+    return 0;
+}
+
+result_t Url::format(v8::Local<v8::Object> args)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    bool slashes = false;
+    exlib::string str;
+    exlib::string url;
+    exlib::string username;
+    exlib::string password;
+    JSValue v;
+
+    if (GetConfigValue(isolate, args, "protocol", str, true) >= 0) {
+        if (str.c_str()[str.length() - 1] != ':')
+            url = str + ":";
+        else
+            url = str;
+    }
+
+    if (GetConfigValue(isolate, args, "slashes", slashes) >= 0 && slashes)
+        url += "//";
+
+    if (GetConfigValue(isolate, args, "auth", str, true) >= 0) {
+        size_t pos = str.find(':');
+        if (pos != exlib::string::npos) {
+            username = str.substr(0, pos);
+            password = str.substr(pos + 1);
+        } else
+            username = str;
+    }
+
+    GetConfigValue(isolate, args, "username", username, true);
+    GetConfigValue(isolate, args, "password", password, true);
+
+    if (username.length() > 0 || password.length() > 0) {
+        encoding_base::encodeURIComponent(username, username);
+        encoding_base::encodeURIComponent(password, password);
+        url += username;
+        if (password.length() > 0)
+            url += ":" + password;
+        url += "@";
+    }
+
+    if (GetConfigValue(isolate, args, "host", str, true) >= 0)
+        url += ada::idna::to_ascii(str);
+    else if (GetConfigValue(isolate, args, "hostname", str, true) >= 0) {
+        if (str.find(':') != exlib::string::npos && str.c_str()[0] != '[')
+            url += '[' + str + ']';
+        else
+            url += ada::idna::to_ascii(str);
+    }
+
+    if (GetConfigValue(isolate, args, "port", str) >= 0)
+        url += ":" + str;
+    if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
+        if (str.c_str()[0] != '/')
+            url += "/";
+        Url::encodeURI(str, str, pathTable);
+        url += str;
+    }
+
+    if (url.length() > 0) {
+        ada::url_aggregator _base;
+        m_url = ada::parse(url, &_base);
+    } else
+        m_url = ada::url_aggregator();
+
+    v = args->Get(context, holder()->NewString("query"));
+    if (!IsEmpty(v))
+        set_query(v);
+
+    if (GetConfigValue(isolate, args, "search", str, true) >= 0)
+        set_search(str);
+
+    if (GetConfigValue(isolate, args, "hash", str, true) >= 0)
+        set_hash(str);
+
+    return 0;
+}
+
+result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    u->m_url = ada::parse(to, m_url ? &m_url.value() : nullptr);
+    if (!u->m_url)
+        return Runtime::setError("url: Invalid URL '" + to + "'.");
+
+    retVal = u;
+
+    return 0;
+}
+
+result_t Url::get_href(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_href();
+
+    return 0;
+}
+
+result_t Url::set_href(exlib::string newVal)
+{
+    m_searchParams.Release();
+    return parse(newVal);
+}
+
+result_t Url::get_protocol(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_protocol();
+
+    return 0;
+}
+
+result_t Url::set_protocol(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_protocol(newVal);
+
+    return 0;
+}
+
+result_t Url::get_origin(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_origin();
+
+    return 0;
+}
+
+result_t Url::get_auth(exlib::string& retVal)
+{
+    if (m_url) {
+        exlib::string username = m_url->get_username();
+        exlib::string password = m_url->get_password();
+        exlib::string str;
+
+        encoding_base::encodeURIComponent(username, str);
+        retVal = str;
+        if (password.length() > 0) {
+            retVal.append(1, ':');
+            encoding_base::encodeURIComponent(password, str);
+            retVal.append(str);
+        }
+    }
+
+    return 0;
+}
+
+result_t Url::get_username(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_username();
+
+    return 0;
+}
+
+result_t Url::set_username(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_username(newVal);
+
+    return 0;
+}
+
+result_t Url::get_password(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_password();
+
+    return 0;
+}
+
+result_t Url::set_password(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_password(newVal);
+
+    return 0;
+}
+
+result_t Url::get__host(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_host();
+
+    return 0;
+}
+
+result_t Url::set__host(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_host(newVal);
+
+    return 0;
+}
+
+result_t Url::get_hostname(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_hostname();
+
+    return 0;
+}
+
+result_t Url::set_hostname(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_hostname(newVal);
+
+    return 0;
+}
+
+result_t Url::get_port(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_port();
+
+    return 0;
+}
+
+result_t Url::set_port(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_port(newVal);
+
+    return 0;
+}
+
+result_t Url::get_path(exlib::string& retVal)
+{
+    if (m_url) {
+        retVal = m_url->get_pathname();
+        retVal += m_url->get_search();
+    }
+
+    return 0;
+}
+
+result_t Url::get_pathname(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_pathname();
+
+    return 0;
+}
+
+result_t Url::set_pathname(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_pathname(newVal);
+
+    return 0;
+}
+
+result_t Url::get_search(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_search();
+
+    return 0;
+}
+
+result_t Url::set_search(exlib::string newVal)
+{
+    if (m_url) {
+        m_searchParams.Release();
+        m_url->set_search(newVal);
+    }
+
+    return 0;
+}
+
+result_t Url::get_query(v8::Local<v8::Value>& retVal)
+{
+    if (!m_url)
+        return CALL_RETURN_UNDEFINED;
+
+    if (m_parseQuery) {
+        parse_search_params();
+        retVal = m_searchParams->wrap();
+    } else {
+        exlib::string search = m_url->get_search();
+        if (search.length() > 0)
+            retVal = holder()->NewString(search.data() + 1, search.length() - 1);
+    }
+
+    return 0;
+}
+
+result_t Url::set_query(v8::Local<v8::Value> newVal)
+{
+    if (newVal->IsString() || newVal->IsStringObject()) {
+        exlib::string query;
+        result_t hr = GetArgumentValue(holder(), newVal, query, true);
+        if (hr < 0)
+            return hr;
+
+        return set_search(query);
+    } else if (newVal->IsObject()) {
+        ada::url_search_params search_params;
+
+        v8::Local<v8::Object> obj = newVal.As<v8::Object>();
+        v8::Local<v8::Array> keys = obj->GetPropertyNames(holder()->context()).ToLocalChecked();
+
+        for (uint32_t i = 0; i < keys->Length(); i++) {
+            v8::Local<v8::Value> key = keys->Get(holder()->context(), i).ToLocalChecked();
+            v8::Local<v8::Value> value = obj->Get(holder()->context(), key).ToLocalChecked();
+
+            exlib::string k, v;
+            result_t hr = GetArgumentValue(holder(), key, k, true);
+            if (hr < 0)
+                return hr;
+
+            hr = GetArgumentValue(holder(), value, v, true);
+            if (hr < 0)
+                return hr;
+
+            search_params.append(k, v);
+        }
+
+        exlib::string search_params_str = search_params.to_string();
+
+        set_search('?' + search_params_str);
+
+        return 0;
+    }
+
+    return CALL_E_INVALID_DATA;
+}
+
+result_t Url::get_hash(exlib::string& retVal)
+{
+    if (m_url)
+        retVal = m_url->get_hash();
+
+    return 0;
+}
+
+result_t Url::set_hash(exlib::string newVal)
+{
+    if (m_url)
+        m_url->set_hash(newVal);
+
+    return 0;
+}
+
+result_t Url::get_searchParams(obj_ptr<HttpCollection_base>& retVal)
+{
+    if (!m_url)
+        return CALL_RETURN_UNDEFINED;
+
+    parse_search_params();
+    retVal = m_searchParams;
+
+    return 0;
+}
+
+result_t Url::toString(exlib::string& retVal)
+{
+    return get_href(retVal);
+}
+
+result_t Url::parse_search_params()
+{
+    if (!m_searchParams) {
+        m_searchParams = new HttpCollection();
+        ada::url_search_params search_params(m_url->get_search());
+
+        auto keys = search_params.get_keys();
+        while (keys.has_next()) {
+            auto key = keys.next().value();
+            m_searchParams->add(key, search_params.get(key).value());
+        }
+    }
+
+    return 0;
+}
+
+} /* namespace fibjs */

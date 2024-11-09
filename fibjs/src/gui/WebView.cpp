@@ -23,15 +23,14 @@ result_t WebView::loadFile(exlib::string file, AsyncEvent* ac)
         return hr;
 
     obj_ptr<UrlObject_base> u;
-    hr = url_base::pathToFileURL(file, u);
+    hr = url_base::pathToFileURL(file, v8::Local<v8::Object>(), u);
     if (hr < 0)
         return hr;
 
-    u->set_protocol("fs:");
-    u->set_slashes(true);
-
     exlib::string url;
     u->get_href(url);
+
+    url = "fs:" + url.substr(5);
 
     return loadUrl(url, ac);
 }

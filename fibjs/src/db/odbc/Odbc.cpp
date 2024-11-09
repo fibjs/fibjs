@@ -212,8 +212,9 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     u->get_searchParams(q);
     Variant v;
 
-    if (u->m_port.length() > 0)
-        port = atoi(u->m_port.c_str());
+    exlib::string port_ = u->port();
+    if (port_.length() > 0)
+        port = atoi(port_.c_str());
 
     exlib::string str;
     hr = q->first("Driver", v);
@@ -223,9 +224,10 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     } else if (driver == NULL)
         return CHECK_ERROR(Runtime::setError("odbc: no driver specified."));
 
-    return odbc_connect(driver, u->m_hostname.c_str(), port,
-        u->m_username.c_str(), u->m_password.c_str(),
-        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn);
+    exlib::string pathname = u->pathname();
+    return odbc_connect(driver, u->hostname().c_str(), port,
+        u->username().c_str(), u->password().c_str(),
+        pathname.length() > 0 ? pathname.c_str() + 1 : "", conn);
 }
 
 result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)

@@ -35,11 +35,12 @@ result_t db_base::openRedis(exlib::string connString,
         if (hr < 0)
             return hr;
 
-        host = u->m_hostname;
+        host = u->hostname();
         c_str = host.c_str();
 
-        if (u->m_port.length() > 0)
-            nPort = atoi(u->m_port.c_str());
+        exlib::string port = u->port();
+        if (port.length() > 0)
+            nPort = atoi(port.c_str());
     }
 
     obj_ptr<Redis> conn = new Redis();

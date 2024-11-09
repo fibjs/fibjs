@@ -100,12 +100,13 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
     if (hr < 0)
         return hr;
 
-    if (u->m_port.length() == 0)
+    exlib::string port = u->port();
+    if (port.length() == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int32_t nPort = atoi(u->m_port.c_str());
+    int32_t nPort = atoi(port.c_str());
 
-    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6, secureContext, timeout, retVal, ac))
+    return (new asyncConnect(u->hostname(), nPort, u->isIPv6(), secureContext, timeout, retVal, ac))
         ->post(0);
 }
 

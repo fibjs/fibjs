@@ -242,14 +242,12 @@ result_t WebView::createWebView()
         url = m_options->url.value();
     else if (m_options->file.has_value()) {
         obj_ptr<UrlObject_base> u;
-        result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
+        result_t hr = url_base::pathToFileURL(m_options->file.value(), v8::Local<v8::Object>(), u);
         if (hr < 0)
             return hr;
 
-        u->set_protocol("fs:");
-        u->set_slashes(true);
-
         u->get_href(url);
+        url = "fs:" + url.substr(5);
     } else
         url = "about:blank";
 

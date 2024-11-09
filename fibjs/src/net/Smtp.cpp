@@ -170,7 +170,7 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 
             ss->init(isolate()->m_ctx);
 
-            return ss->connect(conn, m_u->m_hostname, next(ssl_connected));
+            return ss->connect(conn, m_u->hostname(), next(ssl_connected));
         }
 
         ON_STATE(asyncConnect, ssl_connected)
@@ -186,7 +186,7 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 
         virtual int32_t recv_ok()
         {
-            if (m_u->m_protocol == "ssl:") {
+            if (m_u->protocol() == "ssl:") {
                 m_pThis->m_tls = true;
                 return next();
             }

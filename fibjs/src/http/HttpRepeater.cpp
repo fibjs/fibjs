@@ -18,13 +18,13 @@ result_t add_url(std::vector<obj_ptr<Url>>& urls, exlib::string& url)
     if (hr < 0)
         return hr;
 
-    if (u->m_hostname.empty())
+    if (u->hostname().empty())
         return CHECK_ERROR(Runtime::setError("HttpRepeater: hostname is empty."));
 
-    if (!u->m_query.empty())
+    if (!u->search().empty())
         return CHECK_ERROR(Runtime::setError("HttpRepeater: query is not empty."));
 
-    if (!u->m_hash.empty())
+    if (!u->hash().empty())
         return CHECK_ERROR(Runtime::setError("HttpRepeater: hash is not empty."));
 
     urls.push_back(u);
@@ -134,13 +134,17 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_idx = 0;
             pThis->m_lock.unlock();
 
+            exlib::string pathname = u->pathname();
             if (!isUrlSlash(v.c_str()[0]))
-                u->m_pathname.append(1, '/');
+                pathname.append(1, '/');
 
-            u->m_pathname.append(v);
-            u->normalize();
+            pathname.append(v);
+            u->set_pathname(pathname);
 
-            req->get_queryString(u->m_query);
+            exlib::string query;
+            req->get_queryString(query);
+            u->set_search(query);
+
             u->toString(m_url);
 
             req->get_method(m_method);

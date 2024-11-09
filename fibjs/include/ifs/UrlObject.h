@@ -23,19 +23,16 @@ class UrlObject_base : public object_base {
 public:
     // UrlObject_base
     static result_t _new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost) = 0;
-    virtual result_t format(v8::Local<v8::Object> args) = 0;
+    static result_t _new(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t parse(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal);
+    static result_t canParse(exlib::string url, exlib::string base, bool& retVal);
     virtual result_t resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal) = 0;
-    virtual result_t normalize() = 0;
     virtual result_t get_href(exlib::string& retVal) = 0;
     virtual result_t set_href(exlib::string newVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t set_protocol(exlib::string newVal) = 0;
-    virtual result_t get_slashes(bool& retVal) = 0;
-    virtual result_t set_slashes(bool newVal) = 0;
+    virtual result_t get_origin(exlib::string& retVal) = 0;
     virtual result_t get_auth(exlib::string& retVal) = 0;
-    virtual result_t set_auth(exlib::string newVal) = 0;
     virtual result_t get_username(exlib::string& retVal) = 0;
     virtual result_t set_username(exlib::string newVal) = 0;
     virtual result_t get_password(exlib::string& retVal) = 0;
@@ -47,7 +44,6 @@ public:
     virtual result_t get_port(exlib::string& retVal) = 0;
     virtual result_t set_port(exlib::string newVal) = 0;
     virtual result_t get_path(exlib::string& retVal) = 0;
-    virtual result_t set_path(exlib::string newVal) = 0;
     virtual result_t get_pathname(exlib::string& retVal) = 0;
     virtual result_t set_pathname(exlib::string newVal) = 0;
     virtual result_t get_search(exlib::string& retVal) = 0;
@@ -64,18 +60,15 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_canParse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_href(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_href(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_slashes(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_slashes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_origin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_auth(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_auth(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_username(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_username(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_password(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,7 +80,6 @@ public:
     static void s_get_port(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_port(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_path(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_path(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pathname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_pathname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_search(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -106,23 +98,22 @@ namespace fibjs {
 inline ClassInfo& UrlObject_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "parse", s_parse, false, ClassData::ASYNC_SYNC },
-        { "format", s_format, false, ClassData::ASYNC_SYNC },
-        { "resolve", s_resolve, false, ClassData::ASYNC_SYNC },
-        { "normalize", s_normalize, false, ClassData::ASYNC_SYNC }
+        { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
+        { "canParse", s_static_canParse, true, ClassData::ASYNC_SYNC },
+        { "resolve", s_resolve, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "href", s_get_href, s_set_href, false },
         { "protocol", s_get_protocol, s_set_protocol, false },
-        { "slashes", s_get_slashes, s_set_slashes, false },
-        { "auth", s_get_auth, s_set_auth, false },
+        { "origin", s_get_origin, block_set, false },
+        { "auth", s_get_auth, block_set, false },
         { "username", s_get_username, s_set_username, false },
         { "password", s_get_password, s_set_password, false },
         { "host", s_get__host, s_set__host, false },
         { "hostname", s_get_hostname, s_set_hostname, false },
         { "port", s_get_port, s_set_port, false },
-        { "path", s_get_path, s_set_path, false },
+        { "path", s_get_path, block_set, false },
         { "pathname", s_get_pathname, s_set_pathname, false },
         { "search", s_get_search, s_set_search, false },
         { "query", s_get_query, s_set_query, false },
@@ -153,19 +144,18 @@ inline void UrlObject_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(3, 0);
+    METHOD_OVER(2, 1);
 
-    OPT_ARG(exlib::string, 0, "");
-    OPT_ARG(bool, 1, false);
-    OPT_ARG(bool, 2, false);
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -176,51 +166,52 @@ inline result_t UrlObject_base::load(Isolate* isolate, v8::Local<v8::Value> v, o
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(3, 0);
+    METHOD_OVER(2, 1);
 
-    OPT_ARG(exlib::string, 0, "");
-    OPT_ARG(bool, 1, false);
-    OPT_ARG(bool, 2, false);
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     LOAD_RETURN();
 }
 
-inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void UrlObject_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(UrlObject_base);
+    obj_ptr<UrlObject_base> vr;
+
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
-    OPT_ARG(bool, 2, false);
+    OPT_ARG(exlib::string, 1, "");
 
-    hr = pInst->parse(v0, v1, v2);
+    hr = parse(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
-inline void UrlObject_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void UrlObject_base::s_static_canParse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(UrlObject_base);
+    bool vr;
+
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-    hr = pInst->format(v0);
+    hr = canParse(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -237,18 +228,6 @@ inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>&
     hr = pInst->resolve(v0, vr);
 
     METHOD_RETURN();
-}
-
-inline void UrlObject_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(UrlObject_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->normalize();
-
-    METHOD_VOID();
 }
 
 inline void UrlObject_base::s_get_href(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -307,32 +286,18 @@ inline void UrlObject_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void UrlObject_base::s_get_slashes(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void UrlObject_base::s_get_origin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    bool vr;
+    exlib::string vr;
 
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_slashes(vr);
+    hr = pInst->get_origin(vr);
 
     METHOD_RETURN();
-}
-
-inline void UrlObject_base::s_set_slashes(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(UrlObject_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(bool, 0);
-
-    hr = pInst->set_slashes(v0);
-
-    METHOD_VOID();
 }
 
 inline void UrlObject_base::s_get_auth(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -347,20 +312,6 @@ inline void UrlObject_base::s_get_auth(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->get_auth(vr);
 
     METHOD_RETURN();
-}
-
-inline void UrlObject_base::s_set_auth(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(UrlObject_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = pInst->set_auth(v0);
-
-    METHOD_VOID();
 }
 
 inline void UrlObject_base::s_get_username(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -515,20 +466,6 @@ inline void UrlObject_base::s_get_path(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->get_path(vr);
 
     METHOD_RETURN();
-}
-
-inline void UrlObject_base::s_set_path(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(UrlObject_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = pInst->set_path(v0);
-
-    METHOD_VOID();
 }
 
 inline void UrlObject_base::s_get_pathname(const v8::FunctionCallbackInfo<v8::Value>& args)

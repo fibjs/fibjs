@@ -43,6 +43,14 @@
 declare module 'url' {
     /**
      * @description 参数构造 UrlObject 对象
+     *      @param href 指定需要解析的 url 字符串
+     *      @return 返回构造成功的字符串
+     *      
+     */
+    function format(href: string): string;
+
+    /**
+     * @description 参数构造 UrlObject 对象
      *      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
      *      @return 返回构造成功的字符串
      *      
@@ -78,28 +86,49 @@ declare module 'url' {
      * @description 将一个 url 对象转换为跨平台相关的绝对路径
      * 
      *      @param url 指定需要转换的 url 对象
+     *      @param options 指定转换选项, 可选值为：windows: true/false, 是否转换为 windows 路径
      *      @return 返回转换后的绝对路径
      *     
      */
-    function fileURLToPath(url: Class_UrlObject): string;
+    function fileURLToPath(url: Class_UrlObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 将一个 url 字符串转换为跨平台相关的绝对路径
      * 
      *      @param url 指定需要转换的 url 字符串
+     *      @param options 指定转换选项, 可选值为：windows: true/false, 是否转换为 windows 路径
      *      @return 返回转换后的绝对路径
      *     
      */
-    function fileURLToPath(url: string): string;
+    function fileURLToPath(url: string, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 将一个跨平台相关的绝对路径转换为 url 对象
      *     
      *      @param path 指定需要转换的绝对路径
+     *      @param options 指定转换选项, 可选值为：windows: true/false, 是否转换为 windows 路径
      *      @return 返回转换后的 url 对象
      *     
      */
-    function pathToFileURL(path: string): Class_UrlObject;
+    function pathToFileURL(path: string, options?: FIBJS.GeneralObject): Class_UrlObject;
+
+    /**
+     * @description 返回 domain 的 ASCII 编码
+     * 
+     *      @param domain 指定需要编码的 domain
+     *      @return 返回编码后的 domain
+     *     
+     */
+    function domainToASCII(domain: string): string;
+
+    /**
+     * @description 返回 domain 的 Unicode 编码
+     * 
+     *      @param domain 指定需要编码的 domain
+     *      @return 返回编码后的 domain
+     *     
+     */
+    function domainToUnicode(domain: string): string;
 
 }
 

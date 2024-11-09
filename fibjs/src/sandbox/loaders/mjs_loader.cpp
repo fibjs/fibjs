@@ -511,7 +511,7 @@ void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local
     meta->Set(context, isolate->NewString("filename"), isolate->NewString(sb->m_pending_module)).IsJust();
 
     obj_ptr<UrlObject_base> u;
-    url_base::pathToFileURL(sb->m_pending_module, u);
+    url_base::pathToFileURL(sb->m_pending_module, v8::Local<v8::Object>(), u);
 
     exlib::string url;
     u->get_href(url);

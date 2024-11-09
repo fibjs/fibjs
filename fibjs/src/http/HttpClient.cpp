@@ -279,10 +279,11 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
         if (hr < 0)
             return hr;
 
-        if (u->m_protocol != "https:" && u->m_protocol != "http:" && u->m_protocol != "socks5:")
+        exlib::string protocol = u->protocol();
+        if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
-        if (u->m_host.empty())
+        if (u->host().empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
         m_http_proxy = newVal;
@@ -315,10 +316,11 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
         if (hr < 0)
             return hr;
 
-        if (u->m_protocol != "https:" && u->m_protocol != "http:" && u->m_protocol != "socks5:")
+        exlib::string protocol = u->protocol();
+        if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
-        if (u->m_host.empty())
+        if (u->host().empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
         m_https_proxy = newVal;
@@ -426,7 +428,7 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
 
         hc->get_domain(domain);
         if (domain.empty())
-            hc->set_domain(u->m_hostname);
+            hc->set_domain(u->hostname());
 
         if (update(hc) == 0)
             m_cookies->append(hc);
@@ -474,7 +476,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
             continue;
 
         hc->get_secure(secure);
-        if (secure && u->m_protocol != "https:")
+        if (secure && u->protocol() != "https:")
             continue;
 
         hc->match(url, match);
@@ -629,11 +631,13 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             exlib::string cookie;
 
             m_ssl = false;
-            if (m_u->m_protocol == "https:") {
+            exlib::string protocol = m_u->protocol();
+            exlib::string host = m_u->host();
+            if (protocol == "https:") {
                 m_ssl = true;
                 m_connUrl = "ssl://";
-            } else if (m_u->m_protocol == "http:") {
-                if (m_u->m_host.c_str()[0] == '/') {
+            } else if (protocol == "http:") {
+                if (host.c_str()[0] == '/') {
                     _domain = true;
                     m_connUrl = "unix:";
                 } else
@@ -641,12 +645,12 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             } else
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
-            if (m_u->m_host.empty())
+            if (host.empty())
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-            m_connUrl.append(m_u->m_host);
+            m_connUrl.append(host);
 
-            if (!_domain && m_u->m_port.empty())
+            if (!_domain && m_u->port().empty())
                 m_connUrl.append(m_ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
@@ -692,13 +696,13 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             bool bHost = false;
             m_req->hasHeader("Host", bHost);
             if (!bHost)
-                m_req->addHeader("Host", m_u->m_host);
+                m_req->addHeader("Host", host);
 
             if (m_body)
                 m_req->set_body(m_body);
 
             if (m_ssl)
-                m_sslhost = m_u->m_hostname;
+                m_sslhost = m_u->hostname();
             else
                 m_sslhost.clear();
 
@@ -740,20 +744,21 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
                 u->parse(m_http_proxy);
 
-                if (u->m_protocol == "https:") {
+                exlib::string protocol = u->protocol();
+                if (protocol == "https:") {
                     connUrl = "ssl://";
                     def_port = "443";
-                } else if (u->m_protocol == "http:") {
+                } else if (protocol == "http:") {
                     connUrl = "tcp://";
                     def_port = "80";
-                } else if (u->m_protocol == "socks5:") {
+                } else if (protocol == "socks5:") {
                     connUrl = "tcp://";
                     def_port = "1080";
                 }
 
-                connUrl.append(u->m_host);
+                connUrl.append(u->host());
 
-                if (u->m_port.empty())
+                if (u->port().empty())
                     connUrl.append(def_port);
 
                 return net_base::connect(connUrl, m_hc->m_timeout, m_conn,
@@ -795,19 +800,20 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             sockaddr_in dst;
             sockaddr_in6 dst6;
 
-            if (!uv_ip4_addr(u->m_hostname.c_str(), 0, &dst)) {
+            exlib::string hostname = u->hostname();
+            if (!uv_ip4_addr(hostname.c_str(), 0, &dst)) {
                 strBuffer.assign("\5\1\0\1", 4);
                 strBuffer.append((char*)&dst.sin_addr, 4);
-            } else if (!uv_ip6_addr(u->m_hostname.c_str(), 0, &dst6)) {
+            } else if (!uv_ip6_addr(hostname.c_str(), 0, &dst6)) {
                 strBuffer.assign("\5\1\0\4", 4);
                 strBuffer.append((char*)&dst6.sin6_addr, 16);
             } else {
                 strBuffer.assign("\5\1\0\3", 4);
-                strBuffer.append(1, (char)u->m_hostname.length());
-                strBuffer.append(u->m_hostname);
+                strBuffer.append(1, (char)hostname.length());
+                strBuffer.append(hostname);
             }
 
-            int16_t port = htons(atoi(u->m_port.c_str()));
+            int16_t port = htons(atoi(u->port().c_str()));
             strBuffer.append((char*)&port, 2);
 
             obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
@@ -1042,7 +1048,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         u1->format(opts);
 
         obj_ptr<UrlObject_base> uo;
-        u->resolve(u1, uo);
+        u->resolve(u1->href(), uo);
 
         u = uo.As<Url>();
         ac->m_ctx[1] = u;

@@ -256,11 +256,12 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (hr < 0)
             return hr;
 
-        if (u->m_port.length() == 0)
+        exlib::string port = u->port();
+        if (port.length() == 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        int32_t nPort = atoi(u->m_port.c_str());
-        int32_t family = u->m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        int32_t nPort = atoi(port.c_str());
+        int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
         obj_ptr<Socket_base> socket;
 
@@ -269,7 +270,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             return hr;
 
         retVal = socket;
-        return socket->connect(u->m_hostname, nPort, timeout, ac);
+        return socket->connect(u->hostname(), nPort, timeout, ac);
     } else {
         obj_ptr<Socket_base> socket;
 

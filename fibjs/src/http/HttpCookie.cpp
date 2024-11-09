@@ -111,7 +111,8 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
         size_t sz = m_domain.length();
 
         p1 = m_domain.c_str();
-        p2 = u->m_hostname.c_str();
+        exlib::string hostname = u->hostname();
+        p2 = hostname.c_str();
 
         while (*p1 == '.') {
             p1++;
@@ -122,14 +123,14 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
             if (qstricmp(p1, "localhost", 9) && !qstrchr(p1, '.'))
                 return 0;
 
-            if (sz > u->m_hostname.length())
+            if (sz > hostname.length())
                 return 0;
 
-            if (sz == u->m_hostname.length()) {
+            if (sz == hostname.length()) {
                 if (qstrcmp(p1, p2))
                     return 0;
             } else {
-                p2 += u->m_hostname.length() - sz - 1;
+                p2 += hostname.length() - sz - 1;
                 if (*p2 != '.' || qstrcmp(p1, p2 + 1))
                     return 0;
             }
@@ -141,16 +142,17 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
         size_t sz = m_path.length();
 
         p1 = m_path.c_str();
-        p2 = u->m_pathname.c_str();
+        exlib::string pathname = u->pathname();
+        p2 = pathname.c_str();
 
         while (sz && p1[sz - 1] == '/')
             sz--;
 
         if (sz) {
-            if (sz > u->m_pathname.length())
+            if (sz > pathname.length())
                 return 0;
 
-            if (sz == u->m_pathname.length()) {
+            if (sz == pathname.length()) {
                 if (qstrcmp(p1, p2, (int32_t)sz))
                     return 0;
             } else if (p2[sz] != '/' || qstrcmp(p1, p2, (int32_t)sz))
