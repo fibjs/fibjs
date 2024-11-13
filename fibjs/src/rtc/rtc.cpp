@@ -105,6 +105,72 @@ result_t rtc_base::stopListen(int32_t local_port)
     return stopListen("", local_port);
 }
 
+result_t rtc_base::startServer(v8::Local<v8::Object> config)
+{
+    class ServerOptions : public obj_base {
+    public:
+        LOAD_OPTIONS(ServerOptions, (credentials)(maxAllocations)(maxPeers)(bindAddress)(port)(relayPortRangeBegin)(relayPortRangeEnd));
+
+    public:
+        std::optional<v8::Local<v8::Object>> credentials;
+        std::optional<int32_t> maxAllocations = 0;
+        std::optional<int32_t> maxPeers = 0;
+        std::optional<exlib::string> bindAddress;
+        std::optional<int32_t> port = 3478;
+        std::optional<int32_t> relayPortRangeBegin = 0;
+        std::optional<int32_t> relayPortRangeEnd = 0;
+    };
+
+    obj_ptr<ServerOptions> options;
+    Isolate* isolate = Isolate::current(config);
+    result_t hr = ServerOptions::load(isolate, config, options);
+    if (hr < 0)
+        return hr;
+
+    juice_server_config_t server_config = {};
+    std::vector<juice_server_credentials> server_credentials;
+    std::vector<std::pair<std::string, std::string>> credentials_;
+
+    if (options->credentials.has_value()) {
+        v8::Local<v8::Object> credentials = options->credentials.value();
+        v8::Local<v8::Array> keys = credentials->GetPropertyNames(isolate->context()).ToLocalChecked();
+        for (uint32_t i = 0; i < keys->Length(); i++) {
+            v8::Local<v8::Value> key = keys->Get(isolate->context(), i).ToLocalChecked();
+            v8::Local<v8::Value> value = credentials->Get(isolate->context(), key).ToLocalChecked();
+
+            exlib::string username;
+            exlib::string password;
+            GetArgumentValue(isolate, key, username);
+            GetArgumentValue(isolate, value, password);
+
+            credentials_.push_back(std::make_pair(username, password));
+        }
+
+        for (auto& [username, password] : credentials_) {
+            juice_server_credentials cred = {};
+            cred.username = username.c_str();
+            cred.password = password.c_str();
+            server_credentials.push_back(cred);
+        }
+
+        server_config.credentials = server_credentials.data();
+        server_config.credentials_count = server_credentials.size();
+    }
+
+    server_config.max_allocations = options->maxAllocations.value();
+    server_config.max_peers = options->maxPeers.value();
+    server_config.bind_address = options->bindAddress.has_value() ? options->bindAddress.value().c_str() : nullptr;
+    server_config.port = options->port.value();
+    server_config.relay_port_range_begin = options->relayPortRangeBegin.value();
+    server_config.relay_port_range_end = options->relayPortRangeEnd.value();
+
+    juice_server_t* server = juice_server_create(&server_config);
+    if (!server)
+        return Runtime::setError("Failed to create the server");
+
+    return 0;
+}
+
 result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
 {
     class SctpOptions : public obj_base {
