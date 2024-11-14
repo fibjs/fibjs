@@ -27,8 +27,6 @@ result_t Tray::getMenu(obj_ptr<Menu_base>& retVal)
 
 result_t Tray::async_open()
 {
-    start_gui();
-
     isolate_ref();
     m_self = new ValueHolder(wrap());
     async([this]() {

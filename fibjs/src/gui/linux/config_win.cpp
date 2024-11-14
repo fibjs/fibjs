@@ -28,7 +28,7 @@ namespace fibjs {
 
 static GMainLoop* main_loop = nullptr;
 
-void putGuiPool(AsyncEvent* ac)
+void os_putGuiPool(AsyncEvent* ac)
 {
     g_idle_add([](void* _p) -> gboolean {
         AsyncEvent* p = (AsyncEvent*)_p;

@@ -197,7 +197,7 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 namespace fibjs {
 
 static dispatch_queue_t mainQueue = dispatch_get_main_queue();
-void putGuiPool(AsyncEvent* ac)
+void os_putGuiPool(AsyncEvent* ac)
 {
     dispatch_async(mainQueue, ^{ ac->invoke(); });
 }

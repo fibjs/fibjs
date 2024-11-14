@@ -14,6 +14,22 @@
 
 namespace fibjs {
 
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Menu>& vr, bool bStrict)
+{
+    vr = (Menu*)Menu_base::getInstance(v);
+    if (vr == NULL) {
+        if (v->IsArray()) {
+            std::vector<v8::Local<v8::Object>> items;
+            result_t hr = GetArgumentValue(isolate, v, items, bStrict);
+            return Menu::create(items, vr);
+        }
+
+        return CALL_E_TYPEMISMATCH;
+    }
+
+    return 0;
+}
+
 result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
 {
     obj_ptr<Menu> menu = new Menu();

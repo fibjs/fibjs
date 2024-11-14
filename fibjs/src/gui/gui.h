@@ -14,18 +14,8 @@ namespace fibjs {
 
 extern exlib::Event g_gui_ready;
 
-void start_gui();
+void os_putGuiPool(AsyncEvent* ac);
 void run_os_gui();
-
-inline result_t check_gui(AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        start_gui();
-        return CHECK_ERROR(CALL_E_GUICALL);
-    }
-
-    return 0;
-}
 
 class DialogOptions : public obj_base {
 public:

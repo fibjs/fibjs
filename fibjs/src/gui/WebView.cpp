@@ -218,8 +218,6 @@ result_t WebView::check_status(AsyncEvent* ac)
 
 result_t WebView::async_open()
 {
-    start_gui();
-
     isolate_ref();
     m_self = new ValueHolder(wrap());
 

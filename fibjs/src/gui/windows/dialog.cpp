@@ -18,8 +18,6 @@ namespace fibjs {
 result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        start_gui();
-
         Isolate* isolate = Isolate::current(options);
 
         obj_ptr<DialogOptions> opts;

@@ -20,9 +20,8 @@ result_t gui_base::alert(exlib::string message, AsyncEvent* ac)
 
 result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent* ac)
 {
-    result_t hr = check_gui(ac);
-    if (hr < 0)
-        return hr;
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
 
     exlib::Event ev;
     async([&message, &title, &ev]() {
@@ -43,9 +42,8 @@ result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncEvent* ac)
 
 result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac)
 {
-    result_t hr = check_gui(ac);
-    if (hr < 0)
-        return hr;
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
 
     exlib::Event ev;
     async([&message, &title, &retVal, &ev]() {

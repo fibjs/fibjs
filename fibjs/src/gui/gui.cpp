@@ -22,10 +22,12 @@ DECLARE_MODULE(gui);
 static exlib::Event s_gui;
 exlib::Event g_gui_ready;
 
-void start_gui()
+void putGuiPool(AsyncEvent* ac)
 {
     s_gui.set();
     g_gui_ready.wait();
+
+    os_putGuiPool(ac);
 }
 
 void run_gui(int argc, char* argv[])

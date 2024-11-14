@@ -32,7 +32,7 @@ void on_click_menu(uint32_t id);
 
 HICON LoadPngIcon(const BYTE* pngData, size_t pngSize);
 
-void putGuiPool(AsyncEvent* ac)
+void os_putGuiPool(AsyncEvent* ac)
 {
     PostMessage(s_worker, WM_ASYNC_EVENT, 0, (LPARAM)ac);
 }
