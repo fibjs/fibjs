@@ -5,7 +5,8 @@
  *      Author: lion
  */
 
-#if defined(OS_DESKTOP)
+#include <exlib/include/osconfig.h>
+#ifndef iPhone
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>

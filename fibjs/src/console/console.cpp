@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include <exlib/include/osconfig.h>
 #include "object.h"
 #include "ifs/console.h"
 #include "ifs/assert.h"
@@ -84,8 +85,12 @@ class color_initer {
 public:
     color_initer()
     {
+#ifdef iPhone
+        bool color = true;
+#else
         bool color = false;
         tty_base::isatty(_fileno(stdout), color);
+#endif
 
         char buf[4096];
         size_t sz = sizeof(buf);

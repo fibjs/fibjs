@@ -5,7 +5,8 @@
  *      Author: lion
  */
 
-#if defined(OS_DESKTOP)
+#include <exlib/include/osconfig.h>
+#ifndef iPhone
 
 #include "object.h"
 #include "ifs/gui.h"
