@@ -31,7 +31,8 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *         - iceUfrag: ICE 用户名
      *         - icePwd: ICE 密码
      *         - certPem: 证书 PEM 格式
-     *         - keyPem: 私钥 PEM 格式        
+     *         - keyPem: 私钥 PEM 格式
+     *         - keyPass: 私钥密码
      * 
      *      @param options 初始化参数
      *     

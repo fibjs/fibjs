@@ -698,6 +698,14 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                 if (hr < 0)
                     return hr;
 
+                std::optional<exlib::string> username, credential;
+                hr = GetConfigValue(isolate, iceServer, "username", username, true);
+                if (hr < 0)
+                    return hr;
+                hr = GetConfigValue(isolate, iceServer, "credential", credential, true);
+                if (hr < 0)
+                    return hr;
+
                 v8::Local<v8::Value> urlv;
                 hr = GetConfigValue(isolate, iceServer, "urls", urlv, true);
                 if (hr < 0)
@@ -707,7 +715,13 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                     exlib::string url;
                     GetArgumentValue(isolate, urlv, url);
 
-                    config.iceServers.push_back(rtc::IceServer(url));
+                    rtc::IceServer iceServer(url);
+                    if (username.has_value())
+                        iceServer.username = username.value();
+                    if (credential.has_value())
+                        iceServer.password = credential.value();
+
+                    config.iceServers.push_back(iceServer);
                 } else if (urlv->IsArray()) {
                     v8::Local<v8::Array> urls;
                     GetArgumentValue(isolate, urlv, urls);
@@ -718,7 +732,13 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                         if (hr < 0)
                             return hr;
 
-                        config.iceServers.push_back(rtc::IceServer(url));
+                        rtc::IceServer iceServer(url);
+                        if (username.has_value())
+                            iceServer.username = username.value();
+                        if (credential.has_value())
+                            iceServer.password = credential.value();
+
+                        config.iceServers.push_back(iceServer);
                     }
                 }
             }
@@ -781,7 +801,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
-        config.certPem = certPem;
+        config.certificatePemFile = certPem;
     }
 
     exlib::string keyPem;
@@ -789,7 +809,15 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
-        config.keyPem = keyPem;
+        config.keyPemFile = keyPem;
+    }
+
+    exlib::string keyPass;
+    hr = GetConfigValue(isolate, options, "keyPass", keyPass, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.keyPemPass = keyPass;
     }
 
     m_local_id = std::to_string(rand());
