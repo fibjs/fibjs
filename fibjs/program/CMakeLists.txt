@@ -71,6 +71,8 @@ if("$ENV{USE_VENDER_DIST}" STREQUAL "1")
 		set(BUILD_TARGET "android")
 	elseif("${BUILD_OS}" STREQUAL "iPhone")
 		set(BUILD_TARGET "iphone")
+	elseif("${BUILD_OS}" STREQUAL "iPhoneSimulator")
+		set(BUILD_TARGET "iphone-simulator")
 	endif()
 
 	message("downloading: ${VENDER_TAG}/fibjs_vender-${BUILD_TARGET}-${BUILD_ARCH}-${BUILD_TYPE}.tar.gz\n")

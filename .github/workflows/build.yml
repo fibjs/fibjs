@@ -114,7 +114,12 @@ jobs:
             type: release
             test: skip
           - os: macos-14
-            target: iphone
+            target: iphone-simulator
+            arch: arm64
+            type: release
+            test: skip
+          - os: macos-14
+            target: iphone-simulator
             arch: x64
             type: release
             test: skip
