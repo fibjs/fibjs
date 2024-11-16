@@ -1078,6 +1078,25 @@ async function async_eval(func) {
 
             assert.equal(cnt, 1);
         });
+
+        describe("feature", () => {
+            it("webcrypto", () => {
+                const win = gui.open({
+                    file: path.join(__dirname, "gui_files", "test.html"),
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                win.waitFor();
+
+                assert.equal(win.eval(`!!window.crypto`), true);
+                assert.equal(win.eval(`!!window.crypto.subtle`), true);
+                assert.equal(win.eval(`!!window.crypto.subtle.digest`), true);
+
+                win.close();
+            });
+        });
     });
 
     if (!ios) {
