@@ -184,5 +184,19 @@ declare module 'rtc' {
      */
     function setSctpSettings(settings: FIBJS.GeneralObject): void;
 
+    /**
+     * @description 查询和设置 WebRTC 日志级别
+     * 
+     *      loglevel 属性用于查询和设置 WebRTC 日志级别，新设置的级别会立即生效。支持以下级别：
+     *         - `none` - 不输出日志
+     *         - `error` - 输出错误日志
+     *         - `warning` - 输出警告日志
+     *         - `info` - 输出信息日志
+     *         - `debug` - 输出调试日志
+     *         - `verbose` - 输出详细日志
+     *     
+     */
+    var loglevel: string;
+
 }
 

@@ -19,14 +19,6 @@
 namespace fibjs {
 DECLARE_MODULE(rtc);
 
-class _init_rtc {
-public:
-    _init_rtc()
-    {
-        rtc::InitLogger(rtc::LogLevel::None);
-    }
-} s_init_rtc;
-
 result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
 {
     struct cb_data {
@@ -213,6 +205,64 @@ result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
     s.heartbeatInterval = std::chrono::milliseconds(options->heartbeatIntervalMs.value());
 
     rtc::SetSctpSettings(s);
+
+    return 0;
+}
+
+static rtc::LogLevel s_level = rtc::LogLevel::None;
+result_t rtc_base::get_loglevel(exlib::string& retVal)
+{
+    switch (s_level) {
+    case rtc::LogLevel::Verbose:
+        retVal = "verbose";
+        break;
+    case rtc::LogLevel::Debug:
+        retVal = "debug";
+        break;
+    case rtc::LogLevel::Info:
+        retVal = "info";
+        break;
+    case rtc::LogLevel::Warning:
+        retVal = "warning";
+        break;
+    case rtc::LogLevel::Error:
+        retVal = "error";
+        break;
+    case rtc::LogLevel::Fatal:
+        retVal = "fatal";
+        break;
+    case rtc::LogLevel::None:
+        retVal = "none";
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+result_t rtc_base::set_loglevel(exlib::string newVal)
+{
+    rtc::LogLevel level;
+    if (newVal == "verbose")
+        level = rtc::LogLevel::Verbose;
+    else if (newVal == "debug")
+        level = rtc::LogLevel::Debug;
+    else if (newVal == "info")
+        level = rtc::LogLevel::Info;
+    else if (newVal == "warning")
+        level = rtc::LogLevel::Warning;
+    else if (newVal == "error")
+        level = rtc::LogLevel::Error;
+    else if (newVal == "fatal")
+        level = rtc::LogLevel::Fatal;
+    else if (newVal == "none")
+        level = rtc::LogLevel::None;
+    else
+        return Runtime::setError("Invalid log level");
+
+    rtc::InitLogger(level);
+    s_level = level;
 
     return 0;
 }
