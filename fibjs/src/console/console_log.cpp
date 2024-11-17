@@ -188,6 +188,21 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
     return 0;
 }
 
+result_t console_base::use(exlib::string type)
+{
+    return add(type);
+}
+
+result_t console_base::use(v8::Local<v8::Object> cfg)
+{
+    return add(cfg);
+}
+
+result_t console_base::use(v8::Local<v8::Array> cfg)
+{
+    return add(cfg);
+}
+
 result_t console_base::reset()
 {
     Isolate* isolate = Isolate::current();

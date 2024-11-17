@@ -43,6 +43,9 @@ public:
     static result_t add(exlib::string type);
     static result_t add(v8::Local<v8::Object> cfg);
     static result_t add(v8::Local<v8::Array> cfg);
+    static result_t use(exlib::string type);
+    static result_t use(v8::Local<v8::Object> cfg);
+    static result_t use(v8::Local<v8::Array> cfg);
     static result_t reset();
     static result_t log(exlib::string fmt, OptArgs args);
     static result_t log(OptArgs args);
@@ -99,6 +102,7 @@ public:
     static void s_static_get_width(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_height(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_use(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_log(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -137,6 +141,7 @@ inline ClassInfo& console_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "add", s_static_add, true, ClassData::ASYNC_SYNC },
+        { "use", s_static_use, true, ClassData::ASYNC_SYNC },
         { "reset", s_static_reset, true, ClassData::ASYNC_SYNC },
         { "log", s_static_log, true, ClassData::ASYNC_SYNC },
         { "debug", s_static_debug, true, ClassData::ASYNC_SYNC },
@@ -270,6 +275,31 @@ inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Array>, 0);
 
     hr = add(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_use(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = use(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = use(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = use(v0);
 
     METHOD_VOID();
 }

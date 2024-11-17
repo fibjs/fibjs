@@ -5,18 +5,18 @@ var os = require('os');
 
 describe("console", () => {
     it("add", () => {
-        console.add({
+        console.use({
             type: "console"
         });
 
         if (process.platform === 'win32') {
             assert.throws(() => {
-                console.add("syslog");
+                console.use("syslog");
             });
         } else {
-            console.add("syslog");
+            console.use("syslog");
 
-            console.add(["console", {
+            console.use(["console", {
                 type: "syslog"
             }]);
         }
@@ -25,40 +25,40 @@ describe("console", () => {
     });
 
     it("too many logger", () => {
-        console.add(["console", "console", "console", "console",
+        console.use(["console", "console", "console", "console",
             "console", "console", "console", "console", "console", "console"
         ]);
 
         assert.throws(() => {
-            console.add("console");
+            console.use("console");
         });
 
         console.reset();
     });
 
     it("log levels", () => {
-        console.add({
+        console.use({
             type: "console",
             levels: [console.DEBUG, console.ERROR]
         });
 
-        // console.add({
+        // console.use({
         //     type: "console",
         //     levels: [console.DEBUG, {}]
         // });
 
-        // console.add({
+        // console.use({
         //     type: "console",
         //     levels: [console.DEBUG, NaN]
         // });
 
-        console.add({
+        console.use({
             type: "console",
             levels: [console.DEBUG, '1']
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "console",
                 levels: [console.DEBUG, 100]
             });
@@ -68,9 +68,9 @@ describe("console", () => {
     });
 
     it("add file logger", () => {
-        console.add("console");
+        console.use("console");
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "day",
@@ -78,13 +78,13 @@ describe("console", () => {
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file"
             });
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 count: 10
@@ -92,7 +92,7 @@ describe("console", () => {
         }, "Missing split mode.");
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 count: 1
@@ -100,63 +100,63 @@ describe("console", () => {
         }, "Too few file count.");
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 count: 129
             });
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "day"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "hour"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "minute"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "1k"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "10k"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "100k"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "100m"
         });
 
-        console.add({
+        console.use({
             type: "file",
             path: "test_log",
             split: "100g"
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 split: "100n"
@@ -164,7 +164,7 @@ describe("console", () => {
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 split: "100n"
@@ -172,7 +172,7 @@ describe("console", () => {
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 split: "1000k"
@@ -180,7 +180,7 @@ describe("console", () => {
         });
 
         assert.throws(() => {
-            console.add({
+            console.use({
                 type: "file",
                 path: "test_log",
                 split: "k"

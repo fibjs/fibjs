@@ -178,6 +178,102 @@ declare module 'console' {
     function add(cfg: any[]): void;
 
     /**
+     * @description 添加 console 输出系统，支持的设备为 console, syslog, event，最多可以添加 10 个输出
+     * 
+     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     * 
+     *      type 为配置，为设备名称字符串：
+     * 
+     *      ```JavaScript
+     *      console.use("console");
+     *      ```
+     * 
+     *      syslog 仅在 posix 平台有效：
+     *      ```JavaScript
+     *      console.use("syslog");
+     *      ```
+     * 
+     *      event 仅在 windows 平台有效：
+     *      ```JavaScript
+     *      console.use("event");
+     *      ```
+     * 
+     *      @param type 输出设备
+     *      
+     */
+    function use(type: string): void;
+
+    /**
+     * @description 添加 console 输出系统，支持的设备为 console, syslog, event, nslog 和 file，最多可以添加 10 个输出
+     * 
+     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     * 
+     *      cfg 可以为一个设备配置对象：
+     *      ```JavaScript
+     *      console.use({
+     *         type: "console",
+     *         levels: [console.INFO, console.ERROR]  // optional, default is all levels
+     *      });
+     *      ```
+     * 
+     *      syslog 仅在 posix 平台有效：
+     *      ```JavaScript
+     *      console.use({
+     *         type: "syslog",
+     *         levels: [console.INFO, console.ERROR]
+     *      });
+     *      ```
+     * 
+     *      event 仅在 windows 平台有效：
+     *      ```JavaScript
+     *      console.use({
+     *         type: "event",
+     *         levels: [console.INFO, console.ERROR]
+     *      });
+     *      ```
+     * 
+     *      nslog 仅在 Darwin 平台有效：
+     *      ```JavaScript
+     *      console.use({
+     *          type: "nslog",
+     *          levels: [console.INFO, console.ERROR]
+     *      });
+     *      ```
+     * 
+     *      file 日志：
+     *      ```JavaScript
+     *      console.use({
+     *         type: "file",
+     *         levels: [console.INFO, console.ERROR],
+     *         path: "path/to/file_%s.log", // specifies the log output file, can use %s to specify the insertion date location, or add at the end if not specified
+     *         split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
+     *         count: 10 // option, selectable from 2 to 128, default is 128
+     *      });
+     *      ```
+     * 
+     *      @param cfg 输出配置
+     *      
+     */
+    function use(cfg: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 批量添加 console 输出系统，支持的设备为 console, syslog, event 和 file，最多可以添加 10 个输出
+     * 
+     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     * 
+     *      ```JavaScript
+     *      console.use(["console", {
+     *         type: "syslog",
+     *         levels: [console.INFO, console.ERROR]
+     *      }]);
+     *      ```
+     * 
+     *      @param cfg 输出配置数组
+     *      
+     */
+    function use(cfg: any[]): void;
+
+    /**
      * @description 初始化到缺省设置，只在 console 输出信息 
      */
     function reset(): void;
