@@ -101,7 +101,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	endif()
 
 	add_executable(${name} src/app.cpp res/app.rc)
-	add_executable(${name}_gui WIN32 src/app.cpp res/app.rc)
 else()
 	add_executable(${name} src/app.cpp)
 endif()
@@ -121,18 +120,10 @@ include_directories(
 target_link_libraries(${name} "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	target_link_libraries(${name}_gui "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
-endif()
-
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/libs.cmake)
 
 foreach(lib ${libs})
 	target_link_libraries(${name} "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-		target_link_libraries(${name}_gui "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	endif()
 
 	if(NOT ${lib} STREQUAL "jemalloc")
 		target_link_libraries(js "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -145,12 +136,3 @@ endif()
 
 setup_result_library(${name})
 setup_result_library(js)
-
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	setup_result_library(${name}_gui)
-endif()
-
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	target_compile_definitions(${name} PUBLIC -D_CONSOLE)
-	target_compile_definitions(${name}_gui PUBLIC -D_WINDOWS)
-endif()
