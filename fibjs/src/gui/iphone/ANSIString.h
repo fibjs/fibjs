@@ -1,4 +1,9 @@
-
+/*
+ * ANSIString.h
+ *
+ *  Created on: Nov 11, 2024
+ *      Author: lion
+ */
 
 #import <UIKit/UIKit.h>
 
