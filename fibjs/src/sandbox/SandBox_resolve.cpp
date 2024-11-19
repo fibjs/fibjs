@@ -285,8 +285,12 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                 return false;
             };
 
-            if (!resolve_export(exports))
-                return CHECK_ERROR(Runtime::setError("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
+            if (!resolve_export(exports)) {
+                if (script_name.empty())
+                    return CHECK_ERROR(Runtime::setError("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
+                else
+                    return CHECK_ERROR(Runtime::setError("SandBox: Package subpath '" + script_name + "' is not defined by 'exports' in '" + module_name1 + "'"));
+            }
         } else if (script_name.empty()) {
             JSValue main = o->Get(context, isolate->NewString("main", 4));
             if (!IsEmpty(main)) {
