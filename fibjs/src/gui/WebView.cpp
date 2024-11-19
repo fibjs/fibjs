@@ -83,11 +83,13 @@ void WebView::app_rpc(exlib::string json)
         result->Set(context, keyId, v).IsJust();
 
         do {
-            v8::Local<v8::Object> app = GetPrivate("app").As<v8::Object>();
-            if (app.IsEmpty() || !app->IsObject()) {
+            v = GetPrivate("app");
+            if (v.IsEmpty() || !v->IsObject()) {
                 result->Set(context, isolate->NewString("error"), isolate->NewString("app is required")).IsJust();
                 break;
             }
+
+            v8::Local<v8::Object> app = v.As<v8::Object>();
 
             exlib::string method;
             hr = GetConfigValue(isolate, req, "method", method, true);
