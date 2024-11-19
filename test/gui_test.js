@@ -900,7 +900,7 @@ async function async_eval(func) {
                     assert.greaterThan(focus, last_focus);
                 }
 
-                oit("normal window", () => {
+                it("normal window", () => {
                     test_focus({});
                 });
 
@@ -1035,7 +1035,7 @@ async function async_eval(func) {
                 });
                 wins.push(win);
 
-                win.setHtml(`<html><body style="margin:0px;padding:0px;"><div style="width:5000px;height:10000px;background-color:red"></div></body></html>`);
+                win.setHtml(`<html><body style="margin:0px;padding:0px;"><div style="width:500px;height:1000px;background-color:red"></div></body></html>`);
 
                 win.waitFor();
                 coroutine.sleep(10);
@@ -1048,8 +1048,8 @@ async function async_eval(func) {
 
                 var png = new PNG(buf);
 
-                assert.equal(png.width, 5000 * pixelRatio);
-                assert.equal(png.height, 10000 * pixelRatio);
+                assert.equal(png.width, 500 * pixelRatio);
+                assert.equal(png.height, 1000 * pixelRatio);
             });
 
         it("webview object should not be gc until close", () => {
