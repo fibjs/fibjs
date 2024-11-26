@@ -626,6 +626,54 @@ gint gtk_dialog_run(GtkDialog* dialog)
     return s_gtk_dialog_run(dialog);
 }
 
+GType gtk_message_dialog_get_type()
+{
+    gtk_func(gtk_message_dialog_get_type);
+    return s_gtk_message_dialog_get_type();
+}
+
+void gtk_message_dialog_set_markup(GtkMessageDialog* message_dialog, const gchar* str)
+{
+    gtk_func(gtk_message_dialog_set_markup);
+    s_gtk_message_dialog_set_markup(message_dialog, str);
+}
+
+GtkWidget* gtk_dialog_get_content_area(GtkDialog* dialog)
+{
+    gtk_func(gtk_dialog_get_content_area);
+    return s_gtk_dialog_get_content_area(dialog);
+}
+
+void gtk_dialog_response(GtkDialog* dialog, gint response_id)
+{
+    gtk_func(gtk_dialog_response);
+    s_gtk_dialog_response(dialog, response_id);
+}
+
+GtkWidget* gtk_entry_new(void)
+{
+    gtk_func(gtk_entry_new);
+    return s_gtk_entry_new();
+}
+
+GType gtk_entry_get_type(void)
+{
+    gtk_func(gtk_entry_get_type);
+    return s_gtk_entry_get_type();
+}
+
+void gtk_entry_set_visibility(GtkEntry* entry, gboolean visible)
+{
+    gtk_func(gtk_entry_set_visibility);
+    s_gtk_entry_set_visibility(entry, visible);
+}
+
+const gchar* gtk_entry_get_text(GtkEntry* entry)
+{
+    gtk_func(gtk_entry_get_text);
+    return s_gtk_entry_get_text(entry);
+}
+
 void gtk_window_set_modal(GtkWindow* window, gboolean modal)
 {
     gtk_func(gtk_window_set_modal);
@@ -660,6 +708,18 @@ GQuark g_io_error_quark(void)
 {
     gtk_func(g_io_error_quark);
     return s_g_io_error_quark();
+}
+
+void gtk_widget_set_margin_start(GtkWidget* widget, gint margin)
+{
+    gtk_func(gtk_widget_set_margin_start);
+    s_gtk_widget_set_margin_start(widget, margin);
+}
+
+void gtk_widget_set_margin_end(GtkWidget* widget, gint margin)
+{
+    gtk_func(gtk_widget_set_margin_end);
+    s_gtk_widget_set_margin_end(widget, margin);
 }
 }
 

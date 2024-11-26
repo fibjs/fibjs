@@ -184,6 +184,21 @@ module gui
     */
     static Boolean confirm(String title, String message) async;
 
+    /*! @brief 弹出一个输入框
+     @param message 消息内容
+     @param password 是否为密码输入，默认为 false
+     @return 返回用户输入的内容
+    */
+    static String input(String message, Boolean password = false) async;
+
+    /*! @brief 弹出一个输入框
+     @param title 消息标题
+     @param message 消息内容
+     @param password 是否为密码输入，默认为 false
+     @return 返回用户输入的内容
+    */
+    static String input(String title, String message, Boolean password = false) async;
+
     /*! @brief 弹出一个选择文件对话框
 
      options 支持以下参数:

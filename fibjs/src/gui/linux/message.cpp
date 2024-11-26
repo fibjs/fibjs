@@ -60,6 +60,16 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
         message.c_str());
     gtk_window_set_title(GTK_WINDOW(dialog), title.c_str());
 
+    g_signal_connect(G_OBJECT(dialog), "key-press-event",
+        G_CALLBACK(+[](GtkWidget* widget, GdkEventKey* event, gpointer) -> gboolean {
+            if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter) {
+                gtk_dialog_response(GTK_DIALOG(widget), GTK_RESPONSE_OK);
+                return TRUE;
+            }
+            return FALSE;
+        }),
+        NULL);
+
     int result = gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 

@@ -218,6 +218,29 @@ declare module 'gui' {
     function confirm(title: string, message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 弹出一个输入框
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function input(message: string, password?: boolean): string;
+
+    function input(message: string, password?: boolean, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 弹出一个输入框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function input(title: string, message: string, password?: boolean): string;
+
+    function input(title: string, message: string, password?: boolean, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
      * @description 弹出一个选择文件对话框
      * 
      *      options 支持以下参数:

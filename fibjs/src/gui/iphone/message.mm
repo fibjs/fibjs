@@ -13,11 +13,9 @@
 #include "../gui.h"
 #import <UIKit/UIKit.h>
 
-extern int32_t s_window_count;
-
 namespace fibjs {
 
-NSString* toNSString(const exlib::string& str)
+inline NSString* toNSString(const exlib::string& str)
 {
     return [NSString stringWithUTF8String:str.c_str()];
 }
