@@ -157,7 +157,6 @@ static bool IsOneShot(const EVP_PKEY* key)
     switch (EVP_PKEY_id(key)) {
     case EVP_PKEY_ED25519:
     case EVP_PKEY_ED448:
-    case EVP_PKEY_SM2:
         return true;
     default:
         return false;
