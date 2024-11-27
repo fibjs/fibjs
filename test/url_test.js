@@ -195,6 +195,26 @@ describe("url", () => {
             }
         });
 
+        it("file url short format", () => {
+            const shortFormatTests = [
+                // Short format lowercase
+                { fileURL: 'file://d/foo', path: 'd:\\foo' },
+                // Short format uppercase
+                { fileURL: 'file://D/FOO', path: 'd:\\FOO' },
+                // Short format with subdirectories
+                { fileURL: 'file://e/dir/foo', path: 'e:\\dir\\foo' },
+                // Short format with special characters
+                { fileURL: 'file://f/foo bar/baz', path: 'f:\\foo bar\\baz' },
+                // Short format with query and hash
+                { fileURL: 'file://g/test/file?query#hash', path: 'g:\\test\\file' }
+            ];
+
+            for (const { fileURL, path } of shortFormatTests) {
+                const actual = url.fileURLToPath(fileURL, { windows: true });
+                assert.strictEqual(actual, path);
+            }
+        });
+
         it("path to file url", () => {
 
             {

@@ -134,6 +134,13 @@ result_t url_base::fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> opti
             std::string_view(pathname_escaped_slash), first_percent);
 
         if (hostname.size() > 0) {
+            if (hostname.size() == 1) {
+                char letter = hostname[0] | 0x20;
+                if (letter >= 'a' && letter <= 'z') {
+                    retVal = exlib::string(1, hostname[0]) + ":" + decoded_pathname;
+                    return 0;
+                }
+            }
             retVal = "\\\\" + ada::idna::to_unicode(hostname) + decoded_pathname;
             return 0;
         }
