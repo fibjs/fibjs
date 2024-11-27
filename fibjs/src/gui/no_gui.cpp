@@ -60,6 +60,15 @@ result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent*
     return Runtime::setError("Alert not supported in this platform");
 }
 
+result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("Input not supported in this platform");
+}
+
+result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("Input not supported in this platform");
+}
 result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncEvent* ac)
 {
     return Runtime::setError("Confirm not supported in this platform");
