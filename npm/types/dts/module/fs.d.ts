@@ -375,6 +375,44 @@ declare module 'fs' {
     function readdir(path: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
+     * @description 根据文件名模式，搜索指定目录的文件列表
+     * 
+     *      参数 opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "cwd": "", // specify a different working directory, default to current directory
+     *      }
+     *      ```
+     * 
+     *      @param pattern 指定文件名模式
+     *      @param opts 指定参数
+     *      @return 返回文件列表
+     *      
+     */
+    function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
+
+    function glob(pattern: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 根据文件名模式，搜索指定目录的文件列表
+     * 
+     *      参数 opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "cwd": "", // specify a different working directory, default to current directory
+     *      }
+     *      ```
+     * 
+     *      @param patterns 指定一组文件名模式
+     *      @param opts 指定参数
+     *      @return 返回文件列表
+     *      
+     */
+    function glob(patterns: string, opts?: FIBJS.GeneralObject): any[];
+
+    function glob(patterns: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
      * @description 打开文件，用于读取，写入，或者同时读写
      * 
      *      参数 flags 支持的方式如下：
