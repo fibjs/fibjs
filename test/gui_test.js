@@ -507,9 +507,9 @@ async function async_eval(func) {
             const path1 = path.join(__dirname, "gui_files", "test.html");
             const path2 = path.join(__dirname, "gui_files", "test2.html");
             const zpath1 = path.join(__dirname, "gui_files", "test.html.zip$/test.html");
-            const url1 = url.pathToFileURL(path1).href.replace(/file:/, "fs:");
-            const url2 = url.pathToFileURL(path2).href.replace(/file:/, "fs:");
-            const zurl1 = url.pathToFileURL(zpath1).href.replace(/file:/, "fs:");
+            const url1 = url.pathToFileURL(path1).href.replace(/file:/, "fs:").replace(/fs:\/\/\/([a-zA-Z]):/, "fs://$1");
+            const url2 = url.pathToFileURL(path2).href.replace(/file:/, "fs:").replace(/fs:\/\/\/([a-zA-Z]):/, "fs://$1");
+            const zurl1 = url.pathToFileURL(zpath1).href.replace(/file:/, "fs:").replace(/fs:\/\/\/([a-zA-Z]):/, "fs://$1");
 
             function assert_url(win, url) {
                 var last_received_message;
