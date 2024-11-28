@@ -17,6 +17,7 @@ run("./punycode_test.js");
 run("./timer_test.js");
 run("./buffer_test.js");
 run("./path_test.js");
+run("./path_match_test.js");
 run("./util_test.js");
 run("./types_test.js");
 run("./promise_test.js");

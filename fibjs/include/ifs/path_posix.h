@@ -27,6 +27,7 @@ public:
     static result_t parse(exlib::string path, obj_ptr<NObject>& retVal);
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
+    static result_t matchesGlob(exlib::string path, exlib::string pattern, bool& retVal);
     static result_t isAbsolute(exlib::string path, bool& retVal);
     static result_t join(OptArgs ps, exlib::string& retVal);
     static result_t resolve(OptArgs ps, exlib::string& retVal);
@@ -57,6 +58,7 @@ public:
     static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_matchesGlob(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -80,6 +82,7 @@ inline ClassInfo& path_posix_base::class_info()
         { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
         { "dirname", s_static_dirname, true, ClassData::ASYNC_SYNC },
         { "fullpath", s_static_fullpath, true, ClassData::ASYNC_SYNC },
+        { "matchesGlob", s_static_matchesGlob, true, ClassData::ASYNC_SYNC },
         { "isAbsolute", s_static_isAbsolute, true, ClassData::ASYNC_SYNC },
         { "join", s_static_join, true, ClassData::ASYNC_SYNC },
         { "resolve", s_static_resolve, true, ClassData::ASYNC_SYNC },
@@ -207,6 +210,22 @@ inline void path_posix_base::s_static_fullpath(const v8::FunctionCallbackInfo<v8
     ARG(exlib::string, 0);
 
     hr = fullpath(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_posix_base::s_static_matchesGlob(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = matchesGlob(v0, v1, vr);
 
     METHOD_RETURN();
 }

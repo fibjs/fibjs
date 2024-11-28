@@ -84,6 +84,16 @@ declare module 'path_posix' {
     function fullpath(path: string): string;
 
     /**
+     * @description 识别给定的路径是否匹配给定的模式
+     * 
+     *      @param path 给定需要识别的路径
+     *      @param pattern 指定匹配的模式
+     *      @return 返回匹配结果
+     *      
+     */
+    function matchesGlob(path: string, pattern: string): boolean;
+
+    /**
      * @description 识别给定的路径是否是绝对路径
      * 
      *      @param path 给定需要识别的路径

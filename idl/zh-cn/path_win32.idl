@@ -67,6 +67,14 @@ module path_win32
      */
     static String fullpath(String path);
 
+    /*! @brief 识别给定的路径是否匹配给定的模式
+
+     @param path 给定需要识别的路径
+     @param pattern 指定匹配的模式
+     @return 返回匹配结果
+     */
+    static Boolean matchesGlob(String path, String pattern);
+
     /*! @brief 识别给定的路径是否是绝对路径
 
      @param path 给定需要识别的路径
