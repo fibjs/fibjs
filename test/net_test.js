@@ -768,4 +768,3 @@ function test_net(eng, use_uv) {
 test_net("ev", false);
 test_net("uv", true);
 
-require.main === module && test.run(console.DEBUG);

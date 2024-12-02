@@ -283,4 +283,3 @@ describe('internal/helpers', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

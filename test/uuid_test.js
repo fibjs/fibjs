@@ -13,4 +13,3 @@ describe("uuid", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

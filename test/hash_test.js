@@ -675,4 +675,3 @@ describe("hash", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

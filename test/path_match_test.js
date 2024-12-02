@@ -149,6 +149,50 @@ describe("path.matchesGlob", () => {
                     ["file{1..3}[[]*.txt", "file4[data].txt", false]
                 ]
             }
+        },
+
+        "Advanced Pattern Tests": {
+            "Complex Character Classes": [
+                ["[^a-c]*", "dd", true],
+                ["[^a-c]*", "abc", false],
+                ["[-abc]", "-", true],
+                ["[abc-]", "-", true],
+                ["[\\-abc]", "-", true],
+                ["[[]", "[", true],
+                ["[]]", "]", false],
+                ["[]-]", "]", false]
+            ],
+
+            "Complex Wildcard Combinations": [
+                ["a**?**cd**?**??k", "abcdecdhjk", true],
+                ["a**?**cd**?**??k***", "abcdecdhjk", true],
+                ["a****c**?**??*****", "abcdecdhjk", true],
+                ["?************c****?****", "abcd", true],
+                ["??**********?****?", "abcd", true],
+                ["a*****c*?**", "abcd", true],
+                ["a********???*******", "abcd", true]
+            ],
+
+            "Dot Files and Directories": [
+                [".*", ".hidden", true],
+                [".*", "visible", false],
+                [".*/.*", ".git/.config", true],
+                ["a/.*/b", "a/.hidden/b", true],
+                ["a/*/b", "a/.hidden/b", true],
+                ["**/.*", "path/to/.hidden", true],
+                ["**/.git/**", "path/.git/config", true]
+            ],
+
+            "Empty and Whitespace": [
+                ["", "", true],
+                ["", "notempty", false],
+                [" ", " ", true],
+                [" ", "notempty", false],
+                ["* *", "a b", true],
+                ["* *", "ab", false],
+                ["a ", "a ", true],
+                ["a ", "a", false]
+            ]
         }
     };
 
@@ -244,12 +288,16 @@ describe("path.matchesGlob", () => {
                 tests.forEach(([pattern, matches, expected]) => {
                     if (Array.isArray(matches)) {
                         matches.forEach(match => {
-                            assert.equal(path.win32.matchesGlob(match, pattern), true);
-                            assert.equal(path.posix.matchesGlob(match, pattern), true);
+                            assert.equal(path.win32.matchesGlob(match, pattern), expected,
+                                `${match} should ${expected ? "match" : "not match"} ${pattern}`);
+                            assert.equal(path.posix.matchesGlob(match, pattern), expected,
+                                `${match} should ${expected ? "match" : "not match"} ${pattern}`);
                         });
                     } else {
-                        assert.equal(path.win32.matchesGlob(matches, pattern), expected);
-                        assert.equal(path.posix.matchesGlob(matches, pattern), expected);
+                        assert.equal(path.win32.matchesGlob(matches, pattern), expected,
+                            `${matches} should ${expected ? "match" : "not match"} ${pattern}`);
+                        assert.equal(path.posix.matchesGlob(matches, pattern), expected,
+                            `${matches} should ${expected ? "match" : "not match"} ${pattern}`);
                     }
                 });
             });
@@ -278,5 +326,3 @@ describe("path.matchesGlob", () => {
         });
     });
 });
-
-require.main === module && test.run();

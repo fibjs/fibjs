@@ -52,4 +52,4 @@ describe('mime', function () {
     });
 });
 
-require.main === module && test.run(console.DEBUG);
+

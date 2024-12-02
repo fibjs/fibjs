@@ -753,4 +753,3 @@ describe("child_process", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

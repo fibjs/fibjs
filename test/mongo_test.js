@@ -192,4 +192,3 @@ describe("mongodb", () => {
     //assert.equal(fs.retrieve("test.txt").readAll(), data);
 })
 
-require.main === module && test.run(console.DEBUG);

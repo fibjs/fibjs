@@ -193,4 +193,3 @@ describe('process', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

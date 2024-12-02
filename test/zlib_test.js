@@ -114,4 +114,3 @@ describe("zlib", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

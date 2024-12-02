@@ -134,4 +134,3 @@ describe("buffered stream", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

@@ -238,4 +238,4 @@ describe('bbs signature', () => {
     add_suite("Bls12381Shake256");
 });
 
-require.main === module && test.run(console.DEBUG);
+

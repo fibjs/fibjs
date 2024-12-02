@@ -199,4 +199,3 @@ describe("console", () => {
     })
 });
 
-require.main === module && test.run(console.DEBUG);

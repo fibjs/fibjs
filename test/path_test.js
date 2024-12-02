@@ -1218,4 +1218,4 @@ describe('path', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);
+

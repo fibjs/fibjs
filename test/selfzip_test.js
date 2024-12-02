@@ -130,4 +130,3 @@ describe("selfzip", () => {
     test_suite("jsc-legacy", true, true);
 });
 
-require.main === module && test.run(console.DEBUG);

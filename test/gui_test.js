@@ -1524,4 +1524,4 @@ async function async_eval(func) {
     }
 });
 
-require.main === module && test.run(console.DEBUG);
+

@@ -55,4 +55,3 @@ describe('promise', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

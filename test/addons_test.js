@@ -2278,4 +2278,4 @@ describe('addons api', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);
+

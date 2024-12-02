@@ -398,4 +398,3 @@ describe("test", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

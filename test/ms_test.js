@@ -90,4 +90,3 @@ describe('ms', () => {
 
 });
 
-require.main === module && test.run(console.DEBUG);

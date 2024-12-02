@@ -989,4 +989,3 @@ describe('xml', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

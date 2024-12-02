@@ -1938,4 +1938,3 @@ describe("url", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

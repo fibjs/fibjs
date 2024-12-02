@@ -158,4 +158,3 @@ if (win) {
     });
 }
 
-require.main === module && test.run(console.DEBUG);

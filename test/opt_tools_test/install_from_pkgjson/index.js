@@ -417,4 +417,3 @@ describe('opt_tools/install from package.json', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

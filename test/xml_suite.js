@@ -86,4 +86,3 @@ describe('xml', () => {
         _test(i);
 });
 
-require.main === module && test.run(console.DEBUG);

@@ -408,4 +408,3 @@ describe('getter throw', () => {
     })
 });
 
-require.main === module && test.run(console.DEBUG);

@@ -103,4 +103,3 @@ describe("profiler", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

@@ -43,4 +43,3 @@ describe("v8 test", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

@@ -514,4 +514,3 @@ describe("timer", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

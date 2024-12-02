@@ -93,5 +93,3 @@ run("./internal_test/helpers.js")
 if (process.env.CI) {
     run("./opt_tools_test/index.js")
 }
-
-test.run();

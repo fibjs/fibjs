@@ -558,4 +558,3 @@ describe('assert', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

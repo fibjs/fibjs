@@ -275,4 +275,3 @@ describe("zip", () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

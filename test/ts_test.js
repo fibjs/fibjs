@@ -51,4 +51,3 @@ describe('TypeScript modules', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);

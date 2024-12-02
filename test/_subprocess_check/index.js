@@ -58,5 +58,3 @@ describe("Run other Test Case In SubProcess", () => {
         }
     });
 });
-
-require.main === module && test.run(console.DEBUG);

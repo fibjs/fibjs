@@ -262,4 +262,3 @@ describe('opt_tools/install from raw', () => {
     });
 });
 
-require.main === module && test.run(console.DEBUG);
