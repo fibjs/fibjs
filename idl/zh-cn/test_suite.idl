@@ -1,0 +1,21 @@
+/*! @brief test_suite 模块是一个测试套件模块，可作为函数调用 */
+module test_suite
+{
+    /*! @brief 定义一个测试套件，可嵌套定义
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static Function(String name, Function block);
+
+    /*! @brief 暂停测试套件的项目定义
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static skip(String name, Function block);
+
+    /*! @brief 独立测试套件的项目定义
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static only(String name, Function block);
+};

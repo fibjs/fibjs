@@ -1,7 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../module/test_suite.d.ts" />
 /// <reference path="../module/assert.d.ts" />
 /**
- * @description test 模块是一个测试框架，结合断言模块 `assert` 可以方便地编写各种测试用例
+ * @description test 模块是一个测试框架，结合断言模块 `assert` 可以方便地编写各种测试用例，可作为函数调用
  * 
  * 在 `fibjs` 中引入 `test` 模块常常需要先进行 `test setup` 操作：
  * 
@@ -84,15 +85,40 @@
  */
 declare module 'test' {
     /**
-     * @description 定义一个测试模块，可嵌套定义
-     *      @param name 定义模块名称
-     *      @param block 模块初始化代码
+     * @description 定义一个测试项目
+     *      @param name 定义项目名称
+     *      @param block 测试内容
      *      
      */
-    function describe(name: string, block: (...args: any[])=>any): void;
+    function Function(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 暂停测试的模块定义，test.setup 后可使用 describe.skip 调用
+     * @description 测试框架模块，指向本模块，可作为函数调用 
+     */
+    const test: typeof import ('test');
+
+    /**
+     * @description 测试框架模块，指向本模块，可作为函数调用 
+     */
+    const it: typeof import ('test');
+
+    /**
+     * @description 测试套件模块，可作为函数调用，参见 test_suite 
+     */
+    const suite: typeof import ('test_suite');
+
+    /**
+     * @description 测试套件模块，可作为函数调用，参见 test_suite 
+     */
+    const describe: typeof import ('test_suite');
+
+    /**
+     * @description 断言测试模块，可作为函数调用，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 
+     */
+    const assert: typeof import ('assert');
+
+    /**
+     * @description 暂停测试套件定义
      *      @param name 定义模块名称
      *      @param block 模块初始化代码
      *      
@@ -100,7 +126,7 @@ declare module 'test' {
     function xdescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 独立测试的模块定义，test.setup 后可使用 describe.only 调用
+     * @description 独立测试套件定义
      *      @param name 定义模块名称
      *      @param block 模块初始化代码
      *      
@@ -108,15 +134,7 @@ declare module 'test' {
     function odescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 定义一个测试项目
-     *      @param name 定义项目名称
-     *      @param block 测试内容
-     *      
-     */
-    function it(name: string, block: (...args: any[])=>any): void;
-
-    /**
-     * @description 暂停测试的项目定义，test.setup 后可使用 it.skip 调用
+     * @description 暂停测试的项目定义
      *      @param name 定义项目名称
      *      @param block 测试内容
      *      
@@ -124,7 +142,15 @@ declare module 'test' {
     function xit(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 独立测试的项目定义，test.setup 后可使用 it.only 调用
+     * @description 暂停测试的项目定义
+     *      @param name 定义项目名称
+     *      @param block 测试内容
+     *      
+     */
+    function skip(name: string, block: (...args: any[])=>any): void;
+
+    /**
+     * @description 独立测试的项目定义
      *      @param name 定义项目名称
      *      @param block 测试内容
      *      
@@ -132,7 +158,15 @@ declare module 'test' {
     function oit(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 计划项目定义，test.setup 后可使用 it.todo 调用
+     * @description 独立测试的项目定义
+     *      @param name 定义项目名称
+     *      @param block 测试内容
+     *      
+     */
+    function only(name: string, block: (...args: any[])=>any): void;
+
+    /**
+     * @description 计划项目定义
      *      @param name 定义项目名称
      *      @param block 测试内容
      *      
@@ -235,11 +269,6 @@ declare module 'test' {
      *      
      */
     function run(mode: number): FIBJS.GeneralObject;
-
-    /**
-     * @description 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 
-     */
-    const assert: typeof import ('assert');
 
     /**
      * @description 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量 

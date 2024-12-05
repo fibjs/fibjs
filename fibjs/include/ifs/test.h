@@ -15,20 +15,22 @@
 
 namespace fibjs {
 
-class console_base;
+class test_suite_base;
 class assert_base;
+class console_base;
 
 class test_base : public object_base {
     DECLARE_CLASS(test_base);
 
 public:
     // test_base
-    static result_t describe(exlib::string name, v8::Local<v8::Function> block);
+    static result_t _function(exlib::string name, v8::Local<v8::Function> block);
     static result_t xdescribe(exlib::string name, v8::Local<v8::Function> block);
     static result_t odescribe(exlib::string name, v8::Local<v8::Function> block);
-    static result_t it(exlib::string name, v8::Local<v8::Function> block);
     static result_t xit(exlib::string name, v8::Local<v8::Function> block);
+    static result_t skip(exlib::string name, v8::Local<v8::Function> block);
     static result_t oit(exlib::string name, v8::Local<v8::Function> block);
+    static result_t only(exlib::string name, v8::Local<v8::Function> block);
     static result_t todo(exlib::string name, v8::Local<v8::Function> block);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
@@ -45,22 +47,17 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        CONSTRUCT_INIT();
-
-        isolate->m_isolate->ThrowException(
-            isolate->NewString("not a constructor"));
+        s__function(args);
     }
 
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<test_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
-
 public:
-    static void s_static_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_odescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_it(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_xit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_skip(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_oit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_only(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_todo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_before(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_after(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,19 +72,20 @@ public:
 };
 }
 
-#include "ifs/console.h"
+#include "ifs/test_suite.h"
 #include "ifs/assert.h"
+#include "ifs/console.h"
 
 namespace fibjs {
 inline ClassInfo& test_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "describe", s_static_describe, true, ClassData::ASYNC_SYNC },
         { "xdescribe", s_static_xdescribe, true, ClassData::ASYNC_SYNC },
         { "odescribe", s_static_odescribe, true, ClassData::ASYNC_SYNC },
-        { "it", s_static_it, true, ClassData::ASYNC_SYNC },
         { "xit", s_static_xit, true, ClassData::ASYNC_SYNC },
+        { "skip", s_static_skip, true, ClassData::ASYNC_SYNC },
         { "oit", s_static_oit, true, ClassData::ASYNC_SYNC },
+        { "only", s_static_only, true, ClassData::ASYNC_SYNC },
         { "todo", s_static_todo, true, ClassData::ASYNC_SYNC },
         { "before", s_static_before, true, ClassData::ASYNC_SYNC },
         { "after", s_static_after, true, ClassData::ASYNC_SYNC },
@@ -100,6 +98,10 @@ inline ClassInfo& test_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
+        { "test", test_base::class_info },
+        { "it", test_base::class_info },
+        { "suite", test_suite_base::class_info },
+        { "describe", test_suite_base::class_info },
         { "assert", assert_base::class_info }
     };
 
@@ -108,7 +110,7 @@ inline ClassInfo& test_base::class_info()
     };
 
     static ClassData s_cd = {
-        "test", true, s__new, NULL,
+        "test", true, s__new, s__function,
         ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
@@ -118,7 +120,7 @@ inline ClassInfo& test_base::class_info()
     return s_ci;
 }
 
-inline void test_base::s_static_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void test_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
@@ -127,7 +129,7 @@ inline void test_base::s_static_describe(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = describe(v0, v1);
+    hr = _function(v0, v1);
 
     METHOD_VOID();
 }
@@ -160,20 +162,6 @@ inline void test_base::s_static_odescribe(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 
-inline void test_base::s_static_it(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = it(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void test_base::s_static_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -188,6 +176,20 @@ inline void test_base::s_static_xit(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
+inline void test_base::s_static_skip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = skip(v0, v1);
+
+    METHOD_VOID();
+}
+
 inline void test_base::s_static_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -198,6 +200,20 @@ inline void test_base::s_static_oit(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(v8::Local<v8::Function>, 1);
 
     hr = oit(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void test_base::s_static_only(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = only(v0, v1);
 
     METHOD_VOID();
 }

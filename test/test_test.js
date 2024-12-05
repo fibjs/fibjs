@@ -22,42 +22,46 @@ describe("test", () => {
         });
     })
 
-    it("skip & only", () => {
-        assert.equal(describe.skip, xdescribe);
-        assert.equal(describe.only, odescribe);
-
-        assert.equal(it.skip, xit);
-        assert.equal(it.only, oit);
+    it("alias of test", () => {
+        assert.equal(test, test.it);
+        assert.equal(test, test.test);
     });
 
-    it("it throw when not in describe", () => {
-        assert.throws(() => {
-            it("x", () => { });
-        });
+    it("alias of suite", () => {
+        assert.equal(test.describe, test.suite);
     });
 
-    it("before throw when not in describe", () => {
-        assert.throws(() => {
-            before(() => { });
-        });
+    it("global alias", () => {
+        assert.equal(describe, suite);
+        assert.equal(describe, test.describe);
+        assert.equal(xdescribe, test.xdescribe);
+        assert.equal(odescribe, test.odescribe);
+        assert.equal(assert, test.assert);
+        assert.equal(it.it, it);
+        assert.equal(it.xit, xit);
+        assert.equal(it.skip, skip);
+        assert.equal(it.oit, oit);
+        assert.equal(it.only, only);
     });
 
-    it("after throw when not in describe", () => {
-        assert.throws(() => {
-            after(() => { });
-        });
+    it("support it in it", () => {
+        it("it in it", () => { });
     });
 
-    it("beforeEach throw when not in describe", () => {
-        assert.throws(() => {
-            beforeEach(() => { });
-        });
+    it("support before in it", () => {
+        before(() => { });
     });
 
-    it("afterEach throw when not in describe", () => {
-        assert.throws(() => {
-            afterEach(() => { });
-        });
+    it("support after in it", () => {
+        after(() => { });
+    });
+
+    it("support beforeEach in it", () => {
+        beforeEach(() => { });
+    });
+
+    it("support afterEach in it", () => {
+        afterEach(() => { });
     });
 
     describe('describe.skip', () => {

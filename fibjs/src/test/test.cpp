@@ -117,8 +117,12 @@ public:
     {
         TestData* td = TestData::current();
 
+        _case::init();
+
         _case* now = td->m_describe;
-        if (!now || !td->m_root)
+        if (!now)
+            now = td->m_running;
+        if (!now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case* p = new _case(name, level);
@@ -134,7 +138,9 @@ public:
         TestData* td = TestData::current();
 
         _case* now = td->m_describe;
-        if (!td->m_describe)
+        if (!now)
+            now = td->m_running;
+        if (!now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         QuickArray<v8::Global<v8::Function>>& fa = now->m_hooks[type];
@@ -197,7 +203,147 @@ public:
 
                 p1 = p->m_subs[p->m_pos++];
 
-                if (p1->m_block.IsEmpty()) {
+                if (!p1->m_block.IsEmpty()) {
+                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                        v8::HandleScope handle_scope(isolate->m_isolate);
+
+                        for (j = 0; j < (int32_t)stack.size(); j++) {
+                            p2 = stack[j];
+                            for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
+                                v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
+                                if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                    clear();
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+
+                    {
+                        TryCatch try_catch;
+                        date_t d1, d2;
+
+                        d1.now();
+
+                        if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                            v8::HandleScope handle_scope(isolate->m_isolate);
+
+                            td->m_running = p1;
+
+                            v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
+                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                            if (try_catch.HasCaught()) {
+                                v8::Local<v8::Value> exp = try_catch.Exception();
+                                if (exp->IsFunction()) {
+                                    func = exp.As<v8::Function>();
+                                    try_catch.Reset();
+                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                                }
+                            }
+
+                            if (try_catch.HasCaught()) {
+                                p1->m_errors.append(GetException(try_catch, 0, false, true));
+                            } else
+                                for (int32_t i = 0; i < p1->m_evs.size(); i++)
+                                    p1->m_evs[i]->ac_wait();
+
+                            td->m_running = NULL;
+                        }
+
+                        d2.now();
+                        p1->m_duration = d2.diff(d1);
+
+                        v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
+                        val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
+
+                        p->m_total++;
+                        if (p1->m_errors.size()) {
+                            exlib::string err_msg = p1->m_errors.str();
+
+                            p->m_fail++;
+                            snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
+
+                            p1->m_status = false;
+                            p->m_status = false;
+
+                            if (mode > console_base::C_ERROR)
+                                errorLog(err_msg);
+                            else if (mode == console_base::C_ERROR) {
+                                exlib::string str1(buf);
+
+                                for (i = 1; i < (int32_t)stack.size(); i++) {
+                                    str1.append(stack[i]->m_title);
+                                    str1.append(" ", 1);
+                                }
+                                str1.append(p1->m_title);
+                                names.append(logger::highLight() + str1 + COLOR_RESET);
+
+                                msgs.append(err_msg);
+                            }
+
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
+                            val->Set(_context, isolate->NewString("trace"), isolate->NewString(err_msg)).IsJust();
+
+                            str.append(buf);
+                            str.append(p1->m_title);
+                        } else {
+                            if (p1->m_level == _case::TEST_TODO) {
+                                p->m_todo++;
+                                val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).IsJust();
+                                str.append(COLOR_CYAN + "\xe2\x98\x90 ");
+                            } else if (p1->m_level < p->m_run_level) {
+                                p->m_skip++;
+                                val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
+                                str.append(COLOR_GREY + "\xe2\x97\x8b ");
+                            } else {
+                                p->m_pass++;
+                                val->Set(_context, isolate->NewString("status"), isolate->NewString("passed")).IsJust();
+                                str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
+                            }
+
+                            if (!p1->m_subs.size())
+                                str.append(p1->m_title);
+                            if (p1->m_duration > s_slow / 2) {
+                                snprintf(buf, sizeof(buf), " (%dms) ", (int32_t)p1->m_duration);
+
+                                if (p1->m_duration > s_slow)
+                                    str.append(logger::error());
+                                else
+                                    str.append(logger::warn());
+
+                                str.append(buf);
+                                str.append(COLOR_RESET);
+                            }
+                        }
+
+                        val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration)).IsJust();
+
+                        p->m_retVal_tests->Set(_context, p->m_pos - 1, val).IsJust();
+                    }
+
+                    if (!p1->m_status)
+                        outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
+                    else if (mode > console_base::C_ERROR || (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO))
+                        if (!p1->m_subs.size())
+                            outLog(console_base::C_INFO, str);
+
+                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                        v8::HandleScope handle_scope(isolate->m_isolate);
+
+                        for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
+                            p2 = stack[j];
+                            for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
+                                v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
+                                if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                    clear();
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (p1->m_status && (p1->m_subs.size() || p1->m_block.IsEmpty())) {
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;
 
@@ -213,142 +359,6 @@ public:
 
                     stack.append(p1);
                     continue;
-                }
-
-                if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
-                    v8::HandleScope handle_scope(isolate->m_isolate);
-
-                    for (j = 0; j < (int32_t)stack.size(); j++) {
-                        p2 = stack[j];
-                        for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
-                            v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
-                            if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                                clear();
-                                return 0;
-                            }
-                        }
-                    }
-                }
-
-                {
-                    TryCatch try_catch;
-                    date_t d1, d2;
-
-                    d1.now();
-
-                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
-                        v8::HandleScope handle_scope(isolate->m_isolate);
-
-                        td->m_running = p1;
-
-                        v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
-                        func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
-                        if (try_catch.HasCaught()) {
-                            v8::Local<v8::Value> exp = try_catch.Exception();
-                            if (exp->IsFunction()) {
-                                func = exp.As<v8::Function>();
-                                try_catch.Reset();
-                                func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
-                            }
-                        }
-
-                        if (try_catch.HasCaught()) {
-                            p1->m_errors.append(GetException(try_catch, 0, false, true));
-                        } else
-                            for (int32_t i = 0; i < p1->m_evs.size(); i++)
-                                p1->m_evs[i]->ac_wait();
-
-                        td->m_running = NULL;
-                    }
-
-                    d2.now();
-                    p1->m_duration = d2.diff(d1);
-
-                    v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
-                    val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
-
-                    p->m_total++;
-                    if (p1->m_errors.size()) {
-                        exlib::string err_msg = p1->m_errors.str();
-
-                        p->m_fail++;
-                        snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
-
-                        p1->m_status = false;
-                        p->m_status = false;
-
-                        if (mode > console_base::C_ERROR)
-                            errorLog(err_msg);
-                        else if (mode == console_base::C_ERROR) {
-                            exlib::string str1(buf);
-
-                            for (i = 1; i < (int32_t)stack.size(); i++) {
-                                str1.append(stack[i]->m_title);
-                                str1.append(" ", 1);
-                            }
-                            str1.append(p1->m_title);
-                            names.append(logger::highLight() + str1 + COLOR_RESET);
-
-                            msgs.append(err_msg);
-                        }
-
-                        val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
-                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(err_msg)).IsJust();
-
-                        str.append(buf);
-                        str.append(p1->m_title);
-                    } else {
-                        if (p1->m_level == _case::TEST_TODO) {
-                            p->m_todo++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).IsJust();
-                            str.append(COLOR_CYAN + "\xe2\x98\x90 ");
-                        } else if (p1->m_level < p->m_run_level) {
-                            p->m_skip++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
-                            str.append(COLOR_GREY + "\xe2\x97\x8b ");
-                        } else {
-                            p->m_pass++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("passed")).IsJust();
-                            str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
-                        }
-
-                        str.append(p1->m_title);
-                        if (p1->m_duration > s_slow / 2) {
-                            snprintf(buf, sizeof(buf), " (%dms) ", (int32_t)p1->m_duration);
-
-                            if (p1->m_duration > s_slow)
-                                str.append(logger::error());
-                            else
-                                str.append(logger::warn());
-
-                            str.append(buf);
-                            str.append(COLOR_RESET);
-                        }
-                    }
-
-                    val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration)).IsJust();
-
-                    p->m_retVal_tests->Set(_context, p->m_pos - 1, val).IsJust();
-                }
-
-                if (!p1->m_status)
-                    outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
-                else if (mode > console_base::C_ERROR || (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO))
-                    outLog(console_base::C_INFO, str);
-
-                if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
-                    v8::HandleScope handle_scope(isolate->m_isolate);
-
-                    for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
-                        p2 = stack[j];
-                        for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
-                            v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
-                            if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                                clear();
-                                return 0;
-                            }
-                        }
-                    }
                 }
             }
 
@@ -502,34 +512,54 @@ inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
     return func;
 }
 
-result_t test_base::describe(exlib::string name, v8::Local<v8::Function> block)
-{
-    return _case::describe(name, wrapFunction(block), _case::TEST_NORMAL);
-}
-
-result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
-{
-    return _case::describe(name, wrapFunction(block), _case::TEST_SKIP);
-}
-
-result_t test_base::odescribe(exlib::string name, v8::Local<v8::Function> block)
-{
-    return _case::describe(name, wrapFunction(block), _case::TEST_ONLY);
-}
-
-result_t test_base::it(exlib::string name, v8::Local<v8::Function> block)
+result_t test_base::_function(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_NORMAL);
 }
 
-result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
+result_t test_suite_base::_function(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, wrapFunction(block), _case::TEST_NORMAL);
+}
+
+result_t test_suite_base::skip(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, wrapFunction(block), _case::TEST_SKIP);
+}
+
+result_t test_suite_base::only(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, wrapFunction(block), _case::TEST_ONLY);
+}
+
+result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
+{
+    return test_suite_base::skip(name, block);
+}
+
+result_t test_base::odescribe(exlib::string name, v8::Local<v8::Function> block)
+{
+    return test_suite_base::only(name, block);
+}
+
+result_t test_base::skip(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_SKIP);
 }
 
-result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
+result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
+{
+    return skip(name, block);
+}
+
+result_t test_base::only(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_ONLY);
+}
+
+result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
+{
+    return only(name, block);
 }
 
 result_t test_base::todo(exlib::string name, v8::Local<v8::Function> block)
@@ -665,63 +695,21 @@ result_t test_base::setup()
 
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> glob = _context->Global();
-    v8::Local<v8::Function> func, func1;
 
     isolate->m_isolate->LowMemoryNotification();
     g_track_native_object = true;
 
-    glob->DefineOwnProperty(_context, isolate->NewString("assert"),
-            assert_base::class_info().getModule(isolate))
-        .IsJust();
+    v8::Local<v8::Object> _test = test_base::class_info().getModule(isolate);
+    const char* names[] = {
+        "describe", "suite", "xdescribe", "odescribe", "assert",
+        "it", "xit", "skip", "oit", "only", "todo",
+        "before", "after", "beforeEach", "afterEach"
+    };
 
-    func = isolate->NewFunction("describe", s_static_describe);
-    glob->DefineOwnProperty(_context, isolate->NewString("describe"), func)
-        .IsJust();
-
-    func1 = isolate->NewFunction("xdescribe", s_static_xdescribe);
-    glob->DefineOwnProperty(_context, isolate->NewString("xdescribe"), func1)
-        .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
-        .IsJust();
-
-    func1 = isolate->NewFunction("odescribe", s_static_odescribe);
-    glob->DefineOwnProperty(_context, isolate->NewString("odescribe"), func1)
-        .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
-        .IsJust();
-
-    func = isolate->NewFunction("it", s_static_it);
-    glob->DefineOwnProperty(_context, isolate->NewString("it"), func)
-        .IsJust();
-
-    func1 = isolate->NewFunction("xit", s_static_xit);
-    glob->DefineOwnProperty(_context, isolate->NewString("xit"), func1)
-        .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
-        .IsJust();
-
-    func1 = isolate->NewFunction("oit", s_static_oit);
-    glob->DefineOwnProperty(_context, isolate->NewString("oit"), func1)
-        .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
-        .IsJust();
-
-    glob->DefineOwnProperty(_context, isolate->NewString("todo"),
-            isolate->NewFunction("todo", s_static_todo))
-        .IsJust();
-
-    glob->DefineOwnProperty(_context, isolate->NewString("before"),
-            isolate->NewFunction("before", s_static_before))
-        .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewString("after"),
-            isolate->NewFunction("after", s_static_after))
-        .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewString("beforeEach"),
-            isolate->NewFunction("beforeEach", s_static_beforeEach))
-        .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewString("afterEach"),
-            isolate->NewFunction("afterEach", s_static_afterEach))
-        .IsJust();
+    for (auto& name : names)
+        glob->DefineOwnProperty(_context, isolate->NewString(name),
+                _test->Get(_context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>()))
+            .IsJust();
 
     return 0;
 }
