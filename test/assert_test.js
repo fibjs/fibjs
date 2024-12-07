@@ -342,18 +342,30 @@ describe('assert', () => {
                 "5": 2
             });
         });
+
+        assert.deepEqual({
+            tea: 100
+        }, {
+            tea: '100'
+        });
+
+        assert.throws(() => {
+            assert.deepStrictEqual({
+                tea: 100
+            }, {
+                tea: '100'
+            });
+        });
     });
 
     it('deepEqual (ordering)', () => {
-        var a = {
+        assert.deepEqual({
             a: 'b',
             c: 'd'
-        },
-            b = {
-                c: 'd',
-                a: 'b'
-            };
-        assert.deepEqual(a, b);
+        }, {
+            c: 'd',
+            a: 'b'
+        });
     });
 
     it('deepEqual /regexp/', () => {

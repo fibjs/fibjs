@@ -25,7 +25,7 @@ static bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expec
 
 static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
-    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool strict);
 
 static int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
@@ -48,7 +48,7 @@ static int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
 
 static bool arrayEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
-    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool strict)
 {
     v8::Local<v8::Array> act = actual.As<v8::Array>();
     v8::Local<v8::Array> exp = expected.As<v8::Array>();
@@ -70,7 +70,7 @@ static bool arrayEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& act
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++)
-        if (!deepEquals(isolate, acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)))) {
+        if (!deepEquals(isolate, acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)), strict)) {
             acts.pop();
             exps.pop();
             return false;
@@ -83,7 +83,7 @@ static bool arrayEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& act
 
 static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
-    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool strict)
 {
     v8::Local<v8::Object> act = actual.As<v8::Object>();
     v8::Local<v8::Object> exp = expected.As<v8::Object>();
@@ -123,7 +123,7 @@ static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& ac
             return false;
         }
 
-        if (!deepEquals(isolate, acts, exps, v1, v2)) {
+        if (!deepEquals(isolate, acts, exps, v1, v2, strict)) {
             acts.pop();
             exps.pop();
             return false;
@@ -137,7 +137,7 @@ static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& ac
 
 static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
-    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool strict)
 {
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
         && !expected->IsFunction()) {
@@ -155,7 +155,7 @@ static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts
             return false;
 
         if (actual->IsArray() && expected->IsArray())
-            return arrayEquals(isolate, acts, exps, actual, expected);
+            return arrayEquals(isolate, acts, exps, actual, expected, strict);
 
         obj_ptr<object_base> obj1 = object_base::getInstance(actual);
         obj_ptr<object_base> obj2 = object_base::getInstance(expected);
@@ -166,10 +166,10 @@ static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts
         }
 
         if (actual->IsObject() && expected->IsObject())
-            return objectEquals(isolate, acts, exps, actual, expected);
+            return objectEquals(isolate, acts, exps, actual, expected, strict);
     }
 
-    return actual->StrictEquals(expected);
+    return strict ? actual->StrictEquals(expected) : actual->Equals(isolate->context(), expected).FromMaybe(false);
 }
 
 result_t util_base::isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal)
@@ -177,7 +177,17 @@ result_t util_base::isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value
     QuickArray<v8::Local<v8::Object>> acts;
     QuickArray<v8::Local<v8::Object>> exps;
 
-    retVal = deepEquals(Isolate::current(), acts, exps, actual, expected);
+    retVal = deepEquals(Isolate::current(), acts, exps, actual, expected, false);
+
+    return 0;
+}
+
+result_t util_base::isDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal)
+{
+    QuickArray<v8::Local<v8::Object>> acts;
+    QuickArray<v8::Local<v8::Object>> exps;
+
+    retVal = deepEquals(Isolate::current(), acts, exps, actual, expected, true);
 
     return 0;
 }

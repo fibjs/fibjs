@@ -210,6 +210,24 @@ result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
     return _test(!r, _msg(msg, "expected ", actual, " to not deeply equal ", expected));
 }
 
+result_t assert_base::deepStrictEqual(v8::Local<v8::Value> actual,
+    v8::Local<v8::Value> expected, exlib::string msg)
+{
+    bool r;
+
+    util_base::isDeepStrictEqual(actual, expected, r);
+    return _test(r, _msg(msg, "expected ", actual, " to deeply strict equal ", expected));
+}
+
+result_t assert_base::notDeepStrictEqual(v8::Local<v8::Value> actual,
+    v8::Local<v8::Value> expected, exlib::string msg)
+{
+    bool r;
+
+    util_base::isDeepStrictEqual(actual, expected, r);
+    return _test(!r, _msg(msg, "expected ", actual, " to not deeply strict equal ", expected));
+}
+
 result_t assert_base::closeTo(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
     exlib::string msg)

@@ -97,6 +97,24 @@ declare module 'assert' {
     function notDeepEqual(actual: any, expected: any, msg?: string): void;
 
     /**
+     * @description 测试数值严格深度等于预期值，不相等则断言失败
+     *      @param actual 要测试的数值
+     *      @param expected 预期的数值
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    function deepStrictEqual(actual: any, expected: any, msg?: string): void;
+
+    /**
+     * @description 测试数值不严格深度等于预期值，相等则断言失败
+     *      @param actual 要测试的数值
+     *      @param expected 预期的数值
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    function notDeepStrictEqual(actual: any, expected: any, msg?: string): void;
+
+    /**
      * @description 测试数值近似等于预期值，否则断言失败
      *      @param actual 要测试的数值
      *      @param expected 预期的数值

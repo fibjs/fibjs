@@ -29,6 +29,8 @@ public:
     static result_t notStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
     static result_t deepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
     static result_t notDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
+    static result_t deepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
+    static result_t notDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
     static result_t closeTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, exlib::string msg);
     static result_t notCloseTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, exlib::string msg);
     static result_t lessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
@@ -88,6 +90,8 @@ public:
     static void s_static_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_notDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -144,6 +148,8 @@ inline ClassInfo& assert_base::class_info()
         { "notStrictEqual", s_static_notStrictEqual, true, ClassData::ASYNC_SYNC },
         { "deepEqual", s_static_deepEqual, true, ClassData::ASYNC_SYNC },
         { "notDeepEqual", s_static_notDeepEqual, true, ClassData::ASYNC_SYNC },
+        { "deepStrictEqual", s_static_deepStrictEqual, true, ClassData::ASYNC_SYNC },
+        { "notDeepStrictEqual", s_static_notDeepStrictEqual, true, ClassData::ASYNC_SYNC },
         { "closeTo", s_static_closeTo, true, ClassData::ASYNC_SYNC },
         { "notCloseTo", s_static_notCloseTo, true, ClassData::ASYNC_SYNC },
         { "lessThan", s_static_lessThan, true, ClassData::ASYNC_SYNC },
@@ -326,6 +332,36 @@ inline void assert_base::s_static_notDeepEqual(const v8::FunctionCallbackInfo<v8
     OPT_ARG(exlib::string, 2, "");
 
     hr = notDeepEqual(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void assert_base::s_static_deepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = deepStrictEqual(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void assert_base::s_static_notDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = notDeepStrictEqual(v0, v1, v2);
 
     METHOD_VOID();
 }

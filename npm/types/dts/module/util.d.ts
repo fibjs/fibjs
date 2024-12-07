@@ -426,6 +426,15 @@ declare module 'util' {
     function isDeepEqual(actual: any, expected: any): boolean;
 
     /**
+     * @description 测试数值严格深度等于预期值
+     *      @param actual 要测试的数值
+     *      @param expected 预期的数值
+     *      @return 如果严格深度相等则返回 True
+     *      
+     */
+    function isDeepStrictEqual(actual: any, expected: any): boolean;
+
+    /**
      * @description 查询指定对象是否包含给定的键
      * 
      *      @param v 给定需要查询的对象

@@ -63,6 +63,7 @@ public:
     static result_t isFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal);
+    static result_t isDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal);
     static result_t has(v8::Local<v8::Value> v, exlib::string key, bool& retVal);
     static result_t keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
@@ -139,6 +140,7 @@ public:
     static void s_static_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_values(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -212,6 +214,7 @@ inline ClassInfo& util_base::class_info()
         { "isFunction", s_static_isFunction, true, ClassData::ASYNC_SYNC },
         { "isBuffer", s_static_isBuffer, true, ClassData::ASYNC_SYNC },
         { "isDeepEqual", s_static_isDeepEqual, true, ClassData::ASYNC_SYNC },
+        { "isDeepStrictEqual", s_static_isDeepStrictEqual, true, ClassData::ASYNC_SYNC },
         { "has", s_static_has, true, ClassData::ASYNC_SYNC },
         { "keys", s_static_keys, true, ClassData::ASYNC_SYNC },
         { "values", s_static_values, true, ClassData::ASYNC_SYNC },
@@ -787,6 +790,22 @@ inline void util_base::s_static_isDeepEqual(const v8::FunctionCallbackInfo<v8::V
     ARG(v8::Local<v8::Value>, 1);
 
     hr = isDeepEqual(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = isDeepStrictEqual(v0, v1, vr);
 
     METHOD_RETURN();
 }
