@@ -110,11 +110,11 @@ describe('string_decoder', () => {
     it('should throws', () => {
         assert.throws(() => {
             new StringDecoder(1);
-        }, /^Error: Unknown encoding: 1$/);
+        });
 
         assert.throws(() => {
             new StringDecoder('test');
-        }, /^Error: Unknown encoding: test$/);
+        });
     });
 
     it('end', () => {

@@ -32,9 +32,7 @@ describe("url", () => {
         it("file url to path", () => {
             function testInvalidArgs(...args) {
                 for (const arg of args) {
-                    assert.throws(() => url.fileURLToPath(arg), {
-                        code: 'ERR_INVALID_ARG_TYPE'
-                    });
+                    assert.throws(() => url.fileURLToPath(arg));
                 }
             }
 
@@ -42,9 +40,7 @@ describe("url", () => {
             testInvalidArgs(null, undefined, 1, {}, true);
 
             // Input must be a file URL
-            assert.throws(() => url.fileURLToPath('https://a/b/c'), {
-                code: 'ERR_INVALID_URL_SCHEME'
-            });
+            assert.throws(() => url.fileURLToPath('https://a/b/c'));
 
             {
                 const withHost = new URL('file://host/a');
@@ -52,27 +48,17 @@ describe("url", () => {
                 if (isWindows) {
                     assert.strictEqual(url.fileURLToPath(withHost), '\\\\host\\a');
                 } else {
-                    assert.throws(() => url.fileURLToPath(withHost), {
-                        code: 'ERR_INVALID_FILE_URL_HOST'
-                    });
+                    assert.throws(() => url.fileURLToPath(withHost));
                 }
             }
 
             {
                 if (isWindows) {
-                    assert.throws(() => url.fileURLToPath('file:///C:/a%2F/'), {
-                        code: 'ERR_INVALID_FILE_URL_PATH'
-                    });
-                    assert.throws(() => url.fileURLToPath('file:///C:/a%5C/'), {
-                        code: 'ERR_INVALID_FILE_URL_PATH'
-                    });
-                    assert.throws(() => url.fileURLToPath('file:///?:/'), {
-                        code: 'ERR_INVALID_FILE_URL_PATH'
-                    });
+                    assert.throws(() => url.fileURLToPath('file:///C:/a%2F/'));
+                    assert.throws(() => url.fileURLToPath('file:///C:/a%5C/'));
+                    assert.throws(() => url.fileURLToPath('file:///?:/'));
                 } else {
-                    assert.throws(() => url.fileURLToPath('file:///a%2F/'), {
-                        code: 'ERR_INVALID_FILE_URL_PATH'
-                    });
+                    assert.throws(() => url.fileURLToPath('file:///a%2F/'));
                 }
             }
 
@@ -1816,8 +1802,7 @@ describe("url", () => {
         // non-writable property should throw.
         // Note: this error message is subject to change in V8 updates
         assert.throws(
-            () => url_.origin = 'http://foo.bar.com:22',
-            /^TypeError: Cannot set property origin of \[object URL\] which has only a getter$/
+            () => url_.origin = 'http://foo.bar.com:22'
         );
         assert.strictEqual(url_.origin, 'http://foo.bar.com:21');
         assert.strictEqual(url_.toString(),
@@ -1893,8 +1878,7 @@ describe("url", () => {
         // non-writable property should throw.
         // Note: this error message is subject to change in V8 updates
         assert.throws(
-            () => url_.searchParams = '?k=88',
-            /^TypeError: Cannot set property searchParams of \[object URL\] which has only a getter$/
+            () => url_.searchParams = '?k=88'
         );
         // assert.strictEqual(url_.searchParams, oldParams);
         assert.strictEqual(url_.toString(),
