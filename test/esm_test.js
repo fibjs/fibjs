@@ -29,7 +29,7 @@ describe('ECMAScript modules', () => {
         });
 
         it("throw when file not exists", async () => {
-            assert.throws(async () => {
+            await assert.rejects(async () => {
                 await import('./esm_files/not_exists.mjs');
             });
         });
@@ -45,7 +45,7 @@ describe('ECMAScript modules', () => {
         });
 
         it("import json with 'assert'", async () => {
-            assert.throws(async () => {
+            await assert.rejects(async () => {
                 var m = await import('./esm_files/esm18.mjs');
             });
         });
@@ -67,7 +67,7 @@ describe('ECMAScript modules', () => {
                 m = await import('./esm_files/esm4');
             } catch (e) { }
 
-            assert.throws(async () => {
+            await assert.rejects(async () => {
                 m = await import('./esm_files/esm4');
             });
         });

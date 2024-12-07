@@ -470,6 +470,44 @@ declare module 'assert' {
     function doesNotThrow(block: (...args: any[])=>any, msg?: string): void;
 
     /**
+     * @description 测试给定的代码会抛出错误，未抛出则断言失败
+     *      @param block 指定测试的代码，以函数形式给出
+     *      @param msg 断言失败时的提示信息
+     *      @return 返回一个 Promise
+     *      
+     */
+    function rejects(block: (...args: any[])=>any, msg?: string): Promise;
+
+    /**
+     * @description 测试给定的代码会抛出错误，未抛出则断言失败
+     *      @param block 指定测试的代码，以函数形式给出
+     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
+     *      @param msg 断言失败时的提示信息
+     *      @return 返回一个 Promise
+     *      
+     */
+    function rejects(block: (...args: any[])=>any, error: any, msg?: string): Promise;
+
+    /**
+     * @description 测试给定的代码会抛出错误，未抛出则断言失败
+     *      @param result 指定测试的代码，以Promise形式给出
+     *      @param msg 断言失败时的提示信息
+     *      @return 返回一个 Promise
+     *      
+     */
+    function rejects(result: Promise, msg?: string): Promise;
+
+    /**
+     * @description 测试给定的代码会抛出错误，未抛出则断言失败
+     *      @param result 指定测试的代码，以Promise形式给出
+     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
+     *      @param msg 断言失败时的提示信息
+     *      @return 返回一个 Promise
+     *      
+     */
+    function rejects(result: Promise, error: any, msg?: string): Promise;
+
+    /**
      * @description 如果参数为真，则抛出
      *      @param object 参数
      *      

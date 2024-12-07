@@ -4380,7 +4380,7 @@ describe('crypto', () => {
             });
 
             it("should throw if the key type is not supported", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     const key = await global.crypto.subtle.generateKey(
                         {
                             name: "ECDSA",
@@ -4393,7 +4393,7 @@ describe('crypto', () => {
             });
 
             it("should throw if 'sign' is not included in the keyUsages", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     const key = await global.crypto.subtle.generateKey(
                         {
                             name: "ECDSA",
@@ -4406,7 +4406,7 @@ describe('crypto', () => {
             });
 
             it("should throw if namedCurve is not supported", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     const key = await global.crypto.subtle.generateKey(
                         {
                             name: "ECDSA",
@@ -4567,7 +4567,7 @@ describe('crypto', () => {
             });
 
             it("should throw if name is not matching", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
                         name: "Ed25519",
                         namedCurve: "P-256"
@@ -4576,7 +4576,7 @@ describe('crypto', () => {
             });
 
             it("should throw if namedCurve is not matching", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
                         name: "ECDSA",
                         namedCurve: "P-384"
@@ -4585,14 +4585,14 @@ describe('crypto', () => {
             });
 
             it("should throw if the key type is not supported", async () => {
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
                         name: "ECDSA",
                         namedCurve: "P-256"
                     }, true, ["sign"]);
                 });
 
-                assert.throws(async () => {
+                await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
                         name: "ECDSA",
                         namedCurve: "P-256"

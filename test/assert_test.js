@@ -117,22 +117,123 @@ describe('assert', () => {
 
         it('throws with Error Object', () => {
             assert.throws(() => {
-                throw new Error('bar');
-            }, new Error('bar'));
-
-            assert.throws(() => {
-                throw {
-                    name: 'Error',
-                    message: 'bar',
-                    test: 'test'
-                };
-            }, new Error('bar'));
+                throw new TypeError('Type error');
+            }, TypeError);
 
             assert.throws(() => {
                 assert.throws(() => {
-                    throw new Error('bar');
-                }, new Error('foo'));
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                    throw new Error('Type error');
+                }, TypeError);
+            }, "expected [Function] to throw an error matching TypeError");
+        });
+
+        it('throws with arbitrary value', () => {
+            const values = [42, {}, [], Symbol('xyzzy'), true, 'ball', undefined, null, NaN];
+            for (let i = 0; i < values.length; i++) {
+                assert.throws(() => {
+                    throw values[i];
+                });
+            }
+        });
+    });
+
+    describe('rejects', () => {
+        it('rejects with no arguments', async () => {
+            await assert.rejects(async () => {
+                throw new Error('Rejection');
+            });
+
+            await assert.rejects(async () =>
+                await assert.rejects(async () => {
+                    // No rejection
+                })
+            );
+        });
+
+        it('rejects with error message', async () => {
+            await assert.rejects(async () => {
+                throw new Error('Specific error');
+            }, /Specific error/);
+
+            await assert.rejects(async () =>
+                awaitassert.rejects(async () => {
+                    // No rejection
+                }, /Specific error/)
+            );
+        });
+
+        it('rejects with error type', async () => {
+            await assert.rejects(async () => {
+                throw new TypeError('Type error');
+            }, TypeError);
+
+            await assert.rejects(async () =>
+                await assert.rejects(async () => {
+                    // No rejection
+                }, TypeError)
+            );
+        });
+
+        it('rejects with error predicate', async () => {
+            await assert.rejects(async () => {
+                throw new Error('Custom error');
+            }, (err) => {
+                assert.equal(err.message, 'Custom error');
+                return true;
+            });
+
+            await assert.rejects(async () =>
+                await assert.rejects(async () => {
+                    // No rejection
+                }, (err) => {
+                    return err.message === 'Custom error';
+                })
+            );
+        });
+
+        it('rejects with promise', async () => {
+            const rejectedPromise = Promise.reject(new Error('Promise rejection'));
+            await assert.rejects(rejectedPromise);
+
+            const resolvedPromise = Promise.resolve();
+            await assert.rejects(async () =>
+                await assert.rejects(resolvedPromise)
+            );
+        });
+
+        it('rejects with promise and error matching', async () => {
+            const rejectedPromise = Promise.reject(new TypeError('Specific type error'));
+
+            await assert.rejects(rejectedPromise, TypeError);
+            await assert.rejects(rejectedPromise, /type error/i);
+
+            await assert.rejects(async () =>
+                await assert.rejects(rejectedPromise, RangeError)
+            );
+        });
+
+        it('rejects with promise and predicate', async () => {
+            const rejectedPromise = Promise.reject(new Error('Predicate error'));
+
+            await assert.rejects(rejectedPromise, (err) => {
+                assert.equal(err.message, 'Predicate error');
+                return true;
+            });
+
+            await assert.rejects(async () =>
+                await assert.rejects(rejectedPromise, (err) => {
+                    return err.message === 'Wrong error';
+                })
+            );
+        });
+
+        it('rejects with arbitrary value', async () => {
+            const values = [42, {}, [], Symbol('xyzzy'), true, 'ball', undefined, null, NaN];
+            for (let i = 0; i < values.length; i++) {
+                await assert.rejects(async () => {
+                    throw values[i];
+                });
+            }
         });
     });
 
@@ -643,7 +744,7 @@ describe('assert', () => {
 
     it("throws async", async () => {
         await sleep(1);
-        assert.throws(async () => {
+        await assert.rejects(async () => {
             throw "error";
         });
     });
@@ -692,4 +793,3 @@ describe('assert', () => {
         assert.ok(threw);
     });
 });
-

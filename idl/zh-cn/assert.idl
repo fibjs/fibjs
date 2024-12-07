@@ -359,6 +359,36 @@ module assert
      */
     static doesNotThrow(Function block, String msg = "");
 
+    /*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
+     @param block 指定测试的代码，以函数形式给出
+     @param msg 断言失败时的提示信息
+     @return 返回一个 Promise
+     */
+    static Promise rejects(Function block, String msg = "");
+
+    /*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
+     @param block 指定测试的代码，以函数形式给出
+     @param error 指定的错误，可以是 RegExp/Function/Object/Error
+     @param msg 断言失败时的提示信息
+     @return 返回一个 Promise
+     */
+    static Promise rejects(Function block, Value error, String msg = "");
+
+    /*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
+     @param result 指定测试的代码，以Promise形式给出
+     @param msg 断言失败时的提示信息
+     @return 返回一个 Promise
+     */
+    static Promise rejects(Promise result, String msg = "");
+
+    /*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
+     @param result 指定测试的代码，以Promise形式给出
+     @param error 指定的错误，可以是 RegExp/Function/Object/Error
+     @param msg 断言失败时的提示信息
+     @return 返回一个 Promise
+     */
+    static Promise rejects(Promise result, Value error, String msg = "");
+
     /*! @brief 如果参数为真，则抛出
      @param object 参数
      */
