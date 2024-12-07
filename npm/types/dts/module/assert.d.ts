@@ -433,6 +433,17 @@ declare module 'assert' {
     */
 
     /**
+     * @description 测试给定的代码会抛出错误，未抛出则断言失败
+     *      @param block 指定测试的代码，以函数形式给出
+     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    /* Illegal function name 'throws' can't be used here
+    function throws(block: (...args: any[])=>any, error: any, msg?: string): void;
+    */
+
+    /**
      * @description 测试给定的代码不会抛出错误，抛出则断言失败
      *      @param block 指定测试的代码，以函数形式给出
      *      @param msg 断言失败时的提示信息

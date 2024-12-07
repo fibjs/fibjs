@@ -68,6 +68,7 @@ public:
     static result_t deepPropertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
     static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
     static result_t throws(v8::Local<v8::Function> block, exlib::string msg);
+    static result_t throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg);
     static result_t doesNotThrow(v8::Local<v8::Function> block, exlib::string msg);
     static result_t ifError(v8::Local<v8::Value> object);
 
@@ -893,6 +894,14 @@ inline void assert_base::s_static_throws(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(exlib::string, 1, "");
 
     hr = throws(v0, v1);
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = throws(v0, v1, v2);
 
     METHOD_VOID();
 }

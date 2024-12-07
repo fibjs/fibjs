@@ -13,6 +13,129 @@ describe('assert', () => {
         assert(foo == 'bar', "expected foo to equal `bar`");
     });
 
+    describe('throws', () => {
+        it('throws', () => {
+            assert.throws(() => {
+                throw new Error('foo');
+            });
+        });
+
+        it('throws with regex', () => {
+            assert.throws(() => {
+                throw new Error('bar');
+            }, /bar/);
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, /foo/);
+            }, "expected [Function] to throw an error matching /foo/");
+        });
+
+        it('throws with function', () => {
+            assert.throws(() => {
+                throw new Error('bar');
+            }, (err) => {
+                assert.equal(err.message, 'bar');
+                return true;
+            });
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, (err) => {
+                    return err.message === 'foo';
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, (err) => {
+                    assert.equal(err.message, 'foo');
+                    console.error(err.message);
+                    return true;
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+        });
+
+        it('throws with Object and String properties', () => {
+            assert.throws(() => {
+                throw new Error('bar');
+            }, {
+                message: 'bar'
+            });
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, {
+                    message: 'foo'
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+        });
+
+        it('throws with Object and Number properties', () => {
+            assert.throws(() => {
+                throw new Error(1234);
+            }, {
+                message: '1234'
+            });
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error(1234);
+                }, {
+                    message: 1234
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error(1234);
+                }, {
+                    message: '4567'
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+        });
+
+        it('throws with Object and String RegExp properties', () => {
+            assert.throws(() => {
+                throw new Error('bar');
+            }, {
+                message: /bar/
+            });
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, {
+                    message: /foo/
+                });
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+        });
+
+        it('throws with Error Object', () => {
+            assert.throws(() => {
+                throw new Error('bar');
+            }, new Error('bar'));
+
+            assert.throws(() => {
+                throw {
+                    name: 'Error',
+                    message: 'bar',
+                    test: 'test'
+                };
+            }, new Error('bar'));
+
+            assert.throws(() => {
+                assert.throws(() => {
+                    throw new Error('bar');
+                }, new Error('foo'));
+            }, "expected [Function] to throw an error matching err.message === 'foo'");
+        });
+    });
+
     it('isTrue', () => {
         assert.isTrue(true);
 

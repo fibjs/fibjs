@@ -774,6 +774,84 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
     return 0;
 }
 
+static bool check_error(TryCatch& try_catch, v8::Local<v8::Value> error)
+{
+    if (!try_catch.HasCaught())
+        return false;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> _context = isolate->context();
+
+    v8::Local<v8::Value> ex = try_catch.Exception()->ToObject(_context).FromMaybe(v8::Local<v8::Value>());
+    if (error->IsRegExp()) {
+        v8::Local<v8::String> s = ex->ToString(_context).FromMaybe(v8::Local<v8::String>());
+        v8::Local<v8::RegExp> p = error.As<v8::RegExp>();
+        v8::Local<v8::Object> r = p->Exec(_context, s).FromMaybe(v8::Local<v8::Object>());
+        return !r->IsNull();
+    } else if (error->IsFunction()) {
+        v8::Local<v8::Function> f = error.As<v8::Function>();
+        v8::Local<v8::Value> r = f->Call(_context, ex, 1, &ex).FromMaybe(v8::Local<v8::Value>());
+        return !r.IsEmpty() && r->IsTrue();
+    } else if (error->IsNativeError()) {
+        v8::Local<v8::Object> o = error.As<v8::Object>();
+        v8::Local<v8::Object> o1 = ex->ToObject(_context).FromMaybe(v8::Local<v8::Object>());
+        if (o1.IsEmpty())
+            return false;
+
+        const char* props[] = { "name", "message" };
+        for (int i = 0; i < ARRAYSIZE(props); i++) {
+            v8::Local<v8::Value> p = isolate->NewString(props[i]);
+            v8::Local<v8::Value> v = o->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> v1 = o1->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
+            if (!v->StrictEquals(v1))
+                return false;
+        }
+
+        return true;
+    } else if (error->IsObject()) {
+        v8::Local<v8::Object> o = error.As<v8::Object>();
+        v8::Local<v8::Array> a = o->GetOwnPropertyNames(_context).FromMaybe(v8::Local<v8::Array>());
+
+        v8::Local<v8::Object> o1 = ex->ToObject(_context).FromMaybe(v8::Local<v8::Object>());
+        if (o1.IsEmpty())
+            return false;
+
+        for (int i = 0; i < a->Length(); i++) {
+            v8::Local<v8::Value> p = a->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> v = o->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> v1 = o1->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
+
+            if (v->IsRegExp()) {
+                v8::Local<v8::String> s = v1->ToString(_context).FromMaybe(v8::Local<v8::String>());
+                v8::Local<v8::RegExp> p = v.As<v8::RegExp>();
+                v8::Local<v8::Object> r = p->Exec(_context, s).FromMaybe(v8::Local<v8::Object>());
+                if (r->IsNull())
+                    return false;
+            } else if (!v->StrictEquals(v1))
+                return false;
+        }
+        return true;
+    }
+
+    return true;
+}
+
+result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg)
+{
+    if (block->IsAsyncFunction())
+        util_base::sync(block, true, block);
+
+    bool err;
+    {
+        TryCatch try_catch;
+        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL).IsEmpty();
+        err = check_error(try_catch, error);
+    }
+    _test(err, _msg(msg, "Missing expected exception."));
+
+    return 0;
+}
+
 result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     exlib::string msg)
 {
