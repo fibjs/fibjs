@@ -235,6 +235,21 @@ describe('assert', () => {
                 });
             }
         });
+
+        it("should not catch error in sync function", async () => {
+            await assert.rejects(async () => {
+                await assert.rejects(() => {
+                    throw new Error("error");
+                });
+            });
+        });
+
+        it("should throw error in sync function directly", async () => {
+            await assert.rejects(async () => {
+                await assert.rejects(() => {
+                });
+            });
+        });
     });
 
     it('isTrue', () => {

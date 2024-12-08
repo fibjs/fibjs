@@ -176,19 +176,22 @@ result_t assert_base::rejects(v8::Local<v8::Promise> result, exlib::string msg, 
 
 result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg, v8::Local<v8::Promise>& retVal)
 {
-    if (!block->IsAsyncFunction())
-        return Runtime::setError("rejects() can only be used with async functions.");
-
     Isolate* isolate = Isolate::current(block);
     v8::Local<v8::Context> context = isolate->context();
 
+    TryCatch try_catch;
     v8::Local<v8::Value> v = block->Call(isolate->m_isolate, isolate->context(), v8::Undefined(isolate->m_isolate), 0, NULL).FromMaybe(v8::Local<v8::Value>());
+    if (try_catch.HasCaught()) {
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        resolver->Reject(context, try_catch.Exception()).IsJust();
+        retVal = resolver->GetPromise();
+        return 0;
+    }
+
     if (!v->IsPromise()) {
         v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        resolver->Reject(context, v8::Exception::Error(isolate->NewString("The rsult of the function is not a promise."))).IsJust();
         retVal = resolver->GetPromise();
-
-        v8::Local<v8::Value> error = isolate->NewString("Missing expected rejection.");
-        resolver->Reject(context, error).IsJust();
         return 0;
     }
 
