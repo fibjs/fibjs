@@ -1920,5 +1920,35 @@ describe("url", () => {
         assert.strictEqual(url.search, '');
         // assert.strictEqual(url.searchParams.toString(), '');
     });
+
+    it('format error when both host&port', () => {
+        [
+            {
+                "href": "http://foo1.com:8100/test",
+                "protocol": "http:",
+                "host": "foo1.com:8100",
+                "hostname": "foo.com",
+                "port": "8100",
+                "pathname": "/test"
+            },
+            {
+                "href": "mysql:foo1.com:8100/test",
+                "protocol": "mysql:",
+                "host": "foo1.com:8100",
+                "hostname": "foo.com",
+                "port": "8100",
+                "pathname": "/test"
+            },
+            {
+                "href": "mysql:/test",
+                "protocol": "mysql:",
+                "port": "8100",
+                "pathname": "/test"
+            }
+        ].forEach((test) => {
+            const u = url.format(test);
+            assert.equal(u, test.href);
+        });
+    });
 });
 

@@ -143,10 +143,11 @@ result_t Url::format(v8::Local<v8::Object> args)
             url += '[' + str + ']';
         else
             url += ada::idna::to_ascii(str);
+
+        if (GetConfigValue(isolate, args, "port", str) >= 0)
+            url += ":" + str;
     }
 
-    if (GetConfigValue(isolate, args, "port", str) >= 0)
-        url += ":" + str;
     if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
         if (str.c_str()[0] != '/')
             url += "/";
