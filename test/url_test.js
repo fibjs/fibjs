@@ -1950,5 +1950,26 @@ describe("url", () => {
             assert.equal(u, test.href);
         });
     });
+
+    it('format error when empry object in query', () => {
+        const u = url.format({
+            "protocol": "mysql:",
+            "host": "foo1.com:8100",
+            "pathname": "/test",
+            "query": {}
+        });
+
+        assert.equal(u, "mysql:foo1.com:8100/test");
+    });
+
+    it('format error when proctol with //', () => {
+        const u = url.format({
+            "protocol": "http://",
+            "host": "foo1.com:8100",
+            "pathname": "/test"
+        });
+
+        assert.equal(u, "http://foo1.com:8100/test");
+    });
 });
 

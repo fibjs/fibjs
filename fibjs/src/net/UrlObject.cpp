@@ -106,10 +106,21 @@ result_t Url::format(v8::Local<v8::Object> args)
     JSValue v;
 
     if (GetConfigValue(isolate, args, "protocol", str, true) >= 0) {
-        if (str.c_str()[str.length() - 1] != ':')
-            url = str + ":";
-        else
-            url = str;
+        const char* p = str.c_str();
+        int32_t len = str.length();
+
+        if (len > 0) {
+            if (p[len - 1] == '/' && p[len - 2] == '/') {
+                str = str.substr(0, len - 2);
+                p = str.c_str();
+                len -= 2;
+            }
+
+            if (p[len - 1] != ':')
+                url = str + ":";
+            else
+                url = str;
+        }
     }
 
     if (GetConfigValue(isolate, args, "slashes", slashes) >= 0 && slashes)
@@ -399,8 +410,12 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
 
         v8::Local<v8::Object> obj = newVal.As<v8::Object>();
         v8::Local<v8::Array> keys = obj->GetPropertyNames(holder()->context()).ToLocalChecked();
+        int32_t len = keys->Length();
 
-        for (uint32_t i = 0; i < keys->Length(); i++) {
+        if (len == 0)
+            return 0;
+
+        for (uint32_t i = 0; i < len; i++) {
             v8::Local<v8::Value> key = keys->Get(holder()->context(), i).ToLocalChecked();
             v8::Local<v8::Value> value = obj->Get(holder()->context(), key).ToLocalChecked();
 
