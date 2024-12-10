@@ -148,14 +148,18 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
             strBuffer.append(color_string(COLOR_RED, s, color));
         } else if (v->IsPromise()) {
             strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
-        } else if (v->IsNativeError()) {
-            v8::Local<v8::Object> obj = v.As<v8::Object>();
-            exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
-            strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsSymbol()) {
             symbol_format(isolate, strBuffer, v, color);
         } else if (v->IsObject()) {
             bool isFunction = false;
+            bool isError = false;
+
+            if (v->IsNativeError()) {
+                v8::Local<v8::Object> obj = v.As<v8::Object>();
+                exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
+                strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
+                isError = true;
+            }
 
             if (v->IsFunction()) {
                 exlib::string s(v->IsAsyncFunction() ? "[AsyncFunction" : "[Function");
@@ -231,7 +235,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     } else
                         keys = vs;
                 } else {
-                    if (!isFunction && !v->IsArray()) {
+                    if (!isFunction && !isError && !v->IsArray()) {
                         v8::Local<v8::Value> prototype = obj->GetPrototype();
                         if (prototype->IsObject()) {
                             v8::Local<v8::Object> protoObj = prototype->ToObject(_context).ToLocalChecked();
@@ -258,7 +262,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                 }
 
                 if (keys.IsEmpty()) {
-                    if (!isFunction)
+                    if (!isFunction && !isError)
                         strBuffer.append("{}");
                     break;
                 }
@@ -357,10 +361,10 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                 int32_t len = keys->Length();
 
                 if (len == 0) {
-                    if (!isFunction)
+                    if (!isFunction && !isError)
                         strBuffer.append("{}");
                 } else {
-                    if (isFunction)
+                    if (isFunction || isError)
                         strBuffer.append(' ');
 
                     if (sz >= (depth + 1)) {

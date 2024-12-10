@@ -891,6 +891,21 @@ describe('util', () => {
             assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
         });
 
+        it("Error", () => {
+            var e = new Error('error');
+            assert.equal(util.format(e), e.stack);
+
+            e.a = 100;
+            e.b = "foo";
+
+            var o = {
+                a: 100,
+                b: "foo"
+            };
+
+            assert.equal(util.format(e), e.stack + " " + util.format(o));
+        });
+
         it("fix: crash on error.", () => {
             util.format(new mq.Message());
         });
