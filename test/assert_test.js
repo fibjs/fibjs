@@ -397,8 +397,7 @@ describe('assert', () => {
             }, {
                 tea: 'black'
             });
-        },
-            "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+        }, "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         var obja = Object.create({
             tea: 'chai'
@@ -418,8 +417,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.deepEqual(obj1, obj2);
-        },
-            "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+        }, "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         assert.throws(() => {
             assert.deepEqual({
@@ -524,8 +522,7 @@ describe('assert', () => {
             secondCircularObject.field2 = secondCircularObject;
             assert.deepEqual(circularObject,
                 secondCircularObject);
-        },
-            "expected { field: [Circular] } to deeply equal { Object (field, field2) }");
+        }, "expected { field: [Circular] } to deeply equal { Object (field, field2) }");
     });
 
     it('notDeepEqual', () => {
@@ -541,8 +538,7 @@ describe('assert', () => {
             }, {
                 tea: 'chai'
             });
-        },
-            "expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
+        }, "expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
     });
 
     it('notDeepEqual (circular)', () => {
@@ -560,8 +556,23 @@ describe('assert', () => {
             delete secondCircularObject.tea;
             assert.notDeepEqual(circularObject,
                 secondCircularObject);
-        },
-            "expected { field: [Circular] } to not deeply equal { field: [Circular] }");
+        }, "expected { field: [Circular] } to not deeply equal { field: [Circular] }");
+    });
+
+    it("match", () => {
+        assert.match('foobar', /^foo/);
+
+        assert.throws(() => {
+            assert.match('foobar', /^bar/);
+        }, "expected 'foobar' to match /^bar/");
+    });
+
+    it("doesNotMatch", () => {
+        assert.doesNotMatch('foobar', /^bar/);
+
+        assert.throws(() => {
+            assert.doesNotMatch('foobar', /^foo/);
+        }, "expected 'foobar' not to match /^foo/");
     });
 
     it('isNull', () => {

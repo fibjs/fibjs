@@ -115,6 +115,24 @@ declare module 'assert' {
     function notDeepStrictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
+     * @description 测试字符串包含预期字符串，否则断言失败
+     *      @param actual 要测试的字符串
+     *      @param expected 预期的正则表达式
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    function match(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
+
+    /**
+     * @description 测试字符串不包含预期字符串，否则断言失败
+     *      @param actual 要测试的字符串
+     *      @param expected 预期的正则表达式
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
+
+    /**
      * @description 测试数值近似等于预期值，否则断言失败
      *      @param actual 要测试的数值
      *      @param expected 预期的数值

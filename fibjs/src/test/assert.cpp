@@ -100,6 +100,36 @@ result_t assert_base::notDeepStrictEqual(v8::Local<v8::Value> actual,
     return _test(!r, _msg(msg, "expected ", actual, " to not deeply strict equal ", expected));
 }
 
+result_t assert_base::match(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg)
+{
+    bool r;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::String> str = isolate->NewString(actual);
+    v8::Local<v8::Object> v = expected->Exec(isolate->context(), str).ToLocalChecked();
+    r = !v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0;
+
+    v8::Local<v8::Value> regexp_val = expected->ToString(context).ToLocalChecked();
+    v8::Local<v8::Value> actual_val = str;
+    return _test(r, _msg(msg, "expected ", actual_val, " to match ", regexp_val));
+}
+
+result_t assert_base::doesNotMatch(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg)
+{
+    bool r;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::String> str = isolate->NewString(actual);
+    v8::Local<v8::Object> v = expected->Exec(isolate->context(), str).ToLocalChecked();
+    r = !v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0;
+
+    v8::Local<v8::Value> regexp_val = expected->ToString(context).ToLocalChecked();
+    v8::Local<v8::Value> actual_val = str;
+    return _test(!r, _msg(msg, "expected ", actual_val, " to not match ", regexp_val));
+}
+
 result_t assert_base::closeTo(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
     exlib::string msg)

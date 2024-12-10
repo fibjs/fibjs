@@ -122,7 +122,8 @@ function generalTypeMap(dataType, {
         }
         case 'NMap':
         case 'NObject':
-        case 'Object': {
+        case 'Object':
+        case 'RegExp': {
             info.type = dom.create.namedTypeReference('FIBJS.GeneralObject')
             break;
         }

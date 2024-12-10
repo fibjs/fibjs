@@ -956,6 +956,7 @@ GET_JSVALUE(ArrayBuffer);
 GET_JSVALUE(ArrayBufferView);
 GET_JSVALUE(Function);
 GET_JSVALUE(Promise);
+GET_JSVALUE(RegExp);
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
 {

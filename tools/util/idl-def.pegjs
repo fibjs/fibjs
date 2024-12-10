@@ -339,14 +339,9 @@ SourceCharacter
 
 /* Tokens */
 
-FunctionToken   = "Function"
-IntegerToken    = "Integer"
-NumberToken     = "Number"
 ModuleToken     = "module"
 InterfaceToken  = "interface"
 StringToken     = "String"
-JSObjectToken   = "Object"
-JSValueToken    = "Value"
 staticToken     = "static"
 deprecatedToken = "deprecated"
 readonlyToken   = "readonly"
