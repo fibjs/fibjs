@@ -26,8 +26,11 @@ result_t db_base::openSQLite(exlib::string connString,
 
     const char* c_str = connString.c_str();
 
-    if (!qstrcmp(c_str, "sqlite:", 7))
+    if (!qstrcmp(c_str, "sqlite:", 7)) {
         c_str += 7;
+        if (c_str[0] == '/' && c_str[1] == '/')
+            c_str += 2;
+    }
 
     obj_ptr<SQLite> db = new SQLite();
     hr = db->open(c_str);
@@ -311,9 +314,11 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
     sqlite3_backup* pBackup;
 
     const char* c_str = fileName.c_str();
-
-    if (!qstrcmp(c_str, "sqlite:", 7))
+    if (!qstrcmp(c_str, "sqlite:", 7)) {
         c_str += 7;
+        if (c_str[0] == '/' && c_str[1] == '/')
+            c_str += 2;
+    }
 
     if (sqlite3_open_v2(c_str, &db2, SQLITE_OPEN_FLAGS, 0)) {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
