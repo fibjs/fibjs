@@ -1048,7 +1048,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         u1->format(opts);
 
         obj_ptr<UrlObject_base> uo;
-        u->resolve(u1->href(), uo);
+        hr = u->resolve(u1->href(), uo);
+        if (hr < 0)
+            return hr;
 
         u = uo.As<Url>();
         ac->m_ctx[1] = u;

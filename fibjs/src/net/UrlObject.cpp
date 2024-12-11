@@ -14,6 +14,18 @@ namespace fibjs {
 static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 static ada::url_aggregator s_base;
 
+static int32_t is_non_slash_protocol(const char* p)
+{
+    if (qstricmp(p, "javascript:", 11) == 0)
+        return 11;
+    if (qstricmp(p, "mailto:", 7) == 0)
+        return 7;
+    if (qstricmp(p, "xmpp:", 5) == 0)
+        return 5;
+
+    return 0;
+}
+
 result_t UrlObject_base::_new(exlib::string url, exlib::string base,
     obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -84,9 +96,28 @@ result_t Url::parse(exlib::string url, exlib::string base)
 
 result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
 {
+    const char* p = url.c_str();
+    const char* p2 = p;
+
+    while (*p2 == ' ' || *p2 == '\t' || *p2 == '\r' || *p2 == '\n')
+        p2++;
+
+    if (p2 != p) {
+        url = url.substr(p2 - p);
+        p = url.c_str();
+    }
+
+    exlib::string str = url;
+    const char* p1 = qstrchr(p, ':');
+    if (p1 && p1[1] != '/') {
+        exlib::string protocol = url.substr(0, (p1 - p) + 1);
+        if (protocol != "javascript:")
+            str = protocol + "//" + url.substr((p1 - p) + 1);
+    }
+
     m_parseQuery = parseQueryString;
 
-    m_url = ada::parse(url, &s_base);
+    m_url = ada::parse(str, &s_base);
     if (!m_url || !m_url->validate())
         return Runtime::setError("url: Invalid URL '" + url + "'.");
 
@@ -98,7 +129,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    bool slashes = false;
+    bool isJavascript = false;
     exlib::string str;
     exlib::string url;
     exlib::string username;
@@ -110,6 +141,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         int32_t len = str.length();
 
         if (len > 0) {
+            isJavascript = str == "javascript:";
             if (p[len - 1] == '/' && p[len - 2] == '/') {
                 str = str.substr(0, len - 2);
                 p = str.c_str();
@@ -123,6 +155,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         }
     }
 
+    bool slashes = false;
     if (GetConfigValue(isolate, args, "slashes", slashes) >= 0 && slashes)
         url += "//";
 
@@ -160,9 +193,11 @@ result_t Url::format(v8::Local<v8::Object> args)
     }
 
     if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
-        if (str.c_str()[0] != '/')
-            url += "/";
-        Url::encodeURI(str, str, pathTable);
+        if (!isJavascript) {
+            if (str.c_str()[0] != '/')
+                url += "/";
+            Url::encodeURI(str, str, pathTable);
+        }
         url += str;
     }
 
@@ -200,8 +235,14 @@ result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
 
 result_t Url::get_href(exlib::string& retVal)
 {
-    if (m_url)
+    if (m_url) {
         retVal = m_url->get_href();
+
+        const char* p = retVal.c_str();
+        int32_t n = is_non_slash_protocol(p);
+        if (n > 0 && p[n] == '/' && p[n + 1] == '/')
+            retVal = retVal.substr(0, n) + retVal.substr(n + 2);
+    }
 
     return 0;
 }
@@ -373,7 +414,10 @@ result_t Url::set_search(exlib::string newVal)
 {
     if (m_url) {
         m_searchParams.Release();
-        m_url->set_search(newVal);
+        if (newVal == "?")
+            m_url->set_search("");
+        else
+            m_url->set_search(newVal);
     }
 
     return 0;

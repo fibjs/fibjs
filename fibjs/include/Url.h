@@ -69,9 +69,11 @@ public:
     result_t parse_search_params();
 
 public:
-    exlib::string href() const
+    exlib::string href()
     {
-        return m_url ? m_url->get_href() : std::string_view();
+        exlib::string str;
+        get_href(str);
+        return str;
     }
 
     exlib::string protocol() const
