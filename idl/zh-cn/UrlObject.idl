@@ -71,6 +71,10 @@ interface UrlObject : object
      */
     String protocol;
 
+    /*! @brief 查询和设置当前 UrlObject 对象是否包含双斜杠
+     */
+    Boolean slashes;
+
     /*! @brieg 查询当前 UrlObject 对象中的来源
      */
     readonly String origin;

@@ -90,6 +90,12 @@ declare class Class_UrlObject extends Class_object {
     protocol: string;
 
     /**
+     * @description 查询和设置当前 UrlObject 对象是否包含双斜杠
+     *      
+     */
+    slashes: boolean;
+
+    /**
      * ! @brieg 查询当前 UrlObject 对象中的来源
      *      
      */

@@ -81,6 +81,8 @@ result_t Url::parse(exlib::string url, exlib::string base)
 {
     ada::result<ada::url_aggregator> _base;
 
+    m_slashes = true;
+
     if (!base.empty()) {
         _base = ada::parse(base, &s_base);
         if (!_base || !_base->validate())
@@ -113,7 +115,8 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
         exlib::string protocol = url.substr(0, (p1 - p) + 1);
         if (protocol != "javascript:")
             str = protocol + "//" + url.substr((p1 - p) + 1);
-    }
+    } else
+        m_slashes = true;
 
     m_parseQuery = parseQueryString;
 
@@ -251,6 +254,18 @@ result_t Url::set_href(exlib::string newVal)
 {
     m_searchParams.Release();
     return parse(newVal);
+}
+
+result_t Url::get_slashes(bool& retVal)
+{
+    retVal = m_slashes;
+    return 0;
+}
+
+result_t Url::set_slashes(bool newVal)
+{
+    m_slashes = newVal;
+    return 0;
 }
 
 result_t Url::get_protocol(exlib::string& retVal)

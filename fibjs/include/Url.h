@@ -39,6 +39,8 @@ public:
     virtual result_t set_href(exlib::string newVal);
     virtual result_t get_protocol(exlib::string& retVal);
     virtual result_t set_protocol(exlib::string newVal);
+    virtual result_t get_slashes(bool& retVal);
+    virtual result_t set_slashes(bool newVal);
     virtual result_t get_origin(exlib::string& retVal);
     virtual result_t get_auth(exlib::string& retVal);
     virtual result_t get_username(exlib::string& retVal);
@@ -246,6 +248,7 @@ public:
 
 public:
     bool m_parseQuery = false;
+    bool m_slashes = false;
     ada::result<ada::url_aggregator> m_url;
     obj_ptr<HttpCollection> m_searchParams;
 };

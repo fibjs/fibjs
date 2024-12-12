@@ -31,6 +31,8 @@ public:
     virtual result_t set_href(exlib::string newVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t set_protocol(exlib::string newVal) = 0;
+    virtual result_t get_slashes(bool& retVal) = 0;
+    virtual result_t set_slashes(bool newVal) = 0;
     virtual result_t get_origin(exlib::string& retVal) = 0;
     virtual result_t get_auth(exlib::string& retVal) = 0;
     virtual result_t get_username(exlib::string& retVal) = 0;
@@ -67,6 +69,8 @@ public:
     static void s_set_href(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_slashes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_slashes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_origin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_auth(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_username(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -106,6 +110,7 @@ inline ClassInfo& UrlObject_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "href", s_get_href, s_set_href, false },
         { "protocol", s_get_protocol, s_set_protocol, false },
+        { "slashes", s_get_slashes, s_set_slashes, false },
         { "origin", s_get_origin, block_set, false },
         { "auth", s_get_auth, block_set, false },
         { "username", s_get_username, s_set_username, false },
@@ -282,6 +287,34 @@ inline void UrlObject_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 0);
 
     hr = pInst->set_protocol(v0);
+
+    METHOD_VOID();
+}
+
+inline void UrlObject_base::s_get_slashes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(UrlObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_slashes(vr);
+
+    METHOD_RETURN();
+}
+
+inline void UrlObject_base::s_set_slashes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(UrlObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = pInst->set_slashes(v0);
 
     METHOD_VOID();
 }
