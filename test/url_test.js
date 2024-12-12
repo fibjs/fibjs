@@ -376,6 +376,7 @@ describe("url", () => {
                 "http://example.com?foo=bar#frag": {
                     "href": "http://example.com/?foo=bar#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "host": "example.com",
                     "hostname": "example.com",
                     "hash": "#frag",
@@ -386,6 +387,7 @@ describe("url", () => {
                 "http://example.com?foo=@bar#frag": {
                     "href": "http://example.com/?foo=@bar#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "host": "example.com",
                     "hostname": "example.com",
                     "hash": "#frag",
@@ -396,6 +398,7 @@ describe("url", () => {
                 "http://example.com?foo=/bar/#frag": {
                     "href": "http://example.com/?foo=/bar/#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "host": "example.com",
                     "hostname": "example.com",
                     "hash": "#frag",
@@ -406,6 +409,7 @@ describe("url", () => {
                 "http://example.com?foo=?bar/#frag": {
                     "href": "http://example.com/?foo=?bar/#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "host": "example.com",
                     "hostname": "example.com",
                     "hash": "#frag",
@@ -416,6 +420,7 @@ describe("url", () => {
                 "http://example.com#frag=?bar/#frag": {
                     "href": "http://example.com/#frag=?bar/#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "host": "example.com",
                     "hostname": "example.com",
                     "hash": "#frag=?bar/#frag",
@@ -424,6 +429,7 @@ describe("url", () => {
                 "http://a.com/a/b/c?s#h": {
                     "href": "http://a.com/a/b/c?s#h",
                     "protocol": "http",
+                    "slashes": true,
                     "host": "a.com",
                     "pathname": "a/b/c",
                     "hash": "h",
@@ -441,6 +447,7 @@ describe("url", () => {
                     "auth": "atpass:foo@bar",
                     "hostname": "127.0.0.1",
                     "protocol": "http:",
+                    "slashes": true,
                     "pathname": "/"
                 },
                 "http://atslash%2F%40:%2F%40@foo/": {
@@ -448,6 +455,7 @@ describe("url", () => {
                     "auth": "atslash/@:/@",
                     "hostname": "foo",
                     "protocol": "http:",
+                    "slashes": true,
                     "pathname": "/"
                 },
                 "svn+ssh://foo/bar": {
@@ -501,12 +509,14 @@ describe("url", () => {
                 "http://[::]/": {
                     "href": "http://[::]/",
                     "protocol": "http:",
+                    "slashes": true,
                     "hostname": "[::]",
                     "pathname": "/"
                 },
                 "http://ex.com/foo%3F100%m%23r?abc=the%231?&foo=bar#frag": {
                     "href": "http://ex.com/foo%3F100%m%23r?abc=the%231?&foo=bar#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "hostname": "ex.com",
                     "hash": "#frag",
                     "search": "?abc=the#1?&foo=bar",
@@ -515,6 +525,7 @@ describe("url", () => {
                 "http://ex.com/fooA100%mBr?abc=the%231?&foo=bar#frag": {
                     "href": "http://ex.com/fooA100%mBr?abc=the%231?&foo=bar#frag",
                     "protocol": "http:",
+                    "slashes": true,
                     "hostname": "ex.com",
                     "hash": "#frag",
                     "search": "?abc=the#1?&foo=bar",
@@ -543,12 +554,14 @@ describe("url", () => {
                 "file:///home/user": {
                     "href": "file:///home/user",
                     "protocol": "file",
+                    "slashes": true,
                     "pathname": "/home/user",
                     "path": "/home/user"
                 },
                 "http://%F0%9F%98%80@www.example.com/": {
                     "href": "http://%F0%9F%98%80@www.example.com/",
                     "protocol": "http:",
+                    "slashes": true,
                     "auth": "😀",
                     "hostname": "www.example.com",
                     "pathname": "/"
@@ -909,6 +922,7 @@ describe("url", () => {
                 "https://a.com:447/a/b/c?s#h": {
                     "href": "https://a.com:447/a/b/c?s#h",
                     "protocol": "https",
+                    "slashes": true,
                     "hostname": "a.com",
                     "pathname": "a/b/c",
                     "port": 447,
@@ -918,6 +932,7 @@ describe("url", () => {
                 "\t\r\n\f http://test.com\\r?n=t": {
                     "href": "http://test.com/r?n=t",
                     "protocol": "http",
+                    "slashes": true,
                     "hostname": "test.com",
                     "pathname": "/r",
                     "path": "/r?n=t",
@@ -929,6 +944,7 @@ describe("url", () => {
                     "hostname": "xn--fiq228c.com",
                     "host": "xn--fiq228c.com",
                     "protocol": "http:",
+                    "slashes": true,
                     "href": "http://xn--fiq228c.com/"
                 }
             };
@@ -1002,6 +1018,7 @@ describe("url", () => {
                 "href": "http://evil-phisher/foo.html#h\\a\\s\\h",
                 "origin": "http://evil-phisher",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "evil-phisher",
@@ -1015,6 +1032,7 @@ describe("url", () => {
                 "href": "http://evil-phisher/foo.html?json=%22\\%22foo\\%22%22#h\\a\\s\\h",
                 "origin": "http://evil-phisher",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "evil-phisher",
@@ -1028,6 +1046,7 @@ describe("url", () => {
                 "href": "http://evil-phisher/foo.html#h\\a\\s\\h?blarg",
                 "origin": "http://evil-phisher",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "evil-phisher",
@@ -1041,6 +1060,7 @@ describe("url", () => {
                 "href": "http://evil-phisher/foo.html",
                 "origin": "http://evil-phisher",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "evil-phisher",
@@ -1054,6 +1074,7 @@ describe("url", () => {
                 "href": "http://www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "www.example.com",
@@ -1067,6 +1088,7 @@ describe("url", () => {
                 "href": "http://www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "www.example.com",
@@ -1080,6 +1102,7 @@ describe("url", () => {
                 "href": "http://www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "www.example.com",
@@ -1093,6 +1116,7 @@ describe("url", () => {
                 "href": "http://user:pw@www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "user",
                 "password": "pw",
                 "host": "www.example.com",
@@ -1106,6 +1130,7 @@ describe("url", () => {
                 "href": "http://USER:PW@www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "USER",
                 "password": "PW",
                 "host": "www.example.com",
@@ -1119,6 +1144,7 @@ describe("url", () => {
                 "href": "http://user@www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "user",
                 "password": "",
                 "host": "www.example.com",
@@ -1132,6 +1158,7 @@ describe("url", () => {
                 "href": "http://user%3Apw@www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "user%3Apw",
                 "password": "",
                 "host": "www.example.com",
@@ -1145,6 +1172,7 @@ describe("url", () => {
                 "href": "http://x.com/path?that%27s#all,%20folks",
                 "origin": "http://x.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x.com",
@@ -1158,6 +1186,7 @@ describe("url", () => {
                 "href": "http://x.com/Y",
                 "origin": "http://x.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x.com",
@@ -1171,6 +1200,7 @@ describe("url", () => {
                 "href": "http://www.example.com/",
                 "origin": "http://www.example.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "www.example.com",
@@ -1184,6 +1214,7 @@ describe("url", () => {
                 "href": "http://x.y.com+a/b/c",
                 "origin": "http://x.y.com+a",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x.y.com+a",
@@ -1197,6 +1228,7 @@ describe("url", () => {
                 "href": "http://x.y.com;a/b/c?d=e#f%20g%3Ch%3Ei",
                 "origin": "http://x.y.com;a",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x.y.com;a",
@@ -1210,6 +1242,7 @@ describe("url", () => {
                 "href": "http://x.y.com;a/b/c?d=e#f%20g%3Ch%3Ei",
                 "origin": "http://x.y.com;a",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x.y.com;a",
@@ -1223,6 +1256,7 @@ describe("url", () => {
                 "href": "http://x...y.../#p",
                 "origin": "http://x...y...",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x...y...",
@@ -1236,6 +1270,7 @@ describe("url", () => {
                 "href": "http://x/p/%22quoted%22",
                 "origin": "http://x",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "x",
@@ -1249,6 +1284,7 @@ describe("url", () => {
                 "href": "http://www.narwhaljs.org/blog/categories?id=news",
                 "origin": "http://www.narwhaljs.org",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "www.narwhaljs.org",
@@ -1262,6 +1298,7 @@ describe("url", () => {
                 "href": "http://mt0.google.com/vt/lyrs=m@114&hl=en&src=api&x=2&y=2&z=3&s=",
                 "origin": "http://mt0.google.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "mt0.google.com",
@@ -1275,6 +1312,7 @@ describe("url", () => {
                 "href": "http://mt0.google.com/vt/lyrs=m@114???&hl=en&src=api&x=2&y=2&z=3&s=",
                 "origin": "http://mt0.google.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "",
                 "password": "",
                 "host": "mt0.google.com",
@@ -1288,6 +1326,7 @@ describe("url", () => {
                 "href": "http://user:pass@mt0.google.com/vt/lyrs=m@114???&hl=en&src=api&x=2&y=2&z=3&s=",
                 "origin": "http://mt0.google.com",
                 "protocol": "http:",
+                "slashes": true,
                 "username": "user",
                 "password": "pass",
                 "host": "mt0.google.com",
@@ -1493,7 +1532,7 @@ describe("url", () => {
                 "hash": ""
             },
             "dash-test:foo/bar": {
-                "href": "dash-test://foo/bar",
+                "href": "dash-test:foo/bar",
                 "origin": "null",
                 "protocol": "dash-test:",
                 "username": "",
@@ -1519,7 +1558,7 @@ describe("url", () => {
                 "hash": ""
             },
             "dot.test:foo/bar": {
-                "href": "dot.test://foo/bar",
+                "href": "dot.test:foo/bar",
                 "origin": "null",
                 "protocol": "dot.test:",
                 "username": "",
@@ -2223,6 +2262,7 @@ describe("url", () => {
             {
                 "href": "http://foo1.com:8100/test",
                 "protocol": "http:",
+                "slashes": true,
                 "host": "foo1.com:8100",
                 "hostname": "foo.com",
                 "port": "8100",
@@ -2231,6 +2271,7 @@ describe("url", () => {
             {
                 "href": "mysql:foo1.com:8100/test",
                 "protocol": "mysql:",
+                "slashes": false,
                 "host": "foo1.com:8100",
                 "hostname": "foo.com",
                 "port": "8100",
@@ -2239,6 +2280,7 @@ describe("url", () => {
             {
                 "href": "mysql:/test",
                 "protocol": "mysql:",
+                "slashes": false,
                 "port": "8100",
                 "pathname": "/test"
             }
@@ -2262,6 +2304,7 @@ describe("url", () => {
     it('format error when proctol with //', () => {
         const u = url.format({
             "protocol": "http://",
+            "slashes": true,
             "host": "foo1.com:8100",
             "pathname": "/test"
         });
