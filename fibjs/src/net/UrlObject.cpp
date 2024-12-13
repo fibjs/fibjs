@@ -195,9 +195,11 @@ result_t Url::format(v8::Local<v8::Object> args)
         url += "@";
     }
 
-    if (GetConfigValue(isolate, args, "host", str, true) >= 0)
+    bool hasHost = false;
+    if (GetConfigValue(isolate, args, "host", str, true) >= 0) {
         url += ada::idna::to_ascii(str);
-    else if (GetConfigValue(isolate, args, "hostname", str, true) >= 0) {
+        hasHost = true;
+    } else if (GetConfigValue(isolate, args, "hostname", str, true) >= 0) {
         if (str.find(':') != exlib::string::npos && str.c_str()[0] != '[')
             url += '[' + str + ']';
         else
@@ -205,10 +207,12 @@ result_t Url::format(v8::Local<v8::Object> args)
 
         if (GetConfigValue(isolate, args, "port", str) >= 0)
             url += ":" + str;
+
+        hasHost = true;
     }
 
     if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
-        if (!isJavascript) {
+        if (hasHost && !isJavascript) {
             if (!is_slash(str.c_str()[0]))
                 url += "/";
             Url::encodeURI(str, str, pathTable);

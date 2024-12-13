@@ -2290,7 +2290,7 @@ describe("url", () => {
         });
     });
 
-    it('format error when empry object in query', () => {
+    it('format error when empty object in query', () => {
         const u = url.format({
             "protocol": "mysql:",
             "host": "foo1.com:8100",
@@ -2310,6 +2310,16 @@ describe("url", () => {
         });
 
         assert.equal(u, "http://foo1.com:8100/test");
+    });
+
+    it("format sqlite when empty hostname and no slashes prefix in pathname", () => {
+        const u = url.format({
+            "protocol": "sqlite:",
+            "slashes": false,
+            "pathname": "test.db"
+        });
+
+        assert.equal(u, "sqlite:test.db");
     });
 });
 
