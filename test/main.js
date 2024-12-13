@@ -82,9 +82,9 @@ if (global.full_test) {
 
 run("./selfzip_test.js");
 
-run("./profiler_test.js");
-
 run("./v8_test.js");
+
+run("./v8_bug_test.js");
 
 run("./getter_throw.js")
 

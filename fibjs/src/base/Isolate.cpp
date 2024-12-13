@@ -9,7 +9,7 @@
 
 #include "object.h"
 #include "options.h"
-#include "ifs/profiler.h"
+#include "ifs/v8.h"
 #include "ifs/global.h"
 #include "SecureContext.h"
 #include "HttpClient.h"
@@ -343,7 +343,7 @@ void Isolate::start_profiler()
         char name[32];
         obj_ptr<Timer_base> tm;
         snprintf(name, sizeof(name), "fibjs-%08x.log", (uint32_t)(intptr_t)this);
-        profiler_base::start(name, -1, g_prof_interval, tm);
+        v8_base::start(name, -1, g_prof_interval, tm);
     }
 }
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);

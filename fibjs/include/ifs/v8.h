@@ -18,8 +18,8 @@ namespace fibjs {
 class HeapSnapshot_base;
 class Timer_base;
 
-class profiler_base : public object_base {
-    DECLARE_CLASS(profiler_base);
+class v8_base : public object_base {
+    DECLARE_CLASS(v8_base);
 
 public:
     enum {
@@ -47,7 +47,7 @@ public:
     };
 
 public:
-    // profiler_base
+    // v8_base
     static result_t getHeapCodeStatistics(v8::Local<v8::Object>& retVal);
     static result_t getHeapSpaceStatistics(v8::Local<v8::Array>& retVal);
     static result_t getHeapStatistics(v8::Local<v8::Object>& retVal);
@@ -66,7 +66,7 @@ public:
             isolate->NewString("not a constructor"));
     }
 
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<profiler_base>& retVal)
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<v8_base>& retVal)
     { return CALL_E_TYPEMISMATCH; }
 
 public:
@@ -85,7 +85,7 @@ public:
 #include "ifs/Timer.h"
 
 namespace fibjs {
-inline ClassInfo& profiler_base::class_info()
+inline ClassInfo& v8_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "getHeapCodeStatistics", s_static_getHeapCodeStatistics, true, ClassData::ASYNC_SYNC },
@@ -123,7 +123,7 @@ inline ClassInfo& profiler_base::class_info()
     };
 
     static ClassData s_cd = {
-        "profiler", true, s__new, NULL,
+        "v8", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info(),
         false
@@ -133,7 +133,7 @@ inline ClassInfo& profiler_base::class_info()
     return s_ci;
 }
 
-inline void profiler_base::s_static_getHeapCodeStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_getHeapCodeStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -146,7 +146,7 @@ inline void profiler_base::s_static_getHeapCodeStatistics(const v8::FunctionCall
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_getHeapSpaceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_getHeapSpaceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -159,7 +159,7 @@ inline void profiler_base::s_static_getHeapSpaceStatistics(const v8::FunctionCal
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_getHeapStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_getHeapStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -172,7 +172,7 @@ inline void profiler_base::s_static_getHeapStatistics(const v8::FunctionCallback
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
@@ -185,7 +185,7 @@ inline void profiler_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<
     METHOD_VOID();
 }
 
-inline void profiler_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HeapSnapshot_base> vr;
 
@@ -200,7 +200,7 @@ inline void profiler_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HeapSnapshot_base> vr;
 
@@ -213,7 +213,7 @@ inline void profiler_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -228,7 +228,7 @@ inline void profiler_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void v8_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 

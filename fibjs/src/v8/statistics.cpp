@@ -6,11 +6,11 @@
  */
 
 #include "object.h"
-#include "ifs/profiler.h"
+#include "ifs/v8.h"
 
 namespace fibjs {
 
-result_t profiler_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
+result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::HeapCodeStatistics hcs;
@@ -31,7 +31,7 @@ result_t profiler_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
-result_t profiler_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
+result_t v8_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
@@ -61,7 +61,7 @@ result_t profiler_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t profiler_base::getHeapStatistics(v8::Local<v8::Object>& retVal)
+result_t v8_base::getHeapStatistics(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();

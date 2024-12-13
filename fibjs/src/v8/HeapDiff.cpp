@@ -8,7 +8,7 @@
 #include "object.h"
 #include "HeapSnapshot.h"
 #include "ifs/HeapGraphEdge.h"
-#include "ifs/profiler.h"
+#include "ifs/v8.h"
 #include <set>
 #include <unordered_map>
 
@@ -60,7 +60,7 @@ public:
     intptr_t retainers;
 
     example()
-        : type(profiler_base::C_Node_Hidden)
+        : type(v8_base::C_Node_Hidden)
         , self_size(0)
         , retained_size(0)
         , retainers(0) {};

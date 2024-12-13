@@ -42,7 +42,6 @@ void importBuiltinModule()
     IMPORT_MODULE(path);
     IMPORT_MODULE(perf_hooks);
     IMPORT_MODULE(process);
-    IMPORT_MODULE(profiler);
     IMPORT_MODULE(punycode);
     IMPORT_MODULE(querystring);
     IMPORT_MODULE(rtc);
@@ -55,6 +54,7 @@ void importBuiltinModule()
     IMPORT_MODULE(url);
     IMPORT_MODULE(util);
     IMPORT_MODULE(uuid);
+    IMPORT_MODULE(v8);
     IMPORT_MODULE(vm);
     IMPORT_MODULE(worker_threads);
     IMPORT_MODULE(ws);

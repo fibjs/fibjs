@@ -6,7 +6,7 @@
  */
 
 #include "object.h"
-#include "ifs/profiler.h"
+#include "ifs/v8.h"
 #include "ifs/timers.h"
 #include "ifs/fs.h"
 #include "ifs/coroutine.h"
@@ -50,7 +50,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
         Timer_base::getInstance(args.This())->clear();
 }
 
-result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal)
+result_t v8_base::start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();

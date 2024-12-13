@@ -10,7 +10,7 @@
 #include "HeapGraphNode.h"
 #include "HeapGraphEdge.h"
 #include "HeapProxy.h"
-#include "ifs/profiler.h"
+#include "ifs/v8.h"
 #include "File.h"
 #include "ifs/fs.h"
 #include "ifs/global.h"
@@ -19,7 +19,7 @@
 
 namespace fibjs {
 
-DECLARE_MODULE(profiler);
+DECLARE_MODULE(v8);
 
 class BufferStream : public v8::OutputStream {
 public:
@@ -42,7 +42,7 @@ private:
     StringBuffer m_buf;
 };
 
-result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
+result_t v8_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
@@ -53,7 +53,7 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
     return 0;
 }
 
-result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
+result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current(test);
     v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
@@ -70,14 +70,14 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
     return s2->diff(s1, retVal);
 }
 
-result_t profiler_base::saveSnapshot(exlib::string fname)
+result_t v8_base::saveSnapshot(exlib::string fname)
 {
     obj_ptr<HeapSnapshot_base> snapshot;
     takeSnapshot(snapshot);
     return snapshot->cc_save(fname);
 }
 
-result_t profiler_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal)
+result_t v8_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal)
 {
     result_t hr;
 
@@ -145,7 +145,7 @@ inline bool checkArray(QuickArray<exlib::string>& a, const char* chks[], int32_t
 
 inline bool is_num_type(int32_t _type)
 {
-    return _type == profiler_base::C_Edge_Element || _type == profiler_base::C_Edge_Hidden;
+    return _type == v8_base::C_Edge_Element || _type == v8_base::C_Edge_Hidden;
 }
 
 result_t HeapSnapshot::load(exlib::string fname)

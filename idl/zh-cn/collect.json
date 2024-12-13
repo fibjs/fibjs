@@ -58,7 +58,7 @@
         "assert",
         "performance",
         "perf_hooks",
-        "profiler",
+        "v8",
         "test"
     ],
     "Utility": [
