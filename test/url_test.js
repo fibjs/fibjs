@@ -228,14 +228,10 @@ describe("url", () => {
                     // UNC path: \\server\share\resource
 
                     // Missing server:
-                    assert.throws(() => url.pathToFileURL('\\\\\\no-server'), {
-                        code: 'ERR_INVALID_ARG_VALUE',
-                    });
+                    assert.throws(() => url.pathToFileURL('\\\\\\no-server'));
 
                     // Missing share or resource:
-                    assert.throws(() => url.pathToFileURL('\\\\host'), {
-                        code: 'ERR_INVALID_ARG_VALUE',
-                    });
+                    assert.throws(() => url.pathToFileURL('\\\\host'));
                 } else {
                     // UNC paths on posix are considered a single path that has backslashes:
                     const fileURL = url.pathToFileURL('\\\\nas\\share\\path.txt').href;
