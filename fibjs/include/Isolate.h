@@ -42,6 +42,8 @@ class ValueHolder;
 class SecureContext_base;
 class Buffer_base;
 class Worker_base;
+class PerformanceMark;
+class PerformanceObserver;
 
 class Isolate : public exlib::linkitem {
 public:
@@ -279,6 +281,10 @@ public:
     uint32_t m_sandboxId = 0;
 
     std::atomic_bool m_intask;
+
+    std::unordered_map<exlib::string, obj_ptr<PerformanceMark>> m_markEntries;
+    std::unordered_map<exlib::string, std::vector<obj_ptr<PerformanceObserver>>> m_perfObservers;
+    exlib::spinlock m_perfLock;
 
     obj_ptr<HttpClient> m_httpclient;
     v8::Global<v8::Object> STATUS_CODES;

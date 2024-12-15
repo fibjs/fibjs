@@ -1,0 +1,15 @@
+/*! @brief PerformanceEntry 接口提供了 performance 记录的通用属性 */
+interface PerformanceEntry : object
+{
+    /*! @brief performance 记录的名称. */
+    readonly String name;
+
+    /*! @brief performance 记录的类型. */
+    readonly String entryType;
+
+    /*! @brief performance 记录的开始时间. */
+    readonly Number startTime;
+
+    /*! @brief performance 记录的持续时间. */
+    readonly Number duration;
+};

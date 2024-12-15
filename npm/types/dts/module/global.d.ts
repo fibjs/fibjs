@@ -8,6 +8,7 @@
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
+/// <reference path="../interface/PerformanceObserver.d.ts" />
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
@@ -58,6 +59,11 @@ declare module 'global' {
      * @description 基础性能监控模块 
      */
     const performance: typeof import ('performance');
+
+    /**
+     * @description PerformanceObserver 接口用于观察性能记录的接口 
+     */
+    const PerformanceObserver: typeof Class_PerformanceObserver;
 
     /**
      * @description w3c webcrypto 标准的加密模块 

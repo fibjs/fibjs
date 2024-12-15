@@ -1,0 +1,21 @@
+/*! @brief PerformanceObserverEntryList 对象包含了 PerformanceObserver 观察到的 performance 记录的详细信息 */
+interface PerformanceObserverEntryList : object
+{
+    /*! @brief 查询全部 performance 记录的详细信息。
+     @return PerformanceEntry 对象数组
+    */
+    NArray getEntries();
+
+    /*! @brief 根据名称查询 performance 记录的详细信息
+     @param name 一个字符串，表示 performance 记录的名称。
+     @param entryType 一个字符串，表示 performance 记录的类型。
+     @return PerformanceEntry 对象数组
+    */
+    NArray getEntriesByName(String name, String entryType = "");
+
+    /*! @brief 根据类型查询 performance 记录的详细信息
+     @param entryType 一个字符串，表示 performance 记录的类型。
+     @return PerformanceEntry 对象数组
+    */
+    NArray getEntriesByType(String entryType);
+};

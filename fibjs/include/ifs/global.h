@@ -24,6 +24,7 @@ class CryptoKey_base;
 class console_base;
 class process_base;
 class performance_base;
+class PerformanceObserver_base;
 class webcrypto_base;
 class Timer_base;
 
@@ -86,6 +87,7 @@ public:
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
+#include "ifs/PerformanceObserver.h"
 #include "ifs/webcrypto.h"
 #include "ifs/Timer.h"
 
@@ -117,6 +119,7 @@ inline ClassInfo& global_base::class_info()
         { "console", console_base::class_info },
         { "process", process_base::class_info },
         { "performance", performance_base::class_info },
+        { "PerformanceObserver", PerformanceObserver_base::class_info },
         { "crypto", webcrypto_base::class_info }
     };
 

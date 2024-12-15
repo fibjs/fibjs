@@ -1,0 +1,6 @@
+/*! @brief PerformanceMark 接口提供了 performance mark 记录的详细信息。*/
+interface PerformanceMark : PerformanceEntry
+{
+    /*! @brief performance mark 记录的详细信息. */
+    readonly Value detail;
+};

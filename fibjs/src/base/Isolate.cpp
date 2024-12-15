@@ -16,6 +16,7 @@
 #include "SandBox.h"
 #include "TTYStream.h"
 #include "EventEmitter.h"
+#include "PerformanceObserver.h"
 
 using namespace v8;
 

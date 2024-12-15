@@ -1,0 +1,6 @@
+/*! @brief PerformanceMeasure 接口提供了 performance measure 记录的详细信息。*/
+interface PerformanceMeasure : PerformanceEntry
+{
+    /*! @brief performance measure 记录的详细信息. */
+    readonly Value detail;
+};

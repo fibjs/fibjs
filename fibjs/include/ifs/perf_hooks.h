@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class PerformanceObserver_base;
 class performance_base;
 
 class perf_hooks_base : public object_base {
@@ -34,12 +35,14 @@ public:
 };
 }
 
+#include "ifs/PerformanceObserver.h"
 #include "ifs/performance.h"
 
 namespace fibjs {
 inline ClassInfo& perf_hooks_base::class_info()
 {
     static ClassData::ClassObject s_object[] = {
+        { "PerformanceObserver", PerformanceObserver_base::class_info },
         { "performance", performance_base::class_info }
     };
 
