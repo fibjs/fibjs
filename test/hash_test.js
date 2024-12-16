@@ -673,5 +673,13 @@ describe("hash", () => {
 
         hmac_case.forEach(hmac_test);
     });
+
+    it("BUGFIX: crash when digest has been called", () => {
+        const hash = crypto.createHash("md5")
+        hash.update("123").digest('hex');
+        assert.throws(() => {
+            hash.update("456");
+        });
+    });
 });
 

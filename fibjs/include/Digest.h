@@ -32,6 +32,7 @@ private:
     EVPMDPointer m_ctx;
     int32_t m_iAlgo;
     bool m_bMac;
+    bool m_bFinal = false;
 };
 
 } /* namespace fibjs */

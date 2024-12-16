@@ -38,6 +38,9 @@ Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
 
 result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
+    if(m_bFinal)
+        return Runtime::setError("digest has been called");
+
     Buffer* buf = Buffer::Cast(data);
 
     if (m_bMac)
@@ -51,6 +54,9 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 
 result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal)
 {
+    if(m_bFinal)
+        return Runtime::setError("digest has been called");
+
     exlib::string _data;
     result_t hr = commonDecode(codec, data, _data);
     if (hr < 0)
@@ -67,6 +73,9 @@ result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_
 
 result_t Digest::digest(obj_ptr<Buffer>& retVal)
 {
+    if(m_bFinal)
+        return Runtime::setError("digest has been called");
+
     obj_ptr<Buffer> buf = new Buffer(NULL, EVP_MD_size(EVP_MD_CTX_md(m_ctx)));
 
     if (m_bMac) {
@@ -78,6 +87,7 @@ result_t Digest::digest(obj_ptr<Buffer>& retVal)
     }
 
     EVP_MD_CTX_reset(m_ctx);
+    m_bFinal = true;
 
     retVal = buf;
     return 0;
@@ -85,6 +95,9 @@ result_t Digest::digest(obj_ptr<Buffer>& retVal)
 
 result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 {
+    if(m_bFinal)
+        return Runtime::setError("digest has been called");
+
     obj_ptr<Buffer> buf;
     result_t hr = digest(buf);
     if (hr < 0)
@@ -95,6 +108,9 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 
 result_t Digest::get_size(int32_t& retVal)
 {
+    if(m_bFinal)
+        return Runtime::setError("digest has been called");
+
     retVal = EVP_MD_size(EVP_MD_CTX_md(m_ctx));
     return 0;
 }
