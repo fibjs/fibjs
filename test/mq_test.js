@@ -1191,5 +1191,56 @@ describe("mq", () => {
         mq.invoke(r, msg);
         assert.equal(n, '123456');
     });
+
+    describe("async function", () => {
+        it("async function handler", () => {
+            var n = 100;
+
+            var msg = new mq.Message();
+            msg.value = '/123/456';
+
+            mq.invoke(async (v) => {
+                n = 200;
+                await coroutine.sleepAsync(10);
+                n = 300;
+            }, msg);
+
+            assert.equal(n, 300);
+        });
+
+        it("async function handler in chain", () => {
+            var n = 100;
+
+            var msg = new mq.Message();
+            msg.value = '/123/456';
+
+            mq.invoke([
+                async (v) => {
+                    n = 200;
+                    await coroutine.sleepAsync(10);
+                    n = 300;
+                }
+            ], msg);
+
+            assert.equal(n, 300);
+        });
+
+        it("async function handler in routing", () => {
+            var n = 100;
+
+            var msg = new mq.Message();
+            msg.value = '/123/456';
+
+            mq.invoke({
+                '/:a/:b': async (req, a, b) => {
+                    n = 200;
+                    await coroutine.sleepAsync(10);
+                    n = a + b;
+                }
+            }, msg);
+
+            assert.equal(n, '123456');
+        });
+    });
 });
 

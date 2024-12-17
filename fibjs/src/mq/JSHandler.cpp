@@ -46,7 +46,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return CALL_RETURN_NULL;
 
         retVal = new AsyncWaitHandler();
-        v8::Local<v8::Function> proc = v1.As<v8::Function>();
+        JSFunction proc = v1.As<v8::Function>();
 
         obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
@@ -69,14 +69,14 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         if (argv[len + 1].IsEmpty())
             return CHECK_ERROR(Runtime::setError("function alloc error."));
 
-        proc->Call(proc->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), len + 2, argv.data()).IsEmpty();
+        proc.Call(v8::Undefined(isolate->m_isolate), len + 2, argv.data());
         return 0;
     }
 
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
     while (hdlr->IsFunction()) {
-        v8::Local<v8::Function> func = hdlr.As<v8::Function>();
+        JSFunction func = hdlr.As<v8::Function>();
         obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
         v8::Local<v8::Value>* pargv;
@@ -103,7 +103,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         {
             TryCatch try_catch;
-            hdlr = func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), len + 1, pargv).FromMaybe(v8::Local<v8::Value>());
+            hdlr = func.Call(v8::Undefined(isolate->m_isolate), len + 1, pargv);
             if (try_catch.HasCaught()) {
                 v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
                     isolate->m_isolate, 1, v8::StackTrace::kScriptId);
