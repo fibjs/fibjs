@@ -2,6 +2,7 @@
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/types.d.ts" />
+/// <reference path="../module/colors.d.ts" />
 /// <reference path="../interface/Logger.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -73,6 +74,11 @@ declare module 'util' {
      * @description types 模块提供了对数据类型判断的工具函数。
      */
     const types: typeof import ('types');
+
+    /**
+     * @description colors 模块提供了一组颜色常量，用于设置控制台输出颜色。
+     */
+    const colors: typeof import ('colors');
 
     /**
      * @description 按照指定的格式格式化变量

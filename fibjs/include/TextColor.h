@@ -21,7 +21,7 @@ extern exlib::string COLOR_MAGENTA;
 extern exlib::string COLOR_CYAN;
 extern exlib::string COLOR_WHITE;
 extern exlib::string COLOR_NORMAL;
-extern exlib::string COLOR_GREY;
+extern exlib::string COLOR_GRAY;
 
 extern exlib::string COLOR_LIGHTRED;
 extern exlib::string COLOR_LIGHTGREEN;

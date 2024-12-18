@@ -59,9 +59,11 @@
         "performance",
         "perf_hooks",
         "v8",
-        "test"
+        "test",
+        "test_suite"
     ],
     "Utility": [
+        "colors",
         "db",
         "registry",
         "types",

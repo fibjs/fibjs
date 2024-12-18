@@ -12,10 +12,8 @@
 #include "ifs/encoding.h"
 #include "ifs/process.h"
 #include "ifs/util.h"
-#include "ifs/tty.h"
 #include <unordered_map>
 #include "console.h"
-#include <stdlib.h>
 #include "../util/util.h"
 
 #ifdef _WIN32
@@ -58,82 +56,6 @@ inline int64_t Ticks()
 namespace fibjs {
 
 DECLARE_MODULE(console);
-
-exlib::string COLOR_RESET = "";
-exlib::string COLOR_BLACK = "";
-exlib::string COLOR_RED = "";
-exlib::string COLOR_GREEN = "";
-exlib::string COLOR_YELLOW = "";
-exlib::string COLOR_BLUE = "";
-exlib::string COLOR_MAGENTA = "";
-exlib::string COLOR_CYAN = "";
-exlib::string COLOR_WHITE = "";
-exlib::string COLOR_NORMAL = "";
-exlib::string COLOR_GREY = "";
-
-exlib::string COLOR_LIGHTRED = "";
-exlib::string COLOR_LIGHTGREEN = "";
-exlib::string COLOR_LIGHTYELLOW = "";
-exlib::string COLOR_LIGHTBLUE = "";
-exlib::string COLOR_LIGHTMAGENTA = "";
-exlib::string COLOR_LIGHTCYAN = "";
-exlib::string COLOR_LIGHTWHITE = "";
-
-exlib::string COLOR_TITLE = "";
-
-class color_initer {
-public:
-    color_initer()
-    {
-#ifdef iPhone
-        bool color = true;
-#else
-        bool color = false;
-        tty_base::isatty(_fileno(stdout), color);
-#endif
-
-        char buf[4096];
-        size_t sz = sizeof(buf);
-        if (uv_os_getenv("NO_COLOR", buf, &sz) == 0) {
-            if (buf[0] != '\0')
-                color = false;
-
-            uv_os_unsetenv("NO_COLOR");
-        }
-
-        sz = sizeof(buf);
-        if (uv_os_getenv("FORCE_COLOR", buf, &sz) == 0) {
-            if (buf[0] != '\0')
-                color = true;
-
-            uv_os_unsetenv("FORCE_COLOR");
-        }
-
-        if (color) {
-            COLOR_RESET = "\x1b[0m";
-            COLOR_BLACK = "\x1b[0;30m"; /* Black */
-            COLOR_RED = "\x1b[0;31m"; /* Red */
-            COLOR_GREEN = "\x1b[0;32m"; /* Green */
-            COLOR_YELLOW = "\x1b[0;33m"; /* Yellow */
-            COLOR_BLUE = "\x1b[0;34m"; /* Blue */
-            COLOR_MAGENTA = "\x1b[0;35m"; /* Magenta */
-            COLOR_CYAN = "\x1b[0;36m"; /* Cyan */
-            COLOR_WHITE = "\x1b[0;37m"; /* White */
-            COLOR_NORMAL = "\x1b[0;39m"; /* Normal */
-            COLOR_GREY = "\x1B[90m"; /* Grey */
-
-            COLOR_LIGHTRED = "\x1b[1;31m"; /* Red */
-            COLOR_LIGHTGREEN = "\x1b[1;32m"; /* Green */
-            COLOR_LIGHTYELLOW = "\x1b[1;33m"; /* Yellow */
-            COLOR_LIGHTBLUE = "\x1b[1;34m"; /* Blue */
-            COLOR_LIGHTMAGENTA = "\x1b[1;35m"; /* Magenta */
-            COLOR_LIGHTCYAN = "\x1b[1;36m"; /* Cyan */
-            COLOR_LIGHTWHITE = "\x1b[1;37m"; /* White */
-
-            COLOR_TITLE = "\x1B[1;39m";
-        }
-    }
-} s_color_initer;
 
 static bool colors(int32_t type)
 {

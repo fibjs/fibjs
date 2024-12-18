@@ -294,7 +294,7 @@ public:
                             } else if (p1->m_level < p->m_run_level) {
                                 p->m_skip++;
                                 val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
-                                str.append(COLOR_GREY + "\xe2\x97\x8b ");
+                                str.append(COLOR_GRAY + "\xe2\x97\x8b ");
                             } else {
                                 p->m_pass++;
                                 val->Set(_context, isolate->NewString("status"), isolate->NewString("passed")).IsJust();
@@ -442,7 +442,7 @@ public:
         }
 
         if (td->m_root->m_skip) {
-            snprintf(buf, sizeof(buf), (COLOR_GREY + "  \xe2\x97\x8b %d tests skipped" + COLOR_RESET).c_str(), td->m_root->m_skip);
+            snprintf(buf, sizeof(buf), (COLOR_GRAY + "  \xe2\x97\x8b %d tests skipped" + COLOR_RESET).c_str(), td->m_root->m_skip);
             outLog(console_base::C_INFO, buf);
         }
 

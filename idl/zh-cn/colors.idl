@@ -1,0 +1,63 @@
+/*! @brief 颜色模块
+
+    颜色模块提供了一组颜色常量，用于设置控制台输出颜色。
+*/
+module colors
+{
+    /*! @brief 是否支持颜色输出 */
+    static readonly Boolean hasColors;
+
+    /*! @brief 清除颜色 */
+    static readonly String clear;
+
+    /*! @brief 默认颜色 */
+    static readonly String normal;
+
+    /*! @brief 黑色 */
+    static readonly String black;
+
+    /*! @brief 灰色 */
+    static readonly String gray;
+
+    /*! @brief 红色 */
+    static readonly String red;
+
+    /*! @brief 绿色 */
+    static readonly String green;
+
+    /*! @brief 黄色 */
+    static readonly String yellow;
+
+    /*! @brief 蓝色 */
+    static readonly String blue;
+
+    /*! @brief 洋红 */
+    static readonly String magenta;
+
+    /*! @brief 青色 */
+    static readonly String cyan;
+
+    /*! @brief 白色 */
+    static readonly String white;
+
+    /*! @brief 亮黑色 */
+    static readonly String lightred;
+
+    /*! @brief 亮绿色 */
+    static readonly String lightgreen;
+
+    /*! @brief 亮黄色 */
+    static readonly String lightyellow;
+
+    /*! @brief 亮蓝色 */
+    static readonly String lightblue;
+
+    /*! @brief 亮洋红 */
+    static readonly String lightmagenta;
+
+    /*! @brief 亮青色 */
+    static readonly String lightcyan;
+
+    /*! @brief 亮白色 */
+    static readonly String lightwhite;
+};
