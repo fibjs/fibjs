@@ -42,7 +42,7 @@ const tray = gui.createTray({
                         minWidth: 300,
                         minHeight: 200,
                         maxWidth: 800,
-                        caption: false,
+                        titlebar: "transparent",
                         hideOnClose: true
                     });
                 }

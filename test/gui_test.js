@@ -904,9 +904,9 @@ async function async_eval(func) {
                     test_focus({});
                 });
 
-                it("no caption", () => {
+                it("no titlebar", () => {
                     test_focus({
-                        caption: false
+                        titlebar: "hide"
                     });
                 });
 

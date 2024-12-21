@@ -250,8 +250,15 @@ void WebView::config()
         mask = NSWindowStyleMaskResizable;
     else {
         if (m_options->frame.value()) {
-            if (m_options->caption.value())
+            exlib::string& titlebar = m_options->titlebar.value();
+
+            if (titlebar != "hide")
                 mask |= NSWindowStyleMaskTitled;
+
+            if (titlebar == "transparent") {
+                mask |= NSFullSizeContentViewWindowMask;
+                window.titlebarAppearsTransparent = true;
+            }
 
             if (m_options->resizable.value())
                 mask |= NSWindowStyleMaskResizable;

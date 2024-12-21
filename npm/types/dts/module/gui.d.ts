@@ -35,7 +35,7 @@ declare module 'gui' {
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
      *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "titlebar": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
@@ -72,7 +72,7 @@ declare module 'gui' {
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
      *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "titlebar": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
@@ -106,7 +106,7 @@ declare module 'gui' {
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
      *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "titlebar": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false

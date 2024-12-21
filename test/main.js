@@ -11,6 +11,7 @@ run("./assert_test.js");
 run("./test_test.js");
 run("./class_test.js");
 run("./global_test.js");
+run("./perf_test.js");
 run("./console_test.js");
 run("./icu_test.js");
 run("./punycode_test.js");

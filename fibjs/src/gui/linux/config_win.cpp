@@ -199,7 +199,7 @@ void WebView::config()
             gtk_header_bar_set_show_close_button((GtkHeaderBar*)titlebar, TRUE);
             gtk_window_set_titlebar(window, titlebar);
 
-            if (!m_options->caption.value()) {
+            if (m_options->titlebar.value() != "show") {
                 gtk_widget_hide(titlebar);
                 gtk_widget_destroy(titlebar);
 

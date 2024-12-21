@@ -168,6 +168,10 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     if (hr < 0)
         return hr;
 
+    exlib::string& titlebar = m_options->titlebar.value();
+    if (titlebar != "show" && titlebar != "hide" && titlebar != "transparent")
+        return Runtime::setError("WebView: titlebar must be 'show', 'hide' or 'transparent'");
+
     if (m_options->icon.has_value()) {
         Variant var;
         hr = fs_base::ac_readFile(m_options->icon.value(), "", var);
