@@ -18,6 +18,15 @@ namespace fibjs {
 
 class WebView : public WebView_base {
 public:
+    class TitlebarOptions : public obj_base {
+    public:
+        LOAD_OPTIONS(TitlebarOptions, (style)(height));
+
+    public:
+        std::optional<exlib::string> style = "show";
+        std::optional<exlib::string> height = "normal";
+    };
+
     class OpenOptions : public obj_base {
     public:
         LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(hideOnClose)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(titlebar)(resizable)(fullscreen)(maximize)(menu)(app)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
@@ -41,7 +50,7 @@ public:
         std::optional<int32_t> maxHeight;
 
         std::optional<bool> frame = true;
-        std::optional<exlib::string> titlebar = "show";
+        std::optional<std::variant<exlib::string, obj_ptr<TitlebarOptions>>> titlebar = "show";
         std::optional<bool> resizable = true;
         std::optional<bool> fullscreen = false;
         std::optional<bool> maximize = false;

@@ -83,6 +83,7 @@ typedef int32_t SOCKET;
 
 #include <cmath>
 #include <vector>
+#include <variant>
 
 #ifdef _WIN32
 
@@ -891,9 +892,6 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
     if (vr)
         return 0;
 
-    if (bStrict)
-        return CALL_E_TYPEMISMATCH;
-
     return T::load(isolate, v, vr);
 }
 
@@ -991,6 +989,29 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     vr = r;
 
     return 0;
+}
+
+template <typename T1, typename T2>
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant<T1, T2>& n, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    T1 n1;
+    result_t hr = GetArgumentValue(isolate, v, n1, bStrict);
+    if (hr >= 0) {
+        n = n1;
+        return 0;
+    }
+
+    T2 n2;
+    hr = GetArgumentValue(isolate, v, n2, bStrict);
+    if (hr >= 0) {
+        n = n2;
+        return 0;
+    }
+
+    return hr;
 }
 
 result_t setRuntimeError(result_t code, const char* err = nullptr);

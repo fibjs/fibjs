@@ -168,9 +168,22 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     if (hr < 0)
         return hr;
 
-    exlib::string& titlebar = m_options->titlebar.value();
-    if (titlebar != "show" && titlebar != "hide" && titlebar != "transparent")
-        return Runtime::setError("WebView: titlebar must be 'show', 'hide' or 'transparent'");
+    obj_ptr<TitlebarOptions> titlebar;
+    auto& titlebar_opt = m_options->titlebar.value();
+    if (std::holds_alternative<exlib::string>(titlebar_opt)) {
+        titlebar = new TitlebarOptions();
+        titlebar->style = std::get<exlib::string>(titlebar_opt);
+        m_options->titlebar = titlebar;
+    } else
+        titlebar = std::get<obj_ptr<TitlebarOptions>>(titlebar_opt);
+
+    exlib::string& titlebar_style = titlebar->style.value();
+    if (titlebar_style != "show" && titlebar_style != "hide" && titlebar_style != "transparent")
+        return Runtime::setError("WebView: titlebar style must be 'show', 'hide' or 'transparent', but got '" + titlebar_style + "'");
+
+    exlib::string& titlebar_height = titlebar->height.value();
+    if (titlebar_height != "normal" && titlebar_height != "tall")
+        return Runtime::setError("WebView: titlebar height must be 'normal', 'tall', but got '" + titlebar_height + "'");
 
     if (m_options->icon.has_value()) {
         Variant var;

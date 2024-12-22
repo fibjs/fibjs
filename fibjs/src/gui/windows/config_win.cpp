@@ -229,7 +229,8 @@ void WebView::config()
         if (m_options->frame.value()) {
             dwStyle |= WS_THICKFRAME;
 
-            if (m_options->titlebar.value() == "show")
+            obj_ptr<TitlebarOptions> titlebar_opt = std::get<obj_ptr<TitlebarOptions>>(m_options->titlebar.value());
+            if (titlebar_opt->style.value() == "show")
                 dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
             if (!m_options->resizable.value()) {

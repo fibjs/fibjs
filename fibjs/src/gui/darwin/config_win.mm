@@ -250,14 +250,22 @@ void WebView::config()
         mask = NSWindowStyleMaskResizable;
     else {
         if (m_options->frame.value()) {
-            exlib::string& titlebar = m_options->titlebar.value();
+            obj_ptr<TitlebarOptions> titlebar_opt = std::get<obj_ptr<TitlebarOptions>>(m_options->titlebar.value());
+            exlib::string& titlebar_style = titlebar_opt->style.value();
 
-            if (titlebar != "hide")
+            if (titlebar_style != "hide")
                 mask |= NSWindowStyleMaskTitled;
 
-            if (titlebar == "transparent") {
+            if (titlebar_style == "transparent") {
                 mask |= NSFullSizeContentViewWindowMask;
                 window.titlebarAppearsTransparent = true;
+            }
+
+            if (titlebar_opt->height.value() == "tall") {
+                NSToolbar* toolbar = [[NSToolbar alloc] initWithIdentifier:@"MainToolbar"];
+                toolbar.showsBaselineSeparator = NO;
+                window.toolbar = toolbar;
+                [window setToolbarStyle:NSWindowToolbarStyleUnified];
             }
 
             if (m_options->resizable.value())
