@@ -8,6 +8,7 @@ global.full_test = process.argv.indexOf('--full') >= 0;
 const CI_SUBPROCESS_CHECK = !!process.env.CI_SUBPROCESS_CHECK;
 
 run("./assert_test.js");
+run("./assertion_error_test.js");
 run("./test_test.js");
 run("./class_test.js");
 run("./global_test.js");

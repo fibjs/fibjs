@@ -20,6 +20,7 @@ class assert_base : public object_base {
 
 public:
     // assert_base
+    static result_t get_AssertionError(v8::Local<v8::Function>& retVal);
     static result_t _function(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t ok(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t notOk(v8::Local<v8::Value> actual, exlib::string msg);
@@ -87,6 +88,7 @@ public:
     }
 
 public:
+    static void s_static_get_AssertionError(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_ok(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notOk(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -205,15 +207,32 @@ inline ClassInfo& assert_base::class_info()
         { "ifError", s_static_ifError, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "AssertionError", s_static_get_AssertionError, block_set, true }
+    };
+
     static ClassData s_cd = {
         "assert", true, s__new, s__function,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void assert_base::s_static_get_AssertionError(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_AssertionError(vr);
+
+    METHOD_RETURN();
 }
 
 inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)

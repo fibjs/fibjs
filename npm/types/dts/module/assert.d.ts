@@ -19,6 +19,11 @@
  */
 declare module 'assert' {
     /**
+     * @description 断言错误对象 
+     */
+    const AssertionError: (...args: any[])=>any;
+
+    /**
      * @description 测试数值为真，为假则断言失败
      *      @param actual 要测试的数值
      *      @param msg 断言失败时的提示信息

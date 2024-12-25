@@ -1224,29 +1224,6 @@ inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
     return ThrowEvalError(msg.c_str());
 }
 
-/**
- *  v8::Local<v8::Object> e = v8::Object::New(isolate->m_isolate);
- *  e->Set(isolate->NewString("actual"), isolate->NewString("actual msg"));
- *  e->Set(isolate->NewString("expected"), isolate->NewString("expected msg"));
- *  e->Set(isolate->NewString("message"), isolate->NewString("message msg"));
- *  e->Set(isolate->NewString("operator"), isolate->NewString("operator msg"));
- *  ThrowAssertionError(e);
- **/
-inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
-{
-    Isolate* isolate = Isolate::current();
-    auto _context = isolate->context();
-    v8::Local<v8::Value> args[] = { msg };
-    JSValue error;
-
-    {
-        v8::Local<v8::Object> AssertionError = isolate->m_AssertionError.Get(isolate->m_isolate);
-        error = AssertionError->CallAsConstructor(_context, 1, args);
-    }
-
-    return ThrowError(error);
-}
-
 inline result_t LastError()
 {
 #ifdef _WIN32

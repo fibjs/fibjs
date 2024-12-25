@@ -270,34 +270,6 @@ void Isolate::init()
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(m_isolate)->GetPrototype());
     _context->SetEmbedderData(kSandboxObject, global_base::class_info().getModule(this));
 
-    const char* assertion_error = "class AssertionError extends Error {"
-                                  "   constructor(options) {"
-                                  "       var { actual, expected, message, operator } = options;"
-                                  "       if (message) {"
-                                  "           super(message);"
-                                  "       } else {"
-                                  "           if (actual && actual.stack && actual instanceof Error)"
-                                  "               actual = `${actual.name}: ${actual.message}`;"
-                                  "           if (expected && expected.stack && expected instanceof Error)"
-                                  "               expected = `${expected.name}: ${expected.message}`;"
-                                  "           super(`${JSON.stringify(actual).slice(0, 128)} ` +"
-                                  "               `${operator} ${JSON.stringify(expected).slice(0, 128)}`);"
-                                  "       }"
-                                  "       this.generatedMessage = !message;"
-                                  "       this.name = 'AssertionError [ERR_ASSERTION]';"
-                                  "       this.code = 'ERR_ASSERTION';"
-                                  "       this.actual = actual;"
-                                  "       this.expected = expected;"
-                                  "       this.operator = operator;"
-                                  "   }"
-                                  "}"
-                                  "AssertionError;";
-
-    v8::Local<v8::Script> script = v8::Script::Compile(_context, NewString(assertion_error)).FromMaybe(v8::Local<v8::Script>());
-    v8::Local<v8::Value> result = script->Run(_context).FromMaybe(v8::Local<v8::Value>());
-    v8::Local<v8::Object> AssertionError = result.As<v8::Object>();
-    m_AssertionError.Reset(m_isolate, AssertionError);
-
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);
     m_isolate->SetHostInitializeImportMetaObjectCallback(SandBox::ImportMetaObjectCallback);

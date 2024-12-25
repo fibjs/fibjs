@@ -11,10 +11,47 @@
 #include "ifs/encoding.h"
 #include "ifs/util.h"
 #include "QuickArray.h"
+#include "SandBox.h"
 #include "../util/util.h"
 #include "assert.h"
 
 namespace fibjs {
+
+result_t assert_base::get_AssertionError(v8::Local<v8::Function>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> _context = isolate->context();
+    v8::Local<v8::Object> glob = _context->Global();
+
+    v8::Local<v8::Value> glob_AssertionError = glob->GetPrivate(_context, v8::Private::New(isolate->m_isolate, isolate->NewString("AssertionError"))).FromMaybe(v8::Local<v8::Value>());
+    if (glob_AssertionError.IsEmpty() || glob_AssertionError->IsUndefined()) {
+        obj_ptr<SandBox> sbox = new SandBox(false);
+
+        sbox->InstallModule("util", util_base::class_info().getModule(isolate));
+        sbox->require("internal/assertion_error", "/builtin", glob_AssertionError);
+
+        glob->SetPrivate(_context, v8::Private::New(isolate->m_isolate, isolate->NewString("AssertionError")), glob_AssertionError);
+    }
+
+    retVal = glob_AssertionError.As<v8::Function>();
+    return 0;
+}
+
+v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
+{
+    Isolate* isolate = Isolate::current();
+    auto _context = isolate->context();
+    v8::Local<v8::Value> args[] = { msg };
+    JSValue error;
+
+    {
+        v8::Local<v8::Function> AssertionError;
+        assert_base::get_AssertionError(AssertionError);
+        error = AssertionError->CallAsConstructor(_context, 1, args);
+    }
+
+    return ThrowError(error);
+}
 
 static bool check_error(v8::Local<v8::Value> exp, v8::Local<v8::Value> error)
 {
