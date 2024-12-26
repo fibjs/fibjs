@@ -42,6 +42,7 @@ public:
     int32_t pos;
     int32_t len;
     int32_t mode;
+    bool is_error = false;
 };
 
 void string_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color, int32_t maxStringLength)
@@ -109,6 +110,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
     QuickArray<_item> stk;
     QuickArray<v8::Local<v8::Object>> vals;
     v8::Local<v8::Value> v = obj;
+    bool in_error = false;
     int32_t padding = 0;
     const int32_t tab_size = 2;
     _item* it = NULL;
@@ -308,7 +310,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
-                        if (sz >= (depth + 1)) {
+                        if (in_error || sz >= (depth + 1)) {
                             strBuffer.append(color_string(COLOR_CYAN, "[Array]", color));
                             break;
                         }
@@ -334,7 +336,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
-                        if (sz >= (depth + 1)) {
+                        if (in_error || sz >= (depth + 1)) {
                             strBuffer.append(color_string(COLOR_CYAN, "[TypedArray]", color));
                             break;
                         }
@@ -367,7 +369,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     if (isFunction || isError)
                         strBuffer.append(' ');
 
-                    if (sz >= (depth + 1)) {
+                    if (in_error || sz >= (depth + 1)) {
                         strBuffer.append(color_string(COLOR_CYAN, "[Object]", color));
                         break;
                     }
@@ -388,6 +390,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     it->obj = obj;
                     it->keys = keys;
                     it->len = len;
+                    it->is_error = isError;
 
                     strBuffer.append('{');
                     padding += tab_size;
@@ -435,6 +438,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
             newline(strBuffer, padding);
 
             v = JSValue(it->keys->Get(_context, it->pos++));
+            in_error = it->is_error;
 
             if (!it->obj.IsEmpty()) {
                 TryCatch try_catch;
