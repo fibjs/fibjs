@@ -19,11 +19,11 @@ describe('promise', () => {
             t1 = t1.replace(/\r/g, '');
         }
 
-        assert.equal(t, t1);
+        assert.equal(t1, t);
     }
 
     it("error in promise.then", () => {
-        t('promise1.js', 'Error: 1000\n    at /promise/promise1.js:2:11\n');
+        t('promise1.js', '/promise/promise1.js:2:11\n    throw new Error(1000);\n          ^\nError: 1000\n    at /promise/promise1.js:2:11 {}\n');
     });
 
     it("error in promise.then with catch", () => {
@@ -31,7 +31,7 @@ describe('promise', () => {
     });
 
     it("error in promise", () => {
-        t('promise3.js', 'Error: 1000\n    at /promise/promise3.js:2:11\n    at new Promise (<anonymous>)\n    at /promise/promise3.js:1:1\n');
+        t('promise3.js', '/promise/promise3.js:2:11\n    throw new Error(1000);\n          ^\nError: 1000\n    at /promise/promise3.js:2:11\n    at new Promise (<anonymous>)\n    at /promise/promise3.js:1:1 {}\n');
     });
 
     it("error in promise with catch", () => {
@@ -42,16 +42,16 @@ describe('promise', () => {
         t('promise5.js', 'catch promise error.\n');
     });
 
-    xit("error in async function", () => {
-        t('async1.js', '/promise/async1.js:2:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async1.js:2:11)\n    at /promise/async1.js:5:7\n');
+    it("error in async function", () => {
+        t('async1.js', 'Error: /promise/async1.js:5:1\nawait t();\n^^^^^\nSyntaxError: await is only valid in async functions and the top level bodies of modules {} {\n  \"number\": 20023\n}\n');
     });
 
     it("error in async function with sync", () => {
-        t('async2.js', '/promise/async2.js:4:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async2.js:4:11)\n    at /promise/async2.js:7:13\n');
+        t('async2.js', '/promise/async2.js:4:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async2.js:4:11)\n    at /promise/async2.js:7:13 {}\n');
     });
 
     it("error in async function without await", () => {
-        t('async3.js', 'Error: 100\n    at a_test (/promise/async3.js:7:11)\n');
+        t('async3.js', '/promise/async3.js:7:11\n    throw new Error(100);\n          ^\nError: 100\n    at a_test (/promise/async3.js:7:11) {}\n');
     });
 });
 

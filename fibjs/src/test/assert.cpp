@@ -25,43 +25,44 @@ result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
 
 result_t assert_base::ok(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(Isolate::current()->toBoolean(actual),
-        _msg(msg, "expected ", actual, " to be truthy"));
+    Isolate* isolate = Isolate::current();
+
+    return _test(isolate->toBoolean(actual), "ok", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::notOk(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!Isolate::current()->toBoolean(actual),
-        _msg(msg, "expected ", actual, " to be falsy"));
+    Isolate* isolate = Isolate::current();
+
+    return _test(!isolate->toBoolean(actual), "notOk", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::equal(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
     bool tst = actual->Equals(Isolate::current()->context(), expected).FromMaybe(false);
-    return _test(tst, _msg(msg, "expected ", actual, " to equal ", expected));
+    return _test(tst, "==", actual, expected, msg);
 }
 
 result_t assert_base::notEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
     bool tst = !actual->Equals(Isolate::current()->context(), expected).FromMaybe(false);
-    return _test(tst, _msg(msg, "expected ", actual, " to not equal ", expected));
+    return _test(tst, "!=", actual, expected, msg);
 }
 
 result_t assert_base::strictEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
     return _test(actual->StrictEquals(expected),
-        _msg(msg, "expected ", actual, " to strictly equal ", expected));
+        "strictEqual", actual, expected, msg);
 }
 
 result_t assert_base::notStrictEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
     return _test(!actual->StrictEquals(expected),
-        _msg(msg, "expected ", actual, " to not strictly equal ",
-            expected));
+        "notStrictEqual", actual, expected, msg);
 }
 
 result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
@@ -70,7 +71,7 @@ result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
     bool r;
 
     util_base::isDeepEqual(actual, expected, r);
-    return _test(r, _msg(msg, "expected ", actual, " to deeply equal ", expected));
+    return _test(r, "deepEqual", actual, expected, msg);
 }
 
 result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
@@ -79,7 +80,7 @@ result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
     bool r;
 
     util_base::isDeepEqual(actual, expected, r);
-    return _test(!r, _msg(msg, "expected ", actual, " to not deeply equal ", expected));
+    return _test(!r, "notDeepEqual", actual, expected, msg);
 }
 
 result_t assert_base::deepStrictEqual(v8::Local<v8::Value> actual,
@@ -88,7 +89,7 @@ result_t assert_base::deepStrictEqual(v8::Local<v8::Value> actual,
     bool r;
 
     util_base::isDeepStrictEqual(actual, expected, r);
-    return _test(r, _msg(msg, "expected ", actual, " to deeply strict equal ", expected));
+    return _test(r, "deepStrictEqual", actual, expected, msg);
 }
 
 result_t assert_base::notDeepStrictEqual(v8::Local<v8::Value> actual,
@@ -97,7 +98,7 @@ result_t assert_base::notDeepStrictEqual(v8::Local<v8::Value> actual,
     bool r;
 
     util_base::isDeepStrictEqual(actual, expected, r);
-    return _test(!r, _msg(msg, "expected ", actual, " to not deeply strict equal ", expected));
+    return _test(!r, "notDeepStrictEqual", actual, expected, msg);
 }
 
 result_t assert_base::match(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg)
@@ -111,8 +112,7 @@ result_t assert_base::match(exlib::string actual, v8::Local<v8::RegExp> expected
     r = !v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0;
 
     v8::Local<v8::Value> regexp_val = expected->ToString(context).ToLocalChecked();
-    v8::Local<v8::Value> actual_val = str;
-    return _test(r, _msg(msg, "expected ", actual_val, " to match ", regexp_val));
+    return _test(r, "match", str, expected, msg);
 }
 
 result_t assert_base::doesNotMatch(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg)
@@ -126,8 +126,7 @@ result_t assert_base::doesNotMatch(exlib::string actual, v8::Local<v8::RegExp> e
     r = !v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0;
 
     v8::Local<v8::Value> regexp_val = expected->ToString(context).ToLocalChecked();
-    v8::Local<v8::Value> actual_val = str;
-    return _test(!r, _msg(msg, "expected ", actual_val, " to not match ", regexp_val));
+    return _test(!r, "doesNotMatch", str, expected, msg);
 }
 
 result_t assert_base::closeTo(v8::Local<v8::Value> actual,
@@ -154,9 +153,7 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
 
     if (n < 0)
         n = -n;
-    return _test(n <= n1,
-        _msg(msg, "expected ", actual, " to be close to ", expected,
-            " +/- ", delta));
+    return _test(n <= n1, "closeTo", actual, expected, msg);
 }
 
 result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
@@ -183,9 +180,7 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
 
     if (n < 0)
         n = -n;
-    return _test(n > n1,
-        _msg(msg, "expected ", actual, " not to be close to ", expected,
-            " +/- ", delta));
+    return _test(n > n1, "notCloseTo", actual, expected, msg);
 }
 
 double valcmp(v8::Local<v8::Value>& val1, v8::Local<v8::Value>& val2)
@@ -226,7 +221,7 @@ result_t assert_base::lessThan(v8::Local<v8::Value> actual,
     if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return _test(r < 0, _msg(msg, "expected ", actual, " to be below ", expected));
+    return _test(r < 0, "lessThan", actual, expected, msg);
 }
 
 result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
@@ -237,7 +232,7 @@ result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
     if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return _test(r >= 0, _msg(msg, "expected ", actual, " to be at least ", expected));
+    return _test(r >= 0, "notLessThan", actual, expected, msg);
 }
 
 result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
@@ -248,7 +243,7 @@ result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
     if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return _test(r > 0, _msg(msg, "expected ", actual, " to be above ", expected));
+    return _test(r > 0, "notLessThan", actual, expected, msg);
 }
 
 result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
@@ -259,139 +254,121 @@ result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
     if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return _test(r <= 0, _msg(msg, "expected ", actual, " to be at most ", expected));
+    return _test(r <= 0, "notGreaterThan", actual, expected, msg);
 }
 
 result_t assert_base::exist(v8::Local<v8::Value> actual, exlib::string msg)
 {
     return _test(!actual.IsEmpty() && !actual->IsNull() && !actual->IsUndefined(),
-        _msg(msg, "expected ", actual, " to exist"));
+        "exist", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::notExist(v8::Local<v8::Value> actual, exlib::string msg)
 {
     return _test(actual.IsEmpty() || actual->IsNull() || actual->IsUndefined(),
-        _msg(msg, "expected ", actual, " to not exist"));
+        "notExist", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isTrue(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsTrue(),
-        _msg(msg, "expected ", actual, " to be true"));
+    return _test(actual->IsTrue(), "isTrue", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotTrue(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsTrue(),
-        _msg(msg, "expected ", actual, " to not be true"));
+    return _test(!actual->IsTrue(), "isNotTrue", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isFalse(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsFalse(),
-        _msg(msg, "expected ", actual, " to be false"));
+    return _test(actual->IsFalse(), "isFalse", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotFalse(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsFalse(),
-        _msg(msg, "expected ", actual, " to not be false"));
+    return _test(!actual->IsFalse(), "isNotFalse", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNull(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsNull(),
-        _msg(msg, "expected ", actual, " to be null"));
+    return _test(actual->IsNull(), "isNull", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotNull(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsNull(),
-        _msg(msg, "expected ", actual, " to not be null"));
+    return _test(!actual->IsNull(), "isNotNull", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isUndefined(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsUndefined(),
-        _msg(msg, "expected ", actual, " to be undefined"));
+    return _test(actual->IsUndefined(), "isUndefined", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isDefined(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsUndefined(),
-        _msg(msg, "expected ", actual, " to be defined"));
+    return _test(!actual->IsUndefined(), "isDefined", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isFunction(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsFunction(),
-        _msg(msg, "expected ", actual, " to be a function"));
+    return _test(actual->IsFunction(), "isFunction", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotFunction(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsFunction(),
-        _msg(msg, "expected ", actual, " to not be a function"));
+    return _test(!actual->IsFunction(), "isNotFunction", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isObject(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsObject(),
-        _msg(msg, "expected ", actual, " to be an object"));
+    return _test(actual->IsObject(), "isObject", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotObject(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsObject(),
-        _msg(msg, "expected ", actual, " to not be an object"));
+    return _test(!actual->IsObject(), "isNotObject", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isArray(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsArray(),
-        _msg(msg, "expected ", actual, " to be an array"));
+    return _test(actual->IsArray(), "isArray", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotArray(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsArray(),
-        _msg(msg, "expected ", actual, " to not be an array"));
+    return _test(!actual->IsArray(), "isNotArray", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isString(v8::Local<v8::Value> actual, exlib::string msg)
 {
     return _test(actual->IsString() || actual->IsStringObject(),
-        _msg(msg, "expected ", actual, " to be a string"));
+        "isString", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotString(v8::Local<v8::Value> actual, exlib::string msg)
 {
     return _test(!actual->IsString() || actual->IsStringObject(),
-        _msg(msg, "expected ", actual, " to not be a string"));
+        "isNotString", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNumber(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsNumber(),
-        _msg(msg, "expected ", actual, " to be a number"));
+    return _test(actual->IsNumber(), "isNumber", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotNumber(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsNumber(),
-        _msg(msg, "expected ", actual, " to not be a number"));
+    return _test(!actual->IsNumber(), "isNotNumber", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isBoolean(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(actual->IsBoolean(),
-        _msg(msg, "expected ", actual, " to be a boolean"));
+    return _test(actual->IsBoolean(), "isBoolean", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::isNotBoolean(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return _test(!actual->IsBoolean(),
-        _msg(msg, "expected ", actual, " to not be a boolean"));
+    return _test(!actual->IsBoolean(), "isNotBoolean", actual, v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::typeOf(v8::Local<v8::Value> actual, exlib::string type,
@@ -460,7 +437,7 @@ result_t assert_base::property(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(r, _msg(msg, "expected ", object, " to have a property ", prop));
+    return _test(r, "property", object, prop, msg);
 }
 
 result_t assert_base::notProperty(v8::Local<v8::Value> object,
@@ -471,7 +448,7 @@ result_t assert_base::notProperty(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(!r, _msg(msg, "expected ", object, " to not have a property ", prop));
+    return _test(!r, "notProperty", object, prop, msg);
 }
 
 result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
@@ -512,7 +489,7 @@ result_t assert_base::deepProperty(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(r, _msg(msg, "expected ", object, " to have a deep property ", prop));
+    return _test(r, "deepProperty", object, prop, msg);
 }
 
 result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
@@ -523,9 +500,7 @@ result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(!r,
-        _msg(msg, "expected ", object, " to not have a deep property ",
-            prop));
+    return _test(!r, "notDeepProperty", object, prop, msg);
 }
 
 result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
@@ -557,9 +532,7 @@ result_t assert_base::propertyVal(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(r,
-        _msg(msg, "expected ", object, " to have a property ", prop, " of ",
-            value, ", but got ", got));
+    return _test(r, "propertyVal", object, value, msg, prop);
 }
 
 result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
@@ -573,9 +546,7 @@ result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(!r,
-        _msg(msg, "expected ", object, " not to have a property ", prop,
-            " of ", value));
+    return _test(!r, "propertyNotVal", object, value, msg, prop);
 }
 
 result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
@@ -622,9 +593,7 @@ result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(r,
-        _msg(msg, "expected ", object, " to have a deep property ", prop,
-            " of ", value, ", but got ", got));
+    return _test(r, "deepPropertyVal", object, value, msg, prop);
 }
 
 result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
@@ -638,9 +607,7 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
     if (hr < 0)
         return hr;
 
-    return _test(!r,
-        _msg(msg, "expected ", object, " not to have a deep property ",
-            prop, " of ", value));
+    return _test(!r, "deepPropertyNotVal", object, value, msg, prop);
 }
 
 result_t assert_base::ifError(v8::Local<v8::Value> v)

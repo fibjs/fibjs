@@ -37,20 +37,39 @@ result_t assert_base::get_AssertionError(v8::Local<v8::Function>& retVal)
     return 0;
 }
 
-v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
+v8::Local<v8::Value> AssertionError(exlib::string operator_, v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string message, v8::Local<v8::Value> property)
 {
     Isolate* isolate = Isolate::current();
-    auto _context = isolate->context();
-    v8::Local<v8::Value> args[] = { msg };
-    JSValue error;
+    v8::Local<v8::Context> _context = isolate->context();
+    v8::Local<v8::Function> AssertionError;
+    assert_base::get_AssertionError(AssertionError);
 
-    {
-        v8::Local<v8::Function> AssertionError;
-        assert_base::get_AssertionError(AssertionError);
-        error = AssertionError->CallAsConstructor(_context, 1, args);
-    }
+    v8::Local<v8::Object> opt = v8::Object::New(isolate->m_isolate);
 
-    return ThrowError(error);
+    opt->Set(_context, isolate->NewString("operator"), isolate->NewString(operator_)).IsJust();
+
+    if (!actual.IsEmpty())
+        opt->Set(_context, isolate->NewString("actual"), actual).IsJust();
+
+    if (!property.IsEmpty())
+        opt->Set(_context, isolate->NewString("property"), property).IsJust();
+
+    if (!expected.IsEmpty())
+        opt->Set(_context, isolate->NewString("expected"), expected).IsJust();
+
+    if (!message.empty())
+        opt->Set(_context, isolate->NewString("message"), isolate->NewString(message)).IsJust();
+
+    v8::Local<v8::Value> args[] = { opt };
+
+    v8::Local<v8::Value> v = AssertionError->CallAsConstructor(_context, 1, args).FromMaybe(v8::Local<v8::Value>());
+    if (v.IsEmpty())
+        return v8::Undefined(isolate->m_isolate);
+
+    v8::Local<v8::Object> e = v.As<v8::Object>();
+    v8::Exception::CaptureStackTrace(_context, e);
+
+    return e;
 }
 
 static bool check_error(v8::Local<v8::Value> exp, v8::Local<v8::Value> error)
@@ -126,7 +145,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value>
 
         err = check_error(exp, error);
     }
-    return _test(err, _msg(msg, "Missing expected exception."));
+    return _test(err, "throws", v8::Local<v8::Value>(), v8::Local<v8::Value>(), msg);
 }
 
 result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
@@ -138,12 +157,14 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block, exlib::string 
 {
     Isolate* isolate = Isolate::current(block);
     bool err;
+    v8::Local<v8::Value> exp;
     {
         TryCatch try_catch;
         block->Call(isolate->m_isolate, isolate->context(), v8::Undefined(isolate->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
+        exp = try_catch.Exception();
     }
-    return _test(!err, _msg(msg, "Got unwanted exception."));
+    return _test(!err, "doesNotThrow", exp, v8::Local<v8::Value>(), msg);
 }
 
 struct CallbackData {
@@ -194,7 +215,7 @@ result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value
     auto callbackData = new CallbackData {
         v8::Persistent<v8::Promise::Resolver>(isolate->m_isolate, resolver),
         v8::Persistent<v8::Value>(isolate->m_isolate, error),
-        v8::Persistent<v8::Value>(isolate->m_isolate, v8::Exception::Error(isolate->NewString(msg)))
+        v8::Persistent<v8::Value>(isolate->m_isolate, AssertionError("rejects", v8::Local<v8::Value>(), v8::Local<v8::Value>(), msg))
     };
 
     v8::Local<v8::External> external = v8::External::New(isolate->m_isolate, callbackData);
@@ -227,7 +248,7 @@ result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value
 
     if (!v->IsPromise()) {
         v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
-        resolver->Reject(context, v8::Exception::Error(isolate->NewString("The rsult of the function is not a promise."))).IsJust();
+        resolver->Reject(context, v8::Exception::TypeError(isolate->NewString("The rsult of the function is not a promise."))).IsJust();
         retVal = resolver->GetPromise();
         return 0;
     }

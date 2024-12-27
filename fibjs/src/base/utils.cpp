@@ -1,11 +1,13 @@
 #include "utils.h"
 #include "object.h"
 #include "ifs/console.h"
+#include "ifs/util.h"
 #include <uv/include/uv.h>
 #include <string.h>
 #include <stdio.h>
 #include "utf8.h"
 #include <csignal>
+#include "TextColor.h"
 
 namespace fibjs {
 
@@ -255,6 +257,23 @@ exlib::string GetException(v8::Local<v8::Value> err, bool repl, bool trace)
                 strError.append(isolate->toString(message));
             }
         }
+
+        strError.append(" " + COLOR_RESET);
+
+        v8::Local<v8::Array> keys = err_obj->GetPropertyNames(context).ToLocalChecked();
+        int32_t len = keys->Length();
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+
+        for (int32_t i = 0; i < len; i++) {
+            v8::Local<v8::Value> key = keys->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> val = err_obj->Get(context, key).ToLocalChecked();
+
+            o->Set(context, key, val).IsJust();
+        }
+
+        exlib::string str;
+        util_base::inspect(o, v8::Local<v8::Object>(), str);
+        strError.append(str);
     }
 
     return strError;

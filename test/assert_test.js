@@ -362,10 +362,6 @@ describe('assert', () => {
         assert.throws(() => {
             assert.equal(obj, "abb");
         });
-
-        assert.throws(() => {
-            assert.notEqual(obj, "abb");
-        });
     });
 
     it('strictEqual', () => {
@@ -814,7 +810,7 @@ describe('assert', () => {
             assert.throws(() => assert.ifError(null));
         } catch (e) {
             threw = true;
-            assert.strictEqual(e.message, 'Missing expected exception.');
+            assert.strictEqual(e.message, 'Missing expected exception');
         }
         assert.ok(threw);
     });

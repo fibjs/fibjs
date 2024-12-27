@@ -33,6 +33,55 @@ const kReadableOperator = {
   notDeepEqualUnequal: 'Expected values not to be loosely deep-equal:',
 };
 
+const kReadableMessage = {
+  ok: 'Expected the expression to be truthy',
+  notOk: 'Expected the expression to be falsy',
+  isTrue: 'Expected the expression to strictly equal true',
+  isNotTrue: 'Expected the expression not to strictly equal true',
+  isFalse: 'Expected the expression to strictly equal false',
+  isNotFalse: 'Expected the expression not to strictly equal false',
+  exist: 'Expected the value to exist (non-null and non-undefined)',
+  notExist: 'Expected the value to not exist (null or undefined)',
+  isNull: 'Expected the value to be null',
+  isNotNull: 'Expected the value not to be null',
+  isUndefined: 'Expected the value to be undefined',
+  isDefined: 'Expected the value not to be undefined',
+  isFunction: 'Expected the value to be a function',
+  isNotFunction: 'Expected the value not to be a function',
+  isObject: 'Expected the value to be an object',
+  isNotObject: 'Expected the value not to be an object',
+  isArray: 'Expected the value to be an array',
+  isNotArray: 'Expected the value not to be an array',
+  isString: 'Expected the value to be a string',
+  isNotString: 'Expected the value not to be a string',
+  isNumber: 'Expected the value to be a number',
+  isNotNumber: 'Expected the value not to be a number',
+  isBoolean: 'Expected the value to be a boolean',
+  isNotBoolean: 'Expected the value not to be a boolean',
+  throws: 'Missing expected exception',
+  doesNotThrow: 'Got unwanted exception',
+  rejects: 'Missing expected rejection',
+}
+
+const kOperatorDescription = {
+  match: 'to match',
+  doesNotMatch: 'not to match',
+  closeTo: 'to be close to',
+  notCloseTo: 'not to be close to',
+  lessThan: 'to be below',
+  notLessThan: 'to be at least',
+  greaterThan: 'to be above',
+  notGreaterThan: 'to be at most',
+  property: 'to have property',
+  notProperty: 'not to have property',
+  deepProperty: 'to have deep property',
+  notDeepProperty: 'not to have deep property',
+  propertyVal: 'to have property with value',
+  propertyNotVal: 'not to have property with value',
+  deepPropertyVal: 'to have deep property with value',
+  deepPropertyNotVal: 'not to have deep property with value',
+};
+
 const kMaxShortStringLength = 12;
 const kMaxLongStringLength = 512;
 
@@ -71,11 +120,16 @@ function inspectValue(val) {
     sorted: true,
     // Inspect getters as we also check them when comparing entries.
     getters: true,
+    colors: false
   });
 }
 
 function getErrorMessage(operator, message) {
   return message || kReadableOperator[operator];
+}
+
+function getOpteratorDescription(operator) {
+  return kOperatorDescription[operator] || operator;
 }
 
 function checkOperator(actual, expected, operator) {
@@ -241,6 +295,7 @@ class AssertionError extends Error {
     } = options;
     let {
       actual,
+      property,
       expected,
     } = options;
 
@@ -253,77 +308,82 @@ class AssertionError extends Error {
         super(String(message));
       }
     } else {
-      // Prevent the error stack from being visible by duplicating the error
-      // in a very close way to the original in case both sides are actually
-      // instances of Error.
-      if (typeof actual === 'object' && actual !== null &&
-        typeof expected === 'object' && expected !== null &&
-        'stack' in actual && actual instanceof Error &&
-        'stack' in expected && expected instanceof Error) {
-        actual = copyError(actual);
-        expected = copyError(expected);
-      }
-
-      if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
-        super(createErrDiff(actual, expected, operator, message));
-      } else if (operator === 'notDeepStrictEqual' ||
-        operator === 'notStrictEqual') {
-        // In case the objects are equal but the operator requires unequal, show
-        // the first object and say A equals B
-        let base = kReadableOperator[operator];
-        const res = StringPrototypeSplit(inspectValue(actual), '\n');
-
-        // In case "actual" is an object or a function, it should not be
-        // reference equal.
-        if (operator === 'notStrictEqual' &&
-          ((typeof actual === 'object' && actual !== null) ||
-            typeof actual === 'function')) {
-          base = kReadableOperator.notStrictEqualObject;
-        }
-
-        // Only remove lines in case it makes sense to collapse those.
-        // TODO: Accept env to always show the full error.
-        if (res.length > 50) {
-          res[46] = `${colors.blue}...${colors.clear}`;
-          while (res.length > 47) {
-            ArrayPrototypePop(res);
-          }
-        }
-
-        // Only print a single input.
-        if (res.length === 1) {
-          super(`${base}${res[0].length > 5 ? '\n\n' : ' '}${res[0]}`);
-        } else {
-          super(`${base}\n\n${ArrayPrototypeJoin(res, '\n')}\n`);
-        }
+      const knownMessage = kReadableMessage[operator];
+      if (knownMessage) {
+        super(knownMessage);
       } else {
-        let res = inspectValue(actual);
-        let other = inspectValue(expected);
-        const knownOperator = kReadableOperator[operator];
-        if (operator === 'notDeepEqual' && res === other) {
-          res = `${knownOperator}\n\n${res}`;
-          if (res.length > 1024) {
-            res = `${StringPrototypeSlice(res, 0, 1021)}...`;
+        // Prevent the error stack from being visible by duplicating the error
+        // in a very close way to the original in case both sides are actually
+        // instances of Error.
+        if (typeof actual === 'object' && actual !== null &&
+          typeof expected === 'object' && expected !== null &&
+          'stack' in actual && actual instanceof Error &&
+          'stack' in expected && expected instanceof Error) {
+          actual = copyError(actual);
+          expected = copyError(expected);
+        }
+
+        if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
+          super(createErrDiff(actual, expected, operator, message));
+        } else if (operator === 'notDeepStrictEqual' ||
+          operator === 'notStrictEqual') {
+          // In case the objects are equal but the operator requires unequal, show
+          // the first object and say A equals B
+          let base = kReadableOperator[operator];
+          const res = StringPrototypeSplit(inspectValue(actual), '\n');
+
+          // In case "actual" is an object or a function, it should not be
+          // reference equal.
+          if (operator === 'notStrictEqual' &&
+            ((typeof actual === 'object' && actual !== null) ||
+              typeof actual === 'function')) {
+            base = kReadableOperator.notStrictEqualObject;
           }
-          super(res);
-        } else {
-          if (res.length > kMaxLongStringLength) {
-            res = `${StringPrototypeSlice(res, 0, 509)}...`;
-          }
-          if (other.length > kMaxLongStringLength) {
-            other = `${StringPrototypeSlice(other, 0, 509)}...`;
-          }
-          if (operator === 'deepEqual') {
-            res = `${knownOperator}\n\n${res}\n\nshould loosely deep-equal\n\n`;
-          } else {
-            const newOp = kReadableOperator[`${operator}Unequal`];
-            if (newOp) {
-              res = `${newOp}\n\n${res}\n\nshould not loosely deep-equal\n\n`;
-            } else {
-              other = ` ${operator} ${other}`;
+
+          // Only remove lines in case it makes sense to collapse those.
+          // TODO: Accept env to always show the full error.
+          if (res.length > 50) {
+            res[46] = `${colors.blue}...${colors.clear}`;
+            while (res.length > 47) {
+              ArrayPrototypePop(res);
             }
           }
-          super(`${res}${other}`);
+
+          // Only print a single input.
+          if (res.length === 1) {
+            super(`${base}${res[0].length > 5 ? '\n\n' : ' '}${res[0]}`);
+          } else {
+            super(`${base}\n\n${ArrayPrototypeJoin(res, '\n')}\n`);
+          }
+        } else {
+          let res = inspectValue(actual);
+          let other = inspectValue(expected);
+          const knownOperator = kReadableOperator[operator];
+          if (operator === 'notDeepEqual' && res === other) {
+            res = `${knownOperator}\n\n${res}`;
+            if (res.length > 1024) {
+              res = `${StringPrototypeSlice(res, 0, 1021)}...`;
+            }
+            super(res);
+          } else {
+            if (res.length > kMaxLongStringLength) {
+              res = `${StringPrototypeSlice(res, 0, 509)}...`;
+            }
+            if (other.length > kMaxLongStringLength) {
+              other = `${StringPrototypeSlice(other, 0, 509)}...`;
+            }
+            if (operator === 'deepEqual') {
+              res = `${knownOperator}\n\n${res}\n\nshould loosely deep-equal\n\n`;
+            } else {
+              const newOp = kReadableOperator[`${operator}Unequal`];
+              if (newOp) {
+                res = `${newOp}\n\n${res}\n\nshould not loosely deep-equal\n\n`;
+              } else {
+                other = ` ${getOpteratorDescription(operator)} ${other}`;
+              }
+            }
+            super(`Expected ${res}${other}`);
+          }
         }
       }
     }
@@ -338,19 +398,20 @@ class AssertionError extends Error {
     });
     this.code = 'ERR_ASSERTION';
     if (details) {
-      this.actual = undefined;
-      this.expected = undefined;
-      this.operator = undefined;
       for (let i = 0; i < details.length; i++) {
         this['message ' + i] = details[i].message;
         this['actual ' + i] = details[i].actual;
-        this['expected ' + i] = details[i].expected;
+        if (details[i].expected !== undefined)
+          this['expected ' + i] = details[i].expected;
         this['operator ' + i] = details[i].operator;
         this['stack trace ' + i] = details[i].stack;
       }
     } else {
       this.actual = actual;
-      this.expected = expected;
+      if (property !== undefined)
+        this.property = property;
+      if (expected !== undefined)
+        this.expected = expected;
       this.operator = operator;
     }
     // ErrorCaptureStackTrace(this, stackStartFn || stackStartFunction);

@@ -222,10 +222,9 @@ JSFiber::EnterJsScope::~EnterJsScope()
                 v8::Local<v8::Array> o = v.As<v8::Array>();
                 v = o->Get(_context, 1);
 
-                if (v->IsNativeError()) {
-                    v8::Local<v8::Object> obj = v.As<v8::Object>();
-                    errorLog(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
-                } else
+                if (v->IsNativeError())
+                    errorLog(GetException(v, false, true));
+                else
                     errorLog(isolate->toString(v));
             }
         }
