@@ -37,6 +37,11 @@ declare class Class_HttpMessage extends Class_Message {
     maxHeaderSize: number;
 
     /**
+     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2 
+     */
+    maxChunkSize: number;
+
+    /**
      * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 
      */
     maxBodySize: number;

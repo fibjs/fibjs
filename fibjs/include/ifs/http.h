@@ -48,6 +48,8 @@ public:
     static result_t set_maxHeadersCount(int32_t newVal);
     static result_t get_maxHeaderSize(int32_t& retVal);
     static result_t set_maxHeaderSize(int32_t newVal);
+    static result_t get_maxChunkSize(int32_t& retVal);
+    static result_t set_maxChunkSize(int32_t newVal);
     static result_t get_maxBodySize(int32_t& retVal);
     static result_t set_maxBodySize(int32_t newVal);
     static result_t get_userAgent(exlib::string& retVal);
@@ -102,6 +104,8 @@ public:
     static void s_static_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -185,6 +189,7 @@ inline ClassInfo& http_base::class_info()
         { "enableEncoding", s_static_get_enableEncoding, s_static_set_enableEncoding, true },
         { "maxHeadersCount", s_static_get_maxHeadersCount, s_static_set_maxHeadersCount, true },
         { "maxHeaderSize", s_static_get_maxHeaderSize, s_static_set_maxHeaderSize, true },
+        { "maxChunkSize", s_static_get_maxChunkSize, s_static_set_maxChunkSize, true },
         { "maxBodySize", s_static_get_maxBodySize, s_static_set_maxBodySize, true },
         { "userAgent", s_static_get_userAgent, s_static_set_userAgent, true },
         { "poolSize", s_static_get_poolSize, s_static_set_poolSize, true },
@@ -408,6 +413,32 @@ inline void http_base::s_static_set_maxHeaderSize(const v8::FunctionCallbackInfo
     ARG(int32_t, 0);
 
     hr = set_maxHeaderSize(v0);
+
+    METHOD_VOID();
+}
+
+inline void http_base::s_static_get_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_maxChunkSize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_set_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = set_maxChunkSize(v0);
 
     METHOD_VOID();
 }

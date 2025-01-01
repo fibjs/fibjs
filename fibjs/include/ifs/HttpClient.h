@@ -44,6 +44,8 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxHeaderSize(int32_t& retVal) = 0;
     virtual result_t set_maxHeaderSize(int32_t newVal) = 0;
+    virtual result_t get_maxChunkSize(int32_t& retVal) = 0;
+    virtual result_t set_maxChunkSize(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_userAgent(exlib::string& retVal) = 0;
@@ -89,6 +91,8 @@ public:
     static void s_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -152,6 +156,7 @@ inline ClassInfo& HttpClient_base::class_info()
         { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxHeaderSize", s_get_maxHeaderSize, s_set_maxHeaderSize, false },
+        { "maxChunkSize", s_get_maxChunkSize, s_set_maxChunkSize, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "userAgent", s_get_userAgent, s_set_userAgent, false },
         { "poolSize", s_get_poolSize, s_set_poolSize, false },
@@ -433,6 +438,34 @@ inline void HttpClient_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo<
     ARG(int32_t, 0);
 
     hr = pInst->set_maxHeaderSize(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxChunkSize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxChunkSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->set_maxChunkSize(v0);
 
     METHOD_VOID();
 }

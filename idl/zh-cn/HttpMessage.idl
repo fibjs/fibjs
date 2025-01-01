@@ -19,6 +19,9 @@ interface HttpMessage : Message
     /*! @brief 查询和设置最大请求头长度，缺省为 8192 */
     Integer maxHeaderSize;
 
+    /*! @brief 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2 */
+    Integer maxChunkSize;
+
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 */
     Integer maxBodySize;
 

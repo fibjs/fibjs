@@ -121,6 +121,16 @@ result_t http_base::set_maxHeaderSize(int32_t newVal)
     return get_httpClient()->set_maxHeaderSize(newVal);
 }
 
+result_t http_base::get_maxChunkSize(int32_t& retVal)
+{
+    return get_httpClient()->get_maxChunkSize(retVal);
+}
+
+result_t http_base::set_maxChunkSize(int32_t newVal)
+{
+    return get_httpClient()->set_maxChunkSize(newVal);
+}
+
 result_t http_base::get_maxBodySize(int32_t& retVal)
 {
     return get_httpClient()->get_maxBodySize(retVal);

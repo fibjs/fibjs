@@ -125,6 +125,16 @@ result_t HttpResponse::set_maxHeaderSize(int32_t newVal)
     return m_message->set_maxHeaderSize(newVal);
 }
 
+result_t HttpResponse::get_maxChunkSize(int32_t& retVal)
+{
+    return m_message->get_maxChunkSize(retVal);
+}
+
+result_t HttpResponse::set_maxChunkSize(int32_t newVal)
+{
+    return m_message->set_maxChunkSize(newVal);
+}
+
 result_t HttpResponse::get_maxBodySize(int32_t& retVal)
 {
     return m_message->get_maxBodySize(retVal);

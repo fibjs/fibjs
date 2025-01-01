@@ -9,6 +9,7 @@
 #include "HttpMessage.h"
 #include "parse.h"
 #include "Buffer.h"
+#include "ChunkedStream.h"
 #include <string.h>
 
 namespace fibjs {
@@ -257,7 +258,8 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 m_contentLength = 0;
 
                 m_pThis->get_body(m_body);
-                return next(chunk_head);
+                m_chunked = new ChunkedStream(m_stm, m_pThis->m_maxChunkSize, m_pThis->m_maxBodySize);
+                return m_chunked->copyTo(m_body, -1, m_copySize, next(body));
             }
 
             if (!m_pThis->m_bNoBody && (m_contentLength > 0 || (m_pThis->m_bResponse && !m_pThis->m_keepAlive && m_contentLength == -1))) {
@@ -277,53 +279,11 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             return next();
         }
 
-        ON_STATE(asyncReadFrom, chunk_head)
-        {
-            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_body));
-        }
-
-        ON_STATE(asyncReadFrom, chunk_body)
-        {
-            _parser p(m_strLine);
-            char ch;
-            int64_t sz = 0;
-
-            p.skipSpace();
-
-            if (!qisxdigit(p.get()))
-                return CHECK_ERROR(Runtime::setError("HttpMessage: bad chunk size."));
-
-            while (qisxdigit(ch = p.get())) {
-                sz = (sz << 4) + qhex(ch);
-                p.skip();
-            }
-
-            if (sz) {
-                if (m_pThis->m_maxBodySize >= 0
-                    && sz + m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)
-                    return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
-                return m_stm->copyTo(m_body, sz, m_copySize, next(chunk_body_end));
-            }
-
-            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_end));
-        }
-
-        ON_STATE(asyncReadFrom, chunk_body_end)
-        {
-            m_contentLength += m_copySize;
-            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_head));
-        }
-
-        ON_STATE(asyncReadFrom, chunk_end)
-        {
-            m_body->rewind();
-            return next();
-        }
-
     public:
         HttpMessage* m_pThis;
         obj_ptr<BufferedStream_base> m_stm;
         obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<Stream_base> m_chunked;
         exlib::string m_strLine;
         int64_t m_contentLength;
         bool m_bChunked;
@@ -528,6 +488,18 @@ result_t HttpMessage::set_maxHeaderSize(int32_t newVal)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxHeaderSize = newVal;
+    return 0;
+}
+
+result_t HttpMessage::get_maxChunkSize(int32_t& retVal)
+{
+    retVal = m_maxChunkSize;
+    return 0;
+}
+
+result_t HttpMessage::set_maxChunkSize(int32_t newVal)
+{
+    m_maxChunkSize = newVal;
     return 0;
 }
 

@@ -213,6 +213,21 @@ result_t HttpClient::set_maxHeaderSize(int32_t newVal)
     return 0;
 }
 
+result_t HttpClient::get_maxChunkSize(int32_t& retVal)
+{
+    retVal = m_maxChunkSize;
+    return 0;
+}
+
+result_t HttpClient::set_maxChunkSize(int32_t newVal)
+{
+    if (newVal < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    m_maxChunkSize = newVal;
+    return 0;
+}
+
 result_t HttpClient::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
@@ -534,6 +549,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
             m_retVal = resp;
             m_retVal->set_maxHeadersCount(m_hc->m_maxHeadersCount);
             m_retVal->set_maxHeaderSize(m_hc->m_maxHeaderSize);
+            m_retVal->set_maxChunkSize(m_hc->m_maxChunkSize);
             m_retVal->set_maxBodySize(m_hc->m_maxBodySize);
             m_bs = new BufferedStream(m_conn);
             m_bs->set_EOL("\r\n");

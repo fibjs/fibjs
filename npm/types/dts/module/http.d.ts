@@ -130,6 +130,11 @@ declare module 'http' {
     var maxHeaderSize: number;
 
     /**
+     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2 
+     */
+    var maxChunkSize: number;
+
+    /**
      * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 
      */
     var maxBodySize: number;
