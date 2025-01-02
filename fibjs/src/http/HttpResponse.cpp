@@ -325,11 +325,8 @@ result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
-result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
+exlib::string HttpResponse::prepareHeaders()
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     if (m_cookies) {
         int32_t len, i;
 
@@ -382,6 +379,15 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     get_protocol(strCommand);
     strCommand.append(statusMessage);
 
+    return strCommand;
+}
+
+result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string strCommand = prepareHeaders();
     return m_message->send(stm, strCommand, ac);
 }
 
@@ -569,34 +575,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_cookies) {
-        int32_t len, i;
-
-        len = m_cookies->length();
-
-        for (i = 0; i < len; i++) {
-            Variant v;
-            obj_ptr<object_base> cookie;
-            exlib::string str;
-
-            m_cookies->_indexed_getter(i, v);
-            cookie = v.object();
-
-            if (cookie) {
-                cookie->toString(str);
-                addHeader("Set-Cookie", str);
-            }
-        }
-
-        m_cookies.Release();
-    }
-
-    int32_t pos = shortcut[m_statusCode / 100 - 1] + m_statusCode % 100;
-    exlib::string strCommand;
-
-    get_protocol(strCommand);
-    strCommand.append(status_lines[pos], status_lines_size[pos]);
-
+    exlib::string strCommand = prepareHeaders();
     return m_message->sendHeader(stm, strCommand, ac);
 }
 

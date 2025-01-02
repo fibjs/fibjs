@@ -120,6 +120,8 @@ public:
         return 0;
     }
 
+    exlib::string prepareHeaders();
+
 public:
     obj_ptr<HttpMessage> m_message;
     int32_t m_statusCode;
