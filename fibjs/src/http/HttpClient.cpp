@@ -540,31 +540,37 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
 
         ON_STATE(asyncRequest, recv)
         {
-            obj_ptr<HttpResponse> resp = new HttpResponse();
-            resp->m_message->m_bNoBody = m_bNoBody;
+            m_response = new HttpResponse();
+            m_retVal = m_response;
+
+            m_response->m_message->m_bNoBody = m_bNoBody;
 
             if (m_response_body)
-                resp->set_body(m_response_body);
+                m_response->set_body(m_response_body);
 
-            m_retVal = resp;
-            m_retVal->set_maxHeadersCount(m_hc->m_maxHeadersCount);
-            m_retVal->set_maxHeaderSize(m_hc->m_maxHeaderSize);
-            m_retVal->set_maxChunkSize(m_hc->m_maxChunkSize);
-            m_retVal->set_maxBodySize(m_hc->m_maxBodySize);
+            m_response->set_maxHeadersCount(m_hc->m_maxHeadersCount);
+            m_response->set_maxHeaderSize(m_hc->m_maxHeaderSize);
+            m_response->set_maxChunkSize(m_hc->m_maxChunkSize);
+            m_response->set_maxBodySize(m_hc->m_maxBodySize);
             m_bs = new BufferedStream(m_conn);
             m_bs->set_EOL("\r\n");
 
-            return m_retVal->readFrom(m_bs, next(m_hc->m_enableEncoding ? unzip : close));
+            return m_response->readHeader(m_bs, next(body));
+        }
+
+        ON_STATE(asyncRequest, body)
+        {
+            return m_response->readBody(next(m_hc->m_enableEncoding ? unzip : close));
         }
 
         ON_STATE(asyncRequest, unzip)
         {
             exlib::string hdr;
 
-            if (!m_response_body && m_retVal->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
-                m_retVal->removeHeader("Content-Encoding");
+            if (!m_response_body && m_response->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
+                m_response->removeHeader("Content-Encoding");
 
-                m_retVal->get_body(m_body);
+                m_response->get_body(m_body);
                 m_unzip = new MemoryStream();
 
                 if (hdr == "gzip")
@@ -582,7 +588,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
         {
             if (m_unzip) {
                 m_unzip->rewind();
-                m_retVal->set_body(m_unzip);
+                m_response->set_body(m_unzip);
             }
 
             return next();
@@ -595,6 +601,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<HttpResponse> m_response;
         obj_ptr<SeekableStream_base> m_response_body;
         obj_ptr<HttpResponse_base>& m_retVal;
         bool m_bNoBody;

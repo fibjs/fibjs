@@ -122,6 +122,12 @@ public:
 
     exlib::string prepareHeaders();
 
+    result_t readHeader(Stream_base* stm, AsyncEvent* ac);
+    result_t readBody(AsyncEvent* ac);
+
+private:
+    result_t readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnly);
+
 public:
     obj_ptr<HttpMessage> m_message;
     int32_t m_statusCode;

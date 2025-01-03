@@ -391,15 +391,16 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     return m_message->send(stm, strCommand, ac);
 }
 
-result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnly)
 {
     class asyncReadFrom : public AsyncState {
     public:
         asyncReadFrom(HttpResponse* pThis, BufferedStream_base* stm,
-            AsyncEvent* ac)
+            AsyncEvent* ac, bool headerOnly)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
+            , m_headerOnly(headerOnly)
         {
             next(begin);
         }
@@ -431,12 +432,16 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             if (hr < 0)
                 return hr;
 
+            if (m_headerOnly)
+                return m_pThis->m_message->readHeader(m_stm, next());
+
             return m_pThis->m_message->readFrom(m_stm, next());
         }
 
     public:
         obj_ptr<HttpResponse> m_pThis;
         obj_ptr<BufferedStream_base> m_stm;
+        bool m_headerOnly;
         exlib::string m_strLine;
     };
 
@@ -447,7 +452,22 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
     if (!_stm)
         return CHECK_ERROR(Runtime::setError("HttpResponse: only accept BufferedStream object."));
 
-    return (new asyncReadFrom(this, _stm, ac))->post(0);
+    return (new asyncReadFrom(this, _stm, ac, headerOnly))->post(0);
+}
+
+result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
+{
+    return readFrom(stm, ac, false);
+}
+
+result_t HttpResponse::readHeader(Stream_base* stm, AsyncEvent* ac)
+{
+    return readFrom(stm, ac, true);
+}
+
+result_t HttpResponse::readBody(AsyncEvent* ac)
+{
+    return m_message->readBody(ac);
 }
 
 result_t HttpResponse::get_stream(obj_ptr<Stream_base>& retVal)

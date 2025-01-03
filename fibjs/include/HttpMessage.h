@@ -22,6 +22,8 @@ public:
         , m_maxHeaderSize(8192)
         , m_maxChunkSize(2)
         , m_maxBodySize(64)
+        , m_contentLength(-1)
+        , m_bChunked(false)
     {
         m_headers = new HttpCollection();
         clear();
@@ -72,6 +74,8 @@ public:
     result_t sendHeader(Stream_base* stm, exlib::string& strCommand,
         AsyncEvent* ac);
     result_t readFrom(Stream_base* stm, AsyncEvent* ac);
+    result_t readHeader(Stream_base* stm, AsyncEvent* ac);
+    result_t readBody(AsyncEvent* ac);
 
 public:
     void addHeader(const char* name, int32_t szName, const char* value,
@@ -100,6 +104,9 @@ public:
     exlib::string m_origin;
     exlib::string m_encoding;
     obj_ptr<HttpCollection> m_headers;
+
+    int64_t m_contentLength;
+    bool m_bChunked;
 };
 
 } /* namespace fibjs */
