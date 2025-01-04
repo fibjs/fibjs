@@ -23,6 +23,7 @@ class HttpClient_base;
 class HttpsServer_base;
 class HttpHandler_base;
 class HttpRepeater_base;
+class EventSource_base;
 class Handler_base;
 class Stream_base;
 class SeekableStream_base;
@@ -150,6 +151,7 @@ public:
 #include "ifs/HttpsServer.h"
 #include "ifs/HttpHandler.h"
 #include "ifs/HttpRepeater.h"
+#include "ifs/EventSource.h"
 #include "ifs/Handler.h"
 #include "ifs/Stream.h"
 #include "ifs/SeekableStream.h"
@@ -176,7 +178,8 @@ inline ClassInfo& http_base::class_info()
         { "Client", HttpClient_base::class_info },
         { "HttpsServer", HttpsServer_base::class_info },
         { "Handler", HttpHandler_base::class_info },
-        { "Repeater", HttpRepeater_base::class_info }
+        { "Repeater", HttpRepeater_base::class_info },
+        { "EventSource", EventSource_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

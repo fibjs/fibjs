@@ -2709,7 +2709,7 @@ describe("http", () => {
 
         describe("load", () => {
             it("basic test", () => {
-                var hr = new http.Repeater("http://127.0.0.1/");
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/path');
                 hr.load([
                     "http://127.0.0.1/test1",
                     "http://127.0.0.1/test2"
@@ -2916,6 +2916,172 @@ describe("http", () => {
 
     });
 
+    describe('EventSource', () => {
+        var svr;
+
+        before(() => {
+            svr = new http.Server(8887 + base_port, function (req) {
+                req.response.setHeader('Content-Type', 'text/event-stream');
+                req.response.keepAlive = false;
+
+                switch (req.address) {
+                    case '/hello':
+                        req.response.write('data: hello\n\n');
+                        break;
+
+                    case '/custom-event':
+                        req.response.write('event: custom\ndata: custom data\n\n');
+                        break;
+
+                    case '/with-id':
+                        req.response.write('id: 1\ndata: message with id\n\n');
+                        break;
+
+                    case '/retry':
+                        req.response.write('retry: 1000\ndata: retry message\n\n');
+                        break;
+
+                    case '/multi-line':
+                        req.response.write('data: line1\ndata: line2\n\n');
+                        break;
+
+                    case '/wrong-content-type':
+                        req.response.setHeader('Content-Type', 'text/plain');
+                        req.response.write('data: error\n\n');
+                        break;
+
+                    case '/error-status':
+                        req.response.status = 404;
+                        req.response.write('data: error\n\n');
+                        break;
+
+                    case '/comments':
+                        req.response.write(': this is comment\ndata: real data\n\n');
+                        break;
+
+                    case '/properties':
+                        req.response.write('data: test properties\n\n');
+                        break;
+                }
+            });
+
+            svr.start();
+
+            test_util.push(svr.socket);
+        });
+
+        function get_event(url) {
+            return new Promise((resolve, reject) => {
+                const es = new http.EventSource(url);
+
+                es.onmessage = (e) => {
+                    resolve(e.data);
+                };
+
+                es.onerror = (e) => {
+                    reject(e);
+                };
+            });
+        }
+
+        function get_event_with_type(url, eventType) {
+            return new Promise((resolve, reject) => {
+                const es = new http.EventSource(url);
+
+                es.addEventListener(eventType, (e) => {
+                    resolve(e.data);
+                });
+
+                es.onerror = (e) => {
+                    reject(e);
+                };
+            });
+        }
+
+        function get_event_with_id(url) {
+            return new Promise((resolve, reject) => {
+                const es = new http.EventSource(url);
+
+                es.onmessage = (e) => {
+                    resolve({ data: e.data, id: e.id });
+                };
+
+                es.onerror = (e) => {
+                    reject(e);
+                };
+            });
+        }
+
+        function get_properties(url) {
+            return new Promise((resolve, reject) => {
+                const es = new http.EventSource(url);
+
+                es.onmessage = () => {
+                    resolve({
+                        readyState: es.readyState,
+                        url: es.url,
+                        withCredentials: es.withCredentials,
+                        response: es.response
+                    });
+                    es.close();
+                };
+
+                es.onerror = (e) => {
+                    reject(e);
+                };
+            });
+        }
+
+        it('basic message', async () => {
+            assert.equal(await get_event(`http://127.0.0.1:${8887 + base_port}/hello`), 'hello');
+        });
+
+        it('custom event', async () => {
+            assert.equal(
+                await get_event_with_type(`http://127.0.0.1:${8887 + base_port}/custom-event`, "custom"),
+                'custom data'
+            );
+        });
+
+        it('message with id', async () => {
+            const result = await get_event_with_id(`http://127.0.0.1:${8887 + base_port}/with-id`);
+            assert.equal(result.data, 'message with id');
+            assert.equal(result.id, '1');
+        });
+
+        it('multi-line data', async () => {
+            assert.equal(
+                await get_event(`http://127.0.0.1:${8887 + base_port}/multi-line`),
+                'line1\nline2'
+            );
+        });
+
+        it('wrong content type error', async () => {
+            assert.rejects(get_event(`http://127.0.0.1:${8887 + base_port}/wrong-content-type`));
+        });
+
+        it('error status', async () => {
+            assert.rejects(get_event(`http://127.0.0.1:${8887 + base_port}/error-status`));
+        });
+
+        it('should ignore comment lines', async () => {
+            assert.equal(
+                await get_event(`http://127.0.0.1:${8887 + base_port}/comments`),
+                'real data'
+            );
+        });
+
+        it('should have correct properties', async () => {
+            const props = await get_properties(`http://127.0.0.1:${8887 + base_port}/properties`);
+
+            assert.equal(props.readyState, 1);
+            assert.equal(props.url, `http://127.0.0.1:${8887 + base_port}/properties`);
+            assert.equal(props.withCredentials, false);
+            assert.notEqual(props.response, null);
+            assert.equal(props.response.status, 200);
+        });
+    });
+
     describe("verification", () => {
         var hc;
 
@@ -2942,7 +3108,7 @@ describe("http", () => {
     });
 
     todo("unix socket", () => {
-        var _port = (8887 + base_port);
+        var _port = (8888 + base_port);
         var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
 
         var svr = new http.Server(_path, (r) => {

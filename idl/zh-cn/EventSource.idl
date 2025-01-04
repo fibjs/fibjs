@@ -1,0 +1,73 @@
+/*! @brief 事件源接口，用于服务器推送事件
+
+  引用方式：
+  ```JavaScript
+    const http = require('http');
+    
+    const es = new http.EventSource('http://localhost:8080');
+  ```
+*/
+interface EventSource : EventEmitter
+{
+    /*! @brief 构造函数
+
+     options 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+
+      @param url 服务器地址
+      @param options 选项
+    */
+    EventSource(String url, Object options = {});
+
+    /*! @brief 关闭连接 */
+    close() async;
+
+    /*! @brief 事件源状态，取值为 CONNECTING、OPEN、CLOSED */
+    readonly Integer readyState;
+
+    /*! @brief 服务器地址 */
+    readonly String url;
+
+    /*! @brief 是否携带凭证 */
+    readonly Boolean withCredentials;
+
+    /*! @brief http 响应对象 */
+    readonly HttpResponse response;
+
+    /*! @brief 打开事件回调 */
+    Function onopen;
+
+    /*! @brief 错误事件回调 */
+    Function onerror;
+
+    /*! @brief 消息事件回调 */
+    Function onmessage;
+
+    /*! @brief 关闭事件回调 */
+    Function onclose;
+
+    /*! @brief 事件源状态：连接中 */
+    const CONNECTING = 0;
+
+    /*! @brief 事件源状态：已连接 */
+    const OPEN = 1;
+
+    /*! @brief 事件源状态：已关闭 */
+    const CLOSED = 2;
+};
