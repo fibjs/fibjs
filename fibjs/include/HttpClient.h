@@ -79,10 +79,14 @@ public:
 
 public:
     result_t init(v8::Local<v8::Object> options);
+    result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac);
     result_t request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-        SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+        SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
         SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
+    result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
+
     result_t update_cookies(exlib::string url, NArray* cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
@@ -153,7 +157,7 @@ public:
 private:
     result_t update(HttpCookie_base* cookie);
 
-private:
+public:
     obj_ptr<SecureContext_base> m_context;
     obj_ptr<NArray> m_cookies;
     exlib::spinlock m_lock;

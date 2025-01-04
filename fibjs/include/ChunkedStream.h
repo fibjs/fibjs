@@ -11,6 +11,7 @@
 #include "ifs/BufferedStream.h"
 #include "ifs/io.h"
 #include "Buffer.h"
+#include "parse.h"
 
 namespace fibjs {
 
