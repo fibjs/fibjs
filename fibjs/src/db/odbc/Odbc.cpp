@@ -273,13 +273,13 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
             for (int32_t i = 0; i < columns; i++) {
                 SQLSMALLINT buflen;
                 SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
-                hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
+                hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
                 if (hr < 0)
                     break;
 
                 res->setField(i, utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
 
-                hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
+                hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
                 if (hr < 0)
                     break;
             }
