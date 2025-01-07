@@ -260,6 +260,18 @@ void WebView::config()
     else
         nHeight = actualDesktop.bottom * 3 / 4;
 
+    if (m_options->minWidth.has_value())
+        nWidth = std::max(nWidth, m_options->minWidth.value() * dpix / 96);
+
+    if (m_options->minHeight.has_value())
+        nHeight = std::max(nHeight, m_options->minHeight.value() * dpix / 96);
+
+    if (m_options->maxWidth.has_value())
+        nWidth = std::min(nWidth, m_options->maxWidth.value() * dpix / 96);
+
+    if (m_options->maxHeight.has_value())
+        nHeight = std::min(nHeight, m_options->maxHeight.value() * dpix / 96);
+
     if (x != CW_USEDEFAULT)
         x = x * dpix / 96;
     else

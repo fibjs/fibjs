@@ -295,6 +295,18 @@ void WebView::config()
     if (nHeight == CW_USEDEFAULT)
         nHeight = screen_rect.size.height * 3 / 4;
 
+    if (m_options->minWidth.has_value())
+        nWidth = std::max(nWidth, m_options->minWidth.value());
+
+    if (m_options->minHeight.has_value())
+        nHeight = std::max(nHeight, m_options->minHeight.value());
+
+    if (m_options->maxWidth.has_value())
+        nWidth = std::min(nWidth, m_options->maxWidth.value());
+
+    if (m_options->maxHeight.has_value())
+        nHeight = std::min(nHeight, m_options->maxHeight.value());
+
     if (x == CW_USEDEFAULT)
         x = (screen_rect.size.width - nWidth) / 2;
 
