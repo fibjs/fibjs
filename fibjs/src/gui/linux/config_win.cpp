@@ -18,6 +18,7 @@
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/mime.h"
+#include "ifs/encoding.h"
 #include "EventInfo.h"
 #include "WebView.h"
 #include "Buffer.h"
@@ -42,6 +43,8 @@ void os_putGuiPool(AsyncEvent* ac)
 static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer user_data)
 {
     exlib::string fname = webkit_uri_scheme_request_get_path(request);
+    encoding_base::decodeURI(fname, fname);
+
     async([fname, request]() {
         Variant var;
         result_t hr = fs_base::cc_readFile(fname, "", var, Isolate::main());
