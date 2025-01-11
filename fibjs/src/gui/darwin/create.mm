@@ -100,6 +100,8 @@
     NSURLRequest* request = [urlSchemeTask request];
     NSURL* url = [request URL];
 
+    [(id)urlSchemeTask retain];
+
     exlib::string fname = [[url path] UTF8String];
     fibjs::async([fname, url, urlSchemeTask]() {
         fibjs::Variant var;
@@ -113,25 +115,49 @@
                 exlib::string mtype;
                 fibjs::mime_base::getType(fname, mtype);
 
-                NSURLResponse* response = [[NSURLResponse alloc] initWithURL:url MIMEType:[NSString stringWithUTF8String:mtype.c_str()] expectedContentLength:[data length] textEncodingName:nil];
-                [urlSchemeTask didReceiveResponse:response];
-                [urlSchemeTask didReceiveData:data];
-                [urlSchemeTask didFinish];
+                @try {
+                    NSURLResponse* response = [[NSURLResponse alloc] initWithURL:url
+                                                                        MIMEType:[NSString stringWithUTF8String:mtype.c_str()]
+                                                           expectedContentLength:[data length]
+                                                                textEncodingName:nil];
+
+                    [urlSchemeTask didReceiveResponse:response];
+                    [urlSchemeTask didReceiveData:data];
+                    [urlSchemeTask didFinish];
+                } @catch (NSException* exception) {
+                }
+
+                [(id)urlSchemeTask release];
             },
                 CALL_E_GUICALL);
         } else {
             fibjs::async([fname, urlSchemeTask]() {
-                NSString* errorHTML = [NSString stringWithFormat:@"<html><body><h1>Error</h1><p>File not found at path:<br>%@</p></body></html>", [NSString stringWithUTF8String:fname.c_str()]];
+                NSString* errorHTML = [NSString stringWithFormat:@"<html><body><h1>Error</h1><p>File not found at path:<br>%@</p></body></html>",
+                                                [NSString stringWithUTF8String:fname.c_str()]];
                 NSData* data = [errorHTML dataUsingEncoding:NSUTF8StringEncoding];
-                NSURLResponse* response = [[NSURLResponse alloc] initWithURL:[NSURL URLWithString:@""] MIMEType:@"text/html" expectedContentLength:[data length] textEncodingName:@"UTF-8"];
-                [urlSchemeTask didReceiveResponse:response];
-                [urlSchemeTask didReceiveData:data];
-                [urlSchemeTask didFinish];
+
+                @try {
+                    NSURLResponse* response = [[NSURLResponse alloc] initWithURL:[NSURL URLWithString:@""]
+                                                                        MIMEType:@"text/html"
+                                                           expectedContentLength:[data length]
+                                                                textEncodingName:@"UTF-8"];
+                    [urlSchemeTask didReceiveResponse:response];
+                    [urlSchemeTask didReceiveData:data];
+                    [urlSchemeTask didFinish];
+                } @catch (NSException* exception) {
+                }
+
+                [(id)urlSchemeTask release];
             },
                 CALL_E_GUICALL);
         }
     });
 }
+
+- (void)webView:(WKWebView*)webView stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
+{
+}
+
 @end
 
 namespace fibjs {
