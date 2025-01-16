@@ -32,12 +32,9 @@ declare module 'assert' {
     function Function(actual?: any, msg?: string): void;
 
     /**
-     * @description 测试数值为真，为假则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
-     *      
+     * ! 测试数值为真，为假则断言失败，是 assert 模块的别名 
      */
-    function ok(actual: any, msg?: string): void;
+    const ok: typeof import ('assert');
 
     /**
      * @description 测试数值为假，为真则断言失败

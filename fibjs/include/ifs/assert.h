@@ -22,7 +22,6 @@ public:
     // assert_base
     static result_t get_AssertionError(v8::Local<v8::Function>& retVal);
     static result_t _function(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t ok(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t notOk(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t equal(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
     static result_t notEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
@@ -90,7 +89,6 @@ public:
 public:
     static void s_static_get_AssertionError(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_ok(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notOk(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -151,7 +149,6 @@ namespace fibjs {
 inline ClassInfo& assert_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "ok", s_static_ok, true, ClassData::ASYNC_SYNC },
         { "notOk", s_static_notOk, true, ClassData::ASYNC_SYNC },
         { "equal", s_static_equal, true, ClassData::ASYNC_SYNC },
         { "notEqual", s_static_notEqual, true, ClassData::ASYNC_SYNC },
@@ -207,13 +204,17 @@ inline ClassInfo& assert_base::class_info()
         { "ifError", s_static_ifError, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "ok", assert_base::class_info }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "AssertionError", s_static_get_AssertionError, block_set, true }
     };
 
     static ClassData s_cd = {
         "assert", true, s__new, s__function,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };
@@ -245,20 +246,6 @@ inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(exlib::string, 1, "");
 
     hr = _function(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void assert_base::s_static_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = ok(v0, v1);
 
     METHOD_VOID();
 }

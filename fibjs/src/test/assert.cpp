@@ -20,11 +20,6 @@ DECLARE_MODULE(assert);
 
 result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    return ok(actual, msg);
-}
-
-result_t assert_base::ok(v8::Local<v8::Value> actual, exlib::string msg)
-{
     Isolate* isolate = Isolate::current();
 
     return _test(isolate->toBoolean(actual), "ok", actual, v8::Local<v8::Value>(), msg);
