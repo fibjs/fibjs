@@ -262,6 +262,72 @@ result_t types_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
+result_t types_base::isBigIntObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBigIntObject();
+    return 0;
+}
+
+result_t types_base::isBooleanObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBooleanObject();
+    return 0;
+}
+
+result_t types_base::isNumberObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsNumberObject();
+    return 0;
+}
+
+result_t types_base::isStringObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsStringObject();
+    return 0;
+}
+
+result_t types_base::isSymbolObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsSymbolObject();
+    return 0;
+}
+
+result_t types_base::isWeakMap(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsWeakMap();
+    return 0;
+}
+
+result_t types_base::isWeakSet(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsWeakSet();
+    return 0;
+}
+
+result_t types_base::isArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsArrayBuffer();
+    return 0;
+}
+
+result_t types_base::isArrayBufferView(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsArrayBufferView();
+    return 0;
+}
+
+result_t types_base::isBigInt64Array(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBigInt64Array();
+    return 0;
+}
+
+result_t types_base::isBigUint64Array(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBigUint64Array();
+    return 0;
+}
+
 result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 {
     return types_base::isEmpty(v, retVal);

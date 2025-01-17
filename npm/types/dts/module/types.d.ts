@@ -292,5 +292,93 @@ declare module 'types' {
      */
     function isBuffer(v: any): boolean;
 
+    /**
+     * @description 检测给定的变量是否是 BigInt 对象，而不是原始类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 BigInt 对象则返回 True
+     *      
+     */
+    function isBigIntObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Boolean 对象，而不是原始类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Boolean 对象则返回 True
+     *      
+     */
+    function isBooleanObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Number 对象，而不是原始类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Number 对象则返回 True
+     *      
+     */
+    function isNumberObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 String 对象，而不是原始类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 String 对象则返回 True
+     *      
+     */
+    function isStringObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Symbol 对象，而不是原始类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Symbol 对象则返回 True
+     *      
+     */
+    function isSymbolObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 WeakMap 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 WeakMap 类型则返回 True
+     *      
+     */
+    function isWeakMap(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 WeakSet 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 WeakSet 类型则返回 True
+     *      
+     */
+    function isWeakSet(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 ArrayBuffer 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 ArrayBuffer 类型则返回 True
+     *      
+     */
+    function isArrayBuffer(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 ArrayBufferView 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 ArrayBufferView 类型则返回 True
+     *      
+     */
+    function isArrayBufferView(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 BigInt64Array 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 BigInt64Array 类型则返回 True
+     *      
+     */
+    function isBigInt64Array(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 BigUint64Array 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 BigUint64Array 类型则返回 True
+     *      
+     */
+    function isBigUint64Array(v: any): boolean;
+
 }
 

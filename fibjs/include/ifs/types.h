@@ -55,6 +55,17 @@ public:
     static result_t isUint32Array(v8::Local<v8::Value> v, bool& retVal);
     static result_t isFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBigIntObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBooleanObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isNumberObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isStringObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isSymbolObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isWeakMap(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isWeakSet(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isArrayBuffer(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isArrayBufferView(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBigInt64Array(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBigUint64Array(v8::Local<v8::Value> v, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -104,6 +115,17 @@ public:
     static void s_static_isUint32Array(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBigIntObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBooleanObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isNumberObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isStringObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isSymbolObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isWeakMap(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isWeakSet(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isArrayBufferView(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBigInt64Array(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBigUint64Array(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -145,7 +167,18 @@ inline ClassInfo& types_base::class_info()
         { "isUint16Array", s_static_isUint16Array, true, ClassData::ASYNC_SYNC },
         { "isUint32Array", s_static_isUint32Array, true, ClassData::ASYNC_SYNC },
         { "isFunction", s_static_isFunction, true, ClassData::ASYNC_SYNC },
-        { "isBuffer", s_static_isBuffer, true, ClassData::ASYNC_SYNC }
+        { "isBuffer", s_static_isBuffer, true, ClassData::ASYNC_SYNC },
+        { "isBigIntObject", s_static_isBigIntObject, true, ClassData::ASYNC_SYNC },
+        { "isBooleanObject", s_static_isBooleanObject, true, ClassData::ASYNC_SYNC },
+        { "isNumberObject", s_static_isNumberObject, true, ClassData::ASYNC_SYNC },
+        { "isStringObject", s_static_isStringObject, true, ClassData::ASYNC_SYNC },
+        { "isSymbolObject", s_static_isSymbolObject, true, ClassData::ASYNC_SYNC },
+        { "isWeakMap", s_static_isWeakMap, true, ClassData::ASYNC_SYNC },
+        { "isWeakSet", s_static_isWeakSet, true, ClassData::ASYNC_SYNC },
+        { "isArrayBuffer", s_static_isArrayBuffer, true, ClassData::ASYNC_SYNC },
+        { "isArrayBufferView", s_static_isArrayBufferView, true, ClassData::ASYNC_SYNC },
+        { "isBigInt64Array", s_static_isBigInt64Array, true, ClassData::ASYNC_SYNC },
+        { "isBigUint64Array", s_static_isBigUint64Array, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -680,6 +713,171 @@ inline void types_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Val
     ARG(v8::Local<v8::Value>, 0);
 
     hr = isBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isBigIntObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBigIntObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isBooleanObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBooleanObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isNumberObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isNumberObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isStringObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isStringObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isSymbolObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isSymbolObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isWeakMap(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isWeakMap(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isWeakSet(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isWeakSet(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isArrayBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isArrayBufferView(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isArrayBufferView(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isBigInt64Array(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBigInt64Array(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void types_base::s_static_isBigUint64Array(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBigUint64Array(v0, vr);
 
     METHOD_RETURN();
 }

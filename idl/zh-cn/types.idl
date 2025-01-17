@@ -219,4 +219,70 @@ module types
      @return 如果是函数 Buffer 对象则返回 True
      */
     static Boolean isBuffer(Value v);
+
+    /*! @brief 检测给定的变量是否是 BigInt 对象，而不是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是 BigInt 对象则返回 True
+     */
+    static Boolean isBigIntObject(Value v);
+
+    /*! @brief 检测给定的变量是否是 Boolean 对象，而不是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是 Boolean 对象则返回 True
+     */
+    static Boolean isBooleanObject(Value v);
+
+    /*! @brief 检测给定的变量是否是 Number 对象，而不是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是 Number 对象则返回 True
+     */
+    static Boolean isNumberObject(Value v);
+
+    /*! @brief 检测给定的变量是否是 String 对象，而不是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是 String 对象则返回 True
+     */
+    static Boolean isStringObject(Value v);
+
+    /*! @brief 检测给定的变量是否是 Symbol 对象，而不是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是 Symbol 对象则返回 True
+     */
+    static Boolean isSymbolObject(Value v);
+
+    /*! @brief 检测给定的变量是否是 WeakMap 类型
+     @param v 给定需要检测的变量
+     @return 如果是 WeakMap 类型则返回 True
+     */
+    static Boolean isWeakMap(Value v);
+
+    /*! @brief 检测给定的变量是否是 WeakSet 类型
+     @param v 给定需要检测的变量
+     @return 如果是 WeakSet 类型则返回 True
+     */
+    static Boolean isWeakSet(Value v);
+
+    /*! @brief 检测给定的变量是否是 ArrayBuffer 类型
+     @param v 给定需要检测的变量
+     @return 如果是 ArrayBuffer 类型则返回 True
+     */
+    static Boolean isArrayBuffer(Value v);
+
+    /*! @brief 检测给定的变量是否是 ArrayBufferView 类型
+     @param v 给定需要检测的变量
+     @return 如果是 ArrayBufferView 类型则返回 True
+     */
+    static Boolean isArrayBufferView(Value v);
+
+    /*! @brief 检测给定的变量是否是 BigInt64Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 BigInt64Array 类型则返回 True
+     */
+    static Boolean isBigInt64Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 BigUint64Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 BigUint64Array 类型则返回 True
+     */
+    static Boolean isBigUint64Array(Value v);
 };

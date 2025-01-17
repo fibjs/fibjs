@@ -475,5 +475,83 @@ describe('types', () => {
         assert.notOk(types.isUint32Array(Float32Array));
         assert.notOk(types.isUint32Array(Float64Array));
     });
+
+    it('isBigIntObject', () => {
+        assert.ok(types.isBigIntObject(Object(BigInt(42))));
+        assert.notOk(types.isBigIntObject(BigInt(42)));
+        assert.notOk(types.isBigIntObject({}));
+    });
+
+    it('isBooleanObject', () => {
+        assert.ok(types.isBooleanObject(Object(true)));
+        assert.ok(types.isBooleanObject(Object(false)));
+        assert.notOk(types.isBooleanObject(true));
+        assert.notOk(types.isBooleanObject(false));
+        assert.notOk(types.isBooleanObject({}));
+    });
+
+    it('isNumberObject', () => {
+        assert.ok(types.isNumberObject(Object(42)));
+        assert.ok(types.isNumberObject(new Number(42)));
+        assert.notOk(types.isNumberObject(42));
+        assert.notOk(types.isNumberObject({}));
+    });
+
+    it('isStringObject', () => {
+        assert.ok(types.isStringObject(Object('foo')));
+        assert.ok(types.isStringObject(new String('foo')));
+        assert.notOk(types.isStringObject('foo'));
+        assert.notOk(types.isStringObject({}));
+    });
+
+    it('isSymbolObject', () => {
+        assert.ok(types.isSymbolObject(Object(Symbol('foo'))));
+        assert.notOk(types.isSymbolObject(Symbol('foo')));
+        assert.notOk(types.isSymbolObject({}));
+    });
+
+    it('isWeakMap', () => {
+        assert.ok(types.isWeakMap(new WeakMap()));
+        assert.notOk(types.isWeakMap(new Map()));
+        assert.notOk(types.isWeakMap({}));
+        class MyWeakMap extends WeakMap {}
+        assert.ok(types.isWeakMap(new MyWeakMap()));
+    });
+
+    it('isWeakSet', () => {
+        assert.ok(types.isWeakSet(new WeakSet()));
+        assert.notOk(types.isWeakSet(new Set()));
+        assert.notOk(types.isWeakSet({}));
+        class MyWeakSet extends WeakSet {}
+        assert.ok(types.isWeakSet(new MyWeakSet()));
+    });
+
+    it('isArrayBuffer', () => {
+        assert.ok(types.isArrayBuffer(new ArrayBuffer(0)));
+        assert.notOk(types.isArrayBuffer(new Uint8Array(0)));
+        assert.notOk(types.isArrayBuffer({}));
+    });
+
+    it('isArrayBufferView', () => {
+        assert.ok(types.isArrayBufferView(new Uint8Array(0)));
+        assert.ok(types.isArrayBufferView(new Float64Array(0)));
+        assert.ok(types.isArrayBufferView(new DataView(new ArrayBuffer(0))));
+        assert.notOk(types.isArrayBufferView(new ArrayBuffer(0)));
+        assert.notOk(types.isArrayBufferView({}));
+    });
+
+    it('isBigInt64Array', () => {
+        assert.ok(types.isBigInt64Array(new BigInt64Array()));
+        assert.notOk(types.isBigInt64Array(new BigUint64Array()));
+        assert.notOk(types.isBigInt64Array(new Int32Array()));
+        assert.notOk(types.isBigInt64Array({}));
+    });
+
+    it('isBigUint64Array', () => {
+        assert.ok(types.isBigUint64Array(new BigUint64Array()));
+        assert.notOk(types.isBigUint64Array(new BigInt64Array()));
+        assert.notOk(types.isBigUint64Array(new Uint32Array()));
+        assert.notOk(types.isBigUint64Array({}));
+    });
 });
 
