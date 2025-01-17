@@ -814,4 +814,15 @@ describe('assert', () => {
         }
         assert.ok(threw);
     });
+
+    it('assert.strict', () => {
+        var strict1 = require('assert').strict;
+        var strict2 = require('assert/strict');
+        var strict3 = require('fibjs:assert/strict');
+        var strict4 = require('node:assert/strict');
+
+        assert.equal(strict1, strict2);
+        assert.equal(strict1, strict3);
+        assert.equal(strict1, strict4);
+    });
 });

@@ -175,6 +175,13 @@ result_t SandBox::addBuiltinModules()
         InstallModule("fibjs:" + name, mod);
         InstallModule("node:" + name, mod);
 
+        if (name == "assert") {
+            v8::Local<v8::Object> mod = assert_strict_base::class_info().getModule(isolate);
+            InstallModule(name + PATH_SLASH + "strict", mod);
+            InstallModule("fibjs:" + name + PATH_SLASH + "strict", mod);
+            InstallModule("node:" + name + PATH_SLASH + "strict", mod);
+        }
+
         v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises")).FromMaybe(v8::Local<v8::Value>());
         if (!promises.IsEmpty() && promises->IsObject()) {
             InstallModule(name + PATH_SLASH + "promises", promises.As<v8::Object>());

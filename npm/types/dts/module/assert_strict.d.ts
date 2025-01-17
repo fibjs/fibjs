@@ -1,16 +1,16 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../module/assert_strict.d.ts" />
+/// <reference path="../module/assert.d.ts" />
 /**
- * @description 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
+ * @description 严格断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
  * 
  *  引用方法：
  *  ```JavaScript
- *  var assert = require('assert');
+ *  var assert = require('assert').strict;
  *  ```
  *  或者通过 test 模块引用：
  *  ```JavaScript
  *  var test = require('test');
- *  var assert = test.assert;
+ *  var assert = test.assert.strict;
  *  ```
  *  或者通过 test.setup 配置：
  *  ```JavaScript
@@ -18,7 +18,7 @@
  *  ```
  *  
  */
-declare module 'assert' {
+declare module 'assert_strict' {
     /**
      * @description 断言错误对象 
      */
@@ -36,11 +36,6 @@ declare module 'assert' {
      * ! 测试数值为真，为假则断言失败，是 assert 模块的别名 
      */
     const ok: typeof import ('assert');
-
-    /**
-     * ! 严格测试模块，参见 assert_strict 模块 
-     */
-    const strict: typeof import ('assert_strict');
 
     /**
      * @description 测试数值为假，为真则断言失败

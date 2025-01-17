@@ -1,20 +1,20 @@
-/*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
+/*! @brief 严格断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
 
  引用方法：
  ```JavaScript
- var assert = require('assert');
+ var assert = require('assert').strict;
  ```
  或者通过 test 模块引用：
  ```JavaScript
  var test = require('test');
- var assert = test.assert;
+ var assert = test.assert.strict;
  ```
  或者通过 test.setup 配置：
  ```JavaScript
  require("test").setup();
  ```
  */
-module assert
+module assert_strict
 {
     /*! @brief 断言错误对象 */
     static readonly Function AssertionError;
@@ -27,9 +27,6 @@ module assert
 
     /*! 测试数值为真，为假则断言失败，是 assert 模块的别名 */
     static assert new ok();
-
-    /*! 严格测试模块，参见 assert_strict 模块 */
-    static assert_strict new strict();
 
     /*! @brief 测试数值为假，为真则断言失败
      @param actual 要测试的数值
