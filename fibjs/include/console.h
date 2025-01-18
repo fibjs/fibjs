@@ -209,9 +209,9 @@ public:
         return COLOR_LIGHTRED;
     }
 
-    static exlib::string highLight()
+    static exlib::string bold()
     {
-        return COLOR_TITLE;
+        return COLOR_BOLD;
     }
 
 protected:

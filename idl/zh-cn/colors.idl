@@ -60,4 +60,7 @@ module colors
 
     /*! @brief 亮白色 */
     static readonly String lightwhite;
+
+    /*! @brief 粗体 */
+    static readonly String bold;
 };

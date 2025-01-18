@@ -276,7 +276,7 @@ public:
                                     str1.append(" ", 1);
                                 }
                                 str1.append(p1->m_title);
-                                names.append(logger::highLight() + str1 + COLOR_RESET);
+                                names.append(COLOR_BOLD + str1 + COLOR_RESET);
 
                                 msgs.append(err_msg);
                             }
@@ -348,7 +348,7 @@ public:
                         p1->m_run_level = TEST_NONE;
 
                     if (mode > console_base::C_ERROR || p1->m_run_level != TEST_NONE) {
-                        str.append(logger::highLight());
+                        str.append(COLOR_BOLD);
                         str.append(p1->m_title);
                         str.append(COLOR_RESET);
 
@@ -421,7 +421,7 @@ public:
         outLog(console_base::C_INFO, "");
 
         snprintf(buf, sizeof(buf),
-            (logger::highLight() + "    %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
+            (COLOR_BOLD + "    %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
             td->m_root->m_total, (int32_t)td->m_root->m_duration);
         outLog(console_base::C_INFO, buf);
 

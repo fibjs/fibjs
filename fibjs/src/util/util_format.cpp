@@ -117,9 +117,9 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
 
     while (true) {
         if (v.IsEmpty())
-            strBuffer.append(color_string(COLOR_TITLE, "undefined", color));
+            strBuffer.append(color_string(COLOR_BOLD, "undefined", color));
         else if (v->IsUndefined() || v->IsNull())
-            strBuffer.append(color_string(COLOR_TITLE, isolate->toString(v), color));
+            strBuffer.append(color_string(COLOR_BOLD, isolate->toString(v), color));
         else if (v->IsDate())
             strBuffer.append(color_string(COLOR_MAGENTA, isolate->toString(v), color));
         else if (v->IsBoolean() || v->IsBooleanObject())

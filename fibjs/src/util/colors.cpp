@@ -41,7 +41,7 @@ exlib::string COLOR_LIGHTMAGENTA = "";
 exlib::string COLOR_LIGHTCYAN = "";
 exlib::string COLOR_LIGHTWHITE = "";
 
-exlib::string COLOR_TITLE = "";
+exlib::string COLOR_BOLD = "";
 
 static bool hasColors = false;
 
@@ -94,7 +94,7 @@ public:
             COLOR_LIGHTCYAN = "\x1b[1;36m"; /* Cyan */
             COLOR_LIGHTWHITE = "\x1b[1;37m"; /* White */
 
-            COLOR_TITLE = "\x1B[1;39m";
+            COLOR_BOLD = "\x1B[1;39m";
         }
     }
 } s_color_initer;
@@ -213,5 +213,10 @@ result_t colors_base::get_lightwhite(exlib::string& retVal)
     return 0;
 }
 
-} // namespace fibjs
+result_t colors_base::get_bold(exlib::string& retVal)
+{
+    retVal = COLOR_BOLD;
+    return 0;
+}
 
+} // namespace fibjs

@@ -101,5 +101,10 @@ declare module 'colors' {
      */
     const lightwhite: string;
 
+    /**
+     * @description 粗体 
+     */
+    const bold: string;
+
 }
 

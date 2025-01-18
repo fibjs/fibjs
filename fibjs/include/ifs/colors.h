@@ -39,6 +39,7 @@ public:
     static result_t get_lightmagenta(exlib::string& retVal);
     static result_t get_lightcyan(exlib::string& retVal);
     static result_t get_lightwhite(exlib::string& retVal);
+    static result_t get_bold(exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -72,6 +73,7 @@ public:
     static void s_static_get_lightmagenta(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_lightcyan(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_lightwhite(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_bold(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -97,7 +99,8 @@ inline ClassInfo& colors_base::class_info()
         { "lightblue", s_static_get_lightblue, block_set, true },
         { "lightmagenta", s_static_get_lightmagenta, block_set, true },
         { "lightcyan", s_static_get_lightcyan, block_set, true },
-        { "lightwhite", s_static_get_lightwhite, block_set, true }
+        { "lightwhite", s_static_get_lightwhite, block_set, true },
+        { "bold", s_static_get_bold, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -354,6 +357,19 @@ inline void colors_base::s_static_get_lightwhite(const v8::FunctionCallbackInfo<
     METHOD_OVER(0, 0);
 
     hr = get_lightwhite(vr);
+
+    METHOD_RETURN();
+}
+
+inline void colors_base::s_static_get_bold(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_bold(vr);
 
     METHOD_RETURN();
 }
