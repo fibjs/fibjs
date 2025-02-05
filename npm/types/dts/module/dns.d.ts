@@ -22,12 +22,13 @@ declare module 'dns' {
     /**
      * @description 查询给定的主机名的地址
      *      @param name 指定主机名
+     *      @param options 查询选项
      *      @return 返回查询的 ip 字符串
      *      
      */
-    function lookup(name: string): string;
+    function lookup(name: string, options?: FIBJS.GeneralObject): any;
 
-    function lookup(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function lookup(name: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
 
 }
 

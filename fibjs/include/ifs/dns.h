@@ -21,7 +21,7 @@ class dns_base : public object_base {
 public:
     // dns_base
     static result_t resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    static result_t lookup(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
+    static result_t lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -41,7 +41,7 @@ public:
 
 public:
     ASYNC_STATICVALUE2(dns_base, resolve, exlib::string, obj_ptr<NArray>);
-    ASYNC_STATICVALUE2(dns_base, lookup, exlib::string, exlib::string);
+    ASYNC_STATICVALUE3(dns_base, lookup, exlib::string, v8::Local<v8::Object>, Variant);
 };
 }
 
@@ -84,18 +84,19 @@ inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    exlib::string vr;
+    Variant vr;
 
     ASYNC_METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = acb_lookup(v0, cb, args);
+        hr = acb_lookup(v0, v1, cb, args);
     else
-        hr = ac_lookup(v0, vr);
+        hr = ac_lookup(v0, v1, vr);
 
     METHOD_RETURN();
 }

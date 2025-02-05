@@ -15,7 +15,8 @@ module dns
 
     /*! @brief 查询给定的主机名的地址
      @param name 指定主机名
+     @param options 查询选项
      @return 返回查询的 ip 字符串
      */
-    static String lookup(String name) async;
+    static Variant lookup(String name, Object options = {}) async;
 };
