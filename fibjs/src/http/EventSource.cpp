@@ -42,7 +42,7 @@ public:
         if (m_es->m_readyState == EventSource::C_CLOSED)
             return next();
 
-        return m_hc->request("GET", "", v8::Local<v8::Object>(), m_es->m_response, next(opened), true);
+        return m_hc->request("POST", "", v8::Local<v8::Object>(), m_es->m_response, next(opened), true);
     }
 
     ON_STATE(AsyncEventSource, opened)
@@ -171,7 +171,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     AsyncEventSource* ac = new AsyncEventSource(hc.As<HttpClient>(), es, url);
 
-    result_t hr = hc.As<HttpClient>()->get_request_opts("GET", url, options, ac);
+    result_t hr = hc.As<HttpClient>()->get_request_opts("POST", url, options, ac);
     if (hr != CALL_E_NOSYNC)
         return hr;
 
