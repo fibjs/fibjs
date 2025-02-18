@@ -71,7 +71,7 @@ public:
 public:
     result_t send(Stream_base* stm, exlib::string& strCommand,
         AsyncEvent* ac);
-    result_t sendHeader(Stream_base* stm, exlib::string& strCommand,
+    result_t sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
         AsyncEvent* ac);
     result_t readFrom(Stream_base* stm, AsyncEvent* ac);
     result_t readHeader(Stream_base* stm, AsyncEvent* ac);
@@ -81,8 +81,7 @@ public:
     void addHeader(const char* name, int32_t szName, const char* value,
         int32_t szValue);
     result_t addHeader(exlib::string& strLine);
-    size_t size();
-    size_t getData(char* buf, size_t sz);
+    size_t getData(char* buf, size_t sz, bool content_length);
 
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
     {

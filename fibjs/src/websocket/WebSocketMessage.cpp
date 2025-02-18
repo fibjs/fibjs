@@ -320,7 +320,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
     return (new asyncSendTo(this, stm, wss, ac))->post(0);
 }
 
-result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     return sendTo(stm, NULL, ac);
 }
@@ -512,7 +512,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
     return (new asyncReadFrom(this, stm, wss, ac))->post(0);
 }
 
-result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     return readFrom(stm, NULL, ac);
 }

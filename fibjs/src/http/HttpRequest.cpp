@@ -275,7 +275,7 @@ result_t HttpRequest::clear()
     return 0;
 }
 
-result_t HttpRequest::sendTo(Stream_base* stm, AsyncEvent* ac)
+result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -297,7 +297,7 @@ result_t HttpRequest::sendTo(Stream_base* stm, AsyncEvent* ac)
     return m_message->send(stm, strCommand, ac);
 }
 
-result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     class asyncReadFrom : public AsyncState {
     public:

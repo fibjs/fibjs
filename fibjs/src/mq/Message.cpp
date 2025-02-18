@@ -217,12 +217,12 @@ result_t Message::clear()
     return 0;
 }
 
-result_t Message::sendTo(Stream_base* stm, AsyncEvent* ac)
+result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t Message::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

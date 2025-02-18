@@ -50,8 +50,8 @@ public:
     virtual result_t end() = 0;
     virtual result_t isEnded(bool& retVal) = 0;
     virtual result_t clear() = 0;
-    virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac) = 0;
-    virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
+    virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac) = 0;
+    virtual result_t readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_lastError(exlib::string& retVal) = 0;
     virtual result_t set_lastError(exlib::string newVal) = 0;
@@ -89,8 +89,8 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Message_base, write, Buffer_base*);
-    ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
-    ASYNC_MEMBER1(Message_base, readFrom, Stream_base*);
+    ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, v8::Local<v8::Object>);
+    ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, v8::Local<v8::Object>);
 };
 }
 
@@ -435,14 +435,15 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(Message_base);
     ASYNC_METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_sendTo(v0, cb, args);
+        hr = pInst->acb_sendTo(v0, v1, cb, args);
     else
-        hr = pInst->ac_sendTo(v0);
+        hr = pInst->ac_sendTo(v0, v1);
 
     METHOD_VOID();
 }
@@ -452,14 +453,15 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(Message_base);
     ASYNC_METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_readFrom(v0, cb, args);
+        hr = pInst->acb_readFrom(v0, v1, cb, args);
     else
-        hr = pInst->ac_readFrom(v0);
+        hr = pInst->ac_readFrom(v0, v1);
 
     METHOD_VOID();
 }

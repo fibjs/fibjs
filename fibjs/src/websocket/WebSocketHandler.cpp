@@ -127,7 +127,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_compress = true;
             }
 
-            return m_httprep->sendTo(m_stm, next(accept));
+            return m_httprep->sendTo(m_stm, v8::Local<v8::Object>(), next(accept));
         }
 
         ON_STATE(asyncInvoke, accept)

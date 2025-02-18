@@ -1,7 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpMessage.d.ts" />
 /// <reference path="../interface/HttpCookie.d.ts" />
-/// <reference path="../interface/Stream.d.ts" />
 /**
  * @description HttpResponse 是一个 HTTP 响应对象，使用 HttpRequest.response 对象完成 Http 服务端数据响应，或 http.request 请求返回服务器的响应数据
  * 
@@ -93,15 +92,6 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      
      */
     redirect(statusCode: number, url: string): void;
-
-    /**
-     * @description 仅发送格式化 http 头到给定的流对象
-     *      @param stm 指定接收格式化消息的流对象
-     *      
-     */
-    sendHeader(stm: Class_Stream): void;
-
-    sendHeader(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
 }
 

@@ -18,7 +18,6 @@ namespace fibjs {
 
 class HttpMessage_base;
 class HttpCookie_base;
-class Stream_base;
 
 class HttpResponse_base : public HttpMessage_base {
     DECLARE_CLASS(HttpResponse_base);
@@ -39,7 +38,6 @@ public:
     virtual result_t addCookie(HttpCookie_base* cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
     virtual result_t redirect(int32_t statusCode, exlib::string url) = 0;
-    virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -58,15 +56,10 @@ public:
     static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_MEMBER1(HttpResponse_base, sendHeader, Stream_base*);
 };
 }
 
 #include "ifs/HttpCookie.h"
-#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& HttpResponse_base::class_info()
@@ -74,8 +67,7 @@ inline ClassInfo& HttpResponse_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "writeHead", s_writeHead, false, ClassData::ASYNC_SYNC },
         { "addCookie", s_addCookie, false, ClassData::ASYNC_SYNC },
-        { "redirect", s_redirect, false, ClassData::ASYNC_SYNC },
-        { "sendHeader", s_sendHeader, false, ClassData::ASYNC_ASYNC }
+        { "redirect", s_redirect, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -90,7 +82,7 @@ inline ClassInfo& HttpResponse_base::class_info()
         "HttpResponse", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &HttpMessage_base::class_info(),
-        true
+        false
     };
 
     static ClassInfo s_ci(s_cd);
@@ -295,23 +287,6 @@ inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Val
     ARG(exlib::string, 1);
 
     hr = pInst->redirect(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    ASYNC_METHOD_INSTANCE(HttpResponse_base);
-    ASYNC_METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Stream_base>, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_sendHeader(v0, cb, args);
-    else
-        hr = pInst->ac_sendHeader(v0);
 
     METHOD_VOID();
 }

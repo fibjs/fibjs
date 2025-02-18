@@ -382,15 +382,6 @@ exlib::string HttpResponse::prepareHeaders()
     return strCommand;
 }
 
-result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    exlib::string strCommand = prepareHeaders();
-    return m_message->send(stm, strCommand, ac);
-}
-
 result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnly)
 {
     class asyncReadFrom : public AsyncState {
@@ -455,14 +446,62 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnl
     return (new asyncReadFrom(this, _stm, ac, headerOnly))->post(0);
 }
 
-result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
-{
-    return readFrom(stm, ac, false);
-}
-
 result_t HttpResponse::readHeader(Stream_base* stm, AsyncEvent* ac)
 {
     return readFrom(stm, ac, true);
+}
+
+result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<Options> _options;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = Options::load(isolate, options, _options);
+        if (hr < 0)
+            return hr;
+
+        if (!_options->content_length.value() && !_options->head_only.value())
+            return Runtime::setError("HttpResponse: content_length option is only valid for head_only response");
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = _options;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string strCommand = prepareHeaders();
+
+    if (ac->m_ctx.size() == 1) {
+        Options* _options = (Options*)ac->m_ctx[0].object();
+        if (_options->head_only.value())
+            return m_message->sendHeader(stm, strCommand, _options->content_length.value(), ac);
+    }
+
+    return m_message->send(stm, strCommand, ac);
+}
+
+result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<Options> _options;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = Options::load(isolate, options, _options);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = _options;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    if (ac->m_ctx.size() == 1) {
+        Options* _options = (Options*)ac->m_ctx[0].object();
+        if (_options->head_only.value())
+            return readFrom(stm, ac, true);
+    }
+
+    return readFrom(stm, ac, false);
 }
 
 result_t HttpResponse::readBody(AsyncEvent* ac)
@@ -596,7 +635,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strCommand = prepareHeaders();
-    return m_message->sendHeader(stm, strCommand, ac);
+    return m_message->sendHeader(stm, strCommand, true, ac);
 }
 
 } /* namespace fibjs */

@@ -536,7 +536,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
 
         ON_STATE(asyncRequest, send)
         {
-            return m_req->sendTo(m_conn, next(recv));
+            return m_req->sendTo(m_conn, v8::Local<v8::Object>(), next(recv));
         }
 
         ON_STATE(asyncRequest, recv)

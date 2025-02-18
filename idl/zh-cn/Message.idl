@@ -86,13 +86,15 @@ interface Message : object
 
     /*! @brief 发送格式化消息到给定的流对象
      @param stm 指定接收格式化消息的流对象
+     @param options 指定发送选项
      */
-    sendTo(Stream stm) async;
+    sendTo(Stream stm, Object options = {}) async;
 
     /*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
      @param stm 指定读取格式化消息的流对象
+     @param options 指定读取选项
      */
-    readFrom(Stream stm) async;
+    readFrom(Stream stm, Object options = {}) async;
 
     /*! @brief 查询消息 readFrom 时的流对象 */
     readonly Stream stream;

@@ -1037,9 +1037,25 @@ describe("http", () => {
             var rep = new http.Response();
             rep.write("0123456789");
 
-            rep.sendHeader(ms);
+            rep.sendTo(ms, {
+                head_only: true
+            });
             ms.rewind();
             assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n');
+        });
+
+        it("response without content-length", () => {
+            var ms = new io.MemoryStream();
+
+            var rep = new http.Response();
+            rep.write("0123456789");
+
+            rep.sendTo(ms, {
+                head_only: true,
+                content_length: false
+            });
+            ms.rewind();
+            assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\n\r\n');
         });
 
         it("statusCode", () => {

@@ -129,20 +129,22 @@ declare class Class_Message extends Class_object {
     /**
      * @description 发送格式化消息到给定的流对象
      *      @param stm 指定接收格式化消息的流对象
+     *      @param options 指定发送选项
      *      
      */
-    sendTo(stm: Class_Stream): void;
+    sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
-    sendTo(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+    sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
      *      @param stm 指定读取格式化消息的流对象
+     *      @param options 指定读取选项
      *      
      */
-    readFrom(stm: Class_Stream): void;
+    readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
-    readFrom(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+    readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询消息 readFrom 时的流对象 

@@ -9,10 +9,21 @@
 
 #include "ifs/HttpResponse.h"
 #include "HttpMessage.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 class HttpResponse : public HttpResponse_base {
+
+public:
+    class Options : public obj_base {
+    public:
+        LOAD_OPTIONS(Options, (head_only)(content_length));
+
+    public:
+        std::optional<bool> head_only = false;
+        std::optional<bool> content_length = true;
+    };
 
 public:
     HttpResponse()
@@ -43,8 +54,8 @@ public:
     virtual result_t end();
     virtual result_t isEnded(bool& retVal);
     virtual result_t clear();
-    virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac);
-    virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac);
+    virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac);
+    virtual result_t readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
@@ -93,9 +104,9 @@ public:
     virtual result_t addCookie(HttpCookie_base* cookie);
     virtual result_t redirect(exlib::string url);
     virtual result_t redirect(int32_t statusCode, exlib::string url);
-    virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
 
 public:
+    result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
     {
         return m_message->allHeader(name, retVal);

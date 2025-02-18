@@ -20,13 +20,14 @@ class asyncSendTo : public AsyncState {
 public:
     asyncSendTo(HttpMessage* pThis, Stream_base* stm,
         exlib::string& strCommand, AsyncEvent* ac,
-        bool headerOnly = false)
+        bool headerOnly = false, bool content_length = true)
         : AsyncState(ac)
         , m_pThis(pThis)
         , m_stm(stm)
         , m_strCommand(
               strCommand)
         , m_headerOnly(headerOnly)
+        , m_content_length(content_length)
     {
         m_contentLength = 0;
         m_pThis->get_length(m_contentLength);
@@ -59,7 +60,7 @@ public:
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
         }
 
-        sz1 = m_pThis->size();
+        sz1 = m_pThis->getData(nullptr, 0, m_content_length);
         m_strBuf = m_strCommand;
         m_strBuf.resize(sz + sz1 + 2 + m_body_length);
 
@@ -67,7 +68,7 @@ public:
         *pBuf++ = '\r';
         *pBuf++ = '\n';
 
-        pBuf += m_pThis->getData(pBuf, sz1);
+        pBuf += m_pThis->getData(pBuf, sz1, m_content_length);
 
         if (m_body_length > 0)
             memcpy(pBuf, m_body_buf->data(), m_body_length);
@@ -104,6 +105,7 @@ public:
     const char* m_strStatus;
     int32_t m_nStatus;
     bool m_headerOnly;
+    bool m_content_length;
 };
 
 result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
@@ -177,13 +179,13 @@ result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
     return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
 }
 
-result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand,
+result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
     AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSendTo(this, stm, strCommand, ac, true))->post(0);
+    return (new asyncSendTo(this, stm, strCommand, ac, true, content_length))->post(0);
 }
 
 result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
@@ -397,28 +399,6 @@ result_t HttpMessage::addHeader(exlib::string& strLine)
     return 0;
 }
 
-size_t HttpMessage::size()
-{
-    size_t sz = 2 + m_headers->size();
-    int64_t l;
-
-    // connection 10
-    sz += 10 + 4 + (m_upgrade ? 7 : (m_keepAlive ? 10 : 5));
-
-    // content-length 14
-    get_length(l);
-    if (l > 0) {
-        sz += 14 + 4;
-        while (l > 0) {
-            l /= 10;
-            sz++;
-        }
-    } else if (m_bResponse)
-        sz += 19;
-
-    return sz;
-}
-
 inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
 {
     buf += pos;
@@ -432,8 +412,31 @@ inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
     memcpy(buf, str, szStr);
 }
 
-size_t HttpMessage::getData(char* buf, size_t sz)
+size_t HttpMessage::getData(char* buf, size_t sz, bool content_length)
 {
+    if (!buf) {
+        size_t sz = 2 + m_headers->size();
+        int64_t l;
+
+        // connection 10
+        sz += 10 + 4 + (m_upgrade ? 7 : (m_keepAlive ? 10 : 5));
+
+        if (content_length) {
+            // content-length 14
+            get_length(l);
+            if (l > 0) {
+                sz += 14 + 4;
+                while (l > 0) {
+                    l /= 10;
+                    sz++;
+                }
+            } else if (m_bResponse)
+                sz += 19;
+        }
+
+        return sz;
+    }
+
     size_t pos = m_headers->getData(buf, sz);
     int64_t l;
 
@@ -446,29 +449,31 @@ size_t HttpMessage::getData(char* buf, size_t sz)
     else
         cp(buf, sz, pos, "close\r\n", 7);
 
-    // content-length 14
-    get_length(l);
-    if (l > 0) {
-        char s[32];
-        char* p;
-        int32_t n;
+    if (content_length) {
+        // content-length 14
+        get_length(l);
+        if (l > 0) {
+            char s[32];
+            char* p;
+            int32_t n;
 
-        cp(buf, sz, pos, "Content-Length: ", 16);
-        p = s + 32;
-        *--p = 0;
-        *--p = '\n';
-        *--p = '\r';
-        n = 2;
+            cp(buf, sz, pos, "Content-Length: ", 16);
+            p = s + 32;
+            *--p = 0;
+            *--p = '\n';
+            *--p = '\r';
+            n = 2;
 
-        while (l > 0) {
-            *--p = l % 10 + '0';
-            n++;
-            l /= 10;
-        }
+            while (l > 0) {
+                *--p = l % 10 + '0';
+                n++;
+                l /= 10;
+            }
 
-        cp(buf, sz, pos, p, n);
-    } else if (m_bResponse)
-        cp(buf, sz, pos, "Content-Length: 0\r\n", 19);
+            cp(buf, sz, pos, p, n);
+        } else if (m_bResponse)
+            cp(buf, sz, pos, "Content-Length: 0\r\n", 19);
+    }
 
     cp(buf, sz, pos, "\r\n", 2);
 
