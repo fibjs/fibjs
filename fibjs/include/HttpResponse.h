@@ -22,7 +22,7 @@ public:
 
     public:
         std::optional<bool> head_only = false;
-        std::optional<bool> content_length = true;
+        std::optional<bool> content_length;
     };
 
 public:

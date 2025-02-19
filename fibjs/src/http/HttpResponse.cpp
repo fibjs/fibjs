@@ -460,7 +460,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
         if (hr < 0)
             return hr;
 
-        if (!_options->content_length.value() && !_options->head_only.value())
+        if (!_options->head_only.value() && _options->content_length.has_value())
             return Runtime::setError("HttpResponse: content_length option is only valid for head_only response");
 
         ac->m_ctx.resize(1);
@@ -474,7 +474,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
     if (ac->m_ctx.size() == 1) {
         Options* _options = (Options*)ac->m_ctx[0].object();
         if (_options->head_only.value())
-            return m_message->sendHeader(stm, strCommand, _options->content_length.value(), ac);
+            return m_message->sendHeader(stm, strCommand, _options->content_length.value_or(true), ac);
     }
 
     return m_message->send(stm, strCommand, ac);
