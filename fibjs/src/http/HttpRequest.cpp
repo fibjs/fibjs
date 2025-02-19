@@ -199,6 +199,11 @@ result_t HttpRequest::removeHeader(exlib::string name)
     return m_message->removeHeader(name);
 }
 
+result_t HttpRequest::get_sent(bool& retVal)
+{
+    return m_message->get_sent(retVal);
+}
+
 result_t HttpRequest::get_value(exlib::string& retVal)
 {
     return m_message->get_value(retVal);

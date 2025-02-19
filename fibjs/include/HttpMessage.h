@@ -24,6 +24,7 @@ public:
         , m_maxBodySize(64)
         , m_contentLength(-1)
         , m_bChunked(false)
+        , m_sent(false)
     {
         m_headers = new HttpCollection();
         clear();
@@ -31,6 +32,7 @@ public:
 
 public:
     // Message_base
+    virtual result_t get_sent(bool& retVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
     virtual result_t json(v8::Local<v8::Value>& retVal);
@@ -106,6 +108,7 @@ public:
 
     int64_t m_contentLength;
     bool m_bChunked;
+    bool m_sent;
 };
 
 } /* namespace fibjs */

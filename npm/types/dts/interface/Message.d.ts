@@ -22,6 +22,11 @@ declare class Class_Message extends Class_object {
     constructor();
 
     /**
+     * @description 当前消息是否已经发送 
+     */
+    readonly sent: boolean;
+
+    /**
      * @description 消息的基本内容 
      */
     value: string;

@@ -701,6 +701,11 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             date_t d;
             exlib::string str;
 
+            bool sent = false;
+            m_rep->get_sent(sent);
+            if (sent)
+                return next(end);
+
             if (m_rep->firstHeader("Server", str) == CALL_RETURN_NULL)
                 m_rep->addHeader("Server", m_pThis->m_serverName);
 
@@ -720,6 +725,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             if (headOnly) {
                 m_rep->set_keepAlive(false);
+
                 return m_rep.As<HttpResponse>()->sendHeader(m_stm, next(end));
             }
 

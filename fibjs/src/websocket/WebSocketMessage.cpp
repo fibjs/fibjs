@@ -22,6 +22,11 @@ result_t WebSocketMessage_base::_new(int32_t type, bool masked, bool compress, i
     return 0;
 }
 
+result_t WebSocketMessage::get_sent(bool& retVal)
+{
+    return m_message->get_sent(retVal);
+}
+
 result_t WebSocketMessage::get_value(exlib::string& retVal)
 {
     return m_message->get_value(retVal);

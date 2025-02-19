@@ -17,6 +17,9 @@ interface Message : object
     /*! @brief 消息对象构造函数 */
     Message();
 
+    /*! @brief 当前消息是否已经发送 */
+    readonly Boolean sent;
+
     /*! @brief 消息的基本内容 */
     String value;
 

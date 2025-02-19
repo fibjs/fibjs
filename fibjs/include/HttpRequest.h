@@ -25,6 +25,7 @@ public:
 
 public:
     // Message_base
+    virtual result_t get_sent(bool& retVal);
     virtual result_t get_value(exlib::string& retVal);
     virtual result_t set_value(exlib::string newVal);
     virtual result_t get_params(obj_ptr<NArray>& retVal);

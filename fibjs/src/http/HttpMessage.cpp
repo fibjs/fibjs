@@ -108,6 +108,12 @@ public:
     bool m_content_length;
 };
 
+result_t HttpMessage::get_sent(bool& retVal)
+{
+    retVal = m_sent;
+    return 0;
+}
+
 result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
 {
     exlib::string strType;
@@ -176,6 +182,7 @@ result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    m_sent = true;
     return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
 }
 
@@ -185,6 +192,7 @@ result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bo
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    m_sent = true;
     return (new asyncSendTo(this, stm, strCommand, ac, true, content_length))->post(0);
 }
 
@@ -670,6 +678,7 @@ result_t HttpMessage::clear()
 
     m_contentLength = -1;
     m_bChunked = false;
+    m_sent = false;
 
     return 0;
 }

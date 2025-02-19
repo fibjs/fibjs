@@ -14,6 +14,12 @@
 
 namespace fibjs {
 
+result_t Message::get_sent(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t Message::get_value(exlib::string& retVal)
 {
     retVal = m_value;

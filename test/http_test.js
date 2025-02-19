@@ -1190,6 +1190,8 @@ describe("http", () => {
                     r.response.write("01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567");
                 } else if (r.value == '/gzip_bin') {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                } else if (r.value == '/custum_send') {
+                    r.response.sendTo(r.stream);
                 }
             });
 
@@ -1330,6 +1332,13 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.statusCode, 200);
             assert.equal(req.firstHeader('Cache-Control'), 'no-cache, no-store');
+        });
+
+        it("custom send", () => {
+            c.write("GET /custum_send HTTP/1.0\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.length, 0);
         });
     });
 

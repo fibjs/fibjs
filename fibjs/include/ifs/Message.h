@@ -31,6 +31,7 @@ public:
 public:
     // Message_base
     static result_t _new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t get_sent(bool& retVal) = 0;
     virtual result_t get_value(exlib::string& retVal) = 0;
     virtual result_t set_value(exlib::string newVal) = 0;
     virtual result_t get_params(obj_ptr<NArray>& retVal) = 0;
@@ -62,6 +63,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_sent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_value(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_value(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_params(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -115,6 +117,7 @@ inline ClassInfo& Message_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "sent", s_get_sent, block_set, false },
         { "value", s_get_value, s_set_value, false },
         { "params", s_get_params, block_set, false },
         { "type", s_get_type, s_set_type, false },
@@ -171,6 +174,20 @@ inline result_t Message_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
     hr = _new(vr, args.This());
 
     LOAD_RETURN();
+}
+
+inline void Message_base::s_get_sent(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_sent(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_get_value(const v8::FunctionCallbackInfo<v8::Value>& args)
