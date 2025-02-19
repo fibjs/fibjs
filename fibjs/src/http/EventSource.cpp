@@ -142,6 +142,12 @@ public:
         return m_sse_stm->readLine(4096, strLine, next(read_message));
     }
 
+    virtual int32_t error(int32_t v)
+    {
+        (new EventInfo(m_es, "error", 0, "Connection error"))->emit();
+        return v;
+    }
+
 private:
     obj_ptr<HttpClient> m_hc;
     obj_ptr<EventSource> m_es;

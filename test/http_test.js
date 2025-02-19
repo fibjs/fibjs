@@ -1038,7 +1038,7 @@ describe("http", () => {
             rep.write("0123456789");
 
             rep.sendTo(ms, {
-                head_only: true
+                header_only: true
             });
             ms.rewind();
             assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n');
@@ -1051,7 +1051,7 @@ describe("http", () => {
             rep.write("0123456789");
 
             rep.sendTo(ms, {
-                head_only: true,
+                header_only: true,
                 content_length: false
             });
             ms.rewind();

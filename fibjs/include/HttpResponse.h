@@ -18,10 +18,10 @@ class HttpResponse : public HttpResponse_base {
 public:
     class Options : public obj_base {
     public:
-        LOAD_OPTIONS(Options, (head_only)(content_length));
+        LOAD_OPTIONS(Options, (header_only)(content_length));
 
     public:
-        std::optional<bool> head_only = false;
+        std::optional<bool> header_only = false;
         std::optional<bool> content_length;
     };
 
