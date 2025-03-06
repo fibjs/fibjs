@@ -25,6 +25,7 @@ class Sign_base;
 class Verify_base;
 class X509CertificateRequest_base;
 class webcrypto_base;
+class subtle_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -197,6 +198,7 @@ public:
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
 #include "ifs/webcrypto.h"
+#include "ifs/subtle.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
@@ -241,7 +243,8 @@ inline ClassInfo& crypto_base::class_info()
         { "constants", crypto_constants_base::class_info },
         { "KeyObject", KeyObject_base::class_info },
         { "X509Certificate", X509Certificate_base::class_info },
-        { "webcrypto", webcrypto_base::class_info }
+        { "webcrypto", webcrypto_base::class_info },
+        { "subtle", subtle_base::class_info }
     };
 
     static ClassData s_cd = {

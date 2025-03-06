@@ -4277,6 +4277,10 @@ describe('crypto', () => {
         });
 
         describe("subtle", () => {
+            it("alias", () => {
+                assert.equal(crypto.subtle, global.crypto.subtle);
+            });
+
             it("digest", async () => {
                 var sourceData = {
                     empty: Buffer.alloc(0),

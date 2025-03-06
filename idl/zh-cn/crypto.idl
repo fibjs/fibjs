@@ -555,4 +555,7 @@ module crypto
 
     /*! @brief WebCrypto API 模块 */
     static webcrypto;
+
+    /*! @brief 提供对 SubtleCrypto API 的访问 */
+    static subtle;
 };
