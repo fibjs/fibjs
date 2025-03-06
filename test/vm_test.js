@@ -6,6 +6,7 @@ var test_util = require('./test_util');
 var vm = require('vm');
 var os = require('os');
 var fs = require('fs');
+var url = require('url');
 var path = require('path');
 var coroutine = require('coroutine');
 var util = require('util');
@@ -959,6 +960,18 @@ describe("vm", () => {
             var a = sbox.addScript("t1.js", "var module1 = require('module'); var require1 = module1.createRequire(__filename); module.exports = require1('test_module');");
             assert.deepEqual(a, {
                 a: 100
+            });
+        });
+
+        it('createRequire(url)', () => {
+            var module = require('module');
+
+            var require1 = module.createRequire(url.pathToFileURL(path.join(__dirname, 'vm_test/custom_ext_js/test.js')));
+
+            assert.deepEqual(require1('./custom_ext.cjs.js'), {
+                "I": "am .cjs.js",
+                "a": 1,
+                "b": 2
             });
         });
     });

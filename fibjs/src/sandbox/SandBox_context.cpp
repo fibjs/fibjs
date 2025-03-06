@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/url.h"
 #include "SandBox.h"
 #include "path.h"
 
@@ -174,6 +175,17 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (hr < 0) {
         ThrowResult(hr);
         return;
+    }
+
+    if (!qstrcmp(id.c_str(), "file:", 5)) {
+        exlib::string path;
+        hr = url_base::fileURLToPath(id, v8::Local<v8::Object>(), path);
+        if (hr < 0) {
+            ThrowResult(hr);
+            return;
+        }
+
+        id = path;
     }
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
