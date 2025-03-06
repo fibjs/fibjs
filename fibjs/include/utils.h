@@ -1071,7 +1071,7 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, double v)
 
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, int64_t v)
 {
-    return v8::BigInt::New(isolate->m_isolate, v);
+    return v8::Number::New(isolate->m_isolate, (double)v);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)
