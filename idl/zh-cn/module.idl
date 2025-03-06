@@ -1,0 +1,9 @@
+/*! @brief 基础模块管理 */
+module module
+{
+    /*!@brief 创建一个模块引用函数
+     @param base 模块的基础路径
+     @return 返回一个模块引用函数
+    */
+    static Function createRequire(String base);
+};

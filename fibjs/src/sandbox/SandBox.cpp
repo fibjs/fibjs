@@ -99,6 +99,8 @@ SandBox::SandBox(bool extLoader)
     m_loaders.push_back(loader);
 
     m_global = false;
+
+    initModule();
 }
 
 SandBox::~SandBox()

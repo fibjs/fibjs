@@ -167,6 +167,8 @@ public:
 
     void initGlobal(v8::Local<v8::Object> global);
 
+    void initModule();
+
     result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal, bool in_cjs);
     result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);
     result_t run(exlib::string fname, bool in_cjs);

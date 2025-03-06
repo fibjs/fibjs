@@ -18,7 +18,9 @@ describe("vm", () => {
     var sbox;
 
     after(() => {
-        fs.unlink(path.join(__dirname, "vm_test", "jsc_test.jsc"));
+        try {
+            fs.unlink(path.join(__dirname, "vm_test", "jsc_test.jsc"));
+        } catch (e) { }
     });
 
     it("add", () => {
@@ -673,6 +675,10 @@ describe("vm", () => {
             delete mods["node:buffer"];
             delete mods["fibjs:buffer"];
 
+            delete mods["module"];
+            delete mods["node:module"];
+            delete mods["fibjs:module"];
+
             return mods;
         }
 
@@ -918,6 +924,43 @@ describe("vm", () => {
         test_util.gc();
 
         assert.equal(no1, test_util.countObject('Event'));
+    });
+
+    describe("require('module')", () => {
+        it('basic usage', () => {
+            var module = require('module');
+
+            var require1 = module.createRequire(__filename);
+
+            const module1 = require1('module');
+
+            assert.equal(module, module1);
+        });
+
+        it('createRequire', () => {
+            var module = require('module');
+
+            var require1 = module.createRequire(path.join(__dirname, 'vm_test/custom_ext_js/test.js'));
+
+            assert.deepEqual(require1('./custom_ext.cjs.js'), {
+                "I": "am .cjs.js",
+                "a": 1,
+                "b": 2
+            });
+        });
+
+        it('createRequire in SandBox', () => {
+            var sbox = new vm.SandBox({
+                test_module: {
+                    a: 100
+                }
+            });
+
+            var a = sbox.addScript("t1.js", "var module1 = require('module'); var require1 = module1.createRequire(__filename); module.exports = require1('test_module');");
+            assert.deepEqual(a, {
+                a: 100
+            });
+        });
     });
 
     describe(`all builtin modules aliases with prefix fibjs: / node:`, () => {

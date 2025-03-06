@@ -5,6 +5,7 @@
         "coroutine",
         "global",
         "gui",
+        "module",
         "os",
         "process",
         "timers",
