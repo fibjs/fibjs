@@ -191,5 +191,12 @@ describe('process', () => {
         assert.equal(globalThis.global, global);
         assert.equal(globalThis, global.globalThis);
     });
+
+    it('BUGFIX: process.env exists key', () => {
+        process.env.test_key = 'test_value';
+        assert.isTrue('test_key' in process.env);
+        assert.isFalse('test_key_1' in process.env);
+        delete process.env.test_key;
+    });
 });
 

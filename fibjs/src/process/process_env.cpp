@@ -96,8 +96,15 @@ static v8::Intercepted GetEnv(v8::Local<v8::Name> property, const v8::PropertyCa
 
 v8::Intercepted QueryEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
-    info.GetReturnValue().Set(v8::None);
-    return v8::Intercepted::kYes;
+    Isolate* isolate = Isolate::current(info);
+    exlib::string key = isolate->toString(property);
+
+    char buf[4096];
+    size_t sz = sizeof(buf);
+    if (uv_os_getenv(key.c_str(), buf, &sz) == 0)
+        return v8::Intercepted::kYes;
+
+    return v8::Intercepted::kNo;
 }
 
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
