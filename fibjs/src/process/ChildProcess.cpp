@@ -363,6 +363,7 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
 result_t ChildProcess::kill(int32_t signal)
 {
+    m_killed = true;
     return uv_process_kill(&m_process, signal);
 }
 
@@ -514,10 +515,16 @@ result_t ChildProcess::get_pid(int32_t& retVal)
     return 0;
 }
 
+result_t ChildProcess::get_killed(bool& retVal)
+{
+    retVal = m_killed;
+    return 0;
+}
+
 result_t ChildProcess::get_exitCode(int32_t& retVal)
 {
     if (!m_ev.isSet())
-        return CALL_E_INVALID_CALL;
+        return CALL_RETURN_NULL;
 
     retVal = m_exitCode;
     return 0;

@@ -32,6 +32,7 @@ public:
     virtual result_t send(v8::Local<v8::Value> msg) = 0;
     virtual result_t usage(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
+    virtual result_t get_killed(bool& retVal) = 0;
     virtual result_t get_exitCode(int32_t& retVal) = 0;
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal) = 0;
@@ -61,6 +62,7 @@ public:
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_usage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_killed(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +93,7 @@ inline ClassInfo& ChildProcess_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "connected", s_get_connected, block_set, false },
         { "pid", s_get_pid, block_set, false },
+        { "killed", s_get_killed, block_set, false },
         { "exitCode", s_get_exitCode, block_set, false },
         { "stdin", s_get_stdin, block_set, false },
         { "stdout", s_get_stdout, block_set, false },
@@ -211,6 +214,20 @@ inline void ChildProcess_base::s_get_pid(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER(0, 0);
 
     hr = pInst->get_pid(vr);
+
+    METHOD_RETURN();
+}
+
+inline void ChildProcess_base::s_get_killed(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_killed(vr);
 
     METHOD_RETURN();
 }

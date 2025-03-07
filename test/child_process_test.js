@@ -294,6 +294,7 @@ describe("child_process", () => {
     describe('process holding', () => {
         it("multi fiber", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "100");
             p.join();
@@ -302,6 +303,7 @@ describe("child_process", () => {
 
         it("pendding callback", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "200");
             p.join();
@@ -310,6 +312,7 @@ describe("child_process", () => {
 
         it("setTimeout", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "300");
             p.join();
@@ -318,6 +321,7 @@ describe("child_process", () => {
 
         it("setTimeout unref", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.1.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "301");
             p.join();
@@ -326,6 +330,7 @@ describe("child_process", () => {
 
         it("setTimeout ref", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.2.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "302");
             p.join();
@@ -334,6 +339,7 @@ describe("child_process", () => {
 
         it("setInterval", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "400");
             p.join();
@@ -342,6 +348,7 @@ describe("child_process", () => {
 
         it("setImmediate", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "500");
             p.join();
@@ -350,6 +357,7 @@ describe("child_process", () => {
 
         it("websocket connect", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec18.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             p.join();
             assert.equal(p.exitCode, 81);
@@ -367,6 +375,7 @@ describe("child_process", () => {
             httpd.start();
 
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "1900");
             p.join();
@@ -375,6 +384,7 @@ describe("child_process", () => {
 
         it("worker", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec20.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "2000");
             p.join();
@@ -383,6 +393,7 @@ describe("child_process", () => {
 
         it("bugfix: multi fiber async", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "600");
             p.join();
@@ -391,6 +402,7 @@ describe("child_process", () => {
 
         it("tcp server", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec21.js')]);
+            assert.isNull(p.exitCode);
             var stdout = new io.BufferedStream(p.stdout);
 
             for (var i = 0; i < 100; i++) {
@@ -420,8 +432,10 @@ describe("child_process", () => {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')], {
             stdio: 'inherit'
         });
+        assert.isFalse(p.killed);
         coroutine.sleep(500);
         p.kill(15);
+        assert.isTrue(p.killed);
         p.join();
         assert.lessThan(new Date().getTime() - t1, 2000);
     });

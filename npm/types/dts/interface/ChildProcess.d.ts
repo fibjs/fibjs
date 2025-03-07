@@ -78,6 +78,11 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     readonly pid: number;
 
     /**
+     * @description 查询当前对象指向的进程是否已经退出 
+     */
+    readonly killed: boolean;
+
+    /**
      * @description 查询和设置当前进程的退出码 
      */
     readonly exitCode: number;

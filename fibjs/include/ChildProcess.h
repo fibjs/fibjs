@@ -33,6 +33,7 @@ public:
     ChildProcess()
         : m_ipc(-1)
         , m_pty(false)
+        , m_killed(false)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -51,6 +52,7 @@ public:
     virtual result_t send(v8::Local<v8::Value> msg);
     virtual result_t usage(v8::Local<v8::Object>& retVal);
     virtual result_t get_pid(int32_t& retVal);
+    virtual result_t get_killed(bool& retVal);
     virtual result_t get_exitCode(int32_t& retVal);
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal);
@@ -91,6 +93,7 @@ public:
 
     bool m_pty;
 
+    bool m_killed;
     int32_t m_exitCode;
 
     std::vector<char*> envp;

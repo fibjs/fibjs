@@ -55,6 +55,9 @@ interface ChildProcess : EventEmitter
      */
     readonly Integer pid;
 
+    /*! @brief 查询当前对象指向的进程是否已经退出 */
+    readonly Boolean killed;
+
     /*! @brief 查询和设置当前进程的退出码 */
     readonly Integer exitCode;
 
