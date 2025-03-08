@@ -315,8 +315,12 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
             hdlr->isRouting(isRoute);
             if (isRoute) {
                 int32_t len = (int32_t)pattern.length();
-                if (len > 0 && pattern.c_str()[len - 1] == '/')
-                    pattern.resize(len - 1);
+                if (len > 0) {
+                    if (pattern == "*")
+                        pattern = "";
+                    else if (pattern.c_str()[len - 1] == '/')
+                        pattern.resize(len - 1);
+                }
                 pattern += "(.*)";
                 bSub = true;
             }
