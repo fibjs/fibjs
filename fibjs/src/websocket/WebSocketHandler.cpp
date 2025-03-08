@@ -48,6 +48,12 @@ WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept, bool enableCo
     on("accept", accept, r);
 }
 
+result_t WebSocketHandler::isRouting(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

@@ -26,6 +26,23 @@ result_t Chain_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs,
     return 0;
 }
 
+result_t Chain::isRouting(bool& retVal)
+{
+    int32_t len = m_array.size();
+
+    for (int i = 0; i < len; i++) {
+        bool isRouting = false;
+        m_array[i]->isRouting(isRouting);
+        if (isRouting) {
+            retVal = true;
+            return 0;
+        }
+    }
+
+    retVal = false;
+    return 0;
+}
+
 result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

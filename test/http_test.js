@@ -1370,6 +1370,10 @@ describe("http", () => {
         before(clean);
         after(clean);
 
+        it("isRouting", () => {
+            assert.isTrue(hfHandler.isRouting());
+        });
+
         it("file not found", () => {
             rep = hfh_test(url);
             assert.equal(404, rep.statusCode);
@@ -2770,6 +2774,11 @@ describe("http", () => {
                     "http://127.0.0.1/test2"
                 ]);
             });
+        });
+
+        it("isRouting", () => {
+            var hr = new http.Repeater("http://127.0.0.1/");
+            assert.isTrue(hr.isRouting());
         });
 
         describe("invoke", () => {

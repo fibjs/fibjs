@@ -29,6 +29,12 @@ JSHandler::JSHandler(v8::Local<v8::Value> proc, bool async)
     SetPrivate("handler", proc);
 }
 
+result_t JSHandler::isRouting(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

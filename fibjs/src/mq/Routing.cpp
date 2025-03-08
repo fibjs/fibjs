@@ -32,6 +32,12 @@ result_t Routing_base::_new(exlib::string method, v8::Local<v8::Object> map,
     return r->_append(method, map, retVal);
 }
 
+result_t Routing::isRouting(bool& retVal)
+{
+    retVal = true;
+    return 0;
+}
+
 #define RE_SIZE 64
 result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
@@ -305,8 +311,9 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
         if (!qstricmp(method.c_str(), "HOST"))
             pattern = host2RegExp(pattern);
         else {
-            obj_ptr<Routing_base> rt = Routing_base::getInstance(hdlr);
-            if (rt) {
+            bool isRoute = false;
+            hdlr->isRouting(isRoute);
+            if (isRoute) {
                 int32_t len = (int32_t)pattern.length();
                 if (len > 0 && pattern.c_str()[len - 1] == '/')
                     pattern.resize(len - 1);

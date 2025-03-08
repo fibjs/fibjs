@@ -27,6 +27,12 @@ result_t http_base::fileHandler(exlib::string root, bool autoIndex, obj_ptr<Hand
     return 0;
 }
 
+result_t HttpFileHandler::isRouting(bool& retVal)
+{
+    retVal = true;
+    return 0;
+}
+
 result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

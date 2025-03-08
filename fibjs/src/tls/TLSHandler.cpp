@@ -32,6 +32,12 @@ result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Handler_base* hand
     return _new(ctx, handler, retVal, This);
 }
 
+result_t TLSHandler::isRouting(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

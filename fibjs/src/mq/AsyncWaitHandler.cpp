@@ -15,6 +15,12 @@ namespace fibjs {
 #define AC_WAIT 1
 #define AC_END 2
 
+result_t AsyncWaitHandler::isRouting(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

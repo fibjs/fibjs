@@ -114,6 +114,12 @@ result_t HttpRepeater::get_client(obj_ptr<HttpClient_base>& retVal)
     return 0;
 }
 
+result_t HttpRepeater::isRouting(bool& retVal)
+{
+    retVal = true;
+    return 0;
+}
+
 result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

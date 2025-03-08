@@ -609,6 +609,12 @@ HttpHandler::HttpHandler()
     m_serverName.append(fibjs_version);
 }
 
+result_t HttpHandler::isRouting(bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

@@ -24,6 +24,7 @@ public:
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t isRouting(bool& retVal) = 0;
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -32,6 +33,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isRouting(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -43,6 +45,7 @@ namespace fibjs {
 inline ClassInfo& Handler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "isRouting", s_isRouting, false, ClassData::ASYNC_SYNC },
         { "invoke", s_invoke, false, ClassData::ASYNC_ASYNC }
     };
 
@@ -127,6 +130,20 @@ inline result_t Handler_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
     hr = _new(v0, vr, args.This());
 
     LOAD_RETURN();
+}
+
+inline void Handler_base::s_isRouting(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Handler_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->isRouting(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)

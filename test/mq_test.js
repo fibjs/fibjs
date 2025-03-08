@@ -629,6 +629,17 @@ describe("mq", () => {
             assert.equal(7, n);
         });
 
+        it("isRouting", () => {
+            var chain = new mq.Chain([hdlr1, hdlr2, hdlr3]);
+            assert.isFalse(chain.isRouting());
+
+            var chain1 = new mq.Chain([hdlr1, {
+                hdlr2,
+                hdlr3
+            }]);
+            assert.isTrue(chain1.isRouting());
+        });
+
         it("run js in same fiber", () => {
             var f;
             var chain = new mq.Handler([() => {
@@ -794,6 +805,10 @@ describe("mq", () => {
             '^params1/([0-9]+)\.html$': params1,
             '^params2/([0-9]+)\.(([a-z])?[0-9]+)\.html$': params2,
             '^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$': params3
+        });
+
+        it("isRouting", () => {
+            assert.isTrue(r.isRouting());
         });
 
         it("simple path", () => {

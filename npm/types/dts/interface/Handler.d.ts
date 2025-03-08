@@ -33,6 +33,13 @@ declare class Class_Handler extends Class_object {
     constructor(hdlr: string);
 
     /**
+     * @description 查询当前处理器是否支持路由
+     *      @return 返回当前处理器是否支持路由
+     *      
+     */
+    isRouting(): boolean;
+
+    /**
      * @description 处理一个消息或对象
      *      @param v 指定处理的消息或对象
      *      @return 返回下一步的处理器
