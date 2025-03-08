@@ -1434,6 +1434,15 @@ describe("http", () => {
             assert.equal(400, rep.statusCode);
         });
 
+        it("is file", () => {
+            var hfHandler = new http.fileHandler(__filename);
+
+            var req = new http.Request();
+            req.value = "/any_url";
+            hfHandler.invoke(req);
+            assert.equal(req.response.readAll().toString(), fs.readFile(__filename).toString());
+        });
+
         it("autoindex", () => {
             var rep = hfh_test("http_autoindex/");
             assert.equal(404, rep.statusCode);

@@ -16,14 +16,18 @@ namespace fibjs {
 class HttpFileHandler : public Handler_base {
     FIBER_FREE();
 
-public:
-    HttpFileHandler(exlib::string root, bool autoIndex)
-        : m_autoIndex(autoIndex)
+private:
+    HttpFileHandler(exlib::string root, bool isDir, bool autoIndex)
+        : m_root(root)
+        , m_isDir(isDir)
+        , m_autoIndex(autoIndex)
     {
-        path_base::normalize(root, m_root);
-        if (!m_root.empty() && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
+        if (!m_root.empty() && isDir && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
             m_root += PATH_SLASH;
     }
+
+public:
+    static result_t create(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
 
 public:
     // Handler_base
@@ -33,6 +37,7 @@ public:
 
 private:
     exlib::string m_root;
+    bool m_isDir;
     bool m_autoIndex;
 };
 

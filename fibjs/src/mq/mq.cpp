@@ -30,7 +30,7 @@ result_t Handler_base::_new(exlib::string hdlr, obj_ptr<Handler_base>& retVal,
 
         retVal = repeater;
     } else
-        retVal = new HttpFileHandler(hdlr, false);
+        return HttpFileHandler::create(hdlr, false, retVal);
 
     return 0;
 }

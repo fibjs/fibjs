@@ -23,7 +23,23 @@ namespace fibjs {
 
 result_t http_base::fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal)
 {
-    retVal = new HttpFileHandler(root, autoIndex);
+    return HttpFileHandler::create(root, autoIndex, retVal);
+}
+
+result_t HttpFileHandler::create(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal)
+{
+    exlib::string root_;
+    obj_ptr<Stat_base> stat;
+
+    path_base::normalize(root, root_);
+    result_t hr = fs_base::ac_stat(root_, stat);
+    if (hr != 0)
+        return hr;
+
+    bool isDir;
+    stat->isDirectory(isDir);
+
+    retVal = new HttpFileHandler(root_, isDir, autoIndex);
     return 0;
 }
 
@@ -50,7 +66,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             req->get_response(m_rep);
             m_req->get_value(m_value);
 
-            if (m_value.empty()) {
+            if (m_value.empty() || !m_pThis->m_isDir) {
                 m_url = m_pThis->m_root;
                 next(start);
                 return;
