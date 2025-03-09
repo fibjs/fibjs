@@ -496,11 +496,11 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
             v8::Local<v8::Value> value = obj->Get(holder()->context(), key).ToLocalChecked();
 
             exlib::string k, v;
-            result_t hr = GetArgumentValue(holder(), key, k, true);
+            result_t hr = GetArgumentValue(holder(), key, k, false);
             if (hr < 0)
                 return hr;
 
-            hr = GetArgumentValue(holder(), value, v, true);
+            hr = GetArgumentValue(holder(), value, v, false);
             if (hr < 0)
                 return hr;
 

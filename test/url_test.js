@@ -2297,6 +2297,19 @@ describe("url", () => {
         assert.equal(u, "mysql:foo1.com:8100/test");
     });
 
+    it('non string value in query', () => {
+        const u = url.format({
+            "protocol": "mysql:",
+            "host": "foo1.com:8100",
+            "pathname": "/test",
+            "query": {
+                "foo": 1
+            }
+        });
+
+        assert.equal(u, "mysql:foo1.com:8100/test?foo=1");
+    });
+
     it('format error when proctol with //', () => {
         const u = url.format({
             "protocol": "http://",
