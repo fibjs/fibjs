@@ -25,6 +25,13 @@ result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
     return _test(isolate->toBoolean(actual), "ok", actual, v8::Local<v8::Value>(), msg);
 }
 
+result_t assert_base::fail(exlib::string msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    return _test(false, "fail", v8::Local<v8::Value>(), v8::Local<v8::Value>(), msg);
+}
+
 result_t assert_base::notOk(v8::Local<v8::Value> actual, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();

@@ -51,6 +51,13 @@ declare module 'assert' {
     function notOk(actual: any, msg?: string): void;
 
     /**
+     * @description 断言失败，直接抛出错误
+     *      @param msg 断言失败时的提示信息
+     *      
+     */
+    function fail(msg?: string): void;
+
+    /**
      * @description 测试数值等于预期值，不相等则断言失败
      *      @param actual 要测试的数值
      *      @param expected 预期的数值

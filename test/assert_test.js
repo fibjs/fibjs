@@ -268,6 +268,16 @@ describe('assert', () => {
         }, "expected 'test' to be true");
     });
 
+    it('fail', () => {
+        assert.throws(() => {
+            assert.fail();
+        }, "Failed");
+
+        assert.throws(() => {
+            assert.fail("custom message");
+        }, "custom message");
+    });
+
     it('ok', () => {
         assert.ok(true);
         assert.ok(1);
