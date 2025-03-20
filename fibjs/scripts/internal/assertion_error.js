@@ -34,6 +34,7 @@ const kReadableOperator = {
 };
 
 const kReadableMessage = {
+  fail: 'Failed',
   ok: 'Expected the expression to be truthy',
   notOk: 'Expected the expression to be falsy',
   isTrue: 'Expected the expression to strictly equal true',
@@ -223,8 +224,33 @@ function isSimpleDiff(actual, inspectedActual, expected, inspectedExpected) {
   return typeof actual !== 'object' || actual === null || typeof expected !== 'object' || expected === null;
 }
 
-function createErrDiff(actual, expected, operator, customMessage) {
+function filterMatchingProperties(actual, expected) {
+  if (!expected || typeof expected !== 'object' || !actual || typeof actual !== 'object') {
+    return { actual, expected };
+  }
+
+  const filtered = {};
+  const actualFiltered = {};
+
+  for (const key in expected) {
+    if (key in actual) {
+      filtered[key] = expected[key];
+      actualFiltered[key] = actual[key];
+    }
+  }
+
+  return { actual: actualFiltered, expected: filtered };
+}
+
+function createErrDiff(actual, expected, operator, customMessage, needsFilter = false) {
   operator = checkOperator(actual, expected, operator);
+
+  // Only filter properties for throws/rejects
+  if (needsFilter) {
+    const { actual: filteredActual, expected: filteredExpected } = filterMatchingProperties(actual, expected);
+    actual = filteredActual;
+    expected = filteredExpected;
+  }
 
   let skipped = false;
   let message = '';
@@ -266,7 +292,9 @@ function createErrDiff(actual, expected, operator, customMessage) {
     }
   }
 
-  const headerMessage = `${getErrorMessage(operator, customMessage)}\n${header}`;
+  const headerMessage = customMessage ?
+    `${customMessage}\n${header}` :
+    `${getErrorMessage(operator)}\n${header}`;
   const skippedMessage = skipped ? '\n... Skipped lines' : '';
 
   return `${headerMessage}${skippedMessage}\n${message}\n`;
@@ -281,6 +309,11 @@ function addEllipsis(string) {
     return `${StringPrototypeSlice(string, kMaxLongStringLength)}...`;
   }
   return string;
+}
+
+function getClassName(fn) {
+  if (!fn || typeof fn !== 'function') return '';
+  return fn.name || '(anonymous class)';
 }
 
 class AssertionError extends Error {
@@ -301,7 +334,24 @@ class AssertionError extends Error {
 
     const limit = Error.stackTraceLimit;
 
-    if (message != null) {
+    if (operator === 'throws' || operator === 'rejects') {
+      if (expected instanceof RegExp) {
+        super(message ? message : `The input did not match the regular expression ${expected}. Input:${colors.clear}\n\n${actual}\n\n`);
+      } else if (typeof expected === 'function') {
+        if (expected.prototype && expected.prototype.constructor === expected) {
+          // This is likely a class
+          const expectedClassName = getClassName(expected);
+          const actualClassName = actual && actual.constructor ? getClassName(actual.constructor) : 'Unknown';
+          super(message ? message : `The error is expected to be an instance of "${expectedClassName}". Received "${actualClassName}"`);
+        } else {
+          super(message ? message : 'The validation function is expected to return "true". Received false');
+        }
+      } else if (expected !== undefined) {
+        super(createErrDiff(actual, expected, 'deepStrictEqual', message, true));
+      } else {
+        super(kReadableMessage[operator]);
+      }
+    } else if (message != null) {
       if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
         super(createErrDiff(actual, expected, operator, message));
       } else {

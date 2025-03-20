@@ -25,11 +25,14 @@ describe('assert', () => {
                 throw new Error('bar');
             }, /bar/);
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('bar');
                 }, /foo/);
-            }, "expected [Function] to throw an error matching /foo/");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message.replace(/\u001b\[[\d;]*m/g, '').trim(), "The input did not match the regular expression /foo/. Input:\n\nError: bar");
+            }
         });
 
         it('throws with function', () => {
@@ -40,15 +43,18 @@ describe('assert', () => {
                 return true;
             });
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('bar');
                 }, (err) => {
                     return err.message === 'foo';
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The validation function is expected to return \"true\". Received false");
+            }
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('bar');
                 }, (err) => {
@@ -56,7 +62,10 @@ describe('assert', () => {
                     console.error(err.message);
                     return true;
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Expected \"bar\" == \"foo\"");
+            }
         });
 
         it('throws with Object and String properties', () => {
@@ -66,13 +75,16 @@ describe('assert', () => {
                 message: 'bar'
             });
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('bar');
                 }, {
                     message: 'foo'
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message.replace(/\u001b\[[\d;]*m/g, '').trim(), "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   \"message\": \"bar\"\n-   \"message\": \"foo\"\n  }");
+            }
         });
 
         it('throws with Object and Number properties', () => {
@@ -82,21 +94,27 @@ describe('assert', () => {
                 message: '1234'
             });
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error(1234);
                 }, {
                     message: 1234
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message.replace(/\u001b\[[\d;]*m/g, '').trim(), "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   \"message\": \"1234\"\n-   \"message\": 1234\n  }");
+            }
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error(1234);
                 }, {
                     message: '4567'
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message.replace(/\u001b\[[\d;]*m/g, '').trim(), "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   \"message\": \"1234\"\n-   \"message\": \"4567\"\n  }");
+            }
         });
 
         it('throws with Object and String RegExp properties', () => {
@@ -106,13 +124,16 @@ describe('assert', () => {
                 message: /bar/
             });
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('bar');
                 }, {
                     message: /foo/
                 });
-            }, "expected [Function] to throw an error matching err.message === 'foo'");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message.replace(/\u001b\[[\d;]*m/g, '').trim(), "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   \"message\": \"bar\"\n-   \"message\": /foo/\n  }");
+            }
         });
 
         it('throws with Error Object', () => {
@@ -120,11 +141,51 @@ describe('assert', () => {
                 throw new TypeError('Type error');
             }, TypeError);
 
-            assert.throws(() => {
+            try {
                 assert.throws(() => {
                     throw new Error('Type error');
                 }, TypeError);
-            }, "expected [Function] to throw an error matching TypeError");
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The error is expected to be an instance of \"TypeError\". Received \"Error\"");
+            }
+
+            // Test with different error type
+            try {
+                assert.throws(() => {
+                    throw new RangeError('Range error');
+                }, TypeError);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The error is expected to be an instance of \"TypeError\". Received \"RangeError\"");
+            }
+
+            // Test with validation function returning non-boolean
+            try {
+                assert.throws(() => {
+                    throw new Error('error');
+                }, (err) => {
+                    return 1;
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The validation function is expected to return \"true\". Received false");
+            }
+
+            // Test nested error messages
+            try {
+                assert.throws(() => {
+                    throw new Error('level 1');
+                }, (err) => {
+                    assert.throws(() => {
+                        throw new Error('level 2');
+                    }, /level 1/);
+                    return true;
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.match(e.message, /level 2/);
+            }
         });
 
         it('throws with arbitrary value', () => {
@@ -143,11 +204,14 @@ describe('assert', () => {
                 throw new Error('Rejection');
             });
 
-            await assert.rejects(async () =>
+            try {
                 await assert.rejects(async () => {
                     // No rejection
-                })
-            );
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Missing expected rejection");
+            }
         });
 
         it('rejects with error message', async () => {
@@ -155,11 +219,14 @@ describe('assert', () => {
                 throw new Error('Specific error');
             }, /Specific error/);
 
-            await assert.rejects(async () =>
-                awaitassert.rejects(async () => {
+            try {
+                await assert.rejects(async () => {
                     // No rejection
-                }, /Specific error/)
-            );
+                }, /Specific error/);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Missing expected rejection");
+            }
         });
 
         it('rejects with error type', async () => {
@@ -167,11 +234,14 @@ describe('assert', () => {
                 throw new TypeError('Type error');
             }, TypeError);
 
-            await assert.rejects(async () =>
+            try {
                 await assert.rejects(async () => {
                     // No rejection
-                }, TypeError)
-            );
+                }, TypeError);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Missing expected rejection");
+            }
         });
 
         it('rejects with error predicate', async () => {
@@ -182,23 +252,29 @@ describe('assert', () => {
                 return true;
             });
 
-            await assert.rejects(async () =>
+            try {
                 await assert.rejects(async () => {
                     // No rejection
                 }, (err) => {
                     return err.message === 'Custom error';
-                })
-            );
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Missing expected rejection");
+            }
         });
 
         it('rejects with promise', async () => {
             const rejectedPromise = Promise.reject(new Error('Promise rejection'));
             await assert.rejects(rejectedPromise);
 
-            const resolvedPromise = Promise.resolve();
-            await assert.rejects(async () =>
-                await assert.rejects(resolvedPromise)
-            );
+            try {
+                const resolvedPromise = Promise.resolve();
+                await assert.rejects(resolvedPromise);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "Missing expected rejection");
+            }
         });
 
         it('rejects with promise and error matching', async () => {
@@ -207,9 +283,12 @@ describe('assert', () => {
             await assert.rejects(rejectedPromise, TypeError);
             await assert.rejects(rejectedPromise, /type error/i);
 
-            await assert.rejects(async () =>
-                await assert.rejects(rejectedPromise, RangeError)
-            );
+            try {
+                await assert.rejects(rejectedPromise, RangeError);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The error is expected to be an instance of \"RangeError\". Received \"TypeError\"");
+            }
         });
 
         it('rejects with promise and predicate', async () => {
@@ -220,11 +299,14 @@ describe('assert', () => {
                 return true;
             });
 
-            await assert.rejects(async () =>
+            try {
                 await assert.rejects(rejectedPromise, (err) => {
                     return err.message === 'Wrong error';
-                })
-            );
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The validation function is expected to return \"true\". Received false");
+            }
         });
 
         it('rejects with arbitrary value', async () => {
@@ -249,6 +331,59 @@ describe('assert', () => {
                 await assert.rejects(() => {
                 });
             });
+        });
+
+        it('rejects with Error Object', async () => {
+            await assert.rejects(async () => {
+                throw new TypeError('Type error');
+            }, TypeError);
+
+            try {
+                await assert.rejects(async () => {
+                    throw new Error('Type error');
+                }, TypeError);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The error is expected to be an instance of \"TypeError\". Received \"Error\"");
+            }
+
+            // Test with different error type
+            try {
+                await assert.rejects(async () => {
+                    throw new RangeError('Range error');
+                }, TypeError);
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The error is expected to be an instance of \"TypeError\". Received \"RangeError\"");
+            }
+
+            // Test with validation function returning non-boolean
+            try {
+                await assert.rejects(async () => {
+                    throw new Error('error');
+                }, (err) => {
+                    return 1;
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The validation function is expected to return \"true\". Received false");
+            }
+
+            // Test nested error messages
+            try {
+                await assert.rejects(async () => {
+                    throw new Error('level 1');
+                }, async (err) => {
+                    assert.equal(err.message, 'level 1');
+                    await assert.rejects(async () => {
+                        throw new Error('level 2');
+                    });
+                    return false; // Explicitly return false to trigger validation error
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.equal(e.message, "The validation function is expected to return \"true\". Received false");
+            }
         });
     });
 
