@@ -966,7 +966,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
             bool keepAlive;
             m_retVal->get_keepAlive(keepAlive);
-            if (keepAlive) {
+            if (keepAlive && !m_headerOnly) {
                 if (m_http_proxy.empty() || m_http_proxy.c_str()[0] == 's' || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else

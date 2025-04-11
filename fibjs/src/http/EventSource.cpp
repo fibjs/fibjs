@@ -52,21 +52,13 @@ public:
 
         int32_t status;
         m_es->m_response->get_status(status);
-        if (status != 200) {
-            exlib::string statusMessage;
-            m_es->m_response->get_statusMessage(statusMessage);
-            m_es->m_readyState = EventSource::C_CLOSED;
-            (new EventInfo(m_es, "error", status, "Invalid status: " + statusMessage))->emit();
-            return next();
-        }
+        if (status != 200)
+            return next(read_body);
 
         exlib::string contentType;
         m_es->m_response->firstHeader("Content-Type", contentType);
-        if (qstricmp(contentType.c_str(), "text/event-stream", 17)) {
-            m_es->m_readyState = EventSource::C_CLOSED;
-            (new EventInfo(m_es, "error", 0, "Invalid Content-Type: " + contentType))->emit();
-            return next();
-        }
+        if (qstricmp(contentType.c_str(), "text/event-stream", 17))
+            return next(read_body);
 
         obj_ptr<Stream_base> stm;
         m_es->m_response->get_stream(stm);
@@ -81,6 +73,31 @@ public:
         (new EventInfo(m_es, "open"))->emit();
 
         return m_sse_stm->readLine(4096, strLine, next(read_message));
+    }
+
+    ON_STATE(AsyncEventSource, read_body)
+    {
+        m_response = m_es->m_response.As<HttpResponse>();
+        return m_response->readBody(next(read_body_done));
+    }
+
+    ON_STATE(AsyncEventSource, read_body_done)
+    {
+        int32_t status;
+        m_es->m_response->get_status(status);
+        if (status != 200) {
+            exlib::string statusMessage;
+            m_es->m_response->get_statusMessage(statusMessage);
+            m_es->m_readyState = EventSource::C_CLOSED;
+            (new EventInfo(m_es, "error", status, "Invalid status: " + statusMessage))->emit();
+            return next();
+        }
+
+        exlib::string contentType;
+        m_es->m_response->firstHeader("Content-Type", contentType);
+        m_es->m_readyState = EventSource::C_CLOSED;
+        (new EventInfo(m_es, "error", 0, "Invalid Content-Type: " + contentType))->emit();
+        return next();
     }
 
     ON_STATE(AsyncEventSource, read_message)
@@ -150,6 +167,7 @@ public:
 
 private:
     obj_ptr<HttpClient> m_hc;
+    obj_ptr<HttpResponse> m_response;
     obj_ptr<EventSource> m_es;
     obj_ptr<ValueHolder> m_holder;
     exlib::string m_url;

@@ -2990,12 +2990,12 @@ describe("http", () => {
 
                     case '/wrong-content-type':
                         req.response.setHeader('Content-Type', 'text/plain');
-                        req.response.write('data: error\n\n');
+                        req.response.write('data: content type error\n\n');
                         break;
 
                     case '/error-status':
                         req.response.status = 404;
-                        req.response.write('data: error\n\n');
+                        req.response.write('data: status error\n\n');
                         break;
 
                     case '/comments':
@@ -3100,11 +3100,23 @@ describe("http", () => {
         });
 
         it('wrong content type error', async () => {
-            assert.rejects(get_event(`http://127.0.0.1:${8887 + base_port}/wrong-content-type`));
+            try {
+                await get_event(`http://127.0.0.1:${8887 + base_port}/wrong-content-type`);
+                assert.fail('should throw an error');
+            } catch (e) {
+                assert.equal(e.reason, 'Invalid Content-Type: text/plain');
+                assert.equal(e.target.response.body.readAll().toString(), 'data: content type error\n\n');
+            }
         });
 
         it('error status', async () => {
-            assert.rejects(get_event(`http://127.0.0.1:${8887 + base_port}/error-status`));
+            try {
+                await get_event(`http://127.0.0.1:${8887 + base_port}/error-status`);
+                assert.fail('should throw an error');
+            } catch (e) {
+                assert.equal(e.reason, 'Invalid status: File Not Found');
+                assert.equal(e.target.response.body.readAll().toString(), 'data: status error\n\n');
+            }
         });
 
         it('should ignore comment lines', async () => {
