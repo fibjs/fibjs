@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 set(WORK_ROOT $ENV{WORK_ROOT})
 if(NOT WORK_ROOT)
