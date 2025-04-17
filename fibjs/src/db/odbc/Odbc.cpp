@@ -282,6 +282,20 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                 hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
                 if (hr < 0)
                     break;
+
+                if (types[i] == SQL_VARCHAR) {
+                    SQLSMALLINT buflen;
+                    SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
+
+                    hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_TYPE_NAME, buf,
+                        SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
+                    if (hr < 0)
+                        break;
+
+                    exlib::string typeName = utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR));
+                    if (typeName == "boolean" || typeName == "bool")
+                        types[i] = SQL_BIT;
+                }
             }
             if (hr < 0)
                 break;
@@ -320,6 +334,16 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                             v.setNull();
                         else
                             v = value;
+                        break;
+                    }
+                    case SQL_BIT: {
+                        // Handle boolean type
+                        char value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BIT, &value, sizeof(value), &len);
+                        if (len == SQL_NULL_DATA)
+                            v.setNull();
+                        else
+                            v = value != 0;
                         break;
                     }
                     case SQL_DATETIME:
