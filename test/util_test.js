@@ -699,6 +699,19 @@ describe('util', () => {
             }), '{\n  "a": 100,\n  "b": 200\n}');
         });
 
+        it("object with indices", () => {
+            assert.equal(util.format({
+                0: 100,
+                1: 200
+            }), '{\n  0: 100,\n  1: 200\n}');
+            assert.equal(util.format({
+                0: 100,
+                1: 200,
+                a: 300,
+                3: 400
+            }), '{\n  0: 100,\n  1: 200,\n  3: 400,\n  "a": 300\n}');
+        });
+
         it("Buffer", () => {
             assert.equal(util.format(new Buffer('fibjs')), '<Buffer 66 69 62 6a 73>');
         });

@@ -259,7 +259,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     }
 
                     keys = obj->GetPropertyNames(_context, v8::KeyCollectionMode::kIncludePrototypes,
-                                  v8::PropertyFilter::ONLY_ENUMERABLE, v8::IndexFilter::kSkipIndices)
+                                  v8::PropertyFilter::ONLY_ENUMERABLE, v8::IndexFilter::kIncludeIndices)
                                .FromMaybe(v8::Local<v8::Array>());
                 }
 
