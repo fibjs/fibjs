@@ -111,6 +111,7 @@ public:
     static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     static result_t run(exlib::string command, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     static result_t sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncEvent* ac);
+    static result_t ssh(exlib::string host, v8::Local<v8::Object> options, v8::Local<v8::Function>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -132,6 +133,7 @@ public:
     static void s_static_fork(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sh(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_ssh(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(child_process_base, exec, exlib::string, v8::Local<v8::Object>, obj_ptr<ExecType>);
@@ -157,7 +159,8 @@ inline ClassInfo& child_process_base::class_info()
         { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_ASYNC },
         { "fork", s_static_fork, true, ClassData::ASYNC_SYNC },
         { "run", s_static_run, true, ClassData::ASYNC_ASYNC },
-        { "sh", s_static_sh, true, ClassData::ASYNC_ASYNC }
+        { "sh", s_static_sh, true, ClassData::ASYNC_ASYNC },
+        { "ssh", s_static_ssh, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -343,6 +346,22 @@ inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::V
         hr = acb_sh(v0, v1, cb, args);
     else
         hr = ac_sh(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void child_process_base::s_static_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = ssh(v0, v1, vr);
 
     METHOD_RETURN();
 }

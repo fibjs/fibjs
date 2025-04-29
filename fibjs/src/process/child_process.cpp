@@ -15,7 +15,6 @@
 #include <uv/include/uv.h>
 #include "MemoryStream.h"
 #include "encoding.h"
-#include "StringBuffer.h"
 #include "ifs/process.h"
 
 namespace fibjs {
@@ -246,109 +245,6 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
     }
 
     return execFile(shell, v8::Local<v8::Array>(), options, _retVal, ac);
-}
-
-result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(strings);
-        v8::Local<v8::Context> context = isolate->context();
-        StringBuffer sbuf;
-        int32_t argc = strings->Length();
-        size_t strcnt = strings->Length();
-
-        for (int32_t i = 0; i < strcnt; i++) {
-            v8::Local<v8::Value> v = strings->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-            v8::String::Utf8Value str(isolate->m_isolate, v);
-            sbuf.append(*str, str.length());
-
-            if (i < argc - 1) {
-                v8::Local<v8::Value> v1 = args[i];
-
-                if (v1->IsArray()) {
-                    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v1);
-                    int32_t len = arr->Length();
-
-                    for (int32_t j = 0; j < len; j++) {
-                        v8::Local<v8::Value> v2 = arr->Get(context, j).FromMaybe(v8::Local<v8::Value>());
-                        v8::String::Utf8Value str2(isolate->m_isolate, v2);
-                        if (*str2)
-                            sbuf.append(*str2, str2.length());
-
-                        if (j < len - 1)
-                            sbuf.append(' ');
-                    }
-                } else {
-                    v8::String::Utf8Value str1(isolate->m_isolate, v1);
-                    if (*str1)
-                        sbuf.append(*str1, str1.length());
-                }
-            }
-        }
-
-        exlib::string cmd = sbuf.str();
-        v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-
-        ac->m_ctx.resize(2);
-        ac->m_ctx[1] = cmd;
-
-        return exec(cmd, opts, *(obj_ptr<ExecType>*)nullptr, ac);
-    }
-
-    class AsyncShell : public AsyncEvent {
-    public:
-        AsyncShell(exlib::string& retVal, AsyncEvent* ac)
-            : m_retVal(retVal)
-            , m_ac(ac)
-        {
-            m_ctx.resize(1);
-            m_ctx[0] = ac->m_ctx[0];
-            m_ctxo = ac->m_ctxo;
-
-            setAsync();
-        }
-
-        static exlib::string process_output(Variant& v)
-        {
-            exlib::string s = v.string();
-            const char* c_s = s.c_str();
-            size_t sz = s.length();
-
-#ifdef _WIN32
-            if (sz > 1 && c_s[sz - 2] == '\r' && c_s[sz - 1] == '\n')
-                s.resize(sz - 2);
-#else
-            if (sz > 0 && c_s[sz - 1] == '\n')
-                s.resize(sz - 1);
-#endif
-
-            return s;
-        }
-
-        virtual int32_t post(int32_t v)
-        {
-            if (m_exec_retVal->exitCode) {
-                m_ac->post(Runtime::setError(process_output(m_exec_retVal->stderr)));
-            } else {
-                m_retVal = process_output(m_exec_retVal->stdout);
-                m_ac->post(v);
-            }
-            delete this;
-            return 0;
-        }
-
-    public:
-        obj_ptr<ExecType> m_exec_retVal;
-
-    private:
-        exlib::string& m_retVal;
-        AsyncEvent* m_ac;
-    };
-
-    AsyncShell* as = new AsyncShell(retVal, ac);
-    exlib::string cmd = ac->m_ctx[1].string();
-
-    return exec(cmd, v8::Local<v8::Object>(), as->m_exec_retVal, as);
 }
 
 result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Array> args,

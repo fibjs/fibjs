@@ -179,7 +179,8 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     }
 
     v8::Local<v8::Object> opt_envs;
-    v8::Local<v8::Value> opt_envs_v = options->Get(context, isolate->NewString("env")).FromMaybe(v8::Local<v8::Value>());
+    v8::Local<v8::Value> opt_envs_v;
+    GetConfigValue(isolate, options, "env", opt_envs_v);
     if (IsEmpty(opt_envs_v)) {
         hr = process_base::get_env(opt_envs);
         if (hr < 0)

@@ -671,7 +671,7 @@ public:                                                  \
 #endif
 
 #ifndef _offsetof
-#define _offsetof(TYPE, MEMBER) ((size_t) & ((TYPE*)0)->MEMBER)
+#define _offsetof(TYPE, MEMBER) ((size_t)&((TYPE*)0)->MEMBER)
 #endif
 
 #ifndef container_of
@@ -1019,6 +1019,9 @@ result_t setRuntimeError(result_t code, const char* err = nullptr);
 template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
 {
+    if (o.IsEmpty())
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
+
     JSValue v = o->Get(isolate->context(), isolate->NewString(key));
     if (v->IsUndefined())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
@@ -1029,6 +1032,9 @@ result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* k
 template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)
 {
+    if (o.IsEmpty())
+        return CALL_E_PARAMNOTOPTIONAL;
+
     T n1;
     result_t hr = GetConfigValue(isolate, o, key, n1, bStrict);
     if (hr >= 0)
@@ -1042,8 +1048,10 @@ result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* k
 template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
 {
-    JSValue v = o->Get(isolate->context(), i);
-    if (v->IsUndefined()) {
+    JSValue v;
+    if (!o.IsEmpty())
+        v = o->Get(isolate->context(), i);
+    if (v.IsEmpty() || v->IsUndefined()) {
         char key[32];
         snprintf(key, sizeof(key), "%d", i + 1);
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);

@@ -345,5 +345,53 @@ declare module 'child_process' {
      */
     function sh(strings: any[], ...args: any[]): string;
 
+    /**
+     * @description 创建一个 ssh 执行函数
+     * 
+     *     options 支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "user": "", // ssh user
+     *          "port": 22, // ssh port
+     *      }
+     *      ```
+     * 
+     *      ssh 是对 execFile 方法的再次封装，用于快速执行 ssh shell 命令，支持字符串模版语法，例如：
+     *      ```JavaScript
+     *        const $ = require("child_process").ssh('remote');
+     *        var ret = $`ls -l`;
+     *        console.log(ret);
+     *       ```
+     *       因为 sh 是个模版函数，所以可以很方便地在命令中使用模版，例如：
+     *       ```JavaScript
+     *        const $ = require("child_process").ssh('remote');
+     *        var ret = $`ls -l ${__dirname}`;
+     *        console.log(ret);
+     *       ```
+     *       你也可以很方便地在命令中引入数组，例如：
+     *       ```JavaScript
+     *        const $ = require("child_process").ssh('remote');
+     *        const words = [
+     *          "hello",
+     *          "world"
+     *        ]
+     *        var ret = $`echo ${words}`;
+     *        console.log(ret);
+     *       ```
+     *       sh 会自动删除命令返回的最后一个换行，以方便在下一次命令中使用，例如：
+     *       ```JavaScript
+     *        const $ = require("child_process").ssh('remote');
+     *        var world = $`echo world`;
+     *        var ret = $`echo hello ${world}`;
+     *        console.log(ret);
+     *       ```
+     * 
+     *     @param host 指定远程主机地址
+     *     @param options 指定 ssh 连接参数
+     *     @return 返回子进程对象
+     *    
+     */
+    function ssh(host: string, options?: FIBJS.GeneralObject): (...args: any[])=>any;
+
 }
 
