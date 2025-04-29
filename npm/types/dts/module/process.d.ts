@@ -228,6 +228,35 @@ declare module 'process' {
     function memoryUsage(): FIBJS.GeneralObject;
 
     /**
+     * @description 查询当前进程的资源使用报告
+     * 
+     *      resourceUsage 生成类似以下结果：
+     *      ```JavaScript
+     *      {
+     *        "userCPUTime": 132379,      // 用户 CPU 时间(微秒)，与 process.cpuUsage().user 相同
+     *        "systemCPUTime": 50507,     // 系统 CPU 时间(微秒)，与 process.cpuUsage().system 相同
+     *        "maxRSS": 8622080,          // 最大物理内存使用量(KB)
+     *        "sharedMemorySize": 0,      // 共享内存大小(不支持)
+     *        "unsharedDataSize": 0,      // 非共享数据大小(不支持)
+     *        "unsharedStackSize": 0,     // 非共享栈大小(不支持)
+     *        "minorPageFault": 2,        // 次要页面错误次数
+     *        "majorPageFault": 0,        // 主要页面错误次数(Windows 不支持)
+     *        "swappedOut": 0,            // 交换到磁盘次数(不支持)
+     *        "fsRead": 100,              // 文件系统读取次数
+     *        "fsWrite": 50,              // 文件系统写入次数
+     *        "ipcSent": 0,               // IPC 消息发送次数(不支持)
+     *        "ipcReceived": 0,           // IPC 消息接收次数(不支持)
+     *        "signalsCount": 0,          // 信号接收次数(不支持)
+     *        "voluntaryContextSwitches": 1000,    // 主动上下文切换次数(Windows 不支持)
+     *        "involuntaryContextSwitches": 500    // 被动上下文切换次数(Windows 不支持)
+     *      }
+     *      ```
+     *      @return 返回包含资源使用报告的对象
+     *      
+     */
+    function resourceUsage(): FIBJS.GeneralObject;
+
+    /**
      * @description 启动一个纤程
      *      @param func 制定纤程执行的函数
      *      @param args 可变参数序列，此序列会在纤程内传递给函数

@@ -332,6 +332,44 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     return 0;
 }
 
+result_t process_base::resourceUsage(v8::Local<v8::Object>& retVal)
+{
+    uv_rusage_t rusage;
+    double _user = 0, _system = 0;
+
+    int err = uv_getrusage(&rusage);
+    if (err)
+        return err;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+    o->Set(context, isolate->NewString("userCPUTime"),
+         v8::Number::New(isolate->m_isolate, (double)(MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec)))
+        .IsJust();
+    o->Set(context, isolate->NewString("systemCPUTime"),
+         v8::Number::New(isolate->m_isolate, (double)(MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec)))
+        .IsJust();
+    o->Set(context, isolate->NewString("maxRSS"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_maxrss)).IsJust();
+    o->Set(context, isolate->NewString("sharedMemorySize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_ixrss)).IsJust();
+    o->Set(context, isolate->NewString("unsharedDataSize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_idrss)).IsJust();
+    o->Set(context, isolate->NewString("unsharedStackSize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_isrss)).IsJust();
+    o->Set(context, isolate->NewString("minorPageFault"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_minflt)).IsJust();
+    o->Set(context, isolate->NewString("majorPageFault"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_majflt)).IsJust();
+    o->Set(context, isolate->NewString("swappedOut"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nswap)).IsJust();
+    o->Set(context, isolate->NewString("fsRead"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_inblock)).IsJust();
+    o->Set(context, isolate->NewString("fsWrite"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_oublock)).IsJust();
+    o->Set(context, isolate->NewString("ipcSent"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_msgsnd)).IsJust();
+    o->Set(context, isolate->NewString("ipcReceived"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_msgrcv)).IsJust();
+    o->Set(context, isolate->NewString("signalsCount"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nsignals)).IsJust();
+    o->Set(context, isolate->NewString("voluntaryContextSwitches"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nvcsw)).IsJust();
+    o->Set(context, isolate->NewString("involuntaryContextSwitches"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nivcsw)).IsJust();
+    retVal = o;
+
+    return 0;
+}
+
 extern exlib::atomic g_ExtStringCount;
 
 result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)

@@ -178,6 +178,16 @@ describe('process', () => {
         console.dir(process.memoryUsage());
     });
 
+    it("resourceUsage", () => {
+        let usage = process.resourceUsage();
+        assert.property(usage, 'userCPUTime');
+        assert.property(usage, 'systemCPUTime');
+        assert.property(usage, 'maxRSS');
+        assert.property(usage, 'sharedMemorySize');
+        assert.property(usage, 'unsharedDataSize');
+        assert.property(usage, 'unsharedStackSize');
+    });
+
     it("version", () => {
         assert.ok(process.version);
     });
