@@ -7,141 +7,141 @@
  */
 module zlib_constants
 {
-    /**/
+    /*! @brief 不执行刷新操作 */
     const Z_NO_FLUSH = 0;
 
-    /**/
+    /*! @brief 执行部分刷新操作 */
     const Z_PARTIAL_FLUSH = 1;
 
-    /**/
+    /*! @brief 同步刷新，等待所有待处理的输出被刷新 */
     const Z_SYNC_FLUSH = 2;
 
-    /**/
+    /*! @brief 完全刷新，等待所有输出被刷新并重置内部状态 */
     const Z_FULL_FLUSH = 3;
 
-    /**/
+    /*! @brief 完成压缩或解压缩操作 */
     const Z_FINISH = 4;
 
-    /**/
+    /*! @brief 在当前块结束时停止压缩 */
     const Z_BLOCK = 5;
 
-    /**/
+    /*! @brief 操作成功完成 */
     const Z_OK = 0;
 
-    /**/
+    /*! @brief 压缩或解压缩流结束 */
     const Z_STREAM_END = 1;
 
-    /**/
+    /*! @brief 需要字典才能继续操作 */
     const Z_NEED_DICT = 2;
 
-    /**/
+    /*! @brief 发生系统错误 */
     const Z_ERRNO = -1;
 
-    /**/
+    /*! @brief 流状态不一致或参数无效 */
     const Z_STREAM_ERROR = -2;
 
-    /**/
+    /*! @brief 输入数据损坏 */
     const Z_DATA_ERROR = -3;
 
-    /**/
+    /*! @brief 内存分配失败 */
     const Z_MEM_ERROR = -4;
 
-    /**/
+    /*! @brief 缓冲区错误 */
     const Z_BUF_ERROR = -5;
 
-    /**/
+    /*! @brief 版本不匹配 */
     const Z_VERSION_ERROR = -6;
 
-    /**/
+    /*! @brief 不压缩 */
     const Z_NO_COMPRESSION = 0;
 
-    /**/
+    /*! @brief 最快速度压缩 */
     const Z_BEST_SPEED = 1;
 
-    /**/
+    /*! @brief 最高压缩率 */
     const Z_BEST_COMPRESSION = 9;
 
-    /**/
+    /*! @brief 默认压缩级别 */
     const Z_DEFAULT_COMPRESSION = -1;
 
-    /**/
+    /*! @brief 过滤器压缩策略 */
     const Z_FILTERED = 1;
 
-    /**/
+    /*! @brief 仅使用Huffman编码 */
     const Z_HUFFMAN_ONLY = 2;
 
-    /**/
+    /*! @brief 运行长度编码 */
     const Z_RLE = 3;
 
-    /**/
+    /*! @brief 固定哈夫曼编码 */
     const Z_FIXED = 4;
 
-    /**/
+    /*! @brief 默认压缩策略 */
     const Z_DEFAULT_STRATEGY = 0;
 
-    /**/
+    /*! @brief zlib 版本号 */
     const ZLIB_VERNUM = 4800;
 
-    /**/
+    /*! @brief deflate 压缩 */
     const DEFLATE = 1;
 
-    /**/
+    /*! @brief inflate 解压缩 */
     const INFLATE = 2;
 
-    /**/
+    /*! @brief gzip 压缩 */
     const GZIP = 3;
 
-    /**/
+    /*! @brief gunzip 解压缩 */
     const GUNZIP = 4;
 
-    /**/
+    /*! @brief deflateRaw 压缩 */
     const DEFLATERAW = 5;
 
-    /**/
+    /*! @brief inflateRaw 解压缩 */
     const INFLATERAW = 6;
 
-    /**/
+    /*! @brief unzip 解压缩 */
     const UNZIP = 7;
 
-    /**/
+    /*! @brief Brotli 解码 */
     const BROTLI_DECODE = 8;
 
-    /**/
+    /*! @brief Brotli 编码 */
     const BROTLI_ENCODE = 9;
 
-    /**/
+    /*! @brief 最小窗口大小 */
     const Z_MIN_WINDOWBITS = 8;
 
-    /**/
+    /*! @brief 最大窗口大小 */
     const Z_MAX_WINDOWBITS = 15;
 
-    /**/
+    /*! @brief 默认窗口大小 */
     const Z_DEFAULT_WINDOWBITS = 15;
 
-    /**/
+    /*! @brief 最小块大小 */
     const Z_MIN_CHUNK = 64;
 
-    /**/
+    /*! @brief 最大块大小 */
     const Z_MAX_CHUNK = -1;
 
-    /**/
+    /*! @brief 默认块大小 */
     const Z_DEFAULT_CHUNK = 16384;
 
-    /**/
+    /*! @brief 最小内存级别 */
     const Z_MIN_MEMLEVEL = 1;
 
-    /**/
+    /*! @brief 最大内存级别 */
     const Z_MAX_MEMLEVEL = 9;
 
-    /**/
+    /*! @brief 默认内存级别 */
     const Z_DEFAULT_MEMLEVEL = 8;
 
-    /**/
+    /*! @brief 最低压缩级别 */
     const Z_MIN_LEVEL = -1;
 
-    /**/
+    /*! @brief 最高压缩级别 */
     const Z_MAX_LEVEL = 9;
 
-    /**/
+    /*! @brief 默认压缩级别 */
     const Z_DEFAULT_LEVEL = -1;
 };

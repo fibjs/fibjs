@@ -9,20 +9,44 @@
  *  
  */
 declare module 'crypto_constants' {
+    /**
+     * @description PKCS#1 填充方式，最常用的 RSA 填充方式 
+     */
     export const RSA_PKCS1_PADDING: 1;
 
+    /**
+     * @description 不使用填充，原始 RSA 加密方式 
+     */
     export const RSA_NO_PADDING: 3;
 
+    /**
+     * @description PKCS#1 OAEP 填充方式，提供更安全的加密方式 
+     */
     export const RSA_PKCS1_OAEP_PADDING: 4;
 
+    /**
+     * @description X9.31 填充方式 
+     */
     export const RSA_X931_PADDING: 5;
 
+    /**
+     * @description PKCS#1 PSS 填充方式，用于数字签名 
+     */
     export const RSA_PKCS1_PSS_PADDING: 6;
 
+    /**
+     * @description PSS 填充使用摘要长度作为盐长度 
+     */
     export const RSA_PSS_SALTLEN_DIGEST: -1;
 
+    /**
+     * @description PSS 填充使用最大可能长度作为盐长度 
+     */
     export const RSA_PSS_SALTLEN_MAX_SIGN: -2;
 
+    /**
+     * @description PSS 填充自动确定盐长度 
+     */
     export const RSA_PSS_SALTLEN_AUTO: -2;
 
 }

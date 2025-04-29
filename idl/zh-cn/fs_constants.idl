@@ -16,168 +16,168 @@ module fs_constants
     /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
     const SEEK_END = 2;
 
-    /**/
+    /*! @brief 符号链接到目录 */
     const UV_FS_SYMLINK_DIR = 1;
 
-    /**/
+    /*! @brief 符号链接到连接点 */
     const UV_FS_SYMLINK_JUNCTION = 2;
 
-    /**/
+    /*! @brief 仅打开读取 */
     const O_RDONLY = 0;
 
-    /**/
+    /*! @brief 仅打开写入 */
     const O_WRONLY = 1;
 
-    /**/
+    /*! @brief 打开读取和写入 */
     const O_RDWR = 2;
 
-    /**/
+    /*! @brief 未知目录项类型 */
     const UV_DIRENT_UNKNOWN = 0;
 
-    /**/
+    /*! @brief 文件目录项类型 */
     const UV_DIRENT_FILE = 1;
 
-    /**/
+    /*! @brief 目录目录项类型 */
     const UV_DIRENT_DIR = 2;
 
-    /**/
+    /*! @brief 符号链接目录项类型 */
     const UV_DIRENT_LINK = 3;
 
-    /**/
+    /*! @brief FIFO目录项类型 */
     const UV_DIRENT_FIFO = 4;
 
-    /**/
+    /*! @brief 套接字目录项类型 */
     const UV_DIRENT_SOCKET = 5;
 
-    /**/
+    /*! @brief 字符设备目录项类型 */
     const UV_DIRENT_CHAR = 6;
 
-    /**/
+    /*! @brief 块设备目录项类型 */
     const UV_DIRENT_BLOCK = 7;
 
-    /**/
+    /*! @brief 文件类型位字段的位掩码 */
     const S_IFMT = 61440;
 
-    /**/
+    /*! @brief 常规文件 */
     const S_IFREG = 32768;
 
-    /**/
+    /*! @brief 目录 */
     const S_IFDIR = 16384;
 
-    /**/
+    /*! @brief 字符设备 */
     const S_IFCHR = 8192;
 
-    /**/
+    /*! @brief 块设备 */
     const S_IFBLK = 24576;
 
-    /**/
+    /*! @brief FIFO */
     const S_IFIFO = 4096;
 
-    /**/
+    /*! @brief 符号链接 */
     const S_IFLNK = 40960;
 
-    /**/
+    /*! @brief 套接字 */
     const S_IFSOCK = 49152;
 
-    /**/
+    /*! @brief 如果文件不存在则创建文件 */
     const O_CREAT = 512;
 
-    /**/
+    /*! @brief 确保文件的独占创建 */
     const O_EXCL = 2048;
 
-    /**/
+    /*! @brief 文件映射标志 */
     const UV_FS_O_FILEMAP = 0;
 
-    /**/
+    /*! @brief 不分配控制终端 */
     const O_NOCTTY = 131072;
 
-    /**/
+    /*! @brief 将文件截断为零长度 */
     const O_TRUNC = 1024;
 
-    /**/
+    /*! @brief 追加到文件末尾 */
     const O_APPEND = 8;
 
-    /**/
+    /*! @brief 打开目录 */
     const O_DIRECTORY = 1048576;
 
-    /**/
+    /*! @brief 不跟随符号链接 */
     const O_NOFOLLOW = 256;
 
-    /**/
+    /*! @brief 同步I/O */
     const O_SYNC = 128;
 
-    /**/
+    /*! @brief 同步I/O数据完整性完成 */
     const O_DSYNC = 4194304;
 
-    /**/
+    /*! @brief 允许打开符号链接 */
     const O_SYMLINK = 2097152;
 
-    /**/
+    /*! @brief 非阻塞模式 */
     const O_NONBLOCK = 4;
 
-    /**/
+    /*! @brief 所有者读写执行权限 */
     const S_IRWXU = 448;
 
-    /**/
+    /*! @brief 所有者读权限 */
     const S_IRUSR = 256;
 
-    /**/
+    /*! @brief 所有者写权限 */
     const S_IWUSR = 128;
 
-    /**/
+    /*! @brief 所有者执行权限 */
     const S_IXUSR = 64;
 
-    /**/
+    /*! @brief 组读写执行权限 */
     const S_IRWXG = 56;
 
-    /**/
+    /*! @brief 组读权限 */
     const S_IRGRP = 32;
 
-    /**/
+    /*! @brief 组写权限 */
     const S_IWGRP = 16;
 
-    /**/
+    /*! @brief 组执行权限 */
     const S_IXGRP = 8;
 
-    /**/
+    /*! @brief 其他人读写执行权限 */
     const S_IRWXO = 7;
 
-    /**/
+    /*! @brief 其他人读权限 */
     const S_IROTH = 4;
 
-    /**/
+    /*! @brief 其他人写权限 */
     const S_IWOTH = 2;
 
-    /**/
+    /*! @brief 其他人执行权限 */
     const S_IXOTH = 1;
 
-    /**/
+    /*! @brief 测试文件是否存在 */
     const F_OK = 0;
 
-    /**/
+    /*! @brief 测试读权限 */
     const R_OK = 4;
 
-    /**/
+    /*! @brief 测试写权限 */
     const W_OK = 2;
 
-    /**/
+    /*! @brief 测试执行权限 */
     const X_OK = 1;
 
-    /**/
+    /*! @brief 独占复制文件标志 */
     const UV_FS_COPYFILE_EXCL = 1;
 
-    /**/
+    /*! @brief 独占复制文件标志 */
     const COPYFILE_EXCL = 1;
 
-    /**/
+    /*! @brief 文件克隆复制标志 */
     const UV_FS_COPYFILE_FICLONE = 2;
 
-    /**/
+    /*! @brief 文件克隆复制标志 */
     const COPYFILE_FICLONE = 2;
 
-    /**/
+    /*! @brief 文件克隆强制复制标志 */
     const UV_FS_COPYFILE_FICLONE_FORCE = 4;
 
-    /**/
+    /*! @brief 文件克隆强制复制标志 */
     const COPYFILE_FICLONE_FORCE = 4;
 };

@@ -7,528 +7,528 @@
  */
 module constants
 {
-    /**/
+    /*! @brief 动态库延迟加载 */
     const RTLD_LAZY = 1;
 
-    /**/
+    /*! @brief 动态库立即加载 */
     const RTLD_NOW = 2;
 
-    /**/
+    /*! @brief 动态库全局作用域加载 */
     const RTLD_GLOBAL = 8;
 
-    /**/
+    /*! @brief 动态库局部作用域加载 */
     const RTLD_LOCAL = 4;
 
-    /**/
+    /*! @brief 参数列表太长错误 */
     const E2BIG = 7;
 
-    /**/
+    /*! @brief 没有访问权限错误 */
     const EACCES = 13;
 
-    /**/
+    /*! @brief 地址已在使用错误 */
     const EADDRINUSE = 48;
 
-    /**/
+    /*! @brief 地址不可用错误 */
     const EADDRNOTAVAIL = 49;
 
-    /**/
+    /*! @brief 地址族不支持错误 */
     const EAFNOSUPPORT = 47;
 
-    /**/
+    /*! @brief 资源暂时不可用错误 */
     const EAGAIN = 35;
 
-    /**/
+    /*! @brief 连接已在进行中错误 */
     const EALREADY = 37;
 
-    /**/
+    /*! @brief 文件描述符错误 */
     const EBADF = 9;
 
-    /**/
+    /*! @brief 错误消息错误 */
     const EBADMSG = 94;
 
-    /**/
+    /*! @brief 设备或资源忙错误 */
     const EBUSY = 16;
 
-    /**/
+    /*! @brief 操作取消错误 */
     const ECANCELED = 89;
 
-    /**/
+    /*! @brief 没有子进程错误 */
     const ECHILD = 10;
 
-    /**/
+    /*! @brief 连接中止错误 */
     const ECONNABORTED = 53;
 
-    /**/
+    /*! @brief 连接被拒绝错误 */
     const ECONNREFUSED = 61;
 
-    /**/
+    /*! @brief 连接重置错误 */
     const ECONNRESET = 54;
 
-    /**/
+    /*! @brief 资源死锁避免错误 */
     const EDEADLK = 11;
 
-    /**/
+    /*! @brief 需要目标地址错误 */
     const EDESTADDRREQ = 39;
 
-    /**/
+    /*! @brief 数学参数超出域错误 */
     const EDOM = 33;
 
-    /**/
+    /*! @brief 超出配额错误 */
     const EDQUOT = 69;
 
-    /**/
+    /*! @brief 文件已存在错误 */
     const EEXIST = 17;
 
-    /**/
+    /*! @brief 错误地址错误 */
     const EFAULT = 14;
 
-    /**/
+    /*! @brief 文件太大错误 */
     const EFBIG = 27;
 
-    /**/
+    /*! @brief 主机不可达错误 */
     const EHOSTUNREACH = 65;
 
-    /**/
+    /*! @brief 标识符已移除错误 */
     const EIDRM = 90;
 
-    /**/
+    /*! @brief 非法字节序列错误 */
     const EILSEQ = 92;
 
-    /**/
+    /*! @brief 操作进行中错误 */
     const EINPROGRESS = 36;
 
-    /**/
+    /*! @brief 函数调用中断错误 */
     const EINTR = 4;
 
-    /**/
+    /*! @brief 无效参数错误 */
     const EINVAL = 22;
 
-    /**/
+    /*! @brief 输入/输出错误 */
     const EIO = 5;
 
-    /**/
+    /*! @brief 套接字已连接错误 */
     const EISCONN = 56;
 
-    /**/
+    /*! @brief 是目录错误 */
     const EISDIR = 21;
 
-    /**/
+    /*! @brief 符号链接层次过多错误 */
     const ELOOP = 62;
 
-    /**/
+    /*! @brief 打开文件过多错误 */
     const EMFILE = 24;
 
-    /**/
+    /*! @brief 链接过多错误 */
     const EMLINK = 31;
 
-    /**/
+    /*! @brief 消息太长错误 */
     const EMSGSIZE = 40;
 
-    /**/
+    /*! @brief 多跳尝试错误 */
     const EMULTIHOP = 95;
 
-    /**/
+    /*! @brief 文件名太长错误 */
     const ENAMETOOLONG = 63;
 
-    /**/
+    /*! @brief 网络已关闭错误 */
     const ENETDOWN = 50;
 
-    /**/
+    /*! @brief 网络连接重置错误 */
     const ENETRESET = 52;
 
-    /**/
+    /*! @brief 网络不可达错误 */
     const ENETUNREACH = 51;
 
-    /**/
+    /*! @brief 系统打开文件过多错误 */
     const ENFILE = 23;
 
-    /**/
+    /*! @brief 无缓冲区空间错误 */
     const ENOBUFS = 55;
 
-    /**/
+    /*! @brief 无数据可用错误 */
     const ENODATA = 96;
 
-    /**/
+    /*! @brief 无此设备错误 */
     const ENODEV = 19;
 
-    /**/
+    /*! @brief 无此文件或目录错误 */
     const ENOENT = 2;
 
-    /**/
+    /*! @brief 可执行文件格式错误 */
     const ENOEXEC = 8;
 
-    /**/
+    /*! @brief 无可用锁错误 */
     const ENOLCK = 77;
 
-    /**/
+    /*! @brief 链接已断开错误 */
     const ENOLINK = 97;
 
-    /**/
+    /*! @brief 内存不足错误 */
     const ENOMEM = 12;
 
-    /**/
+    /*! @brief 无所需类型消息错误 */
     const ENOMSG = 91;
 
-    /**/
+    /*! @brief 协议不可用错误 */
     const ENOPROTOOPT = 42;
 
-    /**/
+    /*! @brief 设备上无空间错误 */
     const ENOSPC = 28;
 
-    /**/
+    /*! @brief 流资源不足错误 */
     const ENOSR = 98;
 
-    /**/
+    /*! @brief 设备不是流错误 */
     const ENOSTR = 99;
 
-    /**/
+    /*! @brief 功能未实现错误 */
     const ENOSYS = 78;
 
-    /**/
+    /*! @brief 套接字未连接错误 */
     const ENOTCONN = 57;
 
-    /**/
+    /*! @brief 不是目录错误 */
     const ENOTDIR = 20;
 
-    /**/
+    /*! @brief 目录不为空错误 */
     const ENOTEMPTY = 66;
 
-    /**/
+    /*! @brief 套接字操作非套接字错误 */
     const ENOTSOCK = 38;
 
-    /**/
+    /*! @brief 操作不支持错误 */
     const ENOTSUP = 45;
 
-    /**/
+    /*! @brief 不适当的I/O控制操作错误 */
     const ENOTTY = 25;
 
-    /**/
+    /*! @brief 无此设备或地址错误 */
     const ENXIO = 6;
 
-    /**/
+    /*! @brief 套接字上不支持操作错误 */
     const EOPNOTSUPP = 102;
 
-    /**/
+    /*! @brief 值太大无法存储在数据类型错误 */
     const EOVERFLOW = 84;
 
-    /**/
+    /*! @brief 操作不允许错误 */
     const EPERM = 1;
 
-    /**/
+    /*! @brief 管道破裂错误 */
     const EPIPE = 32;
 
-    /**/
+    /*! @brief 协议错误 */
     const EPROTO = 100;
 
-    /**/
+    /*! @brief 协议不支持错误 */
     const EPROTONOSUPPORT = 43;
 
-    /**/
+    /*! @brief 协议错误类型错误 */
     const EPROTOTYPE = 41;
 
-    /**/
+    /*! @brief 结果太大错误 */
     const ERANGE = 34;
 
-    /**/
+    /*! @brief 只读文件系统错误 */
     const EROFS = 30;
 
-    /**/
+    /*! @brief 无效的查找错误 */
     const ESPIPE = 29;
 
-    /**/
+    /*! @brief 无此进程错误 */
     const ESRCH = 3;
 
-    /**/
+    /*! @brief 文件句柄过时错误 */
     const ESTALE = 70;
 
-    /**/
+    /*! @brief 定时器到期错误 */
     const ETIME = 101;
 
-    /**/
+    /*! @brief 连接超时错误 */
     const ETIMEDOUT = 60;
 
-    /**/
+    /*! @brief 文本文件忙错误 */
     const ETXTBSY = 26;
 
-    /**/
+    /*! @brief 操作会阻塞错误 */
     const EWOULDBLOCK = 35;
 
-    /**/
+    /*! @brief 跨设备链接错误 */
     const EXDEV = 18;
 
-    /**/
+    /*! @brief 低优先级 */
     const PRIORITY_LOW = 19;
 
-    /**/
+    /*! @brief 低于正常优先级 */
     const PRIORITY_BELOW_NORMAL = 10;
 
-    /**/
+    /*! @brief 正常优先级 */
     const PRIORITY_NORMAL = 0;
 
-    /**/
+    /*! @brief 高于正常优先级 */
     const PRIORITY_ABOVE_NORMAL = -7;
 
-    /**/
+    /*! @brief 高优先级 */
     const PRIORITY_HIGH = -14;
 
-    /**/
+    /*! @brief 最高优先级 */
     const PRIORITY_HIGHEST = -20;
 
-    /**/
+    /*! @brief 挂起信号 */
     const SIGHUP = 1;
 
-    /**/
+    /*! @brief 中断信号 */
     const SIGINT = 2;
 
-    /**/
+    /*! @brief 退出信号 */
     const SIGQUIT = 3;
 
-    /**/
+    /*! @brief 非法指令信号 */
     const SIGILL = 4;
 
-    /**/
+    /*! @brief 跟踪陷阱信号 */
     const SIGTRAP = 5;
 
-    /**/
+    /*! @brief 中止信号 */
     const SIGABRT = 6;
 
-    /**/
+    /*! @brief IOT陷阱信号 */
     const SIGIOT = 6;
 
-    /**/
+    /*! @brief 总线错误信号 */
     const SIGBUS = 10;
 
-    /**/
+    /*! @brief 浮点异常信号 */
     const SIGFPE = 8;
 
-    /**/
+    /*! @brief 杀死信号 */
     const SIGKILL = 9;
 
-    /**/
+    /*! @brief 用户定义信号1 */
     const SIGUSR1 = 30;
 
-    /**/
+    /*! @brief 段错误信号 */
     const SIGSEGV = 11;
 
-    /**/
+    /*! @brief 用户定义信号2 */
     const SIGUSR2 = 31;
 
-    /**/
+    /*! @brief 管道破裂信号 */
     const SIGPIPE = 13;
 
-    /**/
+    /*! @brief 闹钟信号 */
     const SIGALRM = 14;
 
-    /**/
+    /*! @brief 终止信号 */
     const SIGTERM = 15;
 
-    /**/
+    /*! @brief 子进程终止或停止信号 */
     const SIGCHLD = 20;
 
-    /**/
+    /*! @brief 继续执行信号 */
     const SIGCONT = 19;
 
-    /**/
+    /*! @brief 停止执行信号 */
     const SIGSTOP = 17;
 
-    /**/
+    /*! @brief 终端停止信号 */
     const SIGTSTP = 18;
 
-    /**/
+    /*! @brief 后台进程尝试读取信号 */
     const SIGTTIN = 21;
 
-    /**/
+    /*! @brief 后台进程尝试写入信号 */
     const SIGTTOU = 22;
 
-    /**/
+    /*! @brief 套接字紧急条件信号 */
     const SIGURG = 16;
 
-    /**/
+    /*! @brief CPU时间限制超出信号 */
     const SIGXCPU = 24;
 
-    /**/
+    /*! @brief 文件大小限制超出信号 */
     const SIGXFSZ = 25;
 
-    /**/
+    /*! @brief 虚拟定时器到期信号 */
     const SIGVTALRM = 26;
 
-    /**/
+    /*! @brief 分析定时器到期信号 */
     const SIGPROF = 27;
 
-    /**/
+    /*! @brief 窗口大小改变信号 */
     const SIGWINCH = 28;
 
-    /**/
+    /*! @brief I/O现在可能信号 */
     const SIGIO = 23;
 
-    /**/
+    /*! @brief 信息请求信号 */
     const SIGINFO = 29;
 
-    /**/
+    /*! @brief 错误的系统调用信号 */
     const SIGSYS = 12;
 
-    /**/
+    /*! @brief 符号链接到目录 */
     const UV_FS_SYMLINK_DIR = 1;
 
-    /**/
+    /*! @brief 符号链接到连接点 */
     const UV_FS_SYMLINK_JUNCTION = 2;
 
-    /**/
+    /*! @brief 仅打开读取 */
     const O_RDONLY = 0;
 
-    /**/
+    /*! @brief 仅打开写入 */
     const O_WRONLY = 1;
 
-    /**/
+    /*! @brief 打开读取和写入 */
     const O_RDWR = 2;
 
-    /**/
+    /*! @brief 未知目录项类型 */
     const UV_DIRENT_UNKNOWN = 0;
 
-    /**/
+    /*! @brief 文件目录项类型 */
     const UV_DIRENT_FILE = 1;
 
-    /**/
+    /*! @brief 目录目录项类型 */
     const UV_DIRENT_DIR = 2;
 
-    /**/
+    /*! @brief 符号链接目录项类型 */
     const UV_DIRENT_LINK = 3;
 
-    /**/
+    /*! @brief FIFO目录项类型 */
     const UV_DIRENT_FIFO = 4;
 
-    /**/
+    /*! @brief 套接字目录项类型 */
     const UV_DIRENT_SOCKET = 5;
 
-    /**/
+    /*! @brief 字符设备目录项类型 */
     const UV_DIRENT_CHAR = 6;
 
-    /**/
+    /*! @brief 块设备目录项类型 */
     const UV_DIRENT_BLOCK = 7;
 
-    /**/
+    /*! @brief 文件类型位字段的位掩码 */
     const S_IFMT = 61440;
 
-    /**/
+    /*! @brief 常规文件 */
     const S_IFREG = 32768;
 
-    /**/
+    /*! @brief 目录 */
     const S_IFDIR = 16384;
 
-    /**/
+    /*! @brief 字符设备 */
     const S_IFCHR = 8192;
 
-    /**/
+    /*! @brief 块设备 */
     const S_IFBLK = 24576;
 
-    /**/
+    /*! @brief FIFO */
     const S_IFIFO = 4096;
 
-    /**/
+    /*! @brief 符号链接 */
     const S_IFLNK = 40960;
 
-    /**/
+    /*! @brief 套接字 */
     const S_IFSOCK = 49152;
 
-    /**/
+    /*! @brief 如果文件不存在则创建文件 */
     const O_CREAT = 512;
 
-    /**/
+    /*! @brief 确保文件的独占创建 */
     const O_EXCL = 2048;
 
-    /**/
+    /*! @brief 文件映射标志 */
     const UV_FS_O_FILEMAP = 0;
 
-    /**/
+    /*! @brief 不分配控制终端 */
     const O_NOCTTY = 131072;
 
-    /**/
+    /*! @brief 将文件截断为零长度 */
     const O_TRUNC = 1024;
 
-    /**/
+    /*! @brief 追加到文件末尾 */
     const O_APPEND = 8;
 
-    /**/
+    /*! @brief 打开目录 */
     const O_DIRECTORY = 1048576;
 
-    /**/
+    /*! @brief 不跟随符号链接 */
     const O_NOFOLLOW = 256;
 
-    /**/
+    /*! @brief 同步I/O */
     const O_SYNC = 128;
 
-    /**/
+    /*! @brief 同步I/O数据完整性完成 */
     const O_DSYNC = 4194304;
 
-    /**/
+    /*! @brief 允许打开符号链接 */
     const O_SYMLINK = 2097152;
 
-    /**/
+    /*! @brief 非阻塞模式 */
     const O_NONBLOCK = 4;
 
-    /**/
+    /*! @brief 所有者读写执行权限 */
     const S_IRWXU = 448;
 
-    /**/
+    /*! @brief 所有者读权限 */
     const S_IRUSR = 256;
 
-    /**/
+    /*! @brief 所有者写权限 */
     const S_IWUSR = 128;
 
-    /**/
+    /*! @brief 所有者执行权限 */
     const S_IXUSR = 64;
 
-    /**/
+    /*! @brief 组读写执行权限 */
     const S_IRWXG = 56;
 
-    /**/
+    /*! @brief 组读权限 */
     const S_IRGRP = 32;
 
-    /**/
+    /*! @brief 组写权限 */
     const S_IWGRP = 16;
 
-    /**/
+    /*! @brief 组执行权限 */
     const S_IXGRP = 8;
 
-    /**/
+    /*! @brief 其他人读写执行权限 */
     const S_IRWXO = 7;
 
-    /**/
+    /*! @brief 其他人读权限 */
     const S_IROTH = 4;
 
-    /**/
+    /*! @brief 其他人写权限 */
     const S_IWOTH = 2;
 
-    /**/
+    /*! @brief 其他人执行权限 */
     const S_IXOTH = 1;
 
-    /**/
+    /*! @brief 测试文件是否存在 */
     const F_OK = 0;
 
-    /**/
+    /*! @brief 测试读权限 */
     const R_OK = 4;
 
-    /**/
+    /*! @brief 测试写权限 */
     const W_OK = 2;
 
-    /**/
+    /*! @brief 测试执行权限 */
     const X_OK = 1;
 
-    /**/
+    /*! @brief 独占复制文件标志 */
     const UV_FS_COPYFILE_EXCL = 1;
 
-    /**/
+    /*! @brief 独占复制文件标志 */
     const COPYFILE_EXCL = 1;
 
-    /**/
+    /*! @brief 文件克隆复制标志 */
     const UV_FS_COPYFILE_FICLONE = 2;
 
-    /**/
+    /*! @brief 文件克隆复制标志 */
     const COPYFILE_FICLONE = 2;
 
-    /**/
+    /*! @brief 文件克隆强制复制标志 */
     const UV_FS_COPYFILE_FICLONE_FORCE = 4;
 
-    /**/
+    /*! @brief 文件克隆强制复制标志 */
     const COPYFILE_FICLONE_FORCE = 4;
 };
