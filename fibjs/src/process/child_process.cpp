@@ -226,7 +226,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
         }
 
         v8::Local<v8::String> windowsVerbatimArguments = isolate->NewString("windowsVerbatimArguments");
-        if (!options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
+        if (!options.IsEmpty() && !options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
             v8::Local<v8::Value> opts_;
             util_base::clone(options, opts_);
 

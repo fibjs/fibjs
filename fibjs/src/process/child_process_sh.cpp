@@ -26,19 +26,19 @@ public:
         setAsync();
     }
 
-    static exlib::string process_output(Variant& v)
+    static exlib::string process_output(Variant& v, bool win32 = false)
     {
         exlib::string s = v.string();
         const char* c_s = s.c_str();
         size_t sz = s.length();
 
-#ifdef _WIN32
-        if (sz > 1 && c_s[sz - 2] == '\r' && c_s[sz - 1] == '\n')
-            s.resize(sz - 2);
-#else
-        if (sz > 0 && c_s[sz - 1] == '\n')
-            s.resize(sz - 1);
-#endif
+        if (win32) {
+            if (sz > 1 && c_s[sz - 2] == '\r' && c_s[sz - 1] == '\n')
+                s.resize(sz - 2);
+        } else {
+            if (sz > 0 && c_s[sz - 1] == '\n')
+                s.resize(sz - 1);
+        }
 
         return s;
     }
@@ -46,9 +46,9 @@ public:
     virtual int32_t post(int32_t v)
     {
         if (m_exec_retVal->exitCode) {
-            m_ac->post(Runtime::setError(process_output(m_exec_retVal->stderr)));
+            m_ac->post(Runtime::setError(process_output(m_exec_retVal->stderr, is_win32)));
         } else {
-            m_retVal = process_output(m_exec_retVal->stdout);
+            m_retVal = process_output(m_exec_retVal->stdout, is_win32);
             m_ac->post(v);
         }
         delete this;
@@ -94,6 +94,13 @@ public:
 
         return sbuf.str();
     }
+
+private:
+#ifdef _WIN32
+    const bool is_win32 = true;
+#else
+    const bool is_win32 = false;
+#endif
 
 public:
     obj_ptr<child_process_base::ExecType> m_exec_retVal;
@@ -146,9 +153,9 @@ static void js_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     if (retVal->exitCode) {
-        ThrowResult(Runtime::setError(AsyncShell::process_output(retVal->stderr)));
+        ThrowResult(Runtime::setError(AsyncShell::process_output(retVal->stderr, false)));
     } else {
-        args.GetReturnValue().Set(isolate->NewString(AsyncShell::process_output(retVal->stdout)));
+        args.GetReturnValue().Set(isolate->NewString(AsyncShell::process_output(retVal->stdout, false)));
     }
 }
 
