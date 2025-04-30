@@ -30,61 +30,61 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: x64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: ia32
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: arm64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: arm
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: mips64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: ppc64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: riscv64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: loong64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             arch: loong64ow
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: alpine
             arch: x64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: alpine
             arch: ia32
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: alpine
             arch: arm64
             type: release
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: android
             arch: x64
             type: release
             test: skip
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: android
             arch: ia32
             type: release
             test: skip
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: android
             arch: arm64
             type: release
             test: skip
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: android
             arch: arm
             type: release
