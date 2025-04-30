@@ -2930,7 +2930,7 @@ describe("http", () => {
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             test_proxy(hc, 'http://fibjs.org/test.html');
-            test_proxy(hc, 'https://localhost/test.html');
+            test_proxy(hc, `http://localhost:${8886 + base_port}/test.html`);
         });
 
         it('share connection between domains', () => {
@@ -2949,12 +2949,12 @@ describe("http", () => {
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
-            assert.equal(test_proxy(hc, 'https://localhost/test.html'), 'https: share_1: /test.html');
-            assert.equal(test_proxy(hc, 'https://localhost/test2.html'), 'https: share_1: /test2.html');
+            assert.equal(test_proxy(hc, `http://localhost:${8886 + base_port}/test.html`), 'http: /test.html');
+            assert.equal(test_proxy(hc, `http://localhost:${8886 + base_port}/test2.html`), 'http: /test2.html');
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_2'), 'share_2');
             assert.equal(test_proxy(hc, 'http://fibjs1.org/test1.html'), 'http: share_2: http://fibjs1.org/test1.html');
-            assert.equal(test_proxy(hc, 'https://localhost/test3.html'), 'https: share_1: /test3.html');
+            assert.equal(test_proxy(hc, `http://localhost:${8886 + base_port}/test3.html`), 'http: /test3.html');
         });
 
     });

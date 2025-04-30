@@ -701,9 +701,12 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
             m_req->set_method(m_method);
 
-            m_http_proxy = m_hc->m_http_proxy;
-            if (m_ssl && !m_hc->m_https_proxy.empty())
-                m_http_proxy = m_hc->m_https_proxy;
+            exlib::string hostname = m_u->hostname();
+            if (hostname != "localhost" && hostname != "127.0.0.1" && hostname != "::1") {
+                m_http_proxy = m_hc->m_http_proxy;
+                if (m_ssl && !m_hc->m_https_proxy.empty())
+                    m_http_proxy = m_hc->m_https_proxy;
+            }
 
             if (m_http_proxy.empty() || m_ssl) {
                 m_u->get_path(path);
