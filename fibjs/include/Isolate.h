@@ -34,6 +34,7 @@ inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
         .ToLocalChecked();
 }
 
+class NObject;
 class SandBox;
 class JSFiber;
 class HttpClient;
@@ -262,6 +263,7 @@ public:
     exlib::string m_jsCode;
 
     QuickArray<void*> m_classInfo;
+    obj_ptr<NObject> m_info;
 
     exlib::spinlock m_weakLock;
     exlib::List<exlib::linkitem> m_weak;

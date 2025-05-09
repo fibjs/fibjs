@@ -48,9 +48,6 @@ namespace internal {
 
 namespace fibjs {
 
-obj_ptr<NObject> g_info;
-obj_ptr<NObject> g_vender;
-
 #define _STR(s) #s
 #define STR(s) _STR(s)
 
@@ -58,90 +55,89 @@ obj_ptr<NObject> g_vender;
     STR(UV_VERSION_MAJOR)      \
     "." STR(UV_VERSION_MINOR) "." STR(UV_VERSION_PATCH)
 
-class init_info {
-public:
-    init_info()
-    {
-        g_info = new NObject();
+static void init_info(Isolate* isolate)
+{
+    isolate->m_info = new NObject();
 
-        g_info->add("fibjs", fibjs_version);
-        g_info->add("node", STR(NODE_MAJOR_VERSION) "." STR(NODE_MINOR_VERSION) "." STR(NODE_PATCH_VERSION));
+    isolate->m_info->add("fibjs", fibjs_version);
+    isolate->m_info->add("node", STR(NODE_MAJOR_VERSION) "." STR(NODE_MINOR_VERSION) "." STR(NODE_PATCH_VERSION));
 
-        exlib::string str;
+    exlib::string str;
 
-        os_base::platform(str);
-        g_info->add("platform", str);
+    os_base::platform(str);
+    isolate->m_info->add("platform", str);
 
-        os_base::arch(str);
-        g_info->add("arch", str);
+    os_base::arch(str);
+    isolate->m_info->add("arch", str);
 
 #ifdef GIT_INFO
-        g_info->add("git", GIT_INFO);
+    isolate->m_info->add("git", GIT_INFO);
 #endif
 
 #if defined(__clang__)
-        g_info->add("clang", STR(__clang_major__) "." STR(__clang_minor__));
+    isolate->m_info->add("clang", STR(__clang_major__) "." STR(__clang_minor__));
 #elif defined(__GNUC__)
-        g_info->add("gcc", STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__));
+    isolate->m_info->add("gcc", STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__));
 #ifdef __MUSL__
-        g_info->add("musl", true);
+    isolate->m_info->add("musl", true);
 #endif
 #elif defined(_MSC_VER)
-        g_info->add("msvc", STR(_MSC_VER));
+    isolate->m_info->add("msvc", STR(_MSC_VER));
 #endif
 
-        g_info->add("date", __DATE__ " " __TIME__);
+    isolate->m_info->add("date", __DATE__ " " __TIME__);
 
 #ifndef NDEBUG
-        g_info->add("debug", true);
+    isolate->m_info->add("debug", true);
 #endif
 
-        g_info->add("modules", "115");
-        g_info->add("napi", NODE_API_DEFAULT_MODULE_API_VERSION);
+    isolate->m_info->add("modules", "115");
+    isolate->m_info->add("napi", NODE_API_DEFAULT_MODULE_API_VERSION);
 
-        g_vender = new NObject();
-        g_info->add("vender", g_vender);
+    obj_ptr<NObject> vender_list = new NObject();
+    isolate->m_info->add("vender", vender_list);
 
-        {
-            char str[64];
+    {
+        char str[64];
 
-            g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
-            g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
-            g_vender->add("gumbo", "0.10.0");
-            g_vender->add("icu", U_ICU_VERSION);
-            g_vender->add("jemalloc", "5.2.1");
-            snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-            g_vender->add("leveldb", str);
-            g_vender->add("msgpack", msgpack_version());
-            g_vender->add("openssl", OPENSSL_FULL_VERSION_STR);
-            g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
-            g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
-            g_vender->add("sqlite", SQLITE_VERSION);
-            g_vender->add("unicode", U_UNICODE_VERSION);
-            g_vender->add("uuid", "1.6.2");
+        vender_list->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
+        vender_list->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
+        vender_list->add("gumbo", "0.10.0");
+        vender_list->add("icu", U_ICU_VERSION);
+        vender_list->add("jemalloc", "5.2.1");
+        snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
+        vender_list->add("leveldb", str);
+        vender_list->add("msgpack", msgpack_version());
+        vender_list->add("openssl", OPENSSL_FULL_VERSION_STR);
+        vender_list->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
+        vender_list->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
+        vender_list->add("sqlite", SQLITE_VERSION);
+        vender_list->add("unicode", U_UNICODE_VERSION);
+        vender_list->add("uuid", "1.6.2");
 
 #if UV_VERSION_IS_RELEASE
-            g_vender->add("uv", UV_VERSION_STRING_BASE);
+        vender_list->add("uv", UV_VERSION_STRING_BASE);
 #else
-            g_vender->add("uv", UV_VERSION_STRING_BASE "-" UV_VERSION_SUFFIX);
+        vender_list->add("uv", UV_VERSION_STRING_BASE "-" UV_VERSION_SUFFIX);
 #endif
 
-            g_vender->add("v8", v8::V8::GetVersion());
+        vender_list->add("v8", v8::V8::GetVersion());
 
-            g_vender->add("v8-snapshot", (bool)v8::internal::Snapshot::DefaultSnapshotBlob());
+        vender_list->add("v8-snapshot", (bool)v8::internal::Snapshot::DefaultSnapshotBlob());
 
-            g_vender->add("zlib", ZLIB_VERSION);
-        }
+        vender_list->add("zlib", ZLIB_VERSION);
     }
-
-} s_init_info;
+}
 
 result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    g_info->valueOf(retVal);
+    if (!isolate->m_info)
+        init_info(isolate);
+
+    isolate->m_info->valueOf(retVal);
 
     {
         v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);

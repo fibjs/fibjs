@@ -478,6 +478,17 @@ describe('coroutine', () => {
                 });
             });
         });
+
+        it('BUGFIX: crash when asscessing util.info in worker', (done) => {
+            const info = util.buildInfo();
+            var worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main4.js'));
+            worker.onmessage = (e) => {
+                done(() => {
+                    assert.deepEqual(e.data, info);
+                });
+            };
+
+            worker.postMessage('');
+        });
     });
 });
-
