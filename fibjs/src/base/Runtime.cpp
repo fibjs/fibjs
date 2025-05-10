@@ -84,6 +84,15 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         }
 
     public:
+        static void FirstFiber(void* p)
+        {
+            EntryThread* th = (EntryThread*)p;
+            Isolate* isolate = new Isolate(th->m_fibjsEntry, g_exec_code);
+            isolate->sync([th, isolate]() -> int {
+                return th->m_jsFiber(isolate);
+            });
+        }
+
         virtual void Run()
         {
             int32_t argc = m_argc;
@@ -137,18 +146,16 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
 
             init_argv(argc, argv);
 
-            Isolate* isolate = new Isolate(m_fibjsEntry, g_exec_code);
-            isolate->sync([this, isolate, sea_data, sea_size]() -> int {
-                if (sea_size > 0) {
-                    exlib::string exePath;
-                    process_base::get_execPath(exePath);
+            if (sea_size > 0) {
+                exlib::string exePath;
+                process_base::get_execPath(exePath);
 
-                    obj_ptr<Buffer> data = new Buffer((const uint8_t*)sea_data, (int32_t)sea_size);
-                    fs_base::setZipFS(exePath, data);
-                }
+                obj_ptr<Buffer> data = new Buffer((const uint8_t*)sea_data, (int32_t)sea_size);
+                fs_base::setZipFS(exePath, data);
+            }
 
-                return m_jsFiber(isolate);
-            });
+            exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
+
             exlib::Service::dispatch();
         }
 
