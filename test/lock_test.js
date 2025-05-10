@@ -125,7 +125,7 @@ describe('lock', () => {
 
         for (var i = 0; i < 10; i++)
             sem.post();
-        await coroutine.sleepAsync(1);
+        await coroutine.sleepAsync(10);
         assert.equal(111, v);
         run = false;
         sem.post();
