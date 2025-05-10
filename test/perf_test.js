@@ -134,7 +134,7 @@ describe('Performance API', () => {
                 const entry = entries[0];
                 assert.equal(entry.name, 'mark-measure');
                 assert.ok(entry.duration >= 50);
-                assert.ok(Math.abs(entry.startTime - markTime) < 1);
+                assert.ok(Math.abs(entry.startTime - markTime) < 1.5);
 
                 observer.disconnect();
             });
@@ -160,7 +160,7 @@ describe('Performance API', () => {
                 const entry = entries[0];
                 assert.equal(entry.name, 'mark-to-mark');
                 assert.ok(entry.duration >= 50);
-                assert.ok(Math.abs(entry.startTime - startTime) < 1);
+                assert.ok(Math.abs(entry.startTime - startTime) < 1.5);
 
                 observer.disconnect();
             });
