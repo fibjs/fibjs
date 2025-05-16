@@ -131,7 +131,7 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Stream_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("tls.connect");
 
     METHOD_OVER(2, 1);
 

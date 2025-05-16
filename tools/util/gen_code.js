@@ -170,7 +170,7 @@ function gen_code(cls, def, baseFolder) {
                                 } else if (p.default) {
                                     var defValue;
                                     opts--;
-                                    if(p.isarray)
+                                    if (p.isarray)
                                         defValue = `${get_vtype(p)}()`;
                                     else if (p.default.value)
                                         defValue = p.default.value;
@@ -240,7 +240,7 @@ function gen_code(cls, def, baseFolder) {
                     }
 
                     if (ov.async)
-                        txts.push(`    ASYNC_METHOD_ENTER();\n`);
+                        txts.push(`    ASYNC_METHOD_ENTER("${cls}");\n`);
                     else
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(fncallee_ovs);
@@ -275,7 +275,7 @@ function gen_code(cls, def, baseFolder) {
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
                     if (ov.async)
-                        txts.push(`    ASYNC_METHOD_ENTER();\n`);
+                        txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
                     else
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
@@ -294,14 +294,13 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    if (ov.async)
+                    if (ov.async) {
                         txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
-                    else
+                        txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
+                    } else {
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                    if (ov.async)
-                        txts.push(`    ASYNC_METHOD_ENTER();\n`);
-                    else
                         txts.push(`    METHOD_ENTER();\n`);
+                    }
                     make_ov_params(inst_mem_ovs);
 
                     if (ov.type) txts.push('    METHOD_RETURN();\n}\n');

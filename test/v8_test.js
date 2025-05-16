@@ -3,10 +3,6 @@ test.setup();
 
 var coroutine = require('coroutine');
 
-function test_fiber() {
-    coroutine.sleep(100);
-}
-
 var v8 = require("v8");
 var fs = require("fs");
 var path = require("path");
@@ -95,11 +91,4 @@ describe("v8", () => {
         assert.property(hs, "number_of_native_contexts");
         assert.property(hs, "number_of_detached_contexts");
     });
-
-    it("Fiber.stack", () => {
-        var fb = coroutine.start(test_fiber);
-        coroutine.sleep(10);
-        assert.equal(`    at test_fiber (${__filename}:7:15)`, fb.stack)
-    });
 });
-

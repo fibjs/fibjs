@@ -144,7 +144,7 @@ inline result_t Service_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
 inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Service_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Service.run");
 
     METHOD_OVER(0, 0);
 

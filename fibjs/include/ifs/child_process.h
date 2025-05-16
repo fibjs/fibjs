@@ -202,7 +202,7 @@ inline void child_process_base::s_static_exec(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<ExecType> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("child_process.exec");
 
     METHOD_OVER(2, 1);
 
@@ -221,7 +221,7 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
 {
     obj_ptr<ExecFileType> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("child_process.execFile");
 
     METHOD_OVER(3, 2);
 
@@ -251,7 +251,7 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
 {
     obj_ptr<SpawnSyncType> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("child_process.spawnSync");
 
     METHOD_OVER(3, 2);
 
@@ -305,7 +305,7 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
 {
     int32_t vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("child_process.run");
 
     METHOD_OVER(3, 2);
 
@@ -335,7 +335,7 @@ inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("child_process.sh");
 
     METHOD_OVER(-1, 1);
 

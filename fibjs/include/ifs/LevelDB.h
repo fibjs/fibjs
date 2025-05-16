@@ -116,7 +116,7 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.has");
 
     METHOD_OVER(1, 1);
 
@@ -135,7 +135,7 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.get");
 
     METHOD_OVER(1, 1);
 
@@ -168,7 +168,7 @@ inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.set");
 
     METHOD_OVER(2, 2);
 
@@ -214,7 +214,7 @@ inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.remove");
 
     METHOD_OVER(1, 1);
 
@@ -233,7 +233,7 @@ inline void LevelDB_base::s_firstKey(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.firstKey");
 
     METHOD_OVER(0, 0);
 
@@ -250,7 +250,7 @@ inline void LevelDB_base::s_lastKey(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.lastKey");
 
     METHOD_OVER(0, 0);
 
@@ -344,7 +344,7 @@ inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(LevelDB_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("LevelDB.close");
 
     METHOD_OVER(0, 0);
 

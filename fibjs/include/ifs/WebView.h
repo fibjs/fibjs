@@ -213,7 +213,7 @@ inline ClassInfo& WebView_base::class_info()
 inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.loadUrl");
 
     METHOD_OVER(1, 1);
 
@@ -230,7 +230,7 @@ inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.loadFile");
 
     METHOD_OVER(1, 1);
 
@@ -249,7 +249,7 @@ inline void WebView_base::s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& ar
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.getUrl");
 
     METHOD_OVER(0, 0);
 
@@ -264,7 +264,7 @@ inline void WebView_base::s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.setHtml");
 
     METHOD_OVER(1, 1);
 
@@ -283,7 +283,7 @@ inline void WebView_base::s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& a
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.getHtml");
 
     METHOD_OVER(0, 0);
 
@@ -300,7 +300,7 @@ inline void WebView_base::s_isReady(const v8::FunctionCallbackInfo<v8::Value>& a
     bool vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.isReady");
 
     METHOD_OVER(0, 0);
 
@@ -315,7 +315,7 @@ inline void WebView_base::s_isReady(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_waitFor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.waitFor");
 
     METHOD_OVER(1, 0);
 
@@ -332,7 +332,7 @@ inline void WebView_base::s_waitFor(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.reload");
 
     METHOD_OVER(0, 0);
 
@@ -347,7 +347,7 @@ inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void WebView_base::s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.goBack");
 
     METHOD_OVER(0, 0);
 
@@ -362,7 +362,7 @@ inline void WebView_base::s_goBack(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void WebView_base::s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.goForward");
 
     METHOD_OVER(0, 0);
 
@@ -379,7 +379,7 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
     Variant vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.eval");
 
     METHOD_OVER(1, 1);
 
@@ -396,7 +396,7 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void WebView_base::s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.setTitle");
 
     METHOD_OVER(1, 1);
 
@@ -415,7 +415,7 @@ inline void WebView_base::s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& 
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.getTitle");
 
     METHOD_OVER(0, 0);
 
@@ -432,7 +432,7 @@ inline void WebView_base::s_isVisible(const v8::FunctionCallbackInfo<v8::Value>&
     bool vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.isVisible");
 
     METHOD_OVER(0, 0);
 
@@ -447,7 +447,7 @@ inline void WebView_base::s_isVisible(const v8::FunctionCallbackInfo<v8::Value>&
 inline void WebView_base::s_show(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.show");
 
     METHOD_OVER(0, 0);
 
@@ -462,7 +462,7 @@ inline void WebView_base::s_show(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void WebView_base::s_hide(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.hide");
 
     METHOD_OVER(0, 0);
 
@@ -477,7 +477,7 @@ inline void WebView_base::s_hide(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void WebView_base::s_setSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.setSize");
 
     METHOD_OVER(2, 2);
 
@@ -497,7 +497,7 @@ inline void WebView_base::s_getSize(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.getSize");
 
     METHOD_OVER(0, 0);
 
@@ -512,7 +512,7 @@ inline void WebView_base::s_getSize(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_setPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.setPosition");
 
     METHOD_OVER(2, 2);
 
@@ -532,7 +532,7 @@ inline void WebView_base::s_getPosition(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.getPosition");
 
     METHOD_OVER(0, 0);
 
@@ -549,7 +549,7 @@ inline void WebView_base::s_isActived(const v8::FunctionCallbackInfo<v8::Value>&
     bool vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.isActived");
 
     METHOD_OVER(0, 0);
 
@@ -564,7 +564,7 @@ inline void WebView_base::s_isActived(const v8::FunctionCallbackInfo<v8::Value>&
 inline void WebView_base::s_active(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.active");
 
     METHOD_OVER(0, 0);
 
@@ -595,7 +595,7 @@ inline void WebView_base::s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Va
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.takeScreenshot");
 
     METHOD_OVER(0, 0);
 
@@ -610,7 +610,7 @@ inline void WebView_base::s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Va
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.close");
 
     METHOD_OVER(0, 0);
 
@@ -625,7 +625,7 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("WebView.postMessage");
 
     METHOD_OVER(1, 1);
 

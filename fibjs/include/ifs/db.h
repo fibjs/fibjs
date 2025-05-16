@@ -104,7 +104,7 @@ inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<object_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.open");
 
     METHOD_OVER(1, 1);
 
@@ -122,7 +122,7 @@ inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<MySQL_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openMySQL");
 
     METHOD_OVER(1, 1);
 
@@ -140,7 +140,7 @@ inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<SQLite_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openSQLite");
 
     METHOD_OVER(1, 1);
 
@@ -158,7 +158,7 @@ inline void db_base::s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<DbConnection_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openOdbc");
 
     METHOD_OVER(1, 1);
 
@@ -176,7 +176,7 @@ inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<DbConnection_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openMSSQL");
 
     METHOD_OVER(1, 1);
 
@@ -194,7 +194,7 @@ inline void db_base::s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<DbConnection_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openPSQL");
 
     METHOD_OVER(1, 1);
 
@@ -212,7 +212,7 @@ inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<LevelDB_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openLevelDB");
 
     METHOD_OVER(1, 1);
 
@@ -230,7 +230,7 @@ inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Redis_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("db.openRedis");
 
     METHOD_OVER(1, 1);
 

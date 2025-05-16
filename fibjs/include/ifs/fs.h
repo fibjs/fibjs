@@ -278,7 +278,7 @@ inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.exists");
 
     METHOD_OVER(1, 1);
 
@@ -294,7 +294,7 @@ inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.access");
 
     METHOD_OVER(2, 1);
 
@@ -311,7 +311,7 @@ inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.link");
 
     METHOD_OVER(2, 2);
 
@@ -328,7 +328,7 @@ inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.unlink");
 
     METHOD_OVER(1, 1);
 
@@ -344,7 +344,7 @@ inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.mkdir");
 
     METHOD_OVER(2, 1);
 
@@ -371,7 +371,7 @@ inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.rmdir");
 
     METHOD_OVER(1, 1);
 
@@ -387,7 +387,7 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.rename");
 
     METHOD_OVER(2, 2);
 
@@ -404,7 +404,7 @@ inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.copyFile");
 
     METHOD_OVER(3, 2);
 
@@ -422,7 +422,7 @@ inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.chmod");
 
     METHOD_OVER(2, 2);
 
@@ -439,7 +439,7 @@ inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.lchmod");
 
     METHOD_OVER(2, 2);
 
@@ -456,7 +456,7 @@ inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.chown");
 
     METHOD_OVER(3, 3);
 
@@ -474,7 +474,7 @@ inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.lchown");
 
     METHOD_OVER(3, 3);
 
@@ -494,7 +494,7 @@ inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Stat_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.stat");
 
     METHOD_OVER(1, 1);
 
@@ -512,7 +512,7 @@ inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Stat_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.lstat");
 
     METHOD_OVER(1, 1);
 
@@ -530,7 +530,7 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Stat_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.fstat");
 
     METHOD_OVER(1, 1);
 
@@ -548,7 +548,7 @@ inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.readlink");
 
     METHOD_OVER(1, 1);
 
@@ -566,7 +566,7 @@ inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.realpath");
 
     METHOD_OVER(1, 1);
 
@@ -582,7 +582,7 @@ inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.symlink");
 
     METHOD_OVER(3, 2);
 
@@ -600,7 +600,7 @@ inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.truncate");
 
     METHOD_OVER(2, 2);
 
@@ -619,7 +619,7 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.read");
 
     METHOD_OVER(5, 2);
 
@@ -639,7 +639,7 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.fchmod");
 
     METHOD_OVER(2, 2);
 
@@ -656,7 +656,7 @@ inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.fchown");
 
     METHOD_OVER(3, 3);
 
@@ -674,7 +674,7 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.fdatasync");
 
     METHOD_OVER(1, 1);
 
@@ -690,7 +690,7 @@ inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value
 
 inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.fsync");
 
     METHOD_OVER(1, 1);
 
@@ -708,7 +708,7 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<NArray> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.readdir");
 
     METHOD_OVER(1, 1);
 
@@ -736,7 +736,7 @@ inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<NArray> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.glob");
 
     METHOD_OVER(2, 1);
 
@@ -765,7 +765,7 @@ inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<SeekableStream_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.openFile");
 
     METHOD_OVER(2, 1);
 
@@ -784,7 +784,7 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<FileHandle_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.open");
 
     METHOD_OVER(3, 1);
 
@@ -802,7 +802,7 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.close");
 
     METHOD_OVER(1, 1);
 
@@ -820,7 +820,7 @@ inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<BufferedStream_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.openTextStream");
 
     METHOD_OVER(2, 1);
 
@@ -839,7 +839,7 @@ inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.readTextFile");
 
     METHOD_OVER(1, 1);
 
@@ -857,7 +857,7 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
 {
     Variant vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.readFile");
 
     METHOD_OVER(2, 1);
 
@@ -902,7 +902,7 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     int32_t vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.write");
 
     METHOD_OVER(5, 2);
 
@@ -934,7 +934,7 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.writeTextFile");
 
     METHOD_OVER(2, 2);
 
@@ -951,7 +951,7 @@ inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::V
 
 inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.writeFile");
 
     METHOD_OVER(3, 2);
 
@@ -1002,7 +1002,7 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
 
 inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("fs.appendFile");
 
     METHOD_OVER(2, 2);
 

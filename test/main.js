@@ -32,6 +32,7 @@ if (process.env.CI)
 run("./addons_test.js");
 
 run("./coroutine_test.js");
+run("./stack_test.js");
 run("./fibmod_test.js");
 run("./trigger_test.js");
 run("./lock_test.js");

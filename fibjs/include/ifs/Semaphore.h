@@ -104,7 +104,7 @@ inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
     bool vr;
 
     ASYNC_METHOD_INSTANCE(Semaphore_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Semaphore.wait");
 
     METHOD_OVER(1, 0);
 

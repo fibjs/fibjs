@@ -133,7 +133,7 @@ inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::V
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("BufferedStream.readText");
 
     METHOD_OVER(1, 1);
 
@@ -152,7 +152,7 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("BufferedStream.readLine");
 
     METHOD_OVER(1, 0);
 
@@ -187,7 +187,7 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
     exlib::string vr;
 
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("BufferedStream.readUntil");
 
     METHOD_OVER(2, 1);
 
@@ -205,7 +205,7 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
 inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("BufferedStream.writeText");
 
     METHOD_OVER(1, 1);
 
@@ -222,7 +222,7 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
 inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("BufferedStream.writeLine");
 
     METHOD_OVER(1, 1);
 

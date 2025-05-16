@@ -149,7 +149,7 @@ inline void DbConnection_base::s_get_type(const v8::FunctionCallbackInfo<v8::Val
 inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.close");
 
     METHOD_OVER(0, 0);
 
@@ -164,7 +164,7 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
 inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.use");
 
     METHOD_OVER(1, 1);
 
@@ -181,7 +181,7 @@ inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& 
 inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.begin");
 
     METHOD_OVER(1, 0);
 
@@ -198,7 +198,7 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
 inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.commit");
 
     METHOD_OVER(1, 0);
 
@@ -215,7 +215,7 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
 inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.rollback");
 
     METHOD_OVER(1, 0);
 
@@ -257,7 +257,7 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.execute");
 
     METHOD_OVER(1, 1);
 
@@ -284,7 +284,7 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
 inline void DbConnection_base::s_createTable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.createTable");
 
     METHOD_OVER(1, 1);
 
@@ -301,7 +301,7 @@ inline void DbConnection_base::s_createTable(const v8::FunctionCallbackInfo<v8::
 inline void DbConnection_base::s_dropTable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.dropTable");
 
     METHOD_OVER(1, 1);
 
@@ -318,7 +318,7 @@ inline void DbConnection_base::s_dropTable(const v8::FunctionCallbackInfo<v8::Va
 inline void DbConnection_base::s_createIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.createIndex");
 
     METHOD_OVER(1, 1);
 
@@ -335,7 +335,7 @@ inline void DbConnection_base::s_createIndex(const v8::FunctionCallbackInfo<v8::
 inline void DbConnection_base::s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.dropIndex");
 
     METHOD_OVER(1, 1);
 
@@ -354,7 +354,7 @@ inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value
     double vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.insert");
 
     METHOD_OVER(1, 1);
 
@@ -373,7 +373,7 @@ inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>&
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.find");
 
     METHOD_OVER(1, 1);
 
@@ -392,7 +392,7 @@ inline void DbConnection_base::s_count(const v8::FunctionCallbackInfo<v8::Value>
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.count");
 
     METHOD_OVER(1, 1);
 
@@ -411,7 +411,7 @@ inline void DbConnection_base::s_update(const v8::FunctionCallbackInfo<v8::Value
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.update");
 
     METHOD_OVER(1, 1);
 
@@ -430,7 +430,7 @@ inline void DbConnection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("DbConnection.remove");
 
     METHOD_OVER(1, 1);
 

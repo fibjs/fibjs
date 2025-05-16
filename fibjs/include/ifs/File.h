@@ -103,7 +103,7 @@ inline void File_base::s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(File_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("File.chmod");
 
     METHOD_OVER(1, 1);
 

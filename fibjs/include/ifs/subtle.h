@@ -92,7 +92,7 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.digest");
 
     METHOD_OVER(2, 2);
 
@@ -121,7 +121,7 @@ inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::V
 {
     Variant vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.exportKey");
 
     METHOD_OVER(2, 2);
 
@@ -140,7 +140,7 @@ inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
 {
     Variant vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.generateKey");
 
     METHOD_OVER(3, 3);
 
@@ -160,7 +160,7 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<CryptoKey_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.importKey");
 
     METHOD_OVER(5, 5);
 
@@ -182,7 +182,7 @@ inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.sign");
 
     METHOD_OVER(3, 3);
 
@@ -202,7 +202,7 @@ inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("subtle.verify");
 
     METHOD_OVER(4, 4);
 

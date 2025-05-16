@@ -212,7 +212,7 @@ inline void RTCPeerConnection_base::s_createDataChannel(const v8::FunctionCallba
 inline void RTCPeerConnection_base::s_setLocalDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.setLocalDescription");
 
     METHOD_OVER(0, 0);
 
@@ -236,7 +236,7 @@ inline void RTCPeerConnection_base::s_setLocalDescription(const v8::FunctionCall
 inline void RTCPeerConnection_base::s_setRemoteDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.setRemoteDescription");
 
     METHOD_OVER(1, 1);
 
@@ -253,7 +253,7 @@ inline void RTCPeerConnection_base::s_setRemoteDescription(const v8::FunctionCal
 inline void RTCPeerConnection_base::s_addIceCandidate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.addIceCandidate");
 
     METHOD_OVER(1, 1);
 
@@ -272,7 +272,7 @@ inline void RTCPeerConnection_base::s_createOffer(const v8::FunctionCallbackInfo
     Variant vr;
 
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.createOffer");
 
     METHOD_OVER(1, 0);
 
@@ -291,7 +291,7 @@ inline void RTCPeerConnection_base::s_createAnswer(const v8::FunctionCallbackInf
     Variant vr;
 
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.createAnswer");
 
     METHOD_OVER(1, 0);
 
@@ -310,7 +310,7 @@ inline void RTCPeerConnection_base::s_getStats(const v8::FunctionCallbackInfo<v8
     obj_ptr<NMap> vr;
 
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("RTCPeerConnection.getStats");
 
     METHOD_OVER(0, 0);
 

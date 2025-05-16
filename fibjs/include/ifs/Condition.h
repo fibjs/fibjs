@@ -113,7 +113,7 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
     bool vr;
 
     ASYNC_METHOD_INSTANCE(Condition_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Condition.wait");
 
     METHOD_OVER(1, 0);
 

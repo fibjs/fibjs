@@ -622,7 +622,7 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.request");
 
     METHOD_OVER(2, 2);
 
@@ -682,7 +682,7 @@ inline void http_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.get");
 
     METHOD_OVER(2, 1);
 
@@ -701,7 +701,7 @@ inline void http_base::s_static_post(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.post");
 
     METHOD_OVER(2, 1);
 
@@ -720,7 +720,7 @@ inline void http_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.del");
 
     METHOD_OVER(2, 1);
 
@@ -739,7 +739,7 @@ inline void http_base::s_static_put(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.put");
 
     METHOD_OVER(2, 1);
 
@@ -758,7 +758,7 @@ inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.patch");
 
     METHOD_OVER(2, 1);
 
@@ -777,7 +777,7 @@ inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<HttpResponse_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("http.head");
 
     METHOD_OVER(2, 1);
 

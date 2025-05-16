@@ -1,6 +1,5 @@
 var fs = require('fs');
 var io = require('io');
-var gd = require('gd');
 
 function read_log(f) {
     var bs = new io.BufferedStream(fs.openFile(f));
@@ -398,22 +397,48 @@ function gen_svg(f, root) {
 <text text-anchor="middle" x="500" y="24" font-size="17" font-family="Verdana" fill="rgb(0,0,0)"  >Flame Graph</text>
 <text text-anchor="" x="10.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="unzoom" onclick="unzoom()" style="opacity:0.0;cursor:pointer" >Reset Zoom</text>
 <text text-anchor="" x="890.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="search" onmouseover="searchover()" onmouseout="searchout()" onclick="search_prompt()" style="opacity:0.1;cursor:pointer" >Search</text>
-<text text-anchor="" x="1090.00" y="${h*2-3}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="matched" > </text>
-<text text-anchor="" x="10" y="${h-17}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="details" > </text>
+<text text-anchor="" x="1090.00" y="${h * 2 - 3}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="matched" > </text>
+<text text-anchor="" x="10" y="${h - 17}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="details" > </text>
 `;
     var svg_foot = `</svg>`;
 
     var f = fs.openFile(f, "w");
     f.write(svg_head);
 
+    // HSB/HSV to RGB, return CSS rgb() string
+    function hsb(h, s, v) {
+        h = h % 360;
+        if (h < 0) h += 360;
+        s = Math.max(0, Math.min(1, s));
+        v = Math.max(0, Math.min(1, v));
+        var c = v * s;
+        var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        var m = v - c;
+        var r, g, b;
+        if (h < 60) {
+            r = c; g = x; b = 0;
+        } else if (h < 120) {
+            r = x; g = c; b = 0;
+        } else if (h < 180) {
+            r = 0; g = c; b = x;
+        } else if (h < 240) {
+            r = 0; g = x; b = c;
+        } else if (h < 300) {
+            r = x; g = 0; b = c;
+        } else {
+            r = c; g = 0; b = x;
+        }
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+        return `rgb(${r},${g},${b})`;
+    }
+
     function color(deep, hot) {
         var h = hot > 0.2 ? deep * 60 : 240 - deep * 60;
         var s = 1 - deep * 0.8;
         var b = 1;
-        var c = gd.hsb(h, s, b);
-        var s = (0x1000000 + c).toString(16).substr(1);
-
-        return `#${s}`;
+        return hsb(h, s, b);
     }
 
     function gen_node(name, node, pos) {
@@ -423,8 +448,8 @@ function gen_svg(f, root) {
         var rgb = color(node.level / (root.deep - 1), node.js / node.cnt);
 
         f.write(`<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
-<title>${name} (${node.cnt} samples, ${(100*node.cnt/sum).toFixed(2)}%)</title><rect x="${x.toFixed(2)}" y="${y}" width="${(981*node.cnt/sum).toFixed(2)}" height="15.0" fill="${rgb}" rx="2" ry="2" />
-<text text-anchor="" x="${(x+3).toFixed(2)}" y="${y+10.5}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"></text>
+<title>${name} (${node.cnt} samples, ${(100 * node.cnt / sum).toFixed(2)}%)</title><rect x="${x.toFixed(2)}" y="${y}" width="${(981 * node.cnt / sum).toFixed(2)}" height="15.0" fill="${rgb}" rx="2" ry="2" />
+<text text-anchor="" x="${(x + 3).toFixed(2)}" y="${y + 10.5}" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"></text>
 </g>`);
 
         for (var l in node.subs) {

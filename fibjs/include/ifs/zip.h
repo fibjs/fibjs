@@ -80,7 +80,7 @@ inline void zip_base::s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("zip.isZipFile");
 
     METHOD_OVER(1, 1);
 
@@ -98,7 +98,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<ZipFile_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("zip.open");
 
     METHOD_OVER(3, 1);
 

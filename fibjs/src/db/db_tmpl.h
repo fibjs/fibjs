@@ -16,25 +16,32 @@ namespace fibjs {
 template <typename T>
 inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> func, bool& retVal)
 {
+    METHOD_NAME("DbConnection.trans");
     v8::Local<v8::Value> v = pThis->wrap();
     result_t hr = 0;
     retVal = false;
 
-    hr = pThis->ac_begin(point);
+    {
+        METHOD_NAME("DbConnection.begin");
+        hr = pThis->ac_begin(point);
+    }
     if (hr < 0)
         return hr;
 
     v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), pThis->wrap(), 1, &v).FromMaybe(v8::Local<v8::Value>());
 
     if (result.IsEmpty()) {
+        METHOD_NAME("DbConnection.rollback");
         pThis->ac_rollback(point);
         return CALL_E_JAVASCRIPT;
     }
 
-    if (result->IsFalse())
+    if (result->IsFalse()) {
+        METHOD_NAME("DbConnection.rollback");
         return pThis->ac_rollback(point);
-    else {
+    } else {
         retVal = true;
+        METHOD_NAME("DbConnection.commit");
         return pThis->ac_commit(point);
     }
 }

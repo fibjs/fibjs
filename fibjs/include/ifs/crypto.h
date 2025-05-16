@@ -576,7 +576,7 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.randomBytes");
 
     METHOD_OVER(1, 0);
 
@@ -594,7 +594,7 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.randomFill");
 
     METHOD_OVER(3, 1);
 
@@ -614,7 +614,7 @@ inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo
 {
     obj_ptr<GenerateKeyPairType> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.generateKeyPair");
 
     METHOD_OVER(2, 1);
 
@@ -633,7 +633,7 @@ inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.hkdf");
 
     METHOD_OVER(5, 5);
 
@@ -655,7 +655,7 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.pbkdf2");
 
     METHOD_OVER(5, 5);
 
@@ -797,7 +797,7 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.sign");
 
     METHOD_OVER(3, 3);
 
@@ -839,7 +839,7 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.verify");
 
     METHOD_OVER(4, 4);
 
@@ -900,7 +900,7 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.bbsSign");
 
     METHOD_OVER(2, 2);
 
@@ -939,7 +939,7 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.bbsVerify");
 
     METHOD_OVER(3, 3);
 
@@ -981,7 +981,7 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.proofGen");
 
     METHOD_OVER(4, 4);
 
@@ -1026,7 +1026,7 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
 {
     bool vr;
 
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("crypto.proofVerify");
 
     METHOD_OVER(4, 4);
 

@@ -97,7 +97,7 @@ inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args
     bool vr;
 
     ASYNC_METHOD_INSTANCE(Lock_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Lock.acquire");
 
     METHOD_OVER(1, 0);
 

@@ -51,6 +51,7 @@ v8::Local<v8::Value> Isolate::await(v8::Local<v8::Value> promise)
                 NewFunction("promise_then", promise_then, _data),
                 NewFunction("promise_catch", promise_catch, _data));
 
+    METHOD_NAME("promise.await");
     ev->ac_wait();
 
     JSValue error = _data->Get(_context, NewString("_error"));

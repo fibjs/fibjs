@@ -111,6 +111,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs)
 {
+    METHOD_NAME("SandBox.require");
     Scope _scope(this);
     return run_module(id, base, retVal, in_cjs);
 }
@@ -122,6 +123,7 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
 
 result_t SandBox::import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal)
 {
+    METHOD_NAME("SandBox.import");
     Scope _scope(this);
 
     v8::MaybeLocal<v8::Promise> result = async_import(id, base);

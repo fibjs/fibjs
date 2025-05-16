@@ -138,7 +138,7 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(ChildProcess_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("ChildProcess.join");
 
     METHOD_OVER(0, 0);
 

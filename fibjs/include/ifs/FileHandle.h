@@ -107,7 +107,7 @@ inline void FileHandle_base::s_get_fd(const v8::FunctionCallbackInfo<v8::Value>&
 inline void FileHandle_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("FileHandle.chmod");
 
     METHOD_OVER(1, 1);
 
@@ -126,7 +126,7 @@ inline void FileHandle_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Stat_base> vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("FileHandle.stat");
 
     METHOD_OVER(0, 0);
 
@@ -143,7 +143,7 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("FileHandle.read");
 
     METHOD_OVER(4, 1);
 
@@ -165,7 +165,7 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("FileHandle.write");
 
     METHOD_OVER(4, 1);
 
@@ -196,7 +196,7 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
 inline void FileHandle_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("FileHandle.close");
 
     METHOD_OVER(0, 0);
 

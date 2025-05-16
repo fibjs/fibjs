@@ -643,7 +643,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.request");
 
     METHOD_OVER(2, 2);
 
@@ -704,7 +704,7 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.get");
 
     METHOD_OVER(2, 1);
 
@@ -724,7 +724,7 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.post");
 
     METHOD_OVER(2, 1);
 
@@ -744,7 +744,7 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.del");
 
     METHOD_OVER(2, 1);
 
@@ -764,7 +764,7 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.put");
 
     METHOD_OVER(2, 1);
 
@@ -784,7 +784,7 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.patch");
 
     METHOD_OVER(2, 1);
 
@@ -804,7 +804,7 @@ inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("HttpClient.head");
 
     METHOD_OVER(2, 1);
 

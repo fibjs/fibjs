@@ -307,7 +307,7 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Message.read");
 
     METHOD_OVER(1, 0);
 
@@ -326,7 +326,7 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Message.readAll");
 
     METHOD_OVER(0, 0);
 
@@ -341,7 +341,7 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Message.write");
 
     METHOD_OVER(1, 1);
 
@@ -450,7 +450,7 @@ inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Message.sendTo");
 
     METHOD_OVER(2, 1);
 
@@ -468,7 +468,7 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("Message.readFrom");
 
     METHOD_OVER(2, 1);
 

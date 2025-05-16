@@ -276,7 +276,7 @@ inline void SecureContext_base::s_getSNIContext(const v8::FunctionCallbackInfo<v
     obj_ptr<SecureContext_base> vr;
 
     ASYNC_METHOD_INSTANCE(SecureContext_base);
-    ASYNC_METHOD_ENTER();
+    ASYNC_METHOD_ENTER("SecureContext.getSNIContext");
 
     METHOD_OVER(2, 1);
 

@@ -81,6 +81,7 @@ private:
                 return _worker();
             });
 
+        METHOD_NAME("coroutine.parallel");
         m_event->ac_wait();
 
         m_datas.Reset();
