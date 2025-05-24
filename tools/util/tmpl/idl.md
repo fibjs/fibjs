@@ -49,7 +49,7 @@ function member_output(title, test){
              has = true;%>## <%-title%>
         <%}else{%>--------------------------<%}
         if(last_member != m.name){%>
-### <%-m.memType == 'operator'?'operator':''%><%-m.symbol+m.name%><%
+### <%-m.memType == 'operator'?'operator':''%><%-(m.memType === 'event' ? '' : m.symbol)+m.name%><%
 last_member = m.name;
 }%>
 **<%-m.doc.descript%>**
@@ -58,8 +58,9 @@ last_member = m.name;
 if(m.static){%><%-m.static%> <%}
 if(m.readonly){%><%-m.readonly%> <%}
 if(m.type){%><%-m.type%> <%}
-%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' + m.symbol : '')%><%-m.name%><%
-if(m.memType == 'method'){
+if(m.memType === 'event'){%>event <%}
+%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' + (m.memType === 'event' ? '' : m.symbol) : '')%><%-m.name%><%
+if(m.memType == 'method' || m.memType == 'event'){
     var ps = '';
 
     if(m.params){
@@ -119,6 +120,10 @@ if(m.memType == 'method'){
 
     member_output('成员函数', function(m, n){
         return m.memType == 'method' && m.name !== n && !m.static && !m.symbol;
+    });
+
+    member_output('事件', function (m) {
+        return m.memType == 'event';
     });
 
 %>

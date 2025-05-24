@@ -27,12 +27,6 @@ public:
     virtual result_t run(AsyncEvent* ac) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t set_name(exlib::string newVal) = 0;
-    virtual result_t get_onstop(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onstop(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onpause(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onpause(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_oncontinue(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_oncontinue(v8::Local<v8::Function> newVal) = 0;
     static result_t install(exlib::string name, exlib::string cmd, exlib::string displayName, exlib::string description);
     static result_t remove(exlib::string name);
     static result_t start(exlib::string name);
@@ -193,7 +187,7 @@ inline void Service_base::s_get_onstop(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onstop(vr);
+    hr = pInst->getListener("stop", vr);
 
     METHOD_RETURN();
 }
@@ -207,7 +201,7 @@ inline void Service_base::s_set_onstop(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onstop(v0);
+    hr = pInst->setListener("stop", v0);
 
     METHOD_VOID();
 }
@@ -221,7 +215,7 @@ inline void Service_base::s_get_onpause(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onpause(vr);
+    hr = pInst->getListener("pause", vr);
 
     METHOD_RETURN();
 }
@@ -235,7 +229,7 @@ inline void Service_base::s_set_onpause(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onpause(v0);
+    hr = pInst->setListener("pause", v0);
 
     METHOD_VOID();
 }
@@ -249,7 +243,7 @@ inline void Service_base::s_get_oncontinue(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_oncontinue(vr);
+    hr = pInst->getListener("continue", vr);
 
     METHOD_RETURN();
 }
@@ -263,7 +257,7 @@ inline void Service_base::s_set_oncontinue(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_oncontinue(v0);
+    hr = pInst->setListener("continue", v0);
 
     METHOD_VOID();
 }

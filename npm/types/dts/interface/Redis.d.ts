@@ -340,7 +340,7 @@ declare class Class_Redis extends Class_object {
      * @description 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
      *      
      */
-    onsuberror: (...args: any[])=>any;
+    on(event: "suberror", listener: ()=>void): this;
 
     /**
      * @description 将信息 message 发送到指定的频道 channel

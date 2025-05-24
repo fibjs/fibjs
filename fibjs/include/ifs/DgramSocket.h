@@ -67,6 +67,14 @@ public:
     static void s_setRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setBroadcast(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -100,9 +108,16 @@ inline ClassInfo& DgramSocket_base::class_info()
         { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "onclose", s_get_onclose, s_set_onclose, false },
+        { "onerror", s_get_onerror, s_set_onerror, false },
+        { "onlistening", s_get_onlistening, s_set_onlistening, false },
+        { "onmessage", s_get_onmessage, s_set_onmessage, false }
+    };
+
     static ClassData s_cd = {
         "DgramSocket", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &EventEmitter_base::class_info(),
         true
     };
@@ -314,6 +329,118 @@ inline void DgramSocket_base::s_setBroadcast(const v8::FunctionCallbackInfo<v8::
     ARG(bool, 0);
 
     hr = pInst->setBroadcast(v0);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("close", vr);
+
+    METHOD_RETURN();
+}
+
+inline void DgramSocket_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("close", v0);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("error", vr);
+
+    METHOD_RETURN();
+}
+
+inline void DgramSocket_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("error", v0);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_get_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("listening", vr);
+
+    METHOD_RETURN();
+}
+
+inline void DgramSocket_base::s_set_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("listening", v0);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("message", vr);
+
+    METHOD_RETURN();
+}
+
+inline void DgramSocket_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }

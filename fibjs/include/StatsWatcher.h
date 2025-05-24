@@ -61,11 +61,6 @@ public:
     EVENT_SUPPORT();
 
 public:
-    EVENT_FUNC(change);
-    EVENT_FUNC(close);
-    EVENT_FUNC(error);
-
-public:
     static bool setTargetWatcher(exlib::string& target, StatsWatcher* watcher)
     {
         s_TargetWatcherMapLock.lock();

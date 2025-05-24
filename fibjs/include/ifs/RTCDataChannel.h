@@ -31,16 +31,6 @@ public:
     virtual result_t get_label(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t get_bufferedAmount(double& retVal) = 0;
-    virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onclose(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onerror(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onerror(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onbufferedamountlow(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onbufferedamountlow(v8::Local<v8::Function> newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -204,7 +194,7 @@ inline void RTCDataChannel_base::s_get_onopen(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onopen(vr);
+    hr = pInst->getListener("open", vr);
 
     METHOD_RETURN();
 }
@@ -218,7 +208,7 @@ inline void RTCDataChannel_base::s_set_onopen(const v8::FunctionCallbackInfo<v8:
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onopen(v0);
+    hr = pInst->setListener("open", v0);
 
     METHOD_VOID();
 }
@@ -232,7 +222,7 @@ inline void RTCDataChannel_base::s_get_onmessage(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessage(vr);
+    hr = pInst->getListener("message", vr);
 
     METHOD_RETURN();
 }
@@ -246,7 +236,7 @@ inline void RTCDataChannel_base::s_set_onmessage(const v8::FunctionCallbackInfo<
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessage(v0);
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }
@@ -260,7 +250,7 @@ inline void RTCDataChannel_base::s_get_onclose(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onclose(vr);
+    hr = pInst->getListener("close", vr);
 
     METHOD_RETURN();
 }
@@ -274,7 +264,7 @@ inline void RTCDataChannel_base::s_set_onclose(const v8::FunctionCallbackInfo<v8
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onclose(v0);
+    hr = pInst->setListener("close", v0);
 
     METHOD_VOID();
 }
@@ -288,7 +278,7 @@ inline void RTCDataChannel_base::s_get_onerror(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onerror(vr);
+    hr = pInst->getListener("error", vr);
 
     METHOD_RETURN();
 }
@@ -302,7 +292,7 @@ inline void RTCDataChannel_base::s_set_onerror(const v8::FunctionCallbackInfo<v8
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onerror(v0);
+    hr = pInst->setListener("error", v0);
 
     METHOD_VOID();
 }
@@ -316,7 +306,7 @@ inline void RTCDataChannel_base::s_get_onbufferedamountlow(const v8::FunctionCal
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onbufferedamountlow(vr);
+    hr = pInst->getListener("bufferedamountlow", vr);
 
     METHOD_RETURN();
 }
@@ -330,7 +320,7 @@ inline void RTCDataChannel_base::s_set_onbufferedamountlow(const v8::FunctionCal
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onbufferedamountlow(v0);
+    hr = pInst->setListener("bufferedamountlow", v0);
 
     METHOD_VOID();
 }

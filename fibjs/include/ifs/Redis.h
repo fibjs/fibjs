@@ -69,8 +69,6 @@ public:
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
     virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
-    virtual result_t get_onsuberror(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onsuberror(v8::Local<v8::Function> newVal) = 0;
     virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
     virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
     virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
@@ -787,7 +785,7 @@ inline void Redis_base::s_get_onsuberror(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onsuberror(vr);
+    hr = pInst->getListener("suberror", vr);
 
     METHOD_RETURN();
 }
@@ -801,7 +799,7 @@ inline void Redis_base::s_set_onsuberror(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onsuberror(v0);
+    hr = pInst->setListener("suberror", v0);
 
     METHOD_VOID();
 }

@@ -23,12 +23,6 @@ public:
     virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal);
 
 public:
-    EVENT_FUNC(open);
-    EVENT_FUNC(message);
-    EVENT_FUNC(close);
-    EVENT_FUNC(error);
-
-public:
     exlib::string m_url;
     int32_t m_readyState = C_CONNECTING;
     obj_ptr<HttpResponse_base> m_response;

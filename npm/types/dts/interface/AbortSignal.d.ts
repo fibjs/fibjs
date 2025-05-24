@@ -19,7 +19,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
     /**
      * @description 事件处理程序，当中止请求时触发 
      */
-    readonly onabort: (...args: any[])=>any;
+    on(event: "abort", listener: ()=>void): this;
 
 }
 

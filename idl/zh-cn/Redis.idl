@@ -244,7 +244,7 @@ interface Redis : object
 
     /*! @brief 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
      */
-    Function onsuberror;
+    event suberror();
 
     /*! @brief 将信息 message 发送到指定的频道 channel
      @param channel 指定发布的频道

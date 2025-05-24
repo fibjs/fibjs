@@ -392,6 +392,45 @@ function gen_code(cls, def, baseFolder) {
 
             }
         },
+        "event": {
+            "declare": () => { },
+            "stub": fn => {
+                var fname = fn.name;
+
+                if (fname) {
+                    txts.push(`    static void ${get_stub_func_prefix(fn, def)}get_on${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
+                    if (!fn.readonly)
+                        txts.push(`    static void ${get_stub_func_prefix(fn, def)}set_on${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
+                }
+            },
+            "stub_func": fn => {
+                var fname = fn.name;
+
+                txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_on${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype("Function")} vr;\n`);
+
+                txts.push(`    METHOD_INSTANCE(${cls}_base);`);
+                txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(0, 0);\n`);
+
+                if (fn.deprecated)
+                    txts.push(`    DEPRECATED_SOON("${cls}.get_on${fname}");\n`);
+
+                txts.push(`    hr = pInst->getListener("${fname}", vr);\n`);
+                txts.push(`    METHOD_RETURN();\n}\n`);
+
+                if (!fn.readonly) {
+                    txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_on${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
+                    txts.push(`    METHOD_INSTANCE(${cls}_base);`);
+                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_rtype("Function")}, 0);\n`);
+
+                    if (fn.deprecated)
+                        txts.push(`    DEPRECATED_SOON("${cls}.set_on${fname}");\n`);
+
+                    txts.push(`    hr = pInst->setListener("${fname}", v0);\n`);
+                    txts.push(`    METHOD_VOID();\n}\n`);
+                }
+
+            }
+        },
         "object": {
             "declare": () => { },
             "stub": () => { },
@@ -925,6 +964,13 @@ function gen_code(cls, def, baseFolder) {
                         `${fn.readonly ? `block_set` : (`${get_stub_func_prefix(fn, def)}set_` + get_name(fname, fn, def))}, `,
                         `${fn.static ? `true` : `false`} }`
                     ].join(''));
+                } else if (fn.memType == 'event') {
+                    var fname = fn.name;
+                    deflist.push([
+                        `        { "on${fname}", ${get_stub_func_prefix(fn, def)}get_on${get_name(fname, fn, def)}, `,
+                        `${fn.readonly ? `block_set` : (`${get_stub_func_prefix(fn, def)}set_on` + get_name(fname, fn, def))}, `,
+                        `${fn.static ? `true` : `false`} }`
+                    ].join(''));
                 }
             });
 
@@ -1059,11 +1105,13 @@ function gen_code(cls, def, baseFolder) {
 
         def.members.forEach(fn => {
             var fname = fn.name;
-            var fstatic = fn.static;
             var fn1;
 
             if (fname === cls && fn.memType == "method")
                 fname = "new " + fname;
+
+            if (fn.memType == "event")
+                fname = "event " + fname;
 
             if (!method_defs.hasOwnProperty(fname)) {
                 fn1 = util.clone(fn);
@@ -1077,8 +1125,7 @@ function gen_code(cls, def, baseFolder) {
             else
                 throw new Error("[union_method] only method can be override.");
 
-            if (
-                fn.memType != fn1.memType ||
+            if (fn.memType != fn1.memType ||
                 !check_type(fn.type, fn1.type)
             ) {
                 throw new Error(`Override function '${fname}' with different return-type.`);

@@ -41,7 +41,7 @@ interfaceEntend
   }
 
 interfaceBody
-  = "{" members:(constMember / prop / object / object1 / method / operator)* _* "}" {
+  = "{" members:(constMember / prop / object / object1 / eventDef / method / operator)* _* "}" {
     return members;
   }
 
@@ -83,6 +83,17 @@ operator
       name: index ? "[String]" : "[]",
       type: type,
       index: index
+    };
+  }
+
+eventDef
+  = comments:_* deprecated:deprecatedToken? _* eventToken _* name:Identifier _* "(" params:params? _* ")" _* ";" {
+    return {
+      memType: "event",
+      comments: comments.join(""),
+      deprecated: deprecated,
+      name: name,
+      params: params
     };
   }
 
@@ -343,6 +354,7 @@ ModuleToken     = "module"
 InterfaceToken  = "interface"
 StringToken     = "String"
 staticToken     = "static"
+eventToken      = "event"
 deprecatedToken = "deprecated"
 readonlyToken   = "readonly"
 asyncToken      = "async"

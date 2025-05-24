@@ -201,10 +201,10 @@ interface WebView : EventEmitter
     postMessage(String msg) async;
 
     /*! @brief 查询和绑定窗口开始加载事件，相当于 on("loading", func); */
-    Function onloading;
+    event loading();
 
     /*! @brief 查询和绑定窗口加载 完成事件，相当于 on("load", func); */
-    Function onload;
+    event load();
 
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 
@@ -216,7 +216,7 @@ interface WebView : EventEmitter
 	 webview.onmove = evt => console.log(evt.left, evt.top);
 	 ```
 	*/
-    Function onmove;
+    event move();
 
     /*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
 
@@ -228,17 +228,17 @@ interface WebView : EventEmitter
      webview.onresize = evt => console.log(evt.width, evt.height);
      ```
 	*/
-    Function onresize;
+    event resize();
 
     /*! @brief 查询和绑定窗口获得焦点事件，相当于 on("focus", func); */
-    Function onfocus;
+    event focus();
 
     /*! @brief 查询和绑定窗口失去焦点事件，相当于 on("blur", func); */
-    Function onblur;
+    event blur();
 
     /*! @brief 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); */
-    Function onclose;
+    event close();
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
-    Function onmessage;
+    event message();
 };

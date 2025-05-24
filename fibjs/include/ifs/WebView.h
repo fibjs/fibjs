@@ -51,22 +51,6 @@ public:
     virtual result_t takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
-    virtual result_t get_onloading(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onloading(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onmove(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onresize(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onresize(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onfocus(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onfocus(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onblur(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onblur(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onclose(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -648,7 +632,7 @@ inline void WebView_base::s_get_onloading(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onloading(vr);
+    hr = pInst->getListener("loading", vr);
 
     METHOD_RETURN();
 }
@@ -662,7 +646,7 @@ inline void WebView_base::s_set_onloading(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onloading(v0);
+    hr = pInst->setListener("loading", v0);
 
     METHOD_VOID();
 }
@@ -676,7 +660,7 @@ inline void WebView_base::s_get_onload(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onload(vr);
+    hr = pInst->getListener("load", vr);
 
     METHOD_RETURN();
 }
@@ -690,7 +674,7 @@ inline void WebView_base::s_set_onload(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onload(v0);
+    hr = pInst->setListener("load", v0);
 
     METHOD_VOID();
 }
@@ -704,7 +688,7 @@ inline void WebView_base::s_get_onmove(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmove(vr);
+    hr = pInst->getListener("move", vr);
 
     METHOD_RETURN();
 }
@@ -718,7 +702,7 @@ inline void WebView_base::s_set_onmove(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmove(v0);
+    hr = pInst->setListener("move", v0);
 
     METHOD_VOID();
 }
@@ -732,7 +716,7 @@ inline void WebView_base::s_get_onresize(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onresize(vr);
+    hr = pInst->getListener("resize", vr);
 
     METHOD_RETURN();
 }
@@ -746,7 +730,7 @@ inline void WebView_base::s_set_onresize(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onresize(v0);
+    hr = pInst->setListener("resize", v0);
 
     METHOD_VOID();
 }
@@ -760,7 +744,7 @@ inline void WebView_base::s_get_onfocus(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onfocus(vr);
+    hr = pInst->getListener("focus", vr);
 
     METHOD_RETURN();
 }
@@ -774,7 +758,7 @@ inline void WebView_base::s_set_onfocus(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onfocus(v0);
+    hr = pInst->setListener("focus", v0);
 
     METHOD_VOID();
 }
@@ -788,7 +772,7 @@ inline void WebView_base::s_get_onblur(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onblur(vr);
+    hr = pInst->getListener("blur", vr);
 
     METHOD_RETURN();
 }
@@ -802,7 +786,7 @@ inline void WebView_base::s_set_onblur(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onblur(v0);
+    hr = pInst->setListener("blur", v0);
 
     METHOD_VOID();
 }
@@ -816,7 +800,7 @@ inline void WebView_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onclose(vr);
+    hr = pInst->getListener("close", vr);
 
     METHOD_RETURN();
 }
@@ -830,7 +814,7 @@ inline void WebView_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onclose(v0);
+    hr = pInst->setListener("close", v0);
 
     METHOD_VOID();
 }
@@ -844,7 +828,7 @@ inline void WebView_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessage(vr);
+    hr = pInst->getListener("message", vr);
 
     METHOD_RETURN();
 }
@@ -858,7 +842,7 @@ inline void WebView_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessage(v0);
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }

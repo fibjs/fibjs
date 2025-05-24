@@ -111,16 +111,6 @@ public:
     void postWaitFor(exlib::string url);
 
 public:
-    EVENT_FUNC(loading);
-    EVENT_FUNC(load);
-    EVENT_FUNC(move);
-    EVENT_FUNC(resize);
-    EVENT_FUNC(focus);
-    EVENT_FUNC(blur);
-    EVENT_FUNC(close);
-    EVENT_FUNC(message);
-
-public:
     result_t createWebView();
     void config();
 

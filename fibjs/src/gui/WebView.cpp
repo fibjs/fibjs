@@ -203,21 +203,21 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
         SetPrivate("app", m_options->app.value());
 
     if (m_options->onloading.has_value())
-        set_onloading(m_options->onloading.value());
+        setListener("loading", m_options->onloading.value());
     if (m_options->onload.has_value())
-        set_onload(m_options->onload.value());
+        setListener("load", m_options->onload.value());
     if (m_options->onclose.has_value())
-        set_onclose(m_options->onclose.value());
+        setListener("close", m_options->onclose.value());
     if (m_options->onmove.has_value())
-        set_onmove(m_options->onmove.value());
+        setListener("move", m_options->onmove.value());
     if (m_options->onresize.has_value())
-        set_onresize(m_options->onresize.value());
+        setListener("resize", m_options->onresize.value());
     if (m_options->onfocus.has_value())
-        set_onfocus(m_options->onfocus.value());
+        setListener("focus", m_options->onfocus.value());
     if (m_options->onblur.has_value())
-        set_onblur(m_options->onblur.value());
+        setListener("blur", m_options->onblur.value());
     if (m_options->onmessage.has_value())
-        set_onmessage(m_options->onmessage.value());
+        setListener("message", m_options->onmessage.value());
 
     return 0;
 }

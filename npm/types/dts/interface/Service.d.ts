@@ -28,17 +28,17 @@ declare class Class_Service extends Class_EventEmitter {
     /**
      * @description 查询和绑定服务停止事件，相当于 on("stop", func); 
      */
-    onstop: (...args: any[])=>any;
+    on(event: "stop", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定服务暂停事件，相当于 on("pause", func); 
      */
-    onpause: (...args: any[])=>any;
+    on(event: "pause", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定服务恢复事件，相当于 on("continue", func); 
      */
-    oncontinue: (...args: any[])=>any;
+    on(event: "continue", listener: ()=>void): this;
 
     /**
      * @description 安装服务到系统

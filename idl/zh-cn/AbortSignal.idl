@@ -10,5 +10,5 @@ interface AbortSignal : EventEmitter
     readonly Boolean aborted;
 
     /*! @brief 事件处理程序，当中止请求时触发 */
-    readonly Function onabort;
+    event abort();
 };

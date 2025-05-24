@@ -84,17 +84,17 @@ declare class Class_Worker extends Class_EventEmitter {
     /**
      * @description 查询和绑定接受 load 消息事件，相当于 on("load", func); 
      */
-    onload: (...args: any[])=>any;
+    on(event: "load", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定接受 postMessage 消息事件，相当于 on("message", func); 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定接受 error 消息事件，相当于 on("error", func); 
      */
-    onerror: (...args: any[])=>any;
+    on(event: "error", listener: ()=>void): this;
 
 }
 

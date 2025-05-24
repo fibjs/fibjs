@@ -25,7 +25,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description 查询和绑定"文件改变"事件，相当于 on("change", func); 
      */
-    onchange: (...args: any[])=>any;
+    on(event: "change", listener: ()=>void): this;
 
     /**
      * @description 停止对目标文件路径的观察, 清除引用计数(不再 hold 进程)

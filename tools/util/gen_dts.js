@@ -579,6 +579,19 @@ function processDeclareInterface(def, {
                 }
                 break
             };
+            case 'event': {
+                const eventParam = dom.create.parameter('event', dom.type.stringLiteral(mem.name));
+                const callbackType = dom.create.functionType([], dom.type.void);
+                const listenerParam = dom.create.parameter('listener', callbackType);
+                
+                dtsUnit.members.push(dtsUnitMember = dom.create.method(
+                    'on',
+                    [eventParam, listenerParam],
+                    dom.create.namedTypeReference('this'),
+                    memFlags
+                ))
+                break
+            };
             case 'const': {
                 dtsUnit.members.push(dtsUnitMember = dom.create.const(
                     mem.name,

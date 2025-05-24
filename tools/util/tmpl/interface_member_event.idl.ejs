@@ -1,0 +1,2 @@
+/*<%-_translate(member.comments)%>*/<% var params = (member.params || []); %>
+    <%-member.deprecated ? `deprecated ` : ''%>event <%-`${member.name}`%>(<%params.map(function(param, idx) {%><%-`${_formatParamTypeName(param)}${params.length - 1 > idx ? ', ' : ''}`%><%})%>);

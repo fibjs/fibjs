@@ -15,13 +15,13 @@ interface Service : EventEmitter
     String name;
 
     /*! @brief 查询和绑定服务停止事件，相当于 on("stop", func); */
-    Function onstop;
+    event stop();
 
     /*! @brief 查询和绑定服务暂停事件，相当于 on("pause", func); */
-    Function onpause;
+    event pause();
 
     /*! @brief 查询和绑定服务恢复事件，相当于 on("continue", func); */
-    Function oncontinue;
+    event continue();
 
     /*! @brief 安装服务到系统
      @param name 服务名称

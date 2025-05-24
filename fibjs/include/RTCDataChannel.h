@@ -34,13 +34,6 @@ public:
     virtual result_t get_bufferedAmount(double& retVal);
 
 public:
-    EVENT_FUNC(open);
-    EVENT_FUNC(message);
-    EVENT_FUNC(close);
-    EVENT_FUNC(error);
-    EVENT_FUNC(bufferedamountlow);
-
-public:
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         if (!m_inited) {

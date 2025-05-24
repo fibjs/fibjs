@@ -51,16 +51,16 @@ interface EventSource : EventEmitter
     readonly HttpResponse response;
 
     /*! @brief 打开事件回调 */
-    Function onopen;
+    event open();
 
     /*! @brief 错误事件回调 */
-    Function onerror;
+    event error();
 
     /*! @brief 消息事件回调 */
-    Function onmessage;
+    event message();
 
     /*! @brief 关闭事件回调 */
-    Function onclose;
+    event close();
 
     /*! @brief 事件源状态：连接中 */
     const CONNECTING = 0;

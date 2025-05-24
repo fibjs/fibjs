@@ -29,17 +29,17 @@ interface RTCDataChannel : EventEmitter
     readonly Number bufferedAmount;
 
     /*! @brief 通道打开事件，当通道打开时触发 */
-    Function onopen;
+    event open();
 
     /*! @brief 通道消息事件，当接收到消息时触发 */
-    Function onmessage;
+    event message();
 
     /*! @brief 通道关闭事件，当通道关闭时触发 */
-    Function onclose;
+    event close();
 
     /*! @brief 通道错误事件，当通道发生错误时触发 */
-    Function onerror;
+    event error();
 
     /*! @brief 通道缓冲区低事件，当通道缓冲区低时触发 */
-    Function onbufferedamountlow;
+    event bufferedamountlow();
 };

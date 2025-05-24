@@ -626,16 +626,6 @@ public:                                                                         
         return object_base::eventNames(retVal);                                               \
     }
 
-#define EVENT_FUNC(e)                                           \
-    virtual result_t get_on##e(v8::Local<v8::Function>& retVal) \
-    {                                                           \
-        return getListener(#e, retVal);                         \
-    }                                                           \
-    virtual result_t set_on##e(v8::Local<v8::Function> newVal)  \
-    {                                                           \
-        return setListener(#e, newVal);                         \
-    }
-
 #define FIBER_FREE()                                     \
 public:                                                  \
     virtual bool enterTask(exlib::Task_base* current)    \

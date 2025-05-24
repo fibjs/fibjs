@@ -79,12 +79,6 @@ public:
     virtual result_t unref(obj_ptr<WebSocket_base>& retVal);
 
 public:
-    EVENT_FUNC(open);
-    EVENT_FUNC(message);
-    EVENT_FUNC(close);
-    EVENT_FUNC(error);
-
-public:
     void startRecv(Isolate* isolate);
     void endConnect(int32_t code, exlib::string reason);
     void endConnect(SeekableStream_base* body);

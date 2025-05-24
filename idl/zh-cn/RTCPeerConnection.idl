@@ -130,26 +130,26 @@ interface RTCPeerConnection : EventEmitter
     readonly String signalingState;
 
     /*! @brief 连接状态变更事件 */
-    Function onconnectionstatechange;
+    event connectionstatechange();
 
     /*! @brief 数据通道事件 */
-    Function ondatachannel;
+    event datachannel();
 
     /*! @brief ICE 候选项事件 */
-    Function onicecandidate;
+    event icecandidate();
 
     /*! @brief ICE 连接状态变更事件 */
-    Function oniceconnectionstatechange;
+    event iceconnectionstatechange();
 
     /*! @brief ICE 收集状态变更事件 */
-    Function onicegatheringstatechange;
+    event icegatheringstatechange();
 
     /*! @brief 本地描述变更事件 */
-    Function onlocaldescription;
+    event localdescription();
 
     /*! @brief 信令状态变更事件 */
-    Function onsignalingstatechange;
+    event signalingstatechange();
 
     /*! @brief 媒体轨道事件 */
-    Function ontrack;
+    event track();
 };

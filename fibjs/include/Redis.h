@@ -74,9 +74,6 @@ public:
     virtual result_t close();
 
 public:
-    EVENT_FUNC(suberror);
-
-public:
     result_t connect(const char* host, int32_t port, AsyncEvent* ac);
     result_t _command(exlib::string& req, Variant& retVal, AsyncEvent* ac);
     ASYNC_MEMBERVALUE2_AC(Redis, _command, exlib::string, Variant);

@@ -44,16 +44,6 @@ public:
     virtual result_t get_signalingState(exlib::string& retVal);
 
 public:
-    EVENT_FUNC(connectionstatechange);
-    EVENT_FUNC(datachannel);
-    EVENT_FUNC(icecandidate);
-    EVENT_FUNC(iceconnectionstatechange);
-    EVENT_FUNC(icegatheringstatechange);
-    EVENT_FUNC(localdescription);
-    EVENT_FUNC(signalingstatechange);
-    EVENT_FUNC(track);
-
-public:
     result_t create(v8::Local<v8::Object> options);
     obj_ptr<NObject> description_to_object(rtc::Description description);
 

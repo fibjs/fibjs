@@ -33,14 +33,6 @@ public:
     virtual result_t close(int32_t code, exlib::string reason) = 0;
     virtual result_t send(exlib::string data) = 0;
     virtual result_t send(Buffer_base* data) = 0;
-    virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onclose(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onerror(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onerror(v8::Local<v8::Function> newVal) = 0;
     virtual result_t ref(obj_ptr<WebSocket_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<WebSocket_base>& retVal) = 0;
 
@@ -257,7 +249,7 @@ inline void WebSocket_base::s_get_onopen(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onopen(vr);
+    hr = pInst->getListener("open", vr);
 
     METHOD_RETURN();
 }
@@ -271,7 +263,7 @@ inline void WebSocket_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onopen(v0);
+    hr = pInst->setListener("open", v0);
 
     METHOD_VOID();
 }
@@ -285,7 +277,7 @@ inline void WebSocket_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessage(vr);
+    hr = pInst->getListener("message", vr);
 
     METHOD_RETURN();
 }
@@ -299,7 +291,7 @@ inline void WebSocket_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::V
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessage(v0);
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }
@@ -313,7 +305,7 @@ inline void WebSocket_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onclose(vr);
+    hr = pInst->getListener("close", vr);
 
     METHOD_RETURN();
 }
@@ -327,7 +319,7 @@ inline void WebSocket_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onclose(v0);
+    hr = pInst->setListener("close", v0);
 
     METHOD_VOID();
 }
@@ -341,7 +333,7 @@ inline void WebSocket_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onerror(vr);
+    hr = pInst->getListener("error", vr);
 
     METHOD_RETURN();
 }
@@ -355,7 +347,7 @@ inline void WebSocket_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onerror(v0);
+    hr = pInst->setListener("error", v0);
 
     METHOD_VOID();
 }

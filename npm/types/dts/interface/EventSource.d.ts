@@ -71,22 +71,22 @@ declare class Class_EventSource extends Class_EventEmitter {
     /**
      * @description 打开事件回调 
      */
-    onopen: (...args: any[])=>any;
+    on(event: "open", listener: ()=>void): this;
 
     /**
      * @description 错误事件回调 
      */
-    onerror: (...args: any[])=>any;
+    on(event: "error", listener: ()=>void): this;
 
     /**
      * @description 消息事件回调 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
     /**
      * @description 关闭事件回调 
      */
-    onclose: (...args: any[])=>any;
+    on(event: "close", listener: ()=>void): this;
 
 
 

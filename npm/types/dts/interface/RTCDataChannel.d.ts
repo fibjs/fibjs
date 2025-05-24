@@ -49,27 +49,27 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
      * @description 通道打开事件，当通道打开时触发 
      */
-    onopen: (...args: any[])=>any;
+    on(event: "open", listener: ()=>void): this;
 
     /**
      * @description 通道消息事件，当接收到消息时触发 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
     /**
      * @description 通道关闭事件，当通道关闭时触发 
      */
-    onclose: (...args: any[])=>any;
+    on(event: "close", listener: ()=>void): this;
 
     /**
      * @description 通道错误事件，当通道发生错误时触发 
      */
-    onerror: (...args: any[])=>any;
+    on(event: "error", listener: ()=>void): this;
 
     /**
      * @description 通道缓冲区低事件，当通道缓冲区低时触发 
      */
-    onbufferedamountlow: (...args: any[])=>any;
+    on(event: "bufferedamountlow", listener: ()=>void): this;
 
 }
 

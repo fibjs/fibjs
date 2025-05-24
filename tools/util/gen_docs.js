@@ -1,5 +1,4 @@
 var fs = require("fs");
-var util = require("util");
 var path = require('path');
 var ejs = require('ejs');
 var beautify = require('js-beautify');
@@ -224,8 +223,12 @@ module.exports = function (defs, docsFolder) {
                                     txts.push(m.name + '\\l');
                             } else if (m.memType == 'operator')
                                 txts.push('operator' + m.name + '\\l');
+                            else if (m.memType == 'method')
+                                txts.push(m.name + '()\\l');
+                            else if (m.memType == 'event')
+                                txts.push('event ' + m.name + '\\l');
                             else
-                                txts.push(m.name + (m.memType == 'method' ? '()' : '') + '\\l');
+                                txts.push(m.name + '\\l');
                         }
                     }
                 });
@@ -272,6 +275,11 @@ module.exports = function (defs, docsFolder) {
                 member_output('成员函数', function (m, n) {
                     return m.memType == 'method' && m.name !== n && !m.static && !m.symbol;
                 });
+
+                member_output('事件', function (m) {
+                    return m.memType == 'event';
+                });
+
             }
 
             txts.push('}"];');

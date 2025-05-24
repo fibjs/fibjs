@@ -24,13 +24,13 @@
 interface FSWatcher : EventEmitter
 {
     /*! @brief 查询和绑定"文件改变"事件，相当于 on("change", func); */
-    Function onchange;
+    event change();
 
     /*! @brief 查询和绑定"watcher 关闭"的事件，相当于 on("close", func); */
-    Function onclose;
+    event close();
 
     /*! @brief 查询和绑定"错误发生"的事件，相当于 on("error", func); */
-    Function onerror;
+    event error();
 
     /*! @brief 关闭该 Watcher, 不再接收对应的文件变化处理事件 */
     close();

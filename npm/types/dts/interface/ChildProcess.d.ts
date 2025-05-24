@@ -108,12 +108,12 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description 查询和绑定进程退出事件，相当于 on("exit", func); 
      */
-    onexit: (...args: any[])=>any;
+    on(event: "exit", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定子进程消息事件，相当于 on("message", func); 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
 }
 

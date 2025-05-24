@@ -48,7 +48,7 @@ declare class Class_MenuItem extends Class_EventEmitter {
     /**
      * @description 菜单项的点击事件处理函数。 
      */
-    onclick: (...args: any[])=>any;
+    on(event: "click", listener: ()=>void): this;
 
 }
 

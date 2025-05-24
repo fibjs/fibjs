@@ -27,11 +27,6 @@ public:
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t set_name(exlib::string newVal);
 
-public:
-    EVENT_FUNC(stop);
-    EVENT_FUNC(pause);
-    EVENT_FUNC(continue);
-
 private:
     exlib::string m_name;
 };

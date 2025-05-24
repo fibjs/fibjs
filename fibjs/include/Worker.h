@@ -30,11 +30,6 @@ public:
     virtual result_t postMessage(v8::Local<v8::Value> data);
 
 public:
-    EVENT_FUNC(load);
-    EVENT_FUNC(message);
-    EVENT_FUNC(error);
-
-public:
     void start();
 
 private:

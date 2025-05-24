@@ -111,22 +111,22 @@ declare class Class_WebSocket extends Class_EventEmitter {
     /**
      * @description 查询和绑定连接成功事件，相当于 on("open", func); 
      */
-    onopen: (...args: any[])=>any;
+    on(event: "open", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定接受到对方消息的事件，相当于 on("message", func); 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定连接关闭的事件，相当于 on("close", func); 
      */
-    onclose: (...args: any[])=>any;
+    on(event: "close", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定错误发生的事件，相当于 on("error", func); 
      */
-    onerror: (...args: any[])=>any;
+    on(event: "error", listener: ()=>void): this;
 
     /**
      * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出

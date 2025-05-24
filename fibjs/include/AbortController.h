@@ -21,9 +21,6 @@ public:
     virtual result_t get_aborted(bool& retVal);
 
 public:
-    EVENT_FUNC(abort);
-
-public:
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {

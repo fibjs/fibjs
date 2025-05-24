@@ -37,10 +37,6 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t get_onexit(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onexit(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -297,7 +293,7 @@ inline void ChildProcess_base::s_get_onexit(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onexit(vr);
+    hr = pInst->getListener("exit", vr);
 
     METHOD_RETURN();
 }
@@ -311,7 +307,7 @@ inline void ChildProcess_base::s_set_onexit(const v8::FunctionCallbackInfo<v8::V
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onexit(v0);
+    hr = pInst->setListener("exit", v0);
 
     METHOD_VOID();
 }
@@ -325,7 +321,7 @@ inline void ChildProcess_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessage(vr);
+    hr = pInst->getListener("message", vr);
 
     METHOD_RETURN();
 }
@@ -339,7 +335,7 @@ inline void ChildProcess_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessage(v0);
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }

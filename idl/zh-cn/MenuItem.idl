@@ -26,5 +26,5 @@ interface MenuItem : EventEmitter
     readonly Menu submenu;
 
     /*! @brief 菜单项的点击事件处理函数。 */
-    Function onclick;
+    event click();
 };

@@ -310,12 +310,12 @@ declare class Class_WebView extends Class_EventEmitter {
     /**
      * @description 查询和绑定窗口开始加载事件，相当于 on("loading", func); 
      */
-    onloading: (...args: any[])=>any;
+    on(event: "loading", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口加载 完成事件，相当于 on("load", func); 
      */
-    onload: (...args: any[])=>any;
+    on(event: "load", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口移动事件，相当于 on("move", func); 
@@ -329,7 +329,7 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 ```
      * 	
      */
-    onmove: (...args: any[])=>any;
+    on(event: "move", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
@@ -343,27 +343,27 @@ declare class Class_WebView extends Class_EventEmitter {
      *      ```
      * 	
      */
-    onresize: (...args: any[])=>any;
+    on(event: "resize", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口获得焦点事件，相当于 on("focus", func); 
      */
-    onfocus: (...args: any[])=>any;
+    on(event: "focus", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口失去焦点事件，相当于 on("blur", func); 
      */
-    onblur: (...args: any[])=>any;
+    on(event: "blur", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); 
      */
-    onclose: (...args: any[])=>any;
+    on(event: "close", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); 
      */
-    onmessage: (...args: any[])=>any;
+    on(event: "message", listener: ()=>void): this;
 
 }
 

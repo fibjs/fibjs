@@ -38,9 +38,6 @@ public:
     virtual result_t get_submenu(obj_ptr<Menu_base>& retVal);
 
 public:
-    EVENT_FUNC(click);
-
-public:
     // object_base
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 

@@ -122,6 +122,7 @@ const ejs_tpl_interface_member_prop = ejs.compile(fs.readTextFile(path.resolve(_
 const ejs_tpl_interface_member_object = ejs.compile(fs.readTextFile(path.resolve(__dirname, './tmpl/interface_member_object.idl.ejs')));
 const ejs_tpl_interface_member_method = ejs.compile(fs.readTextFile(path.resolve(__dirname, './tmpl/interface_member_method.idl.ejs')));
 const ejs_tpl_interface_member_operator = ejs.compile(fs.readTextFile(path.resolve(__dirname, './tmpl/interface_member_operator.idl.ejs')));
+const ejs_tpl_interface_member_event = ejs.compile(fs.readTextFile(path.resolve(__dirname, './tmpl/interface_member_event.idl.ejs')));
 
 function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
     const _translate = (input) => {
@@ -162,6 +163,12 @@ function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
                     return ejs_tpl_interface_member_method({
                         ...ctx,
                         _formatParamDefaultValue,
+                        _formatParamTypeName,
+                        _formatMethodReturnType,
+                    }) + lineEOL
+                case 'event':
+                    return ejs_tpl_interface_member_event({
+                        ...ctx,
                         _formatParamTypeName,
                         _formatMethodReturnType,
                     }) + lineEOL

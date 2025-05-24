@@ -25,7 +25,6 @@ public:
     // AbortSignal_base
     virtual result_t abort(exlib::string reason) = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
-    virtual result_t get_onabort(v8::Local<v8::Function>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -43,6 +42,7 @@ public:
     static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onabort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onabort(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -55,7 +55,7 @@ inline ClassInfo& AbortSignal_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "aborted", s_get_aborted, block_set, false },
-        { "onabort", s_get_onabort, block_set, false }
+        { "onabort", s_get_onabort, s_set_onabort, false }
     };
 
     static ClassData s_cd = {
@@ -106,8 +106,22 @@ inline void AbortSignal_base::s_get_onabort(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onabort(vr);
+    hr = pInst->getListener("abort", vr);
 
     METHOD_RETURN();
+}
+
+inline void AbortSignal_base::s_set_onabort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(AbortSignal_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("abort", v0);
+
+    METHOD_VOID();
 }
 }

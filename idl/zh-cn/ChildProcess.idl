@@ -74,8 +74,8 @@ interface ChildProcess : EventEmitter
     readonly Stream stderr;
 
     /*! @brief 查询和绑定进程退出事件，相当于 on("exit", func); */
-    Function onexit;
+    event exit();
 
     /*! @brief 查询和绑定子进程消息事件，相当于 on("message", func); */
-    Function onmessage;
+    event message();
 };

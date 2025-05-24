@@ -264,7 +264,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
         mi->m_submenu = new ValueHolder(mi->submenu.value()->wrap());
 
     if (mi->onclick.has_value())
-        mi->set_onclick(mi->onclick.value());
+        mi->setListener("click", mi->onclick.value());
 
     retVal = mi;
 

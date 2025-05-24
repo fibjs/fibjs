@@ -186,42 +186,42 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description 连接状态变更事件 
      */
-    onconnectionstatechange: (...args: any[])=>any;
+    on(event: "connectionstatechange", listener: ()=>void): this;
 
     /**
      * @description 数据通道事件 
      */
-    ondatachannel: (...args: any[])=>any;
+    on(event: "datachannel", listener: ()=>void): this;
 
     /**
      * @description ICE 候选项事件 
      */
-    onicecandidate: (...args: any[])=>any;
+    on(event: "icecandidate", listener: ()=>void): this;
 
     /**
      * @description ICE 连接状态变更事件 
      */
-    oniceconnectionstatechange: (...args: any[])=>any;
+    on(event: "iceconnectionstatechange", listener: ()=>void): this;
 
     /**
      * @description ICE 收集状态变更事件 
      */
-    onicegatheringstatechange: (...args: any[])=>any;
+    on(event: "icegatheringstatechange", listener: ()=>void): this;
 
     /**
      * @description 本地描述变更事件 
      */
-    onlocaldescription: (...args: any[])=>any;
+    on(event: "localdescription", listener: ()=>void): this;
 
     /**
      * @description 信令状态变更事件 
      */
-    onsignalingstatechange: (...args: any[])=>any;
+    on(event: "signalingstatechange", listener: ()=>void): this;
 
     /**
      * @description 媒体轨道事件 
      */
-    ontrack: (...args: any[])=>any;
+    on(event: "track", listener: ()=>void): this;
 
 }
 
