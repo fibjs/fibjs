@@ -11,9 +11,7 @@
 ```
 fibjs is a JavaScript runtime built on Chrome's V8 JavaScript engine.  fibjs uses [fibers-switch](https://en.wikipedia.org/wiki/Fiber_(computer_science))  , sync style & non-blocking IO model to build scalable system. 
 
-[![travis build status][travis-image]][travis-url]
-[![appveyor build status][appveyor-image]][appveyor-url]
-[![Join the chat at https://gitter.im/fibjs/fibjs][gitter-image]][gitter-url]
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fibjs/fibjs)
 
 [travis-image]: https://img.shields.io/travis/fibjs/fibjs.svg?style=flat-square
 [travis-url]: https://travis-ci.org/fibjs/fibjs
