@@ -86,7 +86,7 @@ bool Logger::first_call()
                 v = wrap();
             else {
                 v8::Local<v8::Object> o = isolate->NewFunction("",
-                    [](const v8::FunctionCallbackInfo<v8::Value>&) {});
+                    [](const v8::FunctionCallbackInfo<v8::Value>&) { });
 
                 ClassInfo& ci = Classinfo();
                 o->SetPrototype(isolate->context(), ci.GetPrototype(isolate)).IsJust();
@@ -139,7 +139,7 @@ void Logger::fill_prefix()
 
 void Logger::_log(int32_t type, exlib::string fmt, OptArgs args)
 {
-    if (!first_call())
+    if (!first_call() && type > console_base::C_WARN)
         return;
 
     int32_t level;
