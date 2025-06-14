@@ -78,4 +78,10 @@ interface ChildProcess : EventEmitter
 
     /*! @brief 查询和绑定子进程消息事件，相当于 on("message", func); */
     event message();
+
+    /*! @brief 查询和绑定子进程启动事件，相当于 on("spawn", func); */
+    event spawn();
+
+    /*! @brief 查询和绑定子进程断开连接事件，相当于 on("disconnect", func); */
+    event disconnect();
 };

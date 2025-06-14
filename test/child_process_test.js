@@ -655,6 +655,105 @@ describe("child_process", () => {
             ]);
         });
 
+        it("spawn", () => {
+            var spawnEventTriggered = false;
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_event.js')]);
+            
+            p.on('spawn', () => {
+                spawnEventTriggered = true;
+            });
+            
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "spawn event test process started");
+            
+            p.join();
+            assert.equal(p.exitCode, 0);
+            assert.equal(spawnEventTriggered, true);
+        });
+
+        it("spawn event timing", () => {
+            var spawnEventTriggered = false;
+            var spawnEventTime = 0;
+            var processStartTime = new Date().getTime();
+            
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_timing.js')]);
+            
+            p.on('spawn', () => {
+                spawnEventTriggered = true;
+                spawnEventTime = new Date().getTime();
+            });
+            
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "process started");
+            
+            // spawn event should have been triggered by now
+            assert.equal(spawnEventTriggered, true);
+            
+            // spawn event should be triggered quickly after process creation
+            assert.lessThan(spawnEventTime - processStartTime, 1000);
+            
+            assert.equal(stdout.readLine(), "process ending");
+            p.join();
+            assert.equal(p.exitCode, 42);
+        });
+
+        it("spawn event with fork", () => {
+            var spawnEventTriggered = false;
+            var p = child_process.fork(path.join(__dirname, 'process', 'exec_spawn_event.js'), {
+                stdio: "pipe"
+            });
+            
+            p.on('spawn', () => {
+                spawnEventTriggered = true;
+            });
+            
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "spawn event test process started");
+            
+            p.join();
+            assert.equal(p.exitCode, 0);
+            assert.equal(spawnEventTriggered, true);
+        });
+
+        it("spawn event with multiple listeners", () => {
+            var spawnCount = 0;
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_event.js')]);
+            
+            p.on('spawn', () => {
+                spawnCount++;
+            });
+            
+            p.on('spawn', () => {
+                spawnCount++;
+            });
+            
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "spawn event test process started");
+            
+            p.join();
+            assert.equal(p.exitCode, 0);
+            assert.equal(spawnCount, 2); // Both listeners should be called
+        });
+
+        it("spawn event should not trigger on failed spawn", () => {
+            var spawnEventTriggered = false;
+            
+            try {
+                var p = child_process.spawn("non_existent_command");
+                
+                p.on('spawn', () => {
+                    spawnEventTriggered = true;
+                });
+                
+                p.join();
+            } catch (e) {
+                // Expected to fail
+            }
+            
+            // spawn event should not be triggered for failed process creation
+            assert.equal(spawnEventTriggered, false);
+        });
+
         if (process.platform != "win32")
             it("SIGINT", () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'signal1.js')]);

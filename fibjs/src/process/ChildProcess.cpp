@@ -343,6 +343,9 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
         if (err < 0)
             uv_close((uv_handle_t*)&m_process, on_uv_close);
+        else {
+            _emit("spawn");
+        }
 
         return err;
     });

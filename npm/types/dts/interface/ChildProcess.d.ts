@@ -115,5 +115,15 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      */
     on(event: "message", listener: ()=>void): this;
 
+    /**
+     * @description 查询和绑定子进程启动事件，相当于 on("spawn", func); 
+     */
+    on(event: "spawn", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定子进程断开连接事件，相当于 on("disconnect", func); 
+     */
+    on(event: "disconnect", listener: ()=>void): this;
+
 }
 
