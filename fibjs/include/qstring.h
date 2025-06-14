@@ -83,7 +83,7 @@ inline int32_t qchricmp(T ch1, T ch2)
 template <typename T>
 inline int32_t qstricmp(const T* s1, const T* s2, ssize_t sz = -1)
 {
-    if (s1 == s2)
+    if (s1 == s2 || sz == 0)
         return 0;
 
     int32_t n = 0;
@@ -98,7 +98,7 @@ inline int32_t qstricmp(const T* s1, const T* s2, ssize_t sz = -1)
 template <typename T>
 inline int32_t qstrcmp(const T* s1, const T* s2, ssize_t sz = -1)
 {
-    if (s1 == s2)
+    if (s1 == s2 || sz == 0)
         return 0;
 
     int32_t n = 0;

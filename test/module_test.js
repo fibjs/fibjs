@@ -236,6 +236,34 @@ describe("module", () => {
                 assert.equal(a, require('./module/p1.10'));
                 assert.equal(a, require('./module/p1.10/main'));
             });
+
+            it("wildcard *", () => {
+                var a = require('p1.11/utils/helper.js');
+                assert.deepEqual(a, {
+                    "helper": "utils_helper"
+                });
+
+                var b = require('p1.11/lib/index.js');
+                assert.deepEqual(b, {
+                    "lib": "lib_index"
+                });
+            });
+
+            it("wildcard * with conditions", () => {
+                var utils = require('p1.12/utils');
+                assert.deepEqual(utils, {
+                    "name": "utils",
+                    "type": "cjs"
+                });
+            });
+
+            it("wildcard * simple", () => {
+                var utils = require('p1.13/utils');
+                assert.deepEqual(utils, {
+                    "name": "utils",
+                    "type": "simple"
+                });
+            });
         });
 
         it("default entry", () => {

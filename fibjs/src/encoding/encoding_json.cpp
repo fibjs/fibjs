@@ -54,17 +54,6 @@ inline int32_t AsciiAlphaToLower(char c)
     return c | 0x20;
 }
 
-inline int32_t qstrcmp(const char16_t* s1, const char* s2, ssize_t sz = -1)
-{
-    int32_t n = 0;
-
-    while (*s1 && !(n = *s1++ - (char16_t)*s2++))
-        if ((sz > 0) && (!--sz))
-            return 0;
-
-    return n ? n : -*s2;
-}
-
 inline result_t _jsonDecode(exlib::string data,
     v8::Local<v8::Value>& retVal)
 {
