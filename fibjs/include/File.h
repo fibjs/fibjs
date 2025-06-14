@@ -5,6 +5,7 @@
 #include "Stat.h"
 #include "utf8.h"
 #include "Buffer.h"
+#include "AsyncStream.h"
 
 #include <fcntl.h>
 
@@ -32,7 +33,7 @@
 
 namespace fibjs {
 
-class File : public File_base {
+class File : public AsyncStream<File_base> {
 public:
     File()
         : m_fd(-1)

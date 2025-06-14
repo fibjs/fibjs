@@ -10,10 +10,11 @@
 #include "ifs/BufferedStream.h"
 #include "StringBuffer.h"
 #include "encoding_iconv.h"
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class BufferedStream : public BufferedStream_base {
+class BufferedStream : public AsyncStream<BufferedStream_base> {
 public:
     BufferedStream(Stream_base* stm)
         : m_stm(stm)

@@ -342,6 +342,69 @@ function test_net(eng, use_uv) {
             assert.equal('d', c1.read(3));
         });
 
+        it("data event", () => {
+            function accept3(s) {
+                try {
+                    while (true) {
+                        var c = s.accept();
+                        
+                        // Send HTTP response data
+                        c.write('HTTP/1.1 200 OK\r\n');
+                        coroutine.sleep(50);
+                        c.write('Content-Type: text/plain\r\n');
+                        coroutine.sleep(50);
+                        c.write('Content-Length: 13\r\n');
+                        coroutine.sleep(50);
+                        c.write('\r\n');
+                        coroutine.sleep(50);
+                        c.write('Hello, World!');
+                        
+                        coroutine.sleep(100);
+                        c.close();
+                    }
+                } catch (e) { }
+            }
+
+            var s3 = new net.Socket(net_config.family);
+            test_util.push(s3);
+
+            var _port = getPort();
+
+            s3.bind(_port);
+            s3.listen();
+            coroutine.start(accept3, s3);
+
+            var c1 = new net.Socket();
+            c1.connect('127.0.0.1', _port);
+            
+            var receivedData = [];
+            var dataEvent = new coroutine.Event();
+            var closeEvent = new coroutine.Event();
+            
+            // Register data event handler
+            c1.on('data', (data) => {
+                receivedData.push(data.toString());
+            });
+            
+            // Register close event handler  
+            c1.on('close', () => {
+                closeEvent.set();
+            });
+            
+            // Send HTTP request
+            c1.write('GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n');
+            
+            // Wait for connection to close
+            closeEvent.wait();
+            
+            // Verify received data
+            var fullResponse = receivedData.join('');
+            assert.ok(fullResponse.includes('HTTP/1.1 200 OK'));
+            assert.ok(fullResponse.includes('Content-Type: text/plain'));
+            assert.ok(fullResponse.includes('Hello, World!'));
+            assert.ok(receivedData.length > 0);
+        });
+
         describe("re-entrant", () => {
 
             it("accept", () => {

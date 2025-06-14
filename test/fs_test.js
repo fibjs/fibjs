@@ -373,6 +373,39 @@ describe('fs', () => {
         fs.unlink(path.join(__dirname, 'fs_test.js.bak' + vmid));
     });
 
+    it("file data event", () => {
+        var testFile = fs.openFile(path.join(__dirname, 'fs_test.js.data_event' + vmid), 'w+');
+        var receivedData = [];
+        var dataEventCount = 0;
+        
+        // Write data to trigger data events
+        testFile.write('Hello, ');
+        testFile.write('World!');
+        testFile.write(' Test file data event.');
+        testFile.rewind();
+
+        // Register data event handler
+        testFile.on('data', (data) => {
+            receivedData.push(data.toString());
+            dataEventCount++;
+        });
+        
+        // Let the fiber yield to process data events
+        coroutine.sleep(10);
+        
+        // Verify that data events were triggered
+        assert.equal(dataEventCount, 1);
+        assert.deepEqual(receivedData, ['Hello, World! Test file data event.']);
+
+        // Verify the complete content
+        testFile.rewind();
+        var fullContent = testFile.read().toString();
+        assert.equal(fullContent, 'Hello, World! Test file data event.');
+        
+        testFile.close();
+        fs.unlink(path.join(__dirname, 'fs_test.js.data_event' + vmid));
+    });
+
     it("readFile", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
         var d = f.readAll();

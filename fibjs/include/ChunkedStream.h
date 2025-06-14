@@ -12,10 +12,11 @@
 #include "ifs/io.h"
 #include "Buffer.h"
 #include "parse.h"
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class ChunkedStream : public Stream_base {
+class ChunkedStream : public AsyncStream<Stream_base> {
 public:
     ChunkedStream(BufferedStream_base* stm, int32_t maxChunkSize, int32_t maxBodySize)
         : m_stm(stm)

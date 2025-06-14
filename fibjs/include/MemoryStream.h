@@ -11,10 +11,11 @@
 #include "ifs/fs.h"
 #include "ifs/MemoryStream.h"
 #include <sstream>
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class MemoryStream : public MemoryStream_base {
+class MemoryStream : public AsyncStream<MemoryStream_base> {
 public:
     class CloneStream : public MemoryStream_base {
     public:

@@ -11,10 +11,11 @@
 #include "inetAddr.h"
 #include "AsyncIO.h"
 #include "Timer.h"
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class Socket : public Socket_base {
+class Socket : public AsyncStream<Socket_base> {
     FIBER_FREE();
 
 public:

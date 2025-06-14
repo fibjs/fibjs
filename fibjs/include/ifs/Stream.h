@@ -12,13 +12,16 @@
  */
 
 #include "../object.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
+class EventEmitter_base;
 class Buffer_base;
 
-class Stream_base : public object_base {
+class Stream_base : public EventEmitter_base {
     DECLARE_CLASS(Stream_base);
+    EVENT_SUPPORT();
 
 public:
     // Stream_base
@@ -48,6 +51,12 @@ public:
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -72,13 +81,16 @@ inline ClassInfo& Stream_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "fd", s_get_fd, block_set, false }
+        { "fd", s_get_fd, block_set, false },
+        { "ondata", s_get_ondata, s_set_ondata, false },
+        { "onclose", s_get_onclose, s_set_onclose, false },
+        { "onerror", s_get_onerror, s_set_onerror, false }
     };
 
     static ClassData s_cd = {
         "Stream", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info(),
+        &EventEmitter_base::class_info(),
         true
     };
 
@@ -184,5 +196,89 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->ac_copyTo(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void Stream_base::s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("data", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("data", v0);
+
+    METHOD_VOID();
+}
+
+inline void Stream_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("close", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("close", v0);
+
+    METHOD_VOID();
+}
+
+inline void Stream_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("error", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("error", v0);
+
+    METHOD_VOID();
 }
 }

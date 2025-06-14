@@ -12,10 +12,11 @@
 #include "ifs/io.h"
 #include "ifs/RangeStream.h"
 #include "Stat.h"
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class RangeStream : public RangeStream_base {
+class RangeStream : public AsyncStream<RangeStream_base> {
 public:
     RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end);
 

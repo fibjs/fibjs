@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description 流操作对象，用于二进制数据流读写
  * 
  * Stream 为基础对象，用于为流处理定义标准借口，不能独立创建 
  */
-declare class Class_Stream extends Class_object {
+declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description 查询 Stream 对应的文件描述符值, 由子类实现 
      */
@@ -55,6 +55,21 @@ declare class Class_Stream extends Class_object {
     copyTo(stm: Class_Stream, bytes?: number): number;
 
     copyTo(stm: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 查询和绑定流数据事件，相当于 on("data", func); 
+     */
+    on(event: "data", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定流关闭事件，相当于 on("close", func); 
+     */
+    on(event: "close", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定流错误事件，相当于 on("error", func); 
+     */
+    on(event: "error", listener: ()=>void): this;
 
 }
 

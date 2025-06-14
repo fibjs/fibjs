@@ -10,13 +10,14 @@
 #include "ifs/io.h"
 #include "AsyncUV.h"
 #include "Buffer.h"
+#include "AsyncStream.h"
 
 #define STREAM_BLOCK_SIZE 2048
 
 namespace fibjs {
 
 template <typename T>
-class UVStream_tmpl : public T {
+class UVStream_tmpl : public AsyncStream<T> {
 public:
     class UVTimeout : public uv_timer_t {
     public:

@@ -10,10 +10,11 @@
 #include "ifs/TLSSocket.h"
 #include "ifs/SecureContext.h"
 #include "crypto_util.h"
+#include "AsyncStream.h"
 
 namespace fibjs {
 
-class TLSSocket : public TLSSocket_base {
+class TLSSocket : public AsyncStream<TLSSocket_base> {
     FIBER_FREE();
 
 public:

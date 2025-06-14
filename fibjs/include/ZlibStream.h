@@ -11,12 +11,13 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include <zlib/include/zlib.h>
+#include "AsyncStream.h"
 
 namespace fibjs {
 
 #define ZLIB_CHUNK 1024
 
-class ZlibStream : public Stream_base {
+class ZlibStream : public AsyncStream<Stream_base> {
 private:
     class asyncWrite : public AsyncState {
     public:
