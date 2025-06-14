@@ -538,7 +538,13 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
 #endif
 
-        for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, fname.c_str()); i++)
+        const char* p = fname.c_str();
+        if (!qstrcmp(p, "node:", 5)) {
+            p += 5;
+        } else if (!qstrcmp(p, "fibjs:", 6)) {
+            p += 6;
+        }
+        for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, p); i++)
             ;
 
         if (opt_tools[i].name) {
