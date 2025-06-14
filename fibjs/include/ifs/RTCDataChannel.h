@@ -21,6 +21,7 @@ class Buffer_base;
 
 class RTCDataChannel_base : public EventEmitter_base {
     DECLARE_CLASS(RTCDataChannel_base);
+    EVENT_SUPPORT();
 
 public:
     // RTCDataChannel_base

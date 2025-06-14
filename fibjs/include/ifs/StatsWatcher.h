@@ -20,6 +20,7 @@ class EventEmitter_base;
 
 class StatsWatcher_base : public EventEmitter_base {
     DECLARE_CLASS(StatsWatcher_base);
+    EVENT_SUPPORT();
 
 public:
     // StatsWatcher_base

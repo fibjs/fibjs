@@ -20,6 +20,7 @@ class EventEmitter_base;
 
 class AbortSignal_base : public EventEmitter_base {
     DECLARE_CLASS(AbortSignal_base);
+    EVENT_SUPPORT();
 
 public:
     // AbortSignal_base

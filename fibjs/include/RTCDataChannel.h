@@ -21,8 +21,6 @@ public:
     RTCDataChannel(Isolate* isolate, const std::shared_ptr<rtc::DataChannel>& dataChannel, bool opened);
     ~RTCDataChannel();
 
-    EVENT_SUPPORT();
-
 public:
     // RTCDataChannel_base
     virtual result_t send(Buffer_base* data);

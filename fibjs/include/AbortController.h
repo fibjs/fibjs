@@ -13,8 +13,6 @@
 namespace fibjs {
 
 class AbortSignal : public AbortSignal_base {
-    EVENT_SUPPORT();
-
 public:
     // AbortSignal_base
     virtual result_t abort(exlib::string reason);

@@ -23,6 +23,7 @@ class RTCIceCandidate_base;
 
 class RTCPeerConnection_base : public EventEmitter_base {
     DECLARE_CLASS(RTCPeerConnection_base);
+    EVENT_SUPPORT();
 
 public:
     // RTCPeerConnection_base

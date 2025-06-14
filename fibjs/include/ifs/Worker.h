@@ -20,6 +20,7 @@ class EventEmitter_base;
 
 class Worker_base : public EventEmitter_base {
     DECLARE_CLASS(Worker_base);
+    EVENT_SUPPORT();
 
 public:
     // Worker_base

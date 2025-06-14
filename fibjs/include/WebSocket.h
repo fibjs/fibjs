@@ -49,8 +49,6 @@ public:
 
     ~WebSocket();
 
-    EVENT_SUPPORT();
-
 public:
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)

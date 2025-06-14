@@ -19,9 +19,6 @@ public:
     }
 
 public:
-    EVENT_SUPPORT();
-
-public:
     // Service_base
     virtual result_t run(AsyncEvent* ac);
     virtual result_t get_name(exlib::string& retVal);

@@ -76,8 +76,6 @@ public:
         m_ready = new Event();
     }
 
-    EVENT_SUPPORT();
-
 public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);

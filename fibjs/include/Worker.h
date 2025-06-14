@@ -23,8 +23,6 @@ public:
 
     Worker(exlib::string path, v8::Local<v8::Object> opts);
 
-    EVENT_SUPPORT();
-
 public:
     // Worker_base
     virtual result_t postMessage(v8::Local<v8::Value> data);

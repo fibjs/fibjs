@@ -45,9 +45,6 @@ public:
     ~FSWatcher() {};
 
 public:
-    EVENT_SUPPORT();
-
-public:
     void on_watched(const char* relname, int events, int status)
     {
         Variant v[2];

@@ -21,6 +21,7 @@ class Stream_base;
 
 class process_base : public EventEmitter_base {
     DECLARE_CLASS(process_base);
+    EVENT_SUPPORT();
 
 public:
     // process_base

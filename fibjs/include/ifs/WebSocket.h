@@ -21,6 +21,7 @@ class Buffer_base;
 
 class WebSocket_base : public EventEmitter_base {
     DECLARE_CLASS(WebSocket_base);
+    EVENT_SUPPORT();
 
 public:
     // WebSocket_base

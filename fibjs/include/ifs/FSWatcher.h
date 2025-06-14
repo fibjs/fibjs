@@ -20,6 +20,7 @@ class EventEmitter_base;
 
 class FSWatcher_base : public EventEmitter_base {
     DECLARE_CLASS(FSWatcher_base);
+    EVENT_SUPPORT();
 
 public:
     // FSWatcher_base

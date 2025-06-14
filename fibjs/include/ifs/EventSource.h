@@ -21,6 +21,7 @@ class HttpResponse_base;
 
 class EventSource_base : public EventEmitter_base {
     DECLARE_CLASS(EventSource_base);
+    EVENT_SUPPORT();
 
 public:
     enum {

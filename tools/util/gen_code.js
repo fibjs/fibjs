@@ -697,6 +697,10 @@ function gen_code(cls, def, baseFolder) {
             else
                 txts.push(`class ${cls}_base {`);
             txts.push(`    DECLARE_CLASS(${cls}_base);`);
+
+            if (def.declare.extend === 'EventEmitter') {
+                txts.push(`    EVENT_SUPPORT();`);
+            }
         }
 
         function gen_cls_consts() {

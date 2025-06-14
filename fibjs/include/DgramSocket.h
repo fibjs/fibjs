@@ -42,9 +42,6 @@ public:
     result_t create(int32_t family, int32_t flags);
 
 public:
-    EVENT_SUPPORT();
-
-public:
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, AsyncEvent* ac);
     virtual result_t bind(v8::Local<v8::Object> opts, AsyncEvent* ac);

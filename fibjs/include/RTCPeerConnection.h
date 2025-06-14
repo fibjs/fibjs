@@ -22,8 +22,6 @@ class RTCPeerConnection : public RTCPeerConnection_base {
 public:
     ~RTCPeerConnection();
 
-    EVENT_SUPPORT();
-
 public:
     // RTCPeerConnection_base
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal);

@@ -21,6 +21,7 @@ class Menu_base;
 
 class MenuItem_base : public EventEmitter_base {
     DECLARE_CLASS(MenuItem_base);
+    EVENT_SUPPORT();
 
 public:
     // MenuItem_base

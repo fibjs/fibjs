@@ -18,8 +18,6 @@ namespace fibjs {
 class Menu;
 
 class MenuItem : public MenuItem_base {
-    EVENT_SUPPORT();
-
 public:
     // MenuItem_base
     virtual result_t get_id(exlib::string& retVal);

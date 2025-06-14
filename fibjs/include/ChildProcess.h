@@ -40,7 +40,6 @@ public:
     }
 
     FIBER_FREE();
-    EVENT_SUPPORT();
 
 public:
     // ChildProcess_base

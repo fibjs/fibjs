@@ -12,8 +12,6 @@
 namespace fibjs {
 
 class EventSource : public EventSource_base {
-    EVENT_SUPPORT();
-
 public:
     // EventSource_base
     virtual result_t close(AsyncEvent* ac);

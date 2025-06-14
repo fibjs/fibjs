@@ -22,6 +22,7 @@ class Buffer_base;
 
 class WebView_base : public EventEmitter_base {
     DECLARE_CLASS(WebView_base);
+    EVENT_SUPPORT();
 
 public:
     // WebView_base

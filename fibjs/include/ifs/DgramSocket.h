@@ -21,6 +21,7 @@ class Buffer_base;
 
 class DgramSocket_base : public EventEmitter_base {
     DECLARE_CLASS(DgramSocket_base);
+    EVENT_SUPPORT();
 
 public:
     // DgramSocket_base
