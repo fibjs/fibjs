@@ -52,11 +52,16 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
 
-    for (int32_t i = 0; i < 4; i++) {
-        if (cp->m_stdio[i]) {
-            cp->m_stdio[i].Release();
+    Isolate* isolate = cp->holder();
+    isolate->sync([cp]() -> int {
+        for (int32_t i = 0; i < 4; i++) {
+            if (cp->m_stdio[i]) {
+                cp->m_stdio[i].Release();
+            }
         }
-    }
+
+        return 0;
+    });
 
     cp->_emit("exit", args, 2);
     uv_close((uv_handle_t*)handle, on_uv_close);
