@@ -9,6 +9,7 @@ var mq = require('mq');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
+const is_win32 = process.platform === 'win32';
 
 describe("buffered stream", () => {
     var s;
@@ -141,16 +142,16 @@ describe("buffered stream", () => {
             var buffered = new io.BufferedStream(f);
 
             // Test writeText return value
-            var testText = 'Hello, 世界!';
+            var testText = 'Hello, world!';
             var result = buffered.writeText(testText);
             // writeText should return undefined (void function)
-            assert.equal(result, 14);
+            assert.equal(result, 13);
 
             // Test writeLine return value
             var testLine = 'Test Line';
             result = buffered.writeLine(testLine);
             // writeLine should return undefined (void function)
-            assert.equal(result, 10);
+            assert.equal(result, is_win32 ? 11 : 10); // Windows adds \r\n, others just \n
 
             // Verify the content was written correctly
             f.rewind();

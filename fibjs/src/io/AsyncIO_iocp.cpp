@@ -377,7 +377,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 m_timer.Release();
             }
 
-            if (nError == -ERROR_BROKEN_PIPE) {
+            if (nError == -ERROR_BROKEN_PIPE || nError == -ERROR_NETNAME_DELETED) {
                 nError = 0;
                 dwBytes = 0;
             }

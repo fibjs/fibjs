@@ -165,35 +165,35 @@ function test_net(eng, use_uv) {
             // Test write return value with string
             var s1 = new net.Socket(net_config.family);
             s1.connect(net_config.address, _port);
-            
+
             var testData = 'Hello Network World!';
             var bytesWritten = s1.write(testData);
             assert.equal(bytesWritten, testData.length);
-            
+
             // Test write return value with Buffer
             var testBuffer = new Buffer('Network Buffer Data');
             bytesWritten = s1.write(testBuffer);
             assert.equal(bytesWritten, testBuffer.length);
-            
+
             // Test write return value with empty string
             bytesWritten = s1.write('');
             assert.equal(bytesWritten, 0);
-            
+
             // Test send return value with string
             var sendData = 'Send Test Data';
             var bytesSent = s1.send(sendData);
             assert.equal(bytesSent, sendData.length);
-            
+
             // Test send return value with Buffer
             var sendBuffer = new Buffer('Send Buffer Data');
             bytesSent = s1.send(sendBuffer);
             assert.equal(bytesSent, sendBuffer.length);
-            
+
             // Test send return value with empty Buffer
             var emptyBuffer = new Buffer('');
             bytesSent = s1.send(emptyBuffer);
             assert.equal(bytesSent, 0);
-            
+
             // Verify all data was transmitted correctly
             var expectedResponse = testData + testBuffer.toString() + sendData + sendBuffer.toString();
             var response = '';
@@ -203,7 +203,7 @@ function test_net(eng, use_uv) {
                 if (response.length >= expectedResponse.length) break;
             }
             assert.equal(response, expectedResponse);
-            
+
             s1.close();
         });
 
@@ -417,6 +417,8 @@ function test_net(eng, use_uv) {
             assert.equal('ab', c1.read(2));
             assert.equal('c', c1.read(1));
             assert.equal('d', c1.read(3));
+            assert.equal(null, c1.read(3));
+            assert.equal(null, c1.read(3));
         });
 
         it("data event", () => {
@@ -424,7 +426,7 @@ function test_net(eng, use_uv) {
                 try {
                     while (true) {
                         var c = s.accept();
-                        
+
                         // Send HTTP response data
                         c.write('HTTP/1.1 200 OK\r\n');
                         coroutine.sleep(50);
@@ -435,7 +437,7 @@ function test_net(eng, use_uv) {
                         c.write('\r\n');
                         coroutine.sleep(50);
                         c.write('Hello, World!');
-                        
+
                         coroutine.sleep(100);
                         c.close();
                     }
@@ -453,27 +455,27 @@ function test_net(eng, use_uv) {
 
             var c1 = new net.Socket();
             c1.connect('127.0.0.1', _port);
-            
+
             var receivedData = [];
             var dataEvent = new coroutine.Event();
             var closeEvent = new coroutine.Event();
-            
+
             // Register data event handler
             c1.on('data', (data) => {
                 receivedData.push(data.toString());
             });
-            
+
             // Register close event handler  
             c1.on('close', () => {
                 closeEvent.set();
             });
-            
+
             // Send HTTP request
             c1.write('GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n');
-            
+
             // Wait for connection to close
             closeEvent.wait();
-            
+
             // Verify received data
             var fullResponse = receivedData.join('');
             assert.ok(fullResponse.includes('HTTP/1.1 200 OK'));
