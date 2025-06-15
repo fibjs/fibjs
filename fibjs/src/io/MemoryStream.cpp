@@ -88,7 +88,7 @@ result_t MemoryStream::flush(AsyncEvent* ac)
     return 0;
 }
 
-result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
+result_t MemoryStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     Buffer* buf = Buffer::Cast(data);
     int64_t sz1, sz2;
@@ -103,6 +103,7 @@ result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
 
     m_time.now();
 
+    retVal = buf->length();
     return 0;
 }
 

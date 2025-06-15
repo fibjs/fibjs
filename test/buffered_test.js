@@ -132,5 +132,38 @@ describe("buffered stream", () => {
 
         f.close();
     });
+
+    it("write return value validation", () => {
+        var tempFile = path.join(__dirname, 'buffered_write_test' + base_port);
+
+        try {
+            var f = fs.openFile(tempFile, 'w+');
+            var buffered = new io.BufferedStream(f);
+
+            // Test writeText return value
+            var testText = 'Hello, 世界!';
+            var result = buffered.writeText(testText);
+            // writeText should return undefined (void function)
+            assert.equal(result, 14);
+
+            // Test writeLine return value
+            var testLine = 'Test Line';
+            result = buffered.writeLine(testLine);
+            // writeLine should return undefined (void function)
+            assert.equal(result, 10);
+
+            // Verify the content was written correctly
+            f.rewind();
+            var content = f.readAll().toString();
+            assert.ok(content.includes(testText));
+            assert.ok(content.includes(testLine));
+
+            f.close();
+        } finally {
+            try {
+                fs.unlink(tempFile);
+            } catch (e) { }
+        }
+    });
 });
 

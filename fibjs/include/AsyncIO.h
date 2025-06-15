@@ -34,7 +34,7 @@ public:
 public:
     result_t connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer);
     result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
-    result_t write(Buffer_base* data, AsyncEvent* ac);
+    result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac, bool bRead, Timer_base* timer);
 

@@ -558,44 +558,48 @@ declare module 'fs' {
      * @description 创建文本文件，并写入内容
      *      @param fname 指定文件名
      *      @param txt 指定要写入的字符串
+     *      @return 实际写入的字节数
      *      
      */
-    function writeTextFile(fname: string, txt: string): void;
+    function writeTextFile(fname: string, txt: string): number;
 
-    function writeTextFile(fname: string, txt: string, callback: (err: Error | undefined | null)=>any): void;
+    function writeTextFile(fname: string, txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建二进制文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param opt 指定写入选项，将被忽略
+     *      @return 实际写入的字节数
      *      
      */
-    function writeFile(fname: string, data: Class_Buffer, opt?: string): void;
+    function writeFile(fname: string, data: Class_Buffer, opt?: string): number;
 
-    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback?: (err: Error | undefined | null)=>any): void;
+    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建二进制文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param options 指定写入选项，将被忽略
+     *      @return 实际写入的字节数
      *      
      */
-    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): void;
+    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
 
-    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param opt 指定写入选项
+     *      @return 实际写入的字节数
      *      
      */
-    function writeFile(fname: string, data: string, opt?: string): void;
+    function writeFile(fname: string, data: string, opt?: string): number;
 
-    function writeFile(fname: string, data: string, opt?: string, callback?: (err: Error | undefined | null)=>any): void;
+    function writeFile(fname: string, data: string, opt?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建文件，并写入内容
@@ -610,21 +614,23 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param options 指定写入选项
+     *      @return 实际写入的字节数
      *      
      */
-    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject): void;
+    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject): number;
 
-    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建二进制文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
+     *      @return 实际写入的字节数
      *      
      */
-    function appendFile(fname: string, data: Class_Buffer): void;
+    function appendFile(fname: string, data: Class_Buffer): number;
 
-    function appendFile(fname: string, data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+    function appendFile(fname: string, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 设置 zip 虚拟文件映射

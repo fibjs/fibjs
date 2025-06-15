@@ -74,7 +74,7 @@ public:
             memcpy(pBuf, m_body_buf->data(), m_body_length);
 
         m_buffer = new Buffer(m_strBuf.c_str(), m_strBuf.length());
-        return m_stm->write(m_buffer, next(body));
+        return m_stm->write(m_buffer, m_len, next(body));
     }
 
     ON_STATE(asyncSendTo, body)
@@ -99,6 +99,7 @@ public:
     obj_ptr<Buffer_base> m_buffer;
     int64_t m_contentLength;
     int64_t m_copySize;
+    int32_t m_len;
     size_t m_body_length = 0;
     obj_ptr<Buffer> m_body_buf;
     exlib::string m_strCommand;

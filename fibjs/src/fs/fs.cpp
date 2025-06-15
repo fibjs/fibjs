@@ -206,7 +206,7 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
     return pFile->readLines(maxlines, retVal);
 }
 
-result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
+result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -221,13 +221,14 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
 
     obj_ptr<Buffer_base> buf = new Buffer(txt.c_str(), txt.length());
 
-    hr = f->cc_write(buf);
+    hr = f->cc_write(buf, retVal);
     f->cc_close();
 
     return hr;
 }
 
-result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::string opt, AsyncEvent* ac)
+result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::string opt, int32_t& retVal,
+     AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -239,21 +240,22 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::strin
     if (hr < 0)
         return hr;
 
-    hr = f->cc_write(data);
+    hr = f->cc_write(data, retVal);
     f->cc_close();
 
     return hr;
 }
 
-result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal,
+     AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return writeFile(fname, data, "", ac);
+    return writeFile(fname, data, "", retVal, ac);
 }
 
-result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::string opt, AsyncEvent* ac)
+result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -262,10 +264,11 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::stri
     if (hr < 0)
         return hr;
 
-    return writeTextFile(fname, data, ac);
+    return writeTextFile(fname, data, retVal, ac);
 }
 
-result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal,
+     AsyncEvent* ac)
 {
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
@@ -282,10 +285,10 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return writeFile(fname, data, ac->m_ctx[0].string(), ac);
+    return writeFile(fname, data, ac->m_ctx[0].string(), retVal, ac);
 }
 
-result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)
+result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -296,7 +299,7 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     if (hr < 0)
         return hr;
 
-    hr = f->cc_write(data);
+    hr = f->cc_write(data, retVal);
     f->cc_close();
 
     return hr;

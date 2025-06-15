@@ -14,8 +14,9 @@ interface Stream : EventEmitter
 
     /*! @brief 将给定的数据写入流
      @param data 给定要写入的数据
+     @return 返回实际写入的字节数
      */
-    write(Buffer data) async;
+    Integer write(Buffer data) async;
 
     /*! @brief 将文件缓冲区内容写入物理设备 */
     flush() async;

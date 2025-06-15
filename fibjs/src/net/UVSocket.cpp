@@ -260,9 +260,9 @@ result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     return hr;
 }
 
-result_t UVSocket::send(Buffer_base* data, AsyncEvent* ac)
+result_t UVSocket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return write(data, ac);
+    return write(data, retVal, ac);
 }
 
 result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)

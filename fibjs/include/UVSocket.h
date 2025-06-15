@@ -40,7 +40,7 @@ public:
     virtual result_t listen(int32_t backlog);
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t send(Buffer_base* data, AsyncEvent* ac);
+    virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
 
 public:
     static result_t create(int32_t family, obj_ptr<Socket_base>& retVal);

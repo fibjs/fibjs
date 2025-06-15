@@ -107,9 +107,9 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return m_aio.read(bytes, retVal, ac, bytes > 0, timer);
 }
 
-result_t Socket::write(Buffer_base* data, AsyncEvent* ac)
+result_t Socket::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_aio.write(data, ac);
+    return m_aio.write(data, retVal, ac);
 }
 
 result_t Socket::flush(AsyncEvent* ac)
@@ -301,9 +301,9 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     return m_aio.accept(retVal, ac);
 }
 
-result_t Socket::send(Buffer_base* data, AsyncEvent* ac)
+result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_aio.write(data, ac);
+    return m_aio.write(data, retVal, ac);
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,

@@ -290,11 +290,12 @@ public:
         return CALL_E_PENDDING;
     }
 
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
+        retVal = Buffer::Cast(data)->length();
         uv_post(new AsyncWrite(this, data, ac));
         return CALL_E_PENDDING;
     }

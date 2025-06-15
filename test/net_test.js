@@ -7,6 +7,7 @@ var net = require('net');
 var fs = require('fs');
 var path = require('path');
 var os = require('os');
+var io = require('io');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
@@ -128,6 +129,82 @@ function test_net(eng, use_uv) {
             //     var s1 = new net.Socket(net_config.family);
             //     s1.connect("999.999.999.999", _port);
             // });
+        });
+
+        it("write and send return value validation", () => {
+            function connect(c) {
+                try {
+                    var receivedData = '';
+                    var b;
+
+                    while (b = c.recv()) {
+                        receivedData += b.toString();
+                        c.send(b);
+                    }
+                } finally {
+                    c.close();
+                }
+            }
+
+            function accept(s) {
+                try {
+                    while (1)
+                        coroutine.start(connect, s.accept());
+                } catch (e) { }
+            }
+
+            var s = new net.Socket(net_config.family);
+            test_util.push(s);
+
+            var _port = getPort();
+
+            s.bind(_port);
+            s.listen();
+            coroutine.start(accept, s);
+
+            // Test write return value with string
+            var s1 = new net.Socket(net_config.family);
+            s1.connect(net_config.address, _port);
+            
+            var testData = 'Hello Network World!';
+            var bytesWritten = s1.write(testData);
+            assert.equal(bytesWritten, testData.length);
+            
+            // Test write return value with Buffer
+            var testBuffer = new Buffer('Network Buffer Data');
+            bytesWritten = s1.write(testBuffer);
+            assert.equal(bytesWritten, testBuffer.length);
+            
+            // Test write return value with empty string
+            bytesWritten = s1.write('');
+            assert.equal(bytesWritten, 0);
+            
+            // Test send return value with string
+            var sendData = 'Send Test Data';
+            var bytesSent = s1.send(sendData);
+            assert.equal(bytesSent, sendData.length);
+            
+            // Test send return value with Buffer
+            var sendBuffer = new Buffer('Send Buffer Data');
+            bytesSent = s1.send(sendBuffer);
+            assert.equal(bytesSent, sendBuffer.length);
+            
+            // Test send return value with empty Buffer
+            var emptyBuffer = new Buffer('');
+            bytesSent = s1.send(emptyBuffer);
+            assert.equal(bytesSent, 0);
+            
+            // Verify all data was transmitted correctly
+            var expectedResponse = testData + testBuffer.toString() + sendData + sendBuffer.toString();
+            var response = '';
+            var chunk;
+            while (chunk = s1.recv()) {
+                response += chunk.toString();
+                if (response.length >= expectedResponse.length) break;
+            }
+            assert.equal(response, expectedResponse);
+            
+            s1.close();
         });
 
         var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";

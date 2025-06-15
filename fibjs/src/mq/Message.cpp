@@ -112,12 +112,12 @@ result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return m_body->readAll(retVal, ac);
 }
 
-result_t Message::write(Buffer_base* data, AsyncEvent* ac)
+result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    return m_body->write(data, ac);
+    return m_body->write(data, retVal, ac);
 }
 
 result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
@@ -130,7 +130,8 @@ result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
         return hr;
 
     obj_ptr<Buffer_base> buf = new Buffer(str.c_str(), str.length());
-    return m_body->ac_write(buf);
+    int32_t len;
+    return m_body->ac_write(buf, len);
 }
 
 result_t Message::json(v8::Local<v8::Value>& retVal)
@@ -164,7 +165,8 @@ result_t Message::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
     if (hr < 0)
         return hr;
 
-    return m_body->ac_write(buf);
+    int32_t len;
+    return m_body->ac_write(buf, len);
 }
 
 result_t Message::pack(v8::Local<v8::Value>& retVal)

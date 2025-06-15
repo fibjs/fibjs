@@ -33,7 +33,7 @@ public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac);
+    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t flush(AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac);
@@ -44,8 +44,8 @@ public:
     virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal);
     virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t writeText(exlib::string txt, AsyncEvent* ac);
-    virtual result_t writeLine(exlib::string txt, AsyncEvent* ac);
+    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_charset(exlib::string& retVal);
     virtual result_t set_charset(exlib::string newVal);

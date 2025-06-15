@@ -28,8 +28,8 @@ public:
     virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t writeText(exlib::string txt, AsyncEvent* ac) = 0;
-    virtual result_t writeLine(exlib::string txt, AsyncEvent* ac) = 0;
+    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_charset(exlib::string& retVal) = 0;
     virtual result_t set_charset(exlib::string newVal) = 0;
@@ -58,8 +58,8 @@ public:
     ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, exlib::string);
     ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, exlib::string);
     ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, exlib::string, int32_t, exlib::string);
-    ASYNC_MEMBER1(BufferedStream_base, writeText, exlib::string);
-    ASYNC_MEMBER1(BufferedStream_base, writeLine, exlib::string);
+    ASYNC_MEMBERVALUE2(BufferedStream_base, writeText, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE2(BufferedStream_base, writeLine, exlib::string, int32_t);
 };
 }
 
@@ -204,6 +204,8 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
 
 inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.writeText");
 
@@ -214,13 +216,15 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
     if (!cb.IsEmpty())
         hr = pInst->acb_writeText(v0, cb, args);
     else
-        hr = pInst->ac_writeText(v0);
+        hr = pInst->ac_writeText(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.writeLine");
 
@@ -231,9 +235,9 @@ inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::
     if (!cb.IsEmpty())
         hr = pInst->acb_writeLine(v0, cb, args);
     else
-        hr = pInst->ac_writeLine(v0);
+        hr = pInst->ac_writeLine(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args)

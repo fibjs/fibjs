@@ -118,5 +118,27 @@ describe('ms', () => {
         var fullContent = testMs.read().toString();
         assert.equal(fullContent, 'Hello, World! Test data event.');
     });
+
+    it("write return value validation", () => {
+        var testMs = new io.MemoryStream();
+        
+        // Test write return value with string
+        var testData = 'Hello, World!';
+        var bytesWritten = testMs.write(testData);
+        assert.equal(bytesWritten, testData.length);
+        
+        // Test write return value with Buffer
+        var bufferData = new Buffer('Buffer test data');
+        bytesWritten = testMs.write(bufferData);
+        assert.equal(bytesWritten, bufferData.length);
+        
+        // Test write return value with empty string
+        bytesWritten = testMs.write('');
+        assert.equal(bytesWritten, 0);
+        
+        // Verify total size
+        var expectedSize = testData.length + bufferData.length + 0;
+        assert.equal(testMs.size(), expectedSize);
+    });
 });
 

@@ -131,7 +131,8 @@ namespace socket {
 
         obj_ptr<Buffer_base> buf = new Buffer((const char*)buffer, cbBuffer);
 
-        result_t hr = ((Socket_base*)sock)->cc_send(buf);
+        int32_t len;
+        result_t hr = ((Socket_base*)sock)->cc_send(buf, len);
         if (hr < 0) {
             Runtime::setError(hr);
             return -1;

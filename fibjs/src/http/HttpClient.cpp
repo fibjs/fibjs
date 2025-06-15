@@ -822,7 +822,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
 
             m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-            return m_conn->write(buf, next(socks_hello_response));
+            return m_conn->write(buf, m_len, next(socks_hello_response));
         }
 
         ON_STATE(asyncRequest, socks_hello_response)
@@ -864,7 +864,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             strBuffer.append((char*)&port, 2);
 
             obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
-            return m_conn->write(buf, next(socks_connect_req_5_bytes));
+            return m_conn->write(buf, m_len, next(socks_connect_req_5_bytes));
         }
 
         ON_STATE(asyncRequest, socks_connect_req_5_bytes)
@@ -1037,6 +1037,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;
+        int32_t m_len;
         bool m_keepAlive;
         obj_ptr<NObject> m_opts;
         obj_ptr<HttpResponse_base>& m_retVal;
@@ -1081,6 +1082,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     JSValue v;
     Variant ct;
     result_t hr;
+    int32_t len;
 
     ac->m_ctx.resize(6);
 
@@ -1162,7 +1164,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
                     return hr;
             }
 
-            stm->cc_write(buf);
+            stm->cc_write(buf, len);
         }
     } else {
         v = opts->Get(context, isolate->NewString("json", 4));
@@ -1182,7 +1184,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
                 if (hr < 0)
                     return hr;
 
-                stm->cc_write(buf);
+                stm->cc_write(buf, len);
                 if (map->get("Content-Type", ct) == CALL_RETURN_NULL)
                     map->add("Content-Type", "application/msgpack");
             }
@@ -1196,7 +1198,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
                 return hr;
 
             buf = new Buffer(s.c_str(), s.length());
-            stm->cc_write(buf);
+            stm->cc_write(buf, len);
             if (map->get("Content-Type", ct) == CALL_RETURN_NULL)
                 map->add("Content-Type", "application/json");
         }

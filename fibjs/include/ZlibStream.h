@@ -69,7 +69,7 @@ private:
 
             m_buffer = new Buffer((const char*)m_pThis->m_outBuffer, size);
             m_pThis->resetBuffer();
-            return m_stm->write(m_buffer, this);
+            return m_stm->write(m_buffer, m_len, this);
         }
 
     private:
@@ -79,6 +79,7 @@ private:
         obj_ptr<Buffer> m_data;
         exlib::string m_strBuf;
         int32_t m_flush;
+        int32_t m_len;
     };
 
 public:
@@ -119,7 +120,7 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    result_t write(Buffer_base* data, AsyncEvent* ac)
+    result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     {
         return (new asyncWrite(this, m_stm, data, ac))->post(0);
     }
@@ -158,7 +159,7 @@ public:
 
             ON_STATE(asyncProcess, write)
             {
-                return m_pThis->write(m_data, next(write_ok));
+                return m_pThis->write(m_data, m_len, next(write_ok));
             }
 
             ON_STATE(asyncProcess, write_ok)
@@ -177,6 +178,7 @@ public:
             obj_ptr<Buffer_base> m_data;
             obj_ptr<Buffer_base>& m_retVal;
             obj_ptr<MemoryStream> m_stm;
+            int32_t m_len;
         };
 
         return (new asyncProcess(this, data, retVal, ac))->post(0);
@@ -196,7 +198,7 @@ public:
 
             ON_STATE(asyncProcess, write)
             {
-                return m_pThis->write(m_data, next(write_ok));
+                return m_pThis->write(m_data, m_len, next(write_ok));
             }
 
             ON_STATE(asyncProcess, write_ok)
@@ -207,6 +209,7 @@ public:
         private:
             obj_ptr<ZlibStream> m_pThis;
             obj_ptr<Buffer_base> m_data;
+            int32_t m_len;
         };
 
         return (new asyncProcess(this, data, ac))->post(0);

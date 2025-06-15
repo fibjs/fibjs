@@ -73,11 +73,12 @@ declare class Class_Message extends Class_object {
     /**
      * @description 写入给定的数据，此方法为 body 相应方法的别名
      *      @param data 给定要写入的数据
+     *      @return 返回实际写入的字节数
      *      
      */
-    write(data: Class_Buffer): void;
+    write(data: Class_Buffer): number;
 
-    write(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 以 JSON 编码写入给定的数据

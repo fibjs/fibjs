@@ -1027,4 +1027,50 @@ describe('fs', () => {
         await f.close();
     });
 
+    it("write methods return value validation", () => {
+        var fn = path.join(__dirname, 'fs_write_test' + vmid);
+        
+        try {
+            // Test fs.writeFile return value
+            var testContent = 'File write test content';
+            var result = fs.writeFile(fn, testContent);
+            // writeFile should return undefined (void function)
+            assert.equal(result, 23);
+            
+            // Verify file was written
+            var readContent = fs.readFile(fn).toString();
+            assert.equal(readContent, testContent);
+            
+            // Test fs.appendFile return value
+            result = fs.appendFile(fn, ' appended');
+            // appendFile should return undefined (void function)
+            assert.equal(result, 9);
+
+            // Test file handle write return value
+            var f = fs.openFile(fn, 'w+');
+            var writeData = 'Handle write test';
+            var bytesWritten = f.write(writeData);
+            assert.equal(bytesWritten, writeData.length);
+            
+            // Test write with Buffer
+            f.rewind();
+            f.truncate(0);
+            var bufferData = new Buffer('Buffer write test');
+            bytesWritten = f.write(bufferData);
+            assert.equal(bytesWritten, bufferData.length);
+            
+            // Test write with empty string
+            f.rewind();
+            f.truncate(0);
+            bytesWritten = f.write('');
+            assert.equal(bytesWritten, 0);
+            
+            f.close();
+        } finally {
+            try {
+                fs.unlink(fn);
+            } catch (e) { }
+        }
+    });
+
 });

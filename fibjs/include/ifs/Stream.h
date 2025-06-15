@@ -27,7 +27,7 @@ public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
@@ -60,7 +60,7 @@ public:
 
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBER1(Stream_base, write, Buffer_base*);
+    ASYNC_MEMBERVALUE2(Stream_base, write, Buffer_base*, int32_t);
     ASYNC_MEMBER0(Stream_base, flush);
     ASYNC_MEMBER0(Stream_base, close);
     ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
@@ -133,6 +133,8 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     ASYNC_METHOD_INSTANCE(Stream_base);
     ASYNC_METHOD_ENTER("Stream.write");
 
@@ -143,9 +145,9 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0, cb, args);
     else
-        hr = pInst->ac_write(v0);
+        hr = pInst->ac_write(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)

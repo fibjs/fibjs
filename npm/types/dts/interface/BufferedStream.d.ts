@@ -90,20 +90,22 @@ declare class Class_BufferedStream extends Class_Stream {
     /**
      * @description 写入一个字符串
      *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
      *      
      */
-    writeText(txt: string): void;
+    writeText(txt: string): number;
 
-    writeText(txt: string, callback: (err: Error | undefined | null)=>any): void;
+    writeText(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 写入一个字符串，并写入换行符
      *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
      *      
      */
-    writeLine(txt: string): void;
+    writeLine(txt: string): number;
 
-    writeLine(txt: string, callback: (err: Error | undefined | null)=>any): void;
+    writeLine(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 查询创建缓存对象时的流对象 

@@ -10,6 +10,7 @@ var io = require('io');
 var path = require('path');
 var net = require('net');
 var coroutine = require('coroutine');
+const { assert } = require("console");
 
 var base_port = coroutine.vmid * 10000;
 
@@ -436,6 +437,28 @@ describe('tls', () => {
             ss.write("no_close");
             assert.equal(null, ss.read());
         });
+
+        it("write return value validation", () => {
+            var ss = connect();
+            
+            // Test write return value with string
+            var testData = 'Hello TLS World!';
+            var bytesWritten = ss.write(testData);
+            assert.equal(bytesWritten, testData.length);
+            
+            // Test write return value with Buffer
+            var testBuffer = new Buffer('TLS Buffer Data');
+            bytesWritten = ss.write(testBuffer);
+            assert.equal(bytesWritten, testBuffer.length);
+            
+            // Test write return value with empty string
+            bytesWritten = ss.write('');
+            assert.equal(bytesWritten, 0);
+                        
+            ss.close();
+        });
+
+        // ...existing code...
     });
 
     describe('verification', () => {

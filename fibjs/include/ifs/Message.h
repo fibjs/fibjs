@@ -42,7 +42,7 @@ public:
     virtual result_t set_body(SeekableStream_base* newVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
@@ -90,7 +90,7 @@ public:
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
-    ASYNC_MEMBER1(Message_base, write, Buffer_base*);
+    ASYNC_MEMBERVALUE2(Message_base, write, Buffer_base*, int32_t);
     ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, v8::Local<v8::Object>);
     ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, v8::Local<v8::Object>);
 };
@@ -340,6 +340,8 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     ASYNC_METHOD_INSTANCE(Message_base);
     ASYNC_METHOD_ENTER("Message.write");
 
@@ -350,9 +352,9 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0, cb, args);
     else
-        hr = pInst->ac_write(v0);
+        hr = pInst->ac_write(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)

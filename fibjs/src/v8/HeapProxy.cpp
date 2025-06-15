@@ -81,7 +81,8 @@ result_t HeapSnapshotProxy::save(exlib::string fname, AsyncEvent* ac)
     BufferStream bs;
     m_snapshot->Serialize(&bs);
 
-    return fs_base::ac_writeTextFile(fname, bs.result());
+    int32_t len;
+    return fs_base::ac_writeTextFile(fname, bs.result(), len);
 }
 
 result_t HeapSnapshotProxy::get_time(date_t& retVal)

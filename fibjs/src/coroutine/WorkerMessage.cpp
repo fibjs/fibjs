@@ -51,9 +51,9 @@ result_t WorkerMessage::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return m_message->readAll(retVal, ac);
 }
 
-result_t WorkerMessage::write(Buffer_base* data, AsyncEvent* ac)
+result_t WorkerMessage::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->write(data, ac);
+    return m_message->write(data, retVal, ac);
 }
 
 result_t WorkerMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)

@@ -25,11 +25,12 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
+     *      @return 返回实际写入的字节数
      *      
      */
-    write(data: Class_Buffer): void;
+    write(data: Class_Buffer): number;
 
-    write(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 将文件缓冲区内容写入物理设备 

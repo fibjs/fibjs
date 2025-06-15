@@ -179,7 +179,7 @@ int64_t RangeStream::valid_start()
     return b_pos > 0 ? b_pos : 0;
 }
 
-result_t RangeStream::write(Buffer_base* data, AsyncEvent* ac)
+result_t RangeStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return CALL_E_INVALID_CALL;
 }

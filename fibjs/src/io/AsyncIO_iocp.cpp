@@ -427,16 +427,18 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
+result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     class asyncSend : public asyncProc {
     public:
-        asyncSend(SOCKET s, Buffer_base* data, AsyncEvent* ac, exlib::Locker& locker)
+        asyncSend(SOCKET s, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, exlib::Locker& locker)
             : asyncProc(s, ac, locker)
+            , m_retVal(retVal)
         {
             m_buf = Buffer::Cast(data);
             m_p = (const char*)m_buf->data();
             m_sz = (int32_t)m_buf->length();
+            m_retVal = m_sz;
 
             if (g_tcpdump)
                 outLog(console_base::C_WARN, clean_string(m_p, m_sz));
@@ -481,7 +483,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    (new asyncSend(m_fd, data, ac, m_lockSend))->post();
+    (new asyncSend(m_fd, data, retVal, ac, m_lockSend))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 }

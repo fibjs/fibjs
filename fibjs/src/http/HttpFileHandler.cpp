@@ -118,6 +118,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             static char padding[] = "                                                              ";
             exlib::string s;
             obj_ptr<Buffer_base> buf;
+            int32_t write_len;
 
             length = m_dir->length();
 
@@ -129,12 +130,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     + m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
                     + m_value + "</h1><hr><pre>";
                 buf = new Buffer(s.c_str(), s.length());
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
 
                 if (m_value.length() > 1) {
                     s = "<a href=\"../\">../</a>\n";
                     buf = new Buffer(s.c_str(), s.length());
-                    m_file->cc_write(buf);
+                    m_file->cc_write(buf, write_len);
                 }
             } else {
                 exlib::string name, ds, ss;
@@ -149,17 +150,17 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     name += '/';
                 s = "<a href=\"" + name + "\">" + name + "</a>";
                 buf = new Buffer(s.c_str(), s.length());
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
                 padding_len = 40 - (int32_t)name.length();
                 if (padding_len < 1)
                     padding_len = 1;
                 buf = new Buffer(padding, padding_len);
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
 
                 m_stat->get_mtime(d);
                 d.sqlString(ds);
                 buf = new Buffer(ds.c_str(), ds.length());
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
 
                 m_stat->get_size(sz);
                 ss = niceSize((int64_t)sz);
@@ -167,15 +168,15 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (padding_len < 1)
                     padding_len = 1;
                 buf = new Buffer(padding, padding_len);
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
                 ss.append(1, '\n');
                 buf = new Buffer(ss.c_str(), ss.length());
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
             }
 
             if (m_dirPos >= length) {
                 buf = new Buffer("</pre><hr></body>\n</html>");
-                m_file->cc_write(buf);
+                m_file->cc_write(buf, write_len);
                 m_file->rewind();
 
                 m_rep->set_body(m_file);

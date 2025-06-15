@@ -48,8 +48,9 @@ interface Message : object
 
     /*! @brief 写入给定的数据，此方法为 body 相应方法的别名
      @param data 给定要写入的数据
+     @return 返回实际写入的字节数
      */
-    write(Buffer data) async;
+    Integer write(Buffer data) async;
 
     /*! @brief 以 JSON 编码写入给定的数据
      @param data 给定要写入的数据

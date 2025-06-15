@@ -70,13 +70,15 @@ interface BufferedStream : Stream
 
     /*! @brief 写入一个字符串
      @param txt 指定写入的字符串
+     @return 实际写入的字节数
      */
-    writeText(String txt) async;
+    Integer writeText(String txt) async;
 
     /*! @brief 写入一个字符串，并写入换行符
      @param txt 指定写入的字符串
+     @return 实际写入的字节数
      */
-    writeLine(String txt) async;
+    Integer writeLine(String txt) async;
 
     /*! @brief 查询创建缓存对象时的流对象 */
     readonly Stream stream;

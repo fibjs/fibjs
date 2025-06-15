@@ -105,11 +105,12 @@ declare class Class_Socket extends Class_Stream {
     /**
      * @description 将给定的数据写入连接，此方法等效于 write 方法
      *      @param data 给定要写入的数据
+     *      @return 返回实际写入的字节数
      *      
      */
-    send(data: Class_Buffer): void;
+    send(data: Class_Buffer): number;
 
-    send(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+    send(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
 }
 
