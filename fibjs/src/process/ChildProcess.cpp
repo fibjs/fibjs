@@ -16,9 +16,25 @@ namespace fibjs {
 void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
-
+    cp->on_handle_close();
     cp->isolate_unref();
-    cp->m_vholder.Release();
+}
+
+void ChildProcess::on_handle_close()
+{
+    if (m_handle_count.fetch_sub(1) == 1) {
+        Variant args[2];
+
+        args[0] = m_exitCode;
+        if (m_exitCode < 0) {
+            args[1] = signo_string(-m_exitCode);
+        } else {
+            args[1].setNull();
+        }
+
+        _emit("close", args, 2);
+        m_vholder.Release();
+    }
 }
 
 void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_signal)
@@ -36,15 +52,25 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
 
+    for (int32_t i = 0; i < 4; i++) {
+        if (cp->m_stdio[i]) {
+            cp->m_stdio[i].Release();
+        }
+    }
+
     cp->_emit("exit", args, 2);
     uv_close((uv_handle_t*)handle, on_uv_close);
 }
 
 result_t ChildProcess::create_pipe(int32_t idx)
 {
-    result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx);
+    result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx, [this](int32_t fd) -> void {
+        on_handle_close();
+    });
     if (hr < 0)
         return hr;
+
+    m_handle_count.fetch_add(1);
 
     stdios[idx].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
     stdios[idx].data.stream = (uv_stream_t*)&m_stdio[idx]->m_pipe;
@@ -334,7 +360,10 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
             int32_t terminalfd;
             err = pty_spawn(s_uv_loop, &m_process, &uv_options, &terminalfd);
             if (err >= 0) {
-                UVStream::uv_pipe(m_stdio[0], terminalfd);
+                UVStream::uv_pipe(m_stdio[0], terminalfd, [this](int32_t fd) -> void {
+                    on_handle_close();
+                });
+                m_handle_count.fetch_add(1);
                 m_stdio[1] = m_stdio[0];
             }
         } else

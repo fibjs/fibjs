@@ -99,8 +99,10 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
         ON_STATE(asyncRead, event)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_NULL) {
+                m_this->m_stream->_emit("close");
                 return next();
+            }
 
             m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() -> int {
                 return msg->emit();

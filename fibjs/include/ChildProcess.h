@@ -71,6 +71,7 @@ private:
 public:
     static void on_uv_close(uv_handle_t* handle);
     static void OnExit(uv_process_t* handle, int64_t exit_status, int term_signal);
+    void on_handle_close();
 
 public:
     exlib::Event m_ev;
@@ -85,6 +86,7 @@ public:
     obj_ptr<Stream_base> m_channel;
 
     int32_t m_ipc;
+    std::atomic<int32_t> m_handle_count = 1;
 
     bool m_pty;
 

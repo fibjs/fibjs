@@ -387,10 +387,29 @@ public:
         });
     }
 
-public:
-    static result_t create_pipe(obj_ptr<UVStream>& retVal, int32_t ipc = 0)
+    ~UVStream()
     {
-        obj_ptr<UVStream> stream = new UVStream();
+        if (m_on_close)
+            m_on_close(m_fd);
+    }
+
+public:
+    virtual result_t onEventEmit(exlib::string ev)
+    {
+        if (ev == "close") {
+            if (m_on_close) {
+                m_on_close(m_fd);
+                m_on_close = nullptr;
+            }
+        }
+
+        return 0;
+    }
+
+public:
+    static result_t create_pipe(obj_ptr<UVStream>& retVal, int32_t ipc, std::function<void(int32_t)> onClose)
+    {
+        obj_ptr<UVStream> stream = new UVStream(onClose);
         result_t hr = uv_call([&] {
             return uv_pipe_init(s_uv_loop, &stream->m_pipe, ipc);
         });
@@ -402,9 +421,9 @@ public:
         return 0;
     }
 
-    static result_t uv_pipe(obj_ptr<UVStream>& retVal, int32_t fd)
+    static result_t uv_pipe(obj_ptr<UVStream>& retVal, int32_t fd, std::function<void(int32_t)> onClose)
     {
-        obj_ptr<UVStream> stream = new UVStream();
+        obj_ptr<UVStream> stream = new UVStream(onClose);
         uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
         int ret = uv_pipe_open(&stream->m_pipe, fd);
         if (ret < 0)
@@ -416,8 +435,12 @@ public:
     }
 
 private:
-    UVStream()
+    UVStream(std::function<void(int32_t)> onClose)
+        : m_on_close(onClose)
     {
     }
+
+private:
+    std::function<void(int32_t)> m_on_close;
 };
 }

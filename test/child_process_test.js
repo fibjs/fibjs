@@ -754,6 +754,127 @@ describe("child_process", () => {
             assert.equal(spawnEventTriggered, false);
         });
 
+        it("close event with pipe stdio", () => {
+            var closeEventTriggered = false;
+            var closeCode = null;
+            var closeSignal = null;
+            
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_event.js')], {
+                stdio: 'pipe'
+            });
+            
+            p.on('close', (code, signal) => {
+                closeEventTriggered = true;
+                closeCode = code;
+                closeSignal = signal;
+            });
+            
+            p.join();
+            coroutine.sleep(100); // Allow time for close event to be processed
+            
+            // close event should be triggered
+            assert.equal(closeEventTriggered, true);
+            assert.equal(closeCode, 42);
+            assert.equal(closeSignal, null);
+        });
+
+        it("close event with inherit stdio", () => {
+            var closeEventTriggered = false;
+            var closeCode = null;
+            
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'inherit'
+            });
+            
+            p.on('close', (code, signal) => {
+                closeEventTriggered = true;
+                closeCode = code;
+            });
+            
+            p.join();
+            coroutine.sleep(100); // Allow time for close event to be processed
+            
+            // close event should be triggered
+            assert.equal(closeEventTriggered, true);
+            assert.equal(closeCode, 123);
+        });
+
+        it("close event with ipc stdio", () => {
+            var closeEventTriggered = false;
+            var closeCode = null;
+            var messageReceived = false;
+            
+            var p = child_process.fork(path.join(__dirname, 'process', 'exec_close_ipc.js'), {
+                stdio: 'pipe'
+            });
+            
+            p.on('close', (code, signal) => {
+                closeEventTriggered = true;
+                closeCode = code;
+            });
+            
+            p.on('message', (msg) => {
+                if (msg === 'ready') {
+                    messageReceived = true;
+                    // Send exit message after receiving ready
+                    setTimeout(() => {
+                        p.send('exit');
+                    }, 10);
+                }
+            });                        
+
+            p.join();
+            coroutine.sleep(100); // Allow time for close event to be processed
+
+            assert.equal(messageReceived, true);
+            
+            // close event should be triggered
+            assert.equal(closeEventTriggered, true);
+            assert.equal(closeCode, 0);
+        });
+
+        it("close event timing", () => {
+            var closeEventTime = 0;
+            var processEndTime = 0;
+            
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')]);
+            
+            p.on('close', () => {
+                closeEventTime = new Date().getTime();
+            });
+            
+            p.join();
+            coroutine.sleep(100); // Allow time for close event to be processed
+            processEndTime = new Date().getTime();
+            
+            // close event should be triggered before or at the same time as join() returns
+            assert.notGreaterThan(closeEventTime, processEndTime);
+        });
+
+        it("close event with multiple listeners", () => {
+            var closeCount = 0;
+            var totalCode = 0;
+            
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')]);
+            
+            p.on('close', (code) => {
+                closeCount++;
+                totalCode += code;
+            });
+            
+            p.on('close', (code) => {
+                closeCount++;
+                totalCode += code;
+            });
+            
+            p.join();
+            coroutine.sleep(100); // Allow time for close event to be processed
+            
+            // Both listeners should be called
+            assert.equal(closeCount, 2);
+            assert.equal(totalCode, 246); // 123 * 2
+        });
+
         if (process.platform != "win32")
             it("SIGINT", () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'signal1.js')]);
