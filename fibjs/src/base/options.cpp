@@ -30,6 +30,7 @@ FILE* g_cov = nullptr;
 
 bool g_tcpdump = false;
 bool g_ssldump = false;
+bool g_pipedump = false;
 bool g_no_deprecation = false;
 
 bool g_uv_socket = false;
@@ -60,6 +61,7 @@ static void printHelp()
          "  --no-deprecation            silence deprecation warnings.\n"
          "  --tcpdump                   print out the contents of the tcp package.\n"
          "  --ssldump                   print out the contents of the ssl package.\n"
+         "  --pipedump                  print out the contents of the pipe package.\n"
          "\n"
          "  --use-uv-socket[=on|off]\n"
          "                              use uv as socket backend.\n"
@@ -127,6 +129,9 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--ssldump")) {
             g_ssldump = true;
+            df++;
+        } else if (!qstrcmp(arg, "--pipedump")) {
+            g_pipedump = true;
             df++;
         } else if (!qstrcmp(arg, "--use-uv-socket", 15)) {
             g_uv_socket = (arg[15] == 0 || !qstrcmp(arg + 15, "=on"));

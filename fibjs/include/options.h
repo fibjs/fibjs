@@ -22,6 +22,7 @@ extern FILE* g_cov;
 
 extern bool g_tcpdump;
 extern bool g_ssldump;
+extern bool g_pipedump;
 
 extern exlib::string g_exec_code;
 
