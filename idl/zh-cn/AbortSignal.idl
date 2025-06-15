@@ -4,10 +4,16 @@ interface AbortSignal : EventEmitter
     /*! @brief 用于中止一个或多个 Web 请求
      @param reason 一个可选的字符串，用于描述中止请求的原因
     */
-    abort(String reason = "AbortError");
+    AbortSignal abort(String reason = "AbortError");
+
+    /*! @brief 如果请求已中止，则抛出异常 */
+    throwIfAborted();
 
     /*! @brief 用于检查是否已请求中止 */
     readonly Boolean aborted;
+
+    /*! @brief 获取中止请求的原因 */
+    readonly String reason;
 
     /*! @brief 事件处理程序，当中止请求时触发 */
     event abort();

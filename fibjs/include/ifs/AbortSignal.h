@@ -24,8 +24,10 @@ class AbortSignal_base : public EventEmitter_base {
 
 public:
     // AbortSignal_base
-    virtual result_t abort(exlib::string reason) = 0;
+    virtual result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal) = 0;
+    virtual result_t throwIfAborted() = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
+    virtual result_t get_reason(exlib::string& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -41,7 +43,9 @@ public:
 
 public:
     static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_throwIfAborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_reason(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onabort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onabort(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -51,11 +55,13 @@ namespace fibjs {
 inline ClassInfo& AbortSignal_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "abort", s_abort, false, ClassData::ASYNC_SYNC }
+        { "abort", s_abort, false, ClassData::ASYNC_SYNC },
+        { "throwIfAborted", s_throwIfAborted, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "aborted", s_get_aborted, block_set, false },
+        { "reason", s_get_reason, block_set, false },
         { "onabort", s_get_onabort, s_set_onabort, false }
     };
 
@@ -72,6 +78,8 @@ inline ClassInfo& AbortSignal_base::class_info()
 
 inline void AbortSignal_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<AbortSignal_base> vr;
+
     METHOD_INSTANCE(AbortSignal_base);
     METHOD_ENTER();
 
@@ -79,7 +87,19 @@ inline void AbortSignal_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>&
 
     OPT_ARG(exlib::string, 0, "AbortError");
 
-    hr = pInst->abort(v0);
+    hr = pInst->abort(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void AbortSignal_base::s_throwIfAborted(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(AbortSignal_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->throwIfAborted();
 
     METHOD_VOID();
 }
@@ -94,6 +114,20 @@ inline void AbortSignal_base::s_get_aborted(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(0, 0);
 
     hr = pInst->get_aborted(vr);
+
+    METHOD_RETURN();
+}
+
+inline void AbortSignal_base::s_get_reason(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(AbortSignal_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_reason(vr);
 
     METHOD_RETURN();
 }

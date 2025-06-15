@@ -9,12 +9,22 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      @param reason 一个可选的字符串，用于描述中止请求的原因
      *     
      */
-    abort(reason?: string): void;
+    abort(reason?: string): Class_AbortSignal;
+
+    /**
+     * @description 如果请求已中止，则抛出异常 
+     */
+    throwIfAborted(): void;
 
     /**
      * @description 用于检查是否已请求中止 
      */
     readonly aborted: boolean;
+
+    /**
+     * @description 获取中止请求的原因 
+     */
+    readonly reason: string;
 
     /**
      * @description 事件处理程序，当中止请求时触发 
