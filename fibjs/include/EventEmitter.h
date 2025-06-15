@@ -501,6 +501,11 @@ public:
         v8::Local<v8::Function> ff;
         exlib::string msg;
 
+        obj_ptr<object_base> _obj = object_base::getInstance(o);
+        if (_obj) {
+            _obj->onEventEmit(ev);
+        }
+
         hr = fireTrigger(GetHiddenList(ev), args, argCount, evs, ff);
         if (hr < 0)
             return hr;
@@ -569,7 +574,6 @@ public:
                 m_obj = object_base::getInstance(m_o.Get(m_isolate->m_isolate));
 
             if (m_obj) {
-                m_obj->onEventEmit(m_ev);
                 JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
             } else
                 JSTrigger(m_isolate->m_isolate, m_o.Get(m_isolate->m_isolate))._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
