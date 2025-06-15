@@ -50,7 +50,8 @@ void std_logger::out(exlib::string& txt, bool is_error)
     }
 
     obj_ptr<Buffer_base> data = new Buffer(txt.c_str(), txt.length());
-    out->cc_write(data);
+    int32_t retVal;
+    out->cc_write(data, retVal);
 }
 
 #else

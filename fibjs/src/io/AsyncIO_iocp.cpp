@@ -475,6 +475,7 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
         obj_ptr<Buffer> m_buf;
         const char* m_p;
         int32_t m_sz;
+        int32_t& m_retVal;
     };
 
     if (m_fd == INVALID_SOCKET)
