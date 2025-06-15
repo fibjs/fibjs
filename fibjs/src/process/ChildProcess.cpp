@@ -10,6 +10,7 @@
 #include "ifs/util.h"
 #include "ChildProcess.h"
 #include "UVStream.h"
+#include "AbortController.h"
 
 namespace fibjs {
 
@@ -394,6 +395,21 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
         m_channel = m_stdio[3];
         new Ipc(isolate, wrap(), m_channel);
+    }
+
+    obj_ptr<AbortSignal_base> abortSignal;
+    GetConfigValue(isolate, options, "signal", abortSignal);
+    if (abortSignal) {
+        AbortSignal* signal = abortSignal.As<AbortSignal>();
+        if (signal->is_aborted()) {
+            kill("SIGTERM");
+        } else {
+            this->Ref();
+            signal->addAbortCallback([this]() {
+                kill("SIGTERM");
+                Unref();
+            });
+        }
     }
 
     return hr;

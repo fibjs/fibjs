@@ -985,5 +985,101 @@ describe("child_process", () => {
         var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.print_kvs.js')]);
         assert.equal(retcode, 0)
     });
+
+    describe("signal option", () => {
+        it("spawn with already aborted signal", () => {
+            var controller = new AbortController();
+            controller.abort();
+            
+            var result = child_process.spawn(cmd, [
+                path.join(__dirname, "process", "exec_signal_test.js")
+            ], {
+                signal: controller.signal
+            });
+
+            assert.notEqual(result.pid, 0);
+            result.join();
+            assert.strictEqual(result.killed, true);
+        });
+
+        it("spawn with signal aborted during execution", () => {
+            var controller = new AbortController();
+            
+            // Abort the signal after a short delay
+            setTimeout(() => {
+                controller.abort();
+            }, 100);
+            
+            var result = child_process.spawn(cmd, [
+                path.join(__dirname, "process", "exec_long_running.js")
+            ], {
+                signal: controller.signal
+            });
+
+            assert.notEqual(result.pid, 0);
+            assert.strictEqual(result.exitCode, null);
+            result.join();
+            assert.strictEqual(result.killed, true);
+        });
+
+        it("spawn with signal never aborted", () => {
+            var controller = new AbortController();
+            
+            var result = child_process.spawn(cmd, [
+                path.join(__dirname, "process", "exec2.js"),
+                "arg1",
+                "arg2"
+            ], {
+                signal: controller.signal
+            });
+
+            // Normal execution should work fine
+            assert.notEqual(result.pid, 0);
+            assert.strictEqual(result.exitCode, null);
+            result.join();
+            assert.strictEqual(result.killed, false);
+            assert.deepEqual(JSON.parse(result.stdout.read().toString()), [
+                cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
+            ]);
+        });
+
+        it("spawn signal abort sends SIGTERM to child process", () => {
+            var controller = new AbortController();
+            
+            // Start a long-running process and abort it
+            setTimeout(() => {
+                controller.abort();
+            }, 100);
+            
+            var result = child_process.spawn(cmd, [
+                path.join(__dirname, "process", "exec_long_running.js")
+            ], {
+                signal: controller.signal,
+                encoding: 'utf8'
+            });
+
+            assert.notEqual(result.pid, 0);
+            assert.strictEqual(result.exitCode, null);
+            result.join();
+            assert.strictEqual(result.killed, true);
+        });
+
+        it("spawn with signal option encoding", () => {
+            var controller = new AbortController();
+            controller.abort();
+            
+            var result = child_process.spawn(cmd, [
+                path.join(__dirname, "process", "exec_signal_test.js")
+            ], {
+                signal: controller.signal,
+                encoding: 'utf8'
+            });
+
+            assert.notEqual(result.pid, 0);
+            assert.strictEqual(result.exitCode, null);
+            result.join();
+            assert.strictEqual(result.killed, true);
+        });
+    });
 });
 
