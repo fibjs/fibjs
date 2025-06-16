@@ -732,7 +732,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (headOnly) {
                 m_rep->set_keepAlive(false);
 
-                return m_rep.As<HttpResponse>()->sendHeader(m_stm, next(end));
+                return m_rep.As<HttpResponse>()->sendHeader(m_stm, true, next(end));
             }
 
             int64_t len;

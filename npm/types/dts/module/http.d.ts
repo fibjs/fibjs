@@ -7,7 +7,6 @@
 /// <reference path="../interface/HttpsServer.d.ts" />
 /// <reference path="../interface/HttpHandler.d.ts" />
 /// <reference path="../interface/HttpRepeater.d.ts" />
-/// <reference path="../interface/EventSource.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
@@ -84,11 +83,6 @@ declare module 'http' {
      * @description 创建一个 http 请求转发处理器对象，参见 HttpRepeater 
      */
     const Repeater: typeof Class_HttpRepeater;
-
-    /**
-     * @description 创建一个事件源接口，用于服务器推送事件，参见 EventSource 
-     */
-    const EventSource: typeof Class_EventSource;
 
     /**
      * @description 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 

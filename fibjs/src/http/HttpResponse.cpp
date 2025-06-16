@@ -634,13 +634,13 @@ result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
     return 0;
 }
 
-result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
+result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strCommand = prepareHeaders();
-    return m_message->sendHeader(stm, strCommand, true, ac);
+    return m_message->sendHeader(stm, strCommand, content_length, ac);
 }
 
 } /* namespace fibjs */

@@ -7,6 +7,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
     /**
      * @description 用于中止一个或多个 Web 请求
      *      @param reason 一个可选的字符串，用于描述中止请求的原因
+     *      @return 返回一个 AbortSignal 对象
      *     
      */
     abort(reason?: string): Class_AbortSignal;

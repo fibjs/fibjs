@@ -11,6 +11,7 @@
 #include "EventInfo.h"
 #include "ChunkedStream.h"
 #include "BufferedStream.h"
+#include "Buffer.h"
 #include "ifs/console.h"
 
 namespace fibjs {
@@ -39,7 +40,7 @@ public:
 public:
     ON_STATE(AsyncEventSource, open)
     {
-        if (m_es->m_readyState == EventSource::C_CLOSED)
+        if (m_es->m_readyState == sse_base::C_CLOSED)
             return next();
 
         return m_hc->request("POST", "", v8::Local<v8::Object>(), m_es->m_response, next(opened), true);
@@ -47,7 +48,7 @@ public:
 
     ON_STATE(AsyncEventSource, opened)
     {
-        if (m_es->m_readyState == EventSource::C_CLOSED)
+        if (m_es->m_readyState == sse_base::C_CLOSED)
             return next();
 
         int32_t status;
@@ -69,7 +70,7 @@ public:
         m_sse_stm = new BufferedStream(stm);
         m_sse_stm->set_EOL("\n");
 
-        m_es->m_readyState = EventSource::C_OPEN;
+        m_es->m_readyState = sse_base::C_OPEN;
         (new EventInfo(m_es, "open"))->emit();
 
         return m_sse_stm->readLine(4096, strLine, next(read_message));
@@ -88,26 +89,26 @@ public:
         if (status != 200) {
             exlib::string statusMessage;
             m_es->m_response->get_statusMessage(statusMessage);
-            m_es->m_readyState = EventSource::C_CLOSED;
+            m_es->m_readyState = sse_base::C_CLOSED;
             (new EventInfo(m_es, "error", status, "Invalid status: " + statusMessage))->emit();
             return next();
         }
 
         exlib::string contentType;
         m_es->m_response->firstHeader("Content-Type", contentType);
-        m_es->m_readyState = EventSource::C_CLOSED;
+        m_es->m_readyState = sse_base::C_CLOSED;
         (new EventInfo(m_es, "error", 0, "Invalid Content-Type: " + contentType))->emit();
         return next();
     }
 
     ON_STATE(AsyncEventSource, read_message)
     {
-        if (m_es->m_readyState == EventSource::C_CLOSED)
+        if (m_es->m_readyState == sse_base::C_CLOSED)
             return next();
 
         if (strLine.empty()) {
             if (m_line_count == 0) {
-                m_es->m_readyState = EventSource::C_CLOSED;
+                m_es->m_readyState = sse_base::C_CLOSED;
                 (new EventInfo(m_es, "close"))->emit();
                 return next();
             } else {
@@ -209,18 +210,147 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
 result_t EventSource::close(AsyncEvent* ac)
 {
+    class asyncClose : public AsyncState {
+    public:
+        asyncClose(Stream_base* pStream, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_stream(pStream)
+        {
+            next(send);
+        }
+
+    public:
+        ON_STATE(asyncClose, send)
+        {
+            m_buf = new Buffer("0\r\n\r\n", 5);
+            return m_stream->write(m_buf, m_len, next());
+        }
+
+    private:
+        obj_ptr<Stream_base> m_stream;
+        obj_ptr<Buffer> m_buf;
+        int32_t m_len;
+    };
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    m_readyState = C_CLOSED;
+    if (m_readyState == sse_base::C_OPEN) {
+        m_readyState = C_CLOSED;
 
-    if (m_response) {
-        obj_ptr<Stream_base> stm;
-        m_response->get_stream(stm);
-        return stm->close(ac);
+        if (m_response) {
+            obj_ptr<Stream_base> stm;
+            m_response->get_stream(stm);
+            return stm->close(ac);
+        }
+    } else if (m_readyState == sse_base::C_SENDER) {
+        m_readyState = C_CLOSED;
+        (new asyncClose(m_stream, m_ac))->post(0);
     }
 
     return 0;
+}
+
+result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current(options);
+
+        obj_ptr<SendOptions> opts;
+        result_t hr = SendOptions::load(isolate, options, opts);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = opts;
+
+        return CHECK_ERROR(CALL_E_GUICALL);
+    }
+
+    SendOptions* opts = (SendOptions*)ac->m_ctx[0].object();
+
+    std::vector<int32_t> breakLinePos;
+    breakLinePos.reserve(data.length() + 1);
+    breakLinePos.push_back(-1); // Start position marker
+    const char* p = data.c_str();
+    for (int32_t i = 0; i < data.length(); ++i) {
+        if (p[i] == '\n') {
+            breakLinePos.push_back(i);
+        }
+    }
+
+    int32_t buf_size = breakLinePos.size() * 6 + data.length() + 2; // "data: \n" for each line and appending "\n"
+
+    if (opts->id.has_value())
+        buf_size += opts->id->length() + 5; // "id: \n"
+
+    if (opts->event.has_value())
+        buf_size += opts->event->length() + 8; // "event: \n"
+
+    char retry_str[32];
+    int32_t retry_len = 0;
+    if (opts->retry.has_value()) {
+        if (*opts->retry < 0)
+            return CHECK_ERROR(Runtime::setError("EventSource.send: retry must be a positive integer."));
+        retry_len = snprintf(retry_str, sizeof(retry_str), "%d", *opts->retry);
+        buf_size += retry_len + 8; // "retry: \n"
+    }
+
+    char chunded_size_str[32];
+    int32_t chunded_size_len = snprintf(chunded_size_str, sizeof(chunded_size_str), "%x", buf_size);
+    buf_size += chunded_size_len + 4; // "data: \r\n" + "\r\n"
+
+    obj_ptr<Buffer> buf = new Buffer(nullptr, buf_size);
+    uint8_t* pBuf = buf->data();
+    int32_t pos = 0;
+
+    memcpy(pBuf, chunded_size_str, chunded_size_len);
+    pos += chunded_size_len;
+    pBuf[pos++] = '\r';
+    pBuf[pos++] = '\n';
+
+    if (opts->id.has_value()) {
+        memcpy(pBuf + pos, "id: ", 4);
+        pos += 4;
+        memcpy(pBuf + pos, opts->id->c_str(), opts->id->length());
+        pos += opts->id->length();
+        pBuf[pos++] = '\n';
+    }
+
+    if (opts->event.has_value()) {
+        memcpy(pBuf + pos, "event: ", 7);
+        pos += 7;
+        memcpy(pBuf + pos, opts->event->c_str(), opts->event->length());
+        pos += opts->event->length();
+        pBuf[pos++] = '\n';
+    }
+
+    if (opts->retry.has_value()) {
+        memcpy(pBuf + pos, "retry: ", 7);
+        pos += 7;
+        memcpy(pBuf + pos, retry_str, retry_len);
+        pos += retry_len;
+        pBuf[pos++] = '\n';
+    }
+
+    for (int32_t i = 1; i <= breakLinePos.size(); ++i) {
+        memcpy(pBuf + pos, "data: ", 6);
+        pos += 6;
+        int32_t start = breakLinePos[i - 1] + 1;
+        int32_t end = (i == breakLinePos.size()) ? data.length() : breakLinePos[i];
+        int32_t len = end - start;
+        if (len > 0) {
+            memcpy(pBuf + pos, data.c_str() + start, len);
+            pos += len;
+        }
+        pBuf[pos++] = '\n';
+    }
+    pBuf[pos++] = '\n';
+
+    pBuf[pos++] = '\r';
+    pBuf[pos++] = '\n';
+
+    return m_stream->write(buf, retVal, ac);
 }
 
 result_t EventSource::get_readyState(int32_t& retVal)

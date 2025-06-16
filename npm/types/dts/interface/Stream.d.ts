@@ -58,7 +58,9 @@ declare class Class_Stream extends Class_EventEmitter {
     copyTo(stm: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 查询和绑定流数据事件，相当于 on("data", func); 
+     * @description 查询和绑定流数据事件，相当于 on("data", func);
+     *      @param data 读取到的数据
+     *      
      */
     on(event: "data", listener: ()=>void): this;
 
@@ -68,7 +70,9 @@ declare class Class_Stream extends Class_EventEmitter {
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定流错误事件，相当于 on("error", func); 
+     * @description 查询和绑定流错误事件，相当于 on("error", func);
+     *      @param code 错误码
+     *      
      */
     on(event: "error", listener: ()=>void): this;
 

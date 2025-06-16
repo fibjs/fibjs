@@ -107,7 +107,7 @@ public:
     virtual result_t redirect(int32_t statusCode, exlib::string url);
 
 public:
-    result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
+    result_t sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac);
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
     {
         return m_message->allHeader(name, retVal);

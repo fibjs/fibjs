@@ -24,16 +24,10 @@ class EventSource_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
-    enum {
-        C_CONNECTING = 0,
-        C_OPEN = 1,
-        C_CLOSED = 2
-    };
-
-public:
     // EventSource_base
     static result_t _new(exlib::string url, v8::Local<v8::Object> options, obj_ptr<EventSource_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_readyState(int32_t& retVal) = 0;
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_withCredentials(bool& retVal) = 0;
@@ -46,6 +40,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_readyState(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_url(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_withCredentials(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -61,6 +56,7 @@ public:
 
 public:
     ASYNC_MEMBER0(EventSource_base, close);
+    ASYNC_MEMBERVALUE3(EventSource_base, send, exlib::string, v8::Local<v8::Object>, int32_t);
 };
 }
 
@@ -70,7 +66,8 @@ namespace fibjs {
 inline ClassInfo& EventSource_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "close", s_close, false, ClassData::ASYNC_ASYNC }
+        { "close", s_close, false, ClassData::ASYNC_ASYNC },
+        { "send", s_send, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -84,15 +81,9 @@ inline ClassInfo& EventSource_base::class_info()
         { "onclose", s_get_onclose, s_set_onclose, false }
     };
 
-    static ClassData::ClassConst s_const[] = {
-        { "CONNECTING", C_CONNECTING },
-        { "OPEN", C_OPEN },
-        { "CLOSED", C_CLOSED }
-    };
-
     static ClassData s_cd = {
         "EventSource", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &EventEmitter_base::class_info(),
         true
     };
@@ -152,6 +143,26 @@ inline void EventSource_base::s_close(const v8::FunctionCallbackInfo<v8::Value>&
         hr = pInst->ac_close();
 
     METHOD_VOID();
+}
+
+inline void EventSource_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    ASYNC_METHOD_INSTANCE(EventSource_base);
+    ASYNC_METHOD_ENTER("EventSource.send");
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_send(v0, v1, cb, args);
+    else
+        hr = pInst->ac_send(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 
 inline void EventSource_base::s_get_readyState(const v8::FunctionCallbackInfo<v8::Value>& args)
