@@ -29,6 +29,7 @@ interface EventSource : EventEmitter
          "pack": {},
          "headers": {}
      }
+     ```
 
       @param url 服务器地址
       @param options 选项

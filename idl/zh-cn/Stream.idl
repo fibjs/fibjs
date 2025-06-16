@@ -31,12 +31,16 @@ interface Stream : EventEmitter
      */
     Long copyTo(Stream stm, Long bytes = -1) async;
 
-    /*! @brief 查询和绑定流数据事件，相当于 on("data", func); */
+    /*! @brief 查询和绑定流数据事件，相当于 on("data", func);
+     @param data 读取到的数据
+     */
     event data(Buffer data);
 
     /*! @brief 查询和绑定流关闭事件，相当于 on("close", func); */
     event close();
 
-    /*! @brief 查询和绑定流错误事件，相当于 on("error", func); */
+    /*! @brief 查询和绑定流错误事件，相当于 on("error", func);
+     @param code 错误码
+     */
     event error(Integer code);
 };
