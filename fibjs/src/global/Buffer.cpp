@@ -244,7 +244,7 @@ v8::Local<v8::Value> Buffer::load_module()
     js_buffer_proto->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", proto_compare)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("lastIndexOf"), isolate->NewFunction("lastIndexOf", proto_indexOf)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("lastIndexOf"), isolate->NewFunction("lastIndexOf", proto_lastIndexOf)).IsJust();
 
     v8::Local<v8::Object> js_buffer_class = _buffer.As<v8::Object>();
     js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
@@ -477,21 +477,21 @@ void Buffer::proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
@@ -1345,9 +1345,54 @@ result_t Buffer::writeDoubleBE(double value, int32_t offset, int32_t& retVal)
     WRITE_NUMBER(double, false);
 }
 
+// Helper function for indexOf implementations
+static result_t Buffer_indexOf(Buffer* buf, const uint8_t* v, int32_t v_len, int32_t offset, int32_t& retVal)
+{
+    int32_t buf_length = (int32_t)buf->length();
+
+    // Handle empty pattern
+    if (v_len == 0) {
+        // Handle negative offset like Node.js
+        if (offset < 0) {
+            offset = buf_length + offset;
+            if (offset < 0)
+                offset = 0;
+        }
+        // Clamp offset to buffer length
+        retVal = MIN(offset, buf_length);
+        return 0;
+    }
+
+    // Handle negative offset like Node.js: Math.max(0, buf.length + offset)
+    if (offset < 0) {
+        offset = buf_length + offset;
+        if (offset < 0)
+            offset = 0;
+    }
+
+    // For large offsets, return -1 without throwing error
+    if (offset >= buf_length) {
+        retVal = -1;
+        return 0;
+    }
+
+    const uint8_t* find = exlib::qmemmem(buf->data() + offset, buf->length() - offset, v, v_len);
+
+    retVal = find ? (int32_t)(find - buf->data()) : -1;
+    return 0;
+}
+
 result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
 {
     int32_t buf_length = (int32_t)length();
+
+    // Handle negative offset like Node.js: Math.max(0, buf.length + offset)
+    if (offset < 0) {
+        offset = buf_length + offset;
+        if (offset < 0)
+            offset = 0;
+    }
+
     result_t hr = validOffset(buf_length, offset);
     if (hr < 0)
         return CHECK_ERROR(hr);
@@ -1368,42 +1413,82 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
 
 result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
-
     Buffer* v_data = Buffer::Cast(v);
-    const uint8_t* find = exlib::qmemmem(data() + offset, length() - offset,
-        v_data->data(), v_data->length());
-
-    retVal = find ? (int32_t)(find - data()) : -1;
-    return 0;
+    return Buffer_indexOf(this, v_data->data(), v_data->length(), offset, retVal);
 }
 
 result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
-
-    const uint8_t* find = exlib::qmemmem(data() + offset, length() - offset,
-        (const uint8_t*)v.c_str(), v.length());
-
-    retVal = find ? (int32_t)(find - data()) : -1;
-    return 0;
+    return Buffer_indexOf(this, (const uint8_t*)v.c_str(), v.length(), offset, retVal);
 }
 
 result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
 {
     int32_t buf_length = (int32_t)length();
+
+    if (offset == -1)
+        offset = buf_length - 1;
+
     result_t hr = validOffset(buf_length, offset);
     if (hr < 0)
         return CHECK_ERROR(hr);
 
     const uint8_t* _data = data();
 
-    for (int32_t i = buf_length - 1; i >= offset; --i) {
+    for (int32_t i = offset; i >= 0; --i) {
         if (_data[i] == (v & 255)) {
+            retVal = i;
+            return 0;
+        }
+    }
+
+    retVal = -1;
+    return 0;
+}
+
+static result_t Buffer_lastIndexOf(Buffer* buffer, const uint8_t* v, int32_t v_len, int32_t offset, int32_t& retVal)
+{
+    int32_t buf_length = (int32_t)buffer->length();
+
+    // Handle empty pattern search
+    if (v_len == 0) {
+        if (offset == -1)
+            offset = buf_length;
+        else if (offset < 0)
+            offset = 0;
+        else if (offset > buf_length)
+            offset = buf_length;
+
+        retVal = offset;
+        return 0;
+    }
+
+    // Handle empty buffer
+    if (buf_length == 0) {
+        retVal = -1;
+        return 0;
+    }
+
+    if (offset == -1)
+        offset = buf_length - 1;
+
+    // Handle negative offset like Node.js: clamp to 0
+    if (offset < 0) {
+        retVal = -1;
+        return 0;
+    }
+
+    // Handle large offsets without throwing error
+    if (offset >= buf_length)
+        offset = buf_length - 1;
+
+    const uint8_t* _data = buffer->data();
+
+    // Start from offset, but don't go beyond where the pattern could fit
+    int32_t start_pos = MIN(offset, buf_length - v_len);
+
+    for (int32_t i = start_pos; i >= 0; --i) {
+        if (memcmp(_data + i, v, v_len) == 0) {
             retVal = i;
             return 0;
         }
@@ -1415,45 +1500,13 @@ result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
 
 result_t Buffer::lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
-
     Buffer* v_data = Buffer::Cast(v);
-    const uint8_t* _data = data();
-    const uint8_t* v_data_ptr = v_data->data();
-    int32_t v_length = v_data->length();
-
-    for (int32_t i = length() - v_length; i >= offset; --i) {
-        if (memcmp(_data + i, v_data_ptr, v_length) == 0) {
-            retVal = i;
-            return 0;
-        }
-    }
-
-    retVal = -1;
-    return 0;
+    return Buffer_lastIndexOf(this, v_data->data(), v_data->length(), offset, retVal);
 }
 
 result_t Buffer::lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
-
-    const uint8_t* _data = data();
-    const uint8_t* v_data = (const uint8_t*)v.c_str();
-    int32_t v_length = v.length();
-
-    for (int32_t i = length() - v_length; i >= offset; --i) {
-        if (memcmp(_data + i, v_data, v_length) == 0) {
-            retVal = i;
-            return 0;
-        }
-    }
-
-    retVal = -1;
-    return 0;
+    return Buffer_lastIndexOf(this, (const uint8_t*)v.c_str(), v.length(), offset, retVal);
 }
 
 result_t Buffer::slice(int32_t start, obj_ptr<Buffer_base>& retVal)

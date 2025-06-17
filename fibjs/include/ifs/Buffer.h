@@ -1432,21 +1432,21 @@ inline void Buffer_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
