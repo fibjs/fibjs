@@ -212,9 +212,10 @@ result_t EventSource::close(AsyncEvent* ac)
 {
     class asyncClose : public AsyncState {
     public:
-        asyncClose(Stream_base* pStream, AsyncEvent* ac)
+        asyncClose(Stream_base* pStream, AsyncEvent* ac, AsyncEvent* ac_req)
             : AsyncState(ac)
             , m_stream(pStream)
+            , m_ac_req(ac_req)
         {
             next(send);
         }
@@ -223,11 +224,24 @@ result_t EventSource::close(AsyncEvent* ac)
         ON_STATE(asyncClose, send)
         {
             m_buf = new Buffer("0\r\n\r\n", 5);
-            return m_stream->write(m_buf, m_len, next());
+            return m_stream->write(m_buf, m_len, next(done));
+        }
+
+        ON_STATE(asyncClose, done)
+        {
+            m_ac_req->post(CALL_RETURN_NULL);
+            return next();
+        }
+
+        virtual int32_t error(int32_t v)
+        {
+            m_ac_req->post(v);
+            return v;
         }
 
     private:
         obj_ptr<Stream_base> m_stream;
+        AsyncEvent* m_ac_req;
         obj_ptr<Buffer> m_buf;
         int32_t m_len;
     };
@@ -245,7 +259,8 @@ result_t EventSource::close(AsyncEvent* ac)
         }
     } else if (m_readyState == sse_base::C_SENDER) {
         m_readyState = C_CLOSED;
-        (new asyncClose(m_stream, m_ac))->post(0);
+        (new asyncClose(m_stream, ac, m_ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     return 0;
@@ -264,7 +279,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = opts;
 
-        return CHECK_ERROR(CALL_E_GUICALL);
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     SendOptions* opts = (SendOptions*)ac->m_ctx[0].object();
