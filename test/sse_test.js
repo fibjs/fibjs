@@ -188,6 +188,16 @@ describe("sse", () => {
             assert.notEqual(props.response, null);
             assert.equal(props.response.status, 200);
         });
+
+        it('should throw error when calling send on client EventSource', () => {
+            const es = new sse.EventSource(`http://127.0.0.1:${8887 + base_port}/hello`);
+            
+            assert.throws(() => {
+                es.send('test data');
+            }, Error);
+            
+            es.close();
+        });
     });
 
     describe('upgrade', () => {
