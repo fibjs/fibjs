@@ -31,7 +31,7 @@ public:
         , m_poolTimeout(10000)
     {
         m_cookies = new NArray();
-        m_userAgent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36";
+        m_userAgent = "curl/8.14.1";
     }
 
 public:

@@ -1892,7 +1892,7 @@ describe("http", () => {
 
             it("agent", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
-                    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36");
+                    "curl/8.14.1");
 
                 http.userAgent = 'test agent';
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
@@ -2125,7 +2125,7 @@ describe("http", () => {
             assert.equal(hc.maxBodySize, -1);
             assert.equal(hc.poolSize, 128);
             assert.equal(hc.poolTimeout, 10000);
-            assert.equal(hc.userAgent, "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36");
+            assert.equal(hc.userAgent, "curl/8.14.1");
             assert.equal(hc.http_proxy, "");
             assert.equal(hc.https_proxy, "");
         });
