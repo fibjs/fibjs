@@ -199,6 +199,11 @@ result_t XmlElement::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& 
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlElement::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlElement::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

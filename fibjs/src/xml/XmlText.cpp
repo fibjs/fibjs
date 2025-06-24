@@ -137,6 +137,11 @@ result_t XmlText::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& ret
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlText::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlText::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

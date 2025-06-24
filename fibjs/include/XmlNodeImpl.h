@@ -188,6 +188,16 @@ public:
         m_node->Unref();
     }
 
+    result_t remove(obj_ptr<XmlNode_base>& retVal)
+    {
+        if (m_parent && m_parent->m_childs) {
+            m_parent->m_childs->removeChild(m_node, retVal);
+            return 0;
+        }
+
+        return CALL_RETURN_NULL;
+    }
+
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;

@@ -137,6 +137,11 @@ result_t XmlProcessingInstruction::removeChild(XmlNode_base* oldChild, obj_ptr<X
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlProcessingInstruction::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlProcessingInstruction::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

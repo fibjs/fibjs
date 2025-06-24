@@ -243,6 +243,14 @@ describe('xml', () => {
             var l2 = xdoc.getElementsByClassName("cls_aaa cls_aaa cls_ddd");
             assert.equal(l2.length, 2);
         });
+
+        it("remove", () => {
+            var xdoc = newDoc();
+            
+            // Document nodes have no parent, so remove() should return null
+            var result = xdoc.remove();
+            assert.equal(result, null);
+        });
     });
 
     describe('Element', () => {
@@ -372,6 +380,38 @@ describe('xml', () => {
             assert.equal(l2.length, 2);
         });
 
+        it("remove", () => {
+            var xdoc = newDoc();
+            var parent = xdoc.createElement("parent");
+            var child = xdoc.createElement("child");
+            
+            // Test removing element from parent
+            parent.appendChild(child);
+            assert.equal(child.parentNode, parent);
+            assert.equal(parent.childNodes.length, 1);
+            
+            var removed = child.remove();
+            assert.equal(removed, child);
+            assert.equal(child.parentNode, null);
+            assert.equal(parent.childNodes.length, 0);
+            
+            // Test removing element without parent
+            var orphanElement = xdoc.createElement("orphan");
+            var result = orphanElement.remove();
+            assert.equal(result, null);
+            
+            // Test removing document element
+            var root = xdoc.createElement("root");
+            xdoc.appendChild(root);
+            assert.equal(xdoc.documentElement, root);
+            
+            removed = root.remove();
+            assert.equal(removed, root);
+            assert.equal(root.parentNode, null);
+            // After removing the document element, document should have no children
+            assert.equal(xdoc.childNodes.length, 0);
+        });
+
     });
 
     describe('ProcessingInstruction', () => {
@@ -396,6 +436,27 @@ describe('xml', () => {
         it("child rule", () => {
             var xdoc = newDoc();
             test_Child(xdoc, xdoc.createProcessingInstruction("aaa", "bbb"), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        });
+
+        it("remove", () => {
+            var xdoc = newDoc();
+            var parent = xdoc.createElement("parent");
+            var piNode = xdoc.createProcessingInstruction("target", "data");
+            
+            // Test removing processing instruction from parent
+            parent.appendChild(piNode);
+            assert.equal(piNode.parentNode, parent);
+            assert.equal(parent.childNodes.length, 1);
+            
+            var removed = piNode.remove();
+            assert.equal(removed, piNode);
+            assert.equal(piNode.parentNode, null);
+            assert.equal(parent.childNodes.length, 0);
+            
+            // Test removing processing instruction without parent
+            var orphanPI = xdoc.createProcessingInstruction("orphan", "data");
+            var result = orphanPI.remove();
+            assert.equal(result, null);
         });
     });
 
@@ -460,6 +521,27 @@ describe('xml', () => {
             assert.equal(next.firstChild.nodeValue, "aaabbb");
         });
 
+        it("remove", () => {
+            var xdoc = newDoc();
+            var parent = xdoc.createElement("parent");
+            var textNode = xdoc.createTextNode("test text");
+            
+            // Test removing text node from parent
+            parent.appendChild(textNode);
+            assert.equal(textNode.parentNode, parent);
+            assert.equal(parent.childNodes.length, 1);
+            
+            var removed = textNode.remove();
+            assert.equal(removed, textNode);
+            assert.equal(textNode.parentNode, null);
+            assert.equal(parent.childNodes.length, 0);
+            
+            // Test removing text node without parent
+            var orphanText = xdoc.createTextNode("orphan");
+            var result = orphanText.remove();
+            assert.equal(result, null);
+        });
+
         test_CharacterData("createTextNode");
     });
 
@@ -500,6 +582,27 @@ describe('xml', () => {
             test_Child(xdoc, xdoc.createCDATASection("aaa"), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         });
 
+        it("remove", () => {
+            var xdoc = newDoc();
+            var parent = xdoc.createElement("parent");
+            var cdataNode = xdoc.createCDATASection("test cdata");
+            
+            // Test removing CDATA node from parent
+            parent.appendChild(cdataNode);
+            assert.equal(cdataNode.parentNode, parent);
+            assert.equal(parent.childNodes.length, 1);
+            
+            var removed = cdataNode.remove();
+            assert.equal(removed, cdataNode);
+            assert.equal(cdataNode.parentNode, null);
+            assert.equal(parent.childNodes.length, 0);
+            
+            // Test removing CDATA node without parent
+            var orphanCdata = xdoc.createCDATASection("orphan");
+            var result = orphanCdata.remove();
+            assert.equal(result, null);
+        });
+
         test_CharacterData("createCDATASection");
     });
 
@@ -520,6 +623,27 @@ describe('xml', () => {
         it("child rule", () => {
             var xdoc = newDoc();
             test_Child(xdoc, xdoc.createComment("aaa"), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        });
+
+        it("remove", () => {
+            var xdoc = newDoc();
+            var parent = xdoc.createElement("parent");
+            var commentNode = xdoc.createComment("test comment");
+            
+            // Test removing comment node from parent
+            parent.appendChild(commentNode);
+            assert.equal(commentNode.parentNode, parent);
+            assert.equal(parent.childNodes.length, 1);
+            
+            var removed = commentNode.remove();
+            assert.equal(removed, commentNode);
+            assert.equal(commentNode.parentNode, null);
+            assert.equal(parent.childNodes.length, 0);
+            
+            // Test removing comment node without parent
+            var orphanComment = xdoc.createComment("orphan");
+            var result = orphanComment.remove();
+            assert.equal(result, null);
         });
 
         test_CharacterData("createComment");

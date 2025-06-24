@@ -135,6 +135,11 @@ result_t XmlCDATASection::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_ba
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlCDATASection::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlCDATASection::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

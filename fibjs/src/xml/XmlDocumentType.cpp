@@ -135,6 +135,11 @@ result_t XmlDocumentType::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_ba
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlDocumentType::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlDocumentType::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

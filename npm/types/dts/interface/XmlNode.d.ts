@@ -225,5 +225,14 @@ declare class Class_XmlNode extends Class_object {
      */
     removeChild(oldChild: Class_XmlNode): Class_XmlNode;
 
+    /**
+     * @description 从当前节点中删除自身
+     * 
+     *      该方法将从当前节点的父节点中删除当前节点，并返回当前节点。注意：如果当前节点没有父节点，则此方法无效。
+     *      @return 返回被删除的节点
+     *     
+     */
+    remove(): Class_XmlNode;
+
 }
 

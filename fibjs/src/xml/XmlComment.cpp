@@ -135,6 +135,11 @@ result_t XmlComment::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& 
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlComment::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlComment::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

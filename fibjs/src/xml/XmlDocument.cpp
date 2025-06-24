@@ -259,6 +259,11 @@ result_t XmlDocument::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
     return m_childs->removeChild(oldChild, retVal);
 }
 
+result_t XmlDocument::remove(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::remove(retVal);
+}
+
 result_t XmlDocument::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     result_t hr = checkNode(newChild);
