@@ -8,7 +8,6 @@
 #include "object.h"
 #include "ifs/db.h"
 #include "ifs/Buffer.h"
-#include "db_format.h"
 #include "sql/SQLite.h"
 #include "sql/mysql.h"
 #include "sql/mssql.h"

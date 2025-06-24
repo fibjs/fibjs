@@ -9,9 +9,87 @@
 
 #include "object.h"
 #include "ifs/db.h"
-#include "db_format.h"
+#include "Buffer.h"
 
 namespace fibjs {
+
+template <class impl>
+class db_format {
+public:
+    static result_t format(const char* sql, OptArgs args, exlib::string& retVal)
+    {
+        exlib::string str;
+        const char *p, *p1;
+        int32_t cnt = 0;
+        int32_t argc = args.Length();
+
+        while (*sql) {
+            p = p1 = sql;
+            while (*p1 && *p1 != '?')
+                p1++;
+
+            str.append(p, p1 - p);
+
+            if (*p1) {
+                p1++;
+
+                if (cnt < argc) {
+                    v8::Local<v8::Value> v = args[cnt];
+
+                    if (v->IsFunction())
+                        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+                    appendValue(str, v);
+                } else
+                    str.append(1, '?');
+
+                cnt++;
+            }
+
+            sql = p1;
+        }
+
+        retVal = str;
+        return 0;
+    }
+
+private:
+    static void appendValue(exlib::string& str, v8::Local<v8::Value>& v)
+    {
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
+
+        if (IsJSBuffer(v) || v->IsArrayBuffer() || v->IsArrayBufferView() || v->IsTypedArray()) {
+            obj_ptr<Buffer_base> bin;
+            GetArgumentValue(isolate, v, bin);
+            str.append(impl::escape_binary(bin.As<Buffer>()));
+        } else if (v->IsArray()) {
+            v8::Local<v8::Array> a = v.As<v8::Array>();
+            int32_t len = a->Length();
+            int32_t i;
+
+            str += '(';
+
+            for (i = 0; i < len; i++) {
+                JSValue v1 = a->Get(context, i);
+
+                if (i > 0)
+                    str += ',';
+                appendValue(str, v1);
+            }
+
+            str += ')';
+        } else if (v->IsNumber() || v->IsNumberObject()
+            || v->IsBigInt() || v->IsBigIntObject())
+            str.append(isolate->toString(v));
+        else if (v->IsUndefined() || v->IsNull())
+            str.append("NULL", 4);
+        else if (v->IsDate())
+            str.append(impl::escape_date(v));
+        else
+            str.append(impl::escape_string(isolate->toString(v)));
+    }
+};
 
 template <typename T>
 inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> func, bool& retVal)
@@ -55,11 +133,6 @@ public:
     }
 
 public:
-    result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-    {
-        return db_format<impl>::format(method, opts, retVal);
-    }
-
     result_t format(exlib::string sql, OptArgs args, exlib::string& retVal)
     {
         return db_format<impl>::format(sql.c_str(), args, retVal);
@@ -191,86 +264,6 @@ public:
         return execute(str, retVal, ac);
     }
 
-    result_t createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        return execute(db_format<impl>::createTable, opts, _retVal, ac);
-    }
-
-    result_t dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        return execute(db_format<impl>::dropTable, opts, _retVal, ac);
-    }
-
-    result_t createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        return execute(db_format<impl>::createIndex, opts, _retVal, ac);
-    }
-
-    result_t dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        return execute(db_format<impl>::dropIndex, opts, _retVal, ac);
-    }
-
-    result_t insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        result_t hr = execute(db_format<impl>::insert, opts, _retVal, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = _retVal->m_values[1].m_val.dblVal();
-
-        return 0;
-    }
-
-    result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
-        AsyncEvent* ac)
-    {
-        return execute(db_format<impl>::find, opts, retVal, ac);
-    }
-
-    result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        result_t hr = execute(db_format<impl>::count, opts, _retVal, ac);
-        if (hr < 0)
-            return hr;
-
-        Variant v;
-        _retVal->_indexed_getter(0, v);
-        retVal = ((NObject*)v.object())->m_values[0].m_val.intVal();
-
-        return 0;
-    }
-
-    result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        result_t hr = execute(db_format<impl>::update, opts, _retVal, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = _retVal->m_values[0].m_val.intVal();
-
-        return 0;
-    }
-
-    result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-    {
-        obj_ptr<NArray> _retVal;
-        result_t hr = execute(db_format<impl>::remove, opts, _retVal, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = _retVal->m_values[0].m_val.intVal();
-
-        return 0;
-    }
-
 public:
     static exlib::string escape_string(exlib::string v)
     {
@@ -335,55 +328,6 @@ public:
         retVal.append(1, '\'');
 
         return retVal;
-    }
-
-    static exlib::string escape_field(const char* str, int32_t sz,
-        char quote_left = '`', char quote_right = '`')
-    {
-        exlib::string retVal;
-
-        retVal += quote_left;
-        while (sz--) {
-            char ch = *str++;
-            if (ch == quote_right) {
-                retVal += quote_right;
-                retVal += quote_right;
-            } else if (ch == '.') {
-                retVal += quote_right;
-                retVal += '.';
-                retVal += quote_left;
-            } else
-                retVal += ch;
-        }
-        retVal += quote_right;
-
-        return retVal;
-    }
-
-public:
-    struct DataType {
-        const char* FLOAT;
-        const char* DOUBLE;
-        const char* DATETIME;
-        const char* VARCHAR;
-        const char* TEXT;
-        const char* BLOB;
-        const char* LONGBLOB;
-    };
-
-    static const DataType& data_type()
-    {
-        static DataType _data_type = {
-            "FLOAT",
-            "DOUBLE",
-            "DATETIME",
-            "VARCHAR",
-            "TEXT",
-            "BLOB",
-            "LONGBLOB"
-        };
-
-        return _data_type;
     }
 
 public:

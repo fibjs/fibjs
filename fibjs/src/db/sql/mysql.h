@@ -88,22 +88,6 @@ public:
         return retVal;
     }
 
-public:
-    static const DataType& data_type()
-    {
-        static DataType _data_type = {
-            "FLOAT",
-            "DOUBLE",
-            "DATETIME",
-            "VARCHAR",
-            "LONGTEXT",
-            "BLOB",
-            "LONGBLOB"
-        };
-
-        return _data_type;
-    }
-
 private:
     inline result_t error()
     {

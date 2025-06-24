@@ -72,28 +72,6 @@ public:
 
         return retVal;
     }
-
-    static exlib::string escape_field(const char* str, int32_t sz,
-        char quote_left = '\"', char quote_right = '\"')
-    {
-        return db_tmpl<DbConnection_base, psql>::escape_field(str, sz, quote_left, quote_right);
-    }
-
-public:
-    static const DataType& data_type()
-    {
-        static DataType _data_type = {
-            "REAL",
-            "FLOAT",
-            "TIMESTAMP",
-            "VARCHAR",
-            "TEXT",
-            "BYTEA",
-            "BYTEA"
-        };
-
-        return _data_type;
-    }
 };
 
 } /* namespace fibjs */
