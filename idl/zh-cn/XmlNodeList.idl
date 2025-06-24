@@ -15,4 +15,9 @@ interface XmlNodeList : object
     /*! @brief 可使用下标直接访问数据
     */
     readonly XmlNode operator[];
+
+    /*! @brief 查询当前对象元素的迭代器
+     @return 返回当前对象元素的迭代器
+    */
+    Iterator @iterator();
 };

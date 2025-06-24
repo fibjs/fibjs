@@ -10,6 +10,7 @@
 #include "ifs/XmlNodeList.h"
 #include "ifs/XmlDocument.h"
 #include "QuickArray.h"
+#include "Iterator.h"
 
 namespace fibjs {
 
@@ -36,6 +37,7 @@ public:
     virtual result_t get_length(int32_t& retVal);
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base>& retVal);
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal);
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal);
 
 public:
     void clean();

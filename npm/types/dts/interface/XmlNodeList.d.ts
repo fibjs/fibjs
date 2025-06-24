@@ -21,5 +21,7 @@ declare class Class_XmlNodeList extends Class_object {
     item(index: number): Class_XmlNode;
 
 
+    "[Symbol.iterator]"(): Iterator<any>;
+
 }
 

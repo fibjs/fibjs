@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class XmlNode_base;
+class Iterator_base;
 
 class XmlNodeList_base : public object_base {
     DECLARE_CLASS(XmlNodeList_base);
@@ -25,6 +26,7 @@ public:
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -42,16 +44,19 @@ public:
     static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_item(const v8::FunctionCallbackInfo<v8::Value>& args);
     static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "ifs/XmlNode.h"
+#include "ifs/Iterator.h"
 
 namespace fibjs {
 inline ClassInfo& XmlNodeList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "item", s_item, false, ClassData::ASYNC_SYNC }
+        { "item", s_item, false, ClassData::ASYNC_SYNC },
+        { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -115,5 +120,19 @@ inline v8::Intercepted XmlNodeList_base::i_IndexedGetter(uint32_t index, const v
         return v8::Intercepted::kNo;
 
     NAMED_METHOD_RETURN();
+}
+
+inline void XmlNodeList_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(XmlNodeList_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->symbol_iterator(vr);
+
+    METHOD_RETURN();
 }
 }

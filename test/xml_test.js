@@ -847,6 +847,132 @@ describe('xml', () => {
             assert.equal(e1.parentNode, e);
             assert.equal(t1.parentNode, e);
         });
+
+        it("iterator", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("root");
+            
+            // Create various types of child nodes
+            var element1 = xdoc.createElement("element1");
+            var text1 = xdoc.createTextNode("text content");
+            var element2 = xdoc.createElement("element2");
+            var comment = xdoc.createComment("comment content");
+            var cdata = xdoc.createCDATASection("cdata content");
+            
+            // Append all children to root
+            root.appendChild(element1);
+            root.appendChild(text1);
+            root.appendChild(element2);
+            root.appendChild(comment);
+            root.appendChild(cdata);
+            
+            // Test childNodes iterator (should include all node types)
+            var childNodes = root.childNodes;
+            assert.equal(childNodes.length, 5);
+            
+            // Test iterator using for...of loop
+            var iteratedNodes = [];
+            for (var node of childNodes) {
+                iteratedNodes.push(node);
+            }
+            
+            assert.equal(iteratedNodes.length, 5);
+            assert.equal(iteratedNodes[0], element1);
+            assert.equal(iteratedNodes[1], text1);
+            assert.equal(iteratedNodes[2], element2);
+            assert.equal(iteratedNodes[3], comment);
+            assert.equal(iteratedNodes[4], cdata);
+            
+            // Test iterator with Array.from()
+            var arrayFromIterator = Array.from(childNodes);
+            assert.equal(arrayFromIterator.length, 5);
+            assert.equal(arrayFromIterator[0], element1);
+            assert.equal(arrayFromIterator[4], cdata);
+            
+            // Test children iterator (should only include element nodes)
+            var children = root.children;
+            assert.equal(children.length, 2);
+            
+            var iteratedChildren = [];
+            for (var child of children) {
+                iteratedChildren.push(child);
+            }
+            
+            assert.equal(iteratedChildren.length, 2);
+            assert.equal(iteratedChildren[0], element1);
+            assert.equal(iteratedChildren[1], element2);
+            
+            // Test empty iterator
+            var emptyElement = xdoc.createElement("empty");
+            var emptyChildren = emptyElement.childNodes;
+            assert.equal(emptyChildren.length, 0);
+            
+            var emptyIteratedNodes = [];
+            for (var node of emptyChildren) {
+                emptyIteratedNodes.push(node);
+            }
+            assert.equal(emptyIteratedNodes.length, 0);
+        });
+
+        it("iterator with spread operator", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("root");
+            
+            var element1 = xdoc.createElement("child1");
+            var element2 = xdoc.createElement("child2");
+            var element3 = xdoc.createElement("child3");
+            
+            root.appendChild(element1);
+            root.appendChild(element2);
+            root.appendChild(element3);
+            
+            // Test spread operator with childNodes
+            var spreadNodes = [...root.childNodes];
+            assert.equal(spreadNodes.length, 3);
+            assert.equal(spreadNodes[0], element1);
+            assert.equal(spreadNodes[1], element2);
+            assert.equal(spreadNodes[2], element3);
+            
+            // Test spread operator with children
+            var spreadChildren = [...root.children];
+            assert.equal(spreadChildren.length, 3);
+            assert.equal(spreadChildren[0], element1);
+            assert.equal(spreadChildren[1], element2);
+            assert.equal(spreadChildren[2], element3);
+        });
+
+        it("iterator modification during iteration", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("root");
+            
+            var element1 = xdoc.createElement("child1");
+            var element2 = xdoc.createElement("child2");
+            var element3 = xdoc.createElement("child3");
+            
+            root.appendChild(element1);
+            root.appendChild(element2);
+            root.appendChild(element3);
+            
+            // Test iterator behavior when nodes are modified during iteration
+            var iteratedNodes = [];
+            for (var node of root.childNodes) {
+                iteratedNodes.push(node);
+                // Remove node during iteration - this affects the live collection
+                if (node === element2) {
+                    root.removeChild(element1);
+                }
+            }
+            
+            // Iterator reflects live state - only 2 nodes are iterated since element1 was removed
+            assert.equal(iteratedNodes.length, 2);
+            assert.equal(iteratedNodes[0], element1);
+            assert.equal(iteratedNodes[1], element2);
+            
+            // Root should now only have 2 children
+            assert.equal(root.childNodes.length, 2);
+            assert.equal(root.childNodes[0], element2);
+            assert.equal(root.childNodes[1], element3);
+        });
     });
 
     describe('attrs', () => {
