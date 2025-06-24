@@ -67,6 +67,7 @@ public:
     virtual result_t get_nodeName(exlib::string& retVal);
     virtual result_t get_nodeValue(exlib::string& retVal);
     virtual result_t set_nodeValue(exlib::string newVal);
+    virtual result_t cloneNode(obj_ptr<XmlAttr_base>& retVal);
 
 public:
     bool check(exlib::string namespaceURI, exlib::string localName)

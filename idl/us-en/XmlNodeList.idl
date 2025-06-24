@@ -16,4 +16,9 @@ interface XmlNodeList : object
     /*! @brief Able to access data by index
     */
     readonly XmlNode operator[];
+
+    /*! @brief Create an iterator
+     @return Return an iterator
+     */
+    Iterator operator Iterator();
 };

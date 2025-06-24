@@ -343,7 +343,8 @@ result_t XmlElement::getAttributeNS(exlib::string namespaceURI, exlib::string lo
 result_t XmlElement::setAttribute(exlib::string name, exlib::string value)
 {
     obj_ptr<XmlAttr> attr = new XmlAttr(this, name, value);
-    return m_attrs->setNamedItem(attr);
+    obj_ptr<XmlAttr_base> retVal;
+    return m_attrs->setNamedItem(attr, retVal);
 }
 
 result_t XmlElement::setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName,
@@ -359,7 +360,23 @@ result_t XmlElement::setAttributeNS(exlib::string namespaceURI, exlib::string qu
     }
 
     obj_ptr<XmlAttr> attr = new XmlAttr(this, namespaceURI, qualifiedName, value);
-    return m_attrs->setNamedItem(attr);
+    obj_ptr<XmlAttr_base> retVal;
+    return m_attrs->setNamedItem(attr, retVal);
+}
+
+result_t XmlElement::setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal)
+{
+    XmlAttr* _attr = (XmlAttr*)attr;
+    if (_attr->m_owner != NULL && _attr->m_owner != this) {
+        return Runtime::setError("The attribute already belongs to another element");
+    }
+
+    if (_attr->m_owner == this) {
+        retVal = _attr;
+        return 0;
+    }
+
+    return m_attrs->setNamedItem((XmlAttr*)attr, retVal);
 }
 
 result_t XmlElement::removeAttribute(exlib::string name)

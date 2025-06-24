@@ -36,7 +36,7 @@ public:
     virtual result_t getNamedItem(exlib::string name, obj_ptr<XmlAttr_base>& retVal);
 
 public:
-    result_t setNamedItem(XmlAttr* newAttr);
+    result_t setNamedItem(XmlAttr* newAttr, obj_ptr<XmlAttr_base>& retVal);
     result_t removeNamedItem(exlib::string name);
     result_t getNamedItemNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlAttr_base>& retVal);
     result_t removeNamedItemNS(exlib::string namespaceURI, exlib::string localName);

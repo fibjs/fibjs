@@ -69,6 +69,12 @@ interface XmlElement : XmlNode
     */
     setAttributeNS(String namespaceURI, String qualifiedName, String value);
 
+    /*! @brief Set attribute node
+     @param newAttr Attribute node to set
+     @return Return previous attribute node with same name, or null if none exists
+    */
+    XmlAttr setAttributeNode(XmlAttr newAttr);
+
     /*! @brief Remove attribute by name
      @param name Attribute name
     */

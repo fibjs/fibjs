@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /// <reference path="../interface/XmlNamedNodeMap.d.ts" />
+/// <reference path="../interface/XmlAttr.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
 /**
  * @description XmlElement 对象表示 XML 文档中的元素
@@ -98,6 +99,16 @@ declare class Class_XmlElement extends Class_XmlNode {
      *     
      */
     setAttributeNS(namespaceURI: string, qualifiedName: string, value: string): void;
+
+    /**
+     * @description 设置指定的属性对象
+     * 
+     *      该方法将指定的 XmlAttr 对象设置为当前元素的属性。如果当前元素已经有同名的属性，则该方法将替换它
+     *      @param attr 指定要设置的 XmlAttr 对象
+     *      @return 返回被替换的 XmlAttr 对象，如果没有被替换则返回 NULL
+     *     
+     */
+    setAttributeNode(attr: Class_XmlAttr): Class_XmlAttr;
 
     /**
      * @description 通过名称删除指定的属性

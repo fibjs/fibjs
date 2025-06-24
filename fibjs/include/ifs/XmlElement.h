@@ -18,6 +18,7 @@ namespace fibjs {
 
 class XmlNode_base;
 class XmlNamedNodeMap_base;
+class XmlAttr_base;
 class XmlNodeList_base;
 
 class XmlElement_base : public XmlNode_base {
@@ -42,6 +43,7 @@ public:
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal) = 0;
     virtual result_t setAttribute(exlib::string name, exlib::string value) = 0;
     virtual result_t setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName, exlib::string value) = 0;
+    virtual result_t setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal) = 0;
     virtual result_t removeAttribute(exlib::string name) = 0;
     virtual result_t removeAttributeNS(exlib::string namespaceURI, exlib::string localName) = 0;
     virtual result_t hasAttribute(exlib::string name, bool& retVal) = 0;
@@ -81,6 +83,7 @@ public:
     static void s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -93,6 +96,7 @@ public:
 }
 
 #include "ifs/XmlNamedNodeMap.h"
+#include "ifs/XmlAttr.h"
 #include "ifs/XmlNodeList.h"
 
 namespace fibjs {
@@ -103,6 +107,7 @@ inline ClassInfo& XmlElement_base::class_info()
         { "getAttributeNS", s_getAttributeNS, false, ClassData::ASYNC_SYNC },
         { "setAttribute", s_setAttribute, false, ClassData::ASYNC_SYNC },
         { "setAttributeNS", s_setAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "setAttributeNode", s_setAttributeNode, false, ClassData::ASYNC_SYNC },
         { "removeAttribute", s_removeAttribute, false, ClassData::ASYNC_SYNC },
         { "removeAttributeNS", s_removeAttributeNS, false, ClassData::ASYNC_SYNC },
         { "hasAttribute", s_hasAttribute, false, ClassData::ASYNC_SYNC },
@@ -380,6 +385,22 @@ inline void XmlElement_base::s_setAttributeNS(const v8::FunctionCallbackInfo<v8:
     hr = pInst->setAttributeNS(v0, v1, v2);
 
     METHOD_VOID();
+}
+
+inline void XmlElement_base::s_setAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlAttr_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlAttr_base>, 0);
+
+    hr = pInst->setAttributeNode(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void XmlElement_base::s_removeAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)

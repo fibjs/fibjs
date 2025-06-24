@@ -28,4 +28,9 @@ interface XmlAttr : object
     /*! @brief 属性的值，为兼容的目的
     */
     String nodeValue;
+
+    /*! @brief 复制 XmlAttr 对象
+    @return 返回 XmlAttr 对象的副本
+    */
+    XmlAttr cloneNode();
 };

@@ -46,5 +46,12 @@ declare class Class_XmlAttr extends Class_object {
      */
     nodeValue: string;
 
+    /**
+     * @description 复制 XmlAttr 对象
+     *     @return 返回 XmlAttr 对象的副本
+     *     
+     */
+    cloneNode(): Class_XmlAttr;
+
 }
 

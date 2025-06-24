@@ -29,4 +29,9 @@ interface XmlAttr
     /*! @brief Property value, for compatible purpose
     */
     String nodeValue;
+
+    /*! @brief Clone attribute
+     @return Return cloned attribute
+     */
+    XmlAttr cloneNode();
 };

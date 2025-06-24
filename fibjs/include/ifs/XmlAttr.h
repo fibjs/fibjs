@@ -30,6 +30,7 @@ public:
     virtual result_t get_nodeName(exlib::string& retVal) = 0;
     virtual result_t get_nodeValue(exlib::string& retVal) = 0;
     virtual result_t set_nodeValue(exlib::string newVal) = 0;
+    virtual result_t cloneNode(obj_ptr<XmlAttr_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -54,12 +55,17 @@ public:
     static void s_get_nodeName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_nodeValue(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_nodeValue(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 namespace fibjs {
 inline ClassInfo& XmlAttr_base::class_info()
 {
+    static ClassData::ClassMethod s_method[] = {
+        { "cloneNode", s_cloneNode, false, ClassData::ASYNC_SYNC }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "localName", s_get_localName, block_set, false },
         { "value", s_get_value, s_set_value, false },
@@ -72,7 +78,7 @@ inline ClassInfo& XmlAttr_base::class_info()
 
     static ClassData s_cd = {
         "XmlAttr", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };
@@ -219,5 +225,19 @@ inline void XmlAttr_base::s_set_nodeValue(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->set_nodeValue(v0);
 
     METHOD_VOID();
+}
+
+inline void XmlAttr_base::s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlAttr_base> vr;
+
+    METHOD_INSTANCE(XmlAttr_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->cloneNode(vr);
+
+    METHOD_RETURN();
 }
 }

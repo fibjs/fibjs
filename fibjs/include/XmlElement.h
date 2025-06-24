@@ -115,6 +115,7 @@ public:
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal);
     virtual result_t setAttribute(exlib::string name, exlib::string value);
     virtual result_t setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName, exlib::string value);
+    virtual result_t setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal);
     virtual result_t removeAttribute(exlib::string name);
     virtual result_t removeAttributeNS(exlib::string namespaceURI, exlib::string localName);
     virtual result_t hasAttribute(exlib::string name, bool& retVal);

@@ -88,6 +88,12 @@ result_t XmlAttr::set_nodeValue(exlib::string newVal)
     return set_value(newVal);
 }
 
+result_t XmlAttr::cloneNode(obj_ptr<XmlAttr_base>& retVal)
+{
+    retVal = new XmlAttr(*this);
+    return 0;
+}
+
 result_t XmlAttr::toString(exlib::string& retVal)
 {
     retVal = " ";

@@ -146,7 +146,7 @@ result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::s
     return 0;
 }
 
-result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode)
+result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -156,13 +156,14 @@ result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode)
         if (node->check(newNode)) {
             node->m_owner = NULL;
 
+            retVal = m_childs[i];
             m_childs[i] = (XmlAttr*)newNode;
             return 0;
         }
     }
 
     m_childs.append((XmlAttr*)newNode);
-    return 0;
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el)
@@ -174,7 +175,8 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el)
     for (i = 0; i < sz; i++) {
         obj_ptr<XmlAttr> child = new XmlAttr(*m_childs[i]);
         child->m_owner = (XmlElement*)el->m_node;
-        hr = to->setNamedItem(child);
+        obj_ptr<XmlAttr_base> retVal;
+        hr = to->setNamedItem(child, retVal);
         if (hr < 0)
             return hr;
     }

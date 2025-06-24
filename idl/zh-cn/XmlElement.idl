@@ -68,6 +68,14 @@ interface XmlElement : XmlNode
     */
     setAttributeNS(String namespaceURI, String qualifiedName, String value);
 
+    /*! @brief 设置指定的属性对象
+
+     该方法将指定的 XmlAttr 对象设置为当前元素的属性。如果当前元素已经有同名的属性，则该方法将替换它
+     @param attr 指定要设置的 XmlAttr 对象
+     @return 返回被替换的 XmlAttr 对象，如果没有被替换则返回 NULL
+    */
+    XmlAttr setAttributeNode(XmlAttr attr);
+
     /*! @brief 通过名称删除指定的属性
      @param name 指定删除的属性名
     */

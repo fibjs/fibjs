@@ -1005,6 +1005,221 @@ describe('xml', () => {
             assert.equal(e.getAttribute("att1"), null);
             e.removeAttribute("att1");
         });
+
+        it("attribute cloneNode", () => {
+            var xdoc = newDoc();
+            var e = xdoc.createElement("test");
+            
+            // Test basic attribute cloning
+            e.setAttribute("simple", "value1");
+            var attr = e.attributes[0];
+            var clonedAttr = attr.cloneNode();
+            
+            assert.equal(clonedAttr.name, "simple");
+            assert.equal(clonedAttr.value, "value1");
+            assert.equal(clonedAttr.nodeName, "simple");
+            assert.equal(clonedAttr.nodeValue, "value1");
+            
+            // Test that cloned attribute is independent
+            clonedAttr.value = "modified";
+            assert.equal(attr.value, "value1");
+            assert.equal(clonedAttr.value, "modified");
+            
+            // Test namespace attribute cloning
+            e.setAttributeNS("http://example.com/ns", "ns:custom", "nsvalue");
+            var nsAttr = e.attributes[1];
+            var clonedNsAttr = nsAttr.cloneNode();
+            
+            assert.equal(clonedNsAttr.name, "ns:custom");
+            assert.equal(clonedNsAttr.value, "nsvalue");
+            assert.equal(clonedNsAttr.namespaceURI, "http://example.com/ns");
+            assert.equal(clonedNsAttr.prefix, "ns");
+            assert.equal(clonedNsAttr.localName, "custom");
+            
+            // Test that namespace properties are preserved
+            assert.equal(nsAttr.namespaceURI, clonedNsAttr.namespaceURI);
+            assert.equal(nsAttr.prefix, clonedNsAttr.prefix);
+            assert.equal(nsAttr.localName, clonedNsAttr.localName);
+            
+            // Test special characters in attribute value
+            e.setAttribute("special", "value with <>&\"' chars");
+            var specialAttr = e.attributes[2];
+            var clonedSpecialAttr = specialAttr.cloneNode();
+            
+            assert.equal(clonedSpecialAttr.value, "value with <>&\"' chars");
+            assert.equal(clonedSpecialAttr.nodeValue, "value with <>&\"' chars");
+            
+            // Test that cloned attribute has no owner initially (implementation specific)
+            // Note: ownerElement might be undefined for cloned attributes
+            
+            // Test toString method contains attribute name and value
+            var toStringResult = clonedAttr.toString();
+            assert.ok(toStringResult.indexOf("simple") !== -1);
+            assert.ok(toStringResult.indexOf("modified") !== -1); // Use the current value
+        });
+
+        it("attribute properties", () => {
+            var xdoc = newDoc();
+            var e = xdoc.createElement("test");
+            
+            // Test basic attribute properties
+            e.setAttribute("test-attr", "test-value");
+            var attr = e.attributes[0];
+            
+            assert.equal(attr.name, "test-attr");
+            assert.equal(attr.value, "test-value");
+            assert.equal(attr.nodeName, "test-attr");
+            assert.equal(attr.nodeValue, "test-value");
+            // Note: ownerElement property might not be implemented
+            
+            // Test nodeValue setter
+            attr.nodeValue = "new-value";
+            assert.equal(attr.value, "new-value");
+            assert.equal(attr.nodeValue, "new-value");
+            assert.equal(e.getAttribute("test-attr"), "new-value");
+            
+            // Test namespace properties for regular attribute
+            assert.equal(attr.namespaceURI, null);
+            assert.equal(attr.prefix, null);
+            assert.equal(attr.localName, "test-attr");
+            
+            // Test xmlns attribute special case
+            e.setAttribute("xmlns", "http://example.com");
+            var xmlnsAttr = e.attributes[1];
+            assert.equal(xmlnsAttr.namespaceURI, "http://www.w3.org/2000/xmlns/");
+        });
+
+        // setAttributeNode tests based on modern browser behavior
+        it("setAttributeNode with owned attribute should throw error", () => {
+            var xdoc = newDoc();
+            var e1 = xdoc.createElement("element1");
+            var e2 = xdoc.createElement("element2");
+            
+            // Create an attribute on first element
+            e1.setAttribute("test", "value1");
+            var attr = e1.attributes[0];
+            
+            // Modern browsers throw error when trying to move owned attribute
+            assert.throws(() => {
+                e2.setAttributeNode(attr);
+            });
+        });
+
+        it("setAttributeNode with cloned attribute", () => {
+            var xdoc = newDoc();
+            var e1 = xdoc.createElement("element1");
+            var e2 = xdoc.createElement("element2");
+            
+            // Create an attribute on first element
+            e1.setAttribute("test", "value1");
+            var attr = e1.attributes[0];
+            var clonedAttr = attr.cloneNode();
+            
+            // Test initial state
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e2.attributes.length, 0);
+            assert.equal(e1.getAttribute("test"), "value1");
+            assert.equal(e2.getAttribute("test"), null);
+            
+            // Cloned attribute should have no owner
+            // Note: fibjs might not implement ownerElement property
+            
+            // Set cloned attribute to second element
+            var result = e2.setAttributeNode(clonedAttr);
+            
+            // Should return null (no previous attribute)
+            assert.equal(result, null);
+            
+            // Original element unchanged, new element has the attribute
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e2.attributes.length, 1);
+            assert.equal(e1.getAttribute("test"), "value1");
+            assert.equal(e2.getAttribute("test"), "value1");
+            
+            // Both elements should have different attribute objects
+            assert.notEqual(e1.attributes[0], e2.attributes[0]);
+        });
+
+        it("setAttributeNode with new attribute", () => {
+            var xdoc = newDoc();
+            var e1 = xdoc.createElement("element1");
+            
+            // Create a new attribute using createElement + setAttribute
+            var tempElement = xdoc.createElement("temp");
+            tempElement.setAttribute("custom", "custom-value");
+            var newAttr = tempElement.attributes[0].cloneNode();
+            
+            // Test initial state
+            assert.equal(e1.attributes.length, 0);
+            assert.equal(newAttr.name, "custom");
+            assert.equal(newAttr.value, "custom-value");
+            
+            // Set new attribute
+            var result = e1.setAttributeNode(newAttr);
+            
+            // Should return null (no previous attribute)
+            assert.equal(result, null);
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e1.getAttribute("custom"), "custom-value");
+        });
+
+        it("setAttributeNode replacing existing attribute", () => {
+            var xdoc = newDoc();
+            var e1 = xdoc.createElement("element1");
+            
+            // Set initial attribute
+            e1.setAttribute("test", "original-value");
+            assert.equal(e1.getAttribute("test"), "original-value");
+            
+            // Create replacement attribute
+            var tempElement = xdoc.createElement("temp");
+            tempElement.setAttribute("test", "replacement-value");
+            var replacementAttr = tempElement.attributes[0].cloneNode();
+            
+            // Replace existing attribute
+            var result = e1.setAttributeNode(replacementAttr);
+            
+            // Should return the old attribute
+            assert.notEqual(result, null);
+            assert.equal(result.value, "original-value");
+            
+            // Element should have new value
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e1.getAttribute("test"), "replacement-value");
+        });
+
+        it("setAttributeNode with namespace attribute", () => {
+            var xdoc = newDoc();
+            var e1 = xdoc.createElement("element1");
+            var e2 = xdoc.createElement("element2");
+            
+            // Create namespace attribute
+            e1.setAttributeNS("http://example.com/ns", "ns:custom", "nsvalue");
+            var nsAttr = e1.attributes[0];
+            var clonedNsAttr = nsAttr.cloneNode();
+            
+            // Test initial state
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e2.attributes.length, 0);
+            assert.equal(e1.getAttributeNS("http://example.com/ns", "custom"), "nsvalue");
+            
+            // Set cloned namespace attribute
+            var result = e2.setAttributeNode(clonedNsAttr);
+            
+            assert.equal(result, null);
+            assert.equal(e1.attributes.length, 1);
+            assert.equal(e2.attributes.length, 1);
+            assert.equal(e1.getAttributeNS("http://example.com/ns", "custom"), "nsvalue");
+            assert.equal(e2.getAttributeNS("http://example.com/ns", "custom"), "nsvalue");
+            
+            // Verify namespace properties are preserved
+            var e2Attr = e2.attributes[0];
+            assert.equal(e2Attr.name, "ns:custom");
+            assert.equal(e2Attr.value, "nsvalue");
+            assert.equal(e2Attr.namespaceURI, "http://example.com/ns");
+            assert.equal(e2Attr.prefix, "ns");
+            assert.equal(e2Attr.localName, "custom");
+        });
     });
 
     describe("namespace", () => {
