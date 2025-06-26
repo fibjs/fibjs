@@ -31,6 +31,8 @@ public:
     virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t ref(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -57,6 +59,8 @@ public:
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -77,7 +81,9 @@ inline ClassInfo& Stream_base::class_info()
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC }
+        { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -282,5 +288,33 @@ inline void Stream_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->setListener("error", v0);
 
     METHOD_VOID();
+}
+
+inline void Stream_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 }

@@ -27,6 +27,20 @@ public:
         return 0;
     }
 
+    virtual result_t ref(obj_ptr<Stream_base>& retVal)
+    {
+        object_base::isolate_ref();
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t unref(obj_ptr<Stream_base>& retVal)
+    {
+        object_base::isolate_unref();
+        retVal = this;
+        return 0;
+    }
+
 private:
     exlib::atomic m_readState;
 };

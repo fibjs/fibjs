@@ -76,5 +76,19 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     on(event: "error", listener: ()=>void): this;
 
+    /**
+     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    ref(): Class_Stream;
+
+    /**
+     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    unref(): Class_Stream;
+
 }
 

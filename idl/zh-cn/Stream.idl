@@ -43,4 +43,14 @@ interface Stream : EventEmitter
      @param code 错误码
      */
     event error(Integer code);
+
+    /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     @return 返回当前对象
+    */
+    Stream ref();
+
+    /*! @brief 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     @return 返回当前对象
+    */
+    Stream unref();
 };

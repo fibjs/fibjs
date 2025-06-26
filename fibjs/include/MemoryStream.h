@@ -17,7 +17,7 @@ namespace fibjs {
 
 class MemoryStream : public AsyncStream<MemoryStream_base> {
 public:
-    class CloneStream : public MemoryStream_base {
+    class CloneStream : public AsyncStream<MemoryStream_base> {
     public:
         CloneStream(exlib::string buffer, date_t tm)
             : m_buffer(buffer)
