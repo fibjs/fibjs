@@ -613,4 +613,19 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 
     return 0;
 }
+
+result_t ChildProcess::ref(obj_ptr<ChildProcess_base>& retVal)
+{
+    object_base::isolate_ref();
+    retVal = this;
+    return 0;
+}
+
+result_t ChildProcess::unref(obj_ptr<ChildProcess_base>& retVal)
+{
+    object_base::isolate_unref();
+    retVal = this;
+    return 0;
+}
+
 }

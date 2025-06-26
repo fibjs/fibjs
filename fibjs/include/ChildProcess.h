@@ -56,6 +56,8 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal);
+    virtual result_t ref(obj_ptr<ChildProcess_base>& retVal);
+    virtual result_t unref(obj_ptr<ChildProcess_base>& retVal);
 
 public:
     static int32_t spawn(uv_process_t* process, const uv_process_options_t* options);

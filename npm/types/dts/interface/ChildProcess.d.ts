@@ -125,5 +125,19 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      */
     on(event: "disconnect", listener: ()=>void): this;
 
+    /**
+     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    ref(): Class_ChildProcess;
+
+    /**
+     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    unref(): Class_ChildProcess;
+
 }
 

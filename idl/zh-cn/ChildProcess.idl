@@ -84,4 +84,14 @@ interface ChildProcess : EventEmitter
 
     /*! @brief 查询和绑定子进程断开连接事件，相当于 on("disconnect", func); */
     event disconnect();
+
+    /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     @return 返回当前对象
+    */
+    ChildProcess ref();
+
+    /*! @brief 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     @return 返回当前对象
+    */
+    ChildProcess unref();
 };

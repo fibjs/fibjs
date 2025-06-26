@@ -38,6 +38,8 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t ref(obj_ptr<ChildProcess_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<ChildProcess_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -72,6 +74,8 @@ public:
     static void s_set_onspawn(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ondisconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_ondisconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(ChildProcess_base, join, int32_t);
@@ -88,7 +92,9 @@ inline ClassInfo& ChildProcess_base::class_info()
         { "join", s_join, false, ClassData::ASYNC_ASYNC },
         { "disconnect", s_disconnect, false, ClassData::ASYNC_SYNC },
         { "send", s_send, false, ClassData::ASYNC_SYNC },
-        { "usage", s_usage, false, ClassData::ASYNC_SYNC }
+        { "usage", s_usage, false, ClassData::ASYNC_SYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -401,5 +407,33 @@ inline void ChildProcess_base::s_set_ondisconnect(const v8::FunctionCallbackInfo
     hr = pInst->setListener("disconnect", v0);
 
     METHOD_VOID();
+}
+
+inline void ChildProcess_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ChildProcess_base> vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void ChildProcess_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ChildProcess_base> vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 }
