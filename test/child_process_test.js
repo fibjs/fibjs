@@ -658,14 +658,14 @@ describe("child_process", () => {
         it("spawn", () => {
             var spawnEventTriggered = false;
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_event.js')]);
-            
+
             p.on('spawn', () => {
                 spawnEventTriggered = true;
             });
-            
+
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "spawn event test process started");
-            
+
             p.join();
             assert.equal(p.exitCode, 0);
             assert.equal(spawnEventTriggered, true);
@@ -675,23 +675,23 @@ describe("child_process", () => {
             var spawnEventTriggered = false;
             var spawnEventTime = 0;
             var processStartTime = new Date().getTime();
-            
+
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_timing.js')]);
-            
+
             p.on('spawn', () => {
                 spawnEventTriggered = true;
                 spawnEventTime = new Date().getTime();
             });
-            
+
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "process started");
-            
+
             // spawn event should have been triggered by now
             assert.equal(spawnEventTriggered, true);
-            
+
             // spawn event should be triggered quickly after process creation
             assert.lessThan(spawnEventTime - processStartTime, 1000);
-            
+
             assert.equal(stdout.readLine(), "process ending");
             p.join();
             assert.equal(p.exitCode, 42);
@@ -702,14 +702,14 @@ describe("child_process", () => {
             var p = child_process.fork(path.join(__dirname, 'process', 'exec_spawn_event.js'), {
                 stdio: "pipe"
             });
-            
+
             p.on('spawn', () => {
                 spawnEventTriggered = true;
             });
-            
+
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "spawn event test process started");
-            
+
             p.join();
             assert.equal(p.exitCode, 0);
             assert.equal(spawnEventTriggered, true);
@@ -718,18 +718,18 @@ describe("child_process", () => {
         it("spawn event with multiple listeners", () => {
             var spawnCount = 0;
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_event.js')]);
-            
+
             p.on('spawn', () => {
                 spawnCount++;
             });
-            
+
             p.on('spawn', () => {
                 spawnCount++;
             });
-            
+
             var stdout = new io.BufferedStream(p.stdout);
             assert.equal(stdout.readLine(), "spawn event test process started");
-            
+
             p.join();
             assert.equal(p.exitCode, 0);
             assert.equal(spawnCount, 2); // Both listeners should be called
@@ -737,19 +737,19 @@ describe("child_process", () => {
 
         it("spawn event should not trigger on failed spawn", () => {
             var spawnEventTriggered = false;
-            
+
             try {
                 var p = child_process.spawn("non_existent_command");
-                
+
                 p.on('spawn', () => {
                     spawnEventTriggered = true;
                 });
-                
+
                 p.join();
             } catch (e) {
                 // Expected to fail
             }
-            
+
             // spawn event should not be triggered for failed process creation
             assert.equal(spawnEventTriggered, false);
         });
@@ -758,20 +758,20 @@ describe("child_process", () => {
             var closeEventTriggered = false;
             var closeCode = null;
             var closeSignal = null;
-            
+
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_event.js')], {
                 stdio: 'pipe'
             });
-            
+
             p.on('close', (code, signal) => {
                 closeEventTriggered = true;
                 closeCode = code;
                 closeSignal = signal;
             });
-            
+
             p.join();
             coroutine.sleep(100); // Allow time for close event to be processed
-            
+
             // close event should be triggered
             assert.equal(closeEventTriggered, true);
             assert.equal(closeCode, 42);
@@ -781,19 +781,19 @@ describe("child_process", () => {
         it("close event with inherit stdio", () => {
             var closeEventTriggered = false;
             var closeCode = null;
-            
+
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
                 stdio: 'inherit'
             });
-            
+
             p.on('close', (code, signal) => {
                 closeEventTriggered = true;
                 closeCode = code;
             });
-            
+
             p.join();
             coroutine.sleep(100); // Allow time for close event to be processed
-            
+
             // close event should be triggered
             assert.equal(closeEventTriggered, true);
             assert.equal(closeCode, 123);
@@ -803,16 +803,16 @@ describe("child_process", () => {
             var closeEventTriggered = false;
             var closeCode = null;
             var messageReceived = false;
-            
+
             var p = child_process.fork(path.join(__dirname, 'process', 'exec_close_ipc.js'), {
                 stdio: 'pipe'
             });
-            
+
             p.on('close', (code, signal) => {
                 closeEventTriggered = true;
                 closeCode = code;
             });
-            
+
             p.on('message', (msg) => {
                 if (msg === 'ready') {
                     messageReceived = true;
@@ -821,13 +821,13 @@ describe("child_process", () => {
                         p.send('exit');
                     }, 10);
                 }
-            });                        
+            });
 
             p.join();
             coroutine.sleep(100); // Allow time for close event to be processed
 
             assert.equal(messageReceived, true);
-            
+
             // close event should be triggered
             assert.equal(closeEventTriggered, true);
             assert.equal(closeCode, 0);
@@ -836,17 +836,17 @@ describe("child_process", () => {
         it("close event timing", () => {
             var closeEventTime = 0;
             var processEndTime = 0;
-            
+
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')]);
-            
+
             p.on('close', () => {
                 closeEventTime = new Date().getTime();
             });
-            
+
             p.join();
             coroutine.sleep(100); // Allow time for close event to be processed
             processEndTime = new Date().getTime();
-            
+
             // close event should be triggered before or at the same time as join() returns
             assert.notGreaterThan(closeEventTime, processEndTime);
         });
@@ -854,22 +854,22 @@ describe("child_process", () => {
         it("close event with multiple listeners", () => {
             var closeCount = 0;
             var totalCode = 0;
-            
+
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')]);
-            
+
             p.on('close', (code) => {
                 closeCount++;
                 totalCode += code;
             });
-            
+
             p.on('close', (code) => {
                 closeCount++;
                 totalCode += code;
             });
-            
+
             p.join();
             coroutine.sleep(100); // Allow time for close event to be processed
-            
+
             // Both listeners should be called
             assert.equal(closeCount, 2);
             assert.equal(totalCode, 246); // 123 * 2
@@ -990,7 +990,7 @@ describe("child_process", () => {
         it("spawn with already aborted signal", () => {
             var controller = new AbortController();
             controller.abort();
-            
+
             var result = child_process.spawn(cmd, [
                 path.join(__dirname, "process", "exec_signal_test.js")
             ], {
@@ -1004,12 +1004,12 @@ describe("child_process", () => {
 
         it("spawn with signal aborted during execution", () => {
             var controller = new AbortController();
-            
+
             // Abort the signal after a short delay
             setTimeout(() => {
                 controller.abort();
             }, 100);
-            
+
             var result = child_process.spawn(cmd, [
                 path.join(__dirname, "process", "exec_long_running.js")
             ], {
@@ -1024,7 +1024,7 @@ describe("child_process", () => {
 
         it("spawn with signal never aborted", () => {
             var controller = new AbortController();
-            
+
             var result = child_process.spawn(cmd, [
                 path.join(__dirname, "process", "exec2.js"),
                 "arg1",
@@ -1045,12 +1045,12 @@ describe("child_process", () => {
 
         it("spawn signal abort sends SIGTERM to child process", () => {
             var controller = new AbortController();
-            
+
             // Start a long-running process and abort it
             setTimeout(() => {
                 controller.abort();
             }, 100);
-            
+
             var result = child_process.spawn(cmd, [
                 path.join(__dirname, "process", "exec_long_running.js")
             ], {
@@ -1067,7 +1067,7 @@ describe("child_process", () => {
         it("spawn with signal option encoding", () => {
             var controller = new AbortController();
             controller.abort();
-            
+
             var result = child_process.spawn(cmd, [
                 path.join(__dirname, "process", "exec_signal_test.js")
             ], {
@@ -1080,6 +1080,44 @@ describe("child_process", () => {
             result.join();
             assert.strictEqual(result.killed, true);
         });
+    });
+
+    it("unref", () => {
+        var t1 = new Date().getTime();
+        // Start the main script that will spawn child process and call unref
+        var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.unref_main.js')], {
+            stdio: 'pipe'
+        });
+
+        var stdout = new io.BufferedStream(p.stdout);
+        var output = stdout.readLines();
+
+        // Find "main process exit" message
+        var mainExitIndex = -1;
+        for (var i = 0; i < output.length; i++) {
+            if (output[i] === "main process exit") {
+                mainExitIndex = i;
+                break;
+            }
+        }
+
+        // Verify that "main process exit" message exists
+        assert.notEqual(mainExitIndex, -1, "main process exit message should be found");
+
+        // Verify that "main process exit" is not the first output
+        assert.greaterThan(mainExitIndex, 0, "main process exit should not be the first output");
+
+        // Verify that "main process exit" is not the last output
+        assert.lessThan(mainExitIndex, output.length - 1, "main process exit should not be the last output");
+
+        var hasChildOutput = false;
+        for (var i = 0; i < output.length; i++) {
+            if (output[i].includes("sub process running")) {
+                hasChildOutput = true;
+                break;
+            }
+        }
+        assert.isTrue(hasChildOutput, "should have child process output");
     });
 });
 
