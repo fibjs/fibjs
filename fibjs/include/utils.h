@@ -1254,6 +1254,7 @@ const char* signo_string(int signo);
 #ifdef _WIN32
 
 #define PATH_SLASH '\\'
+#define PATH_SLASH_STR "\\"
 #define PATH_DELIMITER ';'
 
 inline bool isPathSlash(char ch)
@@ -1264,6 +1265,7 @@ inline bool isPathSlash(char ch)
 #else
 
 #define PATH_SLASH '/'
+#define PATH_SLASH_STR "/"
 #define PATH_DELIMITER ':'
 
 inline bool isPathSlash(char ch)
@@ -1274,8 +1276,10 @@ inline bool isPathSlash(char ch)
 #endif
 
 #define PATH_SLASH_WIN32 '\\'
+#define PATH_SLASH_WIN32_STR "\\"
 #define PATH_DELIMITER_WIN32 ';'
 #define PATH_SLASH_POSIX '/'
+#define PATH_SLASH_POSIX_STR "/"
 #define PATH_DELIMITER_POSIX ':'
 
 inline bool isWin32PathSlash(char ch)

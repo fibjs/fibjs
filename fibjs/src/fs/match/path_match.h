@@ -92,7 +92,7 @@ private:
     bool containsHiddenPathSegments(std::string_view text, size_t startIndex, size_t endIndex = SIZE_MAX) const;
 
 public:
-    explicit MinimatchPattern(const std::string& pattern, bool isWindows = false);
+    explicit MinimatchPattern(const std::string& pattern, bool isWindows);
     ~MinimatchPattern() = default;
 
     // Disable copy for now (can be implemented later if needed)
@@ -113,6 +113,6 @@ public:
 };
 
 // Convenience function for direct matching (equivalent to minimatch.minimatch())
-bool matchesGlob(std::string_view text, const std::string& pattern, bool isWindows = false);
+bool matchesGlob(std::string_view text, const std::string& pattern, bool isWindows);
 
 }

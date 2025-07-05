@@ -22,6 +22,26 @@ async function asyncGeneratorToArray(input) {
     return result;
 }
 
+// Helper function to detect Windows environment
+function isWindows() {
+    return process.platform === 'win32';
+}
+
+// Helper function to normalize paths for Windows
+function normalizeExpected(expected) {
+    if (!isWindows()) {
+        return expected;
+    }
+
+    if (Array.isArray(expected)) {
+        return expected.map(item => item.replace(/\//g, '\\'));
+    }
+
+    return expected.replace(/\//g, '\\');
+}
+
+
+
 describe("fs.glob", () => {
 
     // ==================== 基础功能测试 ====================
@@ -39,7 +59,8 @@ describe("fs.glob", () => {
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
             // Node.js glob includes both files and directories
-            const expected = ['README.md', 'app.log', 'docs', 'error.log', 'index.js', 'node_modules', 'package.json', 'read.txt', 'src', 'tests'];
+            let expected = ['README.md', 'app.txt', 'config.env', 'deps', 'docs', 'error.txt', 'index.js', 'package.json', 'read.txt', 'src', 'tests'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -52,10 +73,12 @@ describe("fs.glob", () => {
         });
 
         it("should match files with specific patterns", async () => {
-            const asyncGen = await fs.glob("*.log", { cwd: testDir });
+            const asyncGen = await fs.glob("*.txt", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['app.log', 'error.log']);
+            let expected = ['app.txt', 'error.txt', 'read.txt'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
     });
 
@@ -63,10 +86,12 @@ describe("fs.glob", () => {
     describe("Wildcard patterns", () => {
 
         it("should handle single character wildcard (?)", async () => {
-            const asyncGen = await fs.glob("*.l?g", { cwd: testDir });
+            const asyncGen = await fs.glob("*.t?t", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['app.log', 'error.log']);
+            let expected = ['app.txt', 'error.txt', 'read.txt'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
 
         it("should handle character classes", async () => {
@@ -77,11 +102,11 @@ describe("fs.glob", () => {
         });
 
         it("should handle negated character classes", async () => {
-            const asyncGen = await fs.glob("*.[!l]*", { cwd: testDir });
+            const asyncGen = await fs.glob("*.[!t]*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            // Should match files that don't have 'l' in their extension
-            const expected = ['README.md', 'index.js', 'package.json', 'read.txt'];
+            // Should match files that don't have 't' in their extension
+            const expected = ['README.md', 'config.env', 'index.js', 'package.json'];
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -94,12 +119,13 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.js", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = [
+            let expected = [
                 'index.js',
-                'node_modules/fake-module.js',
+                'deps/fake-module.js',
                 'src/utils/math.js',
                 'tests/math.test.js'
             ];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -108,14 +134,17 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.ts", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['src/utils/helper.ts']);
+            let expected = ['src/utils/helper.ts'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
 
         it("should match React components", async () => {
             const asyncGen = await fs.glob("**/*.jsx", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['src/App.jsx', 'src/components/Button.jsx'];
+            let expected = ['src/App.jsx', 'src/components/Button.jsx'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -124,7 +153,8 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.test.*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['tests/components.test.tsx', 'tests/math.test.js'];
+            let expected = ['tests/components.test.tsx', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -137,14 +167,17 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("src/*.jsx", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['src/App.jsx']);
+            let expected = ['src/App.jsx'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
 
         it("should match files in nested directories", async () => {
             const asyncGen = await fs.glob("src/utils/*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['src/utils/helper.ts', 'src/utils/math.js'];
+            let expected = ['src/utils/helper.ts', 'src/utils/math.js'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -154,7 +187,8 @@ describe("fs.glob", () => {
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
             // Node.js glob doesn't include trailing / in directory names
-            const expected = ['docs', 'node_modules', 'src', 'tests'];
+            let expected = ['deps', 'docs', 'src', 'tests'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -167,7 +201,8 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob(".*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['.env', '.gitignore', '.hidden'];
+            let expected = ['.gittest', '.hidden'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -176,7 +211,9 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob(".hidden/*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['.hidden/secret.txt']);
+            let expected = ['.hidden/secret.txt'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
 
         it("should include hidden files with ** when appropriate", async () => {
@@ -194,22 +231,25 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/src/**/*.js", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            assert.deepStrictEqual(result, ['src/utils/math.js']);
+            let expected = ['src/utils/math.js'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
         });
 
         it("should match multiple file types", async () => {
             const asyncGen = await fs.glob("**/*.{js,ts,jsx}", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = [
+            let expected = [
                 'index.js',
-                'node_modules/fake-module.js',
+                'deps/fake-module.js',
                 'src/App.jsx',
                 'src/components/Button.jsx',
                 'src/utils/helper.ts',
                 'src/utils/math.js',
                 'tests/math.test.js'
             ];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -217,12 +257,13 @@ describe("fs.glob", () => {
         it("should exclude specific directories", async () => {
             const asyncGen = await fs.glob("**/*.js", {
                 cwd: testDir,
-                exclude: ['node_modules/**']
+                exclude: ['deps/**']
             });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            // Our implementation correctly excludes node_modules files (better than Node.js)
-            const expected = ['index.js', 'src/utils/math.js', 'tests/math.test.js'];
+            // Our implementation correctly excludes deps files
+            let expected = ['index.js', 'src/utils/math.js', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -301,7 +342,7 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.js", {
                 cwd: testDir,
                 withFileTypes: true,
-                exclude: ['node_modules/**']
+                exclude: ['deps/**']
             });
             const result = await asyncGeneratorToArray(asyncGen);
 
@@ -323,7 +364,7 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.{js,md}", {
                 cwd: testDir,
                 withFileTypes: true,
-                exclude: ['node_modules/**']
+                exclude: ['deps/**']
             });
             const result = await asyncGeneratorToArray(asyncGen);
 
@@ -397,12 +438,13 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("src/**/*.{js,ts,jsx,tsx}", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = [
+            let expected = [
                 'src/App.jsx',
                 'src/components/Button.jsx',
                 'src/utils/helper.ts',
                 'src/utils/math.js'
             ];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -411,16 +453,18 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.{test,spec}.{js,ts,jsx,tsx}", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['tests/components.test.tsx', 'tests/math.test.js'];
+            let expected = ['tests/components.test.tsx', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
 
         it("should find configuration files", async () => {
-            const asyncGen = await fs.glob("{package.json,.gitignore,.env*}", { cwd: testDir });
+            const asyncGen = await fs.glob("{package.json,.gittest,config.*}", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['.env', '.gitignore', 'package.json'];
+            let expected = ['.gittest', 'config.env', 'package.json'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -429,7 +473,8 @@ describe("fs.glob", () => {
             const asyncGen = await fs.glob("**/*.md", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            const expected = ['README.md', 'docs/api.md'];
+            let expected = ['README.md', 'docs/api.md'];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
@@ -437,19 +482,19 @@ describe("fs.glob", () => {
         it("should exclude common exclude patterns", async () => {
             const asyncGen = await fs.glob("**/*", {
                 cwd: testDir,
-                exclude: ['node_modules/**', '*.log', '.*']
+                exclude: ['deps/**', '*.txt', '.*']
             });
             const result = await asyncGeneratorToArray(asyncGen);
             result.sort();
-            // Our implementation correctly excludes excluded files (better than Node.js experimental glob)
-            const expected = [
+            // Our implementation correctly excludes excluded files
+            let expected = [
                 'README.md',
+                'config.env',
+                'deps',
                 'docs',
                 'docs/api.md',
                 'index.js',
-                'node_modules',
                 'package.json',
-                'read.txt',
                 'src',
                 'src/App.jsx',
                 'src/components',
@@ -461,6 +506,7 @@ describe("fs.glob", () => {
                 'tests/components.test.tsx',
                 'tests/math.test.js'
             ];
+            expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
         });
