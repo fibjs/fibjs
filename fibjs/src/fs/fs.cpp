@@ -228,7 +228,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t&
 }
 
 result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::string opt, int32_t& retVal,
-     AsyncEvent* ac)
+    AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -247,7 +247,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::strin
 }
 
 result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal,
-     AsyncEvent* ac)
+    AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -268,7 +268,7 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::stri
 }
 
 result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal,
-     AsyncEvent* ac)
+    AsyncEvent* ac)
 {
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
@@ -832,90 +832,6 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
     }
 
     return 0;
-}
-
-static bool matchesGlob_(exlib::string path, std::vector<exlib::string>& patterns)
-{
-    for (auto& pattern : patterns) {
-        bool isMatch = false;
-        path_base::matchesGlob(path, pattern, isMatch);
-        if (isMatch)
-            return true;
-    }
-
-    return false;
-}
-
-result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(opts);
-        ac->m_ctx.resize(1);
-
-        exlib::string cwd;
-        result_t hr = GetConfigValue(isolate, opts, "cwd", cwd);
-        if (hr == CALL_E_PARAMNOTOPTIONAL)
-            process_base::cwd(cwd);
-        ac->m_ctx[0] = cwd;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string cwd = ac->m_ctx[0].string();
-    os_normalize(cwd, cwd, true);
-
-    QuickArray<exlib::string> paths;
-    retVal = new NArray();
-
-    {
-        AutoReq req;
-        int32_t ret = uv_fs_scandir(NULL, &req, cwd.c_str(), 0, NULL);
-        if (ret < 0)
-            return ret;
-
-        uv_dirent_t dirent;
-        while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-            if (matchesGlob_(dirent.name, patterns))
-                retVal->append(dirent.name);
-            if (dirent.type == UV_DIRENT_DIR)
-                paths.append(dirent.name);
-        }
-    }
-
-    size_t pos = 0;
-    while (pos < paths.size()) {
-        exlib::string& _path = paths[pos++];
-
-        AutoReq req;
-        int32_t ret = uv_fs_scandir(NULL, &req, (cwd + PATH_SLASH + _path).c_str(), 0, NULL);
-        if (ret < 0)
-            return ret;
-
-        uv_dirent_t dirent;
-
-        while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-            exlib::string full_path = _path + PATH_SLASH + dirent.name;
-            if (matchesGlob_(dirent.name, patterns))
-                retVal->append(full_path);
-            if (dirent.type == UV_DIRENT_DIR)
-                paths.append(full_path);
-        }
-    }
-
-    return 0;
-}
-
-result_t fs_base::glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        std::vector<exlib::string> patterns;
-        return glob(patterns, opts, retVal, ac);
-    }
-
-    std::vector<exlib::string> patterns;
-    patterns.push_back(pattern);
-
-    return glob(patterns, opts, retVal, ac);
 }
 
 }
