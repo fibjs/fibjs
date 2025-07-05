@@ -10,96 +10,108 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <regex>
+#include <memory>
 
 namespace fibjs {
 
-inline bool isPathSeparator_(char c, bool isWindows)
-{
-    return c == '/' || (isWindows && c == '\\');
-}
+// Forward declarations
+class MinimatchPattern;
 
-enum class GlobNodeType {
-    Literal,
-    Wildcard,
-    Globstar,
-    CharClass,
-    Question,
-    Sequence,
-    Brace,
-    BraceRange
+// Token types for pattern parsing
+enum class TokenType {
+    LITERAL, // Regular string literal
+    STAR, // * - matches any sequence of characters except path separator
+    QUESTION, // ? - matches any single character except path separator
+    GLOBSTAR, // ** - matches any sequence including path separators
+    CHAR_CLASS, // [abc] or [a-z] - character class
+    EXTGLOB, // @(...), !(...), ?(...), +(...), *(...) - extended globs
+    BRACE, // {a,b,c} - brace expansion
+    PATH_SEP // / or \ - path separator
 };
 
-enum class RangeType {
-    String,
-    Number
-};
-
-std::string buildNumberRange(const std::string& startStr, const std::string& endStr);
-
-class GlobNode {
-public:
-    GlobNodeType type;
+// Token structure
+struct Token {
+    TokenType type;
     std::string value;
-    std::vector<GlobNode> children;
-    bool negated = false;
-    std::string rangeStart;
-    std::string rangeEnd;
-    RangeType rangeType = RangeType::String;
-    std::vector<GlobNode> next;
+    std::vector<Token> children; // For nested patterns like extglobs
+    std::vector<std::vector<Token>> alternatives; // For extglob alternatives grouping
+    bool negated = false; // For negated character classes [^abc]
 
-    GlobNode(GlobNodeType t, const std::string& v = "", std::vector<GlobNode> c = std::vector<GlobNode>())
+    Token(TokenType t, const std::string& v = "")
         : type(t)
         , value(v)
-        , children(std::move(c))
     {
     }
-
-    std::string typeToString() const;
-
-    std::string dump(int indent = 0) const;
 };
 
-class GlobParser {
-public:
-    GlobParser(bool isWin)
-        : isWindows(isWin)
-    {
-    }
-
-    GlobNode parse(std::string_view pattern);
-
-    std::string dump(std::string_view pattern);
-
+// Main pattern matching class
+class MinimatchPattern {
 private:
-    bool isWindows;
-    static const std::regex letterRangePattern;
-    static const std::regex numberRangePattern;
-
-    std::pair<GlobNode, std::string_view> parseSequence(std::string_view input, bool inBrace = false);
-    std::pair<GlobNode, std::string_view> parseCharClass(std::string_view input);
-    std::pair<GlobNode, std::string_view> parseBrace(std::string_view input);
-};
-
-class RegexBuilder {
-public:
-    RegexBuilder(bool isWindows);
-    std::string buildFromNode(const GlobNode& node);
-
-private:
-    std::string buildSequence(const GlobNode& node);
-    std::string buildBrace(const GlobNode& node);
-    std::string buildBraceRange(const GlobNode& node);
-    std::string buildCharRange(char start, char end);
-    std::string escapeRegex(const std::string& str);
-
-private:
+    std::vector<Token> tokens_;
     bool isWindows_;
+    std::string original_pattern_;
+    bool compiled_ = false;
+
+    // Internal parsing methods
+    void tokenize(const std::string& pattern);
+    bool matchTokens(std::string_view text, size_t tokenIndex = 0, size_t textIndex = 0) const;
+    bool matchLiteral(std::string_view text, const std::string& literal, size_t& textIndex) const;
+    bool matchStar(std::string_view text, size_t tokenIndex, size_t& textIndex) const;
+    bool matchGlobstar(std::string_view text, size_t tokenIndex, size_t& textIndex) const;
+    bool matchQuestion(std::string_view text, size_t& textIndex) const;
+    bool matchCharClass(std::string_view text, const std::string& charClass, bool negated, size_t& textIndex) const;
+
+    // Character class parsing
+    bool parseCharClass(const std::string& pattern, size_t& pos, Token& token);
+    bool isCharInClass(char c, const std::string& charClass, bool negated) const;
+
+    // Extglob parsing
+    bool parseExtglob(const std::string& pattern, size_t& pos, Token& token);
+    std::vector<Token> parseAlternativePattern(const std::string& pattern);
+
+    // Brace expansion parsing
+    bool parseBraceExpansion(const std::string& pattern, size_t& pos, Token& token);
+    bool matchExtglob(std::string_view text, const Token& token, size_t tokenIndex, size_t& textIndex) const;
+    bool matchExtglobWithBacktracking(std::string_view text, const Token& token, size_t tokenIndex, size_t& textIndex) const;
+    bool matchAlternativeTokens(std::string_view text, const std::vector<Token>& tokens, size_t& textIndex) const;
+    bool matchTokenSequence(std::string_view text, const std::vector<Token>& tokens, size_t tokenIndex, size_t& textIndex) const;
+    bool matchTokenSequenceWithFullBacktrack(std::string_view text, const std::vector<Token>& tokens, size_t tokenIndex, size_t& textIndex, size_t nextTokenIndex) const;
+    bool matchExtglobRepeat(std::string_view text, const std::vector<std::vector<Token>>& alternatives, size_t& textIndex, size_t minCount, size_t maxCount) const;
+    bool matchStarInExtglob(std::string_view text, size_t& textIndex) const;
+    bool matchStarInAlternative(std::string_view text, size_t& textIndex) const;
+    bool matchExtglobZero(std::string_view text, size_t tokenIndex, size_t& textIndex) const;
+    bool tryAlternativeWithBacktrack(std::string_view text, const std::vector<Token>& alternative, size_t& textIndex, size_t nextTokenIndex) const;
+
+    // Utility methods
+    bool isPathSeparator(char c) const;
+    bool isPathSeparatorInText(char c) const;
+    bool isSpecialChar(char c) const;
+    char getPathSeparator() const;
+    bool shouldMatchCase(char a, char b) const;
+    bool shouldMatchCaseDriveLetter(char a, char b) const;
+
+public:
+    explicit MinimatchPattern(const std::string& pattern, bool isWindows = false);
+    ~MinimatchPattern() = default;
+
+    // Disable copy for now (can be implemented later if needed)
+    MinimatchPattern(const MinimatchPattern&) = delete;
+    MinimatchPattern& operator=(const MinimatchPattern&) = delete;
+
+    // Move semantics
+    MinimatchPattern(MinimatchPattern&&) = default;
+    MinimatchPattern& operator=(MinimatchPattern&&) = default;
+
+    // Main matching method
+    bool match(std::string_view text) const;
+
+    // Getters
+    const std::string& getPattern() const { return original_pattern_; }
+    bool isWindows() const { return isWindows_; }
+    bool isCompiled() const { return compiled_; }
 };
 
-class RegexMatcher {
-public:
-    static bool match(const GlobNode& pattern, std::string_view path, bool isWindows);
-};
+// Convenience function for direct matching (equivalent to minimatch.minimatch())
+bool matchesGlob(std::string_view text, const std::string& pattern, bool isWindows = false);
 
 }
