@@ -28,6 +28,8 @@ public:
     virtual result_t get_fd(int32_t& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t resume(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t pause(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
@@ -50,6 +52,8 @@ public:
     static void s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,6 +83,8 @@ inline ClassInfo& Stream_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
+        { "resume", s_resume, false, ClassData::ASYNC_SYNC },
+        { "pause", s_pause, false, ClassData::ASYNC_SYNC },
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
@@ -152,6 +158,34 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
         hr = pInst->acb_write(v0, cb, args);
     else
         hr = pInst->ac_write(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_resume(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->resume(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->pause(vr);
 
     METHOD_RETURN();
 }

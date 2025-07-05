@@ -33,6 +33,20 @@ declare class Class_Stream extends Class_EventEmitter {
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
+     * @description 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。
+     *      @return 返回当前流对象
+     *      
+     */
+    resume(): Class_Stream;
+
+    /**
+     * @description 暂停流的自动读取模式。此方法仅为兼容，目前调用此方法不会有任何效果
+     *      @return 返回当前流对象
+     *      
+     */
+    pause(): Class_Stream;
+
+    /**
      * @description 将文件缓冲区内容写入物理设备 
      */
     flush(): void;

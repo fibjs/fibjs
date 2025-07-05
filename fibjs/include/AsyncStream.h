@@ -23,7 +23,23 @@ public:
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
+        if (ev == "data")
+            startRecvStream(this, m_readState);
+
+        return 0;
+    }
+
+    // Stream_base
+    virtual result_t resume(obj_ptr<Stream_base>& retVal)
+    {
         startRecvStream(this, m_readState);
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t pause(obj_ptr<Stream_base>& retVal)
+    {
+        retVal = this;
         return 0;
     }
 

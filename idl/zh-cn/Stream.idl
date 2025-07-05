@@ -18,6 +18,16 @@ interface Stream : EventEmitter
      */
     Integer write(Buffer data) async;
 
+    /*! @brief 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。
+     @return 返回当前流对象
+     */
+    Stream resume();
+
+    /*! @brief 暂停流的自动读取模式。此方法仅为兼容，目前调用此方法不会有任何效果
+     @return 返回当前流对象
+     */
+    Stream pause();
+
     /*! @brief 将文件缓冲区内容写入物理设备 */
     flush() async;
 
