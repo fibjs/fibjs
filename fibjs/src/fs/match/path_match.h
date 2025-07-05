@@ -11,6 +11,7 @@
 #include <string_view>
 #include <vector>
 #include <memory>
+#include <cstddef>
 
 namespace fibjs {
 
@@ -58,7 +59,7 @@ private:
     bool matchLiteral(std::string_view text, const std::string& literal, size_t& textIndex) const;
     bool matchStar(std::string_view text, size_t tokenIndex, size_t& textIndex) const;
     bool matchGlobstar(std::string_view text, size_t tokenIndex, size_t& textIndex) const;
-    bool matchQuestion(std::string_view text, size_t& textIndex) const;
+    bool matchQuestion(std::string_view text, size_t& textIndex, size_t tokenIndex = 0) const;
     bool matchCharClass(std::string_view text, const std::string& charClass, bool negated, size_t& textIndex) const;
 
     // Character class parsing
@@ -88,7 +89,7 @@ private:
     bool isSpecialChar(char c) const;
     char getPathSeparator() const;
     bool shouldMatchCase(char a, char b) const;
-    bool shouldMatchCaseDriveLetter(char a, char b) const;
+    bool containsHiddenPathSegments(std::string_view text, size_t startIndex, size_t endIndex = SIZE_MAX) const;
 
 public:
     explicit MinimatchPattern(const std::string& pattern, bool isWindows = false);

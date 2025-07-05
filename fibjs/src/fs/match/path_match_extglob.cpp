@@ -108,11 +108,15 @@ bool MinimatchPattern::matchAlternativeTokens(std::string_view text, const std::
         case TokenType::LITERAL:
             return matchLiteral(text, token.value, textIndex);
         case TokenType::STAR:
+            // For single star in alternative, check for hidden files at start
+            if (textIndex == 0 && !text.empty() && text[0] == '.') {
+                return false;
+            }
             // For single star in alternative, still use greedy matching
             // This is appropriate when the star is the complete alternative
             return matchStarInAlternative(text, textIndex);
         case TokenType::QUESTION:
-            return matchQuestion(text, textIndex);
+            return matchQuestion(text, textIndex, 0); // tokenIndex 0 for alternative start
         case TokenType::CHAR_CLASS:
             return matchCharClass(text, token.value, token.negated, textIndex);
         case TokenType::EXTGLOB:

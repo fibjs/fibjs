@@ -88,7 +88,7 @@ bool MinimatchPattern::matchTokens(std::string_view text, size_t tokenIndex, siz
 
     case TokenType::QUESTION: {
         size_t newTextIndex = textIndex;
-        if (matchQuestion(text, newTextIndex)) {
+        if (matchQuestion(text, newTextIndex, tokenIndex)) {
             return matchTokens(text, tokenIndex + 1, newTextIndex);
         }
         return false;
@@ -215,13 +215,8 @@ bool MinimatchPattern::matchLiteral(std::string_view text, const std::string& li
             continue;
         }
 
-        // Check for drive letter context on Windows (e.g., 'c:' vs 'C:')
-        if (isWindows_ && literalIndex == 0 && currentTextIndex == 0 && literalIndex + 1 < literal.length() && currentTextIndex + 1 < text.length() && literal[literalIndex + 1] == ':' && text[currentTextIndex + 1] == ':' && ((textChar >= 'A' && textChar <= 'Z') || (textChar >= 'a' && textChar <= 'z')) && ((patternChar >= 'A' && patternChar <= 'Z') || (patternChar >= 'a' && patternChar <= 'z'))) {
-            // This is a drive letter context on Windows - use case insensitive matching
-            if (!shouldMatchCaseDriveLetter(textChar, patternChar)) {
-                return false;
-            }
-        } else if (!shouldMatchCase(textChar, patternChar)) {
+        // Use unified case matching logic
+        if (!shouldMatchCase(textChar, patternChar)) {
             return false;
         }
 
@@ -238,7 +233,7 @@ bool MinimatchPattern::matchLiteral(std::string_view text, const std::string& li
     return true;
 }
 
-bool MinimatchPattern::matchQuestion(std::string_view text, size_t& textIndex) const
+bool MinimatchPattern::matchQuestion(std::string_view text, size_t& textIndex, size_t tokenIndex) const
 {
     if (textIndex >= text.length()) {
         return false;
@@ -251,6 +246,11 @@ bool MinimatchPattern::matchQuestion(std::string_view text, size_t& textIndex) c
         return false;
     }
 
+    // Node.js behavior: ? at the beginning should not match hidden files (starting with .)
+    if (textIndex == 0 && tokenIndex == 0 && c == '.') {
+        return false;
+    }
+
     textIndex++;
     return true;
 }
@@ -260,9 +260,16 @@ bool MinimatchPattern::matchGlobstar(std::string_view text, size_t tokenIndex, s
     // Globstar (**) can match:
     // 1. Zero characters (but need to handle path separators correctly)
     // 2. Any sequence of characters including path separators
+    //
+    // Node.js behavior: ** should NOT match hidden files/directories unless pattern explicitly includes dots
 
     // If we're at the end of the pattern, globstar matches everything remaining
+    // But we need to check for hidden files/directories
     if (tokenIndex + 1 >= tokens_.size()) {
+        // Check if the remaining text contains hidden files/directories
+        if (containsHiddenPathSegments(text, textIndex)) {
+            return false;
+        }
         textIndex = text.length();
         return true;
     }
@@ -287,6 +294,12 @@ bool MinimatchPattern::matchGlobstar(std::string_view text, size_t tokenIndex, s
                 continue; // Skip non-separator characters
             }
             // Found a separator or end of string
+
+            // Check if the matched segment contains hidden files/directories
+            if (containsHiddenPathSegments(text, textIndex, i)) {
+                continue; // Skip this match, try next position
+            }
+
             textIndex = i;
             if (matchTokens(text, tokenIndex + 1, textIndex)) {
                 return true;
@@ -295,6 +308,11 @@ bool MinimatchPattern::matchGlobstar(std::string_view text, size_t tokenIndex, s
     } else {
         // No path separator after globstar, match any characters
         for (size_t i = textIndex; i <= text.length(); i++) {
+            // Check if the matched text contains hidden files/directories
+            if (containsHiddenPathSegments(text, textIndex, i)) {
+                continue; // Skip this match, try next position
+            }
+
             textIndex = i;
             if (matchTokens(text, tokenIndex + 1, textIndex)) {
                 return true;
@@ -309,6 +327,15 @@ bool MinimatchPattern::matchStar(std::string_view text, size_t tokenIndex, size_
 {
     // Special case: if * is the only token and text is empty, should return false (Node.js behavior)
     if (tokens_.size() == 1 && text.empty()) {
+        return false;
+    }
+
+    // Node.js behavior: * should not match hidden files (starting with .) unless pattern explicitly includes dots
+    // Check if we're at the start of a path segment and the next character is a dot
+    bool atSegmentStart = (textIndex == 0) || (textIndex > 0 && isPathSeparatorInText(text[textIndex - 1]));
+    if (atSegmentStart && textIndex < text.length() && text[textIndex] == '.') {
+        // TODO: Check if pattern explicitly allows hidden files (e.g., pattern starts with .* or .[abc])
+        // For now, conservatively reject hidden files unless explicitly requested
         return false;
     }
 

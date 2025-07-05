@@ -99,18 +99,52 @@ char MinimatchPattern::getPathSeparator() const
 
 bool MinimatchPattern::shouldMatchCase(char a, char b) const
 {
-    // Direct character matching should always be case sensitive
-    // Only drive letters on Windows are case insensitive, but that's handled separately
-    return a == b;
-}
-
-bool MinimatchPattern::shouldMatchCaseDriveLetter(char a, char b) const
-{
-    // Drive letters on Windows are case insensitive
+    // On macOS and Windows, file systems are typically case insensitive
+    // So pattern matching should also be case insensitive
+#ifdef __APPLE__
+    return std::tolower(a) == std::tolower(b);
+#else
     if (isWindows_) {
         return std::tolower(a) == std::tolower(b);
     }
     return a == b;
+#endif
+}
+
+bool MinimatchPattern::containsHiddenPathSegments(std::string_view text, size_t startIndex, size_t endIndex) const
+{
+    // Check if the text segment from startIndex to endIndex contains hidden files/directories
+    // A hidden file/directory is one that starts with a dot (.)
+
+    if (endIndex == SIZE_MAX) {
+        endIndex = text.length();
+    }
+
+    if (startIndex >= endIndex) {
+        return false;
+    }
+
+    // Check if we're at the start of the text and the first character is a dot
+    if (startIndex == 0 && text[0] == '.') {
+        return true;
+    }
+
+    // Check if the segment starts with a dot (hidden file/directory at the current position)
+    if (startIndex < text.length() && text[startIndex] == '.') {
+        return true;
+    }
+
+    // Check for hidden path segments within the range
+    for (size_t i = startIndex; i < endIndex; i++) {
+        if (isPathSeparatorInText(text[i])) {
+            // Check if the next character (if exists) is a dot
+            if (i + 1 < endIndex && text[i + 1] == '.') {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 }
