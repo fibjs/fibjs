@@ -127,6 +127,9 @@ public:
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal);
     virtual result_t getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal);
+    virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
+    virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal);
+    virtual result_t matches(exlib::string selectors, bool& retVal);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)

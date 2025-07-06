@@ -54,6 +54,8 @@ public:
     virtual result_t createComment(exlib::string data, obj_ptr<XmlComment_base>& retVal) = 0;
     virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal) = 0;
     virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base>& retVal) = 0;
+    virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal) = 0;
+    virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,6 +84,8 @@ public:
     static void s_createComment(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createCDATASection(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createProcessingInstruction(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_querySelector(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_querySelectorAll(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -108,7 +112,9 @@ inline ClassInfo& XmlDocument_base::class_info()
         { "createTextNode", s_createTextNode, false, ClassData::ASYNC_SYNC },
         { "createComment", s_createComment, false, ClassData::ASYNC_SYNC },
         { "createCDATASection", s_createCDATASection, false, ClassData::ASYNC_SYNC },
-        { "createProcessingInstruction", s_createProcessingInstruction, false, ClassData::ASYNC_SYNC }
+        { "createProcessingInstruction", s_createProcessingInstruction, false, ClassData::ASYNC_SYNC },
+        { "querySelector", s_querySelector, false, ClassData::ASYNC_SYNC },
+        { "querySelectorAll", s_querySelectorAll, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -488,6 +494,38 @@ inline void XmlDocument_base::s_createProcessingInstruction(const v8::FunctionCa
     ARG(exlib::string, 1);
 
     hr = pInst->createProcessingInstruction(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlDocument_base::s_querySelector(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlDocument_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->querySelector(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlDocument_base::s_querySelectorAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNodeList_base> vr;
+
+    METHOD_INSTANCE(XmlDocument_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->querySelectorAll(v0, vr);
 
     METHOD_RETURN();
 }

@@ -541,6 +541,22 @@ result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<Xm
     return 0;
 }
 
+result_t XmlDocument::querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
+{
+    if (!m_element)
+        return CALL_RETURN_NULL;
+
+    return m_element->querySelector(selectors, retVal);
+}
+
+result_t XmlDocument::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal)
+{
+    if (!m_element)
+        return CALL_RETURN_NULL;
+
+    return m_element->querySelectorAll(selectors, retVal);
+}
+
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
 {
     if (m_encoding.empty())

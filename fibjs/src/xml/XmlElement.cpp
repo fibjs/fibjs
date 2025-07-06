@@ -13,6 +13,7 @@
 #include "XmlDocument.h"
 #include "StringBuffer.h"
 #include "parse.h"
+#include <algorithm>
 
 namespace fibjs {
 
@@ -232,6 +233,10 @@ result_t XmlElement::normalize()
 result_t XmlElement::get_tagName(exlib::string& retVal)
 {
     retVal = m_tagName;
+    // HTML tag names should be uppercase
+    if (!m_isXml) {
+        exlib::qstrupr(retVal);
+    }
     return 0;
 }
 

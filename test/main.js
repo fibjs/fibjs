@@ -25,6 +25,7 @@ run("./types_test.js");
 run("./promise_test.js");
 run("./microtask_test.js");
 run("./xml_test.js");
+run("./querySelector_test.js");
 
 if (process.env.CI)
     run("./xml_suite.js");

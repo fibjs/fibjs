@@ -41,9 +41,17 @@ inline bool qisxdigit(T ch)
 }
 
 template <typename T>
+inline bool qisalpha(T ch)
+{
+    return qisascii(ch) || (ch >= '0' && ch <= '9') || (ch == '_');
+}
+
+template <typename T>
 inline int32_t qhex(T ch)
 {
-    return (ch >= '0' && ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 : ch >= 'A' && ch <= 'F' ? ch - 'A' + 10 : 0);
+    return (ch >= '0' && ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10
+            : ch >= 'A' && ch <= 'F'                                   ? ch - 'A' + 10
+                                                                       : 0);
 }
 
 template <typename T>

@@ -218,5 +218,33 @@ declare class Class_XmlElement extends Class_XmlNode {
      */
     getElementsByClassName(className: string): Class_XmlNodeList;
 
+    /**
+     * @description 返回符合指定 CSS 选择器的元素的 XmlNodeList
+     * 
+     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。
+     *      @param selectors 指定 CSS 选择器
+     *      @return 符合指定 CSS 选择器的 XmlElement 节点
+     *     
+     */
+    querySelector(selectors: string): Class_XmlElement;
+
+    /**
+     * @description 返回符合指定 CSS 选择器的所有元素的 XmlNodeList
+     * 
+     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。
+     *      @param selectors 指定 CSS 选择器
+     *      @return 符合指定 CSS 选择器的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+     *     
+     */
+    querySelectorAll(selectors: string): Class_XmlNodeList;
+
+    /**
+     * @description 查询当前元素是否匹配指定的 CSS 选择器
+     *      @param selectors 指定 CSS 选择器
+     *      @return 如果当前元素匹配指定选择器，则返回 true，否则返回 false
+     *     
+     */
+    matches(selectors: string): boolean;
+
 }
 

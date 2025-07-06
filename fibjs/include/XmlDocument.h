@@ -92,6 +92,8 @@ public:
     virtual result_t createComment(exlib::string data, obj_ptr<XmlComment_base>& retVal);
     virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal);
     virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base>& retVal);
+    virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
+    virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal);
 
 public:
     void setDecl(const char* version, const char* encoding, int32_t standalone)
