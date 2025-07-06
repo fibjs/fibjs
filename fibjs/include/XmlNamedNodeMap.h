@@ -39,6 +39,7 @@ public:
     result_t setNamedItem(XmlAttr* newAttr, obj_ptr<XmlAttr_base>& retVal);
     result_t removeNamedItem(exlib::string name);
     result_t getNamedItemNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlAttr_base>& retVal);
+    result_t removeNode(XmlAttr_base* attr);
     result_t removeNamedItemNS(exlib::string namespaceURI, exlib::string localName);
     result_t cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el);
     result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal);

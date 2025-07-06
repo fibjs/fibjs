@@ -41,11 +41,14 @@ public:
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal) = 0;
+    virtual result_t getAttributeNode(exlib::string name, obj_ptr<XmlAttr_base>& retVal) = 0;
+    virtual result_t getAttributeNodeNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlAttr_base>& retVal) = 0;
     virtual result_t setAttribute(exlib::string name, exlib::string value) = 0;
     virtual result_t setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName, exlib::string value) = 0;
     virtual result_t setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal) = 0;
     virtual result_t removeAttribute(exlib::string name) = 0;
     virtual result_t removeAttributeNS(exlib::string namespaceURI, exlib::string localName) = 0;
+    virtual result_t removeAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal) = 0;
     virtual result_t hasAttribute(exlib::string name, bool& retVal) = 0;
     virtual result_t hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal) = 0;
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
@@ -81,11 +84,14 @@ public:
     static void s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getAttributeNodeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_removeAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -105,11 +111,14 @@ inline ClassInfo& XmlElement_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "getAttribute", s_getAttribute, false, ClassData::ASYNC_SYNC },
         { "getAttributeNS", s_getAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "getAttributeNode", s_getAttributeNode, false, ClassData::ASYNC_SYNC },
+        { "getAttributeNodeNS", s_getAttributeNodeNS, false, ClassData::ASYNC_SYNC },
         { "setAttribute", s_setAttribute, false, ClassData::ASYNC_SYNC },
         { "setAttributeNS", s_setAttributeNS, false, ClassData::ASYNC_SYNC },
         { "setAttributeNode", s_setAttributeNode, false, ClassData::ASYNC_SYNC },
         { "removeAttribute", s_removeAttribute, false, ClassData::ASYNC_SYNC },
         { "removeAttributeNS", s_removeAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "removeAttributeNode", s_removeAttributeNode, false, ClassData::ASYNC_SYNC },
         { "hasAttribute", s_hasAttribute, false, ClassData::ASYNC_SYNC },
         { "hasAttributeNS", s_hasAttributeNS, false, ClassData::ASYNC_SYNC },
         { "getElementsByTagName", s_getElementsByTagName, false, ClassData::ASYNC_SYNC },
@@ -356,6 +365,39 @@ inline void XmlElement_base::s_getAttributeNS(const v8::FunctionCallbackInfo<v8:
     METHOD_RETURN();
 }
 
+inline void XmlElement_base::s_getAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlAttr_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getAttributeNode(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_getAttributeNodeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlAttr_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->getAttributeNodeNS(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
 inline void XmlElement_base::s_setAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlElement_base);
@@ -430,6 +472,22 @@ inline void XmlElement_base::s_removeAttributeNS(const v8::FunctionCallbackInfo<
     hr = pInst->removeAttributeNS(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void XmlElement_base::s_removeAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlAttr_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlAttr_base>, 0);
+
+    hr = pInst->removeAttributeNode(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void XmlElement_base::s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)

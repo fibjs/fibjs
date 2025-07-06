@@ -51,6 +51,23 @@ interface XmlElement : XmlNode
     */
     String getAttributeNS(String namespaceURI, String localName);
 
+    /*! @brief 返回指定名称的属性节点
+
+     该方法返回一个 XmlAttr 对象，表示当前元素的指定名称的属性。如果没有具有指定名称的属性，则返回 NULL。
+     @param name 指定查询的属性名
+     @return 返回指定名称的 XmlAttr 对象，如果没有具有指定名称的属性，则返回 NULL
+    */
+    XmlAttr getAttributeNode(String name);
+
+    /*! @brief 返回具有命名空间 URI 和名称的属性节点
+
+     该方法返回一个 XmlAttr 对象，表示当前元素的指定命名空间 URI 和名称的属性。如果没有具有指定名称的属性，则返回 NULL。
+     @param namespaceURI 指定查询的命名空间 URI
+     @param localName 指定查询的属性名
+     @return 返回指定名称的 XmlAttr 对象，如果没有具有指定名称的属性，则返回 NULL
+    */
+    XmlAttr getAttributeNodeNS(String namespaceURI, String localName);
+
     /*! @brief 创建或改变某个新属性
 
      该方法把指定的属性设置为指定的值。如果不存在具有指定名称的属性，该方法将创建一个新属性
@@ -86,6 +103,14 @@ interface XmlElement : XmlNode
      @param localName 指定删除的属性名
     */
     removeAttributeNS(String namespaceURI, String localName);
+
+    /*! @brief 删除指定的属性节点
+
+     该方法将从当前元素的属性列表中删除指定的 XmlAttr 对象。如果当前元素没有指定的属性，则该方法无效
+     @param attr 指定要删除的 XmlAttr 对象
+     @return 返回被删除的 XmlAttr 对象，如果没有被删除则返回 NULL
+    */
+    XmlAttr removeAttributeNode(XmlAttr attr);
 
     /*! @brief 查询当前节点是否拥有指定名称的属性
      @param name 指定查询的属性名称

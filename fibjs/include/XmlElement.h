@@ -113,11 +113,14 @@ public:
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal);
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal);
+    virtual result_t getAttributeNode(exlib::string name, obj_ptr<XmlAttr_base>& retVal);
+    virtual result_t getAttributeNodeNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlAttr_base>& retVal);
     virtual result_t setAttribute(exlib::string name, exlib::string value);
     virtual result_t setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName, exlib::string value);
     virtual result_t setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal);
     virtual result_t removeAttribute(exlib::string name);
     virtual result_t removeAttributeNS(exlib::string namespaceURI, exlib::string localName);
+    virtual result_t removeAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal);
     virtual result_t hasAttribute(exlib::string name, bool& retVal);
     virtual result_t hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal);
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal);

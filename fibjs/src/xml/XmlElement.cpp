@@ -340,6 +340,16 @@ result_t XmlElement::getAttributeNS(exlib::string namespaceURI, exlib::string lo
     return node->get_value(retVal);
 }
 
+result_t XmlElement::getAttributeNode(exlib::string name, obj_ptr<XmlAttr_base>& retVal)
+{
+    return m_attrs->getNamedItem(name, retVal);
+}
+
+result_t XmlElement::getAttributeNodeNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlAttr_base>& retVal)
+{
+    return m_attrs->getNamedItemNS(namespaceURI, localName, retVal);
+}
+
 result_t XmlElement::setAttribute(exlib::string name, exlib::string value)
 {
     obj_ptr<XmlAttr> attr = new XmlAttr(this, name, value);
@@ -387,6 +397,12 @@ result_t XmlElement::removeAttribute(exlib::string name)
 result_t XmlElement::removeAttributeNS(exlib::string namespaceURI, exlib::string localName)
 {
     return m_attrs->removeNamedItemNS(namespaceURI, localName);
+}
+
+result_t XmlElement::removeAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>& retVal)
+{
+    retVal = attr;
+    return m_attrs->removeNode(attr);
 }
 
 result_t XmlElement::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal)

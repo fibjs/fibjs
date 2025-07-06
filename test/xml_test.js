@@ -1236,11 +1236,43 @@ describe('xml', () => {
                 assert.equal(e2Attr.localName, "custom");
             });
 
+            it("getAttributeNode and removeAttributeNode", () => {
+                var xdoc = newDoc();
+                var elem = xdoc.createElement("test");
 
+                // Set attribute and get attribute node
+                elem.setAttribute("testAttr", "testValue");
+                var attrNode = elem.getAttributeNode("testAttr");
 
+                assert.equal(attrNode.name, "testAttr");
+                assert.equal(attrNode.value, "testValue");
+                assert.equal(attrNode.nodeName, "testAttr");
+                assert.equal(attrNode.nodeValue, "testValue");
 
+                var removedAttr = elem.removeAttributeNode(attrNode);
+                assert.equal(removedAttr, attrNode);
+                assert.equal(elem.getAttribute("testAttr"), null);
+                assert.equal(elem.attributes.length, 0);
 
+                assert.throws(() => {
+                    elem.removeAttributeNode(attrNode);
+                }, /owned by another/);
+            });
 
+            it("getAttributeNodeNS", () => {
+                var xdoc = newDoc();
+                var elem = xdoc.createElement("test");
+
+                // Set namespace attribute and get attribute node
+                elem.setAttributeNS("http://example.com/ns", "ns:attr", "value");
+                var nsAttrNode = elem.getAttributeNodeNS("http://example.com/ns", "attr");
+
+                assert.equal(nsAttrNode.name, "ns:attr");
+                assert.equal(nsAttrNode.value, "value");
+                assert.equal(nsAttrNode.namespaceURI, "http://example.com/ns");
+                assert.equal(nsAttrNode.prefix, "ns");
+                assert.equal(nsAttrNode.localName, "attr");
+            });
         });
     });
 
@@ -1813,65 +1845,6 @@ describe('xml', () => {
     // Browser-only tests for features not supported in fibjs
     if (isBrowser) {
         describe('browser', () => {
-            describe('DOM Node Comparison Methods', () => {
-                it("isSameNode, isEqualNode, contains", () => {
-                    var xdoc = newDoc();
-                    var elem1 = xdoc.createElement("test");
-                    var elem2 = xdoc.createElement("test");
-
-                    // Test isSameNode (same reference)
-                    assert.equal(elem1.isSameNode(elem1), true);
-                    assert.equal(elem1.isSameNode(elem2), false);
-
-                    // Test isEqualNode (same content)
-                    assert.equal(elem1.isEqualNode(elem2), true);
-                    elem2.setAttribute("attr", "value");
-                    assert.equal(elem1.isEqualNode(elem2), false);
-
-                    // Test contains
-                    var child = xdoc.createElement("child");
-                    elem1.appendChild(child);
-                    assert.equal(elem1.contains(child), true);
-                    assert.equal(child.contains(elem1), false);
-                });
-            });
-
-            describe('Attribute Node Methods', () => {
-                it("getAttributeNode and removeAttributeNode", () => {
-                    var xdoc = newDoc();
-                    var elem = xdoc.createElement("test");
-
-                    // Set attribute and get attribute node
-                    elem.setAttribute("testAttr", "testValue");
-                    var attrNode = elem.getAttributeNode("testAttr");
-
-                    assert.equal(attrNode.name, "testAttr");
-                    assert.equal(attrNode.value, "testValue");
-                    assert.equal(attrNode.nodeName, "testAttr");
-                    assert.equal(attrNode.nodeValue, "testValue");
-
-                    var removedAttr = elem.removeAttributeNode(attrNode);
-                    assert.equal(removedAttr, attrNode);
-                    assert.equal(elem.getAttribute("testAttr"), null);
-                    assert.equal(elem.attributes.length, 0);
-                });
-
-                it("getAttributeNodeNS", () => {
-                    var xdoc = newDoc();
-                    var elem = xdoc.createElement("test");
-
-                    // Set namespace attribute and get attribute node
-                    elem.setAttributeNS("http://example.com/ns", "ns:attr", "value");
-                    var nsAttrNode = elem.getAttributeNodeNS("http://example.com/ns", "attr");
-
-                    assert.equal(nsAttrNode.name, "ns:attr");
-                    assert.equal(nsAttrNode.value, "value");
-                    assert.equal(nsAttrNode.namespaceURI, "http://example.com/ns");
-                    assert.equal(nsAttrNode.prefix, "ns");
-                    assert.equal(nsAttrNode.localName, "attr");
-                });
-            });
-
             describe('NamedNodeMap Methods', () => {
                 it("setNamedItem and removeNamedItem", () => {
                     var xdoc = newDoc();

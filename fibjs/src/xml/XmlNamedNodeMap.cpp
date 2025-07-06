@@ -146,6 +146,29 @@ result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::s
     return 0;
 }
 
+result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
+{
+    XmlAttr* node = (XmlAttr*)attr;
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i++) {
+        if (m_childs[i] == node) {
+            node->m_owner = NULL;
+
+            while (i < sz - 1) {
+                m_childs[i] = m_childs[i + 1];
+                i++;
+            }
+
+            m_childs.resize(sz - 1);
+            return 0;
+        }
+    }
+
+    return Runtime::setError("The node provided is owned by another element.");
+}
+
 result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
