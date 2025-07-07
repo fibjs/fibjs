@@ -27,6 +27,7 @@ class performance_base;
 class PerformanceObserver_base;
 class webcrypto_base;
 class Timer_base;
+class HttpResponse_base;
 
 class global_base : public object_base {
     DECLARE_CLASS(global_base);
@@ -47,6 +48,7 @@ public:
     static result_t clearImmediate(v8::Local<v8::Value> t);
     static result_t btoa(Buffer_base* data, bool url, exlib::string& retVal);
     static result_t atob(exlib::string data, obj_ptr<Buffer_base>& retVal);
+    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -75,6 +77,10 @@ public:
     static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -90,6 +96,7 @@ public:
 #include "ifs/PerformanceObserver.h"
 #include "ifs/webcrypto.h"
 #include "ifs/Timer.h"
+#include "ifs/HttpResponse.h"
 
 namespace fibjs {
 inline ClassInfo& global_base::class_info()
@@ -106,7 +113,8 @@ inline ClassInfo& global_base::class_info()
         { "setImmediate", s_static_setImmediate, true, ClassData::ASYNC_SYNC },
         { "clearImmediate", s_static_clearImmediate, true, ClassData::ASYNC_SYNC },
         { "btoa", s_static_btoa, true, ClassData::ASYNC_SYNC },
-        { "atob", s_static_atob, true, ClassData::ASYNC_SYNC }
+        { "atob", s_static_atob, true, ClassData::ASYNC_SYNC },
+        { "fetch", s_static_fetch, true, ClassData::ASYNC_PROMISE }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -339,6 +347,25 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
 
     hr = atob(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
+
+    ASYNC_METHOD_ENTER("global.fetch");
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_fetch(v0, v1, cb, args);
+    else
+        hr = ac_fetch(v0, v1, vr);
 
     METHOD_RETURN();
 }
