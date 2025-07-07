@@ -60,6 +60,16 @@ result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return m_message->write(data, retVal, ac);
 }
 
+result_t HttpResponse::text(exlib::string data, exlib::string& retVal)
+{
+    return m_message->text(data, retVal);
+}
+
+result_t HttpResponse::text(exlib::string& retVal)
+{
+    return m_message->text(retVal);
+}
+
 result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     return m_message->json(data, retVal);

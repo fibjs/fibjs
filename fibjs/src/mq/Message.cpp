@@ -120,6 +120,34 @@ result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return m_body->write(data, retVal, ac);
 }
 
+result_t Message::text(exlib::string data, exlib::string& retVal)
+{
+    m_body = new MemoryStream();
+
+    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
+    int32_t len;
+    return m_body->ac_write(buf, len);
+}
+
+result_t Message::text(exlib::string& retVal)
+{
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+
+    m_body->rewind();
+    hr = m_body->ac_readAll(data);
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL)
+        return CALL_RETURN_NULL;
+
+    return data->toString(retVal);
+}
+
 result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     m_body = new MemoryStream();

@@ -52,6 +52,17 @@ interface Message : object
      */
     Integer write(Buffer data) async;
 
+    /*! @brief 写入给定的文本数据
+     @param data 给定要写入的数据
+     @return 此方法不会返回数据
+     */
+    String text(String data);
+
+    /*! @brief 以文本编码解析消息中的数据
+     @return 返回解析的结果
+     */
+    String text();
+
     /*! @brief 以 JSON 编码写入给定的数据
      @param data 给定要写入的数据
      @return 此方法不会返回数据

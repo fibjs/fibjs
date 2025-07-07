@@ -135,6 +135,23 @@ result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
     return Message::get_data(retVal);
 }
 
+result_t HttpMessage::text(exlib::string data, exlib::string& retVal)
+{
+    return Message::text(data, retVal);
+}
+
+result_t HttpMessage::text(exlib::string& retVal)
+{
+    exlib::string strType;
+
+    if (firstHeader("Content-Type", strType) != CALL_RETURN_NULL) {
+        if (strType.find("text") == exlib::string::npos)
+            return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
+    }
+
+    return Message::text(retVal);
+}
+
 result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     setHeader("Content-Type", "application/json");

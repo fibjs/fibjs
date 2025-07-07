@@ -43,6 +43,8 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t text(exlib::string data, exlib::string& retVal) = 0;
+    virtual result_t text(exlib::string& retVal) = 0;
     virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
@@ -75,6 +77,7 @@ public:
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_text(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -107,6 +110,7 @@ inline ClassInfo& Message_base::class_info()
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
+        { "text", s_text, false, ClassData::ASYNC_SYNC },
         { "json", s_json, false, ClassData::ASYNC_SYNC },
         { "pack", s_pack, false, ClassData::ASYNC_SYNC },
         { "end", s_end, false, ClassData::ASYNC_SYNC },
@@ -353,6 +357,26 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->acb_write(v0, cb, args);
     else
         hr = pInst->ac_write(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->text(v0, vr);
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->text(vr);
 
     METHOD_RETURN();
 }

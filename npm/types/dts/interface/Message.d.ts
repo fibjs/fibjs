@@ -81,6 +81,21 @@ declare class Class_Message extends Class_object {
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
+     * @description 写入给定的文本数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    text(data: string): string;
+
+    /**
+     * @description 以文本编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    text(): string;
+
+    /**
      * @description 以 JSON 编码写入给定的数据
      *      @param data 给定要写入的数据
      *      @return 此方法不会返回数据

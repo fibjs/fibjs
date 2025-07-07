@@ -900,6 +900,44 @@ describe("http", () => {
         });
     });
 
+    it('text', () => {
+        var v = "hello world";
+
+        var req = new http.Request();
+
+        // test setting text content (doesn't force content-type)
+        req.text(v);
+        assert.equal(req.data, v);
+
+        // test reading text with text/plain content-type
+        req.setHeader('Content-Type', "text/plain");
+        assert.equal(req.text(), v);
+
+        // test reading text with text/html content-type
+        req.setHeader('Content-Type', "text/html");
+        assert.equal(req.text(), v);
+
+        // test reading text with charset
+        req.setHeader('Content-Type', "text/plain; charset=utf-8");
+        assert.equal(req.text(), v);
+
+        // test reading text with wrong content-type should throw
+        req.setHeader('Content-Type', "application/json");
+        assert.throws(() => {
+            req.text();
+        });
+
+        var rep = new http.Response();
+
+        // test setting text content
+        rep.text(v);
+        assert.equal(rep.data, v);
+
+        // test reading text
+        rep.setHeader('Content-Type', "text/plain");
+        assert.equal(rep.text(), v);
+    });
+
     it('json', () => {
         var v = {
             a: 100
