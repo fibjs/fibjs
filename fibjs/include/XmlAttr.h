@@ -9,6 +9,7 @@
 
 #include "ifs/XmlAttr.h"
 #include "XmlNodeImpl.h"
+#include "qstring.h"
 
 namespace fibjs {
 
@@ -75,10 +76,7 @@ public:
         return (m_namespaceURI == namespaceURI) && (m_localName == localName);
     }
 
-    bool check(exlib::string name)
-    {
-        return (m_name == name);
-    }
+    bool check(exlib::string name);
 
     bool check(const XmlAttr* from)
     {

@@ -256,9 +256,6 @@ result_t XmlElement::set_id(exlib::string newVal)
 
 result_t XmlElement::get_innerHTML(exlib::string& retVal)
 {
-    if (m_isXml)
-        return CALL_E_INVALID_CALL;
-
     if (m_childs->hasChildNodes())
         m_childs->toString(retVal);
 
@@ -267,27 +264,49 @@ result_t XmlElement::get_innerHTML(exlib::string& retVal)
 
 result_t XmlElement::set_innerHTML(exlib::string newVal)
 {
-    if (m_isXml)
-        return CALL_E_INVALID_CALL;
-
     result_t hr;
 
     m_childs->removeAll();
 
-    obj_ptr<XmlDocument> doc = new XmlDocument(false);
-    hr = doc->load(newVal);
-    if (hr < 0)
-        return hr;
+    if (newVal.empty())
+        return 0;
 
-    obj_ptr<XmlElement_base> body;
-    hr = doc->get_body(body);
-    if (hr != 0)
-        return hr;
+    if (m_isXml) {
+        // For XML documents, wrap content in a root element for parsing
+        exlib::string wrappedContent = "<root>" + newVal + "</root>";
+        obj_ptr<XmlDocument> doc = new XmlDocument(true);
+        hr = doc->load(wrappedContent);
+        if (hr < 0)
+            return hr;
 
-    obj_ptr<XmlNode_base> node;
-    obj_ptr<XmlNode_base> out;
-    while (body->get_firstChild(node) == 0)
-        appendChild(node, out);
+        // Move children from document element's root
+        obj_ptr<XmlElement_base> docElement;
+        hr = doc->get_documentElement(docElement);
+        if (hr == 0 && docElement) {
+            obj_ptr<XmlNode_base> node;
+            obj_ptr<XmlNode_base> out;
+            while (docElement->get_firstChild(node) == 0) {
+                appendChild(node, out);
+            }
+        }
+    } else {
+        // For HTML documents, parse as HTML
+        obj_ptr<XmlDocument> doc = new XmlDocument(false);
+        hr = doc->load(newVal);
+        if (hr < 0)
+            return hr;
+
+        // Move children from body element
+        obj_ptr<XmlElement_base> body;
+        hr = doc->get_body(body);
+        if (hr == 0 && body) {
+            obj_ptr<XmlNode_base> node;
+            obj_ptr<XmlNode_base> out;
+            while (body->get_firstChild(node) == 0) {
+                appendChild(node, out);
+            }
+        }
+    }
 
     return 0;
 }
@@ -357,6 +376,10 @@ result_t XmlElement::getAttributeNodeNS(exlib::string namespaceURI, exlib::strin
 
 result_t XmlElement::setAttribute(exlib::string name, exlib::string value)
 {
+    // In HTML mode, normalize attribute names to lowercase
+    if (!m_isXml)
+        exlib::qstrlwr(name);
+
     obj_ptr<XmlAttr> attr = new XmlAttr(this, name, value);
     obj_ptr<XmlAttr_base> retVal;
     return m_attrs->setNamedItem(attr, retVal);

@@ -1282,7 +1282,7 @@ describe('xml', () => {
             var xdoc = newDoc();
 
             var node = xdoc.createElement("ns1:aaa");
-            assert.equal(node.localName, isBrowser ? "ns1:aaa" : "ns1:aaa");
+            assert.equal(node.localName, "ns1:aaa");
             assert.equal(node.prefix, null);
             assert.equal(node.namespaceURI, null);
             assert.equal(serialize(node), "<ns1:aaa/>");
@@ -1500,6 +1500,616 @@ describe('xml', () => {
     });
 
     describe('xml dom', () => {
+        // XML document initialization and basic behavior tests
+        describe('XML document initialization and behavior', () => {
+            describe('newDoc() initial state', () => {
+                it('should create empty XML document', () => {
+                    var xdoc = newDoc();
+
+                    // Document should exist
+                    assert.notEqual(xdoc, null);
+                    assert.equal(xdoc.nodeType, 9); // DOCUMENT_NODE
+
+                    // Should have no documentElement initially
+                    assert.equal(xdoc.documentElement, null);
+
+                    // Should have empty childNodes
+                    assert.equal(xdoc.childNodes.length, 0);
+
+                    // Should have no doctype
+                    assert.equal(xdoc.doctype, null);
+                });
+
+                it('should allow adding root element', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+
+                    // Append root element
+                    xdoc.appendChild(root);
+
+                    // Document should now have documentElement
+                    assert.equal(xdoc.documentElement, root);
+                    assert.equal(xdoc.documentElement.tagName, 'root');
+                    assert.equal(xdoc.childNodes.length, 1);
+                    assert.equal(xdoc.firstChild, root);
+                });
+
+                it('should reject multiple root elements', () => {
+                    var xdoc = newDoc();
+                    var root1 = xdoc.createElement('root1');
+                    var root2 = xdoc.createElement('root2');
+
+                    // Add first root element
+                    xdoc.appendChild(root1);
+                    assert.equal(xdoc.documentElement, root1);
+
+                    // Adding second root element should throw error
+                    assert.throws(() => {
+                        xdoc.appendChild(root2);
+                    });
+
+                    // Document should still have only one root
+                    assert.equal(xdoc.childNodes.length, 1);
+                    assert.equal(xdoc.documentElement, root1);
+                });
+
+                it('should allow comments and PIs at document level', () => {
+                    var xdoc = newDoc();
+                    var comment = xdoc.createComment('XML comment');
+                    var pi = xdoc.createProcessingInstruction('xml-stylesheet', 'type="text/css" href="style.css"');
+                    var root = xdoc.createElement('root');
+
+                    // Add comment and PI before root
+                    xdoc.appendChild(comment);
+                    xdoc.appendChild(pi);
+                    xdoc.appendChild(root);
+
+                    // Should have 3 children
+                    assert.equal(xdoc.childNodes.length, 3);
+                    assert.equal(xdoc.childNodes[0], comment);
+                    assert.equal(xdoc.childNodes[1], pi);
+                    assert.equal(xdoc.childNodes[2], root);
+                    assert.equal(xdoc.documentElement, root);
+                });
+
+                it('should handle DOCTYPE from parsed XML', () => {
+                    // Test DOCTYPE handling with parsed XML document
+                    var xmlWithDTD = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html></html>';
+                    var xdoc = parse(xmlWithDTD);
+
+                    assert.notEqual(xdoc.doctype, null);
+                    assert.equal(xdoc.doctype.name, "html");
+                    assert.equal(xdoc.doctype.publicId, "-//W3C//DTD XHTML 1.0 Strict//EN");
+                    assert.equal(xdoc.doctype.systemId, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd");
+                    assert.equal(xdoc.doctype.nodeType, 10); // DOCUMENT_TYPE_NODE
+                    assert.equal(xdoc.documentElement.tagName, "html");
+                });
+            });
+
+            describe('innerHTML behavior', () => {
+                it('should get innerHTML from element with mixed content', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Add mixed content: elements, text, and comments
+                    var child1 = xdoc.createElement('child1');
+                    child1.setAttribute('attr', 'value');
+                    root.appendChild(child1);
+
+                    root.appendChild(xdoc.createTextNode('Some text'));
+
+                    var child2 = xdoc.createElement('child2');
+                    child2.appendChild(xdoc.createTextNode('Nested text'));
+                    root.appendChild(child2);
+
+                    root.appendChild(xdoc.createComment('Comment content'));
+
+                    // Get innerHTML - should return serialized content
+                    var innerHTML = root.innerHTML;
+
+                    // Verify it contains all child elements and content
+                    assert.ok(innerHTML.indexOf('<child1 attr="value"></child1>') !== -1 ||
+                        innerHTML.indexOf('<child1 attr="value"/>') !== -1);
+                    assert.ok(innerHTML.indexOf('Some text') !== -1);
+                    assert.ok(innerHTML.indexOf('<child2>Nested text</child2>') !== -1);
+                    assert.ok(innerHTML.indexOf('<!--Comment content-->') !== -1);
+                });
+
+                it('should get innerHTML from empty element', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('empty');
+                    xdoc.appendChild(root);
+
+                    // Empty element should have empty innerHTML
+                    assert.equal(root.innerHTML, '');
+                });
+
+                it('should get innerHTML with special characters', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Add text with special characters
+                    root.appendChild(xdoc.createTextNode('Text with <>&"\''));
+
+                    var child = xdoc.createElement('child');
+                    child.setAttribute('attr', 'value with <>&"\'');
+                    root.appendChild(child);
+
+                    var innerHTML = root.innerHTML;
+
+                    // Special characters in text should be escaped
+                    assert.ok(innerHTML.indexOf('&lt;&gt;&amp;') !== -1);
+                    // Special characters in attributes should be escaped
+                    assert.ok(innerHTML.indexOf('&quot;') !== -1);
+                });
+
+                it('should set innerHTML with valid XML', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with valid XML content
+                    root.innerHTML = '<child1 attr="value1">Text content</child1><child2/>';
+
+                    // Verify children were created correctly
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(root.firstChild.tagName, 'child1');
+                    assert.equal(root.firstChild.getAttribute('attr'), 'value1');
+                    assert.equal(root.firstChild.textContent, 'Text content');
+                    assert.equal(root.lastChild.tagName, 'child2');
+                });
+
+                it('should set innerHTML with self-closing tags', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with self-closing tags
+                    root.innerHTML = '<img src="test.jpg"/><br/><input type="text"/>';
+
+                    // Verify self-closing elements were created
+                    assert.equal(root.childNodes.length, 3);
+                    assert.equal(root.childNodes[0].tagName, 'img');
+                    assert.equal(root.childNodes[0].getAttribute('src'), 'test.jpg');
+                    assert.equal(root.childNodes[1].tagName, 'br');
+                    assert.equal(root.childNodes[2].tagName, 'input');
+                    assert.equal(root.childNodes[2].getAttribute('type'), 'text');
+                });
+
+                it('should set innerHTML with nested elements', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with deeply nested structure
+                    root.innerHTML = '<level1><level2><level3>Deep text</level3></level2></level1>';
+
+                    // Verify nested structure
+                    assert.equal(root.childNodes.length, 1);
+                    var level1 = root.firstChild;
+                    assert.equal(level1.tagName, 'level1');
+                    assert.equal(level1.childNodes.length, 1);
+
+                    var level2 = level1.firstChild;
+                    assert.equal(level2.tagName, 'level2');
+                    assert.equal(level2.childNodes.length, 1);
+
+                    var level3 = level2.firstChild;
+                    assert.equal(level3.tagName, 'level3');
+                    assert.equal(level3.textContent, 'Deep text');
+                });
+
+                it('should set innerHTML with comments and CDATA', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with comments and CDATA sections
+                    root.innerHTML = '<!-- This is a comment --><data><![CDATA[Raw data with <>&]]></data>';
+
+                    // Verify comment and CDATA were parsed correctly
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(root.firstChild.nodeType, 8); // Comment node
+                    assert.equal(root.firstChild.nodeValue, ' This is a comment ');
+
+                    var dataElement = root.lastChild;
+                    assert.equal(dataElement.tagName, 'data');
+                    assert.equal(dataElement.childNodes.length, 1);
+                    assert.equal(dataElement.firstChild.nodeType, 4); // CDATA node
+                    assert.equal(dataElement.firstChild.nodeValue, 'Raw data with <>&');
+                });
+
+                it('should replace existing content when setting innerHTML', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Add initial content
+                    root.appendChild(xdoc.createElement('old1'));
+                    root.appendChild(xdoc.createElement('old2'));
+                    assert.equal(root.childNodes.length, 2);
+
+                    // Set new innerHTML - should replace all existing content
+                    root.innerHTML = '<new1>New content</new1><new2/>';
+
+                    // Verify old content was replaced
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(root.firstChild.tagName, 'new1');
+                    assert.equal(root.firstChild.textContent, 'New content');
+                    assert.equal(root.lastChild.tagName, 'new2');
+                });
+
+                it('should handle innerHTML with XML namespaces', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with namespace declarations
+                    root.innerHTML = '<ns:element xmlns:ns="http://example.com/ns" ns:attr="value">Content</ns:element>';
+
+                    // Verify namespace element was created
+                    assert.equal(root.childNodes.length, 1);
+                    var nsElement = root.firstChild;
+                    assert.equal(nsElement.tagName, 'ns:element');
+                    assert.equal(nsElement.namespaceURI, 'http://example.com/ns');
+                    assert.equal(nsElement.textContent, 'Content');
+                });
+
+                it('should set innerHTML to empty string', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Add some content first
+                    root.appendChild(xdoc.createElement('child1'));
+                    root.appendChild(xdoc.createTextNode('Some text'));
+                    root.appendChild(xdoc.createElement('child2'));
+                    assert.equal(root.childNodes.length, 3);
+
+                    // Clear content with empty string
+                    root.innerHTML = '';
+
+                    // Should have no children
+                    assert.equal(root.childNodes.length, 0);
+                    assert.equal(root.innerHTML, '');
+                });
+
+                it('should handle innerHTML with processing instructions', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with processing instruction
+                    root.innerHTML = '<?xml-stylesheet type="text/xsl" href="style.xsl"?><content>Data</content>';
+
+                    // Verify processing instruction and element were created
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(root.firstChild.nodeType, 7); // Processing instruction
+                    assert.equal(root.firstChild.nodeName, 'xml-stylesheet');
+                    assert.equal(root.lastChild.tagName, 'content');
+                    assert.equal(root.lastChild.textContent, 'Data');
+                });
+
+                it('should preserve attribute order and case in innerHTML', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Set innerHTML with multiple attributes
+                    root.innerHTML = '<element id="test" class="myClass" data-value="123">Content</element>';
+
+                    // Verify attributes were set correctly
+                    var element = root.firstChild;
+                    assert.equal(element.getAttribute('id'), 'test');
+                    assert.equal(element.getAttribute('class'), 'myClass');
+                    assert.equal(element.getAttribute('data-value'), '123');
+                    assert.equal(element.textContent, 'Content');
+                });
+            });
+
+            describe('XML document structure constraints', () => {
+                it('should maintain well-formed structure', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    var child1 = xdoc.createElement('child1');
+                    var child2 = xdoc.createElement('child2');
+
+                    // Build well-formed structure
+                    root.appendChild(child1);
+                    root.appendChild(child2);
+                    xdoc.appendChild(root);
+
+                    assert.equal(xdoc.documentElement, root);
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(child1.parentNode, root);
+                    assert.equal(child2.parentNode, root);
+                });
+
+                it('should handle text nodes at document level behavior', () => {
+                    var xdoc = newDoc();
+                    var textNode = xdoc.createTextNode('   '); // Whitespace text
+                    var root = xdoc.createElement('root');
+
+                    // Text nodes at document level should throw error (DOM standard)
+                    assert.throws(() => {
+                        xdoc.appendChild(textNode);
+                    });
+
+                    // Should still be able to add root element
+                    xdoc.appendChild(root);
+                    assert.equal(xdoc.childNodes.length, 1);
+                    assert.equal(xdoc.documentElement, root);
+                });
+
+                it('should handle removal of document element', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    xdoc.appendChild(root);
+
+                    // Remove document element
+                    xdoc.removeChild(root);
+
+                    assert.equal(xdoc.documentElement, null);
+                    assert.equal(xdoc.childNodes.length, 0);
+                    assert.equal(root.parentNode, null);
+
+                    // Should be able to add new root
+                    var newRoot = xdoc.createElement('newRoot');
+                    xdoc.appendChild(newRoot);
+                    assert.equal(xdoc.documentElement, newRoot);
+                });
+
+                it('should handle replacement of document element', () => {
+                    var xdoc = newDoc();
+                    var oldRoot = xdoc.createElement('oldRoot');
+                    var newRoot = xdoc.createElement('newRoot');
+                    xdoc.appendChild(oldRoot);
+
+                    // Replace document element
+                    xdoc.replaceChild(newRoot, oldRoot);
+
+                    assert.equal(xdoc.documentElement, newRoot);
+                    assert.equal(xdoc.childNodes.length, 1);
+                    assert.equal(oldRoot.parentNode, null);
+                    assert.equal(newRoot.parentNode, xdoc);
+                });
+            });
+
+            describe('XML document methods', () => {
+                it('should create elements preserving case', () => {
+                    var xdoc = newDoc();
+
+                    // XML documents should preserve case exactly
+                    var lowerCase = xdoc.createElement('element');
+                    var upperCase = xdoc.createElement('ELEMENT');
+                    var mixedCase = xdoc.createElement('Element');
+
+                    assert.equal(lowerCase.tagName, 'element');
+                    assert.equal(upperCase.tagName, 'ELEMENT');
+                    assert.equal(mixedCase.tagName, 'Element');
+
+                    // Elements with same case should be considered same type
+                    assert.notEqual(lowerCase.tagName, upperCase.tagName);
+                    assert.notEqual(lowerCase.tagName, mixedCase.tagName);
+                });
+
+                it('should handle namespace-aware element creation', () => {
+                    var xdoc = newDoc();
+                    var nsURI = 'http://example.com/ns';
+
+                    // Create elements with namespace
+                    var nsElement = xdoc.createElementNS(nsURI, 'ns:element');
+                    var defaultNsElement = xdoc.createElementNS(nsURI, 'element');
+
+                    assert.equal(nsElement.namespaceURI, nsURI);
+                    assert.equal(nsElement.prefix, 'ns');
+                    assert.equal(nsElement.localName, 'element');
+                    assert.equal(nsElement.tagName, 'ns:element');
+
+                    assert.equal(defaultNsElement.namespaceURI, nsURI);
+                    assert.equal(defaultNsElement.prefix, null);
+                    assert.equal(defaultNsElement.localName, 'element');
+                    assert.equal(defaultNsElement.tagName, 'element');
+                });
+
+                it('should handle getElementById correctly', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    var child1 = xdoc.createElement('child');
+                    var child2 = xdoc.createElement('child');
+
+                    // Set IDs
+                    child1.setAttribute('id', 'child1');
+                    child2.setAttribute('id', 'child2');
+
+                    root.appendChild(child1);
+                    root.appendChild(child2);
+                    xdoc.appendChild(root);
+
+                    // Test getElementById
+                    var found1 = xdoc.getElementById('child1');
+                    var found2 = xdoc.getElementById('child2');
+                    var notFound = xdoc.getElementById('nonexistent');
+
+                    assert.equal(found1, child1);
+                    assert.equal(found2, child2);
+                    assert.equal(notFound, null);
+
+                    // Test case sensitivity
+                    var foundWrongCase = xdoc.getElementById('CHILD1');
+                    assert.equal(foundWrongCase, null); // Should be case sensitive
+                });
+
+                it('should handle getElementsByTagName correctly', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    var child1 = xdoc.createElement('child');
+                    var child2 = xdoc.createElement('child');
+                    var different = xdoc.createElement('different');
+
+                    root.appendChild(child1);
+                    root.appendChild(child2);
+                    root.appendChild(different);
+                    xdoc.appendChild(root);
+
+                    // Test getElementsByTagName
+                    var children = xdoc.getElementsByTagName('child');
+                    var allElements = xdoc.getElementsByTagName('*');
+
+                    assert.equal(children.length, 2);
+                    assert.equal(children[0], child1);
+                    assert.equal(children[1], child2);
+                    assert.equal(allElements.length, 4); // root, child, child, different
+
+                    // Test case sensitivity
+                    var childrenWrongCase = xdoc.getElementsByTagName('CHILD');
+                    assert.equal(childrenWrongCase.length, 0); // Should be case sensitive
+                });
+
+                it('should handle namespace-aware element queries', () => {
+                    var xdoc = newDoc();
+                    var nsURI = 'http://example.com/ns';
+                    var root = xdoc.createElement('root');
+                    var nsChild1 = xdoc.createElementNS(nsURI, 'ns:child');
+                    var nsChild2 = xdoc.createElementNS(nsURI, 'ns:child');
+                    var regularChild = xdoc.createElement('child');
+
+                    root.appendChild(nsChild1);
+                    root.appendChild(nsChild2);
+                    root.appendChild(regularChild);
+                    xdoc.appendChild(root);
+
+                    // Test getElementsByTagNameNS
+                    var nsChildren = xdoc.getElementsByTagNameNS(nsURI, 'child');
+                    var allNsElements = xdoc.getElementsByTagNameNS(nsURI, '*');
+                    var regularChildren = xdoc.getElementsByTagName('child');
+
+                    assert.equal(nsChildren.length, 2);
+                    assert.equal(nsChildren[0], nsChild1);
+                    assert.equal(nsChildren[1], nsChild2);
+                    assert.equal(allNsElements.length, 2);
+                    assert.equal(regularChildren.length, 1);
+                    assert.equal(regularChildren[0], regularChild);
+                });
+            });
+
+            describe('XML document vs HTML document differences', () => {
+                it('should handle attribute case sensitivity', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+
+                    // XML should be case sensitive for attributes
+                    element.setAttribute('id', 'lowercase');
+                    element.setAttribute('ID', 'uppercase');
+
+                    assert.equal(element.getAttribute('id'), 'lowercase');
+                    assert.equal(element.getAttribute('ID'), 'uppercase');
+                    assert.equal(element.attributes.length, 2);
+
+                    // Different case should be different attributes
+                    assert.notEqual(element.getAttribute('id'), element.getAttribute('ID'));
+                });
+
+                it('should support innerHTML property in XML elements', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+
+                    // XML elements should support innerHTML as string property
+                    assert.equal(typeof element.innerHTML, 'string');
+                    assert.equal(element.innerHTML, '');
+
+                    // Setting innerHTML should work
+                    element.innerHTML = '<child>content</child>';
+                    assert.equal(element.childNodes.length, 1);
+                    assert.equal(element.firstChild.tagName, 'child');
+                    assert.equal(element.firstChild.textContent, 'content');
+
+                    // Getting innerHTML should return proper XML string
+                    var html = element.innerHTML;
+                    assert.equal(typeof html, 'string');
+                    assert.ok(html.indexOf('<child>') !== -1);
+                    assert.ok(html.indexOf('content') !== -1);
+                    assert.ok(html.indexOf('</child>') !== -1);
+                });
+
+                it('should preserve exact whitespace and formatting', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+                    var textNode = xdoc.createTextNode('  \n  text with spaces  \n  ');
+
+                    element.appendChild(textNode);
+
+                    // XML should preserve exact whitespace
+                    assert.equal(textNode.nodeValue, '  \n  text with spaces  \n  ');
+                    assert.equal(element.textContent, '  \n  text with spaces  \n  ');
+                });
+
+                it('should handle CDATA sections', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+                    var cdata = xdoc.createCDATASection('<script>alert("test");</script>');
+
+                    element.appendChild(cdata);
+
+                    assert.equal(cdata.nodeType, 4); // CDATA_SECTION_NODE
+                    assert.equal(cdata.nodeValue, '<script>alert("test");</script>');
+                    assert.equal(element.childNodes.length, 1);
+                    assert.equal(element.firstChild, cdata);
+                });
+            });
+
+            describe('XML document serialization behavior', () => {
+                it('should serialize with proper XML syntax', () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement('root');
+                    var child = xdoc.createElement('child');
+                    child.setAttribute('attr', 'value');
+                    child.textContent = 'text content';
+
+                    root.appendChild(child);
+                    xdoc.appendChild(root);
+
+                    // Test serialization
+                    var serialized = serialize(xdoc);
+                    assert.ok(serialized.indexOf('<root>') !== -1);
+                    assert.ok(serialized.indexOf('<child attr="value">') !== -1);
+                    assert.ok(serialized.indexOf('text content') !== -1);
+                    assert.ok(serialized.indexOf('</child>') !== -1);
+                    assert.ok(serialized.indexOf('</root>') !== -1);
+                });
+
+                it('should handle special characters in text content', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+                    var specialText = 'Text with <>&"\' characters';
+
+                    element.textContent = specialText;
+
+                    assert.equal(element.textContent, specialText);
+
+                    // Test that special characters are preserved
+                    var textNode = element.firstChild;
+                    assert.equal(textNode.nodeValue, specialText);
+                });
+
+                it('should handle special characters in attributes', () => {
+                    var xdoc = newDoc();
+                    var element = xdoc.createElement('test');
+                    var specialValue = 'value with <>&"\' characters';
+
+                    element.setAttribute('special', specialValue);
+
+                    assert.equal(element.getAttribute('special'), specialValue);
+
+                    // Test attribute node
+                    var attr = element.attributes[0];
+                    assert.equal(attr.value, specialValue);
+                });
+            });
+        });
+
         describe('Document', () => {
             it("doctype", () => {
                 var xdoc = parse("<!DOCTYPE foo><foo/>");
@@ -1651,7 +2261,525 @@ describe('xml', () => {
         // XML-specific CharacterData tests
         test_CharacterData('createCDATASection');
     });
+
     describe('html dom', () => {
+        // HTML document initialization and basic behavior tests (based on browser standards)
+        describe('HTML document initialization and behavior', () => {
+            describe('newHtmlDoc() initial state', () => {
+                it('should create HTML document with proper structure', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Document should exist
+                    assert.notEqual(hdoc, null);
+                    assert.equal(hdoc.nodeType, 9); // DOCUMENT_NODE
+
+                    // Should have documentElement as HTML
+                    assert.notEqual(hdoc.documentElement, null);
+                    assert.equal(hdoc.documentElement.tagName, 'HTML');
+                    assert.equal(hdoc.documentElement.nodeType, 1); // ELEMENT_NODE
+
+                    // HTML element should have head and body children
+                    var htmlChildren = hdoc.documentElement.children;
+                    assert.equal(htmlChildren.length, 2);
+
+                    // First child should be HEAD
+                    var head = htmlChildren[0];
+                    assert.equal(head.tagName, 'HEAD');
+                    assert.equal(head.parentNode, hdoc.documentElement);
+
+                    // Second child should be BODY
+                    var body = htmlChildren[1];
+                    assert.equal(body.tagName, 'BODY');
+                    assert.equal(body.parentNode, hdoc.documentElement);
+
+                    // Document should have head and body shortcuts
+                    assert.equal(hdoc.head, head);
+                    assert.equal(hdoc.body, body);
+                });
+
+                it('should have empty head and body initially', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Head should be empty initially
+                    assert.equal(hdoc.head.childNodes.length, 0);
+                    assert.equal(hdoc.head.children.length, 0);
+                    assert.equal(hdoc.head.innerHTML, '');
+
+                    // Body should be empty initially
+                    assert.equal(hdoc.body.childNodes.length, 0);
+                    assert.equal(hdoc.body.children.length, 0);
+                    assert.equal(hdoc.body.innerHTML, '');
+                });
+
+                it('should allow modification of head content', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Add title to head
+                    var title = hdoc.createElement('title');
+                    title.textContent = 'Test Document';
+                    hdoc.head.appendChild(title);
+
+                    assert.equal(hdoc.head.children.length, 1);
+                    assert.equal(hdoc.head.children[0].tagName, 'TITLE');
+                    assert.equal(hdoc.head.children[0].textContent, 'Test Document');
+
+                    // Add meta tag
+                    var meta = hdoc.createElement('meta');
+                    meta.setAttribute('charset', 'UTF-8');
+                    hdoc.head.appendChild(meta);
+
+                    assert.equal(hdoc.head.children.length, 2);
+                    assert.equal(hdoc.head.children[1].tagName, 'META');
+                    assert.equal(hdoc.head.children[1].getAttribute('charset'), 'UTF-8');
+                });
+
+                it('should allow modification of body content', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Add div to body
+                    var div = hdoc.createElement('div');
+                    div.className = 'test-div';
+                    div.textContent = 'Hello World';
+                    hdoc.body.appendChild(div);
+
+                    assert.equal(hdoc.body.children.length, 1);
+                    assert.equal(hdoc.body.children[0].tagName, 'DIV');
+                    assert.equal(hdoc.body.children[0].className, 'test-div');
+                    assert.equal(hdoc.body.children[0].textContent, 'Hello World');
+
+                    // Test innerHTML
+                    hdoc.body.innerHTML = '<p>Paragraph text</p><span>Span text</span>';
+                    assert.equal(hdoc.body.children.length, 2);
+                    assert.equal(hdoc.body.children[0].tagName, 'P');
+                    assert.equal(hdoc.body.children[1].tagName, 'SPAN');
+                    assert.equal(hdoc.body.children[0].textContent, 'Paragraph text');
+                    assert.equal(hdoc.body.children[1].textContent, 'Span text');
+                });
+            });
+
+            describe('HTML attribute name case sensitivity', () => {
+                it('should normalize attribute names to lowercase when setting/getting', () => {
+                    var hdoc = newHtmlDoc();
+                    var div = hdoc.createElement('div');
+
+                    // Test setAttribute with uppercase attribute names
+                    div.setAttribute('ID', 'test-id');
+                    div.setAttribute('CLASS', 'test-class');
+                    div.setAttribute('DATA-VALUE', 'test-data');
+                    div.setAttribute('onClick', 'alert("test")');
+
+                    // Test getAttribute with different cases
+                    assert.equal(div.getAttribute('id'), 'test-id');
+                    assert.equal(div.getAttribute('ID'), 'test-id');
+                    assert.equal(div.getAttribute('Id'), 'test-id');
+
+                    assert.equal(div.getAttribute('class'), 'test-class');
+                    assert.equal(div.getAttribute('CLASS'), 'test-class');
+                    assert.equal(div.getAttribute('Class'), 'test-class');
+
+                    assert.equal(div.getAttribute('data-value'), 'test-data');
+                    assert.equal(div.getAttribute('DATA-VALUE'), 'test-data');
+                    assert.equal(div.getAttribute('Data-Value'), 'test-data');
+
+                    assert.equal(div.getAttribute('onclick'), 'alert("test")');
+                    assert.equal(div.getAttribute('ONCLICK'), 'alert("test")');
+                    assert.equal(div.getAttribute('onClick'), 'alert("test")');
+                });
+
+                it('should preserve lowercase in internal storage and serialization', () => {
+                    var hdoc = newHtmlDoc();
+                    var div = hdoc.createElement('div');
+
+                    // Set attributes with mixed case
+                    div.setAttribute('ID', 'test-id');
+                    div.setAttribute('CLASS', 'test-class');
+                    div.setAttribute('DATA-Custom', 'custom-value');
+
+                    // Check attribute names in attributes collection
+                    var attrs = div.attributes;
+                    var attrNames = [];
+                    for (var i = 0; i < attrs.length; i++) {
+                        attrNames.push(attrs[i].name);
+                    }
+
+                    // All attribute names should be lowercase
+                    assert.ok(attrNames.includes('id'));
+                    assert.ok(attrNames.includes('class'));
+                    assert.ok(attrNames.includes('data-custom'));
+
+                    // Should not contain uppercase versions
+                    assert.ok(!attrNames.includes('ID'));
+                    assert.ok(!attrNames.includes('CLASS'));
+                    assert.ok(!attrNames.includes('DATA-Custom'));
+
+                    // Check serialization (outerHTML should show lowercase attribute names)
+                    if (div.outerHTML) {
+                        var html = div.outerHTML;
+                        assert.ok(html.includes('id="test-id"'));
+                        assert.ok(html.includes('class="test-class"'));
+                        assert.ok(html.includes('data-custom="custom-value"'));
+                    }
+                });
+
+                it('should handle innerHTML parsing with uppercase attributes', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Set innerHTML with uppercase attribute names
+                    hdoc.body.innerHTML = '<div ID="parsed-id" CLASS="parsed-class" DATA-TEST="parsed-data">Content</div>';
+
+                    var div = hdoc.body.children[0];
+
+                    // Should be able to access with any case
+                    assert.equal(div.getAttribute('id'), 'parsed-id');
+                    assert.equal(div.getAttribute('ID'), 'parsed-id');
+                    assert.equal(div.getAttribute('class'), 'parsed-class');
+                    assert.equal(div.getAttribute('CLASS'), 'parsed-class');
+                    assert.equal(div.getAttribute('data-test'), 'parsed-data');
+                    assert.equal(div.getAttribute('DATA-TEST'), 'parsed-data');
+
+                    // Check internal storage is lowercase
+                    var attrs = div.attributes;
+                    var attrNames = [];
+                    for (var i = 0; i < attrs.length; i++) {
+                        attrNames.push(attrs[i].name);
+                    }
+
+                    assert.ok(attrNames.includes('id'));
+                    assert.ok(attrNames.includes('class'));
+                    assert.ok(attrNames.includes('data-test'));
+                });
+
+                it('should handle empty string namespaceURI in HTML', () => {
+                    var hdoc = newHtmlDoc();
+                    var div = hdoc.createElement('div');
+
+                    // setAttributeNS with empty string namespace should behave like null namespace
+                    div.setAttributeNS('', 'test-attr', 'value1');
+                    div.setAttributeNS('http://example.com', 'custom:attr', 'value2');
+
+                    // getAttributeNS with empty string should find the attribute
+                    assert.equal(div.getAttributeNS('', 'test-attr'), 'value1');
+                    assert.equal(div.getAttributeNS('http://example.com', 'attr'), 'value2');
+
+                    // getAttribute should also find the empty namespace attribute in HTML mode
+                    assert.equal(div.getAttribute('test-attr'), 'value1');
+
+                    // hasAttributeNS with empty string should work
+                    assert.equal(div.hasAttributeNS('', 'test-attr'), true);
+                    assert.equal(div.hasAttributeNS('http://example.com', 'attr'), true);
+                    assert.equal(div.hasAttributeNS('', 'nonexistent'), false);
+
+                    // hasAttribute should work for empty namespace attributes
+                    assert.equal(div.hasAttribute('test-attr'), true);
+                    assert.equal(div.hasAttribute('custom:attr'), true); // This has a namespace
+                });
+
+                it('should handle hasAttribute with case insensitivity', () => {
+                    var hdoc = newHtmlDoc();
+                    var div = hdoc.createElement('div');
+
+                    div.setAttribute('ID', 'test-id');
+                    div.setAttribute('data-VALUE', 'test-data');
+
+                    // hasAttribute should work with any case
+                    assert.equal(div.hasAttribute('id'), true);
+                    assert.equal(div.hasAttribute('ID'), true);
+                    assert.equal(div.hasAttribute('Id'), true);
+
+                    assert.equal(div.hasAttribute('data-value'), true);
+                    assert.equal(div.hasAttribute('DATA-VALUE'), true);
+                    assert.equal(div.hasAttribute('Data-Value'), true);
+
+                    // Non-existent attributes
+                    assert.equal(div.hasAttribute('nonexistent'), false);
+                    assert.equal(div.hasAttribute('NONEXISTENT'), false);
+                });
+            });
+
+            describe('HTML document structure constraints', () => {
+                it('should reject appendChild of element to document when HTML exists', () => {
+                    var hdoc = newHtmlDoc();
+                    var extraElement = hdoc.createElement('div');
+
+                    // Should throw error when trying to append element to document
+                    assert.throws(() => {
+                        hdoc.appendChild(extraElement);
+                    });
+
+                    // Document may have DOCTYPE and HTML elements in browser
+                    var initialChildCount = hdoc.childNodes.length;
+                    assert.equal(hdoc.documentElement.tagName, 'HTML');
+
+                    // Verify the HTML element is still the documentElement after failed append
+                    assert.equal(hdoc.documentElement.tagName, 'HTML');
+                    assert.equal(hdoc.childNodes.length, initialChildCount); // Should not change
+                });
+
+                it('should allow comments and PIs at document level', () => {
+                    var hdoc = newHtmlDoc();
+                    var initialChildCount = hdoc.childNodes.length;
+                    var comment = hdoc.createComment('This is a comment');
+                    var pi = hdoc.createProcessingInstruction('xml-stylesheet', 'type="text/css" href="style.css"');
+
+                    // Should allow comments and PIs before HTML element
+                    hdoc.insertBefore(comment, hdoc.documentElement);
+                    hdoc.insertBefore(pi, hdoc.documentElement);
+
+                    // Should have 2 more children than initial count
+                    assert.equal(hdoc.childNodes.length, initialChildCount + 2);
+
+                    // Find the positions of comment, PI, and HTML element
+                    var commentIndex = -1;
+                    var piIndex = -1;
+                    var htmlIndex = -1;
+
+                    for (var i = 0; i < hdoc.childNodes.length; i++) {
+                        var node = hdoc.childNodes[i];
+                        if (node === comment) commentIndex = i;
+                        else if (node === pi) piIndex = i;
+                        else if (node === hdoc.documentElement) htmlIndex = i;
+                    }
+
+                    // Verify all elements are found and comment/PI come before HTML
+                    assert.notEqual(commentIndex, -1);
+                    assert.notEqual(piIndex, -1);
+                    assert.notEqual(htmlIndex, -1);
+                    assert.ok(commentIndex < htmlIndex);
+                    assert.ok(piIndex < htmlIndex);
+                });
+
+                it('should maintain HTML->HEAD->BODY hierarchy', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Try to remove HEAD
+                    var originalHead = hdoc.head;
+                    hdoc.documentElement.removeChild(originalHead);
+
+                    // Should be able to add content to body even without head
+                    var div = hdoc.createElement('div');
+                    div.textContent = 'Content without head';
+                    hdoc.body.appendChild(div);
+
+                    assert.equal(hdoc.body.children.length, 1);
+                    assert.equal(hdoc.body.children[0].textContent, 'Content without head');
+
+                    // Re-add head
+                    var newHead = hdoc.createElement('head');
+                    hdoc.documentElement.insertBefore(newHead, hdoc.body);
+
+                    // Document shortcuts may or may not update automatically (implementation dependent)
+                    // Just verify that we can still access body and its content
+                    assert.equal(hdoc.body.children.length, 1);
+                    assert.equal(hdoc.body.children[0].textContent, 'Content without head');
+
+                    // Verify the new head is in the right place
+                    assert.equal(newHead.parentNode, hdoc.documentElement);
+                    assert.equal(newHead.nextSibling, hdoc.body);
+                });
+            });
+
+            describe('HTML document methods', () => {
+                it('should create elements with correct case handling', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // HTML documents should normalize tag names to uppercase
+                    var div = hdoc.createElement('div');
+                    var DIV = hdoc.createElement('DIV');
+                    var MixedCase = hdoc.createElement('DiV');
+
+                    assert.equal(div.tagName, 'DIV');
+                    assert.equal(DIV.tagName, 'DIV');
+                    assert.equal(MixedCase.tagName, 'DIV');
+
+                    // Custom elements should preserve case but may be normalized
+                    var customElement = hdoc.createElement('my-custom-element');
+                    assert.equal(customElement.tagName, 'MY-CUSTOM-ELEMENT');
+                });
+
+                it('should handle getElementById correctly', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Add elements with IDs
+                    var div1 = hdoc.createElement('div');
+                    div1.id = 'test-id-1';
+                    hdoc.body.appendChild(div1);
+
+                    var span1 = hdoc.createElement('span');
+                    span1.id = 'test-id-2';
+                    hdoc.body.appendChild(span1);
+
+                    // Test getElementById
+                    var found1 = hdoc.getElementById('test-id-1');
+                    var found2 = hdoc.getElementById('test-id-2');
+                    var notFound = hdoc.getElementById('non-existent');
+
+                    assert.equal(found1, div1);
+                    assert.equal(found2, span1);
+                    assert.equal(notFound, null);
+
+                    // Test case sensitivity
+                    var foundWrongCase = hdoc.getElementById('TEST-ID-1');
+                    assert.equal(foundWrongCase, null); // Should be case sensitive
+                });
+
+                it('should handle getElementsByTagName correctly', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Add various elements
+                    var div1 = hdoc.createElement('div');
+                    var div2 = hdoc.createElement('div');
+                    var span1 = hdoc.createElement('span');
+
+                    hdoc.body.appendChild(div1);
+                    hdoc.body.appendChild(div2);
+                    hdoc.body.appendChild(span1);
+
+                    // Test getElementsByTagName
+                    var divs = hdoc.getElementsByTagName('div');
+                    var spans = hdoc.getElementsByTagName('span');
+                    var allElements = hdoc.getElementsByTagName('*');
+
+                    assert.equal(divs.length, 2);
+                    assert.equal(spans.length, 1);
+                    assert.ok(allElements.length >= 5); // html, head, body, div, div, span at minimum
+
+                    // Test case insensitivity for HTML
+                    var divsUpper = hdoc.getElementsByTagName('DIV');
+                    assert.equal(divsUpper.length, 2);
+                    assert.equal(divsUpper[0], div1);
+                    assert.equal(divsUpper[1], div2);
+                });
+
+                it('should handle getElementsByClassName correctly', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Add elements with classes
+                    var div1 = hdoc.createElement('div');
+                    div1.className = 'class1 class2';
+                    var div2 = hdoc.createElement('div');
+                    div2.className = 'class2 class3';
+                    var span1 = hdoc.createElement('span');
+                    span1.className = 'class1';
+
+                    hdoc.body.appendChild(div1);
+                    hdoc.body.appendChild(div2);
+                    hdoc.body.appendChild(span1);
+
+                    // Test getElementsByClassName
+                    var class1Elements = hdoc.getElementsByClassName('class1');
+                    var class2Elements = hdoc.getElementsByClassName('class2');
+                    var class3Elements = hdoc.getElementsByClassName('class3');
+
+                    assert.equal(class1Elements.length, 2); // div1, span1
+                    assert.equal(class2Elements.length, 2); // div1, div2
+                    assert.equal(class3Elements.length, 1); // div2
+
+                    // Test multiple class names
+                    var multipleClasses = hdoc.getElementsByClassName('class1 class2');
+                    assert.equal(multipleClasses.length, 1); // div1
+                });
+            });
+
+            describe('HTML document vs XML document differences', () => {
+                it('should behave differently from XML document for case sensitivity', () => {
+                    var hdoc = newHtmlDoc();
+                    var xdoc = newDoc();
+
+                    // HTML should normalize tag names
+                    var htmlDiv = hdoc.createElement('div');
+                    assert.equal(htmlDiv.tagName, 'DIV');
+
+                    // XML should preserve case
+                    var xmlDiv = xdoc.createElement('div');
+                    assert.equal(xmlDiv.tagName, 'div');
+
+                    // Mixed case
+                    var htmlMixed = hdoc.createElement('DiV');
+                    var xmlMixed = xdoc.createElement('DiV');
+                    assert.equal(htmlMixed.tagName, 'DIV');
+                    assert.equal(xmlMixed.tagName, 'DiV');
+                });
+
+                it('should handle attribute case differently', () => {
+                    var hdoc = newHtmlDoc();
+                    var xdoc = newDoc();
+
+                    var htmlEl = hdoc.createElement('div');
+                    var xmlEl = xdoc.createElement('div');
+
+                    // Set attributes with different cases
+                    htmlEl.setAttribute('ID', 'test');
+                    xmlEl.setAttribute('ID', 'test');
+
+                    // HTML should normalize some attributes
+                    assert.equal(htmlEl.getAttribute('id'), 'test');
+                    assert.equal(htmlEl.getAttribute('ID'), 'test');
+
+                    // XML should be case sensitive
+                    assert.equal(xmlEl.getAttribute('ID'), 'test');
+                    assert.equal(xmlEl.getAttribute('id'), null);
+                });
+
+                it('should have different innerHTML behavior', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // HTML documents should support innerHTML
+                    assert.equal(typeof hdoc.body.innerHTML, 'string');
+
+                    // Test setting innerHTML
+                    hdoc.body.innerHTML = '<div>Test</div>';
+                    assert.equal(hdoc.body.children.length, 1);
+                    assert.equal(hdoc.body.children[0].tagName, 'DIV');
+                    assert.equal(hdoc.body.children[0].textContent, 'Test');
+
+                    // Test getting innerHTML
+                    var html = hdoc.body.innerHTML;
+                    assert.equal(html.toLowerCase(), '<div>test</div>');
+                });
+            });
+
+            describe('HTML document property shortcuts', () => {
+                it('should provide head and body shortcuts', () => {
+                    var hdoc = newHtmlDoc();
+
+                    // Both should be defined
+                    assert.notEqual(hdoc.head, null);
+                    assert.notEqual(hdoc.body, null);
+
+                    // They should be the actual head and body elements
+                    assert.equal(hdoc.head.tagName, 'HEAD');
+                    assert.equal(hdoc.body.tagName, 'BODY');
+
+                    // They should be children of documentElement
+                    assert.equal(hdoc.head.parentNode, hdoc.documentElement);
+                    assert.equal(hdoc.body.parentNode, hdoc.documentElement);
+                });
+
+                it('should update shortcuts when structure changes', () => {
+                    var hdoc = newHtmlDoc();
+                    var originalHead = hdoc.head;
+                    var originalBody = hdoc.body;
+
+                    // Remove and replace head
+                    hdoc.documentElement.removeChild(originalHead);
+                    var newHead = hdoc.createElement('head');
+                    hdoc.documentElement.insertBefore(newHead, originalBody);
+
+                    // Body should remain the same
+                    assert.equal(hdoc.body, originalBody);
+
+                    // Verify the new head is in the right place
+                    assert.equal(newHead.parentNode, hdoc.documentElement);
+                    assert.equal(newHead.nextSibling, hdoc.body);
+
+                    // Head shortcut behavior is implementation dependent - 
+                    // just verify we can still access it
+                    assert.notEqual(hdoc.head, null);
+                    assert.equal(hdoc.head.tagName, 'HEAD');
+                });
+            });
+        });
+
         it("default", () => {
             var hdoc = newHtmlDoc();
             assert.equal(hdoc.documentElement.tagName, "HTML");

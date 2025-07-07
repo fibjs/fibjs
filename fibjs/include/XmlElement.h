@@ -300,8 +300,10 @@ public:
 
     void fix_prefix(exlib::string namespaceURI, exlib::string& prefix);
 
-private:
+public:
     bool m_isXml;
+
+private:
     exlib::string m_tagName;
     exlib::string m_localName;
     exlib::string m_prefix;

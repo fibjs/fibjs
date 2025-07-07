@@ -52,28 +52,8 @@ describe('querySelector', () => {
     beforeEach(() => {
         // Create test document structure for each test - use HTML document for consistent behavior
         testDoc = newHtmlDoc();
-        if (isBrowser) {
-            rootElement = testDoc.body;
-            rootElement.innerHTML = '';
-        } else {
-            // For fibjs HTML documents, we need to create body element if it doesn't exist
-            if (!testDoc.body) {
-                // Create basic HTML structure
-                if (!testDoc.documentElement) {
-                    const html = testDoc.createElement('html');
-                    testDoc.appendChild(html);
-                }
-                if (!testDoc.body) {
-                    const body = testDoc.createElement('body');
-                    testDoc.documentElement.appendChild(body);
-                }
-            }
-            rootElement = testDoc.body;
-            // Clear any existing content
-            while (rootElement.firstChild) {
-                rootElement.removeChild(rootElement.firstChild);
-            }
-        }
+        rootElement = testDoc.body;
+        rootElement.innerHTML = '';
     });
 
     // Helper function to create test DOM structure

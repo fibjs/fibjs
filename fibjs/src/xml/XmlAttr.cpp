@@ -172,4 +172,13 @@ result_t XmlAttr::toString(exlib::string& retVal)
 
     return 0;
 }
+
+bool XmlAttr::check(exlib::string name)
+{
+    // In HTML mode, perform case-insensitive comparison for namespace-less attributes
+    if (m_owner && !m_owner->m_isXml && m_namespaceURI.empty())
+        return !qstricmp(m_name.c_str(), name.c_str());
+    return (m_name == name);
+}
+
 }
