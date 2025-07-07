@@ -24,6 +24,8 @@ public:
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
 
 public:
     // MySQL_base

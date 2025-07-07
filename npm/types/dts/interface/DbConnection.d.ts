@@ -36,6 +36,27 @@ declare class Class_DbConnection extends Class_object {
     use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 获取当前数据库中所有表的信息
+     * 
+     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      
+     */
+    getTables(): any[];
+
+    getTables(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 获取指定表的详细信息
+     * 
+     *      @param tableName 指定要查询的表名
+     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      
+     */
+    getTableInfo(tableName: string): any[];
+
+    getTableInfo(tableName: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
      * @description 在当前数据库连接上启动一个事务
      *     
      *      @param point 指定事务的名称，缺省不指定

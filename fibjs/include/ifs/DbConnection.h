@@ -23,6 +23,8 @@ public:
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t use(exlib::string dbName, AsyncEvent* ac) = 0;
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t begin(exlib::string point, AsyncEvent* ac) = 0;
     virtual result_t commit(exlib::string point, AsyncEvent* ac) = 0;
     virtual result_t rollback(exlib::string point, AsyncEvent* ac) = 0;
@@ -48,6 +50,8 @@ public:
     static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_use(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getTables(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getTableInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -58,6 +62,8 @@ public:
 public:
     ASYNC_MEMBER0(DbConnection_base, close);
     ASYNC_MEMBER1(DbConnection_base, use, exlib::string);
+    ASYNC_MEMBERVALUE1(DbConnection_base, getTables, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE2(DbConnection_base, getTableInfo, exlib::string, obj_ptr<NArray>);
     ASYNC_MEMBER1(DbConnection_base, begin, exlib::string);
     ASYNC_MEMBER1(DbConnection_base, commit, exlib::string);
     ASYNC_MEMBER1(DbConnection_base, rollback, exlib::string);
@@ -72,6 +78,8 @@ inline ClassInfo& DbConnection_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "use", s_use, false, ClassData::ASYNC_ASYNC },
+        { "getTables", s_getTables, false, ClassData::ASYNC_ASYNC },
+        { "getTableInfo", s_getTableInfo, false, ClassData::ASYNC_ASYNC },
         { "begin", s_begin, false, ClassData::ASYNC_ASYNC },
         { "commit", s_commit, false, ClassData::ASYNC_ASYNC },
         { "rollback", s_rollback, false, ClassData::ASYNC_ASYNC },
@@ -139,6 +147,42 @@ inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->ac_use(v0);
 
     METHOD_VOID();
+}
+
+inline void DbConnection_base::s_getTables(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    ASYNC_METHOD_INSTANCE(DbConnection_base);
+    ASYNC_METHOD_ENTER("DbConnection.getTables");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getTables(cb, args);
+    else
+        hr = pInst->ac_getTables(vr);
+
+    METHOD_RETURN();
+}
+
+inline void DbConnection_base::s_getTableInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    ASYNC_METHOD_INSTANCE(DbConnection_base);
+    ASYNC_METHOD_ENTER("DbConnection.getTableInfo");
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getTableInfo(v0, cb, args);
+    else
+        hr = pInst->ac_getTableInfo(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)

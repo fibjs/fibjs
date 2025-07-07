@@ -42,6 +42,16 @@ public:
         return odbc_execute(m_conn, sql, retVal, ac);
     }
 
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    {
+        return odbc_getTables(m_conn, retVal, ac);
+    }
+
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    {
+        return odbc_getTableInfo(m_conn, tableName, retVal, ac);
+    }
+
     virtual result_t begin(exlib::string point, AsyncEvent* ac)
     {
         if (!m_conn)
@@ -124,19 +134,6 @@ public:
         }
 
         *bstr++ = '\'';
-
-        return retVal;
-    }
-
-    static exlib::string escape_binary(Buffer* bin)
-    {
-        exlib::string retVal;
-        exlib::string s;
-
-        bin->hex(s);
-
-        retVal.append("0x", 2);
-        retVal.append(s);
 
         return retVal;
     }

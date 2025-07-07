@@ -82,6 +82,8 @@ private:
         } else if (v->IsNumber() || v->IsNumberObject()
             || v->IsBigInt() || v->IsBigIntObject())
             str.append(isolate->toString(v));
+        else if (v->IsBoolean() || v->IsBooleanObject())
+            str.append(v->BooleanValue(isolate->m_isolate) ? "true" : "false");
         else if (v->IsUndefined() || v->IsNull())
             str.append("NULL", 4);
         else if (v->IsDate())
@@ -307,9 +309,12 @@ public:
 
         bin->hex(s);
 
-        retVal.append("x\'", 2);
-        retVal.append(s);
-        retVal += '\'';
+        if (s.empty()) {
+            retVal.append("''", 2);
+        } else {
+            retVal.append("0x", 2);
+            retVal.append(s);
+        }
 
         return retVal;
     }

@@ -27,6 +27,8 @@ public:
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
 
 public:
     // SQLite_base
@@ -38,6 +40,21 @@ public:
 public:
     result_t open(const char* file);
     int vec_init();
+
+public:
+    static exlib::string escape_binary(Buffer* bin)
+    {
+        exlib::string retVal;
+        exlib::string s;
+
+        bin->hex(s);
+
+        retVal.append("x\'", 2);
+        retVal.append(s);
+        retVal += '\'';
+
+        return retVal;
+    }
 
 private:
     exlib::string m_file;

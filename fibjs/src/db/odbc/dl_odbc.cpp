@@ -141,3 +141,23 @@ SQLRETURN SQL_API SQLGetDiagRecA(SQLSMALLINT HandleType, SQLHANDLE Handle,
     return s_SQLGetDiagRecA(HandleType, Handle, RecNumber, Sqlstate,
         NativeError, MessageText, BufferLength, TextLength);
 }
+
+SQLRETURN SQL_API SQLTables(SQLHSTMT StatementHandle, SQLCHAR* CatalogName,
+    SQLSMALLINT NameLength1, SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
+    SQLCHAR* TableName, SQLSMALLINT NameLength3, SQLCHAR* TableType,
+    SQLSMALLINT NameLength4)
+{
+    odbc_func(SQLTables);
+    return s_SQLTables(StatementHandle, CatalogName, NameLength1,
+        SchemaName, NameLength2, TableName, NameLength3, TableType, NameLength4);
+}
+
+SQLRETURN SQL_API SQLColumns(SQLHSTMT StatementHandle, SQLCHAR* CatalogName,
+    SQLSMALLINT NameLength1, SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
+    SQLCHAR* TableName, SQLSMALLINT NameLength3, SQLCHAR* ColumnName,
+    SQLSMALLINT NameLength4)
+{
+    odbc_func(SQLColumns);
+    return s_SQLColumns(StatementHandle, CatalogName, NameLength1,
+        SchemaName, NameLength2, TableName, NameLength3, ColumnName, NameLength4);
+}

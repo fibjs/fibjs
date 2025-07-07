@@ -430,4 +430,141 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
     return hr;
 }
 
+result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (!conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    SQLRETURN hr;
+    SQLHSTMT stmt;
+
+    hr = SQLAllocStmt(conn, &stmt);
+    if (hr < 0)
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+
+    // Use ODBC SQLTables to get table list - more compatible across different databases
+    hr = SQLTables(stmt, NULL, 0, NULL, 0, NULL, 0, (SQLCHAR*)"TABLE", SQL_NTS);
+    if (hr < 0) {
+        SQLFreeStmt(stmt, SQL_DROP);
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+    }
+
+    obj_ptr<DBResult> res = new DBResult(1);
+    res->setField(0, "name"); // Match SQLite format with 'name' field
+
+    while (true) {
+        hr = SQLFetch(stmt);
+        if (hr == SQL_NO_DATA)
+            break;
+        if (hr < 0) {
+            SQLFreeStmt(stmt, SQL_DROP);
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        }
+
+        SQLLEN len;
+        char tableName[256];
+        hr = SQLGetData(stmt, 3, SQL_C_CHAR, tableName, sizeof(tableName), &len); // Column 3 is TABLE_NAME
+        if (hr >= 0) {
+            res->beginRow();
+            Variant v = exlib::string(tableName, len == SQL_NULL_DATA ? 0 : len);
+            res->rowValue(0, v);
+            res->endRow();
+        }
+    }
+
+    SQLFreeStmt(stmt, SQL_DROP);
+    retVal = res;
+    return 0;
+}
+
+result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (!conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    SQLRETURN hr;
+    SQLHSTMT stmt;
+
+    hr = SQLAllocStmt(conn, &stmt);
+    if (hr < 0)
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+
+    // Use ODBC SQLColumns to get column information - more compatible across different databases
+    hr = SQLColumns(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tableName.c_str(), SQL_NTS, NULL, 0);
+    if (hr < 0) {
+        SQLFreeStmt(stmt, SQL_DROP);
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+    }
+
+    obj_ptr<DBResult> res = new DBResult(5);
+    res->setField(0, "column_name");
+    res->setField(1, "data_type");
+    res->setField(2, "character_maximum_length");
+    res->setField(3, "is_nullable");
+    res->setField(4, "column_default");
+
+    while (true) {
+        hr = SQLFetch(stmt);
+        if (hr == SQL_NO_DATA)
+            break;
+        if (hr < 0) {
+            SQLFreeStmt(stmt, SQL_DROP);
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        }
+
+        res->beginRow();
+
+        // Column 4: COLUMN_NAME
+        SQLLEN len;
+        char columnName[256];
+        hr = SQLGetData(stmt, 4, SQL_C_CHAR, columnName, sizeof(columnName), &len);
+        Variant v1 = (hr >= 0 && len != SQL_NULL_DATA) ? exlib::string(columnName, len) : exlib::string("");
+        res->rowValue(0, v1);
+
+        // Column 6: TYPE_NAME
+        char typeName[256];
+        hr = SQLGetData(stmt, 6, SQL_C_CHAR, typeName, sizeof(typeName), &len);
+        Variant v2 = (hr >= 0 && len != SQL_NULL_DATA) ? exlib::string(typeName, len) : exlib::string("");
+        res->rowValue(1, v2);
+
+        // Column 7: COLUMN_SIZE
+        int32_t columnSize;
+        hr = SQLGetData(stmt, 7, SQL_C_LONG, &columnSize, sizeof(columnSize), &len);
+        Variant v3;
+        if (hr >= 0 && len != SQL_NULL_DATA)
+            v3 = columnSize;
+        else
+            v3.setNull();
+        res->rowValue(2, v3);
+
+        // Column 11: NULLABLE
+        int32_t nullable;
+        hr = SQLGetData(stmt, 11, SQL_C_LONG, &nullable, sizeof(nullable), &len);
+        Variant v4 = (hr >= 0 && len != SQL_NULL_DATA && nullable == SQL_NULLABLE) ? exlib::string("YES") : exlib::string("NO");
+        res->rowValue(3, v4);
+
+        // Column 13: COLUMN_DEF
+        char columnDefault[256];
+        hr = SQLGetData(stmt, 13, SQL_C_CHAR, columnDefault, sizeof(columnDefault), &len);
+        Variant v5;
+        if (hr >= 0 && len != SQL_NULL_DATA)
+            v5 = exlib::string(columnDefault, len);
+        else
+            v5.setNull();
+        res->rowValue(4, v5);
+
+        res->endRow();
+    }
+
+    SQLFreeStmt(stmt, SQL_DROP);
+    retVal = res;
+    return 0;
+}
+
 } /* namespace fibjs */

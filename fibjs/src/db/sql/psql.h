@@ -42,6 +42,16 @@ public:
         return odbc_execute(m_conn, sql, retVal, ac);
     }
 
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    {
+        return odbc_getTables(m_conn, retVal, ac);
+    }
+
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    {
+        return odbc_getTableInfo(m_conn, tableName, retVal, ac);
+    }
+
 public:
     static exlib::string escape_binary(Buffer* bin)
     {

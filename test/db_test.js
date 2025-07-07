@@ -98,10 +98,7 @@ describe("db", () => {
             it('binary', () => {
                 var v = new Buffer('0123456789abcdef');
                 var rs = conn.execute('select ? as v', v);
-                if (conn.type == 'mysql')
-                    assert.equal(rs[0].v, v.toString());
-                else
-                    assert.deepEqual(rs[0].v, v);
+                assert.deepEqual(rs[0].v, v);
             });
 
             it('date', () => {
@@ -116,7 +113,7 @@ describe("db", () => {
             it('typed array', () => {
                 var v = new Uint8Array([1, 2, 3]);
                 var rs = conn.execute('select ? as v', v);
-                assert.deepEqual(rs[0].v, v);
+                assert.deepEqual(rs[0].v, Buffer.from(v));
             });
 
             it('array buffer', () => {
@@ -435,9 +432,396 @@ describe("db", () => {
             assert.equal(a, 1);
         });
 
+        describe("schema operations", () => {
+            it("getTables", () => {
+                var tables = conn.getTables();
+                assert.isArray(tables);
+                assert.greaterThan(tables.length, 0);
+
+                // Check that our test tables are in the list
+                var tableNames = tables.map(t => t.name);
+                assert.notEqual(tableNames.indexOf('test'), -1);
+                assert.notEqual(tableNames.indexOf('test2'), -1);
+                assert.notEqual(tableNames.indexOf('test3'), -1);
+
+                if (conn.type != 'mssql') {
+                    assert.notEqual(tableNames.indexOf('test_null'), -1);
+                }
+            });
+
+            it("getTableInfo", () => {
+                var columns = conn.getTableInfo('test');
+                assert.isArray(columns);
+                assert.greaterThan(columns.length, 0);
+
+                // Check column names exist
+                var columnNames = columns.map(c => c.column_name);
+                assert.notEqual(columnNames.indexOf('t0'), -1);
+                assert.notEqual(columnNames.indexOf('t1'), -1);
+                assert.notEqual(columnNames.indexOf('t2'), -1);
+                assert.notEqual(columnNames.indexOf('t3'), -1);
+                assert.notEqual(columnNames.indexOf('t4'), -1);
+
+                // Check each column has expected properties
+                columns.forEach(col => {
+                    assert.ok(col.hasOwnProperty('column_name'));
+                    assert.ok(col.hasOwnProperty('data_type'));
+                    assert.ok(col.hasOwnProperty('is_nullable'));
+
+                    assert.equal(typeof col.column_name, 'string');
+                    assert.equal(typeof col.data_type, 'string');
+                    assert.equal(typeof col.is_nullable, 'string');
+                });
+            });
+
+            it("getTableInfo for non-existent table", () => {
+                var columns = conn.getTableInfo('non_existent_table');
+                assert.isArray(columns);
+                assert.equal(columns.length, 0);
+            });
+        });
+
         switch (type) {
             case 'mysql':
+                // Test MySQL specific data types and return values
+                it("MySQL data types", () => {
+                    // Drop table if exists
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_mysql_types');
+                    } catch (e) {
+                        // ignore
+                    }
+
+                    // Create table with different MySQL data types
+                    conn.execute(`
+                        CREATE TABLE test_mysql_types (
+                            id INT PRIMARY KEY,
+                            text_col TEXT,
+                            longtext_col LONGTEXT,
+                            blob_col BLOB,
+                            binary_col BINARY(10),
+                            varbinary_col VARBINARY(50),
+                            varchar_col VARCHAR(255),
+                            char_col CHAR(10),
+                            tinytext_col TINYTEXT,
+                            mediumtext_col MEDIUMTEXT,
+                            tinyblob_col TINYBLOB,
+                            mediumblob_col MEDIUMBLOB,
+                            longblob_col LONGBLOB,
+                            json_col JSON,
+                            bit_col BIT(8),
+                            boolean_col BOOLEAN,
+                            date_col DATE,
+                            time_col TIME,
+                            datetime_col DATETIME,
+                            timestamp_col TIMESTAMP,
+                            year_col YEAR,
+                            decimal_col DECIMAL(10,2),
+                            float_col FLOAT,
+                            double_col DOUBLE,
+                            tinyint_col TINYINT,
+                            smallint_col SMALLINT,
+                            mediumint_col MEDIUMINT,
+                            bigint_col BIGINT
+                        )
+                    `);
+
+                    // Insert test data with various types
+                    conn.execute(`
+                        INSERT INTO test_mysql_types VALUES (
+                            1, 
+                            'This is text', 
+                            'This is longtext',
+                            ?,
+                            ?,
+                            ?,
+                            'varchar value',
+                            'char value',
+                            'tinytext',
+                            'mediumtext',
+                            ?,
+                            ?,
+                            ?,
+                            '{"key": "value"}',
+                            b'10101010',
+                            true,
+                            '2023-01-01',
+                            '12:30:45',
+                            '2023-01-01 12:30:45',
+                            '2023-01-01 12:30:45',
+                            2023,
+                            123.45,
+                            3.14,
+                            2.718,
+                            127,
+                            32767,
+                            8388607,
+                            9223372036854775807
+                        )
+                    `,
+                        Buffer.from('blob data'),
+                        Buffer.from('binary123'),
+                        Buffer.from('varbinary data'),
+                        Buffer.from('tinyblob'),
+                        Buffer.from('mediumblob'),
+                        Buffer.from('longblob data')
+                    );
+
+                    // Query the data and verify types
+                    var result = conn.execute('SELECT * FROM test_mysql_types');
+                    assert.equal(result.length, 1);
+
+                    var row = result[0];
+
+                    // Test string types - should return as string
+                    assert.equal(typeof row.text_col, 'string');
+                    assert.equal(row.text_col, 'This is text');
+                    assert.equal(typeof row.longtext_col, 'string');
+                    assert.equal(row.longtext_col, 'This is longtext');
+                    assert.equal(typeof row.varchar_col, 'string');
+                    assert.equal(row.varchar_col, 'varchar value');
+                    assert.equal(typeof row.char_col, 'string');
+                    assert.equal(row.char_col, 'char value');
+                    assert.equal(typeof row.tinytext_col, 'string');
+                    assert.equal(row.tinytext_col, 'tinytext');
+                    assert.equal(typeof row.mediumtext_col, 'string');
+                    assert.equal(row.mediumtext_col, 'mediumtext');
+
+                    // Test binary types - should return as Buffer
+                    assert.equal(typeof row.blob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.blob_col));
+                    assert.equal(row.blob_col.toString(), 'blob data');
+                    assert.equal(typeof row.binary_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.binary_col));
+                    assert.equal(typeof row.varbinary_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.varbinary_col));
+                    assert.equal(row.varbinary_col.toString(), 'varbinary data');
+                    assert.equal(typeof row.tinyblob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.tinyblob_col));
+                    assert.equal(row.tinyblob_col.toString(), 'tinyblob');
+                    assert.equal(typeof row.mediumblob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.mediumblob_col));
+                    assert.equal(row.mediumblob_col.toString(), 'mediumblob');
+                    assert.equal(typeof row.longblob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.longblob_col));
+                    assert.equal(row.longblob_col.toString(), 'longblob data');
+
+                    // Test JSON type - should return as string
+                    assert.equal(typeof row.json_col, 'string');
+                    assert.equal(row.json_col, '{"key": "value"}');
+
+                    // Test bit type - should return as Buffer
+                    assert.equal(typeof row.bit_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.bit_col));
+
+                    // Test boolean type - should return as number (0 or 1)
+                    assert.equal(typeof row.boolean_col, 'number');
+                    assert.equal(row.boolean_col, 1);
+
+                    // Test date/time types - should return as Date objects
+                    assert.equal(typeof row.date_col, 'object');
+                    assert.isTrue(row.date_col instanceof Date);
+                    assert.equal(typeof row.datetime_col, 'object');
+                    assert.isTrue(row.datetime_col instanceof Date);
+                    assert.equal(typeof row.timestamp_col, 'object');
+                    assert.isTrue(row.timestamp_col instanceof Date);
+
+                    assert.equal(typeof row.time_col, 'string');
+                    assert.equal(row.time_col, '12:30:45');
+
+                    // Test year type - should return as number
+                    assert.equal(typeof row.year_col, 'number');
+                    assert.equal(row.year_col, 2023);
+
+                    // Test numeric types - should return as number
+                    assert.equal(typeof row.decimal_col, 'number');
+                    assert.equal(row.decimal_col, 123.45);
+                    assert.equal(typeof row.float_col, 'number');
+                    assert.ok(Math.abs(row.float_col - 3.14) < 0.01);
+                    assert.equal(typeof row.double_col, 'number');
+                    assert.ok(Math.abs(row.double_col - 2.718) < 0.001);
+                    assert.equal(typeof row.tinyint_col, 'number');
+                    assert.equal(row.tinyint_col, 127);
+                    assert.equal(typeof row.smallint_col, 'number');
+                    assert.equal(row.smallint_col, 32767);
+                    assert.equal(typeof row.mediumint_col, 'number');
+                    assert.equal(row.mediumint_col, 8388607);
+                    assert.equal(typeof row.bigint_col, 'number');
+                    assert.equal(row.bigint_col, 9223372036854775807);
+
+                    // Test integer type - should return as number
+                    assert.equal(typeof row.id, 'number');
+                    assert.equal(row.id, 1);
+
+                    // Clean up
+                    conn.execute('DROP TABLE test_mysql_types');
+                });
+                break;
             case 'psql':
+                // Test PostgreSQL specific data types and return values
+                it("PostgreSQL data types", () => {
+                    // Drop table if exists
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_psql_types');
+                    } catch (e) {
+                        // ignore
+                    }
+
+                    // Create table with different PostgreSQL data types
+                    conn.execute(`
+                        CREATE TABLE test_psql_types (
+                            id SERIAL PRIMARY KEY,
+                            text_col TEXT,
+                            varchar_col VARCHAR(255),
+                            char_col CHAR(10),
+                            bytea_col BYTEA,
+                            json_col JSON,
+                            jsonb_col JSONB,
+                            boolean_col BOOLEAN,
+                            date_col DATE,
+                            time_col TIME,
+                            timestamp_col TIMESTAMP,
+                            timestamptz_col TIMESTAMPTZ,
+                            interval_col INTERVAL,
+                            numeric_col NUMERIC(10,2),
+                            decimal_col DECIMAL(10,2),
+                            real_col REAL,
+                            double_col DOUBLE PRECISION,
+                            smallint_col SMALLINT,
+                            integer_col INTEGER,
+                            bigint_col BIGINT,
+                            uuid_col UUID,
+                            inet_col INET,
+                            macaddr_col MACADDR,
+                            bit_col BIT(8),
+                            varbit_col VARBIT(16)
+                        )
+                    `);
+
+                    // Insert test data with various types
+                    conn.execute(`
+                        INSERT INTO test_psql_types (
+                            text_col, varchar_col, char_col, bytea_col,
+                            json_col, jsonb_col, boolean_col,
+                            date_col, time_col, timestamp_col, timestamptz_col,
+                            interval_col, numeric_col, decimal_col,
+                            real_col, double_col, smallint_col, integer_col, bigint_col,
+                            uuid_col, inet_col, macaddr_col, bit_col, varbit_col
+                        ) VALUES (
+                            ?, ?, ?, ?,
+                            ?, ?, ?,
+                            ?, ?, ?, ?,
+                            ?, ?, ?,
+                            ?, ?, ?, ?, ?,
+                            ?, ?, ?, ?, ?
+                        )
+                    `,
+                        'This is text',
+                        'varchar value',
+                        'char value',
+                        Buffer.from('bytea data'),
+                        '{"key": "value"}',
+                        '{"key": "jsonb_value"}',
+                        true,
+                        '2023-01-01',
+                        '12:30:45',
+                        '2023-01-01 12:30:45',
+                        '2023-01-01 12:30:45+00',
+                        '1 year 2 months 3 days',
+                        123.45,
+                        678.90,
+                        3.14,
+                        2.718281828,
+                        32767,
+                        123456,
+                        123456789012345,
+                        '550e8400-e29b-41d4-a716-446655440000',
+                        '192.168.1.1',
+                        '08:00:2b:01:02:03',
+                        '10101010',
+                        '1010101010101010'
+                    );
+
+                    // Query the data and verify types
+                    var result = conn.execute('SELECT * FROM test_psql_types');
+                    assert.equal(result.length, 1);
+
+                    var row = result[0];
+
+                    // Test string types - should return as string
+                    assert.equal(typeof row.text_col, 'string');
+                    assert.equal(row.text_col, 'This is text');
+                    assert.equal(typeof row.varchar_col, 'string');
+                    assert.equal(row.varchar_col, 'varchar value');
+                    assert.equal(typeof row.char_col, 'string');
+                    assert.equal(row.char_col, 'char value');
+
+                    // Test binary types - should return as Buffer
+                    assert.equal(typeof row.bytea_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.bytea_col));
+                    assert.equal(row.bytea_col.toString(), 'bytea data');
+
+                    // Test JSON types - should return as string
+                    assert.equal(typeof row.json_col, 'string');
+                    assert.equal(row.json_col, '{"key": "value"}');
+                    assert.equal(typeof row.jsonb_col, 'string');
+                    assert.equal(row.jsonb_col, '{"key": "jsonb_value"}');
+
+                    // Test boolean type - should return as boolean
+                    assert.equal(typeof row.boolean_col, 'boolean');
+                    assert.equal(row.boolean_col, true);
+
+                    // Test date/time types - should return as Date objects or strings
+                    assert.equal(typeof row.date_col, 'object');
+                    assert.isTrue(row.date_col instanceof Date);
+                    assert.equal(typeof row.timestamp_col, 'object');
+                    assert.isTrue(row.timestamp_col instanceof Date);
+                    assert.equal(typeof row.timestamptz_col, 'object');
+                    assert.isTrue(row.timestamptz_col instanceof Date);
+
+                    assert.equal(typeof row.time_col, 'string');
+                    assert.equal(row.time_col, '12:30:45');
+                    assert.equal(typeof row.interval_col, 'string');
+                    assert.equal(row.interval_col, '1 year 2 mons 3 days');
+
+                    // Test numeric types - should return as number
+                    assert.equal(typeof row.numeric_col, 'number');
+                    assert.equal(row.numeric_col, 123.45);
+                    assert.equal(typeof row.decimal_col, 'number');
+                    assert.equal(row.decimal_col, 678.90);
+                    assert.equal(typeof row.real_col, 'number');
+                    assert.ok(Math.abs(row.real_col - 3.14) < 0.01);
+                    assert.equal(typeof row.double_col, 'number');
+                    assert.ok(Math.abs(row.double_col - 2.718281828) < 0.000001);
+                    assert.equal(typeof row.smallint_col, 'number');
+                    assert.equal(row.smallint_col, 32767);
+                    assert.equal(typeof row.integer_col, 'number');
+                    assert.equal(row.integer_col, 123456);
+                    assert.equal(typeof row.bigint_col, 'number');
+                    assert.equal(row.bigint_col, 123456789012345);
+
+                    // Test serial type - should return as number
+                    assert.equal(typeof row.id, 'number');
+                    assert.equal(row.id, 1);
+
+                    // Test special PostgreSQL types
+                    assert.equal(typeof row.uuid_col, 'string');
+                    assert.equal(row.uuid_col.toLowerCase(), '550e8400-e29b-41d4-a716-446655440000');
+                    assert.equal(typeof row.inet_col, 'string');
+                    assert.equal(row.inet_col, '192.168.1.1');
+                    assert.equal(typeof row.macaddr_col, 'string');
+                    assert.equal(row.macaddr_col, '08:00:2b:01:02:03');
+
+                    // Test bit types - should return as string
+                    assert.equal(typeof row.bit_col, 'string');
+                    assert.equal(row.bit_col, '10101010');
+                    assert.equal(typeof row.varbit_col, 'string');
+                    assert.equal(row.varbit_col, '1010101010101010');
+
+                    // Clean up
+                    conn.execute('DROP TABLE test_psql_types');
+                });
+
                 // some special types would not be parsed correctly with old implementation,
                 // this case would failed in fibjs 0.34.0 with postgresql 14
                 it('special type for psql, but also test for other dialect', () => {
@@ -448,6 +832,222 @@ describe("db", () => {
                     assert.greaterThan(columns, 0);
                 });
                 break;
+            case 'sqlite':
+
+                it("SQLite data types", () => {
+                    var conn = db.open(conn_str);
+
+                    // Drop table if exists
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_sqlite_types');
+                    } catch (e) {
+                        // ignore
+                    }
+
+                    // Create table with different SQLite data types
+                    // Note: SQLite has dynamic typing with 5 storage classes: NULL, INTEGER, REAL, TEXT, BLOB
+                    conn.execute(`
+                CREATE TABLE test_sqlite_types (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    text_col TEXT,
+                    varchar_col VARCHAR(255),
+                    char_col CHAR(10),
+                    blob_col BLOB,
+                    integer_col INTEGER,
+                    real_col REAL,
+                    numeric_col NUMERIC(10,2),
+                    decimal_col DECIMAL(10,2),
+                    boolean_col BOOLEAN,
+                    date_col DATE,
+                    time_col TIME,
+                    datetime_col DATETIME,
+                    timestamp_col TIMESTAMP,
+                    json_col JSON
+                )
+            `);
+
+                    // Insert test data with various types
+                    conn.execute(`
+                INSERT INTO test_sqlite_types (
+                    text_col, varchar_col, char_col, blob_col,
+                    integer_col, real_col, numeric_col, decimal_col,
+                    boolean_col, date_col, time_col, datetime_col,
+                    timestamp_col, json_col
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+                        'This is text',
+                        'varchar value',
+                        'char value',
+                        Buffer.from('blob data'),
+                        123456,
+                        3.14159,
+                        123.45,
+                        678.90,
+                        true,
+                        '2023-01-01',
+                        '12:30:45',
+                        '2023-01-01 12:30:45',
+                        '2023-01-01 12:30:45',
+                        '{"key": "value"}'
+                    );
+
+                    // Insert additional test data to verify type affinity
+                    conn.execute(`
+                INSERT INTO test_sqlite_types (
+                    text_col, varchar_col, char_col, blob_col,
+                    integer_col, real_col, numeric_col, decimal_col,
+                    boolean_col, date_col, time_col, datetime_col,
+                    timestamp_col, json_col
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+                        123,  // number stored as TEXT
+                        456.789,  // number stored as VARCHAR 
+                        'abc',
+                        new Uint8Array([1, 2, 3, 4]),  // typed array as BLOB
+                        '789',  // string stored as INTEGER
+                        '2.718',  // string stored as REAL
+                        '999.99',
+                        456.78,
+                        0,  // false as BOOLEAN
+                        new Date('2023-12-31'),  // Date object
+                        new Date('1970-01-01 15:45:30'),  // Date object for TIME
+                        new Date('2023-06-15 09:30:15'),  // Date object for DATETIME
+                        new Date('2023-01-01 12:30:45'),  // Date object for TIMESTAMP
+                        JSON.stringify({ test: 'data', number: 42 })
+                    );
+
+                    // Query the data and verify types
+                    var result = conn.execute('SELECT * FROM test_sqlite_types ORDER BY id');
+                    assert.equal(result.length, 2);
+
+                    var row1 = result[0];
+                    var row2 = result[1];
+
+                    // Test TEXT affinity columns - should return as string
+                    assert.equal(typeof row1.text_col, 'string');
+                    assert.equal(row1.text_col, 'This is text');
+                    assert.equal(typeof row1.varchar_col, 'string');
+                    assert.equal(row1.varchar_col, 'varchar value');
+                    assert.equal(typeof row1.char_col, 'string');
+                    assert.equal(row1.char_col, 'char value');
+
+                    // Numbers stored in TEXT columns should be converted to string
+                    assert.equal(typeof row2.text_col, 'string');
+                    assert.equal(row2.text_col, '123');
+                    assert.equal(typeof row2.varchar_col, 'string');
+                    assert.equal(row2.varchar_col, '456.789');
+
+                    // Test BLOB affinity - should return as Buffer
+                    assert.equal(typeof row1.blob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row1.blob_col));
+                    assert.equal(row1.blob_col.toString(), 'blob data');
+                    assert.equal(typeof row2.blob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row2.blob_col));
+                    assert.deepEqual(row2.blob_col, Buffer.from([1, 2, 3, 4]));
+
+                    // Test INTEGER affinity - should return as number
+                    assert.equal(typeof row1.integer_col, 'number');
+                    assert.equal(row1.integer_col, 123456);
+                    assert.equal(typeof row2.integer_col, 'number');
+                    assert.equal(row2.integer_col, 789);  // string '789' converted to number
+
+                    // Test REAL affinity - should return as number
+                    assert.equal(typeof row1.real_col, 'number');
+                    assert.ok(Math.abs(row1.real_col - 3.14159) < 0.00001);
+                    assert.equal(typeof row2.real_col, 'number');
+                    assert.ok(Math.abs(row2.real_col - 2.718) < 0.001);
+
+                    // Test NUMERIC affinity - should return as number
+                    assert.equal(typeof row1.numeric_col, 'number');
+                    assert.equal(row1.numeric_col, 123.45);
+                    assert.equal(typeof row1.decimal_col, 'number');
+                    assert.equal(row1.decimal_col, 678.90);
+                    assert.equal(typeof row2.numeric_col, 'number');
+                    assert.equal(row2.numeric_col, 999.99);
+                    assert.equal(typeof row2.decimal_col, 'number');
+                    assert.equal(row2.decimal_col, 456.78);
+
+                    // Test BOOLEAN - SQLite stores as INTEGER (0 or 1)
+                    assert.equal(typeof row1.boolean_col, 'number');
+                    assert.equal(row1.boolean_col, 1);  // true -> 1
+                    assert.equal(typeof row2.boolean_col, 'number');
+                    assert.equal(row2.boolean_col, 0);  // false -> 0
+
+                    // Test date/time types - SQLite parses declared date/time types as Date objects
+                    // String dates in DATE/DATETIME/TIMESTAMP/TIME columns should return as Date objects
+                    assert.equal(typeof row1.date_col, 'object');
+                    assert.isTrue(row1.date_col instanceof Date);
+                    assert.equal(typeof row1.datetime_col, 'object');
+                    assert.isTrue(row1.datetime_col instanceof Date);
+                    assert.equal(typeof row1.timestamp_col, 'object');
+                    assert.isTrue(row1.timestamp_col instanceof Date);
+
+                    // TIME columns should also be parsed as Date objects
+                    assert.equal(typeof row1.time_col, 'object');
+                    assert.isTrue(row1.time_col instanceof Date);
+
+                    // Date objects should be converted to Date objects as well
+                    assert.equal(typeof row2.date_col, 'object');
+                    assert.isTrue(row2.date_col instanceof Date);
+                    assert.equal(typeof row2.time_col, 'object');
+                    assert.isTrue(row2.time_col instanceof Date);
+                    assert.equal(typeof row2.datetime_col, 'object');
+                    assert.isTrue(row2.datetime_col instanceof Date);
+                    assert.equal(typeof row2.timestamp_col, 'object');
+                    assert.isTrue(row2.timestamp_col instanceof Date);
+
+                    // Test JSON - stored as TEXT in SQLite
+                    assert.equal(typeof row1.json_col, 'string');
+                    assert.equal(row1.json_col, '{"key": "value"}');
+                    assert.equal(typeof row2.json_col, 'string');
+                    assert.equal(row2.json_col, '{"test":"data","number":42}');
+
+                    // Test PRIMARY KEY AUTOINCREMENT
+                    assert.equal(typeof row1.id, 'number');
+                    assert.equal(row1.id, 1);
+                    assert.equal(typeof row2.id, 'number');
+                    assert.equal(row2.id, 2);
+
+                    // Test SQLite's type affinity with mixed data types in same column
+                    conn.execute(`
+                INSERT INTO test_sqlite_types (text_col, integer_col, real_col) 
+                VALUES (?, ?, ?)
+            `, null, null, null);
+
+                    var nullResult = conn.execute('SELECT * FROM test_sqlite_types WHERE id = 3');
+                    assert.equal(nullResult.length, 1);
+                    var nullRow = nullResult[0];
+
+                    // NULL values should return as null
+                    assert.isNull(nullRow.text_col);
+                    assert.isNull(nullRow.integer_col);
+                    assert.isNull(nullRow.real_col);
+
+                    // Test type coercion - SQLite is very flexible
+                    conn.execute(`
+                INSERT INTO test_sqlite_types (integer_col, real_col, text_col) 
+                VALUES (?, ?, ?)
+            `, 3.14, 'string_in_real', 999);
+
+                    var coercionResult = conn.execute('SELECT * FROM test_sqlite_types WHERE id = 4');
+                    var coercionRow = coercionResult[0];
+
+                    // 3.14 in INTEGER column - SQLite keeps it as REAL (doesn't truncate)
+                    assert.equal(typeof coercionRow.integer_col, 'number');
+                    assert.equal(coercionRow.integer_col, 3.14);
+
+                    // String in REAL column should be stored as TEXT (if not numeric)
+                    assert.equal(typeof coercionRow.real_col, 'string');
+                    assert.equal(coercionRow.real_col, 'string_in_real');
+
+                    // Number in TEXT column should be stored as TEXT
+                    assert.equal(typeof coercionRow.text_col, 'string');
+                    assert.equal(coercionRow.text_col, '999');
+
+                    // Clean up
+                    conn.execute('DROP TABLE test_sqlite_types');
+                    conn.close();
+                });
         }
     }
 

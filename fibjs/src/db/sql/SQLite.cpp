@@ -345,4 +345,39 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
     return 0;
 }
 
+result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    // Query SQLite system table to get all user tables
+    exlib::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+    return execute(sql, retVal, ac);
+}
+
+result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    // Query SQLite table structure and format to match information_schema style
+    exlib::string escapedTableName = escape_string(tableName);
+    exlib::string sql = "SELECT "
+                        "name AS column_name, "
+                        "type AS data_type, "
+                        "NULL AS character_maximum_length, "
+                        "CASE WHEN \"notnull\" = 0 THEN 'YES' ELSE 'NO' END AS is_nullable, "
+                        "dflt_value AS column_default "
+                        "FROM pragma_table_info("
+        + escapedTableName + ") "
+                             "ORDER BY cid";
+    return execute(sql, retVal, ac);
+}
+
 } /* namespace fibjs */
