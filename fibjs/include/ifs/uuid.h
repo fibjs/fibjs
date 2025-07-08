@@ -30,6 +30,13 @@ public:
 
 public:
     // uuid_base
+    static result_t get_NIL(exlib::string& retVal);
+    static result_t get_MAX(exlib::string& retVal);
+    static result_t parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal);
+    static result_t stringify(v8::Local<v8::Array> arr, int32_t offset, exlib::string& retVal);
+    static result_t v1(exlib::string& retVal);
+    static result_t v4(exlib::string& retVal);
+    static result_t validate(exlib::string uuid, bool& retVal);
     static result_t node(obj_ptr<Buffer_base>& retVal);
     static result_t md5(int32_t ns, exlib::string name, obj_ptr<Buffer_base>& retVal);
     static result_t random(obj_ptr<Buffer_base>& retVal);
@@ -51,6 +58,13 @@ public:
     { return CALL_E_TYPEMISMATCH; }
 
 public:
+    static void s_static_get_NIL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_validate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_node(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_random(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -67,6 +81,11 @@ namespace fibjs {
 inline ClassInfo& uuid_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
+        { "stringify", s_static_stringify, true, ClassData::ASYNC_SYNC },
+        { "v1", s_static_v1, true, ClassData::ASYNC_SYNC },
+        { "v4", s_static_v4, true, ClassData::ASYNC_SYNC },
+        { "validate", s_static_validate, true, ClassData::ASYNC_SYNC },
         { "node", s_static_node, true, ClassData::ASYNC_SYNC },
         { "md5", s_static_md5, true, ClassData::ASYNC_SYNC },
         { "random", s_static_random, true, ClassData::ASYNC_SYNC },
@@ -75,6 +94,8 @@ inline ClassInfo& uuid_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "NIL", s_static_get_NIL, block_set, true },
+        { "MAX", s_static_get_MAX, block_set, true },
         { "hostID", s_static_get_hostID, s_static_set_hostID, true }
     };
 
@@ -94,6 +115,104 @@ inline ClassInfo& uuid_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void uuid_base::s_static_get_NIL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_NIL(vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_MAX(vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = parse(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = stringify(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = v1(vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = v4(vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_validate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = validate(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void uuid_base::s_static_node(const v8::FunctionCallbackInfo<v8::Value>& args)

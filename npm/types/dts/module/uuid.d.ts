@@ -43,6 +43,54 @@ declare module 'uuid' {
     export const X509: 3;
 
     /**
+     * @description 返回一个空的 uuid 
+     */
+    const NIL: string;
+
+    /**
+     * @description 返回一个最大 UUID 字符串 
+     */
+    const MAX: string;
+
+    /**
+     * @description 解析 uuid 字符串
+     *      @param uuid 要解析的 uuid 字符串
+     *      @return 返回解析后的二进制 id
+     *      
+     */
+    function parse(uuid: string): Class_Buffer;
+
+    /**
+     * @description 将二进制 id 转换为 uuid 字符串
+     *      @param id 要转换的二进制 id
+     *      @return 返回转换后的 uuid 字符串
+     *      
+     */
+    function stringify(arr: any[], offset?: number): string;
+
+    /**
+     * @description 使用时间戳创建 uuid
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v1(): string;
+
+    /**
+     * @description 使用随机数创建 uuid
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v4(): string;
+
+    /**
+     * @description 验证 uuid 字符串是否符合规范
+     *      @param uuid 要验证的 uuid 字符串
+     *      @return 返回 true 表示符合规范，false 表示不符合规范
+     *      
+     */
+    function validate(uuid: string): boolean;
+
+    /**
      * @description 使用时间和主机名创建 uuid
      *      @return 返回一个生成的二进制 id
      *      

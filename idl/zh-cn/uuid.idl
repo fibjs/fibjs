@@ -31,6 +31,40 @@ module uuid
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 X.500 DN */
     const X509 = 3;
 
+    /*! @brief 返回一个空的 uuid */
+    static readonly String NIL;
+
+    /*! @brief 返回一个最大 UUID 字符串 */
+    static readonly String MAX;
+
+    /*! @brief 解析 uuid 字符串
+     @param uuid 要解析的 uuid 字符串
+     @return 返回解析后的二进制 id
+     */
+    static Buffer parse(String uuid);
+
+    /*! @brief 将二进制 id 转换为 uuid 字符串
+     @param id 要转换的二进制 id
+     @return 返回转换后的 uuid 字符串
+     */
+    static String stringify(Array arr, Integer offset = 0);
+
+    /*! @brief 使用时间戳创建 uuid
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v1();
+
+    /*! @brief 使用随机数创建 uuid
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v4();
+
+    /*! @brief 验证 uuid 字符串是否符合规范
+     @param uuid 要验证的 uuid 字符串
+     @return 返回 true 表示符合规范，false 表示不符合规范
+     */
+    static Boolean validate(String uuid);
+
     /*! @brief 使用时间和主机名创建 uuid
      @return 返回一个生成的二进制 id
      */
