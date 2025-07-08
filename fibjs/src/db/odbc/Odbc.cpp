@@ -446,7 +446,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
 
     // Use ODBC SQLTables to get table list - more compatible across different databases
-    hr = SQLTables(stmt, NULL, 0, NULL, 0, NULL, 0, (SQLCHAR*)"TABLE", SQL_NTS);
+    hr = SQLTablesA(stmt, NULL, 0, NULL, 0, NULL, 0, (SQLCHAR*)"TABLE", SQL_NTS);
     if (hr < 0) {
         SQLFreeStmt(stmt, SQL_DROP);
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
@@ -496,7 +496,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
 
     // Use ODBC SQLColumns to get column information - more compatible across different databases
-    hr = SQLColumns(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tableName.c_str(), SQL_NTS, NULL, 0);
+    hr = SQLColumnsA(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tableName.c_str(), SQL_NTS, NULL, 0);
     if (hr < 0) {
         SQLFreeStmt(stmt, SQL_DROP);
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
