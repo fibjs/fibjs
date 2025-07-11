@@ -105,14 +105,14 @@ describe("http", () => {
     describe("headers", () => {
         var d = new http.Request().headers;
 
-        it("add", () => {
-            d.add('b', '200');
-            d.add('c', '400');
-            d.add('d', '500');
-            d.add('c', '600');
-            d.add('d', '700');
-            d.add('a', '100');
-            d.add('a', '300');
+        it("append", () => {
+            d.append('b', '200');
+            d.append('c', '400');
+            d.append('d', '500');
+            d.append('c', '600');
+            d.append('d', '700');
+            d.append('a', '100');
+            d.append('a', '300');
 
             assert.deepEqual(d['a'], ['100', '300']);
 
@@ -165,14 +165,14 @@ describe("http", () => {
             assert.equal(d.first('c'), '800');
         });
 
-        it("add({})", () => {
-            d.add({
+        it("append({})", () => {
+            d.append({
                 d: "900",
                 b: "1000",
                 f: ["200", "400"]
             });
 
-            d.add("g", ["300", "700"]);
+            d.append("g", ["300", "700"]);
 
             var a = d.all('d');
             assert.deepEqual(a, ['500', '700', '900']);
@@ -187,8 +187,20 @@ describe("http", () => {
             assert.deepEqual(a, ["300", "700"]);
         });
 
+        it("append([])", () => {
+            d.append([
+                ["h", "100"],
+                ["i", "200"]
+            ]);
+
+            var a = d.get('h');
+            assert.deepEqual(a, '100');
+            a = d.get('i');
+            assert.deepEqual(a, '200');
+        });
+
         it("keys/values", () => {
-            assert.deepEqual(d.keys(), [
+            assert.deepEqual(Array.from(d.keys()), [
                 "b",
                 "d",
                 "d",
@@ -198,9 +210,11 @@ describe("http", () => {
                 "f",
                 "f",
                 "g",
-                "g"
+                "g",
+                "h",
+                "i"
             ]);
-            assert.deepEqual(d.values(), [
+            assert.deepEqual(Array.from(d.values()), [
                 "200",
                 "500",
                 "700",
@@ -210,12 +224,14 @@ describe("http", () => {
                 "200",
                 "400",
                 "300",
-                "700"
+                "700",
+                "100",
+                "200"
             ]);
         });
 
         it("sort({})", () => {
-            assert.deepEqual(d.keys(), [
+            assert.deepEqual(Array.from(d.keys()), [
                 "b",
                 "d",
                 "d",
@@ -225,10 +241,12 @@ describe("http", () => {
                 "f",
                 "f",
                 "g",
-                "g"
+                "g",
+                "h",
+                "i"
             ]);
             d.sort();
-            assert.deepEqual(d.keys(), [
+            assert.deepEqual(Array.from(d.keys()), [
                 "b",
                 "b",
                 "c",
@@ -238,7 +256,9 @@ describe("http", () => {
                 "f",
                 "f",
                 "g",
-                "g"
+                "g",
+                "h",
+                "i"
             ]);
         });
 
@@ -1218,13 +1238,13 @@ describe("http", () => {
                     st.step = 1;
                     st.wait(2);
                 } else if (r.value == '/gzip_test') {
-                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.appendHeader("Content-Type", "text/html");
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 } else if (r.value == '/gzip_json') {
-                    r.response.addHeader("Content-Type", "application/json");
+                    r.response.appendHeader("Content-Type", "application/json");
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 } else if (r.value == '/gzip_small') {
-                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.appendHeader("Content-Type", "text/html");
                     r.response.write("01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567");
                 } else if (r.value == '/gzip_bin') {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
@@ -1391,7 +1411,7 @@ describe("http", () => {
             var req = new http.Request();
             req.value = url;
             if (headers)
-                req.addHeader(headers);
+                req.appendHeader(headers);
             hfHandler.invoke(req);
             return req.response;
         }
@@ -1747,7 +1767,7 @@ describe("http", () => {
                 var port = 8882 + base_port;
 
                 cookie_for['_'] = r.headers.cookie;
-                r.response.addHeader("set-cookie", [
+                r.response.appendHeader("set-cookie", [
                     "root1=value1; domain=127.0.0.2; path=/",
                     "root=value; domain=127.0.0.1:" + port + "; path=/",
                     "root=value; path=/",
@@ -1757,14 +1777,14 @@ describe("http", () => {
                 set_header_for_head_req(r, cookie_for);
 
                 if (r.address == "/clear_cookie") {
-                    r.response.addHeader("set-cookie", []);
+                    r.response.appendHeader("set-cookie", []);
                     cookie_for['head'] = undefined;
                     cookie_for['_'] = undefined;
                 } else if (r.address == "/name") {
-                    r.response.addHeader("set-cookie", "name=value; path=/name");
+                    r.response.appendHeader("set-cookie", "name=value; path=/name");
                     r.response.write(r.address);
                 } else if (r.address == "/redirect") {
-                    r.response.addHeader("test", "test1");
+                    r.response.appendHeader("test", "test1");
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 } else if (r.address == "/redirect1") {
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
@@ -1787,7 +1807,7 @@ describe("http", () => {
                     r.response.write(r.address);
                     r.response.write(r.firstHeader('host'));
                 } else if (r.address != "/gzip_test") {
-                    r.response.addHeader("set-cookie", [
+                    r.response.appendHeader("set-cookie", [
                         "request=value; domain=127.0.0.1; path=/request",
                         "request1=value; domain=127.0.0.1; path=/request",
                         "request2=value; domain=127.0.0.1; path=/request; secure",
@@ -1802,8 +1822,8 @@ describe("http", () => {
                     if (r.hasHeader("test_headers"))
                         r.response.json(r.allHeader("test_headers"));
                 } else {
-                    r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
-                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
+                    r.response.appendHeader("Content-Type", "text/html");
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
@@ -2230,18 +2250,18 @@ describe("http", () => {
                 set_header_for_head_req(r, cookie_for);
 
                 if (r.address == "/clear_cookie") {
-                    r.response.addHeader("set-cookie", []);
+                    r.response.appendHeader("set-cookie", []);
                     cookie_for['head'] = undefined;
                     cookie_for['_'] = undefined;
                 } else if (r.address != "/gzip_test") {
-                    r.response.addHeader("set-cookie", "request1=value; path=/");
-                    r.response.addHeader("set-cookie", "request2=value; path=/; secure");
+                    r.response.appendHeader("set-cookie", "request1=value; path=/");
+                    r.response.appendHeader("set-cookie", "request2=value; path=/; secure");
                     r.response.write(r.address);
                     r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
                         r.response.write(r.firstHeader("test_header"));
                 } else {
-                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.appendHeader("Content-Type", "text/html");
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
@@ -2394,25 +2414,25 @@ describe("http", () => {
                 var port = 8884 + base_port;
                 cookie_for['_'] = r.headers.cookie;
 
-                r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
-                r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
-                r.response.addHeader("set-cookie", "root=value; path=/");
-                r.response.addHeader("set-cookie", "root=value2; path=/");
+                r.response.appendHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
+                r.response.appendHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
+                r.response.appendHeader("set-cookie", "root=value; path=/");
+                r.response.appendHeader("set-cookie", "root=value2; path=/");
 
                 set_header_for_head_req(r, cookie_for);
 
                 if (r.address == "/clear_cookie") {
-                    r.response.addHeader("set-cookie", []);
+                    r.response.appendHeader("set-cookie", []);
                     cookie_for['head'] = undefined;
                     cookie_for['_'] = undefined;
                 } else if (r.address == "/timeout") {
                     coroutine.sleep(500);
                     r.response.write(r.address);
                 } else if (r.address == "/name") {
-                    r.response.addHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
+                    r.response.appendHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
                     r.response.write(r.address);
                 } else if (r.address == "/redirect") {
-                    r.response.addHeader("test", "test1");
+                    r.response.appendHeader("test", "test1");
                     r.response.redirect("request");
                 } else if (r.address == "/redirect/a/b/c") {
                     r.response.redirect("/d");
@@ -2437,17 +2457,17 @@ describe("http", () => {
                 } else if (r.address == "/connection") {
                     r.response.write(r.keepAlive.toString());
                 } else if (r.address != "/gzip_test") {
-                    r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
-                    r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
-                    r.response.addHeader("set-cookie", "request2=value; domain=127.0.0.1; path=/request; secure");
-                    r.response.addHeader("set-cookie", "request3=value; domain=127.0.0.1:" + port + "; path=/request;");
+                    r.response.appendHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
+                    r.response.appendHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
+                    r.response.appendHeader("set-cookie", "request2=value; domain=127.0.0.1; path=/request; secure");
+                    r.response.appendHeader("set-cookie", "request3=value; domain=127.0.0.1:" + port + "; path=/request;");
                     r.response.write(r.address);
                     r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
                         r.response.write(r.firstHeader("test_header"));
                 } else {
-                    r.response.addHeader("Content-Type", "text/html");
-                    r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });

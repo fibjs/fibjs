@@ -29,7 +29,7 @@ result_t HttpResponse::set_protocol(exlib::string newVal)
     return m_message->set_protocol(newVal);
 }
 
-result_t HttpResponse::get_headers(obj_ptr<HttpCollection_base>& retVal)
+result_t HttpResponse::get_headers(obj_ptr<HttpHeaders_base>& retVal)
 {
     return m_message->get_headers(retVal);
 }
@@ -175,19 +175,19 @@ result_t HttpResponse::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpResponse::addHeader(v8::Local<v8::Object> map)
+result_t HttpResponse::appendHeader(v8::Local<v8::Object> map)
 {
-    return m_message->addHeader(map);
+    return m_message->appendHeader(map);
 }
 
-result_t HttpResponse::addHeader(exlib::string name, exlib::string value)
+result_t HttpResponse::appendHeader(exlib::string name, exlib::string value)
 {
-    return m_message->addHeader(name, value);
+    return m_message->appendHeader(name, value);
 }
 
-result_t HttpResponse::addHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpResponse::appendHeader(exlib::string name, v8::Local<v8::Array> values)
 {
-    return m_message->addHeader(name, values);
+    return m_message->appendHeader(name, values);
 }
 
 result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
@@ -357,7 +357,7 @@ exlib::string HttpResponse::prepareHeaders()
 
             if (cookie) {
                 cookie->toString(str);
-                addHeader("Set-Cookie", str);
+                appendHeader("Set-Cookie", str);
             }
         }
 
@@ -573,14 +573,14 @@ result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage
 {
     set_statusCode(statusCode);
     set_statusMessage(statusMessage);
-    addHeader(headers);
+    appendHeader(headers);
     return 0;
 }
 
 result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers)
 {
     set_statusCode(statusCode);
-    addHeader(headers);
+    appendHeader(headers);
     return 0;
 }
 

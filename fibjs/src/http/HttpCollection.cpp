@@ -71,7 +71,7 @@ result_t HttpCollection::parse(exlib::string& str, const char* sep, const char* 
         }
 
         if (!strKey.empty())
-            add(strKey, strValue);
+            append(strKey, strValue);
     }
 
     return 0;
@@ -125,7 +125,7 @@ result_t HttpCollection::parseCookie(exlib::string& str)
         }
 
         if (!strKey.empty())
-            add(strKey, strValue);
+            append(strKey, strValue);
     }
 
     return 0;
@@ -321,7 +321,7 @@ result_t HttpCollection::parseMultipart(exlib::string& str, const char* boundary
                 varTemp = objTemp;
             }
 
-            add(strName, varTemp);
+            append(strName, varTemp);
         }
     }
 

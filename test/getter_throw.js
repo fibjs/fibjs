@@ -157,7 +157,7 @@ describe('getter throw', () => {
     it('HttpCollection', () => {
         checkthrow([
             () => {
-                (new http.Request).headers.add(obj)
+                (new http.Request).headers.append(obj)
             },
             () => {
                 (new http.Request).headers.set(obj)
@@ -165,13 +165,13 @@ describe('getter throw', () => {
         ]);
 
         assert.throws(() => {
-            (new http.Request).headers.add(arr)
+            (new http.Request).headers.append(arr)
         });
         assert.throws(() => {
-            (new http.Request).headers.add(arr2)
+            (new http.Request).headers.append(arr2)
         });
         assert.throws(() => {
-            (new http.Request).headers.add(obj2)
+            (new http.Request).headers.append(obj2)
         });
 
         assert.throws(() => {

@@ -1,6 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
-/// <reference path="../interface/HttpCollection.d.ts" />
+/// <reference path="../interface/HttpHeaders.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description http 基础消息对象  
@@ -14,7 +14,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description 包含消息中 http 消息头的容器，只读属性 
      */
-    readonly headers: Class_HttpCollection;
+    readonly headers: Class_HttpHeaders;
 
     /**
      * @description 查询和设定是否保持连接 
@@ -80,7 +80,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param map 指定要添加的键值数据字典
      *      
      */
-    addHeader(map: FIBJS.GeneralObject): void;
+    appendHeader(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
@@ -88,7 +88,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param values 指定要添加的一组数据
      *      
      */
-    addHeader(name: string, values: any[]): void;
+    appendHeader(name: string, values: any[]): void;
 
     /**
      * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
@@ -96,7 +96,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param value 指定要添加的数据
      *      
      */
-    addHeader(name: string, value: string): void;
+    appendHeader(name: string, value: string): void;
 
     /**
      * @description 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头

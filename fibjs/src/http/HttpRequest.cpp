@@ -28,7 +28,7 @@ result_t HttpRequest::set_protocol(exlib::string newVal)
     return m_message->set_protocol(newVal);
 }
 
-result_t HttpRequest::get_headers(obj_ptr<HttpCollection_base>& retVal)
+result_t HttpRequest::get_headers(obj_ptr<HttpHeaders_base>& retVal)
 {
     return m_message->get_headers(retVal);
 }
@@ -174,19 +174,19 @@ result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpRequest::addHeader(v8::Local<v8::Object> map)
+result_t HttpRequest::appendHeader(v8::Local<v8::Object> map)
 {
-    return m_message->addHeader(map);
+    return m_message->appendHeader(map);
 }
 
-result_t HttpRequest::addHeader(exlib::string name, exlib::string value)
+result_t HttpRequest::appendHeader(exlib::string name, exlib::string value)
 {
-    return m_message->addHeader(name, value);
+    return m_message->appendHeader(name, value);
 }
 
-result_t HttpRequest::addHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpRequest::appendHeader(exlib::string name, v8::Local<v8::Array> values)
 {
-    return m_message->addHeader(name, values);
+    return m_message->appendHeader(name, values);
 }
 
 result_t HttpRequest::setHeader(v8::Local<v8::Object> map)

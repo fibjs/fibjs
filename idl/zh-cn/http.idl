@@ -37,6 +37,9 @@ module http
     /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
     static HttpResponse new Response();
 
+    /*! @brief 创建一个 HttpHeaders 对象，参见 HttpHeaders */
+    static HttpHeaders new Headers();
+
     /*! @brief 创建一个 http cookie 对象，参见 HttpCookie */
     static HttpCookie new Cookie();
 

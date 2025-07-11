@@ -156,7 +156,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             req->get_method(m_method);
             req->get_body(m_body);
 
-            obj_ptr<HttpCollection_base> headers;
+            obj_ptr<HttpHeaders_base> headers;
             req->get_headers(headers);
 
             headers->remove("Host");
@@ -189,7 +189,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep->set_statusMessage(msg);
 
             m_ret->allHeader("", headers);
-            m_rep.As<HttpResponse>()->addHeader(headers);
+            m_rep.As<HttpResponse>()->appendHeader(headers);
 
             m_ret->get_body(body);
             m_rep->set_body(body);

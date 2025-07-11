@@ -180,7 +180,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_file->rewind();
 
                 m_rep->set_body(m_file);
-                m_rep->addHeader("Content-Type", "text/html");
+                m_rep->appendHeader("Content-Type", "text/html");
 
                 return next(CALL_RETURN_NULL);
             }
@@ -200,11 +200,11 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
 
             if (m_index)
-                m_rep->addHeader("Content-Type", "text/html");
+                m_rep->appendHeader("Content-Type", "text/html");
             else {
                 exlib::string type;
                 mime_base::getType(m_url, type);
-                m_rep->addHeader("Content-Type", type);
+                m_rep->appendHeader("Content-Type", type);
             }
 
             return m_file->stat(m_stat, next(stat));
@@ -234,7 +234,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             d.toGMTString(lastModified);
 
-            m_rep->addHeader("Last-Modified", lastModified);
+            m_rep->appendHeader("Last-Modified", lastModified);
 
             exlib::string range;
             if (m_req->firstHeader("Range", range) != CALL_RETURN_NULL) {
@@ -263,7 +263,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 char s[256];
                 snprintf(s, sizeof(s), "bytes %" PRId64 "-%" PRId64 "/%" PRId64 "", bpos, epos - 1, fsz);
-                m_rep->addHeader("Content-Range", s);
+                m_rep->appendHeader("Content-Range", s);
 
                 m_rep->set_body(stm);
 

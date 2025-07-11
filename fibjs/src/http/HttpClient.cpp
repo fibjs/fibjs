@@ -717,33 +717,33 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             bool enableEncoding = false;
             m_hc->get_enableEncoding(enableEncoding);
             if (enableEncoding)
-                m_req->addHeader("Accept-Encoding", "gzip,deflate");
+                m_req->appendHeader("Accept-Encoding", "gzip,deflate");
 
             bool enableCookie = false;
             m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
                 m_hc->get_cookie(m_url, cookie);
                 if (cookie.length() > 0)
-                    m_req->addHeader("Cookie", cookie);
+                    m_req->appendHeader("Cookie", cookie);
             }
 
             m_req->set_keepAlive(m_keepAlive);
 
             if (m_opts)
-                m_req->addHeader(m_opts);
+                m_req->appendHeader(m_opts);
 
             exlib::string a = m_hc->agent();
             if (!a.empty()) {
                 bool bCheck = false;
                 m_req->hasHeader("User-Agent", bCheck);
                 if (!bCheck)
-                    m_req->addHeader("User-Agent", a);
+                    m_req->appendHeader("User-Agent", a);
             }
 
             bool bHost = false;
             m_req->hasHeader("Host", bHost);
             if (!bHost)
-                m_req->addHeader("Host", host);
+                m_req->appendHeader("Host", host);
 
             if (m_body)
                 m_req->set_body(m_body);
@@ -773,11 +773,11 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
                     m_reqConn->set_method("CONNECT");
                     m_reqConn->set_address(host);
-                    m_reqConn->addHeader("Host", host);
+                    m_reqConn->appendHeader("Host", host);
 
                     exlib::string a = m_hc->agent();
                     if (!a.empty())
-                        m_reqConn->addHeader("User-Agent", a);
+                        m_reqConn->appendHeader("User-Agent", a);
                 }
 
                 if (m_hc->get_conn(m_http_proxy, m_conn)) {

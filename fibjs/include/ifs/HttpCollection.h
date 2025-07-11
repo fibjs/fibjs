@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class Iterator_base;
+
 class HttpCollection_base : public object_base {
     DECLARE_CLASS(HttpCollection_base);
 
@@ -25,21 +27,26 @@ public:
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
     virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
-    virtual result_t add(v8::Local<v8::Object> map) = 0;
-    virtual result_t add(exlib::string name, v8::Local<v8::Array> values) = 0;
-    virtual result_t add(exlib::string name, Variant value) = 0;
+    virtual result_t append(v8::Local<v8::Object> map) = 0;
+    virtual result_t append(exlib::string name, v8::Local<v8::Array> values) = 0;
+    virtual result_t append(v8::Local<v8::Array> entries) = 0;
+    virtual result_t append(exlib::string name, Variant value) = 0;
     virtual result_t set(v8::Local<v8::Object> map) = 0;
     virtual result_t set(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t _delete(exlib::string name) = 0;
     virtual result_t sort() = 0;
-    virtual result_t keys(obj_ptr<NArray>& retVal) = 0;
-    virtual result_t values(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t forEach(v8::Local<v8::Function> callback) = 0;
+    virtual result_t forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> thisArg) = 0;
+    virtual result_t keys(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t values(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t entries(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t _named_getter(exlib::string property, Variant& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t _named_setter(exlib::string property, Variant newVal) = 0;
     virtual result_t _named_deleter(exlib::string property, v8::Local<v8::Boolean>& retVal) = 0;
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -58,19 +65,24 @@ public:
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__delete(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_entries(const v8::FunctionCallbackInfo<v8::Value>& args);
     static v8::Intercepted i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
     static v8::Intercepted i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static v8::Intercepted i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
+    static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/Iterator.h"
 
 namespace fibjs {
 inline ClassInfo& HttpCollection_base::class_info()
@@ -81,13 +93,16 @@ inline ClassInfo& HttpCollection_base::class_info()
         { "first", s_first, false, ClassData::ASYNC_SYNC },
         { "get", s_get, false, ClassData::ASYNC_SYNC },
         { "all", s_all, false, ClassData::ASYNC_SYNC },
-        { "add", s_add, false, ClassData::ASYNC_SYNC },
+        { "append", s_append, false, ClassData::ASYNC_SYNC },
         { "set", s_set, false, ClassData::ASYNC_SYNC },
         { "remove", s_remove, false, ClassData::ASYNC_SYNC },
         { "delete", s__delete, false, ClassData::ASYNC_SYNC },
         { "sort", s_sort, false, ClassData::ASYNC_SYNC },
+        { "forEach", s_forEach, false, ClassData::ASYNC_SYNC },
         { "keys", s_keys, false, ClassData::ASYNC_SYNC },
-        { "values", s_values, false, ClassData::ASYNC_SYNC }
+        { "values", s_values, false, ClassData::ASYNC_SYNC },
+        { "entries", s_entries, false, ClassData::ASYNC_SYNC },
+        { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassNamed s_named = {
@@ -181,7 +196,7 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void HttpCollection_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
@@ -190,21 +205,27 @@ inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->add(v0);
+    hr = pInst->append(v0);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
 
-    hr = pInst->add(v0, v1);
+    hr = pInst->append(v0, v1);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = pInst->append(v0);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(Variant, 1);
 
-    hr = pInst->add(v0, v1);
+    hr = pInst->append(v0, v1);
 
     METHOD_VOID();
 }
@@ -277,9 +298,30 @@ inline void HttpCollection_base::s_sort(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
+inline void HttpCollection_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->forEach(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = pInst->forEach(v0, v1);
+
+    METHOD_VOID();
+}
+
 inline void HttpCollection_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    obj_ptr<Iterator_base> vr;
 
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
@@ -293,7 +335,7 @@ inline void HttpCollection_base::s_keys(const v8::FunctionCallbackInfo<v8::Value
 
 inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    obj_ptr<Iterator_base> vr;
 
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
@@ -301,6 +343,20 @@ inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(0, 0);
 
     hr = pInst->values(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpCollection_base::s_entries(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->entries(vr);
 
     METHOD_RETURN();
 }
@@ -370,5 +426,19 @@ inline v8::Intercepted HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> p
 
     hr = pInst->_named_deleter(k, vr);
     METHOD_RETURN2();
+}
+
+inline void HttpCollection_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->symbol_iterator(vr);
+
+    METHOD_RETURN();
 }
 }

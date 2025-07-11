@@ -17,7 +17,7 @@
 namespace fibjs {
 
 class Message_base;
-class HttpCollection_base;
+class HttpHeaders_base;
 class Stream_base;
 
 class HttpMessage_base : public Message_base {
@@ -27,7 +27,7 @@ public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t set_protocol(exlib::string newVal) = 0;
-    virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
+    virtual result_t get_headers(obj_ptr<HttpHeaders_base>& retVal) = 0;
     virtual result_t get_keepAlive(bool& retVal) = 0;
     virtual result_t set_keepAlive(bool newVal) = 0;
     virtual result_t get_upgrade(bool& retVal) = 0;
@@ -44,9 +44,9 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal) = 0;
-    virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
-    virtual result_t addHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
-    virtual result_t addHeader(exlib::string name, exlib::string value) = 0;
+    virtual result_t appendHeader(v8::Local<v8::Object> map) = 0;
+    virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
+    virtual result_t appendHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t setHeader(exlib::string name, exlib::string value) = 0;
@@ -83,13 +83,13 @@ public:
     static void s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_appendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
-#include "ifs/HttpCollection.h"
+#include "ifs/HttpHeaders.h"
 #include "ifs/Stream.h"
 
 namespace fibjs {
@@ -99,7 +99,7 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "hasHeader", s_hasHeader, false, ClassData::ASYNC_SYNC },
         { "firstHeader", s_firstHeader, false, ClassData::ASYNC_SYNC },
         { "allHeader", s_allHeader, false, ClassData::ASYNC_SYNC },
-        { "addHeader", s_addHeader, false, ClassData::ASYNC_SYNC },
+        { "appendHeader", s_appendHeader, false, ClassData::ASYNC_SYNC },
         { "setHeader", s_setHeader, false, ClassData::ASYNC_SYNC },
         { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC }
     };
@@ -157,7 +157,7 @@ inline void HttpMessage_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::
 
 inline void HttpMessage_base::s_get_headers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpCollection_base> vr;
+    obj_ptr<HttpHeaders_base> vr;
 
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
@@ -399,7 +399,7 @@ inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_appendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
@@ -408,21 +408,21 @@ inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->addHeader(v0);
+    hr = pInst->appendHeader(v0);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
 
-    hr = pInst->addHeader(v0, v1);
+    hr = pInst->appendHeader(v0, v1);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    hr = pInst->addHeader(v0, v1);
+    hr = pInst->appendHeader(v0, v1);
 
     METHOD_VOID();
 }

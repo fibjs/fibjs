@@ -57,7 +57,7 @@ public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string& retVal);
     virtual result_t set_protocol(exlib::string newVal);
-    virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
+    virtual result_t get_headers(obj_ptr<HttpHeaders_base>& retVal);
     virtual result_t get_keepAlive(bool& retVal);
     virtual result_t set_keepAlive(bool newVal);
     virtual result_t get_upgrade(bool& retVal);
@@ -74,9 +74,9 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal);
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
-    virtual result_t addHeader(v8::Local<v8::Object> map);
-    virtual result_t addHeader(exlib::string name, v8::Local<v8::Array> values);
-    virtual result_t addHeader(exlib::string name, exlib::string value);
+    virtual result_t appendHeader(v8::Local<v8::Object> map);
+    virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
+    virtual result_t appendHeader(exlib::string name, exlib::string value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t setHeader(exlib::string name, exlib::string value);
@@ -96,7 +96,7 @@ public:
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
 
 public:
-    void _addHeader(exlib::string name, exlib::string value)
+    void _appendHeader(exlib::string name, exlib::string value)
     {
         if (!qstricmp(name.c_str(), "connection")) {
             if (qstristr(value.c_str(), "keep-alive")) {
@@ -108,10 +108,10 @@ public:
             }
         }
 
-        m_message->addHeader(name, value);
+        m_message->appendHeader(name, value);
     }
 
-    result_t addHeader(NObject* map)
+    result_t appendHeader(NObject* map)
     {
         for (int32_t i = 0; i < (int32_t)map->m_values.size(); i++) {
             NObject::Value& v = map->m_values[i];
@@ -121,9 +121,9 @@ public:
 
                 if (list) {
                     for (int32_t i = 0; i < (int32_t)list->m_array.size(); i++)
-                        _addHeader(v.m_pos->first, list->m_array[i].string());
+                        _appendHeader(v.m_pos->first, list->m_array[i].string());
                 } else
-                    _addHeader(v.m_pos->first, v.m_val.string());
+                    _appendHeader(v.m_pos->first, v.m_val.string());
             }
         }
 

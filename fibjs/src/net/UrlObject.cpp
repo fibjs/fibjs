@@ -558,7 +558,7 @@ result_t Url::parse_search_params()
         auto keys = search_params.get_keys();
         while (keys.has_next()) {
             auto key = keys.next().value();
-            m_searchParams->add(key, search_params.get(key).value());
+            m_searchParams->append(key, search_params.get(key).value());
         }
     }
 

@@ -97,7 +97,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param map 指定要添加的键值数据字典
      *      
      */
-    add(map: FIBJS.GeneralObject): void;
+    append(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据
@@ -105,7 +105,14 @@ declare class Class_HttpCollection extends Class_object {
      *      @param values 指定要添加的一组数据
      *      
      */
-    add(name: string, values: any[]): void;
+    append(name: string, values: any[]): void;
+
+    /**
+     * @description 添加一组数据，添加数据并不修改已存在的键值的数据
+     *      @param entries 指定要添加的一组数据，格式为 [[<key>, <value>]]
+     *      
+     */
+    append(entries: any[]): void;
 
     /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
@@ -113,7 +120,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param value 指定要添加的数据
      *      
      */
-    add(name: string, value: any): void;
+    append(name: string, value: any): void;
 
     /**
      * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
@@ -159,19 +166,43 @@ declare class Class_HttpCollection extends Class_object {
     sort(): void;
 
     /**
-     * @description 查询容器内的键值
-     *      @return 返回包含所有键值的数组
+     * @description 遍历容器内的内容
+     *      @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
      *      
      */
-    keys(): any[];
+    forEach(callback: (...args: any[])=>any): void;
+
+    /**
+     * @description 遍历容器内的内容
+     *      @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
+     *      @param thisArg 指定回调函数的 this 对象
+     *      
+     */
+    forEach(callback: (...args: any[])=>any, thisArg: any): void;
+
+    /**
+     * @description 查询容器内的键值
+     *      @return 返回包含所有键值的迭代器
+     *      
+     */
+    keys(): Iterator<any>;
 
     /**
      * @description 查询容器内的数值
-     *      @return 返回包含所有数值的数组
+     *      @return 返回包含所有数值的迭代器
      *      
      */
-    values(): any[];
+    values(): Iterator<any>;
 
+    /**
+     * @description 查询容器内的键值和数值
+     *      @return 返回包含所有键值和数值的迭代器
+     *      
+     */
+    entries(): Iterator<any>;
+
+
+    "[Symbol.iterator]"(): Iterator<any>;
 
 }
 

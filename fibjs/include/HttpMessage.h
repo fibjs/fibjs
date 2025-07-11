@@ -9,6 +9,7 @@
 
 #include "Message.h"
 #include "HttpCollection.h"
+#include "HttpHeaders.h"
 #include "ifs/BufferedStream.h"
 
 namespace fibjs {
@@ -26,7 +27,7 @@ public:
         , m_bChunked(false)
         , m_sent(false)
     {
-        m_headers = new HttpCollection();
+        m_headers = new HttpHeaders();
         clear();
     }
 
@@ -44,7 +45,7 @@ public:
 public:
     result_t get_protocol(exlib::string& retVal);
     result_t set_protocol(exlib::string newVal);
-    result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
+    result_t get_headers(obj_ptr<HttpHeaders_base>& retVal);
     result_t get_keepAlive(bool& retVal);
     result_t set_keepAlive(bool newVal);
     result_t get_upgrade(bool& retVal);
@@ -61,9 +62,9 @@ public:
     result_t hasHeader(exlib::string name, bool& retVal);
     result_t firstHeader(exlib::string name, exlib::string& retVal);
     result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
-    result_t addHeader(v8::Local<v8::Object> map);
-    result_t addHeader(exlib::string name, v8::Local<v8::Array> values);
-    result_t addHeader(exlib::string name, exlib::string value);
+    result_t appendHeader(v8::Local<v8::Object> map);
+    result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
+    result_t appendHeader(exlib::string name, exlib::string value);
     result_t setHeader(v8::Local<v8::Object> map);
     result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t setHeader(exlib::string name, exlib::string value);
@@ -82,9 +83,9 @@ public:
     result_t readBody(AsyncEvent* ac);
 
 public:
-    void addHeader(const char* name, int32_t szName, const char* value,
+    void appendHeader(const char* name, int32_t szName, const char* value,
         int32_t szValue);
-    result_t addHeader(exlib::string& strLine);
+    result_t appendHeader(exlib::string& strLine);
     size_t getData(char* buf, size_t sz, bool content_length);
 
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
@@ -106,7 +107,7 @@ public:
     int32_t m_maxBodySize;
     exlib::string m_origin;
     exlib::string m_encoding;
-    obj_ptr<HttpCollection> m_headers;
+    obj_ptr<HttpHeaders> m_headers;
 
     int64_t m_contentLength;
     bool m_bChunked;

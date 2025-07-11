@@ -82,19 +82,24 @@ interface HttpCollection : object
     /*! @brief 添加一个键值数据，添加数据并不修改已存在的键值的数据
      @param map 指定要添加的键值数据字典
      */
-    add(Object map);
+    append(Object map);
 
     /*! @brief 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据
      @param name 指定要添加的键值
      @param values 指定要添加的一组数据
      */
-    add(String name, Array values);
+    append(String name, Array values);
+
+    /*! @brief 添加一组数据，添加数据并不修改已存在的键值的数据
+     @param entries 指定要添加的一组数据，格式为 [[<key>, <value>]]
+     */
+    append(Array entries);
 
     /*! @brief 添加一个键值数据，添加数据并不修改已存在的键值的数据
      @param name 指定要添加的键值
      @param value 指定要添加的数据
      */
-    add(String name, Variant value);
+    append(String name, Variant value);
 
     /*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
      @param map 指定要设定的键值数据字典
@@ -127,16 +132,37 @@ interface HttpCollection : object
      */
     sort();
 
-    /*! @brief 查询容器内的键值
-     @return 返回包含所有键值的数组
+    /*! @brief 遍历容器内的内容
+     @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
      */
-    NArray keys();
+    forEach(Function callback);
+
+    /*! @brief 遍历容器内的内容
+     @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
+     @param thisArg 指定回调函数的 this 对象
+     */
+    forEach(Function callback, Value thisArg);
+
+    /*! @brief 查询容器内的键值
+     @return 返回包含所有键值的迭代器
+     */
+    Iterator keys();
 
     /*! @brief 查询容器内的数值
-     @return 返回包含所有数值的数组
+     @return 返回包含所有数值的迭代器
      */
-    NArray values();
+    Iterator values();
+
+    /*! @brief 查询容器内的键值和数值
+     @return 返回包含所有键值和数值的迭代器
+     */
+    Iterator entries();
 
     /*! @brief 允许使用键值下标直接访问数值 */
     Variant operator[String];
+
+    /*! @brief 查询当前对象元素的迭代器
+     @return 返回当前对象元素的迭代器
+    */
+    Iterator @iterator();
 };

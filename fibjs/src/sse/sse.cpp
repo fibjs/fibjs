@@ -53,8 +53,8 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
 
         ON_STATE(asyncInvoke, handshake)
         {
-            m_httprep->addHeader("Content-Type", "text/event-stream");
-            m_httprep->addHeader("Transfer-Encoding", "chunked");
+            m_httprep->appendHeader("Content-Type", "text/event-stream");
+            m_httprep->appendHeader("Transfer-Encoding", "chunked");
 
             HttpResponse* resp = m_httprep.As<HttpResponse>();
             return resp->sendHeader(m_stm, false, next(accept));

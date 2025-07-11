@@ -1006,7 +1006,7 @@ describe("mq", () => {
 
                 var m = new http.Request();
                 m.value = '/test';
-                m.addHeader('host', v);
+                m.appendHeader('host', v);
 
                 mq.invoke(rt, m);
                 return r;

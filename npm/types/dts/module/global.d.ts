@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/UrlObject.d.ts" />
+/// <reference path="../interface/HttpHeaders.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
@@ -25,6 +26,11 @@ declare module 'global' {
      * @description 创建一个 UrlObject 请求对象，参见 UrlObject 
      */
     const URL: typeof Class_UrlObject;
+
+    /**
+     * @description 创建一个 HttpHeaders 对象，参见 HttpHeaders 
+     */
+    const Headers: typeof Class_HttpHeaders;
 
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。
