@@ -2049,9 +2049,10 @@ describe("http", () => {
 
             it("async", (done) => {
                 http.head("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
-                    assert.equal(r.data, null);
-                    assert.equal(r.headers['no_test_header'], "true");
-                    done();
+                    done(() => {
+                        assert.equal(r.data, null);
+                        assert.equal(r.headers['no_test_header'], "true");
+                    });
                 });
             });
         });
@@ -2086,8 +2087,9 @@ describe("http", () => {
 
             it("async", (done) => {
                 http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
-                    assert.equal(r.data.toString(), "/request");
-                    done();
+                    done(() => {
+                        assert.equal(r.data.toString(), "/request");
+                    });
                 });
             });
         });
@@ -2119,8 +2121,9 @@ describe("http", () => {
                 http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: "body"
                 }, (e, r) => {
-                    assert.equal(r.data.toString(), "/request:body");
-                    done();
+                    done(() => {
+                        assert.equal(r.data.toString(), "/request:body");
+                    });
                 });
             });
 
@@ -2131,8 +2134,9 @@ describe("http", () => {
                     },
                     body: ""
                 }, (e, r) => {
-                    assert.equal(r.data.toString(), "/request:header");
-                    done();
+                    done(() => {
+                        assert.equal(r.data.toString(), "/request:header");
+                    });
                 });
             });
         });
@@ -2495,9 +2499,10 @@ describe("http", () => {
 
                 it("async", (done) => {
                     client.head("http://127.0.0.1:" + (8884 + base_port) + "/request", (e, r) => {
-                        assert.equal(r.data, null);
-                        assert.equal(r.headers['no_test_header'], "true");
-                        done();
+                        done(() => {
+                            assert.equal(r.data, null);
+                            assert.equal(r.headers['no_test_header'], "true");
+                        });
                     });
                 });
             });
