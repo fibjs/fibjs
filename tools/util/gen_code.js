@@ -799,8 +799,7 @@ function gen_code(cls, def, baseFolder) {
                 txts.push([
                     "public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n",
                     "        CONSTRUCT_INIT();\n\n",
-                    "        isolate->m_isolate->ThrowException(\n",
-                    "            isolate->NewString(\"not a constructor\"));\n    }\n"
+                    "        ThrowTypeError(\"not a constructor\");\n    }\n"
                 ].join(''));
 
                 txts.push(`    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)`);

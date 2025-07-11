@@ -298,8 +298,7 @@ public:
     {
         CONSTRUCT_INIT();
 
-        isolate->m_isolate->ThrowException(
-            isolate->NewString("not a constructor"));
+        ThrowTypeError("not a constructor");
     }
 
     static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& retVal)
@@ -406,16 +405,13 @@ public:
 public:
     static void block_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        Isolate* isolate = Isolate::current(args);
-        isolate->m_isolate->ThrowException(isolate->NewString("Property is read-only."));
+        ThrowTypeError("Property is read-only.");
     }
 
     static v8::Intercepted i_IndexedSetter(uint32_t index,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
     {
-        Isolate* isolate = Isolate::current(info);
-
-        isolate->m_isolate->ThrowException(isolate->NewString("Indexed Property is read-only."));
+        ThrowTypeError("Indexed Property is read-only.");
 
         return v8::Intercepted::kNo;
     }
@@ -423,9 +419,7 @@ public:
     static v8::Intercepted i_NamedSetter(v8::Local<v8::Name> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
     {
-        Isolate* isolate = Isolate::current(info);
-
-        isolate->m_isolate->ThrowException(isolate->NewString("Named Property is read-only."));
+        ThrowTypeError("Named Property is read-only.");
 
         return v8::Intercepted::kNo;
     }
@@ -433,9 +427,7 @@ public:
     static v8::Intercepted i_NamedDeleter(
         v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
     {
-        Isolate* isolate = Isolate::current(info);
-
-        isolate->m_isolate->ThrowException(isolate->NewString("Named Property is read-only."));
+        ThrowTypeError("Named Property is read-only.");
 
         return v8::Intercepted::kNo;
     }
