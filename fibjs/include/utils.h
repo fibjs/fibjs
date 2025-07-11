@@ -884,6 +884,8 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
     vr = T::getInstance(v);
     if (vr)
         return 0;
+    if (bStrict)
+        return CALL_E_TYPEMISMATCH;
 
     return T::load(isolate, v, vr);
 }
