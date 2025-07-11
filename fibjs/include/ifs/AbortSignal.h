@@ -25,9 +25,10 @@ class AbortSignal_base : public EventEmitter_base {
 public:
     // AbortSignal_base
     virtual result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal) = 0;
+    virtual result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal) = 0;
     virtual result_t throwIfAborted() = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
-    virtual result_t get_reason(exlib::string& retVal) = 0;
+    virtual result_t get_reason(v8::Local<v8::Value>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -89,6 +90,12 @@ inline void AbortSignal_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>&
 
     hr = pInst->abort(v0, vr);
 
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = pInst->abort(v0, vr);
+
     METHOD_RETURN();
 }
 
@@ -120,7 +127,7 @@ inline void AbortSignal_base::s_get_aborted(const v8::FunctionCallbackInfo<v8::V
 
 inline void AbortSignal_base::s_get_reason(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    exlib::string vr;
+    v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(AbortSignal_base);
     METHOD_ENTER();

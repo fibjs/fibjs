@@ -28,5 +28,12 @@ declare class Class_AbortController extends Class_object {
      */
     abort(reason?: string): void;
 
+    /**
+     * @description 用于中止一个或多个 Web 请求
+     *      @param reason 一个任意类型的值，用于描述中止请求的原因
+     *     
+     */
+    abort(reason: any): void;
+
 }
 
