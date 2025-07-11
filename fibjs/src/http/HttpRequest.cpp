@@ -8,7 +8,7 @@
 #include "object.h"
 #include "HttpRequest.h"
 #include "parse.h"
-#include "HttpUploadCollection.h"
+#include "HttpCollection.h"
 
 namespace fibjs {
 
@@ -486,8 +486,8 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
             buf->toString(strForm);
 
             if (bUpload) {
-                obj_ptr<HttpUploadCollection> col = new HttpUploadCollection();
-                col->parse(strForm, strType.c_str());
+                obj_ptr<HttpCollection> col = new HttpCollection(false);
+                col->parseMultipart(strForm, strType.c_str());
                 m_form = col;
             } else {
                 obj_ptr<HttpCollection> c = new HttpCollection();

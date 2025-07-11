@@ -10,114 +10,83 @@
 #include "ifs/HttpCollection.h"
 #include "QuickArray.h"
 
+#include "HttpCollectionTmpl.h"
+
 namespace fibjs {
 
-class HttpCollection : public HttpCollection_base {
+class HttpCollection : public HttpCollectionTmpl<HttpCollection_base> {
 public:
-    HttpCollection()
-        : m_count(0)
+    HttpCollection(bool string_only = true)
+        : HttpCollectionTmpl<HttpCollection_base>(string_only)
     {
-        m_map.resize(16);
     }
 
 public:
-    // HttpCollection_base
-    virtual result_t clear();
-    virtual result_t has(exlib::string name, bool& retVal);
-    virtual result_t first(exlib::string name, Variant& retVal);
-    virtual result_t get(exlib::string name, Variant& retVal);
-    virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal);
-    virtual result_t add(v8::Local<v8::Object> map);
-    virtual result_t add(exlib::string name, v8::Local<v8::Array> values);
-    virtual result_t add(exlib::string name, Variant value);
-    virtual result_t set(v8::Local<v8::Object> map);
-    virtual result_t set(exlib::string name, v8::Local<v8::Array> values);
-    virtual result_t set(exlib::string name, Variant value);
-    virtual result_t remove(exlib::string name);
-    virtual result_t _delete(exlib::string name);
-    virtual result_t sort();
-    virtual result_t keys(obj_ptr<NArray>& retVal);
-    virtual result_t values(obj_ptr<NArray>& retVal);
-    virtual result_t _named_getter(exlib::string property, Variant& retVal);
-    virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
-    virtual result_t _named_setter(exlib::string property, Variant newVal);
-    virtual result_t _named_deleter(exlib::string property, v8::Local<v8::Boolean>& retVal);
-
-public:
-    void add(const char* name, int32_t szName, const char* value, int32_t szValue)
+    void add_string(const char* name, int32_t szName, const char* value, int32_t szValue)
     {
         add(exlib::string(name, szName), exlib::string(value, szValue));
     }
 
-    result_t add(exlib::string& name, exlib::string value)
+    result_t first_string(exlib::string name, exlib::string& retVal)
     {
-        if (m_map.size() < m_count + 1)
-            m_map.resize(m_count + 1);
-
-        m_map[m_count] = pair(name, value);
-        m_count++;
-
-        return 0;
-    }
-
-    result_t first(exlib::string name, exlib::string& retVal)
-    {
-        size_t i;
-
-        for (i = 0; i < m_count; i++) {
-            pair& _pair = m_map[i];
-
-            if (!qstricmp(_pair.first.c_str(), name.c_str())) {
-                retVal = _pair.second;
-                return 0;
-            }
+        Variant v;
+        result_t ret = first(name, v);
+        if (ret == 0) {
+            v.toString(retVal);
         }
-
-        return CALL_RETURN_NULL;
+        return ret;
     }
 
-    result_t all(exlib::string name, obj_ptr<NArray>& retVal)
-    {
-        obj_ptr<NArray> list = new NArray();
-        size_t i;
-
-        for (i = 0; i < m_count; i++) {
-            pair& _pair = m_map[i];
-
-            if (!qstricmp(_pair.first.c_str(), name.c_str()))
-                list->append(_pair.second);
-        }
-
-        retVal = list;
-        return 0;
-    }
-
-    result_t all(obj_ptr<NObject>& retVal)
-    {
-        obj_ptr<NObject> map = new NObject();
-        size_t i;
-
-        map->enable_multi_value();
-
-        for (i = 0; i < m_count; i++) {
-            pair& _pair = m_map[i];
-            map->add(_pair.first, _pair.second);
-        }
-
-        retVal = map;
-        return 0;
-    }
-
-    size_t size();
-    size_t getData(char* buf, size_t sz);
-
+public:
     result_t parse(exlib::string& str, const char* sep = "&", const char* eq = "=");
     result_t parseCookie(exlib::string& str);
+    result_t parseMultipart(exlib::string& str, const char* boundary);
 
-private:
-    typedef std::pair<exlib::string, exlib::string> pair;
-    std::vector<pair> m_map;
-    size_t m_count;
+public:
+    size_t size()
+    {
+        size_t sz = 0;
+        size_t i;
+
+        for (i = 0; i < m_count; i++) {
+            pair& _pair = m_map[i];
+            sz += _pair.first.length() + _pair.second.string().length() + 4;
+        }
+
+        return sz;
+    }
+
+    void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
+    {
+        buf += pos;
+
+        pos += szStr;
+        if (pos > sz) {
+            szStr -= pos - sz;
+            pos = sz;
+        }
+
+        memcpy(buf, str, szStr);
+    }
+
+    size_t getData(char* buf, size_t sz)
+    {
+        size_t pos = 0;
+        size_t i;
+
+        for (i = 0; i < m_count; i++) {
+            pair& _pair = m_map[i];
+            exlib::string& n = _pair.first;
+            exlib::string v = _pair.second.string();
+
+            cp(buf, sz, pos, n.c_str(), n.length());
+            cp(buf, sz, pos, ": ", 2);
+            cp(buf, sz, pos, v.c_str(), v.length());
+            cp(buf, sz, pos, "\r\n", 2);
+        }
+
+        return pos;
+    }
 };
 
 } /* namespace fibjs */

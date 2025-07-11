@@ -7,71 +7,13 @@
 
 #include "object.h"
 #include "HttpCollection.h"
+#include "HttpUploadData.h"
+#include "MemoryStream.h"
 #include "Url.h"
 #include <string.h>
 #include <set>
 
 namespace fibjs {
-
-size_t HttpCollection::size()
-{
-    size_t sz = 0;
-    size_t i;
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-        sz += _pair.first.length() + _pair.second.length() + 4;
-    }
-
-    return sz;
-}
-
-inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
-{
-    buf += pos;
-
-    pos += szStr;
-    if (pos > sz) {
-        szStr -= pos - sz;
-        pos = sz;
-    }
-
-    memcpy(buf, str, szStr);
-}
-
-size_t HttpCollection::getData(char* buf, size_t sz)
-{
-    size_t pos = 0;
-    size_t i;
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-        exlib::string& n = _pair.first;
-        exlib::string& v = _pair.second;
-
-        cp(buf, sz, pos, n.c_str(), n.length());
-        cp(buf, sz, pos, ": ", 2);
-        cp(buf, sz, pos, v.c_str(), v.length());
-        cp(buf, sz, pos, "\r\n", 2);
-    }
-
-    return pos;
-}
-
-result_t HttpCollection::clear()
-{
-    size_t i;
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-        _pair.first.clear();
-        _pair.second.clear();
-    }
-
-    m_count = 0;
-
-    return 0;
-}
 
 result_t HttpCollection::parse(exlib::string& str, const char* sep, const char* eq)
 {
@@ -189,268 +131,201 @@ result_t HttpCollection::parseCookie(exlib::string& str)
     return 0;
 }
 
-result_t HttpCollection::has(exlib::string name, bool& retVal)
+result_t HttpCollection::parseMultipart(exlib::string& str, const char* boundary)
 {
-    size_t i;
+    const char* pstr = str.c_str();
+    size_t nSize = str.length();
+    exlib::string strName;
+    exlib::string strFileName;
+    exlib::string strContentType;
+    exlib::string strContentTransferEncoding;
+    const char *p, *p1, *p2, *szQueryString;
+    const char* pstrSplit;
+    size_t uiSplitSize;
+    char ch;
 
-    retVal = false;
-    for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_map[i].first.c_str(), name.c_str())) {
-            retVal = true;
-            break;
-        }
+    boundary += 20;
+    while (*boundary && *boundary == ' ')
+        boundary++;
 
-    return 0;
-}
+    if (qstricmp(boundary, "boundary=", 9))
+        return 0;
 
-result_t HttpCollection::first(exlib::string name, Variant& retVal)
-{
-    size_t i;
+    boundary += 9;
+    uiSplitSize = qstrlen(boundary);
 
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
+    pstrSplit = szQueryString = pstr;
 
-        if (!qstricmp(_pair.first.c_str(), name.c_str())) {
-            retVal = _pair.second;
-            return 0;
-        }
-    }
+    if (nSize < uiSplitSize + 2 || szQueryString[0] != '-'
+        || szQueryString[1] != '-'
+        || qstrcmp(szQueryString + 2, boundary, uiSplitSize))
+        return 0;
 
-    return CALL_RETURN_NULL;
-}
+    uiSplitSize += 2;
+    szQueryString += uiSplitSize;
+    nSize -= uiSplitSize;
 
-result_t HttpCollection::get(exlib::string name, Variant& retVal)
-{
-    return first(name, retVal);
-}
+    while (nSize) {
+        strFileName.clear();
+        strContentType.clear();
+        strContentTransferEncoding.clear();
 
-result_t HttpCollection::all(exlib::string name, obj_ptr<NObject>& retVal)
-{
-    if (!name.empty()) {
-        obj_ptr<NArray> list;
+        while (nSize > 0) {
+            ch = *szQueryString++;
+            nSize--;
+            if (ch != '\r')
+                return 0;
+            if (nSize > 0 && *szQueryString == '\n') {
+                nSize--;
+                szQueryString++;
+            }
 
-        all(name, list);
-        retVal = list;
-    } else
-        all(retVal);
+            p = szQueryString;
+            while (nSize > 0 && *p != '\r') {
+                nSize--;
+                p++;
+            }
 
-    return 0;
-}
+            if (nSize == 0)
+                break;
 
-result_t HttpCollection::add(exlib::string name, Variant value)
-{
-    exlib::string s;
+            p1 = szQueryString;
+            szQueryString = p;
 
-    value.toString(s);
-    return add(name, s);
-}
+            if (p != p1) {
+                if (p1 + 20 < p && !qstricmp(p1, "Content-Disposition:", 20)) {
+                    p1 += 20;
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
+                    if (p1 + 10 >= p || qstricmp(p1, "form-data;", 10))
+                        return 0;
 
-result_t HttpCollection::add(v8::Local<v8::Object> map)
-{
-    v8::Local<v8::Context> context = map->GetCreationContextChecked();
-    JSArray ks = map->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    Isolate* isolate = holder();
+                    p1 += 10;
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
+                    if (p1 + 5 >= p || qstricmp(p1, "name=", 5))
+                        return 0;
 
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-        JSValue v = map->Get(context, k);
+                    p1 += 5;
 
-        if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
 
-        if (v->IsArray())
-            add(isolate->toString(k), v.As<v8::Array>());
-        else
-            add(isolate->toString(k), (Variant)v);
-    }
+                    ch = ';';
+                    if (*p1 == '\"') {
+                        p1++;
+                        ch = '\"';
+                    }
 
-    return 0;
-}
+                    p2 = p1;
+                    while (p1 < p && *p1 != ch)
+                        p1++;
 
-result_t HttpCollection::add(exlib::string name, v8::Local<v8::Array> values)
-{
-    v8::Local<v8::Context> context = values->GetCreationContextChecked();
-    int32_t len = values->Length();
-    int32_t i;
+                    strName.assign(p2, (size_t)(p1 - p2));
 
-    for (i = 0; i < len; i++)
-        add(name, (Variant)JSValue(values->Get(context, i)));
+                    if (p1 < p && *p1 == '\"')
+                        p1++;
 
-    return 0;
-}
+                    if (p1 < p && *p1 == ';')
+                        p1++;
 
-result_t HttpCollection::set(exlib::string name, Variant value)
-{
-    remove(name);
-    return add(name, value);
-}
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
 
-result_t HttpCollection::set(v8::Local<v8::Object> map)
-{
-    v8::Local<v8::Context> context = map->GetCreationContextChecked();
-    JSArray ks = map->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    Isolate* isolate = holder();
+                    if (p1 + 9 < p && !qstricmp(p1, "filename=", 9)) {
+                        p1 += 9;
 
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-        JSValue v = map->Get(context, k);
+                        while (p1 < p && *p1 == ' ')
+                            p1++;
 
-        if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+                        ch = ';';
+                        if (*p1 == '\"') {
+                            p1++;
+                            ch = '\"';
+                        }
 
-        if (v->IsArray())
-            set(isolate->toString(k), v.As<v8::Array>());
-        else
-            set(isolate->toString(k), (Variant)v);
-    }
+                        p2 = p1;
+                        while (p1 < p && *p1 != ch) {
+                            if (*p1 == '/' || *p1 == '\\')
+                                p2 = p1 + 1;
+                            p1++;
+                        }
 
-    return 0;
-}
-
-result_t HttpCollection::set(exlib::string name, v8::Local<v8::Array> values)
-{
-    v8::Local<v8::Context> context = values->GetCreationContextChecked();
-    int32_t len = values->Length();
-    int32_t i;
-
-    remove(name);
-    for (i = 0; i < len; i++)
-        add(name, (Variant)JSValue(values->Get(context, i)));
-
-    return 0;
-}
-
-result_t HttpCollection::remove(exlib::string name)
-{
-    size_t i;
-    int32_t p = 0;
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-
-        if (qstricmp(_pair.first.c_str(), name.c_str())) {
-            if (i != p)
-                m_map[p] = _pair;
-
-            p++;
-        }
-    }
-
-    m_count = p;
-
-    return 0;
-}
-
-result_t HttpCollection::_delete(exlib::string name)
-{
-    return remove(name);
-}
-
-result_t HttpCollection::sort()
-{
-    if (m_count)
-        std::sort(m_map.begin(), m_map.begin() + m_count, [](pair& a, pair& b) {
-            return a.first < b.first;
-        });
-
-    return 0;
-}
-
-result_t HttpCollection::keys(obj_ptr<NArray>& retVal)
-{
-    obj_ptr<NArray> _keys = new NArray();
-    size_t i;
-
-    for (i = 0; i < m_count; i++)
-        _keys->append(m_map[i].first);
-
-    retVal = _keys;
-
-    return 0;
-}
-
-result_t HttpCollection::values(obj_ptr<NArray>& retVal)
-{
-    obj_ptr<NArray> _keys = new NArray();
-    size_t i;
-
-    for (i = 0; i < m_count; i++)
-        _keys->append(m_map[i].second);
-
-    retVal = _keys;
-    return 0;
-}
-
-result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
-{
-    size_t i;
-    int32_t n = 0;
-    Variant v;
-    v8::Local<v8::Array> a;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-
-        if (!qstricmp(_pair.first.c_str(), property.c_str())) {
-            if (n == 0) {
-                v = _pair.second;
-                n = 1;
-            } else {
-                if (n == 1) {
-                    a = v8::Array::New(isolate->m_isolate);
-                    a->Set(context, 0, v).IsJust();
-                    v = a;
+                        strFileName.assign(p2, (size_t)(p1 - p2));
+                    }
+                } else if (p1 + 13 < p && !qstricmp(p1, "Content-Type:", 13)) {
+                    p1 += 13;
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
+                    strContentType.assign(p1, (size_t)(p - p1));
+                } else if (p1 + 26 < p && !qstricmp(p1, "Content-Transfer-Encoding:", 26)) {
+                    p1 += 26;
+                    while (p1 < p && *p1 == ' ')
+                        p1++;
+                    strContentTransferEncoding.assign(p1, (size_t)(p - p1));
                 }
-
-                Variant t = _pair.second;
-                a->Set(context, n++, t).IsJust();
+            } else {
+                ch = *szQueryString++;
+                nSize--;
+                if (ch != '\r')
+                    return 0;
+                if (nSize > 0 && *szQueryString == '\n') {
+                    nSize--;
+                    szQueryString++;
+                }
+                break;
             }
         }
-    }
 
-    if (n > 0) {
-        retVal = v;
-        return 0;
-    }
+        p = szQueryString;
+        p1 = p + nSize;
+        while (p1 > p && (p = (char*)memchr(p, '-', p1 - p))
+            && p1 > p + uiSplitSize && memcmp(p, pstrSplit, uiSplitSize))
+            p++;
 
-    return CALL_RETURN_NULL;
-}
+        if (!p || p1 <= p + uiSplitSize)
+            break;
 
-result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
-{
-    size_t i;
-    int32_t n;
-    std::set<exlib::string> name_set;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
+        nSize = (size_t)(p1 - p - uiSplitSize);
+        p1 = szQueryString;
+        szQueryString = p + uiSplitSize;
 
-    retVal = v8::Array::New(isolate->m_isolate);
-    for (i = 0, n = 0; i < m_count; i++) {
-        exlib::string& name = m_map[i].first;
-        if (name_set.insert(name).second)
-            retVal->Set(context, n++, isolate->NewString(name)).IsJust();
+        if (p > p1) {
+            p--;
+            ch = *p;
+            if (ch != '\n')
+                return 0;
+
+            if (p > p1 && *(p - 1) == '\r')
+                p--;
+        }
+
+        if (!strName.empty()) {
+            size_t uiSize = (size_t)(p - p1);
+            exlib::string strTemp;
+            Variant varTemp;
+
+            strTemp.assign(p1, uiSize);
+
+            if (strFileName.empty())
+                varTemp = strTemp;
+            else {
+                obj_ptr<HttpUploadData> objTemp = new HttpUploadData();
+                date_t tm;
+
+                objTemp->m_name = strFileName;
+                objTemp->m_type = strContentType;
+                objTemp->m_encoding = strContentTransferEncoding;
+                objTemp->m_body = new MemoryStream::CloneStream(strTemp, tm);
+
+                varTemp = objTemp;
+            }
+
+            add(strName, varTemp);
+        }
     }
 
     return 0;
-}
-
-result_t HttpCollection::_named_setter(exlib::string property, Variant newVal)
-{
-    return set(property, newVal);
-}
-
-result_t HttpCollection::_named_deleter(exlib::string property,
-    v8::Local<v8::Boolean>& retVal)
-{
-    size_t n = m_count;
-    remove(property);
-    return n > m_count;
 }
 
 } /* namespace fibjs */

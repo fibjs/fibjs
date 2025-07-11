@@ -406,7 +406,7 @@ void HttpMessage::addHeader(const char* name, int32_t szName, const char* value,
         } else
             m_keepAlive = !!qstristr(value, "keep-alive");
     } else
-        m_headers->add(name, szName, value, szValue);
+        m_headers->add_string(name, szName, value, szValue);
 }
 
 result_t HttpMessage::addHeader(exlib::string& strLine)
@@ -626,7 +626,7 @@ result_t HttpMessage::hasHeader(exlib::string name, bool& retVal)
 
 result_t HttpMessage::firstHeader(exlib::string name, exlib::string& retVal)
 {
-    return m_headers->first(name, retVal);
+    return m_headers->first_string(name, retVal);
 }
 
 result_t HttpMessage::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
