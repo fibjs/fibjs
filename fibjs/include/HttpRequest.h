@@ -10,6 +10,7 @@
 #include "ifs/HttpRequest.h"
 #include "HttpMessage.h"
 #include "HttpResponse.h"
+#include "HttpHeaders.h"
 #include "HttpCollection.h"
 
 namespace fibjs {
@@ -111,20 +112,12 @@ public:
         m_message->appendHeader(name, value);
     }
 
-    result_t appendHeader(NObject* map)
+    result_t appendHeader(HttpHeaders_base* map)
     {
-        for (int32_t i = 0; i < (int32_t)map->m_values.size(); i++) {
-            NObject::Value& v = map->m_values[i];
-
-            if (!v.m_val.isUndefined()) {
-                obj_ptr<NArray> list = NArray::getInstance(v.m_val.object());
-
-                if (list) {
-                    for (int32_t i = 0; i < (int32_t)list->m_array.size(); i++)
-                        _appendHeader(v.m_pos->first, list->m_array[i].string());
-                } else
-                    _appendHeader(v.m_pos->first, v.m_val.string());
-            }
+        HttpHeaders* headers = static_cast<HttpHeaders*>(map);
+        for (int32_t i = 0; i < (int32_t)headers->m_map.size(); i++) {
+            auto& it = headers->m_map[i];
+            _appendHeader(it.first, it.second.string());
         }
 
         return 0;

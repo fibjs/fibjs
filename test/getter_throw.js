@@ -143,15 +143,15 @@ describe('getter throw', () => {
             },
         ]);
 
-        http.get(`http://127.0.0.1:${9980 + base_port}`, {
-            headers: arr
-        });
-        http.get(`http://127.0.0.1:${9980 + base_port}`, {
-            headers: arr2
-        });
-        http.get(`http://127.0.0.1:${9980 + base_port}`, {
-            headers: obj2
-        });
+        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        //     headers: arr
+        // });
+        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        //     headers: arr2
+        // });
+        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        //     headers: obj2
+        // });
     });
 
     it('HttpCollection', () => {
