@@ -179,44 +179,53 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v
         v->to_args(m_isolate, args);
 }
 
+void AsyncCallBack::processPromiseResult()
+{
+    v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
+
+    if (m_v == CALL_RETURN_NULL)
+        resolver->Resolve(m_isolate->context(), v8::Null(m_isolate->m_isolate)).IsJust();
+    else if (m_v == CALL_RETURN_UNDEFINED)
+        resolver->Resolve(m_isolate->context(), v8::Undefined(m_isolate->m_isolate)).IsJust();
+    else if (m_v >= 0) {
+        std::vector<v8::Local<v8::Value>> args;
+
+        to_args(args);
+
+        v8::Local<v8::Value> result;
+        if (m_result)
+            m_result->valueOf(result);
+        else if (args.size() == 0)
+            result = v8::Undefined(m_isolate->m_isolate);
+        else {
+            result = args[0];
+
+            if (result->IsObject()) {
+                v8::Local<v8::Object> o = result.As<v8::Object>();
+                obj_ptr<object_base> obj = object_base::getInstance(o);
+                if (obj) {
+                    ClassInfo& ci = obj->Classinfo();
+                    if (ci.hasAsync())
+                        o->SetPrototype(m_isolate->context(), ci.GetAsyncPrototype(m_isolate)).IsJust();
+                }
+            }
+        }
+
+        resolver->Resolve(m_isolate->context(), result).IsJust();
+    } else
+        resolver->Reject(m_isolate->context(), FillError(m_v)).IsJust();
+
+    delete this;
+}
+
 int AsyncCallBack::syncFunc()
 {
     JSFiber::EnterJsScope s;
-    std::vector<v8::Local<v8::Value>> args;
 
     if (m_is_promise) {
-        v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
-
-        if (m_v == CALL_RETURN_NULL)
-            resolver->Resolve(m_isolate->context(), v8::Null(m_isolate->m_isolate)).IsJust();
-        else if (m_v == CALL_RETURN_UNDEFINED)
-            resolver->Resolve(m_isolate->context(), v8::Undefined(m_isolate->m_isolate)).IsJust();
-        else if (m_v >= 0) {
-            to_args(args);
-
-            v8::Local<v8::Value> result;
-            if (m_result)
-                m_result->valueOf(result);
-            else if (args.size() == 0)
-                result = v8::Undefined(m_isolate->m_isolate);
-            else {
-                result = args[0];
-
-                if (result->IsObject()) {
-                    v8::Local<v8::Object> o = result.As<v8::Object>();
-                    obj_ptr<object_base> obj = object_base::getInstance(o);
-                    if (obj) {
-                        ClassInfo& ci = obj->Classinfo();
-                        if (ci.hasAsync())
-                            o->SetPrototype(m_isolate->context(), ci.GetAsyncPrototype(m_isolate)).IsJust();
-                    }
-                }
-            }
-
-            resolver->Resolve(m_isolate->context(), result).IsJust();
-        } else
-            resolver->Reject(m_isolate->context(), FillError(m_v)).IsJust();
+        processPromiseResult();
     } else {
+        std::vector<v8::Local<v8::Value>> args;
         v8::Local<v8::Function> func = m_cb.Get(m_isolate->m_isolate).As<v8::Function>();
 
         if (m_v == CALL_RETURN_NULL) {
@@ -243,25 +252,34 @@ int AsyncCallBack::syncFunc()
 
         func->Call(func->GetCreationContextChecked(), oThis, (int32_t)args.size(), args.data())
             .IsEmpty();
-    }
 
-    delete this;
+        delete this;
+    }
 
     return 0;
 }
 
 int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)
-        callback(hr);
-    else
-        async_call(hr);
-
     if (m_is_promise) {
         v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
+
+        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
+            m_v = hr;
+            processPromiseResult();
+        } else
+            async_call(hr);
+
         args.GetReturnValue().Set(resolver->GetPromise());
-    } else if (m_ctxo)
-        args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
+    } else {
+        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
+            callback(hr);
+        } else
+            async_call(hr);
+
+        if (m_ctxo)
+            args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
+    }
 
     return CALL_RETURN_UNDEFINED;
 }

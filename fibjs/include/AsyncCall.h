@@ -455,6 +455,8 @@ protected:
 
     int syncFunc();
 
+    void processPromiseResult();
+
 protected:
     obj_ptr<object_base> m_pThis;
     v8::Global<v8::Object> m_cb;
