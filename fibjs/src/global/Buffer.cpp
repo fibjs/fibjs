@@ -1552,6 +1552,40 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
+result_t Buffer::subarray(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
+{
+    int32_t length = (int32_t)Buffer::length();
+
+    // Normalize start
+    if (start < 0)
+        start = length + start;
+
+    // Normalize end  
+    if (end < 0)
+        end = length + end;
+
+    // Clamp to valid range
+    if (start < 0)
+        start = 0;
+
+    if (end > length)
+        end = length;
+
+    if (start > end)
+        start = end;
+
+    // Create zero-copy subarray by sharing the backing store
+    if (start < end) {
+        size_t newOffset = m_store.m_offset + start;
+        size_t newLength = end - start;
+        retVal = new Buffer(m_store.m_store, newOffset, newLength);
+    } else {
+        retVal = new Buffer(NULL, 0);
+    }
+
+    return 0;
+}
+
 result_t Buffer::equals(object_base* expected, bool& retVal)
 {
     obj_ptr<Buffer> buf = Buffer::getInstance(expected);

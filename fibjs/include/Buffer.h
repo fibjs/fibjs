@@ -270,6 +270,9 @@ public:
 public:
     bool is_safe_codec(exlib::string codec);
 
+    // Create a zero-copy slice that shares the backing store
+    result_t subarray(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
+
 public:
     static v8::Local<v8::Value> load_module();
 
