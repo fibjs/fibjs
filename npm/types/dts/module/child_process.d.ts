@@ -113,7 +113,7 @@ declare module 'child_process' {
      */
     function exec(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
-    function exec(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
 
     /**
      * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
@@ -138,7 +138,7 @@ declare module 'child_process' {
      */
     function execFile(command: string, args: any[], options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
-    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
 
     /**
      * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
@@ -162,7 +162,7 @@ declare module 'child_process' {
      */
     function execFile(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
-    function execFile(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
 
     /**
      * @description 用给定的命令发布一个子进程
@@ -185,9 +185,9 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any];
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any];
 
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any])=>any): void;
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any])=>any): void;
 
     /**
      * @description 用给定的命令发布一个子进程
@@ -209,9 +209,9 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any];
+    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any];
 
-    function spawnSync(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any])=>any): void;
+    function spawnSync(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any])=>any): void;
 
     /**
      * @description 在子进程中执行一个模块
@@ -280,7 +280,7 @@ declare module 'child_process' {
      */
     function run(command: string, args: any[], options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 直接执行所指定的文件并返回 exitCode，当以回调方式执行时，函数将返回子进程对象
@@ -303,7 +303,7 @@ declare module 'child_process' {
      */
     function run(command: string, options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 用字符串模版语法在 shell 中执行一个命令并缓冲输出

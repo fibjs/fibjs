@@ -283,9 +283,7 @@ declare module 'global' {
      *      @return 返回服务器响应
      *      
      */
-    function fetch(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    function fetch(url: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
 }
 

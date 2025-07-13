@@ -91,7 +91,7 @@ declare module 'net' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description 创建一个 Smtp 对象，参见 Smtp 
@@ -107,7 +107,7 @@ declare module 'net' {
      */
     function openSmtp(url: string, timeout?: number): Class_Smtp;
 
-    function openSmtp(url: string, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+    function openSmtp(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
 
     /**
      * @description 创建一个 TcpServer 对象，参见 TcpServer 

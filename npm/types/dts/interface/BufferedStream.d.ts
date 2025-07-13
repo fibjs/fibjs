@@ -66,7 +66,7 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readLine(maxlen?: number): string;
 
-    readLine(maxlen?: number, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    readLine(maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -85,7 +85,7 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readUntil(mk: string, maxlen?: number): string;
 
-    readUntil(mk: string, maxlen?: number, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    readUntil(mk: string, maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 写入一个字符串

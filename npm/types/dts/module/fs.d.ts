@@ -95,7 +95,7 @@ declare module 'fs' {
      */
     function access(path: string, mode?: number): void;
 
-    function access(path: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function access(path: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 创建硬链接文件, windows 下不支持此方法
@@ -124,7 +124,7 @@ declare module 'fs' {
      */
     function mkdir(path: string, mode?: number): void;
 
-    function mkdir(path: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function mkdir(path: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 创建一个目录
@@ -178,7 +178,7 @@ declare module 'fs' {
      */
     function copyFile(from: string, to: string, mode?: number): void;
 
-    function copyFile(from: string, to: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function copyFile(from: string, to: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
@@ -281,7 +281,7 @@ declare module 'fs' {
      */
     function symlink(target: string, linkpath: string, type?: string): void;
 
-    function symlink(target: string, linkpath: string, type?: string, callback?: (err: Error | undefined | null)=>any): void;
+    function symlink(target: string, linkpath: string, type?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
@@ -305,7 +305,7 @@ declare module 'fs' {
      */
     function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
@@ -372,7 +372,7 @@ declare module 'fs' {
      */
     function readdir(path: string, opts?: FIBJS.GeneralObject): any[];
 
-    function readdir(path: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function readdir(path: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
@@ -391,7 +391,7 @@ declare module 'fs' {
      */
     function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
 
-    function glob(pattern: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(pattern: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
@@ -408,9 +408,9 @@ declare module 'fs' {
      *      @return 返回文件列表
      *      
      */
-    function glob(patterns: string, opts?: FIBJS.GeneralObject): any[];
+    function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
 
-    function glob(patterns: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(patterns: string[], opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写
@@ -429,7 +429,7 @@ declare module 'fs' {
      */
     function openFile(fname: string, flags?: string): Class_SeekableStream;
 
-    function openFile(fname: string, flags?: string, callback?: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function openFile(fname: string, flags?: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description 打开文件描述符
@@ -449,7 +449,7 @@ declare module 'fs' {
      */
     function open(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags?: string, mode?: number, callback?: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+    function open(fname: string, flags?: string, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description 关闭文件描述符
@@ -477,7 +477,7 @@ declare module 'fs' {
      */
     function openTextStream(fname: string, flags?: string): Class_BufferedStream;
 
-    function openTextStream(fname: string, flags?: string, callback?: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+    function openTextStream(fname: string, flags?: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
 
     /**
      * @description 打开文本文件，并读取内容
@@ -498,7 +498,7 @@ declare module 'fs' {
      */
     function readFile(fname: string, encoding?: string): any;
 
-    function readFile(fname: string, encoding?: string, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: string, encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 打开文件，并读取内容
@@ -539,7 +539,7 @@ declare module 'fs' {
      */
     function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
@@ -552,7 +552,7 @@ declare module 'fs' {
      */
     function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string): number;
 
-    function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建文本文件，并写入内容
@@ -575,7 +575,7 @@ declare module 'fs' {
      */
     function writeFile(fname: string, data: Class_Buffer, opt?: string): number;
 
-    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建二进制文件，并写入内容
@@ -599,7 +599,7 @@ declare module 'fs' {
      */
     function writeFile(fname: string, data: string, opt?: string): number;
 
-    function writeFile(fname: string, data: string, opt?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: string, data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建文件，并写入内容

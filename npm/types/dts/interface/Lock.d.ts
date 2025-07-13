@@ -52,7 +52,7 @@ declare class Class_Lock extends Class_object {
      */
     acquire(blocking?: boolean): boolean;
 
-    acquire(blocking?: boolean, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    acquire(blocking?: boolean, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 释放锁的拥有权

@@ -28,7 +28,7 @@ declare module 'dns' {
      */
     function lookup(name: string, options?: FIBJS.GeneralObject): any;
 
-    function lookup(name: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
+    function lookup(name: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
 }
 

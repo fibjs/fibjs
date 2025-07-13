@@ -20,7 +20,7 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     read(bytes?: number): Class_Buffer;
 
-    read(bytes?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 将给定的数据写入流
@@ -69,7 +69,7 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     copyTo(stm: Class_Stream, bytes?: number): number;
 
-    copyTo(stm: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    copyTo(stm: Class_Stream, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 查询和绑定流数据事件，相当于 on("data", func);

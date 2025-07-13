@@ -153,7 +153,7 @@ declare module 'zlib' {
      */
     function inflate(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
-    function inflate(data: Class_Buffer, maxSize?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflate(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
@@ -164,7 +164,7 @@ declare module 'zlib' {
      */
     function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
-    function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
@@ -175,7 +175,7 @@ declare module 'zlib' {
      */
     function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
-    function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 使用 gzip 算法压缩数据
@@ -216,7 +216,7 @@ declare module 'zlib' {
      */
     function gunzip(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
-    function gunzip(data: Class_Buffer, maxSize?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gunzip(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 解压缩 gzip 算法压缩的数据到流对象中
@@ -227,7 +227,7 @@ declare module 'zlib' {
      */
     function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
-    function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 解压缩源流中 gzip 算法压缩的数据到流对象中
@@ -238,7 +238,7 @@ declare module 'zlib' {
      */
     function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
-    function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 使用 deflate 算法压缩数据(deflateRaw)
@@ -282,7 +282,7 @@ declare module 'zlib' {
      */
     function inflateRaw(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
-    function inflateRaw(data: Class_Buffer, maxSize?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflateRaw(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
@@ -293,7 +293,7 @@ declare module 'zlib' {
      */
     function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
-    function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
@@ -304,7 +304,7 @@ declare module 'zlib' {
      */
     function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
-    function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
 }
 

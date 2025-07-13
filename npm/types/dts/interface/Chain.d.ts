@@ -24,14 +24,14 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlrs 处理器数组
      *      
      */
-    constructor(hdlrs: Class_Handler);
+    constructor(hdlrs: Class_Handler[]);
 
     /**
      * @description 添加处理器数组
      *      @param hdlrs 处理器数组
      *      
      */
-    append(hdlrs: Class_Handler): void;
+    append(hdlrs: Class_Handler[]): void;
 
     /**
      * @description 添加处理器

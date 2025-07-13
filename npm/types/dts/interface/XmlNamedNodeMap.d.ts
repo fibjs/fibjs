@@ -20,7 +20,6 @@ declare class Class_XmlNamedNodeMap extends Class_object {
      */
     item(index: number): Class_XmlAttr;
 
-
     /**
      * @description 查询指定名称的属性
      *      @param name 指定要查询的名称

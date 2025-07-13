@@ -59,7 +59,7 @@ declare class Class_Message extends Class_object {
      */
     read(bytes?: number): Class_Buffer;
 
-    read(bytes?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
@@ -155,7 +155,7 @@ declare class Class_Message extends Class_object {
      */
     sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
-    sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null)=>any): void;
+    sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
@@ -165,7 +165,7 @@ declare class Class_Message extends Class_object {
      */
     readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
-    readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null)=>any): void;
+    readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询消息 readFrom 时的流对象 

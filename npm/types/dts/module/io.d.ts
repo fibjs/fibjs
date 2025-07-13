@@ -38,7 +38,7 @@ declare module 'io' {
      */
     function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number): number;
 
-    function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 双向复制流数据，直到流中无数据，或者流被关闭

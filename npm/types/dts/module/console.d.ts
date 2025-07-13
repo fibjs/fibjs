@@ -569,7 +569,7 @@ declare module 'console' {
      */
     function readLine(msg?: string): string;
 
-    function readLine(msg?: string, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    function readLine(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 从控制台读取用户输入的密码
@@ -579,7 +579,7 @@ declare module 'console' {
      */
     function getpass(msg?: string): string;
 
-    function getpass(msg?: string, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    function getpass(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 启动一个计时器

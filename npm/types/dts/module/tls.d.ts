@@ -73,7 +73,7 @@ declare module 'tls' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description 根据 url 创建一个 tls/ssl 连接
@@ -85,7 +85,7 @@ declare module 'tls' {
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
 
-    function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description 根据 url 创建一个 tls/ssl 连接

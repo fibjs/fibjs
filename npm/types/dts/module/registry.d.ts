@@ -155,7 +155,7 @@ declare module 'registry' {
      *      @param values 指定多字符串数组
      *      
      */
-    function set(root: number, key: string, values: string): void;
+    function set(root: number, key: string, values: string[]): void;
 
     /**
      * @description 设置指定键值为二进制
@@ -196,7 +196,7 @@ declare module 'registry' {
      *      @param values 指定多字符串数组
      *      
      */
-    function set(root: number, key: string, name: string, values: string): void;
+    function set(root: number, key: string, name: string, values: string[]): void;
 
     /**
      * @description 设置指定键值为二进制

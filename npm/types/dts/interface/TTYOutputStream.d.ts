@@ -57,7 +57,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      */
     cursorTo(x: number, y?: number): void;
 
-    cursorTo(x: number, y?: number, callback?: (err: Error | undefined | null)=>any): void;
+    cursorTo(x: number, y?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 将光标移动指定的偏移量

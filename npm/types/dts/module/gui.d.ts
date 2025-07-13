@@ -166,7 +166,7 @@ declare module 'gui' {
      *      @return 返回创建的菜单对象
      *     
      */
-    function createMenu(items?: FIBJS.GeneralObject): Class_Menu;
+    function createMenu(items?: FIBJS.GeneralObject[]): Class_Menu;
 
     /**
      * @description 创建一个状态图标对象
@@ -235,7 +235,7 @@ declare module 'gui' {
      */
     function input(message: string, password?: boolean): string;
 
-    function input(message: string, password?: boolean, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 弹出一个输入框
@@ -247,7 +247,7 @@ declare module 'gui' {
      */
     function input(title: string, message: string, password?: boolean): string;
 
-    function input(title: string, message: string, password?: boolean, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(title: string, message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 弹出一个选择文件对话框

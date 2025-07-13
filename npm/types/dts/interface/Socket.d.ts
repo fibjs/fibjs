@@ -57,7 +57,7 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(host: string, port: number, timeout?: number): void;
 
-    connect(host: string, port: number, timeout?: number, callback?: (err: Error | undefined | null)=>any): void;
+    connect(host: string, port: number, timeout?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口
@@ -100,7 +100,7 @@ declare class Class_Socket extends Class_Stream {
      */
     recv(bytes?: number): Class_Buffer;
 
-    recv(bytes?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    recv(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 将给定的数据写入连接，此方法等效于 write 方法

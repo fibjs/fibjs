@@ -118,7 +118,7 @@ declare module 'coroutine' {
      */
     function sleep(ms?: number): void;
 
-    function sleep(ms?: number, callback?: (err: Error | undefined | null)=>any): void;
+    function sleep(ms?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 返回当前正在运行的全部 fiber 数组 

@@ -201,7 +201,6 @@ declare class Class_HttpCollection extends Class_object {
      */
     entries(): Iterator<any>;
 
-
     "[Symbol.iterator]"(): Iterator<any>;
 
 }

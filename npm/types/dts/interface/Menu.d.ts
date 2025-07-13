@@ -92,6 +92,5 @@ declare class Class_Menu extends Class_object {
      */
     getMenuItemById(id: string): Class_MenuItem;
 
-
 }
 

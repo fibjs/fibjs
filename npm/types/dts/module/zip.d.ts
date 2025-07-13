@@ -57,7 +57,7 @@ declare module 'zip' {
      */
     function open(path: string, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(path: string, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(path: string, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description 打开一个zip文件
@@ -69,7 +69,7 @@ declare module 'zip' {
      */
     function open(data: Class_Buffer, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(data: Class_Buffer, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description 打开一个zip文件
@@ -81,7 +81,7 @@ declare module 'zip' {
      */
     function open(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(strm: Class_SeekableStream, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(strm: Class_SeekableStream, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
 }
 

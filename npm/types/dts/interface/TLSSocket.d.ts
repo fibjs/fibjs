@@ -40,7 +40,7 @@ declare class Class_TLSSocket extends Class_Stream {
      */
     connect(socket: Class_Stream, server_name?: string): void;
 
-    connect(socket: Class_Stream, server_name?: string, callback?: (err: Error | undefined | null)=>any): void;
+    connect(socket: Class_Stream, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 在给定的连接上连接 tls/ssl 连接，服务端模式

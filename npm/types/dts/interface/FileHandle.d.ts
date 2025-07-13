@@ -45,7 +45,7 @@ declare class Class_FileHandle extends Class_object {
      */
     read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
@@ -58,7 +58,7 @@ declare class Class_FileHandle extends Class_object {
      */
     write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
@@ -70,7 +70,7 @@ declare class Class_FileHandle extends Class_object {
      */
     write(string: string, position?: number, encoding?: string): number;
 
-    write(string: string, position?: number, encoding?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 关闭当前文件句柄 

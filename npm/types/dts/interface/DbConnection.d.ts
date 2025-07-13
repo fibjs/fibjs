@@ -64,7 +64,7 @@ declare class Class_DbConnection extends Class_object {
      */
     begin(point?: string): void;
 
-    begin(point?: string, callback?: (err: Error | undefined | null)=>any): void;
+    begin(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 提交当前数据库连接上的事务
@@ -74,7 +74,7 @@ declare class Class_DbConnection extends Class_object {
      */
     commit(point?: string): void;
 
-    commit(point?: string, callback?: (err: Error | undefined | null)=>any): void;
+    commit(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 回滚当前数据库连接上的事务
@@ -84,7 +84,7 @@ declare class Class_DbConnection extends Class_object {
      */
     rollback(point?: string): void;
 
-    rollback(point?: string, callback?: (err: Error | undefined | null)=>any): void;
+    rollback(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 

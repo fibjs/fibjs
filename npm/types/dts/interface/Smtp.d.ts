@@ -39,7 +39,7 @@ declare class Class_Smtp extends Class_object {
      */
     hello(hostname?: string): void;
 
-    hello(hostname?: string, callback?: (err: Error | undefined | null)=>any): void;
+    hello(hostname?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误

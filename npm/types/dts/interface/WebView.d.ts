@@ -144,7 +144,7 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     waitFor(url?: string): void;
 
-    waitFor(url?: string, callback?: (err: Error | undefined | null)=>any): void;
+    waitFor(url?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 刷新当前页面 
