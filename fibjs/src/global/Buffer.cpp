@@ -304,6 +304,17 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return 0;
         }
 
+        if (v->IsSharedArrayBuffer()) {
+            v8::Local<v8::SharedArrayBuffer> sab = v.As<v8::SharedArrayBuffer>();
+            std::shared_ptr<v8::BackingStore> backing = sab->GetBackingStore();
+            if (backing && backing->Data()) {
+                vr = new Buffer(backing, 0, backing->ByteLength());
+            } else {
+                Buffer_base::allocUnsafe(0, vr);
+            }
+            return 0;
+        }
+
         if (v->IsDataView()) {
             v8::Local<v8::DataView> view = v.As<v8::DataView>();
             vr = new Buffer(view->Buffer()->GetBackingStore(), view->ByteOffset(), view->ByteLength());
