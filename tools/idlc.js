@@ -4,7 +4,6 @@ var gen_code = require('./util/gen_code');
 var generator = require('./util/generator');
 var record_idljson = require('./util/record_idljson');
 var gen_dts = require('./util/gen_dts');
-var { mkdirp } = require('../fibjs/scripts/internal/helpers/fs');
 
 var idlLang = process.env.FIBJS_IDL_LANG || 'zh-cn'
 var idlFolder = path.resolve(__dirname, `../idl/${idlLang}`);
@@ -34,7 +33,7 @@ console.log('✅ C++ code generated');
 
 console.log('\n📝 Generating TypeScript definitions...');
 const DTS_DIST_DIR = path.resolve(__dirname, `../npm/types/dts/`);
-mkdirp(DTS_DIST_DIR);
+require('fs').mkdirSync(DTS_DIST_DIR, { recursive: true });
 gen_dts(parser(idlFolder), { DTS_DIST_DIR });
 console.log('✅ TypeScript definitions generated');
 

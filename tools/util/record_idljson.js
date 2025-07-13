@@ -1,8 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 
-var { mkdirp } = require('../../fibjs/scripts/internal/helpers/fs');
-
 /**
  * @description record idljson to output directory
  * 
@@ -18,7 +16,7 @@ module.exports = function (defs) {
     entries.forEach(([kname, def]) => {
         const ismodule = def.declare.module;
         const basedir = path.resolve(__dirname, `../../out/idljson/${ismodule ? 'module' : 'interface'}`);
-        mkdirp(basedir);
+        fs.mkdirSync(basedir, { recursive: true });
 
         fs.writeFileSync(path.join(basedir, `${kname}.json`), JSON.stringify(def, null, '  '));
     });

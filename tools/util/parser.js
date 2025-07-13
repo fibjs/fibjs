@@ -100,14 +100,13 @@ module.exports = function (baseFolder, defs) {
   
   const files = fs.readdirSync(baseFolder).sort();
   const idlFiles = files.filter(f => path.extname(f) === '.idl');
-  
-  console.log(`   📁 Found ${idlFiles.length} IDL files in ${path.basename(baseFolder)}`);
+
+  let parsedCount = 0;
 
   files.forEach(f => {
     if (f === 'collect.json') {
       f = path.join(baseFolder, f);
       collect = JSON.parse(fs.readFileSync(f, 'utf8'));
-      console.log(`   📋 Loaded collection definitions`);
     } else if (path.extname(f) == '.idl') {
       f = path.join(baseFolder, f);
       var def = parser.parse(fs.readFileSync(f, 'utf8'));
@@ -117,6 +116,7 @@ module.exports = function (baseFolder, defs) {
         def.members[m].doc = parser_comment(def.members[m].comments);
 
       defs1[def.declare.name] = def;
+      parsedCount++;
     }
   });
 

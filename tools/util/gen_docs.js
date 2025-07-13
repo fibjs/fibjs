@@ -168,15 +168,15 @@ module.exports = function (defs, docsFolder) {
     }
 
     function gen_summary() {
-        var _summary = ejs.compile(fs.readTextFile(path.join(__dirname, './tmpl/SUMMARY.md')));
+        var _summary = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/SUMMARY.md'), "utf8"));
 
-        fs.writeFile(path.join(docsFolder, "module", "SUMMARY.md"), _summary({
+        fs.writeFileSync(path.join(docsFolder, "module", "SUMMARY.md"), _summary({
             title: '基础模块',
             defs: defs,
             type: 'module'
         }));
 
-        fs.writeFile(path.join(docsFolder, "object", "SUMMARY.md"), _summary({
+        fs.writeFileSync(path.join(docsFolder, "object", "SUMMARY.md"), _summary({
             title: '内置对象',
             defs: defs,
             type: 'interface'
@@ -184,15 +184,15 @@ module.exports = function (defs, docsFolder) {
     }
 
     function gen_readme() {
-        var _readme = ejs.compile(fs.readTextFile(path.join(__dirname, './tmpl/README.md')));
+        var _readme = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/README.md'), "utf8"));
 
-        fs.writeFile(path.join(docsFolder, "module", "README.md"), _readme({
+        fs.writeFileSync(path.join(docsFolder, "module", "README.md"), _readme({
             title: '基础模块',
             defs: defs,
             type: 'module'
         }));
 
-        fs.writeFile(path.join(docsFolder, "object", "README.md"), _readme({
+        fs.writeFileSync(path.join(docsFolder, "object", "README.md"), _readme({
             title: '内置对象',
             defs: defs,
             type: 'interface'
@@ -334,8 +334,9 @@ module.exports = function (defs, docsFolder) {
         for (var m in defs) {
             var def = defs[m];
 
-            if (def.declare.type == 'interface')
+            if (def.declare.type == 'interface') {
                 def.dot = get_dot(def);
+            }
         }
     }
 
@@ -366,7 +367,7 @@ module.exports = function (defs, docsFolder) {
     }
 
     function gen_idl() {
-        var _idl = ejs.compile(fs.readTextFile(path.join(__dirname, './tmpl/idl.md')));
+        var _idl = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/idl.md'), "utf8"));
 
         for (var m in defs) {
             var p = path.join(docsFolder, defs[m].declare.type == 'module' ? "module" : "object", "ifs", m + ".md");
@@ -379,43 +380,42 @@ module.exports = function (defs, docsFolder) {
 
             md = md.replace(/\n\n+/g, '\n\n');
 
-            fs.writeFile(p, md);
+            fs.writeFileSync(p, md);
         }
     }
 
     function clean_folder(p) {
-        var dir = fs.readdir(p);
+        var dir = fs.readdirSync(p);
         console.log("clean", p);
         dir.forEach(function (name) {
             var fname = path.join(p, name);
-            var f = fs.stat(fname);
+            var f = fs.statSync(fname);
             if (f.isDirectory()) {
                 clean_folder(fname);
-                fs.rmdir(fname);
+                fs.rmdirSync(fname);
             } else
-                fs.unlink(fname);
+                fs.unlinkSync(fname);
         });
     }
 
     clean_folder(docsFolder);
 
-    fs.mkdir(path.join(docsFolder, 'module'));
-    fs.mkdir(path.join(docsFolder, 'module', 'ifs'));
-    fs.mkdir(path.join(docsFolder, 'object'));
-    fs.mkdir(path.join(docsFolder, 'object', 'ifs'));
+    fs.mkdirSync(path.join(docsFolder, 'module'));
+    fs.mkdirSync(path.join(docsFolder, 'module', 'ifs'));
+    fs.mkdirSync(path.join(docsFolder, 'object'));
+    fs.mkdirSync(path.join(docsFolder, 'object', 'ifs'));
 
+    console.log('   🔍 Checking documentation completeness...');
     check_docs();
 
+    console.log('   🏷️ Adding type information...');
     add_types();
 
+    console.log('   📋 Generating files...');
     gen_summary();
     gen_readme();
-
     gen_svg();
-
     inherit_method();
-
     cross_link();
-
     gen_idl();
 }
