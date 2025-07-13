@@ -819,7 +819,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
             const unitCategory = ismodule ? 'module' : 'interface';
 
             const basedir = path.resolve(DTS_DIST_DIR, `./${unitCategory}`);
-            if (!fs.exists(basedir)) {
+            if (!fs.existsSync(basedir)) {
                 fs.mkdir(basedir);
             }
 
@@ -850,7 +850,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
 
             unitDeclare = postProcessDtsUnitString(unitDeclare);
 
-            fs.writeTextFile(path.join(basedir, `${unitName}.d.ts`), unitDeclare);
+            fs.writeFileSync(path.join(basedir, `${unitName}.d.ts`), unitDeclare);
             // console.notice(`---- generated dts for ${unitCategory}: ${unitName} ---<:`)
         });
 
@@ -870,8 +870,8 @@ function gen_fibjs_import_dts({
     DTS_DIST_DIR
 }) {
     const basedir = path.resolve(DTS_DIST_DIR, './_import');
-    if (!fs.exists(basedir)) {
-        fs.mkdir(basedir);
+    if (!fs.existsSync(basedir)) {
+        fs.mkdirSync(basedir);
     }
 
     const topDeclarition = dom.create.namespace('FIBJS');
@@ -901,7 +901,7 @@ function gen_fibjs_import_dts({
     const commonDeclaration = dom.emit(topDeclarition, {
         rootFlags: dom.DeclarationFlags.None,
     });
-    fs.writeTextFile(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
+    fs.writeFileSync(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
 }
 
 /**
@@ -915,8 +915,8 @@ function gen_bridge_dts({
     DTS_DIST_DIR
 }) {
     const basedir = path.resolve(DTS_DIST_DIR, './_import');
-    if (!fs.exists(basedir)) {
-        fs.mkdir(basedir);
+    if (!fs.existsSync(basedir)) {
+        fs.mkdirSync(basedir);
     }
 
     const tripleSlashDirectives = [];
@@ -932,7 +932,7 @@ function gen_bridge_dts({
         rootFlags: dom.DeclarationFlags.None,
         tripleSlashDirectives
     });
-    fs.writeTextFile(path.join(basedir, `bridge.d.ts`), bridgeDeclaration);
+    fs.writeFileSync(path.join(basedir, `bridge.d.ts`), bridgeDeclaration);
 }
 
 /**
@@ -941,10 +941,18 @@ function gen_bridge_dts({
  * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
  */
 module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
+    const totalDefs = Object.keys(defs).length;
+    console.log(`   🔷 Generating TypeScript definitions for ${totalDefs} declarations...`);
+    
     const {
         allModuleNames,
     } = gen_dts_for_declare(defs, { DTS_DIST_DIR });
 
+    console.log(`   📦 Generating fibjs import definitions...`);
     gen_fibjs_import_dts({ DTS_DIST_DIR });
+    
+    console.log(`   🌉 Generating bridge definitions for ${allModuleNames.size} modules...`);
     gen_bridge_dts({ allModuleNames, DTS_DIST_DIR });
+    
+    console.log(`   ✅ TypeScript definitions saved to ${path.basename(DTS_DIST_DIR)}/`);
 }

@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.translate = exports.langs = void 0;
 const http = require("http");
 const url = require("url");
-const ssl = require("ssl");
 
 const { encodeTextToTk } = require('./uglified');
 function getToken(text, opts) {

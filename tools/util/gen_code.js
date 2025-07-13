@@ -9,9 +9,15 @@ var path = require('path');
  * @param {string} baseFolder 
  */
 module.exports = function (defs, baseFolder) {
-    for (var cls in defs)
-        if (!defs[cls].__skip)
+    const totalClasses = Object.keys(defs).filter(cls => !defs[cls].__skip).length;
+    
+    console.log(`   📋 Generating C++ code for ${totalClasses} classes...`);
+    
+    for (var cls in defs) {
+        if (!defs[cls].__skip) {
             gen_code(cls, defs[cls], baseFolder);
+        }
+    }
 }
 
 function record_exist() {
@@ -174,7 +180,7 @@ function gen_code(cls, def, baseFolder) {
                                         defValue = `${get_vtype(p)}()`;
                                     else if (p.default.value)
                                         defValue = p.default.value;
-                                    else if (util.isArray(p.default.const))
+                                    else if (Array.isArray(p.default.const))
                                         defValue = p.default.const[0] + '_base::C_' + p.default.const[1];
                                     else
                                         defValue = 'C_' + p.default.const;
@@ -555,9 +561,9 @@ function gen_code(cls, def, baseFolder) {
 
         var fname = path.join(baseFolder, cls + ".h");
 
-        if (!fs.exists(fname) || txt !== fs.readTextFile(fname)) {
-            console.log(cls + ".h");
-            fs.writeTextFile(fname, txt);
+        if (!fs.existsSync(fname) || txt !== fs.readFileSync(fname, 'utf8')) {
+            console.log(`      ✏️  ${cls}.h`);
+            fs.writeFileSync(fname, txt);
         }
     }
 
@@ -1073,7 +1079,7 @@ function gen_code(cls, def, baseFolder) {
                     return;
                 ov.params.forEach(p => {
                     add_type(p.type);
-                    if (p.default && util.isArray(p.default.const) && p.default.const.length > 1)
+                    if (p.default && Array.isArray(p.default.const) && p.default.const.length > 1)
                         add_type(p.default.const[0]);
                 });
             });
@@ -1090,7 +1096,7 @@ function gen_code(cls, def, baseFolder) {
             if (t1 == t2)
                 return true;
 
-            if (!util.isArray(t1) || !util.isArray(t2))
+            if (!Array.isArray(t1) || !Array.isArray(t2))
                 return false;
 
             if (t1.length != t2.length)
@@ -1117,7 +1123,7 @@ function gen_code(cls, def, baseFolder) {
                 fname = "event " + fname;
 
             if (!method_defs.hasOwnProperty(fname)) {
-                fn1 = util.clone(fn);
+                fn1 = JSON.parse(JSON.stringify(fn));
                 fn1.overs = [fn];
 
                 method_defs[fname] = fn1;
