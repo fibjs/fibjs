@@ -163,6 +163,12 @@ module.exports = function (defs, docsFolder) {
             link_doc(def.declare.doc);
             def.members.forEach(m => {
                 link_doc(m.doc);
+                // Also process overloads if they exist
+                if (m.overs) {
+                    m.overs.forEach(over => {
+                        link_doc(over.doc);
+                    });
+                }
             });
         }
     }
@@ -346,13 +352,22 @@ module.exports = function (defs, docsFolder) {
             def.defs = defs;
 
             if (def.declare.type === 'interface') {
+                // Create a set of member names that are already defined in the current class
+                var ownMembers = new Set();
+                def.members.forEach(member => {
+                    if (member.name !== def.declare.name) {
+                        ownMembers.add(member.name);
+                    }
+                });
+
                 var ext = def.declare.extend;
                 while (ext) {
                     ext = defs[ext];
                     ext.members.forEach(m => {
                         if (m.memType != 'operator' &&
                             m.name !== ext.declare.name &&
-                            !m.inherit) {
+                            !m.inherit &&
+                            !ownMembers.has(m.name)) { // Only inherit if not overridden
                             var m1 = cloneDeep(m);
                             m1.inherit = true;
                             def.members.push(m1);
@@ -362,6 +377,84 @@ module.exports = function (defs, docsFolder) {
                         break;
                     ext = ext.declare.extend;
                 }
+            }
+        }
+    }
+
+    function union_method_for_docs() {
+        for (var m in defs) {
+            var def = defs[m];
+
+            if (def.declare.type === 'interface') {
+                var method_defs = {};
+                var deflist = [];
+                var overriddenMethods = new Set();
+                
+                // First pass: identify which methods are overridden in this class
+                def.members.forEach(fn => {
+                    if (fn.memType === 'method' && fn.name !== def.declare.name) {
+                        overriddenMethods.add(fn.name);
+                    }
+                });
+
+                // Second pass: collect inherited method overloads for overridden methods
+                if (def.declare.extend && def.declare.extend !== 'object' && defs[def.declare.extend]) {
+                    var parentDef = defs[def.declare.extend];
+                    
+                    if (parentDef.members) {
+                        parentDef.members.forEach(fn => {
+                            if (fn.memType === "method" && 
+                                fn.name !== parentDef.declare.name && 
+                                overriddenMethods.has(fn.name)) {
+                                
+                                // Create unique key that includes static/instance distinction
+                                var fname = fn.name + (fn.static ? ':static' : ':instance');
+                                
+                                // Check if parent method has already been processed and has overs
+                                var parentOverloads = fn.overs || [fn];
+                                
+                                // Add all parent overloads
+                                parentOverloads.forEach(parentOverload => {
+                                    if (!method_defs.hasOwnProperty(fname)) {
+                                        var fn1 = JSON.parse(JSON.stringify(parentOverload));
+                                        fn1.overs = [parentOverload];
+                                        method_defs[fname] = fn1;
+                                    } else {
+                                        method_defs[fname].overs.push(parentOverload);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+
+                // Third pass: process current class methods (including same-class overloads)
+                def.members.forEach(fn => {
+                    if (fn.memType === 'method' && fn.name !== def.declare.name) {
+                        // Create unique key that includes static/instance distinction
+                        var fname = fn.name + (fn.static ? ':static' : ':instance');
+                        
+                        if (method_defs.hasOwnProperty(fname)) {
+                            // Method already exists (either inherited or from previous overload), add to overs
+                            method_defs[fname].overs.push(fn);
+                        } else {
+                            // First time seeing this method name, create new entry
+                            var fn1 = JSON.parse(JSON.stringify(fn));
+                            fn1.overs = [fn];
+                            method_defs[fname] = fn1;
+                        }
+                    } else {
+                        // This is not a method or is constructor, add directly
+                        deflist.push(fn);
+                    }
+                });
+
+                // Add merged methods to deflist
+                for (var fname in method_defs) {
+                    deflist.push(method_defs[fname]);
+                }
+
+                def.members = deflist;
             }
         }
     }
@@ -415,6 +508,7 @@ module.exports = function (defs, docsFolder) {
     gen_summary();
     gen_readme();
     gen_svg();
+    union_method_for_docs();
     inherit_method();
     cross_link();
     gen_idl();

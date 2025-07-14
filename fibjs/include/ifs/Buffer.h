@@ -19,6 +19,9 @@ class Buffer_base : public object_base {
     DECLARE_CLASS(Buffer_base);
 
 public:
+    using object_base::toString;
+
+public:
     // Buffer_base
     static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -106,7 +109,6 @@ public:
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal) = 0;
-    virtual result_t toString(exlib::string& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base32(exlib::string& retVal) = 0;

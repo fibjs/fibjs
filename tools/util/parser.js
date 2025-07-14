@@ -112,8 +112,10 @@ module.exports = function (baseFolder, defs) {
       var def = parser.parse(fs.readFileSync(f, 'utf8'));
 
       def.declare.doc = parser_comment(def.declare.comments);
-      for (var m in def.members)
+      for (var m in def.members) {
         def.members[m].doc = parser_comment(def.members[m].comments);
+        def.members[m].sourceClass = def.declare.name; // Mark with the class where it's defined
+      }
 
       defs1[def.declare.name] = def;
       parsedCount++;

@@ -51,20 +51,32 @@ function member_output(title, test){
         if(last_member != m.name){%>
 ### <%-m.memType == 'operator'?'operator':''%><%-(m.memType === 'event' ? '' : m.symbol)+m.name%><%
 last_member = m.name;
-}%>
-**<%-m.doc.descript%>**
+}%><%
+
+// Handle method overloads if they exist
+var methodsToProcess = m.overs || [m];
+var isFirstOverload = true;
+
+methodsToProcess.forEach(function(method) {
+    if (!isFirstOverload) {%>
+
+--------------------------<%
+    }
+    isFirstOverload = false;
+%>
+**<%-method.doc.descript%>**
 ```JavaScript
-<%if(m.const){%><%-m.const%> <%}
-if(m.static){%><%-m.static%> <%}
-if(m.readonly){%><%-m.readonly%> <%}
-if(m.type){%><%-m.type%> <%}
-if(m.memType === 'event'){%>event <%}
-%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' + (m.memType === 'event' ? '' : m.symbol) : '')%><%-m.name%><%
-if(m.memType == 'method' || m.memType == 'event'){
+<%if(method.const){%><%-method.const%> <%}
+if(method.static){%><%-method.static%> <%}
+if(method.readonly){%><%-method.readonly%> <%}
+if(method.type){%><%-method.type%> <%}
+if(method.memType === 'event'){%>event <%}
+%><%-declare.name == method.name ? ' new ' : declare.name + (method.memType !== 'operator' ? '.' + (method.memType === 'event' ? '' : method.symbol) : '')%><%-method.name%><%
+if(method.memType == 'method' || method.memType == 'event'){
     var ps = '';
 
-    if(m.params){
-        m.params.forEach(function(p){
+    if(method.params){
+        method.params.forEach(function(p){
             if(ps)
                 ps += ',\n                ';
 
@@ -77,16 +89,18 @@ if(m.memType == 'method' || m.memType == 'event'){
             if(p.default)
                 ps += ' = ' + def_value(p.default, p);
         });
-    }%>(<%-ps%>)<% if(m.async){%> <%-m.async%><%}}else if(m.default){%> = <%-def_value(m.default, m)%><%}%>;
+    }%>(<%-ps%>)<% if(method.async){%> <%-method.async%><%}}else if(method.default){%> = <%-def_value(method.default, method)%><%}%>;
 ```
-<%if(m.params){%>
-调用参数:<% m.doc.params.forEach(function(p){%>
+<%if(method.params){%>
+调用参数:<% method.doc.params.forEach(function(p){%>
 * <%-p.name%>: <%-p.descript%><%});%>
-<%}%><%if(m.doc.return){%>
+<%}%><%if(method.doc.return){%>
 返回结果:
-* <%-m.doc.return.descript%><%}%>
+* <%-method.doc.return.descript%><%}%>
 
-<%-m.doc.detail.join('\n')%>
+<%-method.doc.detail.join('\n')%><%
+}); // end methodsToProcess.forEach
+%>
 
 <%  }});
     }

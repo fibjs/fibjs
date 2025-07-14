@@ -15,7 +15,7 @@ module.exports = function (defs, baseFolder) {
     
     for (var cls in defs) {
         if (!defs[cls].__skip) {
-            gen_code(cls, defs[cls], baseFolder);
+            gen_code(cls, defs[cls], baseFolder, defs);
         }
     }
 }
@@ -33,8 +33,9 @@ function record_exist() {
  * @param {string} cls key of def, name of fibjs's module/interface
  * @param {import('../../idl/ir').IIDLDefinition} def 
  * @param {string} baseFolder 
+ * @param {object} allDefs all definitions for cross-reference
  */
-function gen_code(cls, def, baseFolder) {
+function gen_code(cls, def, baseFolder, allDefs) {
     var typeMap = {
         "Integer": "int32_t",
         "Long": "int64_t",
@@ -62,6 +63,11 @@ function gen_code(cls, def, baseFolder) {
         "method": {
             "declare": fn => {
                 fn.overs.forEach(ov => {
+                    // Only generate virtual function declarations for methods defined in current class
+                    if (ov.sourceClass && ov.sourceClass !== def.declare.name) {
+                        return; // Skip methods from parent classes
+                    }
+                    
                     var fns = "    ";
                     var fname = get_specname(ov.name);
                     var fstatic = ov.static;
@@ -617,11 +623,89 @@ function gen_code(cls, def, baseFolder) {
         return get_specname(fn.name)
     }
 
+    function collect_parent_overloads(methodName, def) {
+        var parentOverloads = [];
+        
+        // Check if this method exists in current class (indicating it's overridden)
+        var isOverridden = def.members.some(m => 
+            m.memType === "method" && 
+            m.name === methodName && 
+            !m.static &&
+            m.name !== def.declare.name
+        );
+        
+        if (!isOverridden || !def.declare.extend) {
+            return parentOverloads;
+        }
+        
+        // For 'object' class, we need to handle it specially since it might not be in allDefs
+        if (def.declare.extend === 'object') {
+            // object class has toString() method with no parameters
+            if (methodName === 'toString') {
+                var objectToStringOver = {
+                    name: 'toString',
+                    memType: 'method',
+                    params: [],
+                    type: 'String',
+                    inherit: true,
+                    sourceClass: 'object'
+                };
+                parentOverloads.push(objectToStringOver);
+            }
+            return parentOverloads;
+        }
+        
+        if (!allDefs[def.declare.extend]) {
+            return parentOverloads;
+        }
+        
+        var parentDef = allDefs[def.declare.extend];
+        var parentMethod = parentDef.members.find(m => 
+            m.memType === "method" && 
+            m.name === methodName && 
+            !m.static &&
+            m.name !== parentDef.declare.name
+        );
+        
+        if (parentMethod && parentMethod.overs) {
+            parentMethod.overs.forEach(parentOver => {
+                // Only add parent overloads that don't exist in current class
+                var existsInCurrent = def.members.some(m => 
+                    m.memType === "method" && 
+                    m.name === methodName &&
+                    m.overs && m.overs.some(ov => 
+                        ov.params && parentOver.params &&
+                        ov.params.length === parentOver.params.length &&
+                        ov.params.every((p, i) => 
+                            parentOver.params[i] && 
+                            p.type === parentOver.params[i].type
+                        )
+                    )
+                );
+                
+                if (!existsInCurrent) {
+                    var inheritedOver = JSON.parse(JSON.stringify(parentOver));
+                    inheritedOver.inherit = true;
+                    inheritedOver.sourceClass = parentDef.declare.name;
+                    parentOverloads.push(inheritedOver);
+                }
+            });
+        }
+        
+        return parentOverloads;
+    }
+
     function vary_overs(fn, def) {
         var fncallee_ovs = fn.overs.filter(ov => is_func_Function(ov, def));
         var new_ovs = fn.overs.filter(ov => is_func_new(ov, def));
         var static_ovs = fn.overs.filter(ov => !!ov.static && !is_func_new(ov, def) && !is_func_Function(ov, def));
         var inst_mem_ovs = fn.overs.filter(ov => !ov.static && !is_func_new(ov, def) && !is_func_Function(ov, def));
+
+        // For instance methods, also include parent class overloads
+        if (inst_mem_ovs.length > 0) {
+            var parentOverloads = collect_parent_overloads(fn.name, def);
+            inst_mem_ovs = inst_mem_ovs.concat(parentOverloads);
+        }
 
         return {
             fncallee_ovs,
@@ -859,11 +943,48 @@ function gen_code(cls, def, baseFolder) {
                 txts.pop();
         }
 
+        function gen_cls_using_declarations() {
+            // Generate using declarations for overridden parent methods
+            if (!def.declare.extend) return;
+            
+            var parentDef = allDefs[def.declare.extend];
+            if (!parentDef) return;
+            
+            var overriddenMethods = new Set();
+            var usingDeclarations = [];
+            
+            // Find methods that are overridden in current class
+            def.members.forEach(fn => {
+                if (fn.memType === "method" && fn.name !== cls && !fn.static) {
+                    overriddenMethods.add(fn.name);
+                }
+            });
+            
+            // Check parent class for methods with same names
+            parentDef.members.forEach(parentFn => {
+                if (parentFn.memType === "method" && 
+                    parentFn.name !== parentDef.declare.name && 
+                    !parentFn.static &&
+                    overriddenMethods.has(parentFn.name)) {
+                    
+                    // Add using declaration for overridden method
+                    usingDeclarations.push(`    using ${def.declare.extend}_base::${parentFn.name};`);
+                }
+            });
+            
+            if (usingDeclarations.length > 0) {
+                txts.push("");
+                txts.push("public:");
+                usingDeclarations.forEach(decl => txts.push(decl));
+            }
+        }
+
         function gen_cls_declare_end() {
             txts.push("};");
         }
 
         gen_cls_declare();
+        gen_cls_using_declarations();
         gen_cls_consts();
         gen_cls_retTypes();
         gen_cls_members();
@@ -1111,6 +1232,9 @@ function gen_code(cls, def, baseFolder) {
 
             return true;
         }
+
+        // Don't add parent methods to def.members - they should not appear in virtual function definitions
+        // We'll handle parent overloads separately in stub function generation
 
         def.members.forEach(fn => {
             var fname = fn.name;

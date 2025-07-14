@@ -773,13 +773,6 @@ declare class Class_Buffer extends Class_object {
     toString(codec: string, offset?: number): string;
 
     /**
-     * @description 返回二进制数据的 utf8 编码字符串
-     *      @return 返回对象的字符串表示
-     *     
-     */
-    toString(): string;
-
-    /**
      * @description 返回全部二进制数据的数组
      *      @return 返回包含对象数据的数组
      *     
