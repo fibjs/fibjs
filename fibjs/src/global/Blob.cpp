@@ -66,27 +66,6 @@ result_t Blob::text(exlib::string& retVal, AsyncEvent* ac)
     return m_buffer->toString("utf8", 0, retVal);
 }
 
-template <typename T>
-class AsyncValue : public object_base {
-    DECLARE_CLASS(AsyncValue);
-
-public:
-    AsyncValue(std::function<result_t(void)> resolver)
-        : m_resolver(resolver)
-    {
-    }
-
-public:
-    // object_base
-    virtual result_t valueOf(v8::Local<v8::Value>& retVal)
-    {
-        return m_resolver(retVal);
-    }
-
-private:
-    std::function<result_t(void)> m_resolver;
-};
-
 result_t Blob::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
 {
     Isolate* isolate = holder();
