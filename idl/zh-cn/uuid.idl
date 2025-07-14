@@ -43,8 +43,9 @@ module uuid
      */
     static Buffer parse(String uuid);
 
-    /*! @brief 将二进制 id 转换为 uuid 字符串
-     @param id 要转换的二进制 id
+    /*! @brief 将二进制数组转换为 uuid 字符串
+     @param arr 包含 uuid 二进制数据的数组或 Buffer，长度需不少于 16 字节
+     @param offset 可选，指定 uuid 数据在数组中的起始偏移，默认为 0
      @return 返回转换后的 uuid 字符串
      */
     static String stringify(Array arr, Integer offset = 0);
