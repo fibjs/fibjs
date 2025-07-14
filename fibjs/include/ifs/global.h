@@ -19,6 +19,7 @@ class Buffer_base;
 class URLSearchParams_base;
 class UrlObject_base;
 class Blob_base;
+class File_base;
 class HttpHeaders_base;
 class TextDecoder_base;
 class TextEncoder_base;
@@ -90,6 +91,7 @@ public:
 #include "ifs/URLSearchParams.h"
 #include "ifs/UrlObject.h"
 #include "ifs/Blob.h"
+#include "ifs/File.h"
 #include "ifs/HttpHeaders.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
@@ -127,6 +129,7 @@ inline ClassInfo& global_base::class_info()
         { "URLSearchParams", URLSearchParams_base::class_info },
         { "URL", UrlObject_base::class_info },
         { "Blob", Blob_base::class_info },
+        { "File", File_base::class_info },
         { "Headers", HttpHeaders_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },

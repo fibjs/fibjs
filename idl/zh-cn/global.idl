@@ -13,6 +13,9 @@ module global
     /*! @brief 创建一个 Blob 请求对象，参见 Blob */
     static Blob;
 
+    /*! @brief 创建一个 File 请求对象，参见 File */
+    static File;
+
     /*! @brief 创建一个 HttpHeaders 对象，参见 HttpHeaders */
     static HttpHeaders new Headers();
 

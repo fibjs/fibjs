@@ -6,7 +6,7 @@ const isFibjs = typeof process !== 'undefined' && process.versions && process.ve
 
 // Blob API Tests
 describe("Blob API", () => {
-    
+
     // Basic Constructor Tests
     describe("Constructor - Basic functionality", () => {
         it("Blob constructor - empty", () => {
@@ -198,7 +198,7 @@ describe("Blob API", () => {
             // Test with various special characters
             const specialChars = ['\0', '\n', '\r', '\t', '\u0000', '\uFFFF'];
             const blob = new Blob(specialChars);
-            
+
             // Each character should be properly handled
             assert.ok(blob.size >= specialChars.length);
         });
@@ -219,7 +219,7 @@ describe("Blob API", () => {
             // Test with many chunks to verify internal array handling
             const chunks = [];
             const chunkCount = 50000;
-            
+
             for (let i = 0; i < chunkCount; i++) {
                 chunks.push('x');
             }
@@ -233,7 +233,7 @@ describe("Blob API", () => {
             const objWithToString = {
                 toString: () => 'custom_string'
             };
-            
+
             const objWithValueOf = {
                 valueOf: () => 42,
                 toString: () => 'to_string_result'
@@ -448,11 +448,11 @@ describe("Blob API", () => {
                 assert.throws(() => {
                     blob.slice(NaN);
                 }, /The argument could not be coerced to the specified type/);
-                
+
                 assert.throws(() => {
                     blob.slice(0, NaN);
                 }, /The argument could not be coerced to the specified type/);
-                
+
                 assert.throws(() => {
                     blob.slice(NaN, NaN);
                 }, /The argument could not be coerced to the specified type/);
@@ -472,12 +472,12 @@ describe("Blob API", () => {
         it("Blob slice - extreme nesting", () => {
             // Test deeply nested slices
             let blob = new Blob(['0123456789abcdef']);
-            
+
             // Create a chain of slices
             for (let i = 0; i < 10; i++) {
                 blob = blob.slice(1, blob.size - 1);
             }
-            
+
             // Should still be valid
             assert.ok(blob.size >= 0);
             assert.strictEqual(typeof blob.slice, 'function');
@@ -704,7 +704,7 @@ describe("Blob API", () => {
             }
 
             const results = await Promise.all(promises);
-            
+
             // All text results should be identical
             for (let i = 0; i < results.length; i += 2) {
                 assert.strictEqual(results[i], 'test data', `Text result ${i} should be consistent`);
@@ -728,7 +728,7 @@ describe("Blob API", () => {
 
             // Both should complete successfully
             const [text, buffer] = await Promise.all([textPromise, bufferPromise]);
-            
+
             assert.strictEqual(text.length, 1000);
             assert.strictEqual(buffer.byteLength, 1000);
         });
@@ -825,13 +825,13 @@ describe("Blob API", () => {
 
             // Test property descriptors - try to find them on the instance or prototype chain
             let sizeDescriptor, typeDescriptor;
-            
+
             // Look for descriptors on the instance first, then on the prototype
             sizeDescriptor = Object.getOwnPropertyDescriptor(blob, 'size');
             if (!sizeDescriptor) {
                 sizeDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(blob), 'size');
             }
-            
+
             typeDescriptor = Object.getOwnPropertyDescriptor(blob, 'type');
             if (!typeDescriptor) {
                 typeDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(blob), 'type');
@@ -841,7 +841,7 @@ describe("Blob API", () => {
             if (sizeDescriptor && sizeDescriptor.hasOwnProperty('writable')) {
                 assert.strictEqual(sizeDescriptor.writable, false, 'size property should not be writable');
             }
-            
+
             if (typeDescriptor && typeDescriptor.hasOwnProperty('writable')) {
                 assert.strictEqual(typeDescriptor.writable, false, 'type property should not be writable');
             }
@@ -882,7 +882,7 @@ describe("Blob API", () => {
         it("Blob memory stress test", () => {
             // Test memory handling with many small blobs
             const blobs = [];
-            
+
             for (let i = 0; i < 1000; i++) {
                 blobs.push(new Blob([`data_${i}`]));
             }
@@ -906,12 +906,84 @@ describe("Blob API", () => {
         it("Blob constructor - prototype pollution protection", () => {
             // Test that Blob constructor doesn't suffer from prototype pollution
             const maliciousOptions = JSON.parse('{"__proto__": {"polluted": true}, "type": "text/plain"}');
-            
+
             const blob = new Blob(['test'], maliciousOptions);
             assert.strictEqual(blob.type, 'text/plain');
-            
+
             // Ensure prototype wasn't polluted
             assert.strictEqual(Object.prototype.polluted, undefined);
+        });
+    });
+});
+
+// File API Tests
+describe("File API", () => {
+    it("File constructor - basic usage", () => {
+        const file = new File(['hello'], 'test.txt');
+        assert.strictEqual(file.name, 'test.txt');
+        assert.strictEqual(file.size, 5);
+        assert.strictEqual(file.type, '');
+        assert.ok(typeof file.lastModified === 'number');
+    });
+
+    it("File constructor - with type and lastModified", () => {
+        const now = Date.now();
+        const file = new File(['abc'], 'a.txt', { type: 'text/plain', lastModified: now });
+        assert.strictEqual(file.type, 'text/plain');
+        assert.strictEqual(file.lastModified, now);
+    });
+
+    it("File name normalization", () => {
+        const file = new File(['x'], 'A B.txt');
+        assert.strictEqual(file.name, 'A B.txt');
+    });
+
+    it("File lastModified default value", () => {
+        const file = new File(['x'], 'a.txt');
+        // lastModified 应为近似当前时间
+        const delta = Math.abs(Date.now() - file.lastModified);
+        assert.ok(delta < 10000, `lastModified should be close to now, got delta=${delta}`);
+    });
+
+    it("File instanceof and prototype", () => {
+        const file = new File(['abc'], 'a.txt');
+        assert.strictEqual(file instanceof File, true);
+        assert.strictEqual(file instanceof Blob, true);
+        assert.strictEqual(Object.prototype.toString.call(file), '[object File]');
+    });
+
+    it("File type inheritance", () => {
+        // File 的 type 默认继承 options.type
+        const file = new File(['abc'], 'a.txt', { type: 'text/plain' });
+        assert.strictEqual(file.type, 'text/plain');
+    });
+
+    it("File name property immutability", () => {
+        const file = new File(['abc'], 'a.txt');
+        if (isFibjs) {
+            assert.throws(() => { file.name = 'b.txt'; }, TypeError);
+        } else {
+            const origName = file.name;
+            file.name = 'b.txt';
+            assert.strictEqual(file.name, origName);
+        }
+    });
+
+    it("File lastModified property immutability", () => {
+        const file = new File(['abc'], 'a.txt');
+        if (isFibjs) {
+            assert.throws(() => { file.lastModified = 1; }, TypeError);
+        } else {
+            const origLM = file.lastModified;
+            file.lastModified = 1;
+            assert.strictEqual(file.lastModified, origLM);
+        }
+    });
+
+    it("File constructor - missing name parameter", () => {
+        // 不传递文件名参数，应该抛出 TypeError
+        assert.throws(() => {
+            new File(['abc']);
         });
     });
 });

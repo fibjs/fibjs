@@ -1,4 +1,5 @@
 #include "object.h"
+#include "date.h"
 #include "Blob.h"
 #include "Buffer.h"
 #include "encoding.h"
@@ -9,16 +10,38 @@ namespace fibjs {
 result_t Blob_base::_new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Blob> blob = new Blob();
-    return blob->initialize(blobParts, options, retVal);
+    retVal = blob;
+    return blob->m_impl.initialize(blobParts, options);
 }
 
-result_t Blob::get_type(exlib::string& retVal)
+result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
+    v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(This);
+
+    obj_ptr<File> file = new File();
+    file->m_name = name;
+
+    result_t hr = GetConfigValue(isolate, options, "lastModified", file->m_lastModified, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        date_t d;
+        d.now();
+        file->m_lastModified = d.date();
+    } else if (hr < 0) {
+        return hr;
+    }
+
+    retVal = file;
+    return file->m_impl.initialize(blobParts, options);
+}
+
+result_t BlobImpl::get_type(exlib::string& retVal)
 {
     retVal = m_type;
     return 0;
 }
 
-result_t Blob::get_size(int32_t& retVal)
+result_t BlobImpl::get_size(int32_t& retVal)
 {
     if (!m_buffer) {
         retVal = 0;
@@ -27,7 +50,7 @@ result_t Blob::get_size(int32_t& retVal)
     return m_buffer->get_length(retVal);
 }
 
-result_t Blob::slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal)
+result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal)
 {
     // Handle default end value (-1 means slice to end)
     if (end == -1 && m_buffer) {
@@ -49,14 +72,14 @@ result_t Blob::slice(int32_t start, int32_t end, exlib::string contentType, obj_
 
     // Create new blob using same pattern as in _new function
     obj_ptr<Blob> newBlob = new Blob();
-    newBlob->m_buffer = slicedBuffer;
-    newBlob->m_type = contentType.empty() ? m_type : contentType;
+    newBlob->m_impl.m_buffer = slicedBuffer;
+    newBlob->m_impl.m_type = contentType.empty() ? m_type : contentType;
     retVal = newBlob;
 
     return 0;
 }
 
-result_t Blob::text(exlib::string& retVal, AsyncEvent* ac)
+result_t BlobImpl::text(exlib::string& retVal, AsyncEvent* ac)
 {
     if (!m_buffer) {
         retVal = "";
@@ -66,9 +89,9 @@ result_t Blob::text(exlib::string& retVal, AsyncEvent* ac)
     return m_buffer->toString("utf8", 0, retVal);
 }
 
-result_t Blob::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
+result_t BlobImpl::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
 {
-    Isolate* isolate = holder();
+    Isolate* isolate = ac->isolate();
 
     if (!m_buffer) {
         retVal = v8::ArrayBuffer::New(isolate->m_isolate, 0);
@@ -91,7 +114,7 @@ result_t Blob::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t Blob::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal)
+result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -137,11 +160,11 @@ result_t Blob::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> 
             Blob* blobPart = static_cast<Blob*>(Blob_base::getInstance(part.As<v8::Object>()));
             if (blobPart) {
                 // If part is a Blob, use its buffer directly
-                if (!blobPart->m_buffer) {
+                if (!blobPart->m_impl.m_buffer) {
                     continue;
                 }
 
-                buffer = blobPart->m_buffer;
+                buffer = blobPart->m_impl.m_buffer;
             }
 
             if (!buffer) {
@@ -185,7 +208,6 @@ result_t Blob::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> 
         }
     }
 
-    retVal = this;
     return 0;
 }
 
