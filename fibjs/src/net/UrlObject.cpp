@@ -8,11 +8,25 @@
 #include "object.h"
 #include "Url.h"
 #include "ifs/encoding.h"
+#include "URLSearchParams.h"
 
 namespace fibjs {
 
 static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 static ada::url_aggregator s_base;
+
+const struct {
+    const char* protocol;
+    int32_t length;
+} slashedProtocol[] = {
+    { "http:", 5 },
+    { "https:", 6 },
+    { "ftp:", 4 },
+    { "gopher:", 7 },
+    { "file:", 5 },
+    { "ws:", 3 },
+    { "wss:", 4 }
+};
 
 static int32_t is_non_slash_protocol(const char* p, bool slashes)
 {
@@ -30,6 +44,15 @@ static int32_t is_non_slash_protocol(const char* p, bool slashes)
     }
 
     return 0;
+}
+
+static bool is_slashed_protocol(const char* p)
+{
+    for (const auto& proto : slashedProtocol) {
+        if (qstricmp(p, proto.protocol, proto.length) == 0)
+            return true;
+    }
+    return false;
 }
 
 inline bool is_slash(char ch)
@@ -169,7 +192,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         }
     }
 
-    bool slashes = false;
+    bool slashes = is_slashed_protocol(url.c_str());
     if (GetConfigValue(isolate, args, "slashes", slashes) >= 0 && slashes)
         url += "//";
     m_slashes = slashes;
@@ -256,6 +279,15 @@ result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
 result_t Url::get_href(exlib::string& retVal)
 {
     if (m_url) {
+        if (m_searchParams) {
+            exlib::string searchStr;
+            result_t hr = m_searchParams->toString(searchStr);
+            if (hr < 0)
+                return hr;
+
+            m_url->set_search(searchStr);
+        }
+
         retVal = m_url->get_href();
 
         const char* p = retVal.c_str();
@@ -394,8 +426,9 @@ result_t Url::set_hostname(exlib::string newVal)
 
 result_t Url::get_port(exlib::string& retVal)
 {
-    if (m_url)
+    if (m_url) {
         retVal = m_url->get_port();
+    }
 
     return 0;
 }
@@ -436,6 +469,9 @@ result_t Url::set_pathname(exlib::string newVal)
 
 result_t Url::get_search(exlib::string& retVal)
 {
+    if (m_searchParams)
+        return m_searchParams->toString(retVal);
+
     if (m_url)
         retVal = m_url->get_search();
 
@@ -533,7 +569,7 @@ result_t Url::set_hash(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_searchParams(obj_ptr<HttpCollection_base>& retVal)
+result_t Url::get_searchParams(obj_ptr<URLSearchParams_base>& retVal)
 {
     if (!m_url)
         return CALL_RETURN_UNDEFINED;
@@ -549,17 +585,29 @@ result_t Url::toString(exlib::string& retVal)
     return get_href(retVal);
 }
 
+result_t Url::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
+{
+    exlib::string href;
+    result_t hr = get_href(href);
+    if (hr < 0)
+        return hr;
+
+    Isolate* isolate = holder();
+    retVal = isolate->NewString(href);
+    return 0;
+}
+
 result_t Url::parse_search_params()
 {
     if (!m_searchParams) {
-        m_searchParams = new HttpCollection();
-        ada::url_search_params search_params(m_url->get_search());
+        exlib::string search = m_url->get_search();
+        if (search.c_str()[0] == '?')
+            search = search.substr(1); // Remove leading '?'
 
-        auto keys = search_params.get_keys();
-        while (keys.has_next()) {
-            auto key = keys.next().value();
-            m_searchParams->append(key, search_params.get(key).value());
-        }
+        m_searchParams = new URLSearchParams();
+        result_t hr = m_searchParams->parse(search);
+        if (hr < 0)
+            return hr;
     }
 
     return 0;

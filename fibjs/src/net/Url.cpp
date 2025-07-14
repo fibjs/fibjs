@@ -9,6 +9,7 @@
 #include "Url.h"
 #include "path.h"
 #include "ifs/url.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -260,6 +261,12 @@ result_t url_base::domainToUnicode(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_unicode(domain);
     return 0;
+}
+
+result_t url_base::format(UrlObject_base* urlObject, v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    // Temporary minimal implementation for compilation
+    return urlObject->get_href(retVal);
 }
 
 } /* namespace fibjs */

@@ -12,6 +12,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
+#include "ifs/URLSearchParams.h"
 #include "encoding_iconv.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -208,7 +209,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     if (hr < 0)
         return hr;
 
-    obj_ptr<HttpCollection_base> q;
+    obj_ptr<URLSearchParams_base> q;
     u->get_searchParams(q);
     Variant v;
 

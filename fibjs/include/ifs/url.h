@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class UrlObject_base;
+class URLSearchParams_base;
 
 class url_base : public object_base {
     DECLARE_CLASS(url_base);
@@ -24,6 +25,7 @@ public:
     // url_base
     static result_t format(exlib::string href, exlib::string& retVal);
     static result_t format(v8::Local<v8::Object> args, exlib::string& retVal);
+    static result_t format(UrlObject_base* urlObject, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal);
     static result_t resolve(exlib::string _from, exlib::string to, exlib::string& retVal);
     static result_t fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> options, exlib::string& retVal);
@@ -55,6 +57,7 @@ public:
 }
 
 #include "ifs/UrlObject.h"
+#include "ifs/URLSearchParams.h"
 
 namespace fibjs {
 inline ClassInfo& url_base::class_info()
@@ -70,7 +73,8 @@ inline ClassInfo& url_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "URL", UrlObject_base::class_info }
+        { "URL", UrlObject_base::class_info },
+        { "URLSearchParams", URLSearchParams_base::class_info }
     };
 
     static ClassData s_cd = {
@@ -101,6 +105,13 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(v8::Local<v8::Object>, 0);
 
     hr = format(v0, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<UrlObject_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = format(v0, v1, vr);
 
     METHOD_RETURN();
 }

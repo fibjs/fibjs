@@ -10,6 +10,7 @@
 #include "ifs/UrlObject.h"
 #include "utf8.h"
 #include "HttpCollection.h"
+#include "URLSearchParams.h"
 #include <ada.h>
 
 namespace fibjs {
@@ -31,6 +32,7 @@ public:
 public:
     // object_base
     virtual result_t toString(exlib::string& retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     // UrlObject_base
@@ -62,7 +64,7 @@ public:
     virtual result_t set_query(v8::Local<v8::Value> newVal);
     virtual result_t get_hash(exlib::string& retVal);
     virtual result_t set_hash(exlib::string newVal);
-    virtual result_t get_searchParams(obj_ptr<HttpCollection_base>& retVal);
+    virtual result_t get_searchParams(obj_ptr<URLSearchParams_base>& retVal);
 
 public:
     result_t legacy_parse(exlib::string url, bool parseQueryString);
@@ -264,7 +266,7 @@ public:
     bool m_parseQuery = false;
     bool m_slashes = false;
     ada::result<ada::url_aggregator> m_url;
-    obj_ptr<HttpCollection> m_searchParams;
+    obj_ptr<URLSearchParams> m_searchParams;
 };
 
 } /* namespace fibjs */
