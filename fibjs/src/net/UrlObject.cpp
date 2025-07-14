@@ -132,6 +132,8 @@ result_t Url::parse(exlib::string url, exlib::string base)
 
 result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
 {
+    m_isLegacy = true;
+
     const char* p = url.c_str();
     const char* p2 = p;
 
@@ -348,12 +350,10 @@ result_t Url::get_auth(exlib::string& retVal)
         exlib::string password = m_url->get_password();
         exlib::string str;
 
-        encoding_base::encodeURIComponent(username, false, str);
-        retVal = str;
+        retVal = username;
         if (password.length() > 0) {
             retVal.append(1, ':');
-            encoding_base::encodeURIComponent(password, false, str);
-            retVal.append(str);
+            retVal.append(password);
         }
     }
 
@@ -362,32 +362,44 @@ result_t Url::get_auth(exlib::string& retVal)
 
 result_t Url::get_username(exlib::string& retVal)
 {
-    if (m_url)
+    if (m_url) {
         retVal = m_url->get_username();
+        if (m_isLegacy)
+            decodeURI(retVal, retVal);
+    }
 
     return 0;
 }
 
 result_t Url::set_username(exlib::string newVal)
 {
-    if (m_url)
+    if (m_url) {
+        if (m_isLegacy)
+            encoding_base::encodeURIComponent(newVal, false, newVal);
         m_url->set_username(newVal);
+    }
 
     return 0;
 }
 
 result_t Url::get_password(exlib::string& retVal)
 {
-    if (m_url)
+    if (m_url) {
         retVal = m_url->get_password();
+        if (m_isLegacy)
+            decodeURI(retVal, retVal);
+    }
 
     return 0;
 }
 
 result_t Url::set_password(exlib::string newVal)
 {
-    if (m_url)
+    if (m_url) {
+        if (m_isLegacy)
+            encoding_base::encodeURIComponent(newVal, false, newVal);
         m_url->set_password(newVal);
+    }
 
     return 0;
 }

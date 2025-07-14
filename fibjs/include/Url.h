@@ -265,6 +265,7 @@ public:
 public:
     bool m_parseQuery = false;
     bool m_slashes = false;
+    bool m_isLegacy = false;
     ada::result<ada::url_aggregator> m_url;
     obj_ptr<URLSearchParams> m_searchParams;
 };
