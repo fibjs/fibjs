@@ -22,7 +22,7 @@ describe('querystring', () => {
             'bar': '2'
         }],
         ['my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F',
-            'my%20weird%20field=q1!2%22\'w%245%267%2Fz8)%3F',
+            'my+weird+field=q1!2%22\'w%245%267%2Fz8)%3F',
             {
                 'my weird field': 'q1!2"\'w$5&7/z8)?'
             }
@@ -41,7 +41,7 @@ describe('querystring', () => {
                 'undef': ''
             }
         ],
-        [' foo = bar ', '%20foo%20=%20bar%20', {
+        [' foo = bar ', '+foo+=+bar+', {
             ' foo ': ' bar '
         }],
         ['foo=%zx', 'foo=%25zx', {
