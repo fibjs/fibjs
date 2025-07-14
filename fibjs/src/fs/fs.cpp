@@ -15,7 +15,7 @@
 #include "path.h"
 #include "Buffer.h"
 #include "Stat.h"
-#include "File.h"
+#include "FileStream.h"
 #include "AsyncUV.h"
 #include "utils.h"
 #include "encoding.h"

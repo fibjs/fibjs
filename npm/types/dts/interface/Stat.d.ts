@@ -3,7 +3,7 @@
 /**
  * @description 文件的基础信息对象
  * 
- *   Stat 对象通过 fs.stat, File.stat, fs.readdir 查询，不可独立创建
+ *   Stat 对象通过 fs.stat, FileStream.stat, fs.readdir 查询，不可独立创建
  *  
  */
 declare class Class_Stat extends Class_object {

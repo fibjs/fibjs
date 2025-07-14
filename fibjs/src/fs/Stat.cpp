@@ -8,7 +8,7 @@
 #include "ifs/fs.h"
 #include "object.h"
 #include "Stat.h"
-#include "File.h"
+#include "FileStream.h"
 #include "path.h"
 #include "utf8.h"
 #include "winapi.h"

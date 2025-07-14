@@ -11,7 +11,7 @@
 #include "HeapGraphEdge.h"
 #include "HeapProxy.h"
 #include "ifs/v8.h"
-#include "File.h"
+#include "FileStream.h"
 #include "ifs/fs.h"
 #include "ifs/global.h"
 #include "ifs/encoding.h"
@@ -317,7 +317,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
     class buf_file {
     public:
         buf_file()
-            : file(new File())
+            : file(new FileStream())
         {
         }
 
@@ -364,7 +364,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 
     public:
         StringBuffer bufs;
-        obj_ptr<File> file;
+        obj_ptr<FileStream> file;
     };
 
     class name_ids {

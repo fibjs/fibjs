@@ -9,7 +9,7 @@
  *  ```
  *  
  */
-declare class Class_File extends Class_SeekableStream {
+declare class Class_FileStream extends Class_SeekableStream {
     /**
      * @description 查询当前文件名 
      */

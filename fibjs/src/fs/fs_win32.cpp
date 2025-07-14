@@ -2,7 +2,7 @@
 
 #include "ifs/fs.h"
 #include "path.h"
-#include "File.h"
+#include "FileStream.h"
 
 #include <stdio.h>
 

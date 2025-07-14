@@ -1,5 +1,5 @@
 /*
- * File.cpp
+ * FileStream.cpp
  *
  *  Created on: Apr 7, 2012
  *      Author: lion
@@ -13,7 +13,7 @@
 
 #include "ifs/io.h"
 #include "ifs/fs.h"
-#include "File.h"
+#include "FileStream.h"
 #include "Buffer.h"
 
 #ifdef _WIN32
@@ -22,7 +22,7 @@
 
 namespace fibjs {
 
-File::~File()
+FileStream::~FileStream()
 {
     if (m_fd != -1)
         async([fd = m_fd]() {
@@ -30,7 +30,7 @@ File::~File()
         });
 }
 
-result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+result_t FileStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (m_fd == -1)
@@ -88,7 +88,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return 0;
 }
 
-result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -141,7 +141,7 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t File::Write(const char* p, int32_t sz)
+result_t FileStream::Write(const char* p, int32_t sz)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -158,7 +158,7 @@ result_t File::Write(const char* p, int32_t sz)
     return 0;
 }
 
-result_t File::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t FileStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -172,7 +172,7 @@ result_t File::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return Write(data);
 }
 
-result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
+result_t FileStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
     AsyncEvent* ac)
 {
     if (m_fd == -1)
@@ -181,14 +181,14 @@ result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
     return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t File::open(exlib::string fname, exlib::string flags)
+result_t FileStream::open(exlib::string fname, exlib::string flags)
 {
     close();
     name = fname;
     return file_open(fname, flags, 0666, m_fd);
 }
 
-result_t File::get_name(exlib::string& retVal)
+result_t FileStream::get_name(exlib::string& retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -197,7 +197,7 @@ result_t File::get_name(exlib::string& retVal)
     return 0;
 }
 
-result_t File::get_fd(int32_t& retVal)
+result_t FileStream::get_fd(int32_t& retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -206,7 +206,7 @@ result_t File::get_fd(int32_t& retVal)
     return 0;
 }
 
-result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -214,7 +214,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     return fs_base::stat(name, retVal, ac);
 }
 
-result_t File::size(int64_t& retVal)
+result_t FileStream::size(int64_t& retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -234,7 +234,7 @@ result_t File::size(int64_t& retVal)
     return 0;
 }
 
-result_t File::eof(bool& retVal)
+result_t FileStream::eof(bool& retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -255,7 +255,7 @@ result_t File::eof(bool& retVal)
     return 0;
 }
 
-result_t File::seek(int64_t offset, int32_t whence)
+result_t FileStream::seek(int64_t offset, int32_t whence)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -266,7 +266,7 @@ result_t File::seek(int64_t offset, int32_t whence)
     return 0;
 }
 
-result_t File::tell(int64_t& retVal)
+result_t FileStream::tell(int64_t& retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -278,7 +278,7 @@ result_t File::tell(int64_t& retVal)
     return 0;
 }
 
-result_t File::rewind()
+result_t FileStream::rewind()
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -289,7 +289,7 @@ result_t File::rewind()
     return 0;
 }
 
-result_t File::flush(AsyncEvent* ac)
+result_t FileStream::flush(AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -305,7 +305,7 @@ result_t File::flush(AsyncEvent* ac)
     return 0;
 }
 
-result_t File::close()
+result_t FileStream::close()
 {
     if (m_fd != -1) {
         ::_close(m_fd);
@@ -315,7 +315,7 @@ result_t File::close()
     return 0;
 }
 
-result_t File::close(AsyncEvent* ac)
+result_t FileStream::close(AsyncEvent* ac)
 {
     if (m_fd != -1) {
         if (ac->isSync())
@@ -327,7 +327,7 @@ result_t File::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t File::truncate(int64_t bytes, AsyncEvent* ac)
+result_t FileStream::truncate(int64_t bytes, AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -341,7 +341,7 @@ result_t File::truncate(int64_t bytes, AsyncEvent* ac)
     return 0;
 }
 
-result_t File::chmod(int32_t mode, AsyncEvent* ac)
+result_t FileStream::chmod(int32_t mode, AsyncEvent* ac)
 {
 #ifdef _WIN32
     return CHECK_ERROR(CALL_E_INVALID_CALL);

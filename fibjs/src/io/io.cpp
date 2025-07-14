@@ -9,7 +9,7 @@
 
 #include "object.h"
 #include "ifs/io.h"
-#include "File.h"
+#include "FileStream.h"
 
 namespace fibjs {
 

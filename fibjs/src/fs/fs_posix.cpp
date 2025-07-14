@@ -1,7 +1,7 @@
 #ifndef _WIN32
 
 #include "ifs/fs.h"
-#include "File.h"
+#include "FileStream.h"
 
 #include <dirent.h>
 

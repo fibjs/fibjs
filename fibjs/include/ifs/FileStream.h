@@ -18,11 +18,11 @@ namespace fibjs {
 
 class SeekableStream_base;
 
-class File_base : public SeekableStream_base {
-    DECLARE_CLASS(File_base);
+class FileStream_base : public SeekableStream_base {
+    DECLARE_CLASS(FileStream_base);
 
 public:
-    // File_base
+    // FileStream_base
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
 
@@ -34,7 +34,7 @@ public:
         ThrowTypeError("not a constructor");
     }
 
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<File_base>& retVal)
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<FileStream_base>& retVal)
     { return CALL_E_TYPEMISMATCH; }
 
 public:
@@ -42,12 +42,12 @@ public:
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(File_base, chmod, int32_t);
+    ASYNC_MEMBER1(FileStream_base, chmod, int32_t);
 };
 }
 
 namespace fibjs {
-inline ClassInfo& File_base::class_info()
+inline ClassInfo& FileStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "chmod", s_chmod, false, ClassData::ASYNC_ASYNC }
@@ -58,7 +58,7 @@ inline ClassInfo& File_base::class_info()
     };
 
     static ClassData s_cd = {
-        "File", false, s__new, NULL,
+        "FileStream", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &SeekableStream_base::class_info(),
         true
@@ -68,11 +68,11 @@ inline ClassInfo& File_base::class_info()
     return s_ci;
 }
 
-inline void File_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FileStream_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_INSTANCE(File_base);
+    METHOD_INSTANCE(FileStream_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -82,10 +82,10 @@ inline void File_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FileStream_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_INSTANCE(File_base);
-    ASYNC_METHOD_ENTER("File.chmod");
+    ASYNC_METHOD_INSTANCE(FileStream_base);
+    ASYNC_METHOD_ENTER("FileStream.chmod");
 
     METHOD_OVER(1, 1);
 

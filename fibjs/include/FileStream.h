@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ifs/File.h"
+#include "ifs/FileStream.h"
 #include "ifs/FileHandle.h"
 #include "Stat.h"
 #include "utf8.h"
@@ -33,19 +33,19 @@
 
 namespace fibjs {
 
-class File : public AsyncStream<File_base> {
+class FileStream : public AsyncStream<FileStream_base> {
 public:
-    File()
+    FileStream()
         : m_fd(-1)
     {
     }
 
-    File(int32_t fd)
+    FileStream(int32_t fd)
         : m_fd(fd)
     {
     }
 
-    ~File();
+    ~FileStream();
 
 public:
     // Stream_base

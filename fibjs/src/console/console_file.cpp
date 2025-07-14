@@ -6,7 +6,7 @@
  */
 
 #include "console.h"
-#include "File.h"
+#include "FileStream.h"
 #include "ifs/fs.h"
 #include "path.h"
 #include "Buffer.h"
@@ -160,7 +160,7 @@ result_t file_logger::initFile()
     result_t hr;
 
     if (!m_file) {
-        obj_ptr<File> f = new File();
+        obj_ptr<FileStream> f = new FileStream();
         exlib::string name(m_folder);
         resolvePath(name, m_name1);
 
