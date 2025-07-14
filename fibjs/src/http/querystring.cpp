@@ -17,7 +17,7 @@ DECLARE_MODULE(querystring);
 
 result_t querystring_base::escape(exlib::string str, exlib::string& retVal)
 {
-    return encoding_base::encodeURIComponent(str, retVal);
+    return encoding_base::encodeURIComponent(str, true, retVal);
 }
 
 result_t querystring_base::unescape(exlib::string str, exlib::string& retVal)
@@ -64,7 +64,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
             return CALL_E_JAVASCRIPT;
 
         GetArgumentValue(isolate, k, strKey);
-        encoding_base::encodeURIComponent(strKey, strKey);
+        encoding_base::encodeURIComponent(strKey, true, strKey);
 
         hr = GetArgumentValue(isolate, v, vs, true);
         if (hr >= 0) {
@@ -76,7 +76,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
                 if (hr < 0)
                     return hr;
 
-                encoding_base::encodeURIComponent(strValue, strValue);
+                encoding_base::encodeURIComponent(strValue, true, strValue);
 
                 if (bufs.size() > 0)
                     bufs.append(sep);
@@ -90,7 +90,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
             if (hr < 0)
                 return hr;
 
-            encoding_base::encodeURIComponent(strValue, strValue);
+            encoding_base::encodeURIComponent(strValue, true, strValue);
 
             if (bufs.size() > 0)
                 bufs.append(sep);

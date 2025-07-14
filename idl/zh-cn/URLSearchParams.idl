@@ -1,0 +1,115 @@
+/*! @brief URLSearchParams 是一个专门用于处理 URL 查询参数的容器类，继承自 HttpCollection
+
+URLSearchParams 实现了标准的 URLSearchParams API，用于解析和操作 URL 查询字符串。它提供了完整的查询参数管理功能，支持标准的查询参数操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除参数。
+
+URLSearchParams 支持以下几种使用方式：
+
+1. 作为全局 URLSearchParams API 使用（Web 标准）：
+
+```JavaScript
+// 创建空的 URLSearchParams 对象
+const params = new URLSearchParams();
+
+// 使用查询字符串初始化
+const params = new URLSearchParams('name=John&age=30&city=Beijing');
+
+// 使用对象初始化
+const params = new URLSearchParams({
+    name: 'John',
+    age: '30',
+    city: 'Beijing'
+});
+
+// 使用数组初始化
+const params = new URLSearchParams([
+    ['name', 'John'],
+    ['age', '30'],
+    ['city', 'Beijing']
+]);
+
+// 从另一个 URLSearchParams 对象复制
+const copy = new URLSearchParams(params);
+```
+
+URLSearchParams API 标准方法示例：
+
+```JavaScript
+// 标准 URLSearchParams API 方法
+params.set('name', 'Alice');
+params.append('hobby', 'reading');
+params.append('hobby', 'coding');  // 支持多个同名参数
+params.get('name');        // 'Alice'
+params.getAll('hobby');    // ['reading', 'coding']
+params.has('age');         // true
+params.delete('city');
+
+// 转换为字符串
+params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
+
+// 迭代器支持
+for (const [name, value] of params) {
+    console.log(`${name}: ${value}`);
+}
+
+// 遍历键名
+for (const name of params.keys()) {
+    console.log(name);
+}
+
+// 遍历值
+for (const value of params.values()) {
+    console.log(value);
+}
+
+// forEach 方法
+params.forEach((value, name) => {
+    console.log(`${name}: ${value}`);
+});
+
+// 排序参数
+params.sort();
+```
+
+fibjs 扩展方法示例（继承自 HttpCollection）：
+
+```JavaScript
+// 添加多个值（不覆盖现有值）
+params.add('tags', 'javascript');
+
+// 获取第一个值
+const firstName = params.first('name');
+
+// 获取所有值
+const allHobbies = params.all('hobby');
+
+// 设置多个值
+params.set('colors', ['red', 'green', 'blue']);
+```
+
+URLSearchParams 自动处理 URL 编码和解码，完全遵循 Web 标准 URLSearchParams API 规范。
+ */
+interface URLSearchParams : HttpCollection
+{
+    /*! @brief URLSearchParams 构造函数，创建一个新的空查询参数容器 */
+    URLSearchParams();
+
+    /*! @brief URLSearchParams 构造函数，使用给定的查询字符串初始化参数容器
+     @param init 初始化用的查询字符串，如 "name=value&key=val"
+     */
+    URLSearchParams(String init);
+
+    /*! @brief URLSearchParams 构造函数，使用给定的对象初始化参数容器
+     @param init 初始化用的参数对象，键为参数名，值为参数值
+     */
+    URLSearchParams(Object init);
+
+    /*! @brief URLSearchParams 构造函数，使用给定的数组初始化参数容器
+     @param init 初始化用的参数数组，每个元素为一个包含参数名和参数值的数组
+     */
+    URLSearchParams(Array init);
+
+    /*! @brief URLSearchParams 构造函数，使用给定的 URLSearchParams 对象初始化参数容器
+     @param init 初始化用的 URLSearchParams 对象
+     */
+    URLSearchParams(URLSearchParams init);
+};

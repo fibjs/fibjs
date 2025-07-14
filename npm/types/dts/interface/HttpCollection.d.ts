@@ -93,6 +93,14 @@ declare class Class_HttpCollection extends Class_object {
     all(name?: string): FIBJS.GeneralObject;
 
     /**
+     * @description 查询指定键值的全部值
+     *      @param name 指定要查询的键值
+     *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
+     *      
+     */
+    getAll(name: string): any[];
+
+    /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
      *      @param map 指定要添加的键值数据字典
      *      

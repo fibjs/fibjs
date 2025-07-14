@@ -38,7 +38,6 @@ public:
     }
 
 public:
-    result_t parse(exlib::string& str, const char* sep = "&", const char* eq = "=");
     result_t parseCookie(exlib::string& str);
     result_t parseMultipart(exlib::string& str, const char* boundary);
 };

@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class Buffer_base;
+class URLSearchParams_base;
 class UrlObject_base;
 class Blob_base;
 class HttpHeaders_base;
@@ -86,6 +87,7 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/URLSearchParams.h"
 #include "ifs/UrlObject.h"
 #include "ifs/Blob.h"
 #include "ifs/HttpHeaders.h"
@@ -122,6 +124,7 @@ inline ClassInfo& global_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "Buffer", Buffer_base::class_info },
+        { "URLSearchParams", URLSearchParams_base::class_info },
         { "URL", UrlObject_base::class_info },
         { "Blob", Blob_base::class_info },
         { "Headers", HttpHeaders_base::class_info },

@@ -82,9 +82,10 @@ module encoding
 
     /*! @brief url 部件字符串安全编码
      @param url 要编码的 url
+     @param formEncoded 是否使用application/x-www-form-urlencoded格式编码（空格编码为+），缺省为false
      @return 返回编码的字符串
      */
-    static String encodeURIComponent(String url);
+    static String encodeURIComponent(String url, Boolean formEncoded = false);
 
     /*! @brief url 安全字符串解码
      @param url 要解码的 url

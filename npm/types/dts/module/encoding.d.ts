@@ -120,10 +120,11 @@ declare module 'encoding' {
     /**
      * @description url 部件字符串安全编码
      *      @param url 要编码的 url
+     *      @param formEncoded 是否使用application/x-www-form-urlencoded格式编码（空格编码为+），缺省为false
      *      @return 返回编码的字符串
      *      
      */
-    function encodeURIComponent(url: string): string;
+    function encodeURIComponent(url: string, formEncoded?: boolean): string;
 
     /**
      * @description url 安全字符串解码

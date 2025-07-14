@@ -73,6 +73,50 @@ public:
         }
         return ret;
     }
+
+public:
+    size_t size()
+    {
+        size_t sz = 0;
+
+        for (size_t i = 0; i < m_map.size(); i++) {
+            pair& _pair = m_map[i];
+            sz += _pair.first.length() + _pair.second.string().length() + 4;
+        }
+
+        return sz;
+    }
+
+    void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
+    {
+        buf += pos;
+
+        pos += szStr;
+        if (pos > sz) {
+            szStr -= pos - sz;
+            pos = sz;
+        }
+
+        memcpy(buf, str, szStr);
+    }
+
+    size_t getData(char* buf, size_t sz)
+    {
+        size_t pos = 0;
+
+        for (size_t i = 0; i < m_map.size(); i++) {
+            pair& _pair = m_map[i];
+            exlib::string& n = _pair.first;
+            exlib::string v = _pair.second.string();
+
+            cp(buf, sz, pos, n.c_str(), n.length());
+            cp(buf, sz, pos, ": ", 2);
+            cp(buf, sz, pos, v.c_str(), v.length());
+            cp(buf, sz, pos, "\r\n", 2);
+        }
+
+        return pos;
+    }
 };
 
 }

@@ -27,6 +27,7 @@ public:
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
     virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
+    virtual result_t getAll(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t append(v8::Local<v8::Object> map) = 0;
     virtual result_t append(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t append(v8::Local<v8::Array> entries) = 0;
@@ -65,6 +66,7 @@ public:
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -93,6 +95,7 @@ inline ClassInfo& HttpCollection_base::class_info()
         { "first", s_first, false, ClassData::ASYNC_SYNC },
         { "get", s_get, false, ClassData::ASYNC_SYNC },
         { "all", s_all, false, ClassData::ASYNC_SYNC },
+        { "getAll", s_getAll, false, ClassData::ASYNC_SYNC },
         { "append", s_append, false, ClassData::ASYNC_SYNC },
         { "set", s_set, false, ClassData::ASYNC_SYNC },
         { "remove", s_remove, false, ClassData::ASYNC_SYNC },
@@ -192,6 +195,22 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->all(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpCollection_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getAll(v0, vr);
 
     METHOD_RETURN();
 }

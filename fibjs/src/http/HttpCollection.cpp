@@ -15,68 +15,6 @@
 
 namespace fibjs {
 
-result_t HttpCollection::parse(exlib::string& str, const char* sep, const char* eq)
-{
-    const char* pstr = str.c_str();
-    int32_t nSize = (int32_t)str.length();
-    const char* pstrTemp;
-    exlib::string strKey, strValue;
-    int32_t sep_len = (int32_t)qstrlen(sep);
-    int32_t eq_len = (int32_t)qstrlen(eq);
-    bool found_eq;
-
-    while (nSize) {
-        pstrTemp = pstr;
-        found_eq = false;
-
-        while (nSize) {
-            if (!qstrcmp(pstr, sep, sep_len))
-                break;
-
-            if (!qstrcmp(pstr, eq, eq_len)) {
-                found_eq = true;
-                break;
-            }
-
-            pstr++;
-            nSize--;
-        }
-
-        if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strKey, true);
-        else
-            strKey.clear();
-
-        if (nSize && found_eq) {
-            nSize -= eq_len;
-            pstr += eq_len;
-        }
-
-        pstrTemp = pstr;
-        while (nSize && qstrcmp(pstr, sep, sep_len)) {
-            pstr++;
-            nSize--;
-        }
-
-        if (!strKey.empty()) {
-            if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strValue, true);
-            else
-                strValue.clear();
-        }
-
-        if (nSize) {
-            nSize -= sep_len;
-            pstr += sep_len;
-        }
-
-        if (!strKey.empty())
-            append(strKey, strValue);
-    }
-
-    return 0;
-}
-
 result_t HttpCollection::parseCookie(exlib::string& str)
 {
     const char* pstr = str.c_str();

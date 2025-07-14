@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/URLSearchParams.d.ts" />
 /// <reference path="../interface/UrlObject.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /// <reference path="../interface/HttpHeaders.d.ts" />
@@ -22,6 +23,11 @@ declare module 'global' {
      * @description 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。
      */
     const Buffer: typeof Class_Buffer;
+
+    /**
+     * @description 创建一个 URLSearchParams 请求对象，参见 URLSearchParams 
+     */
+    const URLSearchParams: typeof Class_URLSearchParams;
 
     /**
      * @description 创建一个 UrlObject 请求对象，参见 UrlObject 

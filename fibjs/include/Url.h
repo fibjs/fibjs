@@ -198,7 +198,7 @@ public:
     }
 
     inline static void encodeURI(const char* url, ssize_t sz, exlib::string& retVal,
-        const char* tab)
+        const char* tab, bool space = false)
     {
         static const char* hex = "0123456789ABCDEF";
 
@@ -218,8 +218,13 @@ public:
 
         for (len = 0, src = url, l = sz; l > 0; len++, l--) {
             ch = (unsigned char)*src++;
-            if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
-                len += 2;
+            if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ') {
+                if (space && ch == ' ') {
+                    // Space will be encoded as +, no extra length needed
+                } else {
+                    len += 2;
+                }
+            }
         }
 
         str.resize(len);
@@ -227,13 +232,22 @@ public:
 
         for (src = url, l = sz; l > 0; l--) {
             ch = (unsigned char)*src++;
-            if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
-                *bstr++ = ch;
-            else {
-                *bstr++ = '%';
-
-                *bstr++ = hex[(ch >> 4) & 15];
-                *bstr++ = hex[ch & 15];
+            if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ') {
+                // Special handling for space in form encoded mode
+                if (space && ch == ' ') {
+                    *bstr++ = '+';
+                } else {
+                    *bstr++ = ch;
+                }
+            } else {
+                // Special handling for space in form encoded mode
+                if (space && ch == ' ') {
+                    *bstr++ = '+';
+                } else {
+                    *bstr++ = '%';
+                    *bstr++ = hex[(ch >> 4) & 15];
+                    *bstr++ = hex[ch & 15];
+                }
             }
         }
 
@@ -241,9 +255,9 @@ public:
     }
 
     inline static void encodeURI(exlib::string url, exlib::string& retVal,
-        const char* tab)
+        const char* tab, bool space = false)
     {
-        encodeURI(url.c_str(), url.length(), retVal, tab);
+        encodeURI(url.c_str(), url.length(), retVal, tab, space);
     }
 
 public:

@@ -35,7 +35,7 @@ public:
     static result_t decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t jsstr(exlib::string str, bool json, exlib::string& retVal);
     static result_t encodeURI(exlib::string url, exlib::string& retVal);
-    static result_t encodeURIComponent(exlib::string url, exlib::string& retVal);
+    static result_t encodeURIComponent(exlib::string url, bool formEncoded, exlib::string& retVal);
     static result_t decodeURI(exlib::string url, exlib::string& retVal);
 
 public:
@@ -189,11 +189,12 @@ inline void encoding_base::s_static_encodeURIComponent(const v8::FunctionCallbac
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(bool, 1, false);
 
-    hr = encodeURIComponent(v0, vr);
+    hr = encodeURIComponent(v0, v1, vr);
 
     METHOD_RETURN();
 }

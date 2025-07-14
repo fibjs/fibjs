@@ -647,9 +647,9 @@ result_t encoding_base::encodeURI(exlib::string url, exlib::string& retVal)
     return 0;
 }
 
-result_t encoding_base::encodeURIComponent(exlib::string url, exlib::string& retVal)
+result_t encoding_base::encodeURIComponent(exlib::string url, bool formEncoded, exlib::string& retVal)
 {
-    Url::encodeURI(url, retVal, URIComponentTable);
+    Url::encodeURI(url, retVal, URIComponentTable, formEncoded);
     return 0;
 }
 

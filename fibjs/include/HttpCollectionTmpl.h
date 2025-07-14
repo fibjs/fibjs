@@ -68,6 +68,11 @@ public:
         return 0;
     }
 
+    result_t getAll(exlib::string name, obj_ptr<NArray>& retVal)
+    {
+        return all(name, retVal);
+    }
+
     result_t append(exlib::string name, Variant value)
     {
         if (name.empty())
@@ -400,47 +405,184 @@ public:
     }
 
 public:
-    size_t size()
+    inline static void decodeURI(const char* url, ssize_t sz, exlib::string& retVal, bool space = false)
     {
-        size_t sz = 0;
+        if (sz < 0)
+            sz = qstrlen(url);
 
-        for (size_t i = 0; i < m_map.size(); i++) {
-            pair& _pair = m_map[i];
-            sz += _pair.first.length() + _pair.second.string().length() + 4;
+        if (sz == 0) {
+            retVal.resize(0);
+            return;
         }
 
-        return sz;
+        ssize_t len, l;
+        const char* src;
+        unsigned char ch;
+        char* bstr;
+        exlib::string str;
+
+        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--) {
+            ch = (unsigned char)*src;
+            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2])) {
+                src += 2;
+                l -= 2;
+            } else if ((ch == '%' || ch == '\\') && l > 5
+                && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+                && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5])) {
+                char16_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                    + (qhex(src[4]) << 4) + qhex(src[5]);
+
+                len += utf8_strlen(&wch, 1) - 1;
+
+                src += 5;
+                l -= 5;
+            }
+        }
+
+        str.resize(len);
+        bstr = str.data();
+
+        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--) {
+            ch = (unsigned char)*src;
+
+            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2])) {
+                *bstr++ = (qhex(src[1]) << 4) + qhex(src[2]);
+                src += 2;
+                l -= 2;
+            } else if ((ch == '%' || ch == '\\') && l > 5
+                && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+                && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5])) {
+                char16_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                    + (qhex(src[4]) << 4) + qhex(src[5]);
+
+                bstr += utf_convert(&wch, 1, bstr, 5);
+
+                src += 5;
+                l -= 5;
+            } else if (space && ch == '+')
+                *bstr++ = ' ';
+            else
+                *bstr++ = ch;
+        }
+
+        retVal = str;
     }
 
-    void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
+    inline static void decodeURI(exlib::string url, exlib::string& retVal, bool space = false)
     {
-        buf += pos;
-
-        pos += szStr;
-        if (pos > sz) {
-            szStr -= pos - sz;
-            pos = sz;
-        }
-
-        memcpy(buf, str, szStr);
+        decodeURI(url.c_str(), url.length(), retVal, space);
     }
 
-    size_t getData(char* buf, size_t sz)
+    inline static void encodeURI(const char* url, ssize_t sz, exlib::string& retVal,
+        const char* tab)
     {
-        size_t pos = 0;
+        static const char* hex = "0123456789ABCDEF";
 
-        for (size_t i = 0; i < m_map.size(); i++) {
-            pair& _pair = m_map[i];
-            exlib::string& n = _pair.first;
-            exlib::string v = _pair.second.string();
+        if (sz < 0)
+            sz = qstrlen(url);
 
-            cp(buf, sz, pos, n.c_str(), n.length());
-            cp(buf, sz, pos, ": ", 2);
-            cp(buf, sz, pos, v.c_str(), v.length());
-            cp(buf, sz, pos, "\r\n", 2);
+        if (sz == 0) {
+            retVal.resize(0);
+            return;
         }
 
-        return pos;
+        ssize_t len, l;
+        const char* src;
+        unsigned char ch;
+        char* bstr;
+        exlib::string str;
+
+        for (len = 0, src = url, l = sz; l > 0; len++, l--) {
+            ch = (unsigned char)*src++;
+            if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
+                len += 2;
+        }
+
+        str.resize(len);
+        bstr = str.data();
+
+        for (src = url, l = sz; l > 0; l--) {
+            ch = (unsigned char)*src++;
+            if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
+                *bstr++ = ch;
+            else {
+                *bstr++ = '%';
+
+                *bstr++ = hex[(ch >> 4) & 15];
+                *bstr++ = hex[ch & 15];
+            }
+        }
+
+        retVal = str;
+    }
+
+    inline static void encodeURI(exlib::string url, exlib::string& retVal,
+        const char* tab)
+    {
+        encodeURI(url.c_str(), url.length(), retVal, tab);
+    }
+
+public:
+    result_t parse(exlib::string& str, const char* sep = "&", const char* eq = "=")
+    {
+        const char* pstr = str.c_str();
+        int32_t nSize = (int32_t)str.length();
+        const char* pstrTemp;
+        exlib::string strKey, strValue;
+        int32_t sep_len = (int32_t)qstrlen(sep);
+        int32_t eq_len = (int32_t)qstrlen(eq);
+        bool found_eq;
+
+        while (nSize) {
+            pstrTemp = pstr;
+            found_eq = false;
+
+            while (nSize) {
+                if (!qstrcmp(pstr, sep, sep_len))
+                    break;
+
+                if (!qstrcmp(pstr, eq, eq_len)) {
+                    found_eq = true;
+                    break;
+                }
+
+                pstr++;
+                nSize--;
+            }
+
+            if (pstr > pstrTemp)
+                decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strKey, true);
+            else
+                strKey.clear();
+
+            if (nSize && found_eq) {
+                nSize -= eq_len;
+                pstr += eq_len;
+            }
+
+            pstrTemp = pstr;
+            while (nSize && qstrcmp(pstr, sep, sep_len)) {
+                pstr++;
+                nSize--;
+            }
+
+            if (!strKey.empty()) {
+                if (pstr > pstrTemp)
+                    decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strValue, true);
+                else
+                    strValue.clear();
+            }
+
+            if (nSize) {
+                nSize -= sep_len;
+                pstr += sep_len;
+            }
+
+            if (!strKey.empty())
+                append(strKey, strValue);
+        }
+
+        return 0;
     }
 
 public:

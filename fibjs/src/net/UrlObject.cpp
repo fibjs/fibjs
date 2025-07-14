@@ -187,8 +187,8 @@ result_t Url::format(v8::Local<v8::Object> args)
     GetConfigValue(isolate, args, "password", password, true);
 
     if (username.length() > 0 || password.length() > 0) {
-        encoding_base::encodeURIComponent(username, username);
-        encoding_base::encodeURIComponent(password, password);
+        encoding_base::encodeURIComponent(username, false, username);
+        encoding_base::encodeURIComponent(password, false, password);
         url += username;
         if (password.length() > 0)
             url += ":" + password;
@@ -316,11 +316,11 @@ result_t Url::get_auth(exlib::string& retVal)
         exlib::string password = m_url->get_password();
         exlib::string str;
 
-        encoding_base::encodeURIComponent(username, str);
+        encoding_base::encodeURIComponent(username, false, str);
         retVal = str;
         if (password.length() > 0) {
             retVal.append(1, ':');
-            encoding_base::encodeURIComponent(password, str);
+            encoding_base::encodeURIComponent(password, false, str);
             retVal.append(str);
         }
     }
