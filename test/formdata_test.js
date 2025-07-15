@@ -1,4 +1,4 @@
-var { describe, it, todo } = require('node:test');
+var { describe, it } = require('node:test');
 var assert = require('assert');
 
 // Detect if running in fibjs or nodejs
@@ -496,7 +496,7 @@ describe("FormData API", () => {
             assert.strictEqual(formData.get(nameWithControls), valueWithControls);
         });
 
-        todo("FormData - object toString conversion", () => {
+        it("FormData - object toString conversion", () => {
             const formData = new FormData();
 
             const objWithToString = {

@@ -295,6 +295,7 @@ void Variant::toString(exlib::string& retVal) const
     case VT_Date:
         dateVal().toGMTString(retVal);
         break;
+
     case VT_Object: {
         object_base* obj = (object_base*)m_Val.objVal;
 
@@ -308,11 +309,19 @@ void Variant::toString(exlib::string& retVal) const
     case VT_String:
         retVal = strVal();
         break;
-    case VT_JSValue:
+
+    case VT_JSValue: {
+        v8::Local<v8::Value>& v = jsVal();
+        Isolate* isolate = Isolate::current();
+        GetArgumentValue(isolate, v, retVal);
+        break;
+    }
+
     case VT_UNBOUND_ARRAY:
     case VT_UNBOUND_OBJECT:
         retVal = "[Object]";
         break;
+
     case VT_JSON:
         retVal = strVal();
         break;
