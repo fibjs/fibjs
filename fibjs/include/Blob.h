@@ -2,6 +2,7 @@
 
 #include "ifs/Blob.h"
 #include "ifs/File.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 
@@ -15,6 +16,8 @@ public:
     // Blob_base
     result_t get_type(exlib::string& retVal);
     result_t get_size(int32_t& retVal);
+    result_t clone(BlobImpl& retVal);
+    result_t slice(int32_t start, int32_t end, exlib::string contentType, BlobImpl& retVal);
     result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal);
     result_t text(exlib::string& retVal, AsyncEvent* ac);
     result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac);

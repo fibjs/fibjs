@@ -43,17 +43,28 @@ result_t BlobImpl::get_type(exlib::string& retVal)
 
 result_t BlobImpl::get_size(int32_t& retVal)
 {
-    if (!m_buffer) {
-        retVal = 0;
-        return 0;
-    }
     return m_buffer->get_length(retVal);
 }
 
-result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal)
+result_t BlobImpl::clone(BlobImpl& retVal)
+{
+    int32_t bufferSize;
+    m_buffer->get_length(bufferSize);
+
+    obj_ptr<Buffer_base> slicedBuffer;
+    result_t hr = m_buffer.As<Buffer>()->subarray(0, bufferSize, slicedBuffer);
+    if (hr < 0)
+        return hr;
+
+    retVal.m_buffer = slicedBuffer;
+    retVal.m_type = m_type;
+    return 0;
+}
+
+result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, BlobImpl& retVal)
 {
     // Handle default end value (-1 means slice to end)
-    if (end == -1 && m_buffer) {
+    if (end == -1) {
         int32_t bufferSize;
         m_buffer->get_length(bufferSize);
         end = bufferSize;
@@ -61,42 +72,32 @@ result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, 
 
     // Use Buffer's subarray which handles all edge cases
     obj_ptr<Buffer_base> slicedBuffer;
-    if (m_buffer) {
-        result_t hr = m_buffer.As<Buffer>()->subarray(start, end, slicedBuffer);
-        if (hr < 0)
-            return hr;
-    } else {
-        // Empty buffer for empty blob
-        Buffer_base::allocUnsafe(0, slicedBuffer);
-    }
+    result_t hr = m_buffer.As<Buffer>()->subarray(start, end, slicedBuffer);
+    if (hr < 0)
+        return hr;
 
     // Create new blob using same pattern as in _new function
-    obj_ptr<Blob> newBlob = new Blob();
-    newBlob->m_impl.m_buffer = slicedBuffer;
-    newBlob->m_impl.m_type = contentType.empty() ? m_type : contentType;
-    retVal = newBlob;
+    retVal.m_buffer = slicedBuffer;
+    retVal.m_type = contentType.empty() ? m_type : contentType;
 
     return 0;
 }
 
+result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal)
+{
+    obj_ptr<Blob> newBlob = new Blob();
+    retVal = newBlob;
+    return slice(start, end, contentType, newBlob->m_impl);
+}
+
 result_t BlobImpl::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    if (!m_buffer) {
-        retVal = "";
-        return 0;
-    }
-
     return m_buffer->toString("utf8", 0, retVal);
 }
 
 result_t BlobImpl::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
 {
     Isolate* isolate = ac->isolate();
-
-    if (!m_buffer) {
-        retVal = v8::ArrayBuffer::New(isolate->m_isolate, 0);
-        return 0;
-    }
 
     Buffer* buf = m_buffer.As<Buffer>();
     int32_t bufSize = buf->length();
@@ -157,7 +158,7 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
             }
 
             obj_ptr<Buffer_base> buffer;
-            Blob* blobPart = static_cast<Blob*>(Blob_base::getInstance(part.As<v8::Object>()));
+            Blob* blobPart = static_cast<Blob*>(Blob_base::getInstance(part));
             if (blobPart) {
                 // If part is a Blob, use its buffer directly
                 if (!blobPart->m_impl.m_buffer) {
