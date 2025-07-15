@@ -20,8 +20,8 @@ class URLSearchParams_base;
 class UrlObject_base;
 class Blob_base;
 class File_base;
-class HttpHeaders_base;
-class HttpFormData_base;
+class Headers_base;
+class FormData_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
@@ -93,8 +93,8 @@ public:
 #include "ifs/UrlObject.h"
 #include "ifs/Blob.h"
 #include "ifs/File.h"
-#include "ifs/HttpHeaders.h"
-#include "ifs/HttpFormData.h"
+#include "ifs/Headers.h"
+#include "ifs/FormData.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
@@ -132,8 +132,8 @@ inline ClassInfo& global_base::class_info()
         { "URL", UrlObject_base::class_info },
         { "Blob", Blob_base::class_info },
         { "File", File_base::class_info },
-        { "Headers", HttpHeaders_base::class_info },
-        { "FormData", HttpFormData_base::class_info },
+        { "Headers", Headers_base::class_info },
+        { "FormData", FormData_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },

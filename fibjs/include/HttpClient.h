@@ -81,9 +81,9 @@ public:
     result_t init(v8::Local<v8::Object> options);
     result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac);
     result_t request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-        SeekableStream_base* response_body, bool keepAlive, HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
+        SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
-        SeekableStream_base* response_body, bool keepAlive, HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+        SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
     result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
 
@@ -91,7 +91,7 @@ public:
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
-        SeekableStream_base* response_body, HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+        SeekableStream_base* response_body, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
     {
         return request(method, url, body, response_body, m_keepAlive, headers, retVal, ac);
     }

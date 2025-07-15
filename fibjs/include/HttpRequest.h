@@ -10,7 +10,7 @@
 #include "ifs/HttpRequest.h"
 #include "HttpMessage.h"
 #include "HttpResponse.h"
-#include "HttpHeaders.h"
+#include "Headers.h"
 #include "HttpCollection.h"
 
 namespace fibjs {
@@ -58,7 +58,7 @@ public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string& retVal);
     virtual result_t set_protocol(exlib::string newVal);
-    virtual result_t get_headers(obj_ptr<HttpHeaders_base>& retVal);
+    virtual result_t get_headers(obj_ptr<Headers_base>& retVal);
     virtual result_t get_keepAlive(bool& retVal);
     virtual result_t set_keepAlive(bool newVal);
     virtual result_t get_upgrade(bool& retVal);
@@ -112,9 +112,9 @@ public:
         m_message->appendHeader(name, value);
     }
 
-    result_t appendHeader(HttpHeaders_base* map)
+    result_t appendHeader(Headers_base* map)
     {
-        HttpHeaders* headers = static_cast<HttpHeaders*>(map);
+        Headers* headers = static_cast<Headers*>(map);
         for (int32_t i = 0; i < (int32_t)headers->m_map.size(); i++) {
             auto& it = headers->m_map[i];
             _appendHeader(it.first, it.second.string());

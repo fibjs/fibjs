@@ -640,14 +640,14 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 }
 
 result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-    SeekableStream_base* response_body, bool keepAlive, HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal,
+    SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac, bool headerOnly)
 {
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(HttpClient* hc, exlib::string method, obj_ptr<Url>& u,
             SeekableStream_base* body, SeekableStream_base* response_body, bool keepAlive,
-            HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
+            Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
             : AsyncState(ac)
             , m_method(method)
             , m_u(u)
@@ -1039,7 +1039,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         int64_t m_response_pos;
         int32_t m_len;
         bool m_keepAlive;
-        obj_ptr<HttpHeaders_base> m_headers;
+        obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
         std::unordered_map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
@@ -1059,7 +1059,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    SeekableStream_base* response_body, bool keepAlive, HttpHeaders_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -1076,7 +1076,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    obj_ptr<HttpHeaders_base> headers;
+    obj_ptr<Headers_base> headers;
     obj_ptr<SeekableStream_base> stm;
     v8::Local<v8::Object> o;
     JSValue v;
@@ -1110,7 +1110,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     if (hr >= 0) {
         ac->m_ctx[2] = headers;
     } else if (hr == CALL_E_PARAMNOTOPTIONAL) {
-        headers = new HttpHeaders();
+        headers = new Headers();
         ac->m_ctx[2] = headers;
     } else {
         return hr;
@@ -1207,7 +1207,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, v8::Local<
 
     exlib::string _method = ac->m_ctx[0].string();
     obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
-    obj_ptr<HttpHeaders_base> headers = (HttpHeaders_base*)ac->m_ctx[2].object();
+    obj_ptr<Headers_base> headers = (Headers_base*)ac->m_ctx[2].object();
     obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
     obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
     bool keepAlive = ac->m_ctx[5].boolVal();

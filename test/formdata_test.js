@@ -14,7 +14,7 @@ describe("FormData API", () => {
 
             // Should be a valid FormData instance
             assert.strictEqual(formData instanceof FormData, true);
-            assert.strictEqual(Object.prototype.toString.call(formData), isFibjs ? '[object HttpFormData]' : '[object FormData]');
+            assert.strictEqual(Object.prototype.toString.call(formData), '[object FormData]');
         });
 
         it("FormData constructor - methods existence", () => {
@@ -692,7 +692,7 @@ describe("FormData API", () => {
             const formData = new FormData();
 
             // FormData should have proper toString
-            assert.strictEqual(Object.prototype.toString.call(formData), isFibjs ? '[object HttpFormData]' : '[object FormData]');
+            assert.strictEqual(Object.prototype.toString.call(formData), '[object FormData]');
 
             // valueOf should return the object itself
             assert.strictEqual(formData.valueOf(), formData);

@@ -9,7 +9,7 @@
 
 #include "Message.h"
 #include "HttpCollection.h"
-#include "HttpHeaders.h"
+#include "Headers.h"
 #include "ifs/BufferedStream.h"
 
 namespace fibjs {
@@ -27,7 +27,7 @@ public:
         , m_bChunked(false)
         , m_sent(false)
     {
-        m_headers = new HttpHeaders();
+        m_headers = new Headers();
         clear();
     }
 
@@ -45,7 +45,7 @@ public:
 public:
     result_t get_protocol(exlib::string& retVal);
     result_t set_protocol(exlib::string newVal);
-    result_t get_headers(obj_ptr<HttpHeaders_base>& retVal);
+    result_t get_headers(obj_ptr<Headers_base>& retVal);
     result_t get_keepAlive(bool& retVal);
     result_t set_keepAlive(bool newVal);
     result_t get_upgrade(bool& retVal);
@@ -107,7 +107,7 @@ public:
     int32_t m_maxBodySize;
     exlib::string m_origin;
     exlib::string m_encoding;
-    obj_ptr<HttpHeaders> m_headers;
+    obj_ptr<Headers> m_headers;
 
     int64_t m_contentLength;
     bool m_bChunked;

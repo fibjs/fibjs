@@ -16,7 +16,7 @@
 #include "encoding.h"
 #include "MemoryStream.h"
 #include "HttpClient.h"
-#include "HttpHeaders.h"
+#include "Headers.h"
 #include <stdlib.h>
 
 namespace fibjs {
@@ -26,7 +26,7 @@ DECLARE_MODULE(ws);
 #define WS_DEFALTE_BUF_SIZE (32 * 1024)
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
-    SeekableStream_base* body, HttpHeaders_base* headers,
+    SeekableStream_base* body, Headers_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 class asyncSend : public AsyncState {
@@ -200,7 +200,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 {
     class asyncConnect : public AsyncState {
     public:
-        asyncConnect(WebSocket* pThis, obj_ptr<HttpHeaders_base> headers, HttpClient_base* hc, Isolate* isolate)
+        asyncConnect(WebSocket* pThis, obj_ptr<Headers_base> headers, HttpClient_base* hc, Isolate* isolate)
             : AsyncState(NULL)
             , m_this(pThis)
             , m_headers(headers)
@@ -338,7 +338,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         Isolate* m_isolate;
         obj_ptr<WebSocket> m_this;
         obj_ptr<HttpResponse_base> m_httprep;
-        obj_ptr<HttpHeaders_base> m_headers;
+        obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpClient_base> m_hc;
         exlib::string m_accept;
     };
@@ -348,7 +348,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     exlib::string protocol = "";
     bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
-    obj_ptr<HttpHeaders_base> headers;
+    obj_ptr<Headers_base> headers;
     obj_ptr<HttpClient_base> hc = NULL;
 
     GetConfigValue(isolate, opts, "protocol", protocol);
@@ -358,7 +358,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
     result_t hr = GetConfigValue(isolate, opts, "headers", headers);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
-        headers = new HttpHeaders();
+        headers = new Headers();
     else if (hr < 0)
         return hr;
 

@@ -18,19 +18,19 @@ namespace fibjs {
 
 class HttpCollection_base;
 
-class HttpHeaders_base : public HttpCollection_base {
-    DECLARE_CLASS(HttpHeaders_base);
+class Headers_base : public HttpCollection_base {
+    DECLARE_CLASS(Headers_base);
 
 public:
-    // HttpHeaders_base
-    static result_t _new(obj_ptr<HttpHeaders_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> init, obj_ptr<HttpHeaders_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Array> init, obj_ptr<HttpHeaders_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(HttpHeaders_base* init, obj_ptr<HttpHeaders_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    // Headers_base
+    static result_t _new(obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Array> init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Headers_base* init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpHeaders_base>& retVal);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Headers_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -38,10 +38,10 @@ public:
 }
 
 namespace fibjs {
-inline ClassInfo& HttpHeaders_base::class_info()
+inline ClassInfo& Headers_base::class_info()
 {
     static ClassData s_cd = {
-        "HttpHeaders", false, s__new, NULL,
+        "Headers", false, s__new, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &HttpCollection_base::class_info(),
         false
@@ -51,15 +51,15 @@ inline ClassInfo& HttpHeaders_base::class_info()
     return s_ci;
 }
 
-inline void HttpHeaders_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Headers_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     CONSTRUCT_INIT();
     __new(args);
 }
 
-inline void HttpHeaders_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Headers_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpHeaders_base> vr;
+    obj_ptr<Headers_base> vr;
 
     CONSTRUCT_ENTER();
 
@@ -81,16 +81,16 @@ inline void HttpHeaders_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(obj_ptr<HttpHeaders_base>, 0);
+    STRICT_ARG(obj_ptr<Headers_base>, 0);
 
     hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
 
-inline result_t HttpHeaders_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpHeaders_base>& retVal)
+inline result_t Headers_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Headers_base>& retVal)
 {
-    obj_ptr<HttpHeaders_base> vr;
+    obj_ptr<Headers_base> vr;
 
     LOAD_ENTER();
 
@@ -112,7 +112,7 @@ inline result_t HttpHeaders_base::load(Isolate* isolate, v8::Local<v8::Value> v,
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(obj_ptr<HttpHeaders_base>, 0);
+    STRICT_ARG(obj_ptr<Headers_base>, 0);
 
     hr = _new(v0.get(), vr, args.This());
 

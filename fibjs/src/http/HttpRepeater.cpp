@@ -176,7 +176,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             int32_t code;
             exlib::string msg;
-            obj_ptr<HttpHeaders_base> headers;
+            obj_ptr<Headers_base> headers;
             obj_ptr<SeekableStream_base> body;
 
             m_ret->get_statusCode(code);
@@ -199,7 +199,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         exlib::string m_method;
         exlib::string m_url;
         obj_ptr<SeekableStream_base> m_body;
-        obj_ptr<HttpHeaders_base> m_headers;
+        obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpResponse_base> m_ret;
         obj_ptr<HttpResponse_base> m_rep;
     };

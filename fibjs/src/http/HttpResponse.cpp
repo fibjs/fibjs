@@ -29,7 +29,7 @@ result_t HttpResponse::set_protocol(exlib::string newVal)
     return m_message->set_protocol(newVal);
 }
 
-result_t HttpResponse::get_headers(obj_ptr<HttpHeaders_base>& retVal)
+result_t HttpResponse::get_headers(obj_ptr<Headers_base>& retVal)
 {
     return m_message->get_headers(retVal);
 }

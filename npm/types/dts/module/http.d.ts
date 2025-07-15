@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
-/// <reference path="../interface/HttpHeaders.d.ts" />
+/// <reference path="../interface/Headers.d.ts" />
 /// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
@@ -56,9 +56,9 @@ declare module 'http' {
     const Response: typeof Class_HttpResponse;
 
     /**
-     * @description 创建一个 HttpHeaders 对象，参见 HttpHeaders 
+     * @description 创建一个 Headers 对象，参见 Headers 
      */
-    const Headers: typeof Class_HttpHeaders;
+    const Headers: typeof Class_Headers;
 
     /**
      * @description 创建一个 http cookie 对象，参见 HttpCookie 

@@ -30,14 +30,14 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
 }
 
 result_t http_request(exlib::string method, exlib::string url,
-    SeekableStream_base* body, HttpHeaders_base* headers,
+    SeekableStream_base* body, Headers_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return get_httpClient(ac->isolate())->request(method, url, body, NULL, headers, retVal, ac);
 }
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
-    SeekableStream_base* body, HttpHeaders_base* headers,
+    SeekableStream_base* body, Headers_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (httpClient != NULL)

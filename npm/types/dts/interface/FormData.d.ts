@@ -2,22 +2,22 @@
 /// <reference path="../interface/HttpCollection.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
- * @description HttpFormData 是用于管理 HTTP 表单数据（multipart/form-data）的容器类，继承自 HttpCollection。
+ * @description FormData 是用于管理 HTTP 表单数据（multipart/form-data）的容器类，继承自 HttpCollection。
  * 
- * HttpFormData 提供了标准的 Web FormData API，支持多种方式初始化和操作表单字段，适用于 HTTP 文件上传、表单数据构建等场景。
+ * FormData 提供了标准的 Web FormData API，支持多种方式初始化和操作表单字段，适用于 HTTP 文件上传、表单数据构建等场景。
  * 
  * 主要特性：
- * 1. 支持通过空构造、对象、已有 HttpFormData 实例进行初始化。
+ * 1. 支持通过空构造、对象、已有 FormData 实例进行初始化。
  * 2. 支持 append、set 等方法添加和修改字段，支持文件（Blob）和文件名参数。
  * 3. 兼容 Web 标准 FormData 行为，允许同名字段多值、文件上传等。
  * 
  * 常见用法示例：
  * ```JavaScript
  * // 创建空表单数据
- * const form = new HttpFormData();
+ * const form = new FormData();
  * 
  * // 使用对象初始化
- * const form = new HttpFormData({ foo: 'bar', file: blob });
+ * const form = new FormData({ foo: 'bar', file: blob });
  * 
  * // 追加字段
  * form.append('name', 'value');
@@ -29,16 +29,16 @@
  * ```
  *  
  */
-declare class Class_HttpFormData extends Class_HttpCollection {
+declare class Class_FormData extends Class_HttpCollection {
     /**
-     * @description HttpFormData 构造函数，创建一个新的空 HTTP 表单数据容器
-     *         创建一个空的 HttpFormData 实例，用于后续动态添加表单字段。
+     * @description FormData 构造函数，创建一个新的空 HTTP 表单数据容器
+     *         创建一个空的 FormData 实例，用于后续动态添加表单字段。
      *     
      */
     constructor();
 
     /**
-     * @description HttpFormData 构造函数，使用给定的对象初始化 HTTP 表单数据容器
+     * @description FormData 构造函数，使用给定的对象初始化 HTTP 表单数据容器
      *         
      *      通过传入一个对象，批量初始化表单字段。对象的键为字段名，值为字段值（可为字符串、Blob 或数组）。
      * 
@@ -48,14 +48,14 @@ declare class Class_HttpFormData extends Class_HttpCollection {
     constructor(init: FIBJS.GeneralObject);
 
     /**
-     * @description HttpFormData 构造函数，使用给定的 HTTP 表单数据容器初始化 HTTP 表单数据容器
+     * @description FormData 构造函数，使用给定的 HTTP 表单数据容器初始化 HTTP 表单数据容器
      *         
-     *      通过传入另一个 HttpFormData 实例，复制其所有字段。
+     *      通过传入另一个 FormData 实例，复制其所有字段。
      *     
      *      @param init 初始化用的 HTTP 表单数据容器
      *     
      */
-    constructor(init: Class_HttpFormData);
+    constructor(init: Class_FormData);
 
     /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据

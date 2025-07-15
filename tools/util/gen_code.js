@@ -13,11 +13,116 @@ module.exports = function (defs, baseFolder) {
 
     console.log(`   📋 Generating C++ code for ${totalClasses} classes...`);
 
-    for (var cls in defs) {
-        if (!defs[cls].__skip) {
-            gen_code(cls, defs[cls], baseFolder, defs);
+    // Multi-round processing to ensure parent classes are processed before children
+    const processed = new Set();
+    const allClasses = Object.keys(defs).filter(cls => !defs[cls].__skip);
+
+    let round = 1;
+    while (processed.size < allClasses.length) {
+        const initialSize = processed.size;
+
+        for (var cls of allClasses) {
+            if (processed.has(cls)) continue;
+
+            const def = defs[cls];
+            const parentClass = def.declare.extend;
+
+            // Process if no parent or parent already processed
+            if (!parentClass || parentClass === 'object' || processed.has(parentClass)) {
+                // First do union_method for this class
+                union_method_for_class(def, defs);
+
+                // Then generate the code
+                gen_code(cls, def, baseFolder, defs);
+                processed.add(cls);
+            }
         }
+
+        // If no progress in this round, break to avoid infinite loop
+        if (processed.size === initialSize) {
+            console.warn(`⚠️  Warning: Some classes couldn't be processed due to circular dependencies or missing parents`);
+            // Process remaining classes anyway
+            for (var cls of allClasses) {
+                if (!processed.has(cls)) {
+                    const def = defs[cls];
+                    union_method_for_class(def, defs);
+                    gen_code(cls, def, baseFolder, defs);
+                    processed.add(cls);
+                }
+            }
+            break;
+        }
+
+        round++;
     }
+
+    console.log(`   ✅ Completed processing in ${round - 1} rounds`);
+}
+
+/**
+ * Process union_method for a single class definition
+ * @param {import('../../idl/ir').IIDLDefinition} def 
+ * @param {Record<string, import('../../idl/ir').IIDLDefinition>} allDefs 
+ */
+function union_method_for_class(def, allDefs) {
+    var method_defs = {};
+    var deflist = [];
+
+    function check_type(t1, t2) {
+        if (t1 == t2)
+            return true;
+
+        if (!Array.isArray(t1) || !Array.isArray(t2))
+            return false;
+
+        if (t1.length != t2.length)
+            return false;
+
+        for (var i = 0; i < t1.length; i++) {
+            if (t1[i].type != t2[i].type)
+                return false;
+            if (t1[i].name != t2[i].name)
+                return false;
+        }
+
+        return true;
+    }
+
+    // Don't add parent methods to def.members - they should not appear in virtual function definitions
+    // We'll handle parent overloads separately in stub function generation
+
+    def.members.forEach(fn => {
+        var fname = fn.name;
+        var fn1;
+
+        if (fname === def.declare.name && fn.memType == "method")
+            fname = "new " + fname;
+
+        if (fn.memType == "event")
+            fname = "event " + fname;
+
+        if (!method_defs.hasOwnProperty(fname)) {
+            fn1 = JSON.parse(JSON.stringify(fn));
+            fn1.overs = [fn];
+
+            method_defs[fname] = fn1;
+            deflist.push(fn1);
+            return;
+        } else if (fn.memType == "method")
+            fn1 = method_defs[fname];
+        else
+            throw new Error("[union_method] only method can be override.");
+
+        if (fn.memType != fn1.memType ||
+            !check_type(fn.type, fn1.type)
+        ) {
+            throw new Error(`Override function '${fname}' with different return-type.`);
+        }
+
+        fn1.overs.push(fn);
+    });
+
+    def.members = deflist;
 }
 
 function record_exist() {
@@ -544,8 +649,6 @@ function gen_code(cls, def, baseFolder, allDefs) {
     var fnNamed = null;
 
     MAIN: {
-        union_method();
-
         build_refer();
 
         gen_begin();
@@ -1208,66 +1311,5 @@ function gen_code(cls, def, baseFolder, allDefs) {
         });
 
         refers = Object.keys(types);
-    }
-
-    function union_method() {
-        var method_defs = {};
-        var deflist = [];
-
-        function check_type(t1, t2) {
-            if (t1 == t2)
-                return true;
-
-            if (!Array.isArray(t1) || !Array.isArray(t2))
-                return false;
-
-            if (t1.length != t2.length)
-                return false;
-
-            for (var i = 0; i < t1.length; i++) {
-                if (t1[i].type != t2[i].type)
-                    return false;
-                if (t1[i].name != t2[i].name)
-                    return false;
-            }
-
-            return true;
-        }
-
-        // Don't add parent methods to def.members - they should not appear in virtual function definitions
-        // We'll handle parent overloads separately in stub function generation
-
-        def.members.forEach(fn => {
-            var fname = fn.name;
-            var fn1;
-
-            if (fname === cls && fn.memType == "method")
-                fname = "new " + fname;
-
-            if (fn.memType == "event")
-                fname = "event " + fname;
-
-            if (!method_defs.hasOwnProperty(fname)) {
-                fn1 = JSON.parse(JSON.stringify(fn));
-                fn1.overs = [fn];
-
-                method_defs[fname] = fn1;
-                deflist.push(fn1);
-                return;
-            } else if (fn.memType == "method")
-                fn1 = method_defs[fname];
-            else
-                throw new Error("[union_method] only method can be override.");
-
-            if (fn.memType != fn1.memType ||
-                !check_type(fn.type, fn1.type)
-            ) {
-                throw new Error(`Override function '${fname}' with different return-type.`);
-            }
-
-            fn1.overs.push(fn);
-        });
-
-        def.members = deflist;
     }
 }

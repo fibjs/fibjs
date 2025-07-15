@@ -638,8 +638,7 @@ describe("Headers API", () => {
         const headers = new Headers();
 
         // Headers object should have proper toString
-        assert.strictEqual(Object.prototype.toString.call(headers),
-            isFibjs ? '[object HttpHeaders]' : '[object Headers]');
+        assert.strictEqual(Object.prototype.toString.call(headers), '[object Headers]');
 
         // Headers should be instanceof Headers
         assert.strictEqual(headers instanceof Headers, true);

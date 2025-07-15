@@ -1,6 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
-/// <reference path="../interface/HttpHeaders.d.ts" />
+/// <reference path="../interface/Headers.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description http 基础消息对象  
@@ -14,7 +14,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description 包含消息中 http 消息头的容器，只读属性 
      */
-    readonly headers: Class_HttpHeaders;
+    readonly headers: Class_Headers;
 
     /**
      * @description 查询和设定是否保持连接 

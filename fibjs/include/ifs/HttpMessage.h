@@ -17,7 +17,7 @@
 namespace fibjs {
 
 class Message_base;
-class HttpHeaders_base;
+class Headers_base;
 class Stream_base;
 
 class HttpMessage_base : public Message_base {
@@ -27,7 +27,7 @@ public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t set_protocol(exlib::string newVal) = 0;
-    virtual result_t get_headers(obj_ptr<HttpHeaders_base>& retVal) = 0;
+    virtual result_t get_headers(obj_ptr<Headers_base>& retVal) = 0;
     virtual result_t get_keepAlive(bool& retVal) = 0;
     virtual result_t set_keepAlive(bool newVal) = 0;
     virtual result_t get_upgrade(bool& retVal) = 0;
@@ -89,7 +89,7 @@ public:
 };
 }
 
-#include "ifs/HttpHeaders.h"
+#include "ifs/Headers.h"
 #include "ifs/Stream.h"
 
 namespace fibjs {
@@ -157,7 +157,7 @@ inline void HttpMessage_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::
 
 inline void HttpMessage_base::s_get_headers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpHeaders_base> vr;
+    obj_ptr<Headers_base> vr;
 
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();

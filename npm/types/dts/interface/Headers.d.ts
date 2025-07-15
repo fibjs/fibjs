@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description HttpHeaders 是一个专门用于处理 HTTP 头部信息的容器类，继承自 HttpCollection
+ * @description Headers 是一个专门用于处理 HTTP 头部信息的容器类，继承自 HttpCollection
  * 
- * HttpHeaders 实现了标准的 HTTP Headers API，同时作为全局 Headers 对象和 http.Headers 的实现类。它提供了完整的 HTTP 头部管理功能，支持标准的 HTTP 头部字段操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除头部字段。
+ * Headers 实现了标准的 HTTP Headers API，同时作为全局 Headers 对象和 http.Headers 的实现类。它提供了完整的 HTTP 头部管理功能，支持标准的 HTTP 头部字段操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除头部字段。
  * 
- * HttpHeaders 支持以下几种使用方式：
+ * Headers 支持以下几种使用方式：
  * 
  * 1. 作为全局 Headers API 使用（Web 标准）：
  * 
@@ -88,35 +88,35 @@
  * ]);
  * ```
  * 
- * HttpHeaders 自动处理头部字段名的大小写不敏感特性，完全遵循 HTTP 协议规范和 Web 标准 Headers API。
+ * Headers 自动处理头部字段名的大小写不敏感特性，完全遵循 HTTP 协议规范和 Web 标准 Headers API。
  *  
  */
-declare class Class_HttpHeaders extends Class_HttpCollection {
+declare class Class_Headers extends Class_HttpCollection {
     /**
-     * @description HttpHeaders 构造函数，创建一个新的空 HTTP 头部容器 
+     * @description Headers 构造函数，创建一个新的空 HTTP 头部容器 
      */
     constructor();
 
     /**
-     * @description HttpHeaders 构造函数，使用给定的对象初始化 HTTP 头部容器
+     * @description Headers 构造函数，使用给定的对象初始化 HTTP 头部容器
      *      @param init 初始化用的头部字段对象，键为头部字段名，值为头部字段值
      *      
      */
     constructor(init: FIBJS.GeneralObject);
 
     /**
-     * @description HttpHeaders 构造函数，使用给定的数组初始化 HTTP 头部容器
+     * @description Headers 构造函数，使用给定的数组初始化 HTTP 头部容器
      *      @param init 初始化用的头部字段数组，每个元素为一个包含头部字段名和头部字段值的数组
      *      
      */
     constructor(init: any[]);
 
     /**
-     * @description HttpHeaders 构造函数，使用给定的 HTTP 头部容器初始化 HTTP 头部容器
+     * @description Headers 构造函数，使用给定的 HTTP 头部容器初始化 HTTP 头部容器
      *      @param init 初始化用的 HTTP 头部容器
      *      
      */
-    constructor(init: Class_HttpHeaders);
+    constructor(init: Class_Headers);
 
 }
 

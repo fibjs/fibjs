@@ -1,36 +1,36 @@
 /*
- * HttpFormData.cpp
+ * FormData.cpp
  *
  *  Created on: Jul 11, 2025
  *      Author: lion
  */
 
 #include "object.h"
-#include "HttpFormData.h"
+#include "FormData.h"
 #include "Blob.h"
 
 namespace fibjs {
 
-result_t HttpFormData_base::_new(obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This)
+result_t FormData_base::_new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new HttpFormData();
+    retVal = new FormData();
     return 0;
 }
 
-result_t HttpFormData_base::_new(v8::Local<v8::Object> init, obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This)
+result_t FormData_base::_new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new HttpFormData();
+    retVal = new FormData();
     return retVal->append(init);
 }
 
-result_t HttpFormData_base::_new(HttpFormData_base* init, obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This)
+result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<HttpFormData> headers = new HttpFormData();
+    obj_ptr<FormData> headers = new FormData();
     retVal = headers;
     return headers->init(init);
 }
 
-result_t HttpFormData::append(exlib::string name, Blob_base* value)
+result_t FormData::append(exlib::string name, Blob_base* value)
 {
     if (name.empty())
         return CALL_E_INVALIDARG;
@@ -53,7 +53,7 @@ result_t HttpFormData::append(exlib::string name, Blob_base* value)
     return 0;
 }
 
-result_t HttpFormData::append(exlib::string name, Blob_base* value, exlib::string filename)
+result_t FormData::append(exlib::string name, Blob_base* value, exlib::string filename)
 {
     if (name.empty())
         return CALL_E_INVALIDARG;
@@ -77,7 +77,7 @@ result_t HttpFormData::append(exlib::string name, Blob_base* value, exlib::strin
     return 0;
 }
 
-result_t HttpFormData::set(exlib::string name, Blob_base* value)
+result_t FormData::set(exlib::string name, Blob_base* value)
 {
     if (name.empty())
         return CALL_E_INVALIDARG;
@@ -88,7 +88,7 @@ result_t HttpFormData::set(exlib::string name, Blob_base* value)
     return 0;
 }
 
-result_t HttpFormData::set(exlib::string name, Blob_base* value, exlib::string filename)
+result_t FormData::set(exlib::string name, Blob_base* value, exlib::string filename)
 {
     if (name.empty())
         return CALL_E_INVALIDARG;

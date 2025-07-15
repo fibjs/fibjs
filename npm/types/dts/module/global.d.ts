@@ -4,8 +4,8 @@
 /// <reference path="../interface/UrlObject.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /// <reference path="../interface/File.d.ts" />
-/// <reference path="../interface/HttpHeaders.d.ts" />
-/// <reference path="../interface/HttpFormData.d.ts" />
+/// <reference path="../interface/Headers.d.ts" />
+/// <reference path="../interface/FormData.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
@@ -47,14 +47,14 @@ declare module 'global' {
     const File: typeof Class_File;
 
     /**
-     * @description 创建一个 HttpHeaders 对象，参见 HttpHeaders 
+     * @description 创建一个 Headers 对象，参见 Headers 
      */
-    const Headers: typeof Class_HttpHeaders;
+    const Headers: typeof Class_Headers;
 
     /**
-     * @description 创建一个 HttpFormData 对象，参见 HttpFormData 
+     * @description 创建一个 FormData 对象，参见 FormData 
      */
-    const FormData: typeof Class_HttpFormData;
+    const FormData: typeof Class_FormData;
 
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。

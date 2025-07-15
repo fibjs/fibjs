@@ -5,7 +5,7 @@ interface HttpMessage : Message
     String protocol;
 
     /*! @brief 包含消息中 http 消息头的容器，只读属性 */
-    readonly HttpHeaders headers;
+    readonly Headers headers;
 
     /*! @brief 查询和设定是否保持连接 */
     Boolean keepAlive;

@@ -1,5 +1,5 @@
 /*
- * HttpHeaders.h
+ * Headers.h
  *
  *  Created on: Jul 11, 2025
  *      Author: lion
@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include "ifs/HttpHeaders.h"
+#include "ifs/Headers.h"
 #include "HttpCollectionTmpl.h"
 
 namespace fibjs {
 
-class HttpHeaders : public HttpCollectionTmpl<HttpHeaders_base> {
+class Headers : public HttpCollectionTmpl<Headers_base> {
 public:
-    HttpHeaders()
-        : HttpCollectionTmpl<HttpHeaders_base>(true)
+    Headers()
+        : HttpCollectionTmpl<Headers_base>(true)
     {
     }
 
@@ -50,9 +50,9 @@ public:
         return 0;
     }
 
-    result_t init(HttpHeaders_base* init)
+    result_t init(Headers_base* init)
     {
-        HttpHeaders* _init = static_cast<HttpHeaders*>(init);
+        Headers* _init = static_cast<Headers*>(init);
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
         return 0;

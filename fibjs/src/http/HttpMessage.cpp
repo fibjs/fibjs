@@ -526,7 +526,7 @@ result_t HttpMessage::set_protocol(exlib::string newVal)
     return 0;
 }
 
-result_t HttpMessage::get_headers(obj_ptr<HttpHeaders_base>& retVal)
+result_t HttpMessage::get_headers(obj_ptr<Headers_base>& retVal)
 {
     retVal = m_headers;
     return 0;

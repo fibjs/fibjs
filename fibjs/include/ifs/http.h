@@ -17,7 +17,7 @@ namespace fibjs {
 
 class HttpRequest_base;
 class HttpResponse_base;
-class HttpHeaders_base;
+class Headers_base;
 class HttpCookie_base;
 class HttpServer_base;
 class HttpClient_base;
@@ -144,7 +144,7 @@ public:
 
 #include "ifs/HttpRequest.h"
 #include "ifs/HttpResponse.h"
-#include "ifs/HttpHeaders.h"
+#include "ifs/Headers.h"
 #include "ifs/HttpCookie.h"
 #include "ifs/HttpServer.h"
 #include "ifs/HttpClient.h"
@@ -172,7 +172,7 @@ inline ClassInfo& http_base::class_info()
     static ClassData::ClassObject s_object[] = {
         { "Request", HttpRequest_base::class_info },
         { "Response", HttpResponse_base::class_info },
-        { "Headers", HttpHeaders_base::class_info },
+        { "Headers", Headers_base::class_info },
         { "Cookie", HttpCookie_base::class_info },
         { "Server", HttpServer_base::class_info },
         { "Client", HttpClient_base::class_info },

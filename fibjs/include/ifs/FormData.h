@@ -19,18 +19,18 @@ namespace fibjs {
 class HttpCollection_base;
 class Blob_base;
 
-class HttpFormData_base : public HttpCollection_base {
-    DECLARE_CLASS(HttpFormData_base);
+class FormData_base : public HttpCollection_base {
+    DECLARE_CLASS(FormData_base);
 
 public:
     using HttpCollection_base::append;
     using HttpCollection_base::set;
 
 public:
-    // HttpFormData_base
-    static result_t _new(obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> init, obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(HttpFormData_base* init, obj_ptr<HttpFormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    // FormData_base
+    static result_t _new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(exlib::string name, Blob_base* value) = 0;
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename) = 0;
     virtual result_t set(exlib::string name, Blob_base* value) = 0;
@@ -38,7 +38,7 @@ public:
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpFormData_base>& retVal);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<FormData_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -50,7 +50,7 @@ public:
 #include "ifs/Blob.h"
 
 namespace fibjs {
-inline ClassInfo& HttpFormData_base::class_info()
+inline ClassInfo& FormData_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "append", s_append, false, ClassData::ASYNC_SYNC },
@@ -58,7 +58,7 @@ inline ClassInfo& HttpFormData_base::class_info()
     };
 
     static ClassData s_cd = {
-        "HttpFormData", false, s__new, NULL,
+        "FormData", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &HttpCollection_base::class_info(),
         false
@@ -68,15 +68,15 @@ inline ClassInfo& HttpFormData_base::class_info()
     return s_ci;
 }
 
-inline void HttpFormData_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FormData_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     CONSTRUCT_INIT();
     __new(args);
 }
 
-inline void HttpFormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpFormData_base> vr;
+    obj_ptr<FormData_base> vr;
 
     CONSTRUCT_ENTER();
 
@@ -92,16 +92,16 @@ inline void HttpFormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(obj_ptr<HttpFormData_base>, 0);
+    STRICT_ARG(obj_ptr<FormData_base>, 0);
 
     hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
 
-inline result_t HttpFormData_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpFormData_base>& retVal)
+inline result_t FormData_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<FormData_base>& retVal)
 {
-    obj_ptr<HttpFormData_base> vr;
+    obj_ptr<FormData_base> vr;
 
     LOAD_ENTER();
 
@@ -117,16 +117,16 @@ inline result_t HttpFormData_base::load(Isolate* isolate, v8::Local<v8::Value> v
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(obj_ptr<HttpFormData_base>, 0);
+    STRICT_ARG(obj_ptr<FormData_base>, 0);
 
     hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }
 
-inline void HttpFormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(HttpFormData_base);
+    METHOD_INSTANCE(FormData_base);
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -173,9 +173,9 @@ inline void HttpFormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
-inline void HttpFormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void FormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(HttpFormData_base);
+    METHOD_INSTANCE(FormData_base);
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
