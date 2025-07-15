@@ -19,6 +19,9 @@ module global
     /*! @brief 创建一个 HttpHeaders 对象，参见 HttpHeaders */
     static HttpHeaders new Headers();
 
+    /*! @brief 创建一个 HttpFormData 对象，参见 HttpFormData */
+    static HttpFormData new FormData();
+
     /*! @brief TextDecoder 解码对象，参见 TextDecoder 对象。*/
     static TextDecoder;
 

@@ -15,7 +15,7 @@
 
 namespace fibjs {
 
-template <typename BaseType>
+template <typename BaseType, bool case_sensitive = false>
 class HttpCollectionTmpl : public BaseType {
 public:
     HttpCollectionTmpl(bool string_only)
@@ -41,7 +41,7 @@ public:
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
 
-            if (!qstricmp(_pair.first.c_str(), name.c_str())) {
+            if (!cmp_key(_pair.first.c_str(), name.c_str())) {
                 retVal = _pair.second;
                 return 0;
             }
@@ -189,7 +189,7 @@ public:
 
         retVal = false;
         for (size_t i = 0; i < m_map.size(); i++)
-            if (!qstricmp(m_map[i].first.c_str(), name.c_str())) {
+            if (!cmp_key(m_map[i].first.c_str(), name.c_str())) {
                 retVal = true;
                 break;
             }
@@ -217,7 +217,7 @@ public:
 
         auto it = std::remove_if(m_map.begin(), m_map.end(),
             [&name](const pair& p) {
-                return !qstricmp(p.first.c_str(), name.c_str());
+                return !cmp_key(p.first.c_str(), name.c_str());
             });
         m_map.erase(it, m_map.end());
         return 0;
@@ -313,7 +313,7 @@ public:
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
 
-            if (!qstricmp(_pair.first.c_str(), property.c_str())) {
+            if (!cmp_key(_pair.first.c_str(), property.c_str())) {
                 if (n == 0) {
                     v = _pair.second;
                     n = 1;
@@ -381,7 +381,7 @@ public:
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
 
-            if (!qstricmp(_pair.first.c_str(), name.c_str()))
+            if (!cmp_key(_pair.first.c_str(), name.c_str()))
                 list->append(_pair.second);
         }
 
@@ -583,6 +583,12 @@ public:
         }
 
         return 0;
+    }
+
+private:
+    static int cmp_key(const char* key, const char* key2)
+    {
+        return case_sensitive ? qstrcmp(key, key2) : qstricmp(key, key2);
     }
 
 public:

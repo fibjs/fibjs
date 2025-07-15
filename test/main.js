@@ -63,6 +63,7 @@ run("./bbs_test.js");
 run("./tls_test.js");
 run("./string_decoder_test.js");
 run("./url_search_params_test.js");
+run("./formdata_test.js");
 run("./url_test.js");
 run("./querystring_test.js");
 run("./mime_test.js");
