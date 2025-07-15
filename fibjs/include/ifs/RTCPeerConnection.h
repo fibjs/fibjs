@@ -211,9 +211,9 @@ inline void RTCPeerConnection_base::s_setLocalDescription(const v8::FunctionCall
     ARG(obj_ptr<RTCSessionDescription_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_setLocalDescription(v0, cb, args);
+        hr = pInst->acb_setLocalDescription(v0.get(), cb, args);
     else
-        hr = pInst->ac_setLocalDescription(v0);
+        hr = pInst->ac_setLocalDescription(v0.get());
 
     METHOD_VOID();
 }
@@ -228,9 +228,9 @@ inline void RTCPeerConnection_base::s_setRemoteDescription(const v8::FunctionCal
     ARG(obj_ptr<RTCSessionDescription_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_setRemoteDescription(v0, cb, args);
+        hr = pInst->acb_setRemoteDescription(v0.get(), cb, args);
     else
-        hr = pInst->ac_setRemoteDescription(v0);
+        hr = pInst->ac_setRemoteDescription(v0.get());
 
     METHOD_VOID();
 }
@@ -245,9 +245,9 @@ inline void RTCPeerConnection_base::s_addIceCandidate(const v8::FunctionCallback
     ARG(obj_ptr<RTCIceCandidate_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_addIceCandidate(v0, cb, args);
+        hr = pInst->acb_addIceCandidate(v0.get(), cb, args);
     else
-        hr = pInst->ac_addIceCandidate(v0);
+        hr = pInst->ac_addIceCandidate(v0.get());
 
     METHOD_VOID();
 }

@@ -236,7 +236,7 @@ inline void WebSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->send(v0);
+    hr = pInst->send(v0.get());
 
     METHOD_VOID();
 }

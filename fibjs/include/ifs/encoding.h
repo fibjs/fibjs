@@ -131,7 +131,7 @@ inline void encoding_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Va
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
-    hr = encode(v0, v1, vr);
+    hr = encode(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

@@ -10,9 +10,9 @@ var path = require('path');
  */
 module.exports = function (defs, baseFolder) {
     const totalClasses = Object.keys(defs).filter(cls => !defs[cls].__skip).length;
-    
+
     console.log(`   📋 Generating C++ code for ${totalClasses} classes...`);
-    
+
     for (var cls in defs) {
         if (!defs[cls].__skip) {
             gen_code(cls, defs[cls], baseFolder, defs);
@@ -67,7 +67,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     if (ov.sourceClass && ov.sourceClass !== def.declare.name) {
                         return; // Skip methods from parent classes
                     }
-                    
+
                     var fns = "    ";
                     var fname = get_specname(ov.name);
                     var fstatic = ov.static;
@@ -170,7 +170,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         if (ov.params) {
                             argc = opts = ov.params.length;
                             ov.params.forEach(p => {
-                                args.push('v' + params.length);
+                                const vt = get_vtype(p);
+                                args.push(vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length);
                                 if (p.name == '...') {
                                     opts--;
                                     argc = -1;
@@ -183,7 +184,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                     var defValue;
                                     opts--;
                                     if (p.isarray)
-                                        defValue = `${get_vtype(p)}()`;
+                                        defValue = `${vt}()`;
                                     else if (p.default.value)
                                         defValue = p.default.value;
                                     else if (Array.isArray(p.default.const))
@@ -191,12 +192,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                     else
                                         defValue = 'C_' + p.default.const;
 
-                                    params.push(`    OPT_ARG(${get_vtype(p) + ', ' + params.length}, ` + defValue + `);`);
+                                    params.push(`    OPT_ARG(${vt + ', ' + params.length}, ` + defValue + `);`);
                                 } else {
                                     if (is_func_new(ov, def) && params.length == 0 && ov.params.length == 1 && p.type == ftype)
-                                        params.push(`    STRICT_ARG(${get_vtype(p) + ', ' + params.length});`);
+                                        params.push(`    STRICT_ARG(${vt + ', ' + params.length});`);
                                     else
-                                        params.push(`    ARG(${get_vtype(p) + ', ' + params.length});`);
+                                        params.push(`    ARG(${vt + ', ' + params.length});`);
                                 }
                             });
                         }
@@ -625,19 +626,19 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
     function collect_parent_overloads(methodName, def) {
         var parentOverloads = [];
-        
+
         // Check if this method exists in current class (indicating it's overridden)
-        var isOverridden = def.members.some(m => 
-            m.memType === "method" && 
-            m.name === methodName && 
+        var isOverridden = def.members.some(m =>
+            m.memType === "method" &&
+            m.name === methodName &&
             !m.static &&
             m.name !== def.declare.name
         );
-        
+
         if (!isOverridden || !def.declare.extend) {
             return parentOverloads;
         }
-        
+
         // For 'object' class, we need to handle it specially since it might not be in allDefs
         if (def.declare.extend === 'object') {
             // object class has toString() method with no parameters
@@ -654,35 +655,35 @@ function gen_code(cls, def, baseFolder, allDefs) {
             }
             return parentOverloads;
         }
-        
+
         if (!allDefs[def.declare.extend]) {
             return parentOverloads;
         }
-        
+
         var parentDef = allDefs[def.declare.extend];
-        var parentMethod = parentDef.members.find(m => 
-            m.memType === "method" && 
-            m.name === methodName && 
+        var parentMethod = parentDef.members.find(m =>
+            m.memType === "method" &&
+            m.name === methodName &&
             !m.static &&
             m.name !== parentDef.declare.name
         );
-        
+
         if (parentMethod && parentMethod.overs) {
             parentMethod.overs.forEach(parentOver => {
                 // Only add parent overloads that don't exist in current class
-                var existsInCurrent = def.members.some(m => 
-                    m.memType === "method" && 
+                var existsInCurrent = def.members.some(m =>
+                    m.memType === "method" &&
                     m.name === methodName &&
-                    m.overs && m.overs.some(ov => 
+                    m.overs && m.overs.some(ov =>
                         ov.params && parentOver.params &&
                         ov.params.length === parentOver.params.length &&
-                        ov.params.every((p, i) => 
-                            parentOver.params[i] && 
+                        ov.params.every((p, i) =>
+                            parentOver.params[i] &&
                             p.type === parentOver.params[i].type
                         )
                     )
                 );
-                
+
                 if (!existsInCurrent) {
                     var inheritedOver = JSON.parse(JSON.stringify(parentOver));
                     inheritedOver.inherit = true;
@@ -691,7 +692,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 }
             });
         }
-        
+
         return parentOverloads;
     }
 
@@ -946,32 +947,32 @@ function gen_code(cls, def, baseFolder, allDefs) {
         function gen_cls_using_declarations() {
             // Generate using declarations for overridden parent methods
             if (!def.declare.extend) return;
-            
+
             var parentDef = allDefs[def.declare.extend];
             if (!parentDef) return;
-            
+
             var overriddenMethods = new Set();
             var usingDeclarations = [];
-            
+
             // Find methods that are overridden in current class
             def.members.forEach(fn => {
                 if (fn.memType === "method" && fn.name !== cls && !fn.static) {
                     overriddenMethods.add(fn.name);
                 }
             });
-            
+
             // Check parent class for methods with same names
             parentDef.members.forEach(parentFn => {
-                if (parentFn.memType === "method" && 
-                    parentFn.name !== parentDef.declare.name && 
+                if (parentFn.memType === "method" &&
+                    parentFn.name !== parentDef.declare.name &&
                     !parentFn.static &&
                     overriddenMethods.has(parentFn.name)) {
-                    
+
                     // Add using declaration for overridden method
                     usingDeclarations.push(`    using ${def.declare.extend}_base::${parentFn.name};`);
                 }
             });
-            
+
             if (usingDeclarations.length > 0) {
                 txts.push("");
                 txts.push("public:");

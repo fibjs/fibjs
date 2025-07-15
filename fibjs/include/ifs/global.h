@@ -342,7 +342,7 @@ inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(bool, 1, false);
 
-    hr = btoa(v0, v1, vr);
+    hr = btoa(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

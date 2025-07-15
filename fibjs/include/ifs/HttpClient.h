@@ -196,7 +196,7 @@ inline void HttpClient_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<SecureContext_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     METHOD_OVER(1, 1);
 
@@ -221,7 +221,7 @@ inline result_t HttpClient_base::load(Isolate* isolate, v8::Local<v8::Value> v, 
 
     ARG(obj_ptr<SecureContext_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     METHOD_OVER(1, 1);
 
@@ -651,9 +651,9 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<HttpRequest_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_request(v0, v1, cb, args);
+        hr = pInst->acb_request(v0.get(), v1.get(), cb, args);
     else
-        hr = pInst->ac_request(v0, v1, vr);
+        hr = pInst->ac_request(v0.get(), v1.get(), vr);
 
     METHOD_OVER(3, 3);
 
@@ -662,9 +662,9 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<SeekableStream_base>, 2);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_request(v0, v1, v2, cb, args);
+        hr = pInst->acb_request(v0.get(), v1.get(), v2.get(), cb, args);
     else
-        hr = pInst->ac_request(v0, v1, v2, vr);
+        hr = pInst->ac_request(v0.get(), v1.get(), v2.get(), vr);
 
     METHOD_OVER(3, 2);
 

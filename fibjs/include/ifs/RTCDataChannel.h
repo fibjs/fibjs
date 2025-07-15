@@ -106,7 +106,7 @@ inline void RTCDataChannel_base::s_send(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->send(v0);
+    hr = pInst->send(v0.get());
 
     METHOD_OVER(1, 1);
 

@@ -122,9 +122,9 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_has(v0, cb, args);
+        hr = pInst->acb_has(v0.get(), cb, args);
     else
-        hr = pInst->ac_has(v0, vr);
+        hr = pInst->ac_has(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -141,9 +141,9 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_get(v0, cb, args);
+        hr = pInst->acb_get(v0.get(), cb, args);
     else
-        hr = pInst->ac_get(v0, vr);
+        hr = pInst->ac_get(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -175,9 +175,9 @@ inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_set(v0, v1, cb, args);
+        hr = pInst->acb_set(v0.get(), v1.get(), cb, args);
     else
-        hr = pInst->ac_set(v0, v1);
+        hr = pInst->ac_set(v0.get(), v1.get());
 
     METHOD_VOID();
 }
@@ -220,9 +220,9 @@ inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(obj_ptr<Buffer_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_remove(v0, cb, args);
+        hr = pInst->acb_remove(v0.get(), cb, args);
     else
-        hr = pInst->ac_remove(v0);
+        hr = pInst->ac_remove(v0.get());
 
     METHOD_VOID();
 }
@@ -277,7 +277,7 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = pInst->forEach(v0, v1);
+    hr = pInst->forEach(v0.get(), v1);
 
     METHOD_OVER(3, 3);
 
@@ -285,7 +285,7 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<Buffer_base>, 1);
     ARG(v8::Local<v8::Function>, 2);
 
-    hr = pInst->forEach(v0, v1, v2);
+    hr = pInst->forEach(v0.get(), v1.get(), v2);
 
     METHOD_OVER(2, 2);
 
@@ -300,7 +300,7 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(v8::Local<v8::Object>, 1);
     ARG(v8::Local<v8::Function>, 2);
 
-    hr = pInst->forEach(v0, v1, v2);
+    hr = pInst->forEach(v0.get(), v1, v2);
 
     METHOD_OVER(4, 4);
 
@@ -309,7 +309,7 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(v8::Local<v8::Object>, 2);
     ARG(v8::Local<v8::Function>, 3);
 
-    hr = pInst->forEach(v0, v1, v2, v3);
+    hr = pInst->forEach(v0.get(), v1.get(), v2, v3);
 
     METHOD_VOID();
 }

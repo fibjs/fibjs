@@ -122,7 +122,7 @@ inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->score(v0, vr);
+    hr = pInst->score(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -139,7 +139,7 @@ inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int64_t, 1, 1);
 
-    hr = pInst->incr(v0, v1, vr);
+    hr = pInst->incr(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }
@@ -244,7 +244,7 @@ inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->rank(v0, vr);
+    hr = pInst->rank(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -260,7 +260,7 @@ inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->rankRev(v0, vr);
+    hr = pInst->rankRev(v0.get(), vr);
 
     METHOD_RETURN();
 }

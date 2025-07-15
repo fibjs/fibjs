@@ -398,7 +398,7 @@ inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = alloc(v0, v1, vr);
+    hr = alloc(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -451,7 +451,7 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
-    hr = from(v0, v1, v2, vr);
+    hr = from(v0.get(), v1, v2, vr);
 
     METHOD_OVER(3, 1);
 
@@ -554,7 +554,7 @@ inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = byteLength(v0, vr);
+    hr = byteLength(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -570,7 +570,7 @@ inline void Buffer_base::s_static_compare(const v8::FunctionCallbackInfo<v8::Val
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = compare(v0, v1, vr);
+    hr = compare(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -586,7 +586,7 @@ inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->compare(v0, vr);
+    hr = pInst->compare(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -660,7 +660,7 @@ inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
-    hr = pInst->fill(v0, v1, v2, vr);
+    hr = pInst->fill(v0.get(), v1, v2, vr);
 
     METHOD_OVER(4, 1);
 
@@ -703,7 +703,7 @@ inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 2, 0);
     OPT_ARG(int32_t, 3, -1);
 
-    hr = pInst->copy(v0, v1, v2, v3, vr);
+    hr = pInst->copy(v0.get(), v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -720,7 +720,7 @@ inline void Buffer_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(int32_t, 1);
 
-    hr = pInst->set(v0, v1, vr);
+    hr = pInst->set(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }
@@ -1412,7 +1412,7 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    hr = pInst->indexOf(v0, v1, vr);
+    hr = pInst->indexOf(v0.get(), v1, vr);
 
     METHOD_OVER(2, 1);
 
@@ -1443,7 +1443,7 @@ inline void Buffer_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, -1);
 
-    hr = pInst->lastIndexOf(v0, v1, vr);
+    hr = pInst->lastIndexOf(v0.get(), v1, vr);
 
     METHOD_OVER(2, 1);
 
@@ -1489,7 +1489,7 @@ inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<object_base>, 0);
 
-    hr = pInst->equals(v0, vr);
+    hr = pInst->equals(v0.get(), vr);
 
     METHOD_RETURN();
 }

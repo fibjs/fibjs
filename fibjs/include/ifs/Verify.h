@@ -82,7 +82,7 @@ inline void Verify_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->update(v0, vr);
+    hr = pInst->update(v0.get(), vr);
 
     METHOD_OVER(2, 1);
 
@@ -106,21 +106,21 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->verify(v0, v1, vr);
+    hr = pInst->verify(v0.get(), v1.get(), vr);
 
     METHOD_OVER(2, 2);
 
     ARG(obj_ptr<KeyObject_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->verify(v0, v1, vr);
+    hr = pInst->verify(v0.get(), v1.get(), vr);
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->verify(v0, v1, vr);
+    hr = pInst->verify(v0, v1.get(), vr);
 
     METHOD_OVER(3, 2);
 
@@ -128,7 +128,7 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(exlib::string, 1);
     OPT_ARG(exlib::string, 2, "buffer");
 
-    hr = pInst->verify(v0, v1, v2, vr);
+    hr = pInst->verify(v0.get(), v1, v2, vr);
 
     METHOD_OVER(3, 2);
 
@@ -136,7 +136,7 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(exlib::string, 1);
     OPT_ARG(exlib::string, 2, "buffer");
 
-    hr = pInst->verify(v0, v1, v2, vr);
+    hr = pInst->verify(v0.get(), v1, v2, vr);
 
     METHOD_OVER(3, 2);
 

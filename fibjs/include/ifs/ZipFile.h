@@ -218,9 +218,9 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 2, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_extract(v0, v1, v2, cb, args);
+        hr = pInst->acb_extract(v0, v1.get(), v2, cb, args);
     else
-        hr = pInst->ac_extract(v0, v1, v2);
+        hr = pInst->ac_extract(v0, v1.get(), v2);
 
     METHOD_VOID();
 }
@@ -266,9 +266,9 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(exlib::string, 2, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0, v1, v2, cb, args);
+        hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
     else
-        hr = pInst->ac_write(v0, v1, v2);
+        hr = pInst->ac_write(v0.get(), v1, v2);
 
     METHOD_OVER(3, 2);
 
@@ -277,9 +277,9 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(exlib::string, 2, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0, v1, v2, cb, args);
+        hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
     else
-        hr = pInst->ac_write(v0, v1, v2);
+        hr = pInst->ac_write(v0.get(), v1, v2);
 
     METHOD_VOID();
 }

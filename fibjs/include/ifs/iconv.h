@@ -93,7 +93,7 @@ inline void iconv_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = decode(v0, v1, vr);
+    hr = decode(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }

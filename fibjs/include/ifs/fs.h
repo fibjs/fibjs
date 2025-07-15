@@ -536,9 +536,9 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<FileHandle_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_fstat(v0, cb, args);
+        hr = acb_fstat(v0.get(), cb, args);
     else
-        hr = ac_fstat(v0, vr);
+        hr = ac_fstat(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -629,9 +629,9 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(int32_t, 4, -1);
 
     if (!cb.IsEmpty())
-        hr = acb_read(v0, v1, v2, v3, v4, cb, args);
+        hr = acb_read(v0.get(), v1.get(), v2, v3, v4, cb, args);
     else
-        hr = ac_read(v0, v1, v2, v3, v4, vr);
+        hr = ac_read(v0.get(), v1.get(), v2, v3, v4, vr);
 
     METHOD_RETURN();
 }
@@ -646,9 +646,9 @@ inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_fchmod(v0, v1, cb, args);
+        hr = acb_fchmod(v0.get(), v1, cb, args);
     else
-        hr = ac_fchmod(v0, v1);
+        hr = ac_fchmod(v0.get(), v1);
 
     METHOD_VOID();
 }
@@ -664,9 +664,9 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 2);
 
     if (!cb.IsEmpty())
-        hr = acb_fchown(v0, v1, v2, cb, args);
+        hr = acb_fchown(v0.get(), v1, v2, cb, args);
     else
-        hr = ac_fchown(v0, v1, v2);
+        hr = ac_fchown(v0.get(), v1, v2);
 
     METHOD_VOID();
 }
@@ -680,9 +680,9 @@ inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value
     ARG(obj_ptr<FileHandle_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_fdatasync(v0, cb, args);
+        hr = acb_fdatasync(v0.get(), cb, args);
     else
-        hr = ac_fdatasync(v0);
+        hr = ac_fdatasync(v0.get());
 
     METHOD_VOID();
 }
@@ -696,9 +696,9 @@ inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<FileHandle_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_fsync(v0, cb, args);
+        hr = acb_fsync(v0.get(), cb, args);
     else
-        hr = ac_fsync(v0);
+        hr = ac_fsync(v0.get());
 
     METHOD_VOID();
 }
@@ -808,9 +808,9 @@ inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<FileHandle_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_close(v0, cb, args);
+        hr = acb_close(v0.get(), cb, args);
     else
-        hr = ac_close(v0);
+        hr = ac_close(v0.get());
 
     METHOD_VOID();
 }
@@ -912,9 +912,9 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(int32_t, 4, -1);
 
     if (!cb.IsEmpty())
-        hr = acb_write(v0, v1, v2, v3, v4, cb, args);
+        hr = acb_write(v0.get(), v1.get(), v2, v3, v4, cb, args);
     else
-        hr = ac_write(v0, v1, v2, v3, v4, vr);
+        hr = ac_write(v0.get(), v1.get(), v2, v3, v4, vr);
 
     METHOD_OVER(4, 2);
 
@@ -924,9 +924,9 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 3, "utf8");
 
     if (!cb.IsEmpty())
-        hr = acb_write(v0, v1, v2, v3, cb, args);
+        hr = acb_write(v0.get(), v1, v2, v3, cb, args);
     else
-        hr = ac_write(v0, v1, v2, v3, vr);
+        hr = ac_write(v0.get(), v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -963,9 +963,9 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(exlib::string, 2, "binary");
 
     if (!cb.IsEmpty())
-        hr = acb_writeFile(v0, v1, v2, cb, args);
+        hr = acb_writeFile(v0, v1.get(), v2, cb, args);
     else
-        hr = ac_writeFile(v0, v1, v2, vr);
+        hr = ac_writeFile(v0, v1.get(), v2, vr);
 
     METHOD_OVER(3, 3);
 
@@ -974,9 +974,9 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
     ARG(v8::Local<v8::Object>, 2);
 
     if (!cb.IsEmpty())
-        hr = acb_writeFile(v0, v1, v2, cb, args);
+        hr = acb_writeFile(v0, v1.get(), v2, cb, args);
     else
-        hr = ac_writeFile(v0, v1, v2, vr);
+        hr = ac_writeFile(v0, v1.get(), v2, vr);
 
     METHOD_OVER(3, 2);
 
@@ -1015,9 +1015,9 @@ inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<Buffer_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_appendFile(v0, v1, cb, args);
+        hr = acb_appendFile(v0, v1.get(), cb, args);
     else
-        hr = ac_appendFile(v0, v1, vr);
+        hr = ac_appendFile(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -1031,7 +1031,7 @@ inline void fs_base::s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = setZipFS(v0, v1);
+    hr = setZipFS(v0, v1.get());
 
     METHOD_VOID();
 }

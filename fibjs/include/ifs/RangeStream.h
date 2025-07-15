@@ -75,7 +75,7 @@ inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(obj_ptr<SeekableStream_base>, 0);
     ARG(exlib::string, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0.get(), v1, vr, args.This());
 
     METHOD_OVER(3, 3);
 
@@ -83,7 +83,7 @@ inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(int64_t, 1);
     ARG(int64_t, 2);
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0.get(), v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -99,7 +99,7 @@ inline result_t RangeStream_base::load(Isolate* isolate, v8::Local<v8::Value> v,
     ARG(obj_ptr<SeekableStream_base>, 0);
     ARG(exlib::string, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0.get(), v1, vr, args.This());
 
     METHOD_OVER(3, 3);
 
@@ -107,7 +107,7 @@ inline result_t RangeStream_base::load(Isolate* isolate, v8::Local<v8::Value> v,
     ARG(int64_t, 1);
     ARG(int64_t, 2);
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0.get(), v1, v2, vr, args.This());
 
     LOAD_RETURN();
 }

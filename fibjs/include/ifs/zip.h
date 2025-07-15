@@ -117,9 +117,9 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 2, "utf8");
 
     if (!cb.IsEmpty())
-        hr = acb_open(v0, v1, v2, cb, args);
+        hr = acb_open(v0.get(), v1, v2, cb, args);
     else
-        hr = ac_open(v0, v1, v2, vr);
+        hr = ac_open(v0.get(), v1, v2, vr);
 
     METHOD_OVER(3, 1);
 
@@ -128,9 +128,9 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 2, "utf8");
 
     if (!cb.IsEmpty())
-        hr = acb_open(v0, v1, v2, cb, args);
+        hr = acb_open(v0.get(), v1, v2, cb, args);
     else
-        hr = ac_open(v0, v1, v2, vr);
+        hr = ac_open(v0.get(), v1, v2, vr);
 
     METHOD_RETURN();
 }

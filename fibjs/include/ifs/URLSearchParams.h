@@ -90,7 +90,7 @@ inline void URLSearchParams_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     STRICT_ARG(obj_ptr<URLSearchParams_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -127,7 +127,7 @@ inline result_t URLSearchParams_base::load(Isolate* isolate, v8::Local<v8::Value
 
     STRICT_ARG(obj_ptr<URLSearchParams_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }

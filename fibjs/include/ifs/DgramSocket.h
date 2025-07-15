@@ -167,9 +167,9 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(exlib::string, 2, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_send(v0, v1, v2, cb, args);
+        hr = pInst->acb_send(v0.get(), v1, v2, cb, args);
     else
-        hr = pInst->ac_send(v0, v1, v2, vr);
+        hr = pInst->ac_send(v0.get(), v1, v2, vr);
 
     METHOD_OVER(5, 4);
 
@@ -180,9 +180,9 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(exlib::string, 4, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_send(v0, v1, v2, v3, v4, cb, args);
+        hr = pInst->acb_send(v0.get(), v1, v2, v3, v4, cb, args);
     else
-        hr = pInst->ac_send(v0, v1, v2, v3, v4, vr);
+        hr = pInst->ac_send(v0.get(), v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
 }

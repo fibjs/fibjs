@@ -139,7 +139,7 @@ inline void StringDecoder_base::s_end(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->end(v0, vr);
+    hr = pInst->end(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -155,7 +155,7 @@ inline void StringDecoder_base::s_write(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->write(v0, vr);
+    hr = pInst->write(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -172,7 +172,7 @@ inline void StringDecoder_base::s_text(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(int32_t, 1);
 
-    hr = pInst->text(v0, v1, vr);
+    hr = pInst->text(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }
@@ -188,7 +188,7 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->fillLast(v0, vr);
+    hr = pInst->fillLast(v0.get(), vr);
 
     METHOD_RETURN();
 }

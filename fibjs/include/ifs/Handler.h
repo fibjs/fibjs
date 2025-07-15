@@ -158,9 +158,9 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(obj_ptr<object_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_invoke(v0, cb, args);
+        hr = pInst->acb_invoke(v0.get(), cb, args);
     else
-        hr = pInst->ac_invoke(v0, vr);
+        hr = pInst->ac_invoke(v0.get(), vr);
 
     METHOD_RETURN();
 }

@@ -354,9 +354,9 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Buffer_base>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0, cb, args);
+        hr = pInst->acb_write(v0.get(), cb, args);
     else
-        hr = pInst->ac_write(v0, vr);
+        hr = pInst->ac_write(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -484,9 +484,9 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_sendTo(v0, v1, cb, args);
+        hr = pInst->acb_sendTo(v0.get(), v1, cb, args);
     else
-        hr = pInst->ac_sendTo(v0, v1);
+        hr = pInst->ac_sendTo(v0.get(), v1);
 
     METHOD_VOID();
 }
@@ -502,9 +502,9 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_readFrom(v0, v1, cb, args);
+        hr = pInst->acb_readFrom(v0.get(), v1, cb, args);
     else
-        hr = pInst->ac_readFrom(v0, v1);
+        hr = pInst->ac_readFrom(v0.get(), v1);
 
     METHOD_VOID();
 }

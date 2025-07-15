@@ -83,7 +83,7 @@ inline void HttpHeaders_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     STRICT_ARG(obj_ptr<HttpHeaders_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -114,7 +114,7 @@ inline result_t HttpHeaders_base::load(Isolate* isolate, v8::Local<v8::Value> v,
 
     STRICT_ARG(obj_ptr<HttpHeaders_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }

@@ -87,14 +87,14 @@ inline void TLSHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(obj_ptr<SecureContext_base>, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0.get(), v1.get(), vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -110,14 +110,14 @@ inline result_t TLSHandler_base::load(Isolate* isolate, v8::Local<v8::Value> v, 
     ARG(obj_ptr<SecureContext_base>, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0.get(), v1.get(), vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     LOAD_RETURN();
 }
@@ -145,7 +145,7 @@ inline void TLSHandler_base::s_setSecureContext(const v8::FunctionCallbackInfo<v
 
     ARG(obj_ptr<SecureContext_base>, 0);
 
-    hr = pInst->setSecureContext(v0);
+    hr = pInst->setSecureContext(v0.get());
 
     METHOD_OVER(1, 1);
 

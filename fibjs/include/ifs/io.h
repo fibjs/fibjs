@@ -92,9 +92,9 @@ inline void io_base::s_static_copyStream(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(int64_t, 2, -1);
 
     if (!cb.IsEmpty())
-        hr = acb_copyStream(v0, v1, v2, cb, args);
+        hr = acb_copyStream(v0.get(), v1.get(), v2, cb, args);
     else
-        hr = ac_copyStream(v0, v1, v2, vr);
+        hr = ac_copyStream(v0.get(), v1.get(), v2, vr);
 
     METHOD_RETURN();
 }
@@ -109,9 +109,9 @@ inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(obj_ptr<Stream_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_bridge(v0, v1, cb, args);
+        hr = acb_bridge(v0.get(), v1.get(), cb, args);
     else
-        hr = ac_bridge(v0, v1);
+        hr = ac_bridge(v0.get(), v1.get());
 
     METHOD_VOID();
 }

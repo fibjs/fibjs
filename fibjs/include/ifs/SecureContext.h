@@ -258,7 +258,7 @@ inline void SecureContext_base::s_setSNIContext(const v8::FunctionCallbackInfo<v
     ARG(exlib::string, 0);
     ARG(obj_ptr<SecureContext_base>, 1);
 
-    hr = pInst->setSNIContext(v0, v1);
+    hr = pInst->setSNIContext(v0, v1.get());
 
     METHOD_OVER(2, 2);
 

@@ -81,7 +81,7 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->update(v0, vr);
+    hr = pInst->update(v0.get(), vr);
 
     METHOD_OVER(2, 1);
 

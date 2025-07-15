@@ -106,7 +106,7 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(obj_ptr<Handler_base>, 0);
 
-    hr = pInst->append(v0);
+    hr = pInst->append(v0.get());
 
     METHOD_VOID();
 }

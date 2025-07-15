@@ -485,7 +485,7 @@ inline void XmlNode_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<XmlNode_base>, 0);
     ARG(obj_ptr<XmlNode_base>, 1);
 
-    hr = pInst->insertBefore(v0, v1, vr);
+    hr = pInst->insertBefore(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -502,7 +502,7 @@ inline void XmlNode_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Value
     ARG(obj_ptr<XmlNode_base>, 0);
     ARG(obj_ptr<XmlNode_base>, 1);
 
-    hr = pInst->insertAfter(v0, v1, vr);
+    hr = pInst->insertAfter(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -518,7 +518,7 @@ inline void XmlNode_base::s_appendChild(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<XmlNode_base>, 0);
 
-    hr = pInst->appendChild(v0, vr);
+    hr = pInst->appendChild(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -535,7 +535,7 @@ inline void XmlNode_base::s_replaceChild(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<XmlNode_base>, 0);
     ARG(obj_ptr<XmlNode_base>, 1);
 
-    hr = pInst->replaceChild(v0, v1, vr);
+    hr = pInst->replaceChild(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -551,7 +551,7 @@ inline void XmlNode_base::s_removeChild(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<XmlNode_base>, 0);
 
-    hr = pInst->removeChild(v0, vr);
+    hr = pInst->removeChild(v0.get(), vr);
 
     METHOD_RETURN();
 }

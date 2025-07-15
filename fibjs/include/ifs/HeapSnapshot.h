@@ -92,7 +92,7 @@ inline void HeapSnapshot_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(obj_ptr<HeapSnapshot_base>, 0);
 
-    hr = pInst->diff(v0, vr);
+    hr = pInst->diff(v0.get(), vr);
 
     METHOD_RETURN();
 }

@@ -73,7 +73,7 @@ inline void hex_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = encode(v0, vr);
+    hr = encode(v0.get(), vr);
 
     METHOD_RETURN();
 }

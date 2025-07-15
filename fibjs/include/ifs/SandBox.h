@@ -226,7 +226,7 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->addScript(v0, v1, vr);
+    hr = pInst->addScript(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }

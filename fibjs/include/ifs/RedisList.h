@@ -177,7 +177,7 @@ inline void RedisList_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(int32_t, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->set(v0, v1);
+    hr = pInst->set(v0, v1.get());
 
     METHOD_VOID();
 }
@@ -210,7 +210,7 @@ inline void RedisList_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Va
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->insertBefore(v0, v1, vr);
+    hr = pInst->insertBefore(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -227,7 +227,7 @@ inline void RedisList_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Val
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->insertAfter(v0, v1, vr);
+    hr = pInst->insertAfter(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -244,7 +244,7 @@ inline void RedisList_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    hr = pInst->remove(v0, v1, vr);
+    hr = pInst->remove(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }

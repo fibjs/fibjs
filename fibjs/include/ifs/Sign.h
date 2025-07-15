@@ -79,7 +79,7 @@ inline void Sign_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->update(v0, vr);
+    hr = pInst->update(v0.get(), vr);
 
     METHOD_OVER(2, 1);
 
@@ -103,14 +103,14 @@ inline void Sign_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "buffer");
 
-    hr = pInst->sign(v0, v1, vr);
+    hr = pInst->sign(v0.get(), v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(obj_ptr<KeyObject_base>, 0);
     OPT_ARG(exlib::string, 1, "buffer");
 
-    hr = pInst->sign(v0, v1, vr);
+    hr = pInst->sign(v0.get(), v1, vr);
 
     METHOD_OVER(2, 1);
 

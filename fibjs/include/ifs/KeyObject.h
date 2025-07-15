@@ -157,7 +157,7 @@ inline void KeyObject_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(obj_ptr<KeyObject_base>, 0);
 
-    hr = pInst->equals(v0, vr);
+    hr = pInst->equals(v0.get(), vr);
 
     METHOD_RETURN();
 }

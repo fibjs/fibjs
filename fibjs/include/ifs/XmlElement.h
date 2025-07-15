@@ -448,7 +448,7 @@ inline void XmlElement_base::s_setAttributeNode(const v8::FunctionCallbackInfo<v
 
     ARG(obj_ptr<XmlAttr_base>, 0);
 
-    hr = pInst->setAttributeNode(v0, vr);
+    hr = pInst->setAttributeNode(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -493,7 +493,7 @@ inline void XmlElement_base::s_removeAttributeNode(const v8::FunctionCallbackInf
 
     ARG(obj_ptr<XmlAttr_base>, 0);
 
-    hr = pInst->removeAttributeNode(v0, vr);
+    hr = pInst->removeAttributeNode(v0.get(), vr);
 
     METHOD_RETURN();
 }

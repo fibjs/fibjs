@@ -99,9 +99,9 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<Buffer_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_digest(v0, v1, cb, args);
+        hr = acb_digest(v0, v1.get(), cb, args);
     else
-        hr = ac_digest(v0, v1, vr);
+        hr = ac_digest(v0, v1.get(), vr);
 
     METHOD_OVER(2, 2);
 
@@ -109,9 +109,9 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<Buffer_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_digest(v0, v1, cb, args);
+        hr = acb_digest(v0, v1.get(), cb, args);
     else
-        hr = ac_digest(v0, v1, vr);
+        hr = ac_digest(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -128,9 +128,9 @@ inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::V
     ARG(obj_ptr<CryptoKey_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_exportKey(v0, v1, cb, args);
+        hr = acb_exportKey(v0, v1.get(), cb, args);
     else
-        hr = ac_exportKey(v0, v1, vr);
+        hr = ac_exportKey(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -190,9 +190,9 @@ inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<Buffer_base>, 2);
 
     if (!cb.IsEmpty())
-        hr = acb_sign(v0, v1, v2, cb, args);
+        hr = acb_sign(v0, v1.get(), v2.get(), cb, args);
     else
-        hr = ac_sign(v0, v1, v2, vr);
+        hr = ac_sign(v0, v1.get(), v2.get(), vr);
 
     METHOD_RETURN();
 }
@@ -211,9 +211,9 @@ inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<Buffer_base>, 3);
 
     if (!cb.IsEmpty())
-        hr = acb_verify(v0, v1, v2, v3, cb, args);
+        hr = acb_verify(v0, v1.get(), v2.get(), v3.get(), cb, args);
     else
-        hr = ac_verify(v0, v1, v2, v3, vr);
+        hr = ac_verify(v0, v1.get(), v2.get(), v3.get(), vr);
 
     METHOD_RETURN();
 }

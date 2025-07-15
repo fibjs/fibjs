@@ -98,7 +98,7 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(int32_t, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     METHOD_OVER(3, 3);
 
@@ -106,14 +106,14 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(int32_t, 1);
     ARG(obj_ptr<Handler_base>, 2);
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, v2.get(), vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -129,7 +129,7 @@ inline result_t TcpServer_base::load(Isolate* isolate, v8::Local<v8::Value> v, o
     ARG(int32_t, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     METHOD_OVER(3, 3);
 
@@ -137,14 +137,14 @@ inline result_t TcpServer_base::load(Isolate* isolate, v8::Local<v8::Value> v, o
     ARG(int32_t, 1);
     ARG(obj_ptr<Handler_base>, 2);
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, v2.get(), vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1.get(), vr, args.This());
 
     LOAD_RETURN();
 }

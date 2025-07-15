@@ -111,7 +111,7 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(obj_ptr<UrlObject_base>, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = format(v0, v1, vr);
+    hr = format(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }
@@ -160,7 +160,7 @@ inline void url_base::s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::
     ARG(obj_ptr<UrlObject_base>, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = fileURLToPath(v0, v1, vr);
+    hr = fileURLToPath(v0.get(), v1, vr);
 
     METHOD_OVER(2, 1);
 

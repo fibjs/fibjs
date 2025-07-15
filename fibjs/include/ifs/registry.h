@@ -202,7 +202,7 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
     ARG(exlib::string, 1);
     ARG(obj_ptr<Buffer_base>, 2);
 
-    hr = set(v0, v1, v2);
+    hr = set(v0, v1, v2.get());
 
     METHOD_OVER(5, 4);
 
@@ -240,7 +240,7 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
     ARG(exlib::string, 2);
     ARG(obj_ptr<Buffer_base>, 3);
 
-    hr = set(v0, v1, v2, v3);
+    hr = set(v0, v1, v2, v3.get());
 
     METHOD_VOID();
 }

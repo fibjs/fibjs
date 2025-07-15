@@ -152,9 +152,9 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(int32_t, 3, -1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_read(v0, v1, v2, v3, cb, args);
+        hr = pInst->acb_read(v0.get(), v1, v2, v3, cb, args);
     else
-        hr = pInst->ac_read(v0, v1, v2, v3, vr);
+        hr = pInst->ac_read(v0.get(), v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -174,9 +174,9 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(int32_t, 3, -1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0, v1, v2, v3, cb, args);
+        hr = pInst->acb_write(v0.get(), v1, v2, v3, cb, args);
     else
-        hr = pInst->ac_write(v0, v1, v2, v3, vr);
+        hr = pInst->ac_write(v0.get(), v1, v2, v3, vr);
 
     METHOD_OVER(3, 1);
 

@@ -74,7 +74,7 @@ inline void multibase_base::s_static_encode(const v8::FunctionCallbackInfo<v8::V
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(exlib::string, 1);
 
-    hr = encode(v0, v1, vr);
+    hr = encode(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

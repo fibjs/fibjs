@@ -162,6 +162,11 @@ public:
         return (Q*)p.value();
     }
 
+    T* get() const
+    {
+        return p;
+    }
+
     operator T*() const
     {
         return p;

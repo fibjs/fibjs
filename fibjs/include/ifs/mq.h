@@ -105,9 +105,9 @@ inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(obj_ptr<object_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_invoke(v0, v1, cb, args);
+        hr = acb_invoke(v0.get(), v1.get(), cb, args);
     else
-        hr = ac_invoke(v0, v1);
+        hr = ac_invoke(v0.get(), v1.get());
 
     METHOD_VOID();
 }

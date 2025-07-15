@@ -149,9 +149,9 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(int32_t, 2, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, v2, cb, args);
+        hr = acb_connect(v0, v1.get(), v2, cb, args);
     else
-        hr = ac_connect(v0, v1, v2, vr);
+        hr = ac_connect(v0, v1.get(), v2, vr);
 
     METHOD_OVER(2, 2);
 

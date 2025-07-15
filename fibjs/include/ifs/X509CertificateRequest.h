@@ -183,7 +183,7 @@ inline void X509CertificateRequest_base::s_checkPrivateKey(const v8::FunctionCal
 
     ARG(obj_ptr<KeyObject_base>, 0);
 
-    hr = pInst->checkPrivateKey(v0, vr);
+    hr = pInst->checkPrivateKey(v0.get(), vr);
 
     METHOD_RETURN();
 }

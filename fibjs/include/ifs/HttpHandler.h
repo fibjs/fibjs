@@ -103,7 +103,7 @@ inline void HttpHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<Handler_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -118,7 +118,7 @@ inline result_t HttpHandler_base::load(Isolate* isolate, v8::Local<v8::Value> v,
 
     ARG(obj_ptr<Handler_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }

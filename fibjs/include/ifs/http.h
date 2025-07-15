@@ -629,9 +629,9 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
     ARG(obj_ptr<HttpRequest_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_request(v0, v1, cb, args);
+        hr = acb_request(v0.get(), v1.get(), cb, args);
     else
-        hr = ac_request(v0, v1, vr);
+        hr = ac_request(v0.get(), v1.get(), vr);
 
     METHOD_OVER(3, 3);
 
@@ -640,9 +640,9 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
     ARG(obj_ptr<SeekableStream_base>, 2);
 
     if (!cb.IsEmpty())
-        hr = acb_request(v0, v1, v2, cb, args);
+        hr = acb_request(v0.get(), v1.get(), v2.get(), cb, args);
     else
-        hr = ac_request(v0, v1, v2, vr);
+        hr = ac_request(v0.get(), v1.get(), v2.get(), vr);
 
     METHOD_OVER(3, 2);
 

@@ -146,7 +146,7 @@ inline void X509Certificate_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     METHOD_OVER(1, 1);
 
@@ -167,7 +167,7 @@ inline result_t X509Certificate_base::load(Isolate* isolate, v8::Local<v8::Value
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0.get(), vr, args.This());
 
     METHOD_OVER(1, 1);
 
@@ -491,7 +491,7 @@ inline void X509Certificate_base::s_checkIssued(const v8::FunctionCallbackInfo<v
 
     ARG(obj_ptr<X509Certificate_base>, 0);
 
-    hr = pInst->checkIssued(v0, vr);
+    hr = pInst->checkIssued(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -507,7 +507,7 @@ inline void X509Certificate_base::s_checkPrivateKey(const v8::FunctionCallbackIn
 
     ARG(obj_ptr<KeyObject_base>, 0);
 
-    hr = pInst->checkPrivateKey(v0, vr);
+    hr = pInst->checkPrivateKey(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -523,7 +523,7 @@ inline void X509Certificate_base::s_verify(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(obj_ptr<KeyObject_base>, 0);
 
-    hr = pInst->verify(v0, vr);
+    hr = pInst->verify(v0.get(), vr);
 
     METHOD_RETURN();
 }

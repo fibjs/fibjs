@@ -265,7 +265,7 @@ inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(obj_ptr<HttpCookie_base>, 0);
 
-    hr = pInst->addCookie(v0);
+    hr = pInst->addCookie(v0.get());
 
     METHOD_VOID();
 }

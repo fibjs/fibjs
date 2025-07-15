@@ -190,7 +190,7 @@ inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->load(v0);
+    hr = pInst->load(v0.get());
 
     METHOD_VOID();
 }
