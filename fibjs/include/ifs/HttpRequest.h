@@ -19,6 +19,8 @@ namespace fibjs {
 class HttpMessage_base;
 class HttpResponse_base;
 class HttpCollection_base;
+class FormData_base;
+class URLSearchParams_base;
 
 class HttpRequest_base : public HttpMessage_base {
     DECLARE_CLASS(HttpRequest_base);
@@ -34,8 +36,8 @@ public:
     virtual result_t get_queryString(exlib::string& retVal) = 0;
     virtual result_t set_queryString(exlib::string newVal) = 0;
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
-    virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
-    virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
+    virtual result_t get_form(obj_ptr<FormData_base>& retVal) = 0;
+    virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -58,6 +60,8 @@ public:
 
 #include "ifs/HttpResponse.h"
 #include "ifs/HttpCollection.h"
+#include "ifs/FormData.h"
+#include "ifs/URLSearchParams.h"
 
 namespace fibjs {
 inline ClassInfo& HttpRequest_base::class_info()
@@ -229,7 +233,7 @@ inline void HttpRequest_base::s_get_cookies(const v8::FunctionCallbackInfo<v8::V
 
 inline void HttpRequest_base::s_get_form(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpCollection_base> vr;
+    obj_ptr<FormData_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
     METHOD_ENTER();
@@ -243,7 +247,7 @@ inline void HttpRequest_base::s_get_form(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void HttpRequest_base::s_get_query(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpCollection_base> vr;
+    obj_ptr<URLSearchParams_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
     METHOD_ENTER();

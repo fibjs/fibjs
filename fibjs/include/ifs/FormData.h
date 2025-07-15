@@ -34,7 +34,6 @@ public:
     static result_t _new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_boundary(exlib::string& retVal) = 0;
     virtual result_t append(exlib::string name, Blob_base* value) = 0;
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename) = 0;
     virtual result_t set(exlib::string name, Blob_base* value) = 0;
@@ -47,7 +46,6 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_boundary(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,13 +64,9 @@ inline ClassInfo& FormData_base::class_info()
         { "encode", s_encode, false, ClassData::ASYNC_SYNC }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "boundary", s_get_boundary, block_set, false }
-    };
-
     static ClassData s_cd = {
         "FormData", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &HttpCollection_base::class_info(),
         false
     };
@@ -161,20 +155,6 @@ inline result_t FormData_base::load(Isolate* isolate, v8::Local<v8::Value> v, ob
     hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
-}
-
-inline void FormData_base::s_get_boundary(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_INSTANCE(FormData_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->get_boundary(vr);
-
-    METHOD_RETURN();
 }
 
 inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)

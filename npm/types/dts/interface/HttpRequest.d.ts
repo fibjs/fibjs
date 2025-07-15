@@ -2,6 +2,8 @@
 /// <reference path="../interface/HttpMessage.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
+/// <reference path="../interface/FormData.d.ts" />
+/// <reference path="../interface/URLSearchParams.d.ts" />
 /**
  * @description HttpRequest 是用来处理 HTTP 请求的类， 它允许你创建 HTTP 请求并与服务器交互。你可以使用它来向 Web 服务器发送 GET、POST 以及其它类型的 HTTP 请求
  * 
@@ -60,12 +62,12 @@ declare class Class_HttpRequest extends Class_HttpMessage {
     /**
      * @description 获取包含消息 form 的容器
      */
-    readonly form: Class_HttpCollection;
+    readonly form: Class_FormData;
 
     /**
      * @description 获取包含消息 query 的容器
      */
-    readonly query: Class_HttpCollection;
+    readonly query: Class_URLSearchParams;
 
 }
 

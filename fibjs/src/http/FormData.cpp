@@ -44,12 +44,6 @@ result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal
     return headers->init(init);
 }
 
-result_t FormData::get_boundary(exlib::string& retVal)
-{
-    retVal = m_boundary;
-    return 0;
-}
-
 result_t FormData::append(exlib::string name, Blob_base* value)
 {
     if (name.empty())

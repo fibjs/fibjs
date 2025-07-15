@@ -74,15 +74,6 @@ declare class Class_FormData extends Class_HttpCollection {
     constructor(init: Class_FormData);
 
     /**
-     * @description 获取当前表单数据的边界字符串
-     *         
-     *      返回当前表单数据的边界字符串，通常用于 multipart/form-data 编码。
-     *      如果未设置边界，则返回空字符串。
-     *     
-     */
-    readonly boundary: string;
-
-    /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
      *         
      *      向表单中追加一个字段。如果同名字段已存在，则不会覆盖，允许同名多值。

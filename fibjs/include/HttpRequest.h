@@ -93,8 +93,8 @@ public:
     virtual result_t get_queryString(exlib::string& retVal);
     virtual result_t set_queryString(exlib::string newVal);
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
-    virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal);
-    virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
+    virtual result_t get_form(obj_ptr<FormData_base>& retVal);
+    virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal);
 
 public:
     void _appendHeader(exlib::string name, exlib::string value)
@@ -130,8 +130,8 @@ private:
     exlib::string m_address;
     exlib::string m_queryString;
     obj_ptr<HttpCollection_base> m_cookies;
-    obj_ptr<HttpCollection_base> m_query;
-    obj_ptr<HttpCollection_base> m_form;
+    obj_ptr<URLSearchParams_base> m_query;
+    obj_ptr<FormData_base> m_form;
 };
 
 } /* namespace fibjs */

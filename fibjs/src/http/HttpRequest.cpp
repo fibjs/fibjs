@@ -9,6 +9,8 @@
 #include "HttpRequest.h"
 #include "parse.h"
 #include "HttpCollection.h"
+#include "FormData.h"
+#include "URLSearchParams.h"
 
 namespace fibjs {
 
@@ -452,14 +454,14 @@ result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)
     return 0;
 }
 
-result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
+result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
 {
     if (m_form == NULL) {
         int64_t len = 0;
 
         get_length(len);
         if (len == 0)
-            m_form = new HttpCollection();
+            m_form = new FormData();
         else {
             exlib::string strType;
             bool bUpload = false;
@@ -482,15 +484,15 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
             if (hr < 0)
                 return hr;
 
-            exlib::string strForm;
-            buf->toString(strForm);
-
             if (bUpload) {
-                obj_ptr<HttpCollection> col = new HttpCollection(false);
-                col->parseMultipart(strForm, strType.c_str());
+                obj_ptr<FormData> col = new FormData();
+                col->parseMultipart(buf, strType.c_str());
                 m_form = col;
             } else {
-                obj_ptr<HttpCollection> c = new HttpCollection();
+                exlib::string strForm;
+                buf->toString(strForm);
+
+                obj_ptr<FormData> c = new FormData();
                 c->parse(strForm);
                 m_form = c;
             }
@@ -502,10 +504,10 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
     return 0;
 }
 
-result_t HttpRequest::get_query(obj_ptr<HttpCollection_base>& retVal)
+result_t HttpRequest::get_query(obj_ptr<URLSearchParams_base>& retVal)
 {
     if (m_query == NULL) {
-        obj_ptr<HttpCollection> c = new HttpCollection();
+        obj_ptr<URLSearchParams> c = new URLSearchParams();
         c->parse(m_queryString);
         m_query = c;
     }

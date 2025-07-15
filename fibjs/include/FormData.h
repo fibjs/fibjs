@@ -21,7 +21,6 @@ public:
 
 public:
     // FormData_base
-    virtual result_t get_boundary(exlib::string& retVal);
     virtual result_t append(exlib::string name, Blob_base* value);
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename);
     virtual result_t set(exlib::string name, Blob_base* value);

@@ -39,7 +39,6 @@ public:
 
 public:
     result_t parseCookie(exlib::string& str);
-    result_t parseMultipart(exlib::string& str, const char* boundary);
 };
 
 } /* namespace fibjs */

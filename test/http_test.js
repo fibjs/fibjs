@@ -751,7 +751,7 @@ describe("http", () => {
             assert.deepEqual(c, {});
         });
 
-        it("form", () => {
+        it("form", async () => {
             function get_form(txt) {
                 return get_request(txt).form;
             }
@@ -788,9 +788,11 @@ describe("http", () => {
 
             var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:201\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\nContent-Transfer-Encoding: base64\r\n\r\n200\r\n--7d33a816d302b6\r\n');
             assert.equal(c['a'], '100');
-            assert.equal(c['b'].fileName, 'test');
-            assert.equal(c['b'].contentTransferEncoding, 'base64');
-            assert.equal(c['b'].body.read().toString(), '200');
+            // File upload should return a File object
+            assert.equal(c['b'] instanceof File, true);
+            assert.equal(c['b'].name, 'test');
+            // File content should be accessible through standard File API
+            assert.equal(await c['b'].text(), '200');
 
             var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:82\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data; name="pid"\r\n\r\n--7d33a816d302b6\r\n');
             assert.equal(c['pid'], '');

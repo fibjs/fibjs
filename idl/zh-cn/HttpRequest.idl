@@ -41,8 +41,8 @@ interface HttpRequest : HttpMessage
     readonly HttpCollection cookies;
 
     /*! @brief 获取包含消息 form 的容器*/
-    readonly HttpCollection form;
+    readonly FormData form;
 
     /*! @brief 获取包含消息 query 的容器*/
-    readonly HttpCollection query;
+    readonly URLSearchParams query;
 };
