@@ -73,6 +73,8 @@ public:
 
             m_size = 0;
             m_array.resize(0);
+        } else {
+            buf = new Buffer();
         }
 
         return buf;

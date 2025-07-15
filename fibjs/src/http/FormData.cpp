@@ -17,6 +17,20 @@ result_t FormData_base::_new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Objec
     return 0;
 }
 
+result_t FormData_base::_new(exlib::string init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<FormData> headers = new FormData();
+    retVal = headers;
+    return headers->parse(init);
+}
+
+result_t FormData_base::_new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<FormData> headers = new FormData();
+    retVal = headers;
+    return headers->parseMultipart(init, boundary.c_str());
+}
+
 result_t FormData_base::_new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new FormData();
@@ -28,6 +42,12 @@ result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal
     obj_ptr<FormData> headers = new FormData();
     retVal = headers;
     return headers->init(init);
+}
+
+result_t FormData::get_boundary(exlib::string& retVal)
+{
+    retVal = m_boundary;
+    return 0;
 }
 
 result_t FormData::append(exlib::string name, Blob_base* value)

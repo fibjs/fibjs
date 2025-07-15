@@ -21,10 +21,12 @@ public:
 
 public:
     // FormData_base
+    virtual result_t get_boundary(exlib::string& retVal);
     virtual result_t append(exlib::string name, Blob_base* value);
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename);
     virtual result_t set(exlib::string name, Blob_base* value);
     virtual result_t set(exlib::string name, Blob_base* value, exlib::string filename);
+    virtual result_t encode(exlib::string type, obj_ptr<Buffer_base>& retVal);
 
 public:
     result_t init(FormData_base* init)
@@ -32,8 +34,16 @@ public:
         FormData* _init = static_cast<FormData*>(init);
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
+        // Copy boundary from source FormData
+        m_boundary = _init->m_boundary;
+
         return 0;
     }
+
+    result_t parseMultipart(Buffer_base* buffer, const char* boundary);
+
+private:
+    exlib::string m_boundary;
 };
 
 }

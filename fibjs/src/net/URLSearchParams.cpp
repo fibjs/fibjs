@@ -50,20 +50,17 @@ result_t URLSearchParams_base::_new(URLSearchParams_base* init, obj_ptr<URLSearc
 result_t URLSearchParams::toString(exlib::string& retVal)
 {
     StringBuffer bufs;
-    
+
     for (size_t i = 0; i < m_map.size(); i++) {
         if (i > 0)
             bufs.append("&");
-            
+
         pair& _pair = m_map[i];
-        exlib::string key = _pair.first;
-        exlib::string value = _pair.second.string();
-        
-        // URL encode key and value using formEncoded format
+
         exlib::string encodedKey, encodedValue;
-        encoding_base::encodeURIComponent(key, true, encodedKey);
-        encoding_base::encodeURIComponent(value, true, encodedValue);
-        
+        encoding_base::encodeURIComponent(_pair.first, true, encodedKey);
+        encoding_base::encodeURIComponent(_pair.second.string(), true, encodedValue);
+
         bufs.append(encodedKey);
         bufs.append("=");
         bufs.append(encodedValue);

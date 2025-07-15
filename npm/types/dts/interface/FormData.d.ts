@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
  * @description FormData 是用于管理 HTTP 表单数据（multipart/form-data）的容器类，继承自 HttpCollection。
@@ -38,6 +39,21 @@ declare class Class_FormData extends Class_HttpCollection {
     constructor();
 
     /**
+     * @description FormData 构造函数，使用给定的 form 数据字符串初始化表单数据容器
+     *      @param init 初始化用的 form 数据字符串，如 "name=value&key=val"
+     *      
+     */
+    constructor(init: string);
+
+    /**
+     * @description FormData 构造函数，通过传入一个 Buffer，初始化表单数据。适用于从已有的 multipart/form-data 数据中创建 FormData 实例
+     *      @param init 初始化用的 multipart/form-data 二进制数据
+     *      @param boundary 指定 multipart/form-data 的边界字符串，用于解析数据，格式为：multipart/form-data; boundary=${boundary}
+     *      
+     */
+    constructor(init: Class_Buffer, boundary: string);
+
+    /**
      * @description FormData 构造函数，使用给定的对象初始化 HTTP 表单数据容器
      *         
      *      通过传入一个对象，批量初始化表单字段。对象的键为字段名，值为字段值（可为字符串、Blob 或数组）。
@@ -56,6 +72,15 @@ declare class Class_FormData extends Class_HttpCollection {
      *     
      */
     constructor(init: Class_FormData);
+
+    /**
+     * @description 获取当前表单数据的边界字符串
+     *         
+     *      返回当前表单数据的边界字符串，通常用于 multipart/form-data 编码。
+     *      如果未设置边界，则返回空字符串。
+     *     
+     */
+    readonly boundary: string;
 
     /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
@@ -102,6 +127,31 @@ declare class Class_FormData extends Class_HttpCollection {
      *     
      */
     set(name: string, value: Class_Blob, filename: string): void;
+
+    /**
+     * @description 将当前表单数据编码为 Buffer 对象
+     * 
+     *      根据指定的 content-type 对表单数据进行编码，支持多种编码格式：
+     *      
+     *      编码规则：
+     *      1. 当 type 为 "multipart/form-data" 且指定 boundary 时：
+     *         使用指定的 boundary 进行 multipart/form-data 格式编码
+     *         
+     *      2. 当 type 为 "multipart/form-data" 且未指定 boundary 时：
+     *         自动生成一个随机 boundary 进行 multipart/form-data 格式编码
+     *         
+     *      3. 当 type 为 "application/x-www-form-urlencoded" 时：
+     *         使用 URL 编码格式对表单数据进行编码（name=value&name2=value2）
+     *         支持的别名："urlencoded"、"form-urlencoded"、"www-form-urlencoded"
+     *         
+     *      4. 其他值或不支持的格式：
+     *         抛出错误异常
+     * 
+     *      @param type 指定编码的 content-type，支持 "multipart/form-data" 和 "application/x-www-form-urlencoded"（及其别名），默认为 "application/x-www-form-urlencoded"
+     *      @return 返回编码后的 Buffer 对象
+     *     
+     */
+    encode(type?: string): Class_Buffer;
 
 }
 

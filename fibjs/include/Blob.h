@@ -22,6 +22,19 @@ public:
     result_t text(exlib::string& retVal, AsyncEvent* ac);
     result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac);
 
+public:
+    void init(Buffer_base* buffer, const exlib::string& type)
+    {
+        m_buffer = buffer;
+        m_type = type;
+    }
+
+    // Get underlying buffer for direct access (avoid memory copy)
+    Buffer_base* getBuffer() const
+    {
+        return m_buffer;
+    }
+
 private:
     obj_ptr<Buffer_base> m_buffer;
     exlib::string m_type;
