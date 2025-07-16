@@ -461,10 +461,12 @@ describe("fs.glob", () => {
             result.sort();
 
             // This should work in both fibjs and Node.js
-            const expectedResults = [
+            let expectedResults = [
                 'workspaces_files/basic_workspace/packages/package-a/package.json',
                 'workspaces_files/basic_workspace/packages/package-b/package.json'
-            ].sort();
+            ];
+            expectedResults = normalizeExpected(expectedResults);
+            expectedResults.sort();
             assert.deepStrictEqual(result, expectedResults);
         });
 
@@ -1067,8 +1069,8 @@ describe("fs.glob", () => {
             // Should include all directory paths
             assert.ok(result.includes('src'));
             assert.ok(result.includes('tests'));
-            assert.ok(result.includes('src/components'));
-            assert.ok(result.includes('src/utils'));
+            assert.ok(result.includes(normalizeExpected('src/components')));
+            assert.ok(result.includes(normalizeExpected('src/utils')));
             // Should not include files
             assert.ok(!result.includes('index.js'));
             assert.ok(!result.includes('README.md'));
@@ -1152,7 +1154,7 @@ describe("fs.glob", () => {
             // Should include everything
             assert.ok(result.length > 20);
             assert.ok(result.includes('src'));
-            assert.ok(result.includes('src/App.jsx'));
+            assert.ok(result.includes(normalizeExpected('src/App.jsx')));
             // Note: ** pattern doesn't include hidden files by default in Node.js
         });
     });

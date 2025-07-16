@@ -453,11 +453,50 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                 // Has wildcards, extract base path and relative pattern
                 exlib::string basePath;
                 if (wildcardIndex == 0) {
+#ifdef _WIN32
+                    // First component has wildcard, we need to handle drive letter
+                    // Extract drive letter from original pattern if present
+                    if (pattern.length() >= 3 && pattern.c_str()[1] == ':' && isPathSlash(pattern.c_str()[2])) {
+                        basePath = pattern.substr(0, 3); // e.g., "C:\"
+                    } else if (pattern.length() >= 2 && pattern.c_str()[0] == '\\' && pattern.c_str()[1] == '\\') {
+                        // UNC path - find the first component (\\server\share)
+                        size_t pos = 2;
+                        int backslashCount = 0;
+                        while (pos < pattern.length() && backslashCount < 2) {
+                            if (pattern.c_str()[pos] == '\\') {
+                                backslashCount++;
+                            }
+                            pos++;
+                        }
+                        basePath = pattern.substr(0, pos - 1);
+                    } else {
+                        basePath = "\\"; // Fallback
+                    }
+#else
                     // First component has wildcard, use root as base
                     basePath = "/";
+#endif
                 } else {
                     // Build base path from components before wildcard
+#ifdef _WIN32
+                    // Handle Windows drive letter
+                    if (pattern.length() >= 3 && pattern.c_str()[1] == ':' && isPathSlash(pattern.c_str()[2])) {
+                        // For patterns like "D:\path\*.js", components are ["D:", "path", "*.js"]
+                        // We need to join "D:" with the path components correctly
+                        if (wildcardIndex > 1) {
+                            basePath = components[0] + "\\" + joinComponents(components, 1, wildcardIndex);
+                        } else {
+                            basePath = components[0] + "\\";
+                        }
+                    } else if (pattern.length() >= 2 && pattern.c_str()[0] == '\\' && pattern.c_str()[1] == '\\') {
+                        // UNC path
+                        basePath = "\\\\" + joinComponents(components, 0, wildcardIndex);
+                    } else {
+                        basePath = "\\" + joinComponents(components, 0, wildcardIndex);
+                    }
+#else
                     basePath = "/" + joinComponents(components, 0, wildcardIndex);
+#endif
                 }
 
                 // Build relative pattern from wildcard component onwards
@@ -470,11 +509,19 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                 // Convert relative results to absolute
                 for (const auto& result : tempResults) {
                     exlib::string absolutePath;
+#ifdef _WIN32
+                    if (basePath.length() > 0 && basePath.c_str()[basePath.length() - 1] == '\\') {
+                        absolutePath = basePath + result.path;
+                    } else {
+                        absolutePath = basePath + "\\" + result.path;
+                    }
+#else
                     if (basePath == "/") {
                         absolutePath = "/" + result.path;
                     } else {
                         absolutePath = basePath + "/" + result.path;
                     }
+#endif
                     if (result.stat) {
                         results.insert(GlobResult(absolutePath, result.stat));
                     } else {
