@@ -86,7 +86,6 @@ private:
     // Utility methods
     bool isPathSeparator(char c) const;
     bool isPathSeparatorInText(char c) const;
-    bool isSpecialChar(char c) const;
     char getPathSeparator() const;
     bool shouldMatchCase(char a, char b) const;
     bool containsHiddenPathSegments(std::string_view text, size_t startIndex, size_t endIndex = SIZE_MAX) const;
@@ -106,6 +105,10 @@ public:
     // Main matching method
     bool match(std::string_view text) const;
 
+    // Static utility methods
+    static bool isSpecialChar(char c);
+    static bool hasWildcards(const std::string& pattern);
+
     // Getters
     const std::string& getPattern() const { return original_pattern_; }
     bool isWindows() const { return isWindows_; }
@@ -114,5 +117,8 @@ public:
 
 // Convenience function for direct matching (equivalent to minimatch.minimatch())
 bool matchesGlob(std::string_view text, const std::string& pattern, bool isWindows);
+
+// Utility function to check if a pattern contains any wildcard characters
+bool containsWildcards(const std::string& pattern);
 
 }

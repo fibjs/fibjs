@@ -1,0 +1,9 @@
+{
+    "name": "@myorg/web-app",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "@myorg/ui-lib": "^1.0.0",
+        "react": "^18.0.0"
+    }
+}

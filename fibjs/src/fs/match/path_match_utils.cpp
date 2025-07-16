@@ -86,7 +86,7 @@ bool MinimatchPattern::isPathSeparatorInText(char c) const
     return false;
 }
 
-bool MinimatchPattern::isSpecialChar(char c) const
+bool MinimatchPattern::isSpecialChar(char c)
 {
     // Characters that have special meaning in glob patterns
     return c == '*' || c == '?' || c == '[' || c == ']' || c == '(' || c == ')' || c == '{' || c == '}' || c == '^' || c == '!' || c == '/';

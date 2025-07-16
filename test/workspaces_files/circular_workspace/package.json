@@ -1,0 +1,7 @@
+{
+    "name": "test-workspace-circular",
+    "version": "1.0.0",
+    "workspaces": [
+        "services/*"
+    ]
+}

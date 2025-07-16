@@ -1,0 +1,8 @@
+{
+    "name": "package-b",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "package-a": "^1.0.0"
+    }
+}

@@ -161,6 +161,81 @@ static exlib::string getFilenamePart(const exlib::string& pattern)
     return pattern;
 }
 
+// Helper function to split pattern into components
+static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
+{
+    std::vector<exlib::string> components;
+    if (pattern.empty()) {
+        return components;
+    }
+
+    size_t start = 0;
+    size_t pos = 0;
+
+    while (pos < pattern.length()) {
+#ifdef _WIN32
+        if (pattern.c_str()[pos] == '/' || pattern.c_str()[pos] == '\\') {
+#else
+        if (pattern.c_str()[pos] == '/') {
+#endif
+            if (pos > start) {
+                components.push_back(pattern.substr(start, pos - start));
+            }
+            start = pos + 1;
+        }
+        pos++;
+    }
+
+    // Add the last component
+    if (start < pattern.length()) {
+        components.push_back(pattern.substr(start));
+    } else if (start == pattern.length() && pattern.length() > 0) {
+        // Pattern ends with '/', add empty component to preserve the trailing slash meaning
+#ifdef _WIN32
+        if (pattern.c_str()[pattern.length() - 1] == '/' || pattern.c_str()[pattern.length() - 1] == '\\') {
+#else
+        if (pattern.c_str()[pattern.length() - 1] == '/') {
+#endif
+            components.push_back("");
+        }
+    }
+
+    return components;
+}
+
+// Helper function to find the first wildcard component index
+static int findFirstWildcardComponent(const std::vector<exlib::string>& components)
+{
+    for (size_t i = 0; i < components.size(); ++i) {
+        const exlib::string& component = components[i];
+
+        // Use the unified wildcard checking function from path_match
+        if (containsWildcards(component.c_str())) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+// Helper function to join path components
+static exlib::string joinComponents(const std::vector<exlib::string>& components, int start, int end)
+{
+    if (start >= end || start >= static_cast<int>(components.size())) {
+        return "";
+    }
+
+    exlib::string result = components[start];
+    for (int i = start + 1; i < end && i < static_cast<int>(components.size()); ++i) {
+        if (!components[i].empty()) {
+            result += PATH_SLASH + components[i];
+        } else if (i == end - 1) {
+            // Empty component at the end means the pattern should end with '/'
+            result += PATH_SLASH;
+        }
+    }
+    return result;
+}
+
 // Helper function to create Stat object for a file
 static obj_ptr<Stat> createStat(const exlib::string& fullPath)
 {
@@ -174,20 +249,55 @@ static obj_ptr<Stat> createStat(const exlib::string& fullPath)
     return stat;
 }
 
-// Recursive function to walk directory tree and collect matching files
-static void walkDirectory(
+// Simplified recursive function to walk directory tree and collect matching files
+static void walkDirectorySimple(
     const exlib::string& basePath,
     const exlib::string& currentPath,
     const exlib::string& pattern,
     const std::vector<exlib::string>& excludePatterns,
     std::set<GlobResult>& results,
     bool withFileTypes = false,
-    bool recursive = false,
     int depth = 0,
     int maxDepth = 100)
 {
     if (depth > maxDepth)
         return;
+
+    // Special handling for patterns ending with "**"
+    // When pattern ends with **, include directories that match the prefix
+    if (pattern.length() >= 2 && pattern.substr(pattern.length() - 2) == "**") {
+        // Check if we need to match a prefix pattern
+#ifdef _WIN32
+        if (pattern.length() > 2 && (pattern.c_str()[pattern.length() - 3] == '/' || pattern.c_str()[pattern.length() - 3] == '\\')) {
+#else
+        if (pattern.length() > 2 && pattern.c_str()[pattern.length() - 3] == '/') {
+#endif
+            // Pattern like "src/**" - extract prefix "src"
+            exlib::string prefix = pattern.substr(0, pattern.length() - 3);
+
+            // If current path matches prefix, include it in results
+            if (currentPath == prefix || (currentPath.empty() && prefix.empty()) || matchesGlob(currentPath, prefix, isWindows)) {
+
+                if (!shouldIgnore(currentPath.empty() ? "." : currentPath, excludePatterns)) {
+                    exlib::string resultPath = currentPath.empty() ? "." : currentPath;
+                    if (withFileTypes) {
+                        exlib::string fullPath = basePath;
+                        if (!currentPath.empty()) {
+                            fullPath += PATH_SLASH + currentPath;
+                        }
+                        obj_ptr<Stat> stat = createStat(fullPath);
+                        if (stat) {
+                            results.insert(GlobResult(resultPath, stat));
+                        } else {
+                            results.insert(GlobResult(resultPath));
+                        }
+                    } else {
+                        results.insert(GlobResult(resultPath));
+                    }
+                }
+            }
+        }
+    }
 
     exlib::string fullPath = basePath;
     if (!currentPath.empty()) {
@@ -209,30 +319,22 @@ static void walkDirectory(
             continue;
         }
 
-        // For recursive patterns, use the full relative path
-        // For non-recursive patterns, only use the entry name for matching
-        exlib::string matchPath = recursive ? relativePath : entryName;
-
-        // Special handling for **/.filename patterns - they should not match in root directory
-        bool skipRootMatch = false;
-        if (recursive && depth == 0 && pattern.substr(0, 3) == ("**" PATH_SLASH_STR) && pattern.find('*', 3) == exlib::string::npos) {
-            // Only skip for patterns like "**/.env", not for "**/*.js"
-            skipRootMatch = true;
-        }
-
-        // Check if this entry matches the pattern
+        // Check if this path matches the pattern
         bool isMatch = false;
-        if (!skipRootMatch) {
-            if (pattern.length() > 0 && (pattern.c_str()[pattern.length() - 1] == '/' || pattern.c_str()[pattern.length() - 1] == PATH_SLASH)) {
-                // Pattern ends with slash, only match directories
-                if (dirent.type == UV_DIRENT_DIR) {
-                    exlib::string dirPattern = pattern.substr(0, pattern.length() - 1);
-                    isMatch = matchesGlob(entryName, dirPattern, isWindows);
-                }
-            } else {
-                // Normal pattern matching
-                isMatch = matchesGlob(matchPath, pattern, isWindows);
+
+        // Special handling for patterns ending with '/' - only match directories
+#ifdef _WIN32
+        if (pattern.length() > 0 && (pattern.c_str()[pattern.length() - 1] == '/' || pattern.c_str()[pattern.length() - 1] == '\\')) {
+#else
+        if (pattern.length() > 0 && pattern.c_str()[pattern.length() - 1] == '/') {
+#endif
+            if (dirent.type == UV_DIRENT_DIR) {
+                exlib::string dirPattern = pattern.substr(0, pattern.length() - 1);
+                isMatch = matchesGlob(relativePath, dirPattern, isWindows);
             }
+        } else {
+            // Normal pattern matching
+            isMatch = matchesGlob(relativePath, pattern, isWindows);
         }
 
         if (isMatch) {
@@ -254,9 +356,9 @@ static void walkDirectory(
             }
         }
 
-        // If it's a directory and we're doing recursive search, continue walking
-        if (dirent.type == UV_DIRENT_DIR && recursive) {
-            walkDirectory(basePath, relativePath, pattern, excludePatterns, results, withFileTypes, true, depth + 1, maxDepth);
+        // If it's a directory, continue walking
+        if (dirent.type == UV_DIRENT_DIR) {
+            walkDirectorySimple(basePath, relativePath, pattern, excludePatterns, results, withFileTypes, depth + 1, maxDepth);
         }
     }
 }
@@ -322,114 +424,69 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
         // Handle absolute patterns
         if (isAbsolutePattern(pattern)) {
-            // For absolute patterns, we need to check if the file exists
-            exlib::string dirPart = getDirectoryPart(pattern);
-            exlib::string filePart = getFilenamePart(pattern);
+            // Split the absolute pattern into components
+            std::vector<exlib::string> components = splitPattern(normalizedPattern);
+            if (components.empty()) {
+                continue;
+            }
 
-            if (hasRecursivePattern(pattern)) {
-                // Recursive absolute pattern
-                walkDirectory(dirPart, "", filePart, excludePatterns, results, withFileTypes, true, 0, 100);
-            } else {
-                // Non-recursive absolute pattern
+            // Find the first component with wildcards
+            int wildcardIndex = findFirstWildcardComponent(components);
+
+            if (wildcardIndex == -1) {
+                // No wildcards, check if file exists directly
                 AutoReq req;
-                int32_t ret = uv_fs_scandir(NULL, &req, dirPart.c_str(), 0, NULL);
+                int32_t ret = uv_fs_stat(NULL, &req, normalizedPattern.c_str(), NULL);
                 if (ret >= 0) {
-                    uv_dirent_t dirent;
-                    while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-                        if (matchesGlob(dirent.name, filePart, isWindows)) {
-                            exlib::string fullPath = dirPart + PATH_SLASH + dirent.name;
-                            if (withFileTypes) {
-                                obj_ptr<Stat> stat = createStat(fullPath);
-                                if (stat) {
-                                    results.insert(GlobResult(fullPath, stat));
-                                } else {
-                                    results.insert(GlobResult(fullPath));
-                                }
-                            } else {
-                                results.insert(GlobResult(fullPath));
-                            }
+                    if (withFileTypes) {
+                        obj_ptr<Stat> stat = createStat(normalizedPattern);
+                        if (stat) {
+                            results.insert(GlobResult(normalizedPattern, stat));
+                        } else {
+                            results.insert(GlobResult(normalizedPattern));
                         }
+                    } else {
+                        results.insert(GlobResult(normalizedPattern));
+                    }
+                }
+            } else {
+                // Has wildcards, extract base path and relative pattern
+                exlib::string basePath;
+                if (wildcardIndex == 0) {
+                    // First component has wildcard, use root as base
+                    basePath = "/";
+                } else {
+                    // Build base path from components before wildcard
+                    basePath = "/" + joinComponents(components, 0, wildcardIndex);
+                }
+
+                // Build relative pattern from wildcard component onwards
+                exlib::string relativePattern = joinComponents(components, wildcardIndex, components.size());
+
+                // Use temporary results set for this pattern
+                std::set<GlobResult> tempResults;
+                walkDirectorySimple(basePath, "", relativePattern, excludePatterns, tempResults, withFileTypes);
+
+                // Convert relative results to absolute
+                for (const auto& result : tempResults) {
+                    exlib::string absolutePath;
+                    if (basePath == "/") {
+                        absolutePath = "/" + result.path;
+                    } else {
+                        absolutePath = basePath + "/" + result.path;
+                    }
+                    if (result.stat) {
+                        results.insert(GlobResult(absolutePath, result.stat));
+                    } else {
+                        results.insert(GlobResult(absolutePath));
                     }
                 }
             }
             continue;
         }
 
-        // Handle patterns with directories (e.g., "src/*.js", "src/**/*.js")
-        if (hasDirectory(normalizedPattern)) {
-            // Special case: patterns like "*/" should be handled at root level
-            if (normalizedPattern.length() > 0 && (normalizedPattern.c_str()[normalizedPattern.length() - 1] == '/' || normalizedPattern.c_str()[normalizedPattern.length() - 1] == PATH_SLASH) &&
-#ifdef _WIN32
-                getDirectoryPart(normalizedPattern).find_first_of("/\\") == exlib::string::npos
-#else
-                getDirectoryPart(normalizedPattern).find('/') == exlib::string::npos
-#endif
-            ) {
-                // Pattern like "*/" - match directories in current directory
-                AutoReq req;
-                int32_t ret = uv_fs_scandir(NULL, &req, cwd.c_str(), 0, NULL);
-                if (ret >= 0) {
-                    uv_dirent_t dirent;
-                    exlib::string dirPattern = normalizedPattern.substr(0, normalizedPattern.length() - 1);
-                    while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-                        if (dirent.type == UV_DIRENT_DIR && matchesGlob(dirent.name, dirPattern, isWindows)) {
-                            if (!shouldIgnore(dirent.name, excludePatterns)) {
-                                if (withFileTypes) {
-                                    exlib::string fullPath = cwd + PATH_SLASH + dirent.name;
-                                    obj_ptr<Stat> stat = createStat(fullPath);
-                                    if (stat) {
-                                        results.insert(GlobResult(dirent.name, stat));
-                                    } else {
-                                        results.insert(GlobResult(dirent.name));
-                                    }
-                                } else {
-                                    results.insert(GlobResult(dirent.name));
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if (hasRecursivePattern(normalizedPattern)) {
-                // Recursive pattern: walk the entire directory tree
-                walkDirectory(cwd, "", normalizedPattern, excludePatterns, results, withFileTypes, true, 0, 100);
-            } else {
-                // Non-recursive directory pattern: only look in specific directory
-                exlib::string dirPart = getDirectoryPart(normalizedPattern);
-                exlib::string filePart = getFilenamePart(normalizedPattern);
-                walkDirectory(cwd, normalizePath(dirPart), filePart, excludePatterns, results, withFileTypes, false, 0, 100);
-            }
-        } else {
-            // Simple pattern without directories
-            if (hasRecursivePattern(normalizedPattern)) {
-                // Recursive pattern without directory: search everywhere
-                walkDirectory(cwd, "", normalizedPattern, excludePatterns, results, withFileTypes, true, 0, 100);
-            } else {
-                // Non-recursive pattern: only look in current directory
-                AutoReq req;
-                int32_t ret = uv_fs_scandir(NULL, &req, cwd.c_str(), 0, NULL);
-                if (ret >= 0) {
-                    uv_dirent_t dirent;
-                    while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-                        if (matchesGlob(dirent.name, normalizedPattern, isWindows)) {
-                            // Check if it should be ignored
-                            if (!shouldIgnore(dirent.name, excludePatterns)) {
-                                if (withFileTypes) {
-                                    exlib::string fullPath = cwd + PATH_SLASH + dirent.name;
-                                    obj_ptr<Stat> stat = createStat(fullPath);
-                                    if (stat) {
-                                        results.insert(GlobResult(dirent.name, stat));
-                                    } else {
-                                        results.insert(GlobResult(dirent.name));
-                                    }
-                                } else {
-                                    results.insert(GlobResult(dirent.name));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Handle relative patterns
+        walkDirectorySimple(cwd, "", normalizedPattern, excludePatterns, results, withFileTypes);
     }
 
     // Convert set to sorted array

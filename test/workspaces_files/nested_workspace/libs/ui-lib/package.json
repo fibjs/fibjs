@@ -1,0 +1,8 @@
+{
+    "name": "@myorg/ui-lib",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "@myorg/utils": "^1.0.0"
+    }
+}

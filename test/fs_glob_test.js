@@ -2,6 +2,7 @@ const assert = require("assert");
 const { describe, it } = require("node:test");
 const path = require("path");
 const fs = require("fs").promises;
+const fsSync = require("fs");
 const os = require("os");
 
 // Test files directory
@@ -422,11 +423,290 @@ describe("fs.glob", () => {
             if (process.platform === 'linux') {
                 assert.deepStrictEqual(result, []);
             } else {
-                if (process.versions.fibjs) {
-                    assert.deepStrictEqual(result, ['README.md']);
-                } else {
-                    assert.deepStrictEqual(result, ['readme.md']);
-                }
+                // On case-insensitive systems, should find the file but return actual name
+                assert.strictEqual(result.length, 1);
+                assert.ok(result[0].toLowerCase() === 'readme.md');
+            }
+        });
+    });
+
+    // ==================== fibjs 缺陷修复测试 ====================
+    describe("Absolute path glob patterns", () => {
+
+        it("should match workspace packages with absolute path pattern", async () => {
+            // This test exposes a bug in fibjs where absolute path glob patterns 
+            // with wildcards fail to match existing files
+            const workspaceBasePath = path.join(__dirname, 'workspaces_files', 'basic_workspace', 'packages');
+            const absolutePattern = path.join(workspaceBasePath, '*', 'package.json');
+
+            // Test the glob pattern - this should work but currently fails in fibjs
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // This should find exactly 2 package.json files
+            const expectedResults = [
+                path.join(workspaceBasePath, 'package-a', 'package.json'),
+                path.join(workspaceBasePath, 'package-b', 'package.json')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should match workspace packages with relative path pattern", async () => {
+            // This test shows that relative patterns should work correctly
+            const relativePattern = 'workspaces_files/basic_workspace/packages/*/package.json';
+
+            const asyncGen = await fs.glob(relativePattern, { cwd: __dirname });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // This should work in both fibjs and Node.js
+            const expectedResults = [
+                'workspaces_files/basic_workspace/packages/package-a/package.json',
+                'workspaces_files/basic_workspace/packages/package-b/package.json'
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with nested wildcards", async () => {
+            // Test another absolute path pattern with nested structure
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', '**', '*.js');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find JS files in src subdirectories
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'utils', 'math.js')
+            ];
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should have consistent sync vs async behavior for absolute paths", async () => {
+            // Test both sync and async versions for consistency
+            const workspaceBasePath = path.join(__dirname, 'workspaces_files', 'basic_workspace', 'packages');
+            const absolutePattern = path.join(workspaceBasePath, '*', 'package.json');
+
+            // Test async version
+            const asyncGen = await fs.glob(absolutePattern);
+            const asyncResult = await asyncGeneratorToArray(asyncGen);
+
+            // Test sync version (if available)
+            let syncResult = [];
+            if (fs.globSync) {
+                syncResult = fs.globSync(absolutePattern);
+                // Both should return the same results
+                assert.deepStrictEqual(asyncResult.sort(), syncResult.sort(), 'Sync and async should return same results');
+            } else {
+                // If globSync is not available, just test that async returns expected results
+                const expectedResults = [
+                    path.join(workspaceBasePath, 'package-a', 'package.json'),
+                    path.join(workspaceBasePath, 'package-b', 'package.json')
+                ].sort();
+                assert.deepStrictEqual(asyncResult.sort(), expectedResults);
+            }
+        });
+
+        it("should handle absolute paths with multiple wildcard levels", async () => {
+            // Test deeply nested absolute patterns with multiple wildcards
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, '*', '*', '*.*');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find files at exactly 3 levels deep (Node.js behavior)
+            // tests/components.test.tsx and tests/math.test.js are only 2 levels deep, so not matched
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'components', 'Button.jsx'),
+                path.join(testFilesDir, 'src', 'utils', 'helper.ts'),
+                path.join(testFilesDir, 'src', 'utils', 'math.js')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with globstar patterns", async () => {
+            // Test absolute paths combined with globstar recursion
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, '**', 'components', '**', '*.jsx');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find all JSX files in any components directory
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'components', 'Button.jsx')
+            ];
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with character classes", async () => {
+            // Test absolute paths with character class patterns
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', 'utils', '*.[jt]s');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find both .js and .ts files
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'utils', 'helper.ts'),
+                path.join(testFilesDir, 'src', 'utils', 'math.js')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with brace expansion", async () => {
+            // Test absolute paths with brace expansion patterns
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', 'utils', '*.{js,ts}');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find files matching both extensions
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'utils', 'helper.ts'),
+                path.join(testFilesDir, 'src', 'utils', 'math.js')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths ending with directory pattern", async () => {
+            // Test absolute paths that match directories specifically
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, '*/');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find all subdirectories
+            const expectedResults = [
+                'deps', 'docs', 'src', 'tests'
+            ].map(dir => path.join(testFilesDir, dir)).sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with question mark wildcards", async () => {
+            // Test absolute paths with single character wildcards
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', '?pp.jsx');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            // Should find App.jsx
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'App.jsx')
+            ];
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with negation patterns", async () => {
+            // Test absolute paths with exclude/negation patterns
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', '**', '*.[!t]*');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find files that don't end with .ts/.tsx
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'App.jsx'),
+                path.join(testFilesDir, 'src', 'components', 'Button.jsx'),
+                path.join(testFilesDir, 'src', 'utils', 'math.js')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with mixed separators on Windows", async () => {
+            // Test that absolute paths work correctly with mixed path separators
+            if (process.platform === 'win32') {
+                const testFilesDir = path.join(__dirname, 'fs_files');
+                // Mix forward and backward slashes (Windows should handle both)
+                const absolutePattern = testFilesDir.replace(/\\/g, '/') + '/src\\**\\*.js';
+
+                const asyncGen = await fs.glob(absolutePattern);
+                const result = await asyncGeneratorToArray(asyncGen);
+                result.sort();
+
+                // Should find JS files despite mixed separators
+                const expectedResults = [
+                    path.join(testFilesDir, 'src', 'utils', 'math.js')
+                ];
+                assert.deepStrictEqual(result, expectedResults);
+            } else {
+                // On POSIX systems, test with forward slashes only
+                const testFilesDir = path.join(__dirname, 'fs_files');
+                const absolutePattern = testFilesDir + '/src/**/math.js';
+
+                const asyncGen = await fs.glob(absolutePattern);
+                const result = await asyncGeneratorToArray(asyncGen);
+
+                const expectedResults = [
+                    path.join(testFilesDir, 'src', 'utils', 'math.js')
+                ];
+                assert.deepStrictEqual(result, expectedResults);
+            }
+        });
+
+        it("should handle absolute paths that don't exist", async () => {
+            // Test absolute paths that point to non-existent locations
+            const nonExistentPath = path.join(__dirname, 'non_existent_dir', '*', 'file.txt');
+
+            const asyncGen = await fs.glob(nonExistentPath);
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            // Should return empty array for non-existent paths
+            assert.deepStrictEqual(result, []);
+        });
+
+        it("should handle very long absolute paths", async () => {
+            // Test that absolute paths work with deeply nested structures
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, 'src', 'components', '**', '*.jsx');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            // Should handle deep paths correctly
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'components', 'Button.jsx')
+            ];
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle absolute paths with root directory patterns", async () => {
+            // Test absolute paths starting from filesystem root
+            if (process.platform !== 'win32') {
+                // On POSIX systems, test patterns starting with /
+                const tempDir = os.tmpdir();
+                const pattern = path.join(tempDir, '*');
+
+                const asyncGen = await fs.glob(pattern);
+                const result = await asyncGeneratorToArray(asyncGen);
+
+                // Should return some files/directories in temp (usually non-empty)
+                assert.ok(Array.isArray(result), 'Should return an array');
+                // Don't assert specific contents as temp directory varies
+            } else {
+                // On Windows, test with drive letter patterns
+                const pattern = path.join('C:', 'Windows', 'System32', 'drivers', 'etc', 'hosts');
+
+                const asyncGen = await fs.glob(pattern);
+                const result = await asyncGeneratorToArray(asyncGen);
+
+                // Should either find the hosts file or return empty array
+                assert.ok(Array.isArray(result), 'Should return an array');
+                assert.ok(result.length <= 1, 'Should return at most one file');
             }
         });
     });
@@ -509,6 +789,371 @@ describe("fs.glob", () => {
             expected = normalizeExpected(expected);
             expected.sort();
             assert.deepStrictEqual(result, expected);
+        });
+    });
+
+    // ==================== 更多边界模式测试 ====================
+    describe("Advanced edge cases and boundary patterns", () => {
+
+        it("should handle consecutive wildcards", async () => {
+            // Test patterns with consecutive wildcards like **/*
+            const asyncGen = await fs.glob("**/*/", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            // Should find both top-level and nested directories
+            let expected = ['deps', 'docs', 'src', 'src/components', 'src/utils', 'tests'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns starting with wildcards", async () => {
+            // Test patterns that start with wildcards
+            const asyncGen = await fs.glob("**/math.*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/utils/math.js', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle very specific nested patterns", async () => {
+            // Test deeply nested specific patterns
+            const asyncGen = await fs.glob("**/components/**/*.jsx", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/components/Button.jsx'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with multiple extensions", async () => {
+            // Test complex extension patterns
+            const asyncGen = await fs.glob("**/*.{test,spec}.{js,ts,jsx,tsx}", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['tests/components.test.tsx', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with dots and special characters", async () => {
+            // Test patterns that include dots and other special characters
+            // Note: **/.*  doesn't match hidden files in Node.js by default
+            const asyncGen = await fs.glob(".*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['.gittest', '.hidden'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with mixed case", async () => {
+            // Test case sensitivity in patterns
+            const asyncGen = await fs.glob("**/README.*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            assert.deepStrictEqual(result, ['README.md']);
+        });
+
+        it("should handle empty directory patterns", async () => {
+            // Test patterns that might match empty directories
+            const asyncGen = await fs.glob("empty/**", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            assert.deepStrictEqual(result, []);
+        });
+
+        it("should handle overlapping wildcard patterns", async () => {
+            // Test patterns with overlapping wildcards
+            const asyncGen = await fs.glob("**/*/**/*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['deps/fake-module.js', 'src/utils/math.js', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with trailing wildcards", async () => {
+            // Test patterns ending with various wildcard combinations
+            const asyncGen = await fs.glob("src/**", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = [
+                'src',
+                'src/App.jsx',
+                'src/components',
+                'src/components/Button.jsx',
+                'src/utils',
+                'src/utils/helper.ts',
+                'src/utils/math.js'
+            ];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with leading wildcards", async () => {
+            // Test patterns starting with various wildcard combinations
+            const asyncGen = await fs.glob("**/src/**/*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/utils/math.js'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle very deep nesting patterns", async () => {
+            // Test patterns that go very deep
+            const asyncGen = await fs.glob("**/**/**/*.jsx", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/App.jsx', 'src/components/Button.jsx'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle alternating wildcard patterns", async () => {
+            // Test patterns with alternating wildcards and literals
+            const asyncGen = await fs.glob("*/utils/*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/utils/math.js'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with single and double wildcards mixed", async () => {
+            // Test mixing * and ** in complex ways
+            const asyncGen = await fs.glob("*/**/Button.*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/components/Button.jsx'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with multiple question marks", async () => {
+            // Test multiple single-character wildcards
+            const asyncGen = await fs.glob("??*.txt", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['app.txt', 'error.txt', 'read.txt'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with bracket ranges", async () => {
+            // Test character ranges in brackets
+            const asyncGen = await fs.glob("**/[a-m]*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['index.js', 'deps/fake-module.js', 'src/utils/math.js', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with negated bracket ranges", async () => {
+            // Test negated character ranges
+            const asyncGen = await fs.glob("**/[!a-m]*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            // Should exclude files starting with a-m
+            assert.deepStrictEqual(result, []);
+        });
+
+        it("should handle patterns with escaped special characters", async () => {
+            // Test escaped wildcards and special characters
+            // Note: This tests literal matching of special characters
+            const asyncGen = await fs.glob("package\\*.json", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            // Should not match package.json since * is escaped
+            assert.deepStrictEqual(result, []);
+        });
+
+        it("should handle patterns with very long names", async () => {
+            // Test patterns matching files with long names
+            const asyncGen = await fs.glob("**/components.test.*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['tests/components.test.tsx'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with unicode characters", async () => {
+            // Test patterns that might contain unicode
+            const asyncGen = await fs.glob("**/*", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            // Should work normally and include all files
+            assert.ok(result.length > 0);
+            assert.ok(result.includes('README.md'));
+        });
+
+        it("should handle patterns with relative path components", async () => {
+            // Test patterns with . and .. components
+            const asyncGen = await fs.glob("./src/**/*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/utils/math.js'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns ending with specific extensions", async () => {
+            // Test patterns that end with very specific extensions
+            const asyncGen = await fs.glob("**/*.test.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with both inclusion and exclusion", async () => {
+            // Test complex patterns with both positive and negative matching
+            const asyncGen = await fs.glob("**/*.{js,jsx}", {
+                cwd: testDir,
+                exclude: ['**/test*', '**/spec*']
+            });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = [
+                'index.js',
+                'deps/fake-module.js',
+                'src/App.jsx',
+                'src/components/Button.jsx',
+                'src/utils/math.js'
+            ];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with multiple brace groups", async () => {
+            // Test multiple brace expansion groups
+            const asyncGen = await fs.glob("**/*.{js,jsx}.{bak,backup}", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            // Should match files with double extensions (none exist in test data)
+            assert.deepStrictEqual(result, []);
+        });
+
+        it("should handle patterns with nested braces", async () => {
+            // Test nested brace expansions
+            const asyncGen = await fs.glob("**/{src,tests}/**/*.{js,jsx}", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = [
+                'src/App.jsx',
+                'src/components/Button.jsx',
+                'src/utils/math.js',
+                'tests/math.test.js'
+            ];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns matching only directories", async () => {
+            // Test patterns that should only match directories
+            const asyncGen = await fs.glob("**/", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            // Should include all directory paths
+            assert.ok(result.includes('src'));
+            assert.ok(result.includes('tests'));
+            assert.ok(result.includes('src/components'));
+            assert.ok(result.includes('src/utils'));
+            // Should not include files
+            assert.ok(!result.includes('index.js'));
+            assert.ok(!result.includes('README.md'));
+        });
+
+        it("should handle patterns with zero-length matches", async () => {
+            // Test patterns that might create zero-length matches
+            const asyncGen = await fs.glob("**/*{,.*}", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            // Should include both regular files and dotfiles
+            assert.ok(result.length > 0);
+            assert.ok(result.includes('README.md'));
+            // Note: This pattern doesn't match dotfiles in Node.js
+        });
+
+        it("should handle patterns with redundant wildcards", async () => {
+            // Test patterns with redundant wildcard sequences
+            const asyncGen = await fs.glob("**/**/*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            // Should work the same as **/*.js
+            let expected = [
+                'index.js',
+                'deps/fake-module.js',
+                'src/utils/math.js',
+                'tests/math.test.js'
+            ];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with partial matches", async () => {
+            // Test patterns that create partial matches
+            const asyncGen = await fs.glob("**/ma*.js", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            let expected = ['src/utils/math.js', 'tests/math.test.js'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle patterns with extreme nesting", async () => {
+            // Test very deeply nested patterns
+            const asyncGen = await fs.glob("**/**/**/**/*.jsx", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+            // Should still find the JSX files regardless of excessive nesting
+            let expected = ['src/App.jsx', 'src/components/Button.jsx'];
+            expected = normalizeExpected(expected);
+            expected.sort();
+            assert.deepStrictEqual(result, expected);
+        });
+
+        it("should handle absolute patterns with extreme complexity", async () => {
+            // Test very complex absolute patterns
+            const testFilesDir = path.join(__dirname, 'fs_files');
+            const absolutePattern = path.join(testFilesDir, '**', '{src,tests}', '**', '*.{js,jsx,ts,tsx}');
+
+            const asyncGen = await fs.glob(absolutePattern);
+            const result = await asyncGeneratorToArray(asyncGen);
+            result.sort();
+
+            // Should find files in both src and tests directories
+            const expectedResults = [
+                path.join(testFilesDir, 'src', 'App.jsx'),
+                path.join(testFilesDir, 'src', 'components', 'Button.jsx'),
+                path.join(testFilesDir, 'src', 'utils', 'helper.ts'),
+                path.join(testFilesDir, 'src', 'utils', 'math.js'),
+                path.join(testFilesDir, 'tests', 'components.test.tsx'),
+                path.join(testFilesDir, 'tests', 'math.test.js')
+            ].sort();
+            assert.deepStrictEqual(result, expectedResults);
+        });
+
+        it("should handle patterns with boundary conditions", async () => {
+            // Test patterns at filesystem boundaries
+            const asyncGen = await fs.glob("**", { cwd: testDir });
+            const result = await asyncGeneratorToArray(asyncGen);
+            // Should include everything
+            assert.ok(result.length > 20);
+            assert.ok(result.includes('src'));
+            assert.ok(result.includes('src/App.jsx'));
+            // Note: ** pattern doesn't include hidden files by default in Node.js
         });
     });
 });

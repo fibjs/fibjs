@@ -1,0 +1,11 @@
+{
+    "name": "test-workspace-nested",
+    "version": "1.0.0",
+    "workspaces": [
+        "apps/*",
+        "libs/*"
+    ],
+    "devDependencies": {
+        "lodash": "^4.17.21"
+    }
+}

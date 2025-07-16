@@ -1,0 +1,10 @@
+{
+    "name": "test-workspace-root",
+    "version": "1.0.0",
+    "workspaces": [
+        "packages/*"
+    ],
+    "devDependencies": {
+        "lodash": "^4.17.21"
+    }
+}
