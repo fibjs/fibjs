@@ -122,6 +122,113 @@ function normalize_registry_origin(registry) {
 }
 // ---------------------- UTILS :end ------------------------- //
 
+// ---------------------- WORKSPACES UTILS :start ------------------------- //
+/**
+ * @description find all workspace packages based on workspaces config
+ */
+function find_workspace_packages(root_path, workspaces_config) {
+    if (!workspaces_config || !Array.isArray(workspaces_config)) {
+        return [];
+    }
+
+    const workspace_packages = [];
+
+    workspaces_config.forEach(pattern => {
+        const glob_pattern = path.join(root_path, pattern, 'package.json');
+
+        try {
+            const matched_files = fs.glob(glob_pattern);
+
+            matched_files.forEach(pkg_json_path => {
+                try {
+                    const pkg_dir = path.dirname(pkg_json_path);
+                    const pkg_info = JSON.parse(fs.readTextFile(pkg_json_path));
+
+                    if (pkg_info.name) {
+                        workspace_packages.push({
+                            name: pkg_info.name,
+                            version: pkg_info.version || '1.0.0',
+                            path: pkg_dir,
+                            relative_path: path.relative(root_path, pkg_dir),
+                            package_json: pkg_info
+                        });
+                    }
+                } catch (e) {
+                    console.warn(`[workspaces] Failed to read package.json at ${pkg_json_path}:`, e.message);
+                }
+            });
+        } catch (e) {
+            console.warn(`[workspaces] Failed to glob pattern ${pattern}:`, e.message);
+        }
+    });
+
+    return workspace_packages;
+}
+
+/**
+ * @description create symlinks for workspace packages
+ */
+function create_workspace_symlinks(root_path, workspace_packages) {
+    const node_modules_path = path.join(root_path, 'node_modules');
+
+    // ensure node_modules directory exists
+    if (!fs.exists(node_modules_path)) {
+        fs.mkdir(node_modules_path, { recursive: true });
+    }
+
+    workspace_packages.forEach(pkg => {
+        const link_path = path.join(node_modules_path, pkg.name);
+        const target_path = path.resolve(root_path, pkg.relative_path);
+
+        try {
+            // For scoped packages, ensure parent directory exists
+            const link_dir = path.dirname(link_path);
+            if (!fs.exists(link_dir)) {
+                fs.mkdir(link_dir, { recursive: true });
+            }
+
+            // remove existing symlink or directory
+            if (fs.exists(link_path)) {
+                const stats = fs.lstat(link_path);
+                if (stats.isSymbolicLink()) {
+                    fs.unlink(link_path);
+                } else if (stats.isDirectory()) {
+                    // don't remove if it's a real directory with installed packages
+                    console.warn(`[workspaces] Skipping ${pkg.name}: directory already exists`);
+                    return;
+                }
+            }
+
+            // create symlink
+            fs.symlink(target_path, link_path);
+
+        } catch (e) {
+            console.warn(`[workspaces] Failed to create symlink for ${pkg.name}:`, e.message);
+        }
+    });
+}
+
+/**
+ * @description add workspace packages to module snapshot
+ */
+function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
+    workspace_packages.forEach(pkg => {
+        // add workspace package to node_modules snapshot
+        rootsnap.node_modules[pkg.name] = {
+            version: pkg.version,
+            dep_vs: util.extend({}, pkg.package_json.dependencies),
+            dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
+            parent: rootsnap,
+            workspace_package: true,
+            workspace_path: pkg.path
+        };
+
+        // read nested node_modules if any
+        rootsnap.node_modules[pkg.name].node_modules = read_module(pkg.path, rootsnap.node_modules[pkg.name]);
+    });
+}
+// ---------------------- WORKSPACES UTILS :end ------------------------- //
+
 function sha1(data) {
     return crypto.createHash('sha1').update(data).digest('hex');
 }
@@ -249,15 +356,17 @@ function fetch_leveled_module_info(m, v, parent) {
 
 function get_root_snapshot() {
     const pwd = process.cwd();
-    const root_is_new = true;
+    let root_is_new = true;
 
     let pkgjson = {};
     try {
+        const pkgjson_path = path.join(pwd, 'package.json');
         pkgjson = JSON.parse(
-            fs.readTextFile(path.join(pwd, 'package.json'))
+            fs.readTextFile(pkgjson_path)
         );
         root_is_new = false;
     } catch (e) {
+        // package.json doesn't exist, create default
     }
     pkgjson.name = pkgjson.name || (path.basename(pwd, path.extname(pwd))).toLowerCase();
     pkgjson.version = pkgjson.version || '1.0.0';
@@ -275,9 +384,24 @@ function get_root_snapshot() {
         new_module: true,
         registry: registry,
         root_is_new: root_is_new,
-        pkgjson: pkgjson
+        pkgjson: pkgjson,
+        workspaces: pkgjson.workspaces
     };
+
     m.node_modules = read_module(pwd, m);
+
+    // handle workspaces
+    if (m.workspaces) {
+        const workspace_packages = find_workspace_packages(pwd, m.workspaces);
+
+        if (workspace_packages.length > 0) {
+            // create symlinks for workspace packages
+            create_workspace_symlinks(pwd, workspace_packages);
+
+            // add workspace packages to snapshot
+            add_workspace_packages_to_snapshot(m, workspace_packages);
+        }
+    }
 
     return m;
 }
@@ -300,6 +424,11 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
 
                     let v = _deps[dname];
                     let child_level_info = level_info.node_modules[dname];
+
+                    // check if this is a workspace package - skip external fetch if so
+                    if (child_level_info && child_level_info.workspace_package) {
+                        return;
+                    }
 
                     if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
                         if (!find_version(dname, v, level_info))
@@ -352,7 +481,7 @@ function move_up(level_info, parent) {
         if (parent !== undefined)
             for (let k in level_info.node_modules) {
                 const m = level_info.node_modules[k];
-                if (m.new_module) {
+                if (m.new_module && !m.workspace_package) { // don't move workspace packages
                     const m1 = parent.node_modules[k];
                     if (m1 === undefined || m1.version === m.version) {
                         parent.node_modules[k] = m;
@@ -376,7 +505,7 @@ function generate_mv_paths(level_info, parent_p) {
             const lmod = level_info.node_modules[k];
             const bp = path.join(parent_p, 'node_modules');
 
-            if (lmod.new_module) {
+            if (lmod.new_module && !lmod.workspace_package) { // don't generate download paths for workspace packages
                 const mv = k + '@' + lmod.version;
 
                 let ps = mv_paths[mv];
@@ -625,7 +754,7 @@ function download_module() {
                                 fs.writeFile(cli_link + ".ps1", scripts.ps1);
                             } else {
                                 fs.symlink(cli_file_r, cli_link);
-                                fs.chmod(cli_file, 0755);
+                                fs.chmod(cli_file, 0o755);
                             }
                         } catch (e) {
                             console.log(e);
@@ -728,6 +857,7 @@ if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1
 }
 
 const rootsnap = get_root_snapshot();
+
 if (!pkgjson_path_specified) {
     // when specified new_pkgname, install it only
     ctx.new_pkgname = process.argv.slice(2).filter(x => !x.startsWith('-'))[0];
