@@ -17,9 +17,12 @@ function install_npm(testDir) {
         });
         console.log('[TEST DEBUG] fibjs install completed with code:', npmInstall.status);
     } else {
-        const npmInstall = child_process.spawnSync('npm', ['install'], {
+        // Use npm.cmd on Windows for better compatibility
+        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+        const npmInstall = child_process.spawnSync(npmCommand, ['install'], {
             cwd: testDir,
-            stdio: 'pipe'
+            stdio: 'inherit',
+            shell: process.platform === 'win32' // Use shell on Windows
         });
     }
 }
@@ -89,7 +92,21 @@ describe("workspaces test", () => {
                 if (fs.existsSync(filePath)) {
                     const stats = fs.lstatSync(filePath);
                     if (stats.isDirectory()) {
-                        fs.rmSync(filePath, { recursive: true, force: true });
+                        // Use recursive directory removal that works in both Node.js and FibJS
+                        function removeDir(dirPath) {
+                            const files = fs.readdirSync(dirPath);
+                            files.forEach(file => {
+                                const fullPath = path.join(dirPath, file);
+                                const stat = fs.lstatSync(fullPath);
+                                if (stat.isDirectory()) {
+                                    removeDir(fullPath);
+                                } else {
+                                    fs.unlinkSync(fullPath);
+                                }
+                            });
+                            fs.rmdirSync(dirPath);
+                        }
+                        removeDir(filePath);
                     } else {
                         fs.unlinkSync(filePath);
                     }

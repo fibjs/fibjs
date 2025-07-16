@@ -199,8 +199,14 @@ function create_workspace_symlinks(root_path, workspace_packages) {
                 }
             }
 
-            // create symlink
-            fs.symlink(target_path, link_path);
+            // create symlink or junction based on platform
+            if (process.platform === 'win32') {
+                // Use junction on Windows to avoid permission issues
+                fs.symlink(target_path, link_path, 'junction');
+            } else {
+                // Use symlink on Unix-like systems
+                fs.symlink(target_path, link_path);
+            }
 
         } catch (e) {
             console.warn(`[workspaces] Failed to create symlink for ${pkg.name}:`, e.message);
