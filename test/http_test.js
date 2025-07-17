@@ -1753,6 +1753,62 @@ describe("http", () => {
                 });
             });
         });
+
+        describe("MIME type detection", () => {
+            var mimeTestFolder = path.join(__dirname, 'http_files/mime');
+            var mimeHandler = new http.fileHandler(mimeTestFolder);
+
+            function test_mime_type(filename, expectedContentType) {
+                var req = new http.Request();
+                req.value = "/" + filename;
+                mimeHandler.invoke(req);
+                var resp = req.response;
+                assert.equal(resp.statusCode, 200, `File ${filename} should be found`);
+                assert.equal(resp.firstHeader('Content-Type'), expectedContentType, 
+                    `File ${filename} should have content-type ${expectedContentType}`);
+                return resp;
+            }
+
+            it("JavaScript files (.js)", () => {
+                var resp = test_mime_type('test.js', 'application/javascript');
+                resp.clear();
+            });
+
+            it("HTML files (.html)", () => {
+                var resp = test_mime_type('test.html', 'text/html');
+                resp.clear();
+            });
+
+            it("CSS files (.css)", () => {
+                var resp = test_mime_type('test.css', 'text/css');
+                resp.clear();
+            });
+
+            it("JSON files (.json)", () => {
+                var resp = test_mime_type('test.json', 'application/json');
+                resp.clear();
+            });
+
+            it("Markdown files (.md)", () => {
+                var resp = test_mime_type('test.md', 'text/markdown');
+                resp.clear();
+            });
+
+            it("CSV files (.csv)", () => {
+                var resp = test_mime_type('test.csv', 'text/csv');
+                resp.clear();
+            });
+
+            it("Plain text files (.txt)", () => {
+                var resp = test_mime_type('test.txt', 'text/plain');
+                resp.clear();
+            });
+
+            it("XML files (.xml)", () => {
+                var resp = test_mime_type('test.xml', 'application/xml');
+                resp.clear();
+            });
+        });
     });
 
     describe("server/global request", () => {

@@ -1,0 +1,12 @@
+{
+    "name": "test-package",
+    "version": "1.0.0",
+    "description": "Test JSON file for MIME type testing",
+    "main": "test.js",
+    "scripts": {
+        "test": "echo \"Test script\""
+    },
+    "keywords": ["test", "mime", "json"],
+    "author": "test",
+    "license": "MIT"
+}

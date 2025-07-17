@@ -1161,7 +1161,7 @@ static const MimeType s_mimeTypes[] = {
     { "xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template" },
     { "xlw", "application/vnd.ms-excel" },
     { "xm", "audio/xm" },
-    { "xml", "text/xml" },
+    { "xml", "application/xml" },
     { "xns", "application/xcap-ns+xml" },
     { "xo", "application/vnd.olpc-sugar" },
     { "xop", "application/xop+xml" },

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <data>
+        <item id="1">
+            <name>Test Item 1</name>
+            <value>100</value>
+        </item>
+        <item id="2">
+            <name>Test Item 2</name>
+            <value>200</value>
+        </item>
+    </data>
+    <metadata>
+        <created>2025-01-01</created>
+        <author>Test Author</author>
+    </metadata>
+</root>

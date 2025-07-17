@@ -1,0 +1,11 @@
+Name: Test User
+Email: test@example.com
+Age: 25
+City: Test City
+
+This is a plain text file for MIME type testing.
+It contains multiple lines of text content.
+
+Line 1: Hello World
+Line 2: This is line 2
+Line 3: Testing content-type detection

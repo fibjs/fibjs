@@ -14,7 +14,7 @@ describe('mime', function () {
         assert.equal(mime.getType('a.bmp'), 'image/bmp');
         assert.equal(mime.getType('a.ico'), 'image/x-icon');
         assert.equal(mime.getType('a.json'), 'application/json');
-        assert.equal(mime.getType('a.xml'), 'text/xml');
+        assert.equal(mime.getType('a.xml'), 'application/xml');
         assert.equal(mime.getType('a.txt'), 'text/plain');
         assert.equal(mime.getType('a.a'), 'application/octet-stream');
     });
@@ -29,7 +29,7 @@ describe('mime', function () {
         assert.equal(mime.getType('bmp'), 'image/bmp');
         assert.equal(mime.getType('ico'), 'image/x-icon');
         assert.equal(mime.getType('json'), 'application/json');
-        assert.equal(mime.getType('xml'), 'text/xml');
+        assert.equal(mime.getType('xml'), 'application/xml');
         assert.equal(mime.getType('txt'), 'text/plain');
         assert.equal(mime.getType('a'), 'application/octet-stream');
     });
