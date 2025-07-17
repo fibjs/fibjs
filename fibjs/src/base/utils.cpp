@@ -135,7 +135,7 @@ exlib::string getResultMessage(result_t hr)
         exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
-        if (sz > 0 && s.c_str()[sz - 1] == '\n')
+        if (sz > 0 && s[sz - 1] == '\n')
             s.resize(sz - 1);
         return s;
     }

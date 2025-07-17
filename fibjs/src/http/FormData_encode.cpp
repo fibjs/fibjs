@@ -89,7 +89,7 @@ static bool parseBoundary(const char* contentType, exlib::string& boundary)
     // RFC 2046: Validate boundary characters
     // Allowed: DIGIT / ALPHA / "'" / "(" / ")" / "+" / "_" / "," / "-" / "." / "/" / ":" / "=" / "?"
     for (size_t i = 0; i < boundary.length(); i++) {
-        char c = boundary.c_str()[i];
+        char c = boundary[i];
         if (!((c >= '0' && c <= '9') || // DIGIT
                 (c >= 'A' && c <= 'Z') || // ALPHA (uppercase)
                 (c >= 'a' && c <= 'z') || // ALPHA (lowercase)

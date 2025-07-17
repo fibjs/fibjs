@@ -60,7 +60,7 @@ result_t path_posix_base::fullpath(exlib::string path, exlib::string& retVal)
 
 result_t path_posix_base::isAbsolute(exlib::string path, bool& retVal)
 {
-    retVal = isPosixPathSlash(path.c_str()[0]);
+    retVal = isPosixPathSlash(path[0]);
     return 0;
 }
 

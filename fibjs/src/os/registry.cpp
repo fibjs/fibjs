@@ -96,7 +96,7 @@ public:
         exlib::string path;
         exlib::string sk;
 
-        if ((key.length() > 0) && (key.c_str()[key.length() - 1] == '\\'))
+        if ((key.length() > 0) && (key[key.length() - 1] == '\\'))
             path = key.substr(0, key.length() - 1);
         else {
             path_base::dirname(key, path);

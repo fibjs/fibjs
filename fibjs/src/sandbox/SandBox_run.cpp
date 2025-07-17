@@ -32,7 +32,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
     bool is_exec = false;
 
     while (true) {
-        if (fname.c_str()[0] == '-' && fname.c_str()[1] == '-') {
+        if (fname[0] == '-' && fname[1] == '-') {
             int32_t i;
             exlib::string tmp("opt_tools/");
             tmp += fname.c_str() + 2;

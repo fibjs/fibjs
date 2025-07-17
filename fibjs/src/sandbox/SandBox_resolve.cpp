@@ -189,7 +189,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
         v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
         v8::Local<v8::String> strImports = isolate->NewString("imports", 7);
-        bool is_internal = script_name.c_str()[0] == '#';
+        bool is_internal = script_name[0] == '#';
         JSValue exports = o->Get(context, is_internal ? strImports : strExports);
         if (!IsEmpty(exports)) {
             exlib::string script_part;
@@ -431,7 +431,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     if (extname.empty())
         return CALL_E_INVALIDARG;
 
-    if (extname.c_str()[0] != '.')
+    if (extname[0] != '.')
         return CALL_E_INVALIDARG;
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
@@ -555,11 +555,11 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             return 0;
         }
 
-        if (isPathSlash(base.c_str()[base.length() - 1]))
+        if (isPathSlash(base[base.length() - 1]))
             base.resize(base.length() - 1);
         fname = base;
 
-        if (id.c_str()[0] == '#') {
+        if (id[0] == '#') {
             while (true) {
                 base = fname;
 
@@ -581,7 +581,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 return CHECK_ERROR(CALL_E_PATH_NOT_FOUND);
             else if (paths.size() == 1) {
                 module_name = paths[0];
-            } else if (paths[0].c_str()[0] == '@') {
+            } else if (paths[0][0] == '@') {
                 module_name = paths[0] + PATH_SLASH + paths[1];
 
                 for (i = 2; i < (int32_t)paths.size(); i++) {

@@ -141,7 +141,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_lock.unlock();
 
             exlib::string pathname = u->pathname();
-            if (!isUrlSlash(v.c_str()[0]))
+            if (!isUrlSlash(v[0]))
                 pathname.append(1, '/');
 
             pathname.append(v);

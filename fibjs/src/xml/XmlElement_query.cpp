@@ -373,8 +373,8 @@ static bool parseNthExpression(const exlib::string& nthValue, int& a, int& b)
     // Remove all spaces first
     exlib::string trimmed;
     for (size_t i = 0; i < nthValue.length(); i++) {
-        if (!qisspace(nthValue.c_str()[i])) {
-            trimmed += nthValue.c_str()[i];
+        if (!qisspace(nthValue[i])) {
+            trimmed += nthValue[i];
         }
     }
 
@@ -882,10 +882,10 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                 } else if (!qstrcmp(comp.attrValue.c_str(), "|=", 2)) {
                     // Language match - exact match or prefix followed by hyphen
                     exlib::string lang = comp.attrValue.substr(2);
-                    if (attrValue != lang && (attrValue.length() <= lang.length() || attrValue.substr(0, lang.length()) != lang || (attrValue.length() > lang.length() && attrValue.c_str()[lang.length()] != '-'))) {
+                    if (attrValue != lang && (attrValue.length() <= lang.length() || attrValue.substr(0, lang.length()) != lang || (attrValue.length() > lang.length() && attrValue[lang.length()] != '-'))) {
                         return false;
                     }
-                } else if (comp.attrValue.c_str()[0] == '=') {
+                } else if (comp.attrValue[0] == '=') {
                     // Exact match
                     exlib::string exact = comp.attrValue.substr(1);
                     if (attrValue != exact) {
@@ -931,7 +931,7 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
             } else if (!qstrcmp(comp.value.c_str(), "nth-child(", 10)) {
                 // Handle nth-child(n) - enhanced implementation
                 exlib::string nthValue = comp.value.substr(10);
-                if (!nthValue.empty() && nthValue.c_str()[nthValue.length() - 1] == ')') {
+                if (!nthValue.empty() && nthValue[nthValue.length() - 1] == ')') {
                     nthValue = nthValue.substr(0, nthValue.length() - 1); // remove ')'
 
                     int a, b;
@@ -976,7 +976,7 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
             } else if (!qstrcmp(comp.value.c_str(), "nth-last-child(", 15)) {
                 // Handle nth-last-child(n) - count from the end
                 exlib::string nthValue = comp.value.substr(15);
-                if (!nthValue.empty() && nthValue.c_str()[nthValue.length() - 1] == ')') {
+                if (!nthValue.empty() && nthValue[nthValue.length() - 1] == ')') {
                     nthValue = nthValue.substr(0, nthValue.length() - 1); // remove ')'
 
                     int a, b;
@@ -1149,7 +1149,7 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
             } else if (!qstrcmp(comp.value.c_str(), "nth-of-type(", 12)) {
                 // Handle nth-of-type(n) - similar to nth-child but only count elements of same type
                 exlib::string nthValue = comp.value.substr(12);
-                if (!nthValue.empty() && nthValue.c_str()[nthValue.length() - 1] == ')') {
+                if (!nthValue.empty() && nthValue[nthValue.length() - 1] == ')') {
                     nthValue = nthValue.substr(0, nthValue.length() - 1); // remove ')'
 
                     int a, b;

@@ -231,14 +231,14 @@ result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> optio
             if (p[i] == PATH_SLASH_WIN32)
                 p[i] = URL_SLASH;
 
-        if (isWin32PathSlash(path.c_str()[path.length() - 1])
-            && resolved.c_str()[resolved.length() - 1] != URL_SLASH)
+        if (isWin32PathSlash(path[path.length() - 1])
+            && resolved[resolved.length() - 1] != URL_SLASH)
             resolved.append(1, URL_SLASH);
     } else {
         _resolve(resolved);
 
-        if (isPosixPathSlash(path.c_str()[path.length() - 1])
-            && resolved.c_str()[resolved.length() - 1] != URL_SLASH)
+        if (isPosixPathSlash(path[path.length() - 1])
+            && resolved[resolved.length() - 1] != URL_SLASH)
             resolved.append(1, URL_SLASH);
     }
 

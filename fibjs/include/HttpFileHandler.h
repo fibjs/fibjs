@@ -22,7 +22,7 @@ private:
         , m_isDir(isDir)
         , m_autoIndex(autoIndex)
     {
-        if (!m_root.empty() && isDir && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
+        if (!m_root.empty() && isDir && !isPathSlash(m_root[m_root.length() - 1]))
             m_root += PATH_SLASH;
     }
 

@@ -131,7 +131,7 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
                 // Convert to lowercase
                 exlib::string lowerType;
                 for (size_t i = 0; i < type.length(); i++) {
-                    char ch = type.c_str()[i];
+                    char ch = type[i];
                     if (ch >= 'A' && ch <= 'Z') {
                         lowerType += (ch + 32);
                     } else {

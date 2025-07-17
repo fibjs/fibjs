@@ -681,7 +681,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 m_ssl = true;
                 m_connUrl = "ssl://";
             } else if (protocol == "http:") {
-                if (host.c_str()[0] == '/') {
+                if (host[0] == '/') {
                     _domain = true;
                     m_connUrl = "unix:";
                 } else
@@ -765,7 +765,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
-                bool socks = m_http_proxy.c_str()[0] == 's';
+                bool socks = m_http_proxy[0] == 's';
 
                 if (m_ssl && !socks) {
                     exlib::string host = m_connUrl.substr(6);
@@ -838,7 +838,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             exlib::string strBuffer;
 
             m_buffer->toString(strBuffer);
-            if (strBuffer.length() != 2 || strBuffer.c_str()[0] != 5 || strBuffer.c_str()[1] != 0)
+            if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
                 return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 handshake failed."));
 
             obj_ptr<Url> u = new Url();
@@ -973,7 +973,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             bool keepAlive;
             m_retVal->get_keepAlive(keepAlive);
             if (keepAlive) {
-                if (m_http_proxy.empty() || m_http_proxy.c_str()[0] == 's' || !m_sslhost.empty())
+                if (m_http_proxy.empty() || m_http_proxy[0] == 's' || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else
                     m_hc->save_conn(m_http_proxy, m_conn);

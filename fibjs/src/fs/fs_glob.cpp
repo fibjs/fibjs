@@ -57,8 +57,8 @@ static exlib::string normalizePath(const exlib::string& path)
     exlib::string result = path;
     // Replace all forward slashes with backslashes on Windows
     for (size_t i = 0; i < result.length(); ++i) {
-        if (result.c_str()[i] == '/') {
-            result.data()[i] = '\\';
+        if (result[i] == '/') {
+            result[i] = '\\';
         }
     }
     return result;
@@ -102,15 +102,15 @@ static bool isAbsolutePattern(const exlib::string& pattern)
 
 #ifdef _WIN32
     // Windows: check for drive letter (C:\ or C:/) or UNC path (\\server\share)
-    if (pattern.length() >= 3 && pattern.c_str()[1] == ':' && isPathSlash(pattern.c_str()[2])) {
+    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
         return true; // Drive letter format like C:\ or C:/
     }
-    if (pattern.length() >= 2 && pattern.c_str()[0] == '\\' && pattern.c_str()[1] == '\\') {
+    if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
         return true; // UNC path like \\server\share
     }
     return false;
 #else
-    return pattern.c_str()[0] == PATH_SLASH;
+    return pattern[0] == PATH_SLASH;
 #endif
 }
 
@@ -174,9 +174,9 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
 
     while (pos < pattern.length()) {
 #ifdef _WIN32
-        if (pattern.c_str()[pos] == '/' || pattern.c_str()[pos] == '\\') {
+        if (pattern[pos] == '/' || pattern[pos] == '\\') {
 #else
-        if (pattern.c_str()[pos] == '/') {
+        if (pattern[pos] == '/') {
 #endif
             if (pos > start) {
                 components.push_back(pattern.substr(start, pos - start));
@@ -192,9 +192,9 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
     } else if (start == pattern.length() && pattern.length() > 0) {
         // Pattern ends with '/', add empty component to preserve the trailing slash meaning
 #ifdef _WIN32
-        if (pattern.c_str()[pattern.length() - 1] == '/' || pattern.c_str()[pattern.length() - 1] == '\\') {
+        if (pattern[pattern.length() - 1] == '/' || pattern[pattern.length() - 1] == '\\') {
 #else
-        if (pattern.c_str()[pattern.length() - 1] == '/') {
+        if (pattern[pattern.length() - 1] == '/') {
 #endif
             components.push_back("");
         }
@@ -268,9 +268,9 @@ static void walkDirectorySimple(
     if (pattern.length() >= 2 && pattern.substr(pattern.length() - 2) == "**") {
         // Check if we need to match a prefix pattern
 #ifdef _WIN32
-        if (pattern.length() > 2 && (pattern.c_str()[pattern.length() - 3] == '/' || pattern.c_str()[pattern.length() - 3] == '\\')) {
+        if (pattern.length() > 2 && (pattern[pattern.length() - 3] == '/' || pattern[pattern.length() - 3] == '\\')) {
 #else
-        if (pattern.length() > 2 && pattern.c_str()[pattern.length() - 3] == '/') {
+        if (pattern.length() > 2 && pattern[pattern.length() - 3] == '/') {
 #endif
             // Pattern like "src/**" - extract prefix "src"
             exlib::string prefix = pattern.substr(0, pattern.length() - 3);
@@ -324,9 +324,9 @@ static void walkDirectorySimple(
 
         // Special handling for patterns ending with '/' - only match directories
 #ifdef _WIN32
-        if (pattern.length() > 0 && (pattern.c_str()[pattern.length() - 1] == '/' || pattern.c_str()[pattern.length() - 1] == '\\')) {
+        if (pattern.length() > 0 && (pattern[pattern.length() - 1] == '/' || pattern[pattern.length() - 1] == '\\')) {
 #else
-        if (pattern.length() > 0 && pattern.c_str()[pattern.length() - 1] == '/') {
+        if (pattern.length() > 0 && pattern[pattern.length() - 1] == '/') {
 #endif
             if (dirent.type == UV_DIRENT_DIR) {
                 exlib::string dirPattern = pattern.substr(0, pattern.length() - 1);
@@ -456,14 +456,14 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 #ifdef _WIN32
                     // First component has wildcard, we need to handle drive letter
                     // Extract drive letter from original pattern if present
-                    if (pattern.length() >= 3 && pattern.c_str()[1] == ':' && isPathSlash(pattern.c_str()[2])) {
+                    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
                         basePath = pattern.substr(0, 3); // e.g., "C:\"
-                    } else if (pattern.length() >= 2 && pattern.c_str()[0] == '\\' && pattern.c_str()[1] == '\\') {
+                    } else if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
                         // UNC path - find the first component (\\server\share)
                         size_t pos = 2;
                         int backslashCount = 0;
                         while (pos < pattern.length() && backslashCount < 2) {
-                            if (pattern.c_str()[pos] == '\\') {
+                            if (pattern[pos] == '\\') {
                                 backslashCount++;
                             }
                             pos++;
@@ -480,7 +480,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                     // Build base path from components before wildcard
 #ifdef _WIN32
                     // Handle Windows drive letter
-                    if (pattern.length() >= 3 && pattern.c_str()[1] == ':' && isPathSlash(pattern.c_str()[2])) {
+                    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
                         // For patterns like "D:\path\*.js", components are ["D:", "path", "*.js"]
                         // We need to join "D:" with the path components correctly
                         if (wildcardIndex > 1) {
@@ -488,7 +488,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                         } else {
                             basePath = components[0] + "\\";
                         }
-                    } else if (pattern.length() >= 2 && pattern.c_str()[0] == '\\' && pattern.c_str()[1] == '\\') {
+                    } else if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
                         // UNC path
                         basePath = "\\\\" + joinComponents(components, 0, wildcardIndex);
                     } else {
@@ -510,7 +510,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                 for (const auto& result : tempResults) {
                     exlib::string absolutePath;
 #ifdef _WIN32
-                    if (basePath.length() > 0 && basePath.c_str()[basePath.length() - 1] == '\\') {
+                    if (basePath.length() > 0 && basePath[basePath.length() - 1] == '\\') {
                         absolutePath = basePath + result.path;
                     } else {
                         absolutePath = basePath + "\\" + result.path;

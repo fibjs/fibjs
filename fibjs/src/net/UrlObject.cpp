@@ -225,7 +225,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         url += ada::idna::to_ascii(str);
         hasHost = true;
     } else if (GetConfigValue(isolate, args, "hostname", str, true) >= 0) {
-        if (str.find(':') != exlib::string::npos && str.c_str()[0] != '[')
+        if (str.find(':') != exlib::string::npos && str[0] != '[')
             url += '[' + str + ']';
         else
             url += ada::idna::to_ascii(str);
@@ -238,7 +238,7 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
         if (hasHost && !isJavascript) {
-            if (!is_slash(str.c_str()[0]))
+            if (!is_slash(str[0]))
                 url += "/";
             Url::encodeURI(str, str, pathTable);
         }
@@ -613,7 +613,7 @@ result_t Url::parse_search_params()
 {
     if (!m_searchParams) {
         exlib::string search = m_url->get_search();
-        if (search.c_str()[0] == '?')
+        if (search[0] == '?')
             search = search.substr(1); // Remove leading '?'
 
         m_searchParams = new URLSearchParams();
