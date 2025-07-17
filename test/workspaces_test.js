@@ -9,13 +9,11 @@ const isFibjs = typeof process !== 'undefined' && process.versions && process.ve
 
 function install_npm(testDir) {
     if (isFibjs) {
-        console.log('[TEST DEBUG] Running fibjs install in:', testDir);
         const npmInstall = child_process.spawnSync(process.execPath, ['--install'], {
             cwd: testDir,
             stdio: 'inherit',
             env: { ...process.env, FIBJS_SILENT_INSALL: undefined } // explicitly unset to enable logging
         });
-        console.log('[TEST DEBUG] fibjs install completed with code:', npmInstall.status);
     } else {
         // Use npm.cmd on Windows for better compatibility
         const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -79,6 +77,23 @@ const tests = [
                 to: 'service-b'
             }
         ]
+    },
+    {
+        description: "should install dependencies for workspace packages",
+        testDir: 'deps_workspace',
+        symlinks: [
+            {
+                from: 'packages/simple-pkg',
+                to: 'simple-pkg'
+            }
+        ],
+        // Verify that workspace package dependencies are installed
+        dependencies: [
+            {
+                packageName: 'simple-pkg',
+                dependency: 'ms'
+            }
+        ]
     }
 ];
 
@@ -140,6 +155,26 @@ describe("workspaces test", () => {
                 const actualTarget = fs.realpathSync(symlinkPath);
                 assert.equal(actualTarget, expectedTarget, `${symlink.to} should be symlinked to ${symlink.from}`);
             });
+
+            // Verify workspace package dependencies are installed
+            if (test.dependencies) {
+                test.dependencies.forEach(dep => {
+                    const rootNodeModules = path.join(testDir, 'node_modules');
+                    const packageNodeModules = path.join(testDir, 'packages', dep.packageName, 'node_modules');
+
+                    // Check if dependency exists in root node_modules (hoisted)
+                    const depInRoot = path.join(rootNodeModules, dep.dependency);
+                    const depInPackage = path.join(packageNodeModules, dep.dependency);
+
+                    const rootExists = fs.existsSync(depInRoot);
+                    const packageExists = fs.existsSync(depInPackage);
+
+                    // Dependency should exist in either root or package node_modules
+                    const dependencyExists = rootExists || packageExists;
+                    assert.ok(dependencyExists,
+                        `Dependency '${dep.dependency}' should be installed for package '${dep.packageName}'`);
+                });
+            }
         });
     });
 });

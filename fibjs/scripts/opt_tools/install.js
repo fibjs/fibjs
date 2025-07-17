@@ -226,7 +226,8 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
             dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
             parent: rootsnap,
             workspace_package: true,
-            workspace_path: pkg.path
+            workspace_path: pkg.path,
+            new_module: true  // Mark as new module so dependencies will be processed
         };
 
         // read nested node_modules if any
@@ -431,8 +432,10 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
                     let v = _deps[dname];
                     let child_level_info = level_info.node_modules[dname];
 
-                    // check if this is a workspace package - skip external fetch if so
+                    // For workspace packages, skip external fetch but still process their dependencies
                     if (child_level_info && child_level_info.workspace_package) {
+                        // Ensure version matches for workspace packages
+                        if (child_level_info) _deps[dname] = child_level_info.version;
                         return;
                     }
 

@@ -1,0 +1,8 @@
+{
+    "name": "simple-pkg",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "ms": "^2.1.3"
+    }
+}
