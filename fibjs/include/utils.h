@@ -287,7 +287,7 @@ enum {
 
 #define LOAD_ENTER()                    \
     result_t hr = CALL_E_BADPARAMCOUNT; \
-    bool bStrict = false;               \
+    bool bStrict = true;                \
     int32_t argc1 = 1;                  \
     OptArgs args(v);                    \
     do {                                \
