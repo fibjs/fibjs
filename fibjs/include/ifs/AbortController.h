@@ -87,10 +87,6 @@ inline result_t AbortController_base::load(Isolate* isolate, v8::Local<v8::Value
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     LOAD_RETURN();
 }
 

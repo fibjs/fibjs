@@ -94,21 +94,6 @@ inline result_t RangeStream_base::load(Isolate* isolate, v8::Local<v8::Value> v,
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(exlib::string, 1);
-
-    hr = _new(v0.get(), v1, vr, args.This());
-
-    METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(int64_t, 1);
-    ARG(int64_t, 2);
-
-    hr = _new(v0.get(), v1, v2, vr, args.This());
-
     LOAD_RETURN();
 }
 

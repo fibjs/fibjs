@@ -113,30 +113,6 @@ inline result_t TLSServer_base::load(Isolate* isolate, v8::Local<v8::Value> v, o
 
     LOAD_ENTER();
 
-    METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(int32_t, 1);
-    ARG(obj_ptr<Handler_base>, 2);
-
-    hr = _new(v0.get(), v1, v2.get(), vr, args.This());
-
-    METHOD_OVER(4, 4);
-
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(exlib::string, 1);
-    ARG(int32_t, 2);
-    ARG(obj_ptr<Handler_base>, 3);
-
-    hr = _new(v0.get(), v1, v2, v3.get(), vr, args.This());
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = _new(v0, v1.get(), vr, args.This());
-
     LOAD_RETURN();
 }
 

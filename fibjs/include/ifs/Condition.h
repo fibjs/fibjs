@@ -95,10 +95,6 @@ inline result_t Condition_base::load(Isolate* isolate, v8::Local<v8::Value> v, o
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Lock_base>, 0);

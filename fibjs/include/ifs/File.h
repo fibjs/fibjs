@@ -86,14 +86,6 @@ inline result_t File_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_pt
 
     LOAD_ENTER();
 
-    METHOD_OVER(3, 2);
-
-    ARG(v8::Local<v8::Array>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
     LOAD_RETURN();
 }
 

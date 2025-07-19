@@ -261,7 +261,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     inst_mem_ovs
                 } = vary_overs(fn, def);
 
-                function make_ov_params(tp_overs) {
+                function make_ov_params(tp_overs, is_load = false) {
                     tp_overs.forEach(ov => {
                         var argc = 0;
                         var opts = 0;
@@ -305,6 +305,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                         params.push(`    ARG(${vt + ', ' + params.length});`);
                                 }
                             });
+                        }
+
+                        // For load function, only output constructor code with required parameters = 1
+                        if (is_load) {
+                            if (argc == 0 || opts > 1) {
+                                return;
+                            }
                         }
 
                         txts.push(`    METHOD_OVER(${argc}, ${opts});\n`);
@@ -380,7 +387,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     txts.push(`inline result_t ${cls}_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)\n{`);
                     txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
                     txts.push(`    LOAD_ENTER();\n`);
-                    make_ov_params(new_ovs);
+                    make_ov_params(new_ovs, true);
                     txts.push('    LOAD_RETURN();\n}\n');
                 });
 

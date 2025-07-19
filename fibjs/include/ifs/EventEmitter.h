@@ -144,10 +144,6 @@ inline result_t EventEmitter_base::load(Isolate* isolate, v8::Local<v8::Value> v
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     LOAD_RETURN();
 }
 

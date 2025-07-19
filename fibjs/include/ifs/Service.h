@@ -125,14 +125,6 @@ inline result_t Service_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
 
     LOAD_ENTER();
 
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
     LOAD_RETURN();
 }
 

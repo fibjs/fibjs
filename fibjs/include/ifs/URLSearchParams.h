@@ -101,10 +101,6 @@ inline result_t URLSearchParams_base::load(Isolate* isolate, v8::Local<v8::Value
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);

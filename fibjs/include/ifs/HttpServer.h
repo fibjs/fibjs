@@ -130,28 +130,6 @@ inline result_t HttpServer_base::load(Isolate* isolate, v8::Local<v8::Value> v, 
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = _new(v0, v1.get(), vr, args.This());
-
-    METHOD_OVER(3, 3);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(obj_ptr<Handler_base>, 2);
-
-    hr = _new(v0, v1, v2.get(), vr, args.This());
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = _new(v0, v1.get(), vr, args.This());
-
     LOAD_RETURN();
 }
 

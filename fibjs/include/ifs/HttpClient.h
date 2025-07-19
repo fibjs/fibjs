@@ -213,10 +213,6 @@ inline result_t HttpClient_base::load(Isolate* isolate, v8::Local<v8::Value> v, 
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<SecureContext_base>, 0);

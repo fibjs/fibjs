@@ -130,13 +130,6 @@ inline result_t Routing_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-
-    hr = _new(v0, v1, vr, args.This());
-
     LOAD_RETURN();
 }
 

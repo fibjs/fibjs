@@ -85,10 +85,6 @@ inline result_t Lock_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_pt
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     LOAD_RETURN();
 }
 

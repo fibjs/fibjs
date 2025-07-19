@@ -94,10 +94,6 @@ inline result_t Headers_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);

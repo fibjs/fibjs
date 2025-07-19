@@ -134,14 +134,6 @@ inline result_t HttpCookie_base::load(Isolate* isolate, v8::Local<v8::Value> v, 
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
     LOAD_RETURN();
 }
 

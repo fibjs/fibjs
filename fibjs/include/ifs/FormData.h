@@ -133,22 +133,11 @@ inline result_t FormData_base::load(Isolate* isolate, v8::Local<v8::Value> v, ob
 
     LOAD_ENTER();
 
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
-
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
     hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
-
-    hr = _new(v0.get(), v1, vr, args.This());
 
     METHOD_OVER(2, 1);
 
