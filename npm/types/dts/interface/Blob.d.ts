@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description Blob 对象用于表示不可变的原始数据块，兼容 Web 标准 Blob API。
  * 
@@ -40,6 +41,16 @@ declare class Class_Blob extends Class_object {
      *     
      */
     constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
+
+    /**
+     * @description Blob 对象构造函数
+     *         
+     *      创建一个新的 Blob 实例，可指定数据内容和类型。
+     *      @param blobData 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型
+     *      @param options 选项对象，包含 type（MIME 类型）和 endings（换行符处理方式）属性
+     *     
+     */
+    constructor(blobData: Class_Buffer, options?: FIBJS.GeneralObject);
 
     /**
      * @description Blob 对象类型，返回 Blob 的 MIME 类型（如 "text/plain"、"image/png" 等），只读属性。

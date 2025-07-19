@@ -14,6 +14,16 @@ result_t Blob_base::_new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> o
     return blob->m_impl.initialize(blobParts, options);
 }
 
+result_t Blob_base::_new(Buffer_base* blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(This);
+
+    v8::Local<v8::Array> blobParts = v8::Array::New(isolate->m_isolate, 1);
+    blobParts->Set(isolate->context(), 0, blobData->wrap());
+
+    return _new(blobParts, options, retVal, This);
+}
+
 result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -33,6 +43,36 @@ result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
 
     retVal = file;
     return file->m_impl.initialize(blobParts, options);
+}
+
+result_t File_base::_new(Buffer_base* blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(This);
+
+    v8::Local<v8::Array> blobParts = v8::Array::New(isolate->m_isolate, 1);
+    blobParts->Set(isolate->context(), 0, blobData->wrap());
+
+    return _new(blobParts, name, options, retVal, This);
+}
+
+result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(This);
+    result_t hr;
+    obj_ptr<Buffer_base> blobData;
+    exlib::string name;
+
+    hr = GetConfigValue(isolate, options, "data", blobData);
+    if (hr < 0) {
+        return hr;
+    }
+
+    hr = GetConfigValue(isolate, options, "name", name, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL) {
+        return hr;
+    }
+
+    return _new(blobData, name, options, retVal, This);
 }
 
 result_t BlobImpl::get_type(exlib::string& retVal)

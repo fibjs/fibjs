@@ -47,6 +47,42 @@ describe("Blob API", () => {
             assert.strictEqual(blob.size, 0);
             assert.strictEqual(blob.type, '');
         });
+
+        it("Blob constructor - with Buffer", () => {
+            // Test new constructor: Blob(Buffer blobData, Object options = {})
+            const buffer = Buffer.from('hello world', 'utf8');
+            const blob = new Blob(buffer);
+
+            assert.strictEqual(blob.size, 11);
+            assert.strictEqual(blob.type, '');
+        });
+
+        it("Blob constructor - with Buffer and options", () => {
+            // Test new constructor: Blob(Buffer blobData, Object options = {})
+            const buffer = Buffer.from('{"key": "value"}', 'utf8');
+            const blob = new Blob(buffer, { type: 'application/json' });
+
+            assert.strictEqual(blob.size, 16);
+            assert.strictEqual(blob.type, 'application/json');
+        });
+
+        it("Blob constructor - with empty Buffer", () => {
+            // Test with empty Buffer
+            const buffer = Buffer.alloc(0);
+            const blob = new Blob(buffer);
+
+            assert.strictEqual(blob.size, 0);
+            assert.strictEqual(blob.type, '');
+        });
+
+        it("Blob constructor - with binary Buffer", () => {
+            // Test with binary data in Buffer
+            const buffer = Buffer.from([0x00, 0x01, 0x02, 0xFF, 0xFE]);
+            const blob = new Blob(buffer, { type: 'application/octet-stream' });
+
+            assert.strictEqual(blob.size, 5);
+            assert.strictEqual(blob.type, 'application/octet-stream');
+        });
     });
 
     // Constructor with Different Data Types
@@ -984,6 +1020,226 @@ describe("File API", () => {
         // 不传递文件名参数，应该抛出 TypeError
         assert.throws(() => {
             new File(['abc']);
+        });
+    });
+
+    // Test new File constructors
+    describe("File constructor - New constructors", () => {
+        it("File constructor - with Buffer and name", () => {
+            // Test new constructor: File(Buffer blobData, String name, Object options = {})
+            const buffer = Buffer.from('hello file', 'utf8');
+            const file = new File(buffer, 'test.txt');
+
+            assert.strictEqual(file.name, 'test.txt');
+            assert.strictEqual(file.size, 10);
+            assert.strictEqual(file.type, '');
+            assert.ok(typeof file.lastModified === 'number');
+        });
+
+        it("File constructor - with Buffer, name and options", () => {
+            // Test new constructor: File(Buffer blobData, String name, Object options = {})
+            const buffer = Buffer.from('{"data": "test"}', 'utf8');
+            const now = Date.now();
+            const file = new File(buffer, 'data.json', {
+                type: 'application/json',
+                lastModified: now
+            });
+
+            assert.strictEqual(file.name, 'data.json');
+            assert.strictEqual(file.size, 16);
+            assert.strictEqual(file.type, 'application/json');
+            assert.strictEqual(file.lastModified, now);
+        });
+
+        it("File constructor - with empty Buffer", () => {
+            // Test with empty Buffer
+            const buffer = Buffer.alloc(0);
+            const file = new File(buffer, 'empty.txt');
+
+            assert.strictEqual(file.name, 'empty.txt');
+            assert.strictEqual(file.size, 0);
+            assert.strictEqual(file.type, '');
+        });
+
+        it("File constructor - with binary Buffer", () => {
+            // Test with binary data in Buffer
+            const buffer = Buffer.from([0x89, 0x50, 0x4E, 0x47]); // PNG header
+            const file = new File(buffer, 'image.png', { type: 'image/png' });
+
+            assert.strictEqual(file.name, 'image.png');
+            assert.strictEqual(file.size, 4);
+            assert.strictEqual(file.type, 'image/png');
+        });
+
+        it("File constructor - with options object only", () => {
+            // Test new constructor: File(Object options = {})
+            const buffer = Buffer.from('content from options', 'utf8');
+            const now = Date.now();
+            const file = new File({
+                data: buffer,
+                name: 'options.txt',
+                type: 'text/plain',
+                lastModified: now
+            });
+
+            assert.strictEqual(file.name, 'options.txt');
+            assert.strictEqual(file.size, 20);
+            assert.strictEqual(file.type, 'text/plain');
+            assert.strictEqual(file.lastModified, now);
+        });
+
+        it("File constructor - options object with minimal parameters", () => {
+            // Test with only required parameters in options
+            const buffer = Buffer.from('minimal', 'utf8');
+            const file = new File({
+                data: buffer,
+                name: 'minimal.txt'
+            });
+
+            assert.strictEqual(file.name, 'minimal.txt');
+            assert.strictEqual(file.size, 7);
+            assert.strictEqual(file.type, '');
+            assert.ok(typeof file.lastModified === 'number');
+
+            // lastModified should be close to current time
+            const delta = Math.abs(Date.now() - file.lastModified);
+            assert.ok(delta < 10000, `lastModified should be close to now, got delta=${delta}`);
+        });
+
+        it("File constructor - options object without data", () => {
+            // Test with options object missing data parameter
+            // Based on the error, data parameter is required in fibjs
+            assert.throws(() => {
+                new File({
+                    name: 'no-data.txt',
+                    type: 'text/plain'
+                });
+            }, Error, "property data is not optional");
+        });
+
+        it("File constructor - options object missing name", () => {
+            // Test options constructor behavior when name is missing
+            const buffer = Buffer.from('test data', 'utf8');
+
+            // This should either throw or use empty string as name
+            if (isFibjs) {
+                // In fibjs, missing name might throw an error
+                try {
+                    const file = new File({
+                        data: buffer,
+                        type: 'text/plain'
+                    });
+                    // If it doesn't throw, check the name
+                    assert.strictEqual(typeof file.name, 'string');
+                } catch (error) {
+                    // Should be TypeError for missing required parameter
+                    assert.ok(error instanceof TypeError);
+                }
+            } else {
+                // In Node.js environment, check behavior
+                const file = new File({
+                    data: buffer,
+                    type: 'text/plain'
+                });
+                assert.strictEqual(typeof file.name, 'string');
+            }
+        });
+
+        it("File constructor - options object parameter validation", () => {
+            // Test various edge cases with options object
+            const buffer = Buffer.from('validation test', 'utf8');
+
+            // Test with null options - should throw Error in fibjs
+            assert.throws(() => {
+                new File(null);
+            }, Error);
+
+            // Test with non-object options - should throw Error in fibjs
+            assert.throws(() => {
+                new File("not an object");
+            }, Error);
+
+            // Test with valid options
+            const file = new File({
+                data: buffer,
+                name: 'valid.txt',
+                type: 'text/plain',
+                lastModified: 1234567890
+            });
+
+            assert.strictEqual(file.name, 'valid.txt');
+            assert.strictEqual(file.size, 15);
+            assert.strictEqual(file.type, 'text/plain');
+            assert.strictEqual(file.lastModified, 1234567890);
+        });
+
+        it("File constructor - Buffer constructor parameter validation", () => {
+            // Test File(Buffer, name, options) parameter validation
+            const buffer = Buffer.from('test', 'utf8');
+
+            // Missing name parameter should throw Error in fibjs
+            assert.throws(() => {
+                new File(buffer);
+            }, Error);
+
+            // Empty string name should be allowed
+            const file1 = new File(buffer, '');
+            assert.strictEqual(file1.name, '');
+
+            // Valid construction
+            const file2 = new File(buffer, 'test.txt');
+            assert.strictEqual(file2.name, 'test.txt');
+            assert.strictEqual(file2.size, 4);
+        });
+
+        it("File constructor - Buffer inheritance from Blob", () => {
+            // Test that File created with Buffer constructor still inherits Blob functionality
+            const buffer = Buffer.from('test blob methods', 'utf8');
+            const file = new File(buffer, 'test.txt', { type: 'text/plain' });
+
+            // Test Blob inheritance
+            assert.strictEqual(file instanceof File, true);
+            assert.strictEqual(file instanceof Blob, true);
+
+            // Test Blob methods work
+            const slice = file.slice(0, 4);
+            assert.strictEqual(slice.size, 4);
+            assert.strictEqual(slice.type, 'text/plain');
+
+            // Test async methods
+            return file.text().then(text => {
+                assert.strictEqual(text, 'test blob methods');
+            });
+        });
+
+        it("File constructor - options object inheritance from Blob", async () => {
+            // Test that File created with options constructor still inherits Blob functionality
+            const buffer = Buffer.from('async test data', 'utf8');
+            const file = new File({
+                data: buffer,
+                name: 'async.txt',
+                type: 'text/plain'
+            });
+
+            // Test Blob inheritance
+            assert.strictEqual(file instanceof File, true);
+            assert.strictEqual(file instanceof Blob, true);
+
+            // Test async methods
+            const [text, arrayBuffer] = await Promise.all([
+                file.text(),
+                file.arrayBuffer()
+            ]);
+
+            assert.strictEqual(text, 'async test data');
+            assert.strictEqual(arrayBuffer.byteLength, 15);
+
+            // Verify ArrayBuffer content
+            const view = new Uint8Array(arrayBuffer);
+            const expectedView = new Uint8Array(buffer);
+            for (let i = 0; i < view.length; i++) {
+                assert.strictEqual(view[i], expectedView[i]);
+            }
         });
     });
 });

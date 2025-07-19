@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description File 对象用于表示文件系统中的文件，兼容 Web 标准 File API。
  * 
@@ -38,7 +39,6 @@ declare class Class_File extends Class_Blob {
      * 
      *     options 支持以下属性：
      *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
-     *        - endings: 指定换行符处理方式（"transparent" 或 "native"），默认为 "transparent"。
      *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
      *     
      *      @param blobParts 初始化数据数组，可以包含字符串、ArrayBuffer、TypedArray、Blob 等。
@@ -47,6 +47,34 @@ declare class Class_File extends Class_Blob {
      *     
      */
     constructor(blobParts: any[], name: string, options?: FIBJS.GeneralObject);
+
+    /**
+     * !@description File 构造函数，创建一个新的 File 实例。File 继承自 Blob，支持所有 Blob 的数据类型。
+     * 
+     *     options 支持以下属性：
+     *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
+     *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
+     *     
+     *      @param blobData 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型。
+     *      @param name 文件名，必须为字符串，表示该文件的名称（如 "a.txt"），不能为空。
+     *      @param options 可选参数对象
+     *     
+     */
+    constructor(blobData: Class_Buffer, name: string, options?: FIBJS.GeneralObject);
+
+    /**
+     * !@description File 构造函数，创建一个新的 File 实例。File 继承自 Blob，支持所有 Blob 的数据类型。
+     * 
+     *     options 支持以下属性：
+     *        - data: 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型。
+     *        - name: 文件名，必须为字符串，表示该文件的名称（如 "a.txt"），不能为空。
+     *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
+     *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
+     *     
+     *      @param options 可选参数对象
+     *     
+     */
+    constructor(options?: FIBJS.GeneralObject);
 
     /**
      * !@description 文件名，只读属性，返回文件的名称。
