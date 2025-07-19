@@ -7,6 +7,7 @@
 #include "object.h"
 #include "HttpClient.h"
 #include "Buffer.h"
+#include "Blob.h"
 #include "MemoryStream.h"
 #include "HttpRequest.h"
 #include "TLSSocket.h"
@@ -17,6 +18,8 @@
 #include "ifs/zlib.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
+#include "ifs/URLSearchParams.h"
+#include "ifs/FormData.h"
 #include "ifs/querystring.h"
 #include <string.h>
 
@@ -1121,17 +1124,23 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         return CALL_E_JAVASCRIPT;
 
     if (!v->IsUndefined()) {
-        stm = SeekableStream_base::getInstance(v);
-        if (!stm) {
-            obj_ptr<Buffer_base> buf;
-
+        if ((stm = SeekableStream_base::getInstance(v)) == NULL) {
             stm = new MemoryStream();
+            obj_ptr<Buffer_base> buf;
+            obj_ptr<Blob_base> blob;
+            obj_ptr<FormData_base> formData;
+            obj_ptr<URLSearchParams_base> params;
 
-            o.Clear();
-            hr = GetArgumentValue(isolate, v, o);
-            if (hr >= 0) {
+            if (v->IsString()) {
+                hr = GetArgumentValue(isolate, v, buf);
+                if (hr < 0)
+                    return hr;
+
+                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                    headers->set("Content-Type", "application/x-www-form-urlencoded");
+            } else if ((params = URLSearchParams_base::getInstance(v)) != NULL) {
                 exlib::string s;
-                hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
+                hr = params->toString(s);
                 if (hr < 0)
                     return hr;
 
@@ -1139,50 +1148,72 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
                 if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
                     headers->set("Content-Type", "application/x-www-form-urlencoded");
             } else {
-                hr = GetArgumentValue(isolate, v, buf);
-                if (hr < 0)
-                    return hr;
+                bool has_ContentType = false;
+
+                if ((blob = Blob_base::getInstance(v)) == NULL && GetArgumentValue(isolate, v, formData) == 0) {
+                    exlib::string mimeType;
+                    if (headers->first("Content-Type", ct) != CALL_RETURN_NULL) {
+                        has_ContentType = true;
+                        mimeType = ct.string();
+                    } else {
+                        mimeType = "application/x-www-form-urlencoded";
+                    }
+
+                    hr = formData->encode(mimeType, blob);
+                    if (hr < 0)
+                        return hr;
+                }
+
+                if (blob || (blob = Blob_base::getInstance(v)) != NULL) {
+                    buf = blob.As<Blob>()->m_impl.getBuffer();
+                    if (!has_ContentType || headers->first("Content-Type", ct) == CALL_RETURN_NULL) {
+                        exlib::string mimeType;
+                        blob->get_type(mimeType);
+                        if (!mimeType.empty())
+                            headers->set("Content-Type", mimeType);
+                        else
+                            headers->set("Content-Type", "application/x-www-form-urlencoded");
+                    }
+                }
+
+                if (!buf) {
+                    hr = GetArgumentValue(isolate, v, buf);
+                    if (hr < 0)
+                        return hr;
+
+                    if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                        headers->set("Content-Type", "application/x-www-form-urlencoded");
+                }
             }
 
             stm->cc_write(buf, len);
         }
-    } else {
-        v = opts->Get(context, isolate->NewString("json", 4));
-        if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+    } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
+        obj_ptr<Buffer_base> buf;
+        stm = new MemoryStream();
 
-        if (v->IsUndefined()) {
-            v = opts->Get(context, isolate->NewString("pack", 4));
-            if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+        exlib::string s;
+        hr = json_base::encode(v, s);
+        if (hr < 0)
+            return hr;
 
-            if (!v->IsUndefined()) {
-                obj_ptr<Buffer_base> buf;
-                stm = new MemoryStream();
+        buf = new Buffer(s.c_str(), s.length());
+        stm->cc_write(buf, len);
+        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            headers->set("Content-Type", "application/json");
+    } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
+        obj_ptr<Buffer_base> buf;
+        stm = new MemoryStream();
 
-                hr = msgpack_base::encode(v, buf);
-                if (hr < 0)
-                    return hr;
+        hr = msgpack_base::encode(v, buf);
+        if (hr < 0)
+            return hr;
 
-                stm->cc_write(buf, len);
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                    headers->set("Content-Type", "application/msgpack");
-            }
-        } else {
-            obj_ptr<Buffer_base> buf;
-            stm = new MemoryStream();
-
-            exlib::string s;
-            hr = json_base::encode(v, s);
-            if (hr < 0)
-                return hr;
-
-            buf = new Buffer(s.c_str(), s.length());
-            stm->cc_write(buf, len);
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                headers->set("Content-Type", "application/json");
-        }
+        stm->cc_write(buf, len);
+        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            headers->set("Content-Type", "application/msgpack");
     }
+
     ac->m_ctx[3] = stm;
 
     obj_ptr<SeekableStream_base> rsp_stm;
