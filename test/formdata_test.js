@@ -150,6 +150,239 @@ describe("FormData API", () => {
             }
         });
 
+        it("FormData constructor - object initialization with File objects", () => {
+            // Create test data for files
+            const textData = new Blob(['Hello, world!'], { type: 'text/plain' });
+            const pdfData = new Blob(['%PDF-1.4 fake pdf content'], { type: 'application/pdf' });
+
+            // Create File objects with proper array-wrapped data
+            const textFile = new File([textData], 'hello.txt', { type: 'text/plain', lastModified: Date.now() });
+            const pdfFile = new File([pdfData], 'document.pdf', { type: 'application/pdf', lastModified: Date.now() });
+
+            const initObject = {
+                username: 'testuser',
+                description: 'File upload test',
+                textFile: textFile,
+                pdfFile: pdfFile,
+                multiple: [textFile, 'plain text value', pdfFile]
+            };
+
+            const formData = new FormData(initObject);
+
+            // Check string fields
+            assert.strictEqual(formData.get('username'), 'testuser');
+            assert.strictEqual(formData.get('description'), 'File upload test');
+
+            // Check File objects
+            const retrievedTextFile = formData.get('textFile');
+            const retrievedPdfFile = formData.get('pdfFile');
+
+            assert.strictEqual(retrievedTextFile instanceof File, true);
+            assert.strictEqual(retrievedTextFile.name, 'hello.txt');
+            assert.strictEqual(retrievedTextFile.type, 'text/plain');
+
+            assert.strictEqual(retrievedPdfFile instanceof File, true);
+            assert.strictEqual(retrievedPdfFile.name, 'document.pdf');
+            assert.strictEqual(retrievedPdfFile.type, 'application/pdf');
+
+            // Check array with mixed content
+            const multipleValues = formData.getAll('multiple');
+            assert.strictEqual(multipleValues.length >= 1, true);
+            // At least one File object should be present
+            const hasFileInMultiple = multipleValues.some(value => value instanceof File);
+            assert.strictEqual(hasFileInMultiple, true);
+        });
+
+        it("FormData constructor - object initialization with Blob and File mixed", () => {
+            const blobData = new Blob(['blob content'], { type: 'text/plain' });
+            const fileData = new File([blobData], 'test.txt', { type: 'text/plain', lastModified: Date.now() });
+
+            const initObject = {
+                plainBlob: blobData,
+                namedFile: fileData,
+                metadata: JSON.stringify({ version: '1.0', timestamp: Date.now() })
+            };
+
+            const formData = new FormData(initObject);
+
+            // Blob should be converted to File or handled appropriately
+            const retrievedBlob = formData.get('plainBlob');
+            assert.strictEqual(retrievedBlob instanceof Blob, true);
+
+            // File should remain as File
+            const retrievedFile = formData.get('namedFile');
+            assert.strictEqual(retrievedFile instanceof File, true);
+            assert.strictEqual(retrievedFile.name, 'test.txt');
+
+            // String should remain as string
+            const metadata = formData.get('metadata');
+            assert.strictEqual(typeof metadata, 'string');
+            assert.strictEqual(JSON.parse(metadata).version, '1.0');
+        });
+
+        it("FormData constructor - object initialization with File properties", () => {
+            // Test File object with all properties
+            const fileContent = new Blob(['Test file content for properties check'], { type: 'text/plain' });
+            const lastModified = Date.now() - 86400000; // 1 day ago
+
+            const testFile = new File([fileContent], 'properties-test.txt', {
+                type: 'text/plain',
+                lastModified: lastModified
+            });
+
+            const initObject = {
+                testFile: testFile,
+                regularField: 'normal value'
+            };
+
+            const formData = new FormData(initObject);
+
+            const retrievedFile = formData.get('testFile');
+
+            // Verify File properties are preserved
+            assert.strictEqual(retrievedFile instanceof File, true);
+            assert.strictEqual(retrievedFile.name, 'properties-test.txt');
+            assert.strictEqual(retrievedFile.type, 'text/plain');
+            assert.strictEqual(retrievedFile.lastModified, lastModified);
+            assert.strictEqual(retrievedFile.size, fileContent.size);
+        });
+
+        it("FormData constructor - real-world file upload scenario", () => {
+            // Simulate reading file data (like fs.readFileSync in test.cjs)
+            const pdfData = new Uint8Array([0x25, 0x50, 0x44, 0x46]); // %PDF header
+            const imageData = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0]); // JPEG header
+
+            // Create File objects with realistic properties
+            const pdfFile = new File([pdfData], 'document.pdf', {
+                type: 'application/pdf',
+                lastModified: Date.now()
+            });
+
+            const imageFile = new File([imageData], 'photo.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+
+            // Realistic form data initialization similar to test.cjs
+            const initObject = {
+                return_images: true,
+                output_dir: 'uploads',
+                return_content_list: false,
+                return_layout: false,
+                is_json_md_dump: true,
+                return_info: false,
+                document: pdfFile,
+                photo: imageFile,
+                metadata: JSON.stringify({
+                    uploadTime: Date.now(),
+                    userAgent: 'Test Agent'
+                })
+            };
+
+            const formData = new FormData(initObject);
+
+            // Verify boolean fields are converted to strings
+            assert.strictEqual(formData.get('return_images'), 'true');
+            assert.strictEqual(formData.get('return_content_list'), 'false');
+            assert.strictEqual(formData.get('return_layout'), 'false');
+            assert.strictEqual(formData.get('is_json_md_dump'), 'true');
+            assert.strictEqual(formData.get('return_info'), 'false');
+
+            // Verify string fields
+            assert.strictEqual(formData.get('output_dir'), 'uploads');
+
+            // Verify File objects are preserved
+            const retrievedPdf = formData.get('document');
+            assert.strictEqual(retrievedPdf instanceof File, true);
+            assert.strictEqual(retrievedPdf.name, 'document.pdf');
+            assert.strictEqual(retrievedPdf.type, 'application/pdf');
+            assert.strictEqual(retrievedPdf.size, pdfData.length);
+
+            const retrievedImage = formData.get('photo');
+            assert.strictEqual(retrievedImage instanceof File, true);
+            assert.strictEqual(retrievedImage.name, 'photo.jpg');
+            assert.strictEqual(retrievedImage.type, 'image/jpeg');
+            assert.strictEqual(retrievedImage.size, imageData.length);
+
+            // Verify JSON string field
+            const metadata = JSON.parse(formData.get('metadata'));
+            assert.strictEqual(typeof metadata.uploadTime, 'number');
+            assert.strictEqual(metadata.userAgent, 'Test Agent');
+        });
+
+        it("FormData constructor - File constructor with options object", () => {
+            // Test File constructor similar to the pattern in test.cjs
+            const fileData = new Uint8Array([1, 2, 3, 4, 5]);
+
+            // This pattern matches test.cjs usage: new File({ ... })
+            const fileWithOptions = new File([fileData], 'test-options.bin', {
+                type: 'application/octet-stream',
+                lastModified: 1640995200000 // Fixed timestamp for testing
+            });
+
+            const initObject = {
+                description: 'File with constructor options',
+                binaryFile: fileWithOptions,
+                uploadMode: 'binary'
+            };
+
+            const formData = new FormData(initObject);
+
+            // Verify the File object was properly handled
+            const retrievedFile = formData.get('binaryFile');
+            assert.strictEqual(retrievedFile instanceof File, true);
+            assert.strictEqual(retrievedFile.name, 'test-options.bin');
+            assert.strictEqual(retrievedFile.type, 'application/octet-stream');
+            assert.strictEqual(retrievedFile.lastModified, 1640995200000);
+            assert.strictEqual(retrievedFile.size, fileData.length);
+
+            // Verify other fields
+            assert.strictEqual(formData.get('description'), 'File with constructor options');
+            assert.strictEqual(formData.get('uploadMode'), 'binary');
+        });
+
+        it("FormData constructor - mixed File and file-like objects", () => {
+            const fileData = new Blob(['File content'], { type: 'text/plain' });
+
+            // Real File object
+            const realFile = new File([fileData], 'real.txt', {
+                type: 'text/plain',
+                lastModified: Date.now()
+            });
+
+            // File-like object (plain object with file properties)
+            const fileLikeObject = {
+                type: 'application/pdf',
+                name: 'fake.pdf',
+                data: new Uint8Array([0x25, 0x50, 0x44, 0x46]),
+                lastModified: Date.now()
+            };
+
+            const initObject = {
+                realFile: realFile,
+                fileLikeObject: fileLikeObject,
+                normalField: 'regular value'
+            };
+
+            const formData = new FormData(initObject);
+
+            // Real File should be preserved as File
+            const retrievedRealFile = formData.get('realFile');
+            assert.strictEqual(retrievedRealFile instanceof File, true);
+            assert.strictEqual(retrievedRealFile.name, 'real.txt');
+
+            // File-like object should be converted to File object (smart conversion)
+            const retrievedFileLike = formData.get('fileLikeObject');
+            assert.strictEqual(typeof retrievedFileLike, 'object');
+            assert.strictEqual(retrievedFileLike instanceof File, true);
+            assert.strictEqual(retrievedFileLike.name, 'fake.pdf');
+            assert.strictEqual(retrievedFileLike.type, 'application/pdf');
+            assert.strictEqual(retrievedFileLike.size, 4); // Size of the Uint8Array data
+
+            // Normal field should remain as string
+            assert.strictEqual(formData.get('normalField'), 'regular value');
+        });
+
         it("FormData constructor - FormData copy initialization", () => {
             const originalFormData = new FormData();
             originalFormData.append('field1', 'value1');
@@ -1750,6 +1983,153 @@ Line 3 with special chars: áéíóú`;
             const retrievedBlob = formData.get('largefile');
             assert.strictEqual(retrievedBlob instanceof Blob, true);
             assert.strictEqual(retrievedBlob.size, largeContent.length);
+        });
+
+        it("FormData constructor - File object initialization comprehensive test", () => {
+            // Create various types of File objects
+            const textContent = new Blob(['Hello, this is a text file!'], { type: 'text/plain' });
+            const imageContent = new Blob([new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0])], { type: 'image/jpeg' });
+            const pdfContent = new Blob(['%PDF-1.4\n%fake pdf'], { type: 'application/pdf' });
+
+            const textFile = new File([textContent], 'readme.txt', {
+                type: 'text/plain',
+                lastModified: 1640995200000 // Jan 1, 2022
+            });
+
+            const imageFile = new File([imageContent], 'photo.jpg', {
+                type: 'image/jpeg',
+                lastModified: 1640995200000
+            });
+
+            const pdfFile = new File([pdfContent], 'document.pdf', {
+                type: 'application/pdf',
+                lastModified: 1640995200000
+            });
+
+            // Initialize FormData with File objects
+            const initObject = {
+                description: 'Multi-file upload test',
+                textFile: textFile,
+                imageFile: imageFile,
+                pdfFile: pdfFile,
+                fileArray: [textFile, imageFile], // Array of files
+                metadata: {
+                    uploadTime: Date.now(),
+                    userAgent: 'Test Suite'
+                }
+            };
+
+            const formData = new FormData(initObject);
+
+            // Verify string field
+            assert.strictEqual(formData.get('description'), 'Multi-file upload test');
+
+            // Verify File objects are preserved
+            const retrievedTextFile = formData.get('textFile');
+            assert.strictEqual(retrievedTextFile instanceof File, true);
+            assert.strictEqual(retrievedTextFile.name, 'readme.txt');
+            assert.strictEqual(retrievedTextFile.type, 'text/plain');
+            assert.strictEqual(retrievedTextFile.lastModified, 1640995200000);
+
+            const retrievedImageFile = formData.get('imageFile');
+            assert.strictEqual(retrievedImageFile instanceof File, true);
+            assert.strictEqual(retrievedImageFile.name, 'photo.jpg');
+            assert.strictEqual(retrievedImageFile.type, 'image/jpeg');
+
+            const retrievedPdfFile = formData.get('pdfFile');
+            assert.strictEqual(retrievedPdfFile instanceof File, true);
+            assert.strictEqual(retrievedPdfFile.name, 'document.pdf');
+            assert.strictEqual(retrievedPdfFile.type, 'application/pdf');
+
+            // Verify array handling
+            const fileArrayValues = formData.getAll('fileArray');
+            if (fileArrayValues.length > 0) {
+                // Check if at least one File object is present
+                const hasFile = fileArrayValues.some(value => value instanceof File);
+                assert.strictEqual(hasFile, true);
+            }
+
+            // Verify object conversion to string
+            const metadataValue = formData.get('metadata');
+            assert.strictEqual(typeof metadataValue, 'string');
+        });
+
+        it("FormData constructor - nested object with File properties", () => {
+            const fileContent = new Blob(['Nested file content'], { type: 'text/plain' });
+            const nestedFile = new File([fileContent], 'nested.txt', { type: 'text/plain' });
+
+            const initObject = {
+                user: {
+                    name: 'John Doe',
+                    avatar: nestedFile, // File object in nested structure
+                    preferences: {
+                        theme: 'dark',
+                        notifications: true
+                    }
+                },
+                directFile: nestedFile
+            };
+
+            const formData = new FormData(initObject);
+
+            // Direct file should be preserved
+            const directFile = formData.get('directFile');
+            assert.strictEqual(directFile instanceof File, true);
+            assert.strictEqual(directFile.name, 'nested.txt');
+
+            // Nested objects are typically converted to string representation
+            // The exact behavior may vary by implementation
+            const userValue = formData.get('user');
+            assert.strictEqual(typeof userValue, 'string');
+        });
+
+        it("FormData constructor - File with empty content", () => {
+            const emptyFile = new File([], 'empty.txt', { type: 'text/plain' });
+
+            const initObject = {
+                emptyFile: emptyFile,
+                regularField: 'non-empty value'
+            };
+
+            const formData = new FormData(initObject);
+
+            const retrievedFile = formData.get('emptyFile');
+            assert.strictEqual(retrievedFile instanceof File, true);
+            assert.strictEqual(retrievedFile.name, 'empty.txt');
+            assert.strictEqual(retrievedFile.size, 0);
+            assert.strictEqual(formData.get('regularField'), 'non-empty value');
+        });
+
+        it("FormData constructor - File with special characters in filename", () => {
+            const fileContent = new Blob(['Content with special filename'], { type: 'text/plain' });
+
+            const specialFiles = [
+                new File([fileContent], 'файл.txt', { type: 'text/plain' }), // Cyrillic
+                new File([fileContent], '文件.txt', { type: 'text/plain' }), // Chinese
+                new File([fileContent], 'file (1) [copy].txt', { type: 'text/plain' }), // Special chars
+                new File([fileContent], 'file-with-émojis-🎉.txt', { type: 'text/plain' }) // Emoji and accent
+            ];
+
+            const initObject = {
+                cyrillicFile: specialFiles[0],
+                chineseFile: specialFiles[1],
+                specialCharsFile: specialFiles[2],
+                emojiFile: specialFiles[3]
+            };
+
+            const formData = new FormData(initObject);
+
+            // Verify all files are preserved with correct names
+            assert.strictEqual(formData.get('cyrillicFile').name, 'файл.txt');
+            assert.strictEqual(formData.get('chineseFile').name, '文件.txt');
+            assert.strictEqual(formData.get('specialCharsFile').name, 'file (1) [copy].txt');
+            assert.strictEqual(formData.get('emojiFile').name, 'file-with-émojis-🎉.txt');
+
+            // All should be File instances
+            assert.strictEqual(formData.get('cyrillicFile') instanceof File, true);
+            assert.strictEqual(formData.get('chineseFile') instanceof File, true);
+            assert.strictEqual(formData.get('specialCharsFile') instanceof File, true);
+            assert.strictEqual(formData.get('emojiFile') instanceof File, true);
         });
     });
 

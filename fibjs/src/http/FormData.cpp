@@ -58,6 +58,42 @@ result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal
     return headers->init(init);
 }
 
+result_t FormData::append(exlib::string name, Variant value)
+{
+    if (name.empty())
+        return CALL_E_INVALIDARG;
+
+    int32_t vt = value.type();
+
+    if (vt != Variant::VT_String) {
+        if (vt == Variant::VT_JSValue || vt == Variant::VT_Object) {
+            Isolate* isolate = holder();
+            obj_ptr<File_base> file;
+            result_t hr = GetArgumentValue(isolate, value, file);
+            if (hr >= 0) {
+                value = file;
+            } else {
+                obj_ptr<Blob_base> blob;
+                hr = GetArgumentValue(isolate, value, blob);
+                if (hr >= 0) {
+                    return append(name, blob.get());
+                } else {
+                    exlib::string s;
+                    value.toString(s);
+                    value = s;
+                }
+            }
+        } else {
+            exlib::string s;
+            value.toString(s);
+            value = s;
+        }
+    }
+
+    m_map.emplace_back(name, value);
+    return 0;
+}
+
 result_t FormData::append(exlib::string name, Blob_base* value)
 {
     if (name.empty())

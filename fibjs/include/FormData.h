@@ -20,6 +20,10 @@ public:
     }
 
 public:
+    // HttpCollection_base
+    virtual result_t append(exlib::string name, Variant value);
+
+public:
     // FormData_base
     virtual result_t append(exlib::string name, Blob_base* value);
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename);
