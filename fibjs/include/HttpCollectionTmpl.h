@@ -103,10 +103,14 @@ public:
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
+            result_t hr;
             if (v->IsArray())
-                append(isolate->toString(k), v.As<v8::Array>());
+                hr = append(isolate->toString(k), v.As<v8::Array>());
             else
-                append(isolate->toString(k), (Variant)v);
+                hr = append(isolate->toString(k), (Variant)v);
+
+            if (hr < 0)
+                return hr;
         }
 
         return 0;
@@ -118,8 +122,11 @@ public:
         int32_t len = values->Length();
         int32_t i;
 
-        for (i = 0; i < len; i++)
-            append(name, (Variant)JSValue(values->Get(context, i)));
+        for (i = 0; i < len; i++) {
+            result_t hr = append(name, (Variant)JSValue(values->Get(context, i)));
+            if (hr < 0)
+                return hr;
+        }
 
         return 0;
     }
@@ -143,7 +150,9 @@ public:
             exlib::string key = isolate->toString(pair->Get(context, 0).ToLocalChecked());
             Variant value = (Variant)pair->Get(context, 1).ToLocalChecked();
 
-            append(key, value);
+            result_t hr = append(key, value);
+            if (hr < 0)
+                return hr;
         }
 
         return 0;
@@ -204,8 +213,11 @@ public:
         int32_t i;
 
         remove(name);
-        for (i = 0; i < len; i++)
-            append(name, (Variant)JSValue(values->Get(context, i)));
+        for (i = 0; i < len; i++) {
+            result_t hr = append(name, (Variant)JSValue(values->Get(context, i)));
+            if (hr < 0)
+                return hr;
+        }
 
         return 0;
     }
@@ -578,8 +590,11 @@ public:
                 pstr += sep_len;
             }
 
-            if (!strKey.empty())
-                append(strKey, strValue);
+            if (!strKey.empty()) {
+                result_t hr = append(strKey, strValue);
+                if (hr < 0)
+                    return hr;
+            }
         }
 
         return 0;

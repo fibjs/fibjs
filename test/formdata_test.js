@@ -2006,7 +2006,7 @@ Line 3 with special chars: áéíóú`;
                 lastModified: 1640995200000
             });
 
-            // Initialize FormData with File objects
+            // Initialize FormData with File objects and a plain object that should cause error
             const initObject = {
                 description: 'Multi-file upload test',
                 textFile: textFile,
@@ -2019,39 +2019,10 @@ Line 3 with special chars: áéíóú`;
                 }
             };
 
-            const formData = new FormData(initObject);
-
-            // Verify string field
-            assert.strictEqual(formData.get('description'), 'Multi-file upload test');
-
-            // Verify File objects are preserved
-            const retrievedTextFile = formData.get('textFile');
-            assert.strictEqual(retrievedTextFile instanceof File, true);
-            assert.strictEqual(retrievedTextFile.name, 'readme.txt');
-            assert.strictEqual(retrievedTextFile.type, 'text/plain');
-            assert.strictEqual(retrievedTextFile.lastModified, 1640995200000);
-
-            const retrievedImageFile = formData.get('imageFile');
-            assert.strictEqual(retrievedImageFile instanceof File, true);
-            assert.strictEqual(retrievedImageFile.name, 'photo.jpg');
-            assert.strictEqual(retrievedImageFile.type, 'image/jpeg');
-
-            const retrievedPdfFile = formData.get('pdfFile');
-            assert.strictEqual(retrievedPdfFile instanceof File, true);
-            assert.strictEqual(retrievedPdfFile.name, 'document.pdf');
-            assert.strictEqual(retrievedPdfFile.type, 'application/pdf');
-
-            // Verify array handling
-            const fileArrayValues = formData.getAll('fileArray');
-            if (fileArrayValues.length > 0) {
-                // Check if at least one File object is present
-                const hasFile = fileArrayValues.some(value => value instanceof File);
-                assert.strictEqual(hasFile, true);
-            }
-
-            // Verify object conversion to string
-            const metadataValue = formData.get('metadata');
-            assert.strictEqual(typeof metadataValue, 'string');
+            // Should throw error due to plain object 'metadata'
+            assert.throws(() => {
+                new FormData(initObject);
+            }, /FormData: Cannot convert metadata to string or File/);
         });
 
         it("FormData constructor - nested object with File properties", () => {
@@ -2070,17 +2041,10 @@ Line 3 with special chars: áéíóú`;
                 directFile: nestedFile
             };
 
-            const formData = new FormData(initObject);
-
-            // Direct file should be preserved
-            const directFile = formData.get('directFile');
-            assert.strictEqual(directFile instanceof File, true);
-            assert.strictEqual(directFile.name, 'nested.txt');
-
-            // Nested objects are typically converted to string representation
-            // The exact behavior may vary by implementation
-            const userValue = formData.get('user');
-            assert.strictEqual(typeof userValue, 'string');
+            // Should throw error due to plain object 'user'
+            assert.throws(() => {
+                new FormData(initObject);
+            }, /FormData: Cannot convert user to string or File/);
         });
 
         it("FormData constructor - File with empty content", () => {

@@ -78,6 +78,15 @@ result_t FormData::append(exlib::string name, Variant value)
                 if (hr >= 0) {
                     return append(name, blob.get());
                 } else {
+                    // Check if this is a plain object without meaningful toString
+                    v8::Local<v8::Value> v = value;
+                    if (IsJSObject(v)) {
+                        v8::Local<v8::Object> o = v.As<v8::Object>();
+                        if (!o->HasOwnProperty(isolate->context(), isolate->NewString("toString")).FromMaybe(false)) {
+                            return Runtime::setError("FormData: Cannot convert " + name + " to string or File");
+                        }
+                    }
+
                     exlib::string s;
                     value.toString(s);
                     value = s;
