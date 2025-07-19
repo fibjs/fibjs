@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "HttpCollection.h"
-#include "HttpUploadData.h"
 #include "MemoryStream.h"
 #include "Url.h"
 #include <string.h>
