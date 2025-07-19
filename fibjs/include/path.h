@@ -334,7 +334,14 @@ inline void _path_array_win32(exlib::string path, std::vector<exlib::string>& a,
 
     if (drv_no == 0 && (int32_t)a.size() > 2 && a[0].empty() && a[1].empty()) {
         domain = a[2];
-        if (!domain.empty()) {
+
+        // Check if this is a device namespace path (\\.\\ or \\?\\)
+        if (domain == "." || domain == "?") {
+            // For device namespace paths, don't treat as UNC
+            // Keep the domain but don't set share or erase elements
+            // This preserves the device namespace structure
+        } else if (!domain.empty()) {
+            // Regular UNC path (\\server\share)
             i = 3;
             while (i < (int32_t)a.size() && a[i].empty())
                 i++;
@@ -356,8 +363,80 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
     exlib::string domain;
     exlib::string share;
 
+    // Check if original path has trailing backslash
+    bool hasTrailingSlash = !path.empty() && isWin32PathSlash(path[path.length() - 1]);
+
     _path_array_win32(path, a, drv_no, domain, share);
-    _normalize_array(a, removeSlash);
+
+    // Check if this is a device namespace path
+    bool isDeviceNamespace = !domain.empty() && (domain == "." || domain == "?") && share.empty();
+
+    if (isDeviceNamespace) {
+        // For device namespace paths, we need special handling
+        // The structure should be preserved as: \\.\<rest> or \\?\<rest>
+        // Don't let _normalize_array remove the . or ? characters
+
+        // Create a modified array for normalization that excludes the device namespace prefix
+        std::vector<exlib::string> normalizeArray;
+        // Skip the first three elements: ['', '', '.'] or ['', '', '?']
+        for (size_t idx = 3; idx < a.size(); idx++) {
+            normalizeArray.push_back(a[idx]);
+        }
+
+        // For device namespace paths, check platform-specific behavior
+#ifdef _WIN32
+        // On Windows, device namespace paths treat ".." as literal removal without navigation
+
+        std::vector<exlib::string> result;
+        for (size_t idx = 0; idx < normalizeArray.size(); idx++) {
+            const auto& segment = normalizeArray[idx];
+            if (segment == "." || segment == "..") {
+                // Remove both "." and ".." segments without navigation on Windows
+                continue;
+            } else if (!segment.empty()) {
+                // Keep all other non-empty segments
+                result.push_back(segment);
+            }
+        }
+#else
+        // On non-Windows platforms, apply normal navigation rules
+
+        std::vector<exlib::string> result;
+        for (size_t idx = 0; idx < normalizeArray.size(); idx++) {
+            const auto& segment = normalizeArray[idx];
+
+            if (segment == ".") {
+                // Skip "." segments
+                continue;
+            } else if (segment == "..") {
+                // Navigate up: remove the last segment if it exists
+                if (!result.empty() && result.back() != "..") {
+                    result.pop_back();
+                } else {
+                    // Can't navigate above device root, ignore ".."
+                }
+            } else if (!segment.empty()) {
+                // Keep all other non-empty segments
+                result.push_back(segment);
+            }
+        }
+#endif
+        normalizeArray = result;
+
+        // Reconstruct the full array with device namespace prefix
+        a.clear();
+        a.push_back(""); // First empty
+        a.push_back(""); // Second empty
+        a.push_back(domain); // . or ?
+        for (const auto& segment : normalizeArray) {
+            // Only add non-empty segments to avoid double slashes
+            if (!segment.empty() || normalizeArray.size() == 1) {
+                a.push_back(segment);
+            }
+        }
+    } else {
+        _normalize_array(a, removeSlash);
+    }
 
     retVal.clear();
 
@@ -370,16 +449,42 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
         retVal.append(domain);
         retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(share);
+    } else if (isDeviceNamespace) {
+        // Handle device namespace paths
+        retVal.append(1, PATH_SLASH_WIN32);
+        retVal.append(1, PATH_SLASH_WIN32);
+        retVal.append(domain);
+        retVal.append(1, PATH_SLASH_WIN32);
     }
 
-    for (i = 0; i < (int32_t)a.size(); i++) {
-        if (i > 0)
+    // Add the rest of the path segments (skip first 3 for device namespace paths)
+    int startIdx = isDeviceNamespace ? 3 : 0;
+    for (i = startIdx; i < (int32_t)a.size(); i++) {
+        if (i > startIdx)
             retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(a[i]);
     }
 
     if (root && a.size() == 1 && a[0].empty())
         retVal.append(1, PATH_SLASH_WIN32);
+
+    // Handle trailing backslash for device namespace paths
+    if (isDeviceNamespace) {
+#ifdef _WIN32
+        // On Windows, device namespace paths generally don't need trailing backslashes
+        // unless they are bare device paths like \\.\CON or \\.\folder with no subpaths
+        bool hasSubPaths = a.size() > 4; // More than ['', '', '.', 'folder']
+        if (!hasSubPaths && a.size() == 4 && !retVal.empty() && retVal[retVal.length() - 1] != PATH_SLASH_WIN32) {
+            // Only add trailing backslash for bare device folder paths like \\.\folder
+            retVal.append(1, PATH_SLASH_WIN32);
+        }
+#else
+        // On non-Windows platforms, preserve the trailing backslash only if it existed in the original path
+        if (hasTrailingSlash && !retVal.empty() && retVal[retVal.length() - 1] != PATH_SLASH_WIN32) {
+            retVal.append(1, PATH_SLASH_WIN32);
+        }
+#endif
+    }
 
     return 0;
 }
@@ -635,6 +740,21 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
         return 0;
     }
 
+    // Remove trailing path separators except for UNC paths and root paths
+    int originalLen = (int)path.length();
+    while (originalLen > 1 && isPathSeparator(path[originalLen - 1])) {
+        // Don't remove trailing separators for UNC paths like "\\server\" or drive roots like "C:\"
+        if (originalLen == 3 && qisascii(path[0]) && path[1] == ':')
+            break; // "C:\"
+        if (originalLen <= 3 && isPathSeparator(path[0]) && isPathSeparator(path[1]))
+            break; // UNC prefix
+        originalLen--;
+    }
+
+    if (originalLen != (int)path.length()) {
+        path = path.substr(0, originalLen);
+    }
+
     int len = (int)path.length();
     int rootEnd = 0;
     int code = path[0];
@@ -729,13 +849,13 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
     if (end != -1) {
         if (startDot == -1 || preDotState == 0 || (preDotState == 1 && startDot == end - 1 && startDot == startPart + 1)) {
 
-            exlib::string tmp = path.substr(startPart, end);
+            exlib::string tmp = path.substr(startPart, end - startPart);
             ret->add("base", tmp);
             ret->add("name", tmp);
         } else {
-            ret->add("name", path.substr(startPart, startDot));
-            ret->add("base", path.substr(startPart, end));
-            ret->add("ext", path.substr(startDot, end));
+            ret->add("name", path.substr(startPart, startDot - startPart));
+            ret->add("base", path.substr(startPart, end - startPart));
+            ret->add("ext", path.substr(startDot, end - startDot));
         }
     }
 
@@ -822,6 +942,19 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
     exlib::string str;
     process_base::cwd(str);
 
+#ifdef _WIN32
+    // Convert Windows path to Unix-style path for posix resolve
+    if (str.length() >= 2 && qisascii(str[0]) && str[1] == ':') {
+        str = str.substr(2); // Remove drive letter
+    }
+    // Convert backslashes to forward slashes
+    for (size_t i = 0; i < str.length(); i++) {
+        if (str[i] == '\\') {
+            str[i] = '/';
+        }
+    }
+#endif
+
     Path p;
     p.resolvePosix(str);
     int32_t argc = ps.Length();
@@ -841,6 +974,19 @@ inline result_t _resolve(exlib::string& path)
 {
     exlib::string str;
     process_base::cwd(str);
+
+#ifdef _WIN32
+    // Convert Windows path to Unix-style path for posix resolve
+    if (str.length() >= 2 && qisascii(str[0]) && str[1] == ':') {
+        str = str.substr(2); // Remove drive letter
+    }
+    // Convert backslashes to forward slashes
+    for (size_t i = 0; i < str.length(); i++) {
+        if (str[i] == '\\') {
+            str[i] = '/';
+        }
+    }
+#endif
 
     Path p;
     p.resolvePosix(str);
@@ -883,8 +1029,10 @@ inline result_t _resolve_win32(exlib::string& path)
 
 inline result_t _relative(exlib::string from, exlib::string to, exlib::string& retVal)
 {
-    if (from == to)
+    if (from == to) {
+        retVal.clear();
         return 0;
+    }
 
     result_t hr;
 
@@ -896,8 +1044,10 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
     if (hr < 0)
         return hr;
 
-    if (from == to)
+    if (from == to) {
+        retVal.clear();
         return 0;
+    }
 
     // Trim any leading backslashes
     int32_t fromStart = 1;
@@ -984,8 +1134,10 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
 
 inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::string& retVal)
 {
-    if (from == to)
+    if (from == to) {
+        retVal.clear();
         return 0;
+    }
 
     exlib::string fromOrig = "" + from;
     exlib::string toOrig = "" + to;
@@ -1000,16 +1152,20 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
     if (hr < 0)
         return hr;
 
-    if (fromOrig == toOrig)
+    if (from == to) {
+        retVal.clear();
         return 0;
+    }
 
-    from = "" + fromOrig;
+    from = "" + from;
     exlib::qstrlwr(from);
-    to = "" + toOrig;
+    to = "" + to;
     exlib::qstrlwr(to);
 
-    if (from == to)
+    if (from == to) {
+        retVal.clear();
         return 0;
+    }
 
     // Trim any leading backslashes
     int32_t fromStart = 0;

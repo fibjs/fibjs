@@ -106,9 +106,44 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
     GetArgumentValue(isolate, path, str);
 
     if (str.length() >= 3) {
+        // For paths starting with \\?\, normalize forward slashes to backslashes
+        // but don't resolve them as it might change the path structure
+        if (str.length() >= 4 && str[0] == '\\' && str[1] == '\\' && str[2] == '?') {
+            // Convert forward slashes to backslashes in the path part
+            for (size_t i = 4; i < str.length(); i++) {
+                if (str[i] == '/') {
+                    str[i] = '\\';
+                }
+            }
+
+#ifdef _WIN32
+            // Check if this is a UNC path (\\?\UNC\...)
+            bool isUNCPath = (str.length() >= 8 && str.substr(4, 4) == "UNC\\");
+
+            // Check if this is a drive path (\\?\X:\...)
+            bool isDrivePath = false;
+            if (!isUNCPath && str.length() >= 7) { // \\?\X:\ minimum length
+                size_t colonPos = str.find(':', 4);
+                if (colonPos != exlib::string::npos && colonPos <= 6) {
+                    // This looks like a drive path (\\?\c:\...)
+                    isDrivePath = true;
+                }
+            }
+
+            // Add trailing backslash only for simple device paths (not UNC or drive paths)
+            if (!isUNCPath && !isDrivePath && str[str.length() - 1] != '\\') {
+                str += '\\';
+            }
+#endif
+            // For paths that already have \\?\ prefix, return after processing
+            retVal = GetReturnValue(isolate, str);
+            return 0;
+        }
+
         result_t hr = _resolve_win32(str);
         if (hr < 0)
             return hr;
+
         if (str[0] == '\\' && str[1] == '\\') {
             if (str[2] != '?' && str[2] != '.') {
                 str = "\\\\?\\UNC" + str.substr(1);
