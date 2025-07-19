@@ -937,6 +937,121 @@ inline result_t _join_win32(OptArgs ps, exlib::string& retVal)
     return _normalize_win32(p.str(), retVal);
 }
 
+// C++ interface overloads for _join functions
+inline result_t _join(exlib::string path1, exlib::string path2, exlib::string& retVal)
+{
+    Path p;
+    p.joinPosix(path1);
+    p.joinPosix(path2);
+
+    return _normalize(p.str(), retVal);
+}
+
+inline result_t _join(exlib::string path1, exlib::string path2, exlib::string path3, exlib::string& retVal)
+{
+    Path p;
+    p.joinPosix(path1);
+    p.joinPosix(path2);
+    p.joinPosix(path3);
+
+    return _normalize(p.str(), retVal);
+}
+
+inline result_t _join(exlib::string path1, exlib::string path2, exlib::string path3, exlib::string path4, exlib::string& retVal)
+{
+    Path p;
+    p.joinPosix(path1);
+    p.joinPosix(path2);
+    p.joinPosix(path3);
+    p.joinPosix(path4);
+
+    return _normalize(p.str(), retVal);
+}
+
+inline result_t _join_win32(exlib::string path1, exlib::string path2, exlib::string& retVal)
+{
+    Path p;
+    p.joinWin32(path1);
+    p.joinWin32(path2);
+
+    return _normalize_win32(p.str(), retVal);
+}
+
+inline result_t _join_win32(exlib::string path1, exlib::string path2, exlib::string path3, exlib::string& retVal)
+{
+    Path p;
+    p.joinWin32(path1);
+    p.joinWin32(path2);
+    p.joinWin32(path3);
+
+    return _normalize_win32(p.str(), retVal);
+}
+
+inline result_t _join_win32(exlib::string path1, exlib::string path2, exlib::string path3, exlib::string path4, exlib::string& retVal)
+{
+    Path p;
+    p.joinWin32(path1);
+    p.joinWin32(path2);
+    p.joinWin32(path3);
+    p.joinWin32(path4);
+
+    return _normalize_win32(p.str(), retVal);
+}
+
+// Vector-based overloads for joining multiple path components
+inline result_t _join(const std::vector<exlib::string>& paths, exlib::string& retVal)
+{
+    if (paths.empty()) {
+        retVal = "";
+        return 0;
+    }
+
+    Path p;
+    for (const auto& path : paths) {
+        p.joinPosix(path);
+    }
+
+    return _normalize(p.str(), retVal);
+}
+
+inline result_t _join_win32(const std::vector<exlib::string>& paths, exlib::string& retVal)
+{
+    if (paths.empty()) {
+        retVal = "";
+        return 0;
+    }
+
+    Path p;
+    for (const auto& path : paths) {
+        p.joinWin32(path);
+    }
+
+    return _normalize_win32(p.str(), retVal);
+}
+
+// Iterator-based overloads for even better performance without temporary vector creation
+template <typename Iterator>
+inline result_t _join(Iterator first, Iterator last, exlib::string& retVal)
+{
+    Path p;
+    for (auto it = first; it != last; ++it) {
+        p.joinPosix(*it);
+    }
+
+    return _normalize(p.str(), retVal);
+}
+
+template <typename Iterator>
+inline result_t _join_win32(Iterator first, Iterator last, exlib::string& retVal)
+{
+    Path p;
+    for (auto it = first; it != last; ++it) {
+        p.joinWin32(*it);
+    }
+
+    return _normalize_win32(p.str(), retVal);
+}
+
 inline result_t _resolve(OptArgs ps, exlib::string& retVal)
 {
     exlib::string str;

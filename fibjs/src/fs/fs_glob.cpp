@@ -29,6 +29,24 @@ const bool isWindows = true;
 const bool isWindows = false;
 #endif
 
+// Helper function to check if pattern ends with path separator
+static bool endsWithPathSeparator(const exlib::string& pattern)
+{
+    if (pattern.empty()) {
+        return false;
+    }
+    return isPathSeparator(pattern[pattern.length() - 1]);
+}
+
+// Helper function to get pattern without trailing path separator
+static exlib::string removeTrailingPathSeparator(const exlib::string& pattern)
+{
+    if (pattern.empty() || !endsWithPathSeparator(pattern)) {
+        return pattern;
+    }
+    return pattern.substr(0, pattern.length() - 1);
+}
+
 // Structure to hold path and stat information
 struct GlobResult {
     exlib::string path;
@@ -51,20 +69,12 @@ struct GlobResult {
 };
 
 // Helper function to normalize path separators for the current platform
+// Use path module's normalize function for better path handling
 static exlib::string normalizePath(const exlib::string& path)
 {
-#ifdef _WIN32
-    exlib::string result = path;
-    // Replace all forward slashes with backslashes on Windows
-    for (size_t i = 0; i < result.length(); ++i) {
-        if (result[i] == '/') {
-            result[i] = '\\';
-        }
-    }
-    return result;
-#else
-    return path; // On Unix, forward slash is the standard
-#endif
+    exlib::string normalized;
+    result_t hr = path_base::normalize(path, normalized);
+    return (hr >= 0) ? normalized : path;
 }
 
 // Helper function to check if a path should be ignored
@@ -85,47 +95,95 @@ static bool hasRecursivePattern(const exlib::string& pattern)
 }
 
 // Helper function to check if a pattern starts with ./
+// Use path module's functionality for better relative path detection
 static bool isRelativePattern(const exlib::string& pattern)
 {
+    if (pattern.length() < 2) {
+        return false;
+    }
+
+    // Use path module to normalize and check if pattern starts with current directory reference
+    if (pattern.substr(0, 2) == "./"
 #ifdef _WIN32
-    return pattern.substr(0, 2) == "./" || pattern.substr(0, 2) == ".\\";
-#else
-    return pattern.substr(0, 2) == "./";
+        || pattern.substr(0, 2) == ".\\"
 #endif
+    ) {
+        return true;
+    }
+
+    // Also check using path module's resolve functionality to detect relative patterns
+    exlib::string normalized;
+    result_t hr = path_base::normalize(pattern, normalized);
+    if (hr >= 0) {
+        // If normalized path is different and doesn't start with /, it might be relative
+        bool isAbs = false;
+        result_t absCheck = path_base::isAbsolute(normalized, isAbs);
+        if (absCheck >= 0 && !isAbs && normalized.length() >= 2) {
+            return normalized.substr(0, 2) == "./"
+#ifdef _WIN32
+                || normalized.substr(0, 2) == ".\\"
+#endif
+                ;
+        }
+    }
+
+    return false;
 }
 
 // Helper function to check if a pattern is absolute
+// Use path module's isAbsolute function for better detection
 static bool isAbsolutePattern(const exlib::string& pattern)
 {
     if (pattern.length() == 0)
         return false;
 
-#ifdef _WIN32
-    // Windows: check for drive letter (C:\ or C:/) or UNC path (\\server\share)
-    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
-        return true; // Drive letter format like C:\ or C:/
-    }
-    if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
-        return true; // UNC path like \\server\share
-    }
-    return false;
-#else
-    return pattern[0] == PATH_SLASH;
-#endif
+    bool retVal;
+    result_t hr = path_base::isAbsolute(pattern, retVal);
+    return (hr >= 0) ? retVal : false;
 }
 
 // Helper function to normalize pattern
+// Use path module's normalize function for better pattern handling
 static exlib::string normalizePattern(const exlib::string& pattern)
 {
     if (isRelativePattern(pattern)) {
-        return pattern.substr(2); // Remove "./"
+        // Remove "./" or ".\" prefix for relative patterns
+        if (pattern.length() >= 2 && (pattern.substr(0, 2) == "./"
+#ifdef _WIN32
+                || pattern.substr(0, 2) == ".\\"
+#endif
+                )) {
+            exlib::string withoutPrefix = pattern.substr(2);
+            // Use path module to normalize the remaining pattern
+            exlib::string normalized;
+            result_t hr = path_base::normalize(withoutPrefix, normalized);
+            return (hr >= 0) ? normalized : withoutPrefix;
+        }
     }
-    return pattern;
+
+    // For non-relative patterns, still normalize them using path module
+    exlib::string normalized;
+    result_t hr = path_base::normalize(pattern, normalized);
+    return (hr >= 0) ? normalized : pattern;
 }
 
 // Helper function to check if path contains directories
+// Use path module's dirname function for better directory detection
 static bool hasDirectory(const exlib::string& pattern)
 {
+    if (pattern.empty()) {
+        return false;
+    }
+
+    // Use path module's dirname to check if pattern has directory components
+    exlib::string dirname;
+    result_t hr = path_base::dirname(pattern, dirname);
+    if (hr >= 0) {
+        // If dirname is not "." and not empty, then the pattern contains directories
+        return !dirname.empty() && dirname != ".";
+    }
+
+    // Fallback to manual check if path module fails
 #ifdef _WIN32
     return pattern.find('/') != exlib::string::npos || pattern.find('\\') != exlib::string::npos;
 #else
@@ -134,34 +192,28 @@ static bool hasDirectory(const exlib::string& pattern)
 }
 
 // Helper function to get directory part of a pattern
+// Use path module's dirname function for better accuracy
 static exlib::string getDirectoryPart(const exlib::string& pattern)
 {
-#ifdef _WIN32
-    size_t lastSlash = pattern.find_last_of("/\\");
-#else
-    size_t lastSlash = pattern.find_last_of('/');
-#endif
-    if (lastSlash != exlib::string::npos) {
-        return pattern.substr(0, lastSlash);
+    exlib::string dirname;
+    result_t hr = path_base::dirname(pattern, dirname);
+    if (hr >= 0 && !dirname.empty() && dirname != ".") {
+        return dirname;
     }
     return "";
 }
 
 // Helper function to get filename part of a pattern
+// Use path module's basename function for better accuracy
 static exlib::string getFilenamePart(const exlib::string& pattern)
 {
-#ifdef _WIN32
-    size_t lastSlash = pattern.find_last_of("/\\");
-#else
-    size_t lastSlash = pattern.find_last_of('/');
-#endif
-    if (lastSlash != exlib::string::npos) {
-        return pattern.substr(lastSlash + 1);
-    }
-    return pattern;
+    exlib::string basename;
+    result_t hr = path_base::basename(pattern, "", basename);
+    return (hr >= 0) ? basename : pattern;
 }
 
 // Helper function to split pattern into components
+// Use path module's normalize to handle complex path structures
 static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
 {
     std::vector<exlib::string> components;
@@ -169,17 +221,30 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
         return components;
     }
 
+    // First normalize the pattern to handle various path formats consistently
+    exlib::string normalized;
+    result_t hr = path_base::normalize(pattern, normalized);
+    const exlib::string& workingPattern = (hr >= 0) ? normalized : pattern;
+
     size_t start = 0;
     size_t pos = 0;
 
-    while (pos < pattern.length()) {
+    // Use path module's path separator detection for better cross-platform compatibility
+    while (pos < workingPattern.length()) {
+        char c = workingPattern[pos];
+        bool isPathSep = false;
+
 #ifdef _WIN32
-        if (pattern[pos] == '/' || pattern[pos] == '\\') {
+        // On Windows, both / and \ are valid path separators
+        isPathSep = (c == '/' || c == '\\');
 #else
-        if (pattern[pos] == '/') {
+        // On POSIX, only / is a path separator
+        isPathSep = (c == '/');
 #endif
+
+        if (isPathSep) {
             if (pos > start) {
-                components.push_back(pattern.substr(start, pos - start));
+                components.push_back(workingPattern.substr(start, pos - start));
             }
             start = pos + 1;
         }
@@ -187,14 +252,15 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
     }
 
     // Add the last component
-    if (start < pattern.length()) {
-        components.push_back(pattern.substr(start));
-    } else if (start == pattern.length() && pattern.length() > 0) {
-        // Pattern ends with '/', add empty component to preserve the trailing slash meaning
+    if (start < workingPattern.length()) {
+        components.push_back(workingPattern.substr(start));
+    } else if (start == workingPattern.length() && workingPattern.length() > 0) {
+        // Pattern ends with separator, add empty component to preserve trailing separator meaning
+        char lastChar = workingPattern[workingPattern.length() - 1];
 #ifdef _WIN32
-        if (pattern[pattern.length() - 1] == '/' || pattern[pattern.length() - 1] == '\\') {
+        if (lastChar == '/' || lastChar == '\\') {
 #else
-        if (pattern[pattern.length() - 1] == '/') {
+        if (lastChar == '/') {
 #endif
             components.push_back("");
         }
@@ -215,25 +281,6 @@ static int findFirstWildcardComponent(const std::vector<exlib::string>& componen
         }
     }
     return -1;
-}
-
-// Helper function to join path components
-static exlib::string joinComponents(const std::vector<exlib::string>& components, int start, int end)
-{
-    if (start >= end || start >= static_cast<int>(components.size())) {
-        return "";
-    }
-
-    exlib::string result = components[start];
-    for (int i = start + 1; i < end && i < static_cast<int>(components.size()); ++i) {
-        if (!components[i].empty()) {
-            result += PATH_SLASH + components[i];
-        } else if (i == end - 1) {
-            // Empty component at the end means the pattern should end with '/'
-            result += PATH_SLASH;
-        }
-    }
-    return result;
 }
 
 // Helper function to create Stat object for a file
@@ -266,12 +313,8 @@ static void walkDirectorySimple(
     // Special handling for patterns ending with "**"
     // When pattern ends with **, include directories that match the prefix
     if (pattern.length() >= 2 && pattern.substr(pattern.length() - 2) == "**") {
-        // Check if we need to match a prefix pattern
-#ifdef _WIN32
-        if (pattern.length() > 2 && (pattern[pattern.length() - 3] == '/' || pattern[pattern.length() - 3] == '\\')) {
-#else
-        if (pattern.length() > 2 && pattern[pattern.length() - 3] == '/') {
-#endif
+        // Check if we need to match a prefix pattern using path separator helper
+        if (pattern.length() > 2 && isPathSeparator(pattern[pattern.length() - 3])) {
             // Pattern like "src/**" - extract prefix "src"
             exlib::string prefix = pattern.substr(0, pattern.length() - 3);
 
@@ -281,9 +324,12 @@ static void walkDirectorySimple(
                 if (!shouldIgnore(currentPath.empty() ? "." : currentPath, excludePatterns)) {
                     exlib::string resultPath = currentPath.empty() ? "." : currentPath;
                     if (withFileTypes) {
-                        exlib::string fullPath = basePath;
+                        exlib::string fullPath;
                         if (!currentPath.empty()) {
-                            fullPath += PATH_SLASH + currentPath;
+                            // Use path module's os_join for proper cross-platform path construction
+                            os_join(basePath, currentPath, fullPath);
+                        } else {
+                            fullPath = basePath;
                         }
                         obj_ptr<Stat> stat = createStat(fullPath);
                         if (stat) {
@@ -299,9 +345,12 @@ static void walkDirectorySimple(
         }
     }
 
-    exlib::string fullPath = basePath;
+    exlib::string fullPath;
     if (!currentPath.empty()) {
-        fullPath += PATH_SLASH + currentPath;
+        // Use path module's os_join for proper cross-platform path construction
+        os_join(basePath, currentPath, fullPath);
+    } else {
+        fullPath = basePath;
     }
 
     AutoReq req;
@@ -312,7 +361,20 @@ static void walkDirectorySimple(
     uv_dirent_t dirent;
     while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
         exlib::string entryName = dirent.name;
-        exlib::string relativePath = currentPath.empty() ? entryName : normalizePath(currentPath + PATH_SLASH + entryName);
+        exlib::string relativePath;
+
+        if (currentPath.empty()) {
+            relativePath = entryName;
+        } else {
+            // Use path module's os_join for proper cross-platform path construction
+            os_join(currentPath, entryName, relativePath);
+            // Normalize the result to ensure consistent path format
+            exlib::string normalized;
+            result_t hr = path_base::normalize(relativePath, normalized);
+            if (hr >= 0) {
+                relativePath = normalized;
+            }
+        }
 
         // Skip if ignored
         if (shouldIgnore(relativePath, excludePatterns)) {
@@ -322,14 +384,10 @@ static void walkDirectorySimple(
         // Check if this path matches the pattern
         bool isMatch = false;
 
-        // Special handling for patterns ending with '/' - only match directories
-#ifdef _WIN32
-        if (pattern.length() > 0 && (pattern[pattern.length() - 1] == '/' || pattern[pattern.length() - 1] == '\\')) {
-#else
-        if (pattern.length() > 0 && pattern[pattern.length() - 1] == '/') {
-#endif
+        // Special handling for patterns ending with path separator - only match directories
+        if (endsWithPathSeparator(pattern)) {
             if (dirent.type == UV_DIRENT_DIR) {
-                exlib::string dirPattern = pattern.substr(0, pattern.length() - 1);
+                exlib::string dirPattern = removeTrailingPathSeparator(pattern);
                 isMatch = matchesGlob(relativePath, dirPattern, isWindows);
             }
         } else {
@@ -339,11 +397,14 @@ static void walkDirectorySimple(
 
         if (isMatch) {
             if (withFileTypes) {
-                exlib::string entryFullPath = basePath;
+                exlib::string entryFullPath;
                 if (!currentPath.empty()) {
-                    entryFullPath += PATH_SLASH + currentPath;
+                    // Use path module's os_join for proper cross-platform path construction
+                    os_join(basePath, currentPath, entryName, entryFullPath);
+                } else {
+                    // Use path module's os_join for proper cross-platform path construction
+                    os_join(basePath, entryName, entryFullPath);
                 }
-                entryFullPath += PATH_SLASH + entryName;
 
                 obj_ptr<Stat> stat = createStat(entryFullPath);
                 if (stat) {
@@ -478,50 +539,81 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 #endif
                 } else {
                     // Build base path from components before wildcard
+                    // Use path module's vector-based join for proper cross-platform path construction
+                    std::vector<exlib::string> baseComponents;
+
 #ifdef _WIN32
                     // Handle Windows drive letter
                     if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
                         // For patterns like "D:\path\*.js", components are ["D:", "path", "*.js"]
-                        // We need to join "D:" with the path components correctly
-                        if (wildcardIndex > 1) {
-                            basePath = components[0] + "\\" + joinComponents(components, 1, wildcardIndex);
-                        } else {
-                            basePath = components[0] + "\\";
+                        // Build vector with drive letter and path components
+                        baseComponents.push_back(components[0] + "\\");
+                        for (int i = 1; i < wildcardIndex; ++i) {
+                            baseComponents.push_back(components[i]);
                         }
                     } else if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
-                        // UNC path
-                        basePath = "\\\\" + joinComponents(components, 0, wildcardIndex);
+                        // UNC path - start with UNC prefix
+                        baseComponents.push_back("\\\\");
+                        for (int i = 0; i < wildcardIndex; ++i) {
+                            baseComponents.push_back(components[i]);
+                        }
                     } else {
-                        basePath = "\\" + joinComponents(components, 0, wildcardIndex);
+                        // Regular absolute path
+                        baseComponents.push_back("\\");
+                        for (int i = 0; i < wildcardIndex; ++i) {
+                            baseComponents.push_back(components[i]);
+                        }
+                    }
+
+                    // Use os_join for cross-platform path construction
+                    result_t hr = os_join(baseComponents, basePath);
+                    if (hr < 0) {
+                        // This should not happen with os_join, but keep as safety fallback
+                        basePath = ""; // Handle error case
                     }
 #else
-                    basePath = "/" + joinComponents(components, 0, wildcardIndex);
+                    // POSIX path - start with root
+                    baseComponents.push_back("/");
+                    for (int i = 0; i < wildcardIndex; ++i) {
+                        baseComponents.push_back(components[i]);
+                    }
+
+                    // Use os_join for cross-platform path construction
+                    result_t hr = os_join(baseComponents, basePath);
+                    if (hr < 0) {
+                        // This should not happen with os_join, but keep as safety fallback
+                        basePath = ""; // Handle error case
+                    }
 #endif
                 }
 
                 // Build relative pattern from wildcard component onwards
-                exlib::string relativePattern = joinComponents(components, wildcardIndex, components.size());
+                std::vector<exlib::string> relativeComponents(components.begin() + wildcardIndex, components.end());
+                exlib::string relativePattern;
+                os_join(relativeComponents, relativePattern);
+
+                // Preserve trailing path separator from original pattern if it exists
+                if (endsWithPathSeparator(normalizedPattern)) {
+                    relativePattern += "/";
+                }
 
                 // Use temporary results set for this pattern
                 std::set<GlobResult> tempResults;
                 walkDirectorySimple(basePath, "", relativePattern, excludePatterns, tempResults, withFileTypes);
 
-                // Convert relative results to absolute
+                // Convert relative results to absolute using os_join
                 for (const auto& result : tempResults) {
                     exlib::string absolutePath;
-#ifdef _WIN32
-                    if (basePath.length() > 0 && basePath[basePath.length() - 1] == '\\') {
-                        absolutePath = basePath + result.path;
-                    } else {
-                        absolutePath = basePath + "\\" + result.path;
+
+                    // Use os_join for cross-platform absolute path construction
+                    result_t hr = os_join(basePath, result.path, absolutePath);
+
+                    // Fallback to manual construction if path module fails
+                    if (hr < 0) {
+                        // This should rarely happen with os_join
+                        absolutePath = basePath + result.path; // Simple fallback
                     }
-#else
-                    if (basePath == "/") {
-                        absolutePath = "/" + result.path;
-                    } else {
-                        absolutePath = basePath + "/" + result.path;
-                    }
-#endif
+
                     if (result.stat) {
                         results.insert(GlobResult(absolutePath, result.stat));
                     } else {
