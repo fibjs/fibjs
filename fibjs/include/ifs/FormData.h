@@ -32,13 +32,14 @@ public:
     static result_t _new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Blob_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(exlib::string name, Blob_base* value) = 0;
     virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename) = 0;
     virtual result_t set(exlib::string name, Blob_base* value) = 0;
     virtual result_t set(exlib::string name, Blob_base* value, exlib::string filename) = 0;
-    virtual result_t encode(exlib::string type, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t encode(exlib::string type, obj_ptr<Blob_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,6 +105,13 @@ inline void FormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args
 
     hr = _new(v0.get(), v1, vr, args.This());
 
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Blob_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = _new(v0.get(), v1, vr, args.This());
+
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
@@ -139,6 +147,13 @@ inline result_t FormData_base::load(Isolate* isolate, v8::Local<v8::Value> v, ob
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(exlib::string, 1);
+
+    hr = _new(v0.get(), v1, vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Blob_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
     hr = _new(v0.get(), v1, vr, args.This());
 
@@ -251,7 +266,7 @@ inline void FormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void FormData_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Buffer_base> vr;
+    obj_ptr<Blob_base> vr;
 
     METHOD_INSTANCE(FormData_base);
     METHOD_ENTER();

@@ -54,6 +54,14 @@ declare class Class_FormData extends Class_HttpCollection {
     constructor(init: Class_Buffer, boundary: string);
 
     /**
+     * @description FormData 构造函数，通过传入一个 Blob，初始化表单数据。适用于从 FormData.encode() 结果或其他 multipart/form-data Blob 中创建 FormData 实例
+     *      @param init 初始化用的 Blob 对象，通常来自 FormData.encode() 的结果
+     *      @param boundary 可选的边界字符串，如果不指定则从 Blob 的 type 属性中自动解析（如 "multipart/form-data; boundary=xxx"）
+     *      
+     */
+    constructor(init: Class_Blob, boundary?: string);
+
+    /**
      * @description FormData 构造函数，使用给定的对象初始化 HTTP 表单数据容器
      *         
      *      通过传入一个对象，批量初始化表单字段。对象的键为字段名，值为字段值（可为字符串、Blob 或数组）。
@@ -134,15 +142,16 @@ declare class Class_FormData extends Class_HttpCollection {
      *      3. 当 type 为 "application/x-www-form-urlencoded" 时：
      *         使用 URL 编码格式对表单数据进行编码（name=value&name2=value2）
      *         支持的别名："urlencoded"、"form-urlencoded"、"www-form-urlencoded"
+     *         注意：如果表单包含 File/Blob 对象，将抛出错误并指明具体字段名
      *         
      *      4. 其他值或不支持的格式：
      *         抛出错误异常
      * 
      *      @param type 指定编码的 content-type，支持 "multipart/form-data" 和 "application/x-www-form-urlencoded"（及其别名），默认为 "application/x-www-form-urlencoded"
-     *      @return 返回编码后的 Buffer 对象
+     *      @return 返回编码后的 Blob 对象，包含正确的 content-type
      *     
      */
-    encode(type?: string): Class_Buffer;
+    encode(type?: string): Class_Blob;
 
 }
 

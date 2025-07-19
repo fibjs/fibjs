@@ -31,6 +31,20 @@ result_t FormData_base::_new(Buffer_base* init, exlib::string boundary, obj_ptr<
     return headers->parseMultipart(init, boundary.c_str());
 }
 
+result_t FormData_base::_new(Blob_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<FormData> headers = new FormData();
+    Blob* initBlob = static_cast<Blob*>(init);
+    obj_ptr<Buffer_base> buffer = initBlob->m_impl.getBuffer();
+
+    if (boundary == "") {
+        initBlob->get_type(boundary);
+    }
+
+    retVal = headers;
+    return headers->parseMultipart(buffer, boundary.c_str());
+}
+
 result_t FormData_base::_new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new FormData();

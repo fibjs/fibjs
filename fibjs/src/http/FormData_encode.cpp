@@ -120,16 +120,17 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
     char ch;
 
     // Parse boundary using RFC 2046 compliant parser
-    if (!parseBoundary(boundary, m_boundary)) {
+    exlib::string parsedBoundary;
+    if (!parseBoundary(boundary, parsedBoundary)) {
         return 0;
     }
-    uiSplitSize = m_boundary.length();
+    uiSplitSize = parsedBoundary.length();
 
     pstrSplit = szQueryString = pstr;
 
     if (nSize < uiSplitSize + 2 || szQueryString[0] != '-'
         || szQueryString[1] != '-'
-        || qstrcmp(szQueryString + 2, m_boundary.c_str(), uiSplitSize))
+        || qstrcmp(szQueryString + 2, parsedBoundary.c_str(), uiSplitSize))
         return 0;
 
     uiSplitSize += 2;
@@ -297,7 +298,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
     return 0;
 }
 
-result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
+result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
 {
     if (qstristr(type.c_str(), "urlencoded") != NULL) {
         StringBuffer bufs;
@@ -308,7 +309,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
 
             pair& _pair = m_map[i];
             if (_pair.second.type() != Variant::VT_String) {
-                return Runtime::setError("FormData encode: value must be a string");
+                return Runtime::setError("FormData encode: field '" + _pair.first + "' contains non-string value (File/Blob), use multipart/form-data encoding instead");
             }
 
             exlib::string encodedKey, encodedValue;
@@ -320,14 +321,14 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
             bufs.append(encodedValue);
         }
 
-        retVal = bufs.buffer();
+        retVal = new Blob(bufs.buffer(), "application/x-www-form-urlencoded");
         return 0;
     } else if (qstristr(type.c_str(), "multipart") != NULL) {
         // Determine boundary to use - parse with RFC 2046 compliance
-        exlib::string extractedBoundary;
-        if (parseBoundary(type.c_str(), extractedBoundary)) {
-            m_boundary = extractedBoundary;
-        } else if (m_boundary.empty()) {
+        exlib::string boundary;
+        if (parseBoundary(type.c_str(), boundary)) {
+            // Use boundary from content type
+        } else {
             // Generate random boundary using timestamp and random hex
             char boundaryBuf[64];
             uint8_t randomBytes[8];
@@ -342,9 +343,8 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
                 auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
                 sprintf(boundaryBuf, "----formdata----%llx", (long long)timestamp);
             }
-            m_boundary = boundaryBuf;
+            boundary = boundaryBuf;
         }
-        // If m_boundary is not empty, use the existing boundary
 
         // First pass: calculate total size needed
         size_t totalSize = 0;
@@ -353,7 +353,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
             pair& _pair = m_map[i];
 
             // Boundary delimiter: "--" + boundary + "\r\n"
-            totalSize += 2 + m_boundary.length() + 2;
+            totalSize += 2 + boundary.length() + 2;
 
             if (_pair.second.type() == Variant::VT_String) {
                 // Text field
@@ -403,7 +403,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
         }
 
         // Final boundary: "--" + boundary + "--\r\n"
-        totalSize += 2 + m_boundary.length() + 4;
+        totalSize += 2 + boundary.length() + 4;
 
         // Second pass: write to buffer
         obj_ptr<Buffer> resultBuffer = new Buffer(NULL, totalSize);
@@ -416,8 +416,8 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
             // Write boundary delimiter
             memcpy(bufPtr + offset, "--", 2);
             offset += 2;
-            memcpy(bufPtr + offset, m_boundary.c_str(), m_boundary.length());
-            offset += m_boundary.length();
+            memcpy(bufPtr + offset, boundary.c_str(), boundary.length());
+            offset += boundary.length();
             memcpy(bufPtr + offset, "\r\n", 2);
             offset += 2;
 
@@ -490,11 +490,13 @@ result_t FormData::encode(exlib::string type, obj_ptr<Buffer_base>& retVal)
         // Write final boundary
         memcpy(bufPtr + offset, "--", 2);
         offset += 2;
-        memcpy(bufPtr + offset, m_boundary.c_str(), m_boundary.length());
-        offset += m_boundary.length();
+        memcpy(bufPtr + offset, boundary.c_str(), boundary.length());
+        offset += boundary.length();
         memcpy(bufPtr + offset, "--\r\n", 4);
 
-        retVal = resultBuffer;
+        // Create Blob with proper content-type including boundary
+        exlib::string contentType = "multipart/form-data; boundary=" + boundary;
+        retVal = new Blob(resultBuffer, contentType);
         return 0;
     } else {
         return Runtime::setError("FormData encode: unsupported content type: " + type);

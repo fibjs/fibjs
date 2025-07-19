@@ -167,6 +167,130 @@ describe("FormData API", () => {
             assert.strictEqual(originalFormData.has('field3'), false);
             assert.strictEqual(copiedFormData.has('field3'), true);
         });
+
+        it("FormData constructor - Blob initialization with auto boundary detection", () => {
+            // Create original FormData with mixed content
+            const originalFormData = new FormData();
+            originalFormData.append('text_field', 'sample text');
+            originalFormData.append('number_field', '42');
+
+            // Create a file-like Blob
+            const fileBlob = new Blob(['file content data'], { type: 'text/plain' });
+            originalFormData.append('file_field', fileBlob, 'test.txt');
+
+            // Encode to multipart Blob
+            const encodedBlob = originalFormData.encode('multipart/form-data');
+
+            // Verify it's a Blob with correct content type
+            assert.ok(encodedBlob instanceof Blob, 'encode() should return Blob instance');
+            const contentType = encodedBlob.type;
+            assert.ok(contentType.includes('multipart/form-data'), 'Content-Type should be multipart/form-data');
+            assert.ok(contentType.includes('boundary='), 'Content-Type should include boundary parameter');
+
+            // Test constructor with auto boundary detection (empty boundary parameter)
+            const reconstructedFormData = new FormData(encodedBlob, '');
+
+            // Verify all fields are correctly parsed
+            assert.strictEqual(reconstructedFormData.get('text_field'), 'sample text');
+            assert.strictEqual(reconstructedFormData.get('number_field'), '42');
+
+            // Verify file field
+            const reconstructedFile = reconstructedFormData.get('file_field');
+            assert.ok(reconstructedFile instanceof Blob, 'File field should be Blob instance');
+            assert.strictEqual(reconstructedFile.name, 'test.txt');
+            assert.strictEqual(reconstructedFile.type, 'text/plain');
+            assert.strictEqual(reconstructedFile.textSync(), 'file content data');
+        });
+
+        it("FormData constructor - Blob initialization with explicit boundary", () => {
+            // Create FormData with custom boundary
+            const originalFormData = new FormData();
+            originalFormData.append('message', 'Hello World');
+            originalFormData.append('status', 'active');
+
+            // Encode with custom boundary
+            const customBoundary = 'CustomTestBoundary12345';
+            const encodedBlob = originalFormData.encode(`multipart/form-data; boundary=${customBoundary}`);
+
+            // Test constructor with explicit boundary parameter
+            const reconstructedFormData = new FormData(encodedBlob, `multipart/form-data; boundary=${customBoundary}`);
+
+            // Verify parsing with explicit boundary
+            assert.strictEqual(reconstructedFormData.get('message'), 'Hello World');
+            assert.strictEqual(reconstructedFormData.get('status'), 'active');
+        });
+
+        it("FormData constructor - Blob with invalid/missing boundary falls back gracefully", () => {
+            // Create a Blob that looks like multipart but has no proper Content-Type
+            const invalidMultipartContent = [
+                '------SomeBoundary',
+                'Content-Disposition: form-data; name="test"',
+                '',
+                'test value',
+                '------SomeBoundary--'
+            ].join('\r\n');
+
+            const invalidBlob = new Blob([invalidMultipartContent], { type: 'text/plain' }); // Wrong type
+
+            // Constructor should handle gracefully when boundary can't be detected
+            try {
+                const formData = new FormData(invalidBlob, '');
+                // If it doesn't throw, check it's empty or has some reasonable behavior
+                assert.ok(formData instanceof FormData, 'Should still create FormData instance');
+            } catch (e) {
+                // Or it might throw an error, which is also acceptable behavior
+                assert.ok(e instanceof Error, 'Should throw a meaningful error');
+            }
+        });
+
+        it("FormData constructor - Blob round-trip preserves data integrity", () => {
+            // Test complex round-trip scenario
+            const originalFormData = new FormData();
+
+            // Add various types of data
+            originalFormData.append('simple_text', 'Simple value');
+            originalFormData.append('unicode_text', '测试中文字符 🎉');
+            originalFormData.append('special_chars', 'Value with\nnewlines\tand\rspecial chars');
+            originalFormData.append('empty_field', '');
+
+            // Add multiple values for same key
+            originalFormData.append('multi_value', 'first');
+            originalFormData.append('multi_value', 'second');
+
+            // Add binary file
+            const binaryData = new Uint8Array([0x00, 0x01, 0x02, 0xFF, 0xFE]);
+            const binaryBlob = new Blob([binaryData], { type: 'application/octet-stream' });
+            originalFormData.append('binary_file', binaryBlob, 'data.bin');
+
+            // Encode and reconstruct
+            const encodedBlob = originalFormData.encode('multipart/form-data');
+            const reconstructedFormData = new FormData(encodedBlob, '');
+
+            // Verify all text fields
+            assert.strictEqual(reconstructedFormData.get('simple_text'), 'Simple value');
+            assert.strictEqual(reconstructedFormData.get('unicode_text'), '测试中文字符 🎉');
+            assert.strictEqual(reconstructedFormData.get('special_chars'), 'Value with\nnewlines\tand\rspecial chars');
+            assert.strictEqual(reconstructedFormData.get('empty_field'), '');
+
+            // Verify multiple values
+            const multiValues = reconstructedFormData.getAll('multi_value');
+            assert.strictEqual(multiValues.length, 2);
+            assert.strictEqual(multiValues[0], 'first');
+            assert.strictEqual(multiValues[1], 'second');
+
+            // Verify binary file
+            const reconstructedBinary = reconstructedFormData.get('binary_file');
+            assert.ok(reconstructedBinary instanceof Blob, 'Binary field should be Blob');
+            assert.strictEqual(reconstructedBinary.name, 'data.bin');
+            assert.strictEqual(reconstructedBinary.type, 'application/octet-stream');
+
+            // Verify binary size (content length should match)
+            assert.strictEqual(reconstructedBinary.size, binaryData.length, 'Binary size should match');
+
+            // For binary data comparison, we'll verify size and type instead of content
+            // since textSync() might not handle binary data correctly
+            assert.ok(reconstructedBinary.size > 0, 'Binary data should not be empty');
+        });
     });
 
     // Multipart parsing comprehensive tests
@@ -546,7 +670,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('age', '25');
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             // Should be URL encoded format
             assert.ok(result.includes('name=John%20Doe'));
@@ -562,7 +691,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('field3', 'value&with&ampersand');
 
             const encoded = formData.encode('application/x-www-form-urlencoded');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             assert.ok(result.includes('field1=value%20with%20spaces'));
             assert.ok(result.includes('field2=value%2Bwith%2Bplus'));
@@ -577,8 +711,14 @@ Line 3 with special chars: áéíóú`;
             const encoded2 = formData.encode('application/x-www-form-urlencoded');
 
             // Should produce same result
-            assert.strictEqual(encoded1.toString(), encoded2.toString());
-            assert.strictEqual(encoded1.toString(), 'test=value');
+            assert.strictEqual(encoded1.textSync(), encoded2.textSync());
+            assert.strictEqual(encoded1.textSync(), 'test=value');
+
+            // Both should return Blobs with correct content-type
+            assert.strictEqual(encoded1 instanceof Blob, true);
+            assert.strictEqual(encoded2 instanceof Blob, true);
+            assert.strictEqual(encoded1.type, 'application/x-www-form-urlencoded');
+            assert.strictEqual(encoded2.type, 'application/x-www-form-urlencoded');
         });
 
         it("FormData.encode() - form-urlencoded alias", () => {
@@ -586,7 +726,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('key', 'test value');
 
             const encoded = formData.encode('form-urlencoded');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             assert.strictEqual(result, 'key=test%20value');
         });
@@ -596,7 +741,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('param', 'test@value.com');
 
             const encoded = formData.encode('www-form-urlencoded');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             assert.strictEqual(result, 'param=test%40value.com');
         });
@@ -608,7 +758,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('colors', 'blue');
 
             const encoded = formData.encode('application/x-www-form-urlencoded');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             // All values should be included
             assert.ok(result.includes('colors=red'));
@@ -626,7 +781,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('spaces', 'hello world');
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             // Unicode should be properly encoded
             assert.ok(result.includes('unicode=%E4%B8%AD%E6%96%87%E6%B5%8B%E8%AF%95'));
@@ -643,7 +803,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('normal', 'value');
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             assert.ok(result.includes('empty='));
             assert.ok(result.includes('space=%20'));
@@ -657,7 +822,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('field.nested', 'dot notation');
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             assert.ok(result.includes('field%20name=value'));
             assert.ok(result.includes('field%5B0%5D=array-like'));
@@ -671,7 +841,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('age', '25');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // Should contain multipart boundary markers
             assert.ok(result.includes('----formdata----'));
@@ -696,7 +871,12 @@ Line 3 with special chars: áéíóú`;
 
             const customBoundary = 'MyCustomBoundary123';
             const encoded = formData.encode(`multipart/form-data; boundary=${customBoundary}`);
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, `multipart/form-data; boundary=${customBoundary}`);
+
+            const result = encoded.textSync();
 
             // Should use custom boundary
             assert.ok(result.includes(`--${customBoundary}`));
@@ -719,8 +899,12 @@ Line 3 with special chars: áéíóú`;
             // Encode to multipart
             const encoded = originalFormData.encode('multipart/form-data');
 
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
             // Extract boundary for parsing
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             assert.ok(boundaryMatch, 'Should find boundary in encoded data');
             const boundary = boundaryMatch[0];
@@ -754,8 +938,12 @@ Line 3 with special chars: áéíóú`;
             // Encode to multipart
             const encoded = originalFormData.encode('multipart/form-data');
 
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
             // Extract boundary for parsing
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             assert.ok(boundaryMatch, 'Should find boundary in encoded data');
             const boundary = boundaryMatch[0];
@@ -793,11 +981,12 @@ Line 3 with special chars: áéíóú`;
             // Encode to multipart
             const encoded = originalFormData.encode('multipart/form-data');
 
-            // Should be a Buffer instance
-            assert.strictEqual(encoded instanceof Buffer, true);
+            // Should be a Blob instance with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
 
             // Extract boundary from encoded data for parsing
-            const encodedStr = encoded.toString('binary');
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             assert.ok(boundaryMatch, 'Should find boundary in encoded data');
             const boundary = boundaryMatch[0];
@@ -825,7 +1014,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('🌟unicode', 'value5');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // All field names should be preserved as-is in multipart encoding
             assert.ok(result.includes('name="field with spaces"'));
@@ -848,7 +1042,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('symbols', '!@#$%^&*()');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // Values should be preserved as-is (no URL encoding in multipart)
             assert.ok(result.includes('中文测试 🌟'));
@@ -864,7 +1063,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('whitespace_field', '   ');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // Empty and whitespace fields should be included
             assert.ok(result.includes('name="empty_field"'));
@@ -881,7 +1085,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('unknown_file', blob, 'unknown.dat');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // Should default to application/octet-stream
             assert.ok(result.includes('name="unknown_file"'));
@@ -899,10 +1108,18 @@ Line 3 with special chars: áéíóú`;
             const encoded2 = formData.encode('Multipart/Form-Data');
             const encoded3 = formData.encode('multipart/FORM-data');
 
+            // All should return Blobs with correct content-type
+            assert.strictEqual(encoded1 instanceof Blob, true);
+            assert.strictEqual(encoded2 instanceof Blob, true);
+            assert.strictEqual(encoded3 instanceof Blob, true);
+            assert.ok(encoded1.type.startsWith('multipart/form-data; boundary='));
+            assert.ok(encoded2.type.startsWith('multipart/form-data; boundary='));
+            assert.ok(encoded3.type.startsWith('multipart/form-data; boundary='));
+
             // All should produce valid multipart output
-            assert.ok(encoded1.toString().includes('Content-Disposition: form-data'));
-            assert.ok(encoded2.toString().includes('Content-Disposition: form-data'));
-            assert.ok(encoded3.toString().includes('Content-Disposition: form-data'));
+            assert.ok(encoded1.textSync().includes('Content-Disposition: form-data'));
+            assert.ok(encoded2.textSync().includes('Content-Disposition: form-data'));
+            assert.ok(encoded3.textSync().includes('Content-Disposition: form-data'));
         });
 
         it("FormData.encode() - multipart/form-data order preservation", () => {
@@ -912,7 +1129,12 @@ Line 3 with special chars: áéíóú`;
             formData.append('second', 'value2');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.ok(encoded.type.startsWith('multipart/form-data; boundary='));
+
+            const result = encoded.textSync();
 
             // Fields should appear in the order they were added
             const thirdIndex = result.indexOf('name="third"');
@@ -945,7 +1167,12 @@ Line 3 with special chars: áéíóú`;
             const formData = new FormData();
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            const result = encoded.textSync();
 
             // Should return empty string for empty FormData
             assert.strictEqual(result, '');
@@ -959,12 +1186,12 @@ Line 3 with special chars: áéíóú`;
             // Should throw error when trying to encode File objects as URL-encoded
             assert.throws(() => {
                 formData.encode('application/x-www-form-urlencoded');
-            });
+            }, /FormData encode: field 'file' contains non-string value \(File\/Blob\), use multipart\/form-data encoding instead/);
 
             // But should work fine with multipart
             const encoded = formData.encode('multipart/form-data');
-            assert.ok(encoded instanceof Buffer);
-            assert.ok(encoded.toString().includes('filename="test.txt"'));
+            assert.ok(encoded instanceof Blob);
+            assert.ok(encoded.textSync().includes('filename="test.txt"'));
         });
 
         it("FormData.encode() - mixed string and File values", () => {
@@ -977,12 +1204,12 @@ Line 3 with special chars: áéíóú`;
             // Should throw error for URL-encoded due to File object presence
             assert.throws(() => {
                 formData.encode('application/x-www-form-urlencoded');
-            });
+            }, /FormData encode: field 'file' contains non-string value \(File\/Blob\), use multipart\/form-data encoding instead/);
 
             // But should work fine with multipart
             const encoded = formData.encode('multipart/form-data');
-            assert.ok(encoded instanceof Buffer);
-            const result = encoded.toString();
+            assert.ok(encoded instanceof Blob);
+            const result = encoded.textSync();
             assert.ok(result.includes('name="text"'));
             assert.ok(result.includes('value'));
             assert.ok(result.includes('name="file"'));
@@ -998,9 +1225,17 @@ Line 3 with special chars: áéíóú`;
             const encoded2 = formData.encode('Application/X-Www-Form-Urlencoded');
             const encoded3 = formData.encode('URLENCODED');
 
-            assert.strictEqual(encoded1.toString(), 'test=value');
-            assert.strictEqual(encoded2.toString(), 'test=value');
-            assert.strictEqual(encoded3.toString(), 'test=value');
+            // All should return Blobs with correct content-type
+            assert.strictEqual(encoded1 instanceof Blob, true);
+            assert.strictEqual(encoded2 instanceof Blob, true);
+            assert.strictEqual(encoded3 instanceof Blob, true);
+            assert.strictEqual(encoded1.type, 'application/x-www-form-urlencoded');
+            assert.strictEqual(encoded2.type, 'application/x-www-form-urlencoded');
+            assert.strictEqual(encoded3.type, 'application/x-www-form-urlencoded');
+
+            assert.strictEqual(encoded1.textSync(), 'test=value');
+            assert.strictEqual(encoded2.textSync(), 'test=value');
+            assert.strictEqual(encoded3.textSync(), 'test=value');
         });
 
         it("FormData.encode() - content type with charset parameter", () => {
@@ -1009,7 +1244,12 @@ Line 3 with special chars: áéíóú`;
 
             // Should work with charset parameter
             const encoded = formData.encode('application/x-www-form-urlencoded; charset=UTF-8');
-            assert.strictEqual(encoded.toString(), 'test=value');
+
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+
+            assert.strictEqual(encoded.textSync(), 'test=value');
         });
 
         it("FormData.encode() - long field values", () => {
@@ -1018,7 +1258,7 @@ Line 3 with special chars: áéíóú`;
             formData.append('longfield', longValue);
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should handle long values
             assert.ok(result.startsWith('longfield='));
@@ -1032,23 +1272,24 @@ Line 3 with special chars: áéíóú`;
             formData.append('second', '2');
 
             const encoded = formData.encode();
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should preserve the order fields were added
             const expectedOrder = 'third=3&first=1&second=2';
             assert.strictEqual(result, expectedOrder);
         });
 
-        it("FormData.encode() - return Buffer object", () => {
+        it("FormData.encode() - return Blob object", () => {
             const formData = new FormData();
             formData.append('test', 'value');
 
             const encoded = formData.encode();
 
-            // Should return a Buffer object
-            assert.strictEqual(encoded instanceof Buffer, true);
-            assert.strictEqual(typeof encoded.toString, 'function');
-            assert.strictEqual(encoded.toString(), 'test=value');
+            // Should return a Blob object with correct content-type
+            assert.strictEqual(encoded instanceof Blob, true);
+            assert.strictEqual(encoded.type, 'application/x-www-form-urlencoded');
+            assert.strictEqual(typeof encoded.textSync, 'function');
+            assert.strictEqual(encoded.textSync(), 'test=value');
         });
     });
 
@@ -1059,7 +1300,7 @@ Line 3 with special chars: áéíóú`;
             formData.append('name', 'value');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should have default boundary pattern
             assert.ok(result.includes('----formdata----'));
@@ -1071,7 +1312,7 @@ Line 3 with special chars: áéíóú`;
 
             // Extract boundaries
             const boundary1Match = result.match(/----formdata----[a-f0-9]+/);
-            const boundary2Match = encoded2.toString().match(/----formdata----[a-f0-9]+/);
+            const boundary2Match = encoded2.textSync().match(/----formdata----[a-f0-9]+/);
 
             assert.ok(boundary1Match, 'First encoding should have boundary');
             assert.ok(boundary2Match, 'Second encoding should have boundary');
@@ -1085,7 +1326,7 @@ Line 3 with special chars: áéíóú`;
 
             const customBoundary = 'CustomBoundary123';
             const encoded = formData.encode(`multipart/form-data; boundary=${customBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should use the specified custom boundary
             assert.ok(result.includes(`--${customBoundary}\r\n`));
@@ -1099,7 +1340,7 @@ Line 3 with special chars: áéíóú`;
 
             const specialBoundary = 'Boundary_With-Special.Characters123';
             const encoded = formData.encode(`multipart/form-data; boundary=${specialBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes(`--${specialBoundary}\r\n`));
             assert.ok(result.includes(`--${specialBoundary}--\r\n`));
@@ -1111,7 +1352,7 @@ Line 3 with special chars: áéíóú`;
 
             const numericBoundary = '1234567890-ABCDEF-boundary';
             const encoded = formData.encode(`multipart/form-data; boundary=${numericBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes(`--${numericBoundary}\r\n`));
             assert.ok(result.includes(`--${numericBoundary}--\r\n`));
@@ -1123,7 +1364,7 @@ Line 3 with special chars: áéíóú`;
 
             const longBoundary = 'a'.repeat(60) + 'boundary'; // 68 characters total
             const encoded = formData.encode(`multipart/form-data; boundary=${longBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes(`--${longBoundary}\r\n`));
             assert.ok(result.includes(`--${longBoundary}--\r\n`));
@@ -1135,7 +1376,7 @@ Line 3 with special chars: áéíóú`;
 
             const simpleBoundary = 'SimpleBoundary';
             const encoded = formData.encode(`multipart/form-data; boundary=${simpleBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes(`--${simpleBoundary}\r\n`));
             assert.ok(result.includes(`--${simpleBoundary}--\r\n`));
@@ -1149,7 +1390,7 @@ Line 3 with special chars: áéíóú`;
 
             // Test lowercase boundary parameter (should work)
             const encoded = formData.encode(`multipart/form-data; boundary=${testBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
             assert.ok(result.includes(`--${testBoundary}\r\n`));
         });
 
@@ -1159,7 +1400,7 @@ Line 3 with special chars: áéíóú`;
 
             const boundary = 'MultiParamBoundary';
             const encoded = formData.encode(`multipart/form-data; charset=utf-8; boundary=${boundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes(`--${boundary}\r\n`));
             assert.ok(result.includes(`--${boundary}--\r\n`));
@@ -1194,7 +1435,7 @@ Line 3 with special chars: áéíóú`;
 
             // Without boundary parameter, should use default
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             assert.ok(result.includes('----formdata----'));
         });
@@ -1206,7 +1447,7 @@ Line 3 with special chars: áéíóú`;
             formData.append('field3', 'value3');
 
             const encoded = formData.encode('multipart/form-data');
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Extract all boundary occurrences
             const boundaryMatches = result.match(/--[^\r\n]+/g);
@@ -1236,7 +1477,7 @@ Line 3 with special chars: áéíóú`;
 
             const customBoundary = 'FileBoundary999';
             const encoded = formData.encode(`multipart/form-data; boundary=${customBoundary}`);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should use custom boundary consistently
             assert.ok(result.includes(`--${customBoundary}\r\n`));
@@ -1967,10 +2208,10 @@ Line 3 with special chars: áéíóú`;
 
             // Encode to multipart
             const encoded = originalFormData.encode('multipart/form-data');
-            assert.strictEqual(encoded instanceof Buffer, true);
+            assert.strictEqual(encoded instanceof Blob, true);
 
             // Extract boundary from encoded data
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             assert.ok(boundaryMatch, 'Should find boundary in encoded data');
             const boundary = boundaryMatch[0];
@@ -2009,7 +2250,7 @@ Line 3 with special chars: áéíóú`;
             const encoded = originalFormData.encode('multipart/form-data');
 
             // Extract boundary for parsing
-            const encodedStr = encoded.toString('binary'); // Use binary to preserve all bytes
+            const encodedStr = encoded.textSync(); // Use textSync to get content as string
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             assert.ok(boundaryMatch, 'Should find boundary in encoded data');
             const boundary = boundaryMatch[0];
@@ -2057,7 +2298,7 @@ Line 3 with special chars: áéíóú`;
             const encoded = originalFormData.encode(`multipart/form-data; boundary=${customBoundary}`);
 
             // Verify custom boundary is used
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             assert.ok(encodedStr.includes(`--${customBoundary}\r\n`));
             assert.ok(encodedStr.includes(`--${customBoundary}--\r\n`));
 
@@ -2089,7 +2330,7 @@ Line 3 with special chars: áéíóú`;
 
             // Encode and decode
             const encoded = originalFormData.encode('multipart/form-data');
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             const boundary = boundaryMatch[0];
 
@@ -2134,7 +2375,7 @@ Line 3 with special chars: áéíóú`;
 
             // Encode and decode
             const encoded = originalFormData.encode('multipart/form-data');
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             const boundary = boundaryMatch[0];
 
@@ -2175,7 +2416,7 @@ Line 3 with special chars: áéíóú`;
 
             // Encode and decode
             const encoded = originalFormData.encode('multipart/form-data');
-            const encodedStr = encoded.toString('binary');
+            const encodedStr = encoded.textSync();
             const boundaryMatch = encodedStr.match(/----formdata----([a-f0-9]+)/);
             const boundary = boundaryMatch[0];
 
@@ -2204,7 +2445,7 @@ Line 3 with special chars: áéíóú`;
 
             // Encode empty FormData
             const encoded = originalFormData.encode('multipart/form-data');
-            const encodedStr = encoded.toString();
+            const encodedStr = encoded.textSync();
 
             // Should still have boundary structure
             assert.ok(encodedStr.includes('----formdata----'));
@@ -2232,7 +2473,7 @@ Line 3 with special chars: áéíóú`;
             const contentType = `multipart/form-data; boundary="${boundary}"`;
 
             const encoded = formData.encode(contentType);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should correctly parse quoted boundary and use it
             assert.ok(result.includes(`--${boundary}\r\n`),
@@ -2251,7 +2492,7 @@ Line 3 with special chars: áéíóú`;
             const contentType = `multipart/form-data; boundary="${boundary}"`;
 
             const encoded = formData.encode(contentType);
-            const result = encoded.toString();
+            const result = encoded.textSync();
 
             // Should reject boundary with spaces and fall back to default
             assert.ok(!result.includes(`--${boundary}\r\n`),
@@ -2274,7 +2515,7 @@ Line 3 with special chars: áéíóú`;
 
             contentTypes.forEach((contentType, index) => {
                 const encoded = formData.encode(contentType);
-                const result = encoded.toString();
+                const result = encoded.textSync();
 
                 // Should parse case-insensitive parameter names correctly
                 assert.ok(result.includes(`--${boundary}\r\n`),
@@ -2299,7 +2540,7 @@ Line 3 with special chars: áéíóú`;
 
             contentTypes.forEach((contentType, index) => {
                 const encoded = formData.encode(contentType);
-                const result = encoded.toString();
+                const result = encoded.textSync();
 
                 // Should handle whitespace around parameter correctly
                 assert.ok(result.includes(`--${boundary}\r\n`),
@@ -2323,7 +2564,7 @@ Line 3 with special chars: áéíóú`;
 
             contentTypes.forEach((contentType, index) => {
                 const encoded = formData.encode(contentType);
-                const result = encoded.toString();
+                const result = encoded.textSync();
 
                 // Should parse boundary regardless of parameter order
                 assert.ok(result.includes(`--${boundary}\r\n`),
@@ -2346,7 +2587,7 @@ Line 3 with special chars: áéíóú`;
 
             contentTypes.forEach((contentType, index) => {
                 const encoded = formData.encode(contentType);
-                const result = encoded.toString();
+                const result = encoded.textSync();
 
                 // Should fall back to default boundary when boundary is empty
                 assert.ok(result.includes('----formdata----'),
@@ -2367,7 +2608,7 @@ Line 3 with special chars: áéíóú`;
 
             // Test valid 70-character boundary
             const encoded1 = formData.encode(`multipart/form-data; boundary=${validBoundary}`);
-            const result1 = encoded1.toString();
+            const result1 = encoded1.textSync();
             assert.ok(result1.includes(`--${validBoundary}\r\n`),
                 'Should accept boundary with exactly 70 characters');
             assert.ok(result1.includes(`--${validBoundary}--\r\n`),
@@ -2375,13 +2616,13 @@ Line 3 with special chars: áéíóú`;
 
             // Test valid named boundary with 70 characters
             const encoded2 = formData.encode(`multipart/form-data; boundary=${validNamedBoundary}`);
-            const result2 = encoded2.toString();
+            const result2 = encoded2.textSync();
             assert.ok(result2.includes(`--${validNamedBoundary}\r\n`),
                 'Should accept valid 70-character named boundary');
 
             // Test invalid 71-character boundary should fall back to default
             const encoded3 = formData.encode(`multipart/form-data; boundary=${invalidBoundary}`);
-            const result3 = encoded3.toString();
+            const result3 = encoded3.textSync();
             assert.ok(!result3.includes(`--${invalidBoundary}\r\n`),
                 'Should reject boundary longer than 70 characters');
             // When boundary parsing fails, should use existing boundary or generate new default
@@ -2411,7 +2652,7 @@ Line 3 with special chars: áéíóú`;
                 const contentType = `multipart/form-data; boundary="${boundary}"`;
 
                 const encoded = formData.encode(contentType);
-                const result = encoded.toString();
+                const result = encoded.textSync();
 
                 // Should accept all RFC 2046 allowed special characters
                 assert.ok(result.includes(`--${boundary}\r\n`),

@@ -46,6 +46,20 @@ private:
     exlib::string m_type;
 
 public:
+    Blob()
+        : m_buffer(NULL)
+        , m_type("")
+    {
+    }
+
+    Blob(obj_ptr<Buffer_base> buffer, const exlib::string& type)
+        : m_buffer(buffer)
+        , m_type(type)
+    {
+        m_impl.init(buffer, type);
+    }
+
+public:
     // Blob_base
     virtual result_t get_type(exlib::string& retVal)
     {
