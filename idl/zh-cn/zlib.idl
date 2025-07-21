@@ -206,4 +206,58 @@ module zlib
      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
     static inflateRawTo(Stream src, Stream stm, Integer maxSize = -1) async;
+
+    /*! @brief 创建一个 zip 流对象 
+     @param to 用于存储处理结果的流
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     @return 返回封装过的流对象*/
+    static Stream createZip(Stream to, Integer level = DEFAULT_COMPRESSION);
+
+    /*! @brief 创建一个 unzip 流对象 
+     @param to 用于存储处理结果的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     @return 返回封装过的流对象*/
+    static Stream createUnzip(Stream to, Integer maxSize = -1);
+
+    /*! @brief 使用 zip 算法压缩数据
+     @param data 给定要压缩的数据
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     @return 返回压缩后的二进制数据
+     */
+    static Buffer zip(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 使用 zip 算法压缩数据到流对象中
+     @param data 给定要压缩的数据
+     @param stm 指定存储压缩数据的流
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     */
+    static zipTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 使用 zip 算法压缩源流中的数据到流对象中
+     @param src 给定要压缩的数据所在的流
+     @param stm 指定存储压缩数据的流
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     */
+    static zipTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 解压缩 zip 算法压缩的数据
+     @param data 给定压缩后的数据
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     @return 返回解压缩后的二进制数据
+     */
+    static Buffer unzip(Buffer data, Integer maxSize = -1) async;
+
+    /*! @brief 解压缩 zip 算法压缩的数据到流对象中
+     @param data 给定要解压缩的数据
+     @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     */
+    static unzipTo(Buffer data, Stream stm, Integer maxSize = -1) async;
+
+    /*! @brief 解压缩源流中 zip 算法压缩的数据到流对象中
+     @param src 给定要解压缩的数据所在的流
+     @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     */
+    static unzipTo(Stream src, Stream stm, Integer maxSize = -1) async;
 };

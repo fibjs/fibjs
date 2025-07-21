@@ -191,4 +191,64 @@ result_t zlib_base::inflateRawTo(Stream_base* src, Stream_base* stm, int32_t max
 
     return (new infraw(stm, maxSize))->process(src, ac);
 }
+
+result_t zlib_base::createZip(Stream_base* to, int32_t level, obj_ptr<Stream_base>& retVal)
+{
+    retVal = new class zip(to, level);
+    return 0;
+}
+
+result_t zlib_base::createUnzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
+{
+    retVal = new class unzip(to, maxSize);
+    return 0;
+}
+
+result_t zlib_base::zip(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class zip(NULL, level))->process(data, retVal, ac);
+}
+
+result_t zlib_base::zipTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class zip(stm, level))->process(data, ac);
+}
+
+result_t zlib_base::zipTo(Stream_base* src, Stream_base* stm, int32_t level, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class zip(stm, level))->process(src, ac);
+}
+
+result_t zlib_base::unzip(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class unzip(NULL, maxSize))->process(data, retVal, ac);
+}
+
+result_t zlib_base::unzipTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class unzip(stm, maxSize))->process(data, ac);
+}
+
+result_t zlib_base::unzipTo(Stream_base* src, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new class unzip(stm, maxSize))->process(src, ac);
+}
 }

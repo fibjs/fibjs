@@ -56,6 +56,14 @@ public:
     static result_t inflateRaw(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t inflateRawTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
     static result_t inflateRawTo(Stream_base* src, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
+    static result_t createZip(Stream_base* to, int32_t level, obj_ptr<Stream_base>& retVal);
+    static result_t createUnzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal);
+    static result_t zip(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t zipTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac);
+    static result_t zipTo(Stream_base* src, Stream_base* stm, int32_t level, AsyncEvent* ac);
+    static result_t unzip(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t unzipTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
+    static result_t unzipTo(Stream_base* src, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -87,6 +95,12 @@ public:
     static void s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createZip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createUnzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(zlib_base, deflate, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -107,6 +121,12 @@ public:
     ASYNC_STATICVALUE3(zlib_base, inflateRaw, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATIC3(zlib_base, inflateRawTo, Buffer_base*, Stream_base*, int32_t);
     ASYNC_STATIC3(zlib_base, inflateRawTo, Stream_base*, Stream_base*, int32_t);
+    ASYNC_STATICVALUE3(zlib_base, zip, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATIC3(zlib_base, zipTo, Buffer_base*, Stream_base*, int32_t);
+    ASYNC_STATIC3(zlib_base, zipTo, Stream_base*, Stream_base*, int32_t);
+    ASYNC_STATICVALUE3(zlib_base, unzip, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATIC3(zlib_base, unzipTo, Buffer_base*, Stream_base*, int32_t);
+    ASYNC_STATIC3(zlib_base, unzipTo, Stream_base*, Stream_base*, int32_t);
 };
 }
 
@@ -135,7 +155,13 @@ inline ClassInfo& zlib_base::class_info()
         { "deflateRaw", s_static_deflateRaw, true, ClassData::ASYNC_ASYNC },
         { "deflateRawTo", s_static_deflateRawTo, true, ClassData::ASYNC_ASYNC },
         { "inflateRaw", s_static_inflateRaw, true, ClassData::ASYNC_ASYNC },
-        { "inflateRawTo", s_static_inflateRawTo, true, ClassData::ASYNC_ASYNC }
+        { "inflateRawTo", s_static_inflateRawTo, true, ClassData::ASYNC_ASYNC },
+        { "createZip", s_static_createZip, true, ClassData::ASYNC_SYNC },
+        { "createUnzip", s_static_createUnzip, true, ClassData::ASYNC_SYNC },
+        { "zip", s_static_zip, true, ClassData::ASYNC_ASYNC },
+        { "zipTo", s_static_zipTo, true, ClassData::ASYNC_ASYNC },
+        { "unzip", s_static_unzip, true, ClassData::ASYNC_ASYNC },
+        { "unzipTo", s_static_unzipTo, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -534,6 +560,134 @@ inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::
         hr = acb_inflateRawTo(v0.get(), v1.get(), v2, cb, args);
     else
         hr = ac_inflateRawTo(v0.get(), v1.get(), v2);
+
+    METHOD_VOID();
+}
+
+inline void zlib_base::s_static_createZip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
+
+    hr = createZip(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_createUnzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(int32_t, 1, -1);
+
+    hr = createUnzip(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_zip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.zip");
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
+
+    if (!cb.IsEmpty())
+        hr = acb_zip(v0.get(), v1, cb, args);
+    else
+        hr = ac_zip(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.zipTo");
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
+    OPT_ARG(int32_t, 2, C_DEFAULT_COMPRESSION);
+
+    if (!cb.IsEmpty())
+        hr = acb_zipTo(v0.get(), v1.get(), v2, cb, args);
+    else
+        hr = ac_zipTo(v0.get(), v1.get(), v2);
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
+    OPT_ARG(int32_t, 2, C_DEFAULT_COMPRESSION);
+
+    if (!cb.IsEmpty())
+        hr = acb_zipTo(v0.get(), v1.get(), v2, cb, args);
+    else
+        hr = ac_zipTo(v0.get(), v1.get(), v2);
+
+    METHOD_VOID();
+}
+
+inline void zlib_base::s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.unzip");
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, -1);
+
+    if (!cb.IsEmpty())
+        hr = acb_unzip(v0.get(), v1, cb, args);
+    else
+        hr = ac_unzip(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.unzipTo");
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
+    OPT_ARG(int32_t, 2, -1);
+
+    if (!cb.IsEmpty())
+        hr = acb_unzipTo(v0.get(), v1.get(), v2, cb, args);
+    else
+        hr = ac_unzipTo(v0.get(), v1.get(), v2);
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
+    OPT_ARG(int32_t, 2, -1);
+
+    if (!cb.IsEmpty())
+        hr = acb_unzipTo(v0.get(), v1.get(), v2, cb, args);
+    else
+        hr = ac_unzipTo(v0.get(), v1.get(), v2);
 
     METHOD_VOID();
 }

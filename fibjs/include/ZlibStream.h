@@ -17,6 +17,14 @@ namespace fibjs {
 
 #define ZLIB_CHUNK 1024
 
+// Window bits constants for different compression formats
+#define GZIP_WINDOW_BITS (MAX_WBITS + 16) // 15 + 16 = 31 for GZIP format
+#define RAW_WINDOW_BITS (-MAX_WBITS) // -15 for raw deflate format
+#define ZLIB_WINDOW_BITS MAX_WBITS // 15 for standard zlib format
+
+// Default compression parameters
+#define DEFAULT_MEM_LEVEL 8 // Default memory level for deflate
+
 class ZlibStream : public AsyncStream<Stream_base> {
 private:
     class asyncWrite : public AsyncState {
@@ -297,15 +305,16 @@ public:
     {
         int32_t ret = ::inflate(&strm, flush);
 
-        if (ret == Z_DATA_ERROR) {
-            ret = inflateSync(&strm);
-            if (ret == Z_DATA_ERROR)
-                ret = Z_STREAM_END;
-        }
-
+        // Handle stream end normally
         if (ret == Z_STREAM_END) {
             inflateReset(&strm);
             return Z_OK;
+        }
+
+        // For any error, return it immediately without trying to recover
+        // This ensures strict format validation and compatibility with Node.js
+        if (ret != Z_OK && ret != Z_BUF_ERROR && ret != Z_NEED_DICT) {
+            return ret;
         }
 
         return ret;
@@ -340,7 +349,7 @@ public:
     gunz(Stream_base* stm, int32_t maxSize)
         : inf_base(stm, maxSize)
     {
-        inflateInit2(&strm, 15 + 16);
+        inflateInit2(&strm, GZIP_WINDOW_BITS);
     }
 };
 
@@ -349,7 +358,7 @@ public:
     gz(Stream_base* stm)
         : def_base(stm)
     {
-        deflateInit2(&strm, -1, 8, 15 + 16, 8, 0);
+        deflateInit2(&strm, -1, Z_DEFLATED, GZIP_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     }
 };
 
@@ -358,7 +367,7 @@ public:
     infraw(Stream_base* stm, int32_t maxSize)
         : inf_base(stm, maxSize)
     {
-        inflateInit2(&strm, -15);
+        inflateInit2(&strm, RAW_WINDOW_BITS);
     }
 };
 
@@ -367,7 +376,32 @@ public:
     defraw(Stream_base* stm)
         : def_base(stm)
     {
-        deflateInit2(&strm, -1, Z_DEFLATED, -15, 8, 0);
+        deflateInit2(&strm, -1, Z_DEFLATED, RAW_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+    }
+};
+
+class zip : public def_base {
+public:
+    zip(Stream_base* stm, int32_t level = -1)
+        : def_base(stm)
+    {
+        if (level < zlib_base::C_DEFAULT_COMPRESSION)
+            level = zlib_base::C_DEFAULT_COMPRESSION;
+        else if (level > zlib_base::C_BEST_COMPRESSION)
+            level = zlib_base::C_BEST_COMPRESSION;
+
+        // Use deflate with custom window bits for zip format
+        deflateInit2(&strm, level, Z_DEFLATED, RAW_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+    }
+};
+
+class unzip : public inf_base {
+public:
+    unzip(Stream_base* stm, int32_t maxSize)
+        : inf_base(stm, maxSize)
+    {
+        // Use inflate with custom window bits for zip format
+        inflateInit2(&strm, RAW_WINDOW_BITS);
     }
 };
 
