@@ -225,6 +225,123 @@ describe("child_process", () => {
                 $`echo1 100`;
             });
         });
+
+        it("execSync", () => {
+            // Test successful execSync
+            var ret = child_process.execSync("echo hello");
+            assert.equal(ret, "hello" + os.EOL);
+
+            // Test execSync with encoding
+            var ret = child_process.execSync("echo world", { encoding: 'utf8' });
+            assert.equal(ret, "world" + os.EOL);
+
+            // Test execSync error case
+            assert.throws(() => {
+                child_process.execSync("exit 1");
+            }, (error) => {
+                assert.equal(error.status, 1);
+                assert.equal(error.signal, null);
+                assert.ok(error.hasOwnProperty('stdout'));
+                assert.ok(error.hasOwnProperty('stderr'));
+                assert.ok(error.hasOwnProperty('output'));
+                assert.equal(error.output.length, 3);
+                assert.equal(error.output[0], null);
+                return true;
+            });
+
+            // Test execSync with command not found
+            assert.throws(() => {
+                child_process.execSync("nonexistent_command_12345");
+            }, (error) => {
+                assert.equal(error.status, 127);
+                assert.equal(error.signal, null);
+                assert.ok(error.stderr.includes("command not found") || error.stderr.includes("not found"));
+                return true;
+            });
+
+            if (process.platform == "win32") {
+                var ret = child_process.execSync(`echo "hello world"`);
+                assert.equal(ret, `"hello world"\r\n`);
+            } else {
+                var ret = child_process.execSync(`echo "hello world"`);
+                assert.equal(ret, `hello world\n`);
+            }
+        });
+
+        it("execFileSync", () => {
+            // Test successful execFileSync
+            var ret = child_process.execFileSync(cmd, [
+                path.join(__dirname, "process", "exec_sync_success.js")
+            ]);
+            assert.equal(ret, "execSync success output" + os.EOL);
+
+            // Test execFileSync with encoding
+            var ret = child_process.execFileSync(cmd, [
+                path.join(__dirname, "process", "exec_sync_success.js")
+            ], { encoding: 'utf8' });
+            assert.equal(ret, "execSync success output" + os.EOL);
+
+            // Test execFileSync with arguments
+            var ret = child_process.execFileSync(cmd, [
+                path.join(__dirname, "process", "exec_file_sync.js"),
+                "arg1", "arg2"
+            ]);
+            assert.ok(ret.includes('["arg1","arg2"]'));
+
+            // Test execFileSync error case
+            assert.throws(() => {
+                child_process.execFileSync(cmd, [
+                    path.join(__dirname, "process", "exec_sync_error.js")
+                ]);
+            }, (error) => {
+                assert.equal(error.status, 1);
+                assert.equal(error.signal, null);
+                assert.ok(error.stdout.includes("execSync stdout before error"));
+                assert.ok(error.stderr.includes("execSync stderr error message"));
+                assert.ok(error.hasOwnProperty('output'));
+                assert.equal(error.output.length, 3);
+                assert.equal(error.output[0], null);
+                return true;
+            });
+
+            // Test execFileSync with different exit code
+            assert.throws(() => {
+                child_process.execFileSync(cmd, [
+                    path.join(__dirname, "process", "exec_file_sync_error.js")
+                ]);
+            }, (error) => {
+                assert.equal(error.status, 42);
+                assert.equal(error.signal, null);
+                assert.ok(error.stdout.includes("execFileSync stdout"));
+                assert.ok(error.stderr.includes("execFileSync stderr"));
+                return true;
+            });
+
+            // Test execFileSync with stdio inherit
+            var ret = child_process.execFileSync(cmd, [
+                path.join(__dirname, "process", "exec_sync_success.js")
+            ], {
+                stdio: "inherit"
+            });
+            assert.equal(ret, null);
+
+            // Test execFileSync with env option
+            assert.throws(() => {
+                child_process.execFileSync(cmd, [
+                    path.join(__dirname, "process", "exec4.js")
+                ], {
+                    env: {
+                        QEMU_LD_PREFIX: process.env.QEMU_LD_PREFIX,
+                        test_env_var: "test_value"
+                    }
+                });
+            }, (error) => {
+                assert.equal(error.status, 4);
+                var env = json.decode(error.stdout);
+                assert.equal(env.test_env_var, "test_value");
+                return true;
+            });
+        });
     }
 
     xit("stdin/stdout stream", () => {

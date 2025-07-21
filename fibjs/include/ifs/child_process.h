@@ -104,8 +104,11 @@ public:
     static result_t exec(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecType>& retVal, AsyncEvent* ac);
     static result_t execFile(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
     static result_t execFile(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
-    static result_t spawnSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal, AsyncEvent* ac);
-    static result_t spawnSync(exlib::string command, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal, AsyncEvent* ac);
+    static result_t spawnSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal);
+    static result_t spawnSync(exlib::string command, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal);
+    static result_t execSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal);
+    static result_t execFileSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, Variant& retVal);
+    static result_t execFileSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal);
     static result_t fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
@@ -129,6 +132,8 @@ public:
     static void s_static_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_execFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_spawnSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_execSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_execFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fork(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sh(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -138,8 +143,6 @@ public:
     ASYNC_STATICVALUE3(child_process_base, exec, exlib::string, v8::Local<v8::Object>, obj_ptr<ExecType>);
     ASYNC_STATICVALUE4(child_process_base, execFile, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<ExecFileType>);
     ASYNC_STATICVALUE3(child_process_base, execFile, exlib::string, v8::Local<v8::Object>, obj_ptr<ExecFileType>);
-    ASYNC_STATICVALUE4(child_process_base, spawnSync, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<SpawnSyncType>);
-    ASYNC_STATICVALUE3(child_process_base, spawnSync, exlib::string, v8::Local<v8::Object>, obj_ptr<SpawnSyncType>);
     ASYNC_STATICVALUE4(child_process_base, run, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, int32_t);
     ASYNC_STATICVALUE3(child_process_base, run, exlib::string, v8::Local<v8::Object>, int32_t);
     ASYNC_STATICVALUE3(child_process_base, sh, v8::Local<v8::Array>, OptArgs, exlib::string);
@@ -155,7 +158,9 @@ inline ClassInfo& child_process_base::class_info()
         { "spawn", s_static_spawn, true, ClassData::ASYNC_SYNC },
         { "exec", s_static_exec, true, ClassData::ASYNC_ASYNC },
         { "execFile", s_static_execFile, true, ClassData::ASYNC_ASYNC },
-        { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_ASYNC },
+        { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_SYNC },
+        { "execSync", s_static_execSync, true, ClassData::ASYNC_SYNC },
+        { "execFileSync", s_static_execFileSync, true, ClassData::ASYNC_SYNC },
         { "fork", s_static_fork, true, ClassData::ASYNC_SYNC },
         { "run", s_static_run, true, ClassData::ASYNC_ASYNC },
         { "sh", s_static_sh, true, ClassData::ASYNC_ASYNC },
@@ -250,7 +255,7 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
 {
     obj_ptr<SpawnSyncType> vr;
 
-    ASYNC_METHOD_ENTER("child_process.spawnSync");
+    METHOD_ENTER();
 
     METHOD_OVER(3, 2);
 
@@ -258,20 +263,54 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
     ARG(v8::Local<v8::Array>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
-    if (!cb.IsEmpty())
-        hr = acb_spawnSync(v0, v1, v2, cb, args);
-    else
-        hr = ac_spawnSync(v0, v1, v2, vr);
+    hr = spawnSync(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    if (!cb.IsEmpty())
-        hr = acb_spawnSync(v0, v1, cb, args);
-    else
-        hr = ac_spawnSync(v0, v1, vr);
+    hr = spawnSync(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void child_process_base::s_static_execSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Variant vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = execSync(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void child_process_base::s_static_execFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Variant vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = execFileSync(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = execFileSync(v0, v1, vr);
 
     METHOD_RETURN();
 }

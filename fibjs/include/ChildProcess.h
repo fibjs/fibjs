@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/ChildProcess.h"
+#include "ifs/child_process.h"
 #include "AsyncUV.h"
 #include "UVStream.h"
 
@@ -62,6 +63,11 @@ public:
 public:
     static int32_t spawn(uv_process_t* process, const uv_process_options_t* options);
     result_t spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork);
+
+public:
+    static result_t async_spawn(exlib::string command, v8::Local<v8::Array> args,
+        v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncEvent* ac);
+    ASYNC_STATICVALUE4(ChildProcess, async_spawn, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<child_process_base::SpawnSyncType>);
 
 private:
     result_t create_pipe(int32_t idx);

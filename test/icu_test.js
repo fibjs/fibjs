@@ -13,7 +13,7 @@ function runEnvOutside(addEnv, code) {
                 ...addEnv
             }
         }
-    ).stdout;
+    );
 }
 
 function runEnvInside(addEnv, func, ...args) {
