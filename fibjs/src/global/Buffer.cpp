@@ -1,5 +1,6 @@
 #include "object.h"
 #include "Buffer.h"
+#include "Blob.h"
 #include "SandBox.h"
 #include "encoding.h"
 
@@ -329,6 +330,13 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
 
         if (v->IsArray())
             return Buffer_base::from(v.As<v8::Array>(), vr);
+
+        obj_ptr<Blob_base> blob = Blob_base::getInstance(v);
+        if (blob) {
+            Blob* b = blob.As<Blob>();
+            vr = b->m_impl.getBuffer();
+            return 0;
+        }
 
         if (!v->IsTypedArray())
             return CALL_E_TYPEMISMATCH;
@@ -1560,7 +1568,7 @@ result_t Buffer::subarray(int32_t start, int32_t end, obj_ptr<Buffer_base>& retV
     if (start < 0)
         start = length + start;
 
-    // Normalize end  
+    // Normalize end
     if (end < 0)
         end = length + end;
 
