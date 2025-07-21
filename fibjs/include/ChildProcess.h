@@ -8,9 +8,12 @@
 #pragma once
 
 #include "ifs/ChildProcess.h"
-#include "ifs/child_process.h"
 #include "AsyncUV.h"
 #include "UVStream.h"
+
+#undef stdout
+#undef stderr
+#include "ifs/child_process.h"
 
 namespace fibjs {
 
