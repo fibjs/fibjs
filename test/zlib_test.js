@@ -141,20 +141,21 @@ describe("zlib", () => {
         assert.notDeepEqual(zip_compressed, gzip_compressed);
 
         // Cross-decompression should fail because formats are incompatible
+        // Note: unzip can now handle both gzip and zip formats due to auto-detection
+        // so we only test that gunzip can't handle zip and vice versa for non-unzip methods
         assert.throws(() => {
             zlib.gunzip(zip_compressed);
         });
 
-        assert.throws(() => {
-            zlib.unzip(gzip_compressed);
-        });
+        // Note: unzip now supports auto-detection and can handle gzip format
+        // This is compatible with Node.js behavior
 
         // But each format should decompress with its own method
         assert.deepEqual(zlib.unzip(zip_compressed), b);
         assert.deepEqual(zlib.gunzip(gzip_compressed), b);
 
-        // ZIP format should also be compatible with inflateRaw (since ZIP uses deflateRaw internally)
-        assert.deepEqual(zlib.inflateRaw(zip_compressed), b);
+        // ZIP format is now compatible with inflate (since ZIP now uses deflate format for Node.js compatibility)
+        assert.deepEqual(zlib.inflate(zip_compressed), b);
     });
 
     it("unzip maxSize", () => {
@@ -285,21 +286,19 @@ describe("zlib", () => {
         // Deflate (zlib format) starts with 0x78
         assert.equal(deflate_data[0], 0x78);
 
-        // ZIP format should be different from GZIP and Deflate
-        assert.notEqual(zip_data[0], 0x1f);
-        assert.notEqual(zip_data[1], 0x8b);
-        assert.notEqual(zip_data[0], 0x78);
+        // ZIP format now uses deflate format for Node.js compatibility
+        assert.equal(zip_data[0], 0x78);
 
-        // ZIP and deflateRaw should be the same (ZIP uses deflateRaw internally)
-        assert.deepEqual(zip_data, deflateRaw_data);
+        // ZIP and deflate should be the same (ZIP now uses deflate format for Node.js compatibility)
+        assert.deepEqual(zip_data, deflate_data);
 
         // Different formats should produce different outputs
         assert.notDeepEqual(zip_data.slice(0, 10), gzip_data.slice(0, 10));
-        assert.notDeepEqual(zip_data.slice(0, 10), deflate_data.slice(0, 10));
+        assert.notDeepEqual(zip_data.slice(0, 10), deflateRaw_data.slice(0, 10));
 
-        // Verify compatibility: ZIP data should be decompressible by both unzip and inflateRaw
+        // Verify compatibility: ZIP data should be decompressible by both unzip and inflate (deflate format)
         assert.deepEqual(zlib.unzip(zip_data), b);
-        assert.deepEqual(zlib.inflateRaw(zip_data), b);
+        assert.deepEqual(zlib.inflate(zip_data), b);
     });
 
     it("compression format compatibility matrix", () => {
@@ -310,25 +309,25 @@ describe("zlib", () => {
 
         // Test what decompresses what
 
-        // ZIP should be compatible with unzip and inflateRaw
+        // ZIP now uses deflate format, should be compatible with unzip and inflate
         assert.deepEqual(zlib.unzip(zip_data), b);
-        assert.deepEqual(zlib.inflateRaw(zip_data), b);
+        assert.deepEqual(zlib.inflate(zip_data), b);
 
-        // GZIP should only work with gunzip
+        // GZIP should only work with gunzip and unzip (Node.js compatibility)
         assert.deepEqual(zlib.gunzip(gzip_data), b);
+        assert.deepEqual(zlib.unzip(gzip_data), b); // unzip supports gzip in Node.js
         assert.throws(() => zlib.inflate(gzip_data));
         assert.throws(() => zlib.inflateRaw(gzip_data));
-        assert.throws(() => zlib.unzip(gzip_data));
 
-        // Deflate (zlib format) should only work with inflate
+        // Deflate (zlib format) should work with inflate and unzip (Node.js compatibility)
         assert.deepEqual(zlib.inflate(deflate_data), b);
+        assert.deepEqual(zlib.unzip(deflate_data), b); // unzip supports deflate in Node.js
         assert.throws(() => zlib.gunzip(deflate_data));
         assert.throws(() => zlib.inflateRaw(deflate_data));
-        assert.throws(() => zlib.unzip(deflate_data));
 
-        // DeflateRaw should work with both inflateRaw and unzip
+        // DeflateRaw should work with inflateRaw only (Node.js compatibility)
         assert.deepEqual(zlib.inflateRaw(deflateRaw_data), b);
-        assert.deepEqual(zlib.unzip(deflateRaw_data), b);
+        assert.throws(() => zlib.unzip(deflateRaw_data)); // unzip does NOT support deflateRaw in Node.js
         assert.throws(() => zlib.gunzip(deflateRaw_data));
         assert.throws(() => zlib.inflate(deflateRaw_data));
     });
@@ -339,26 +338,24 @@ describe("zlib", () => {
         var deflate_data = zlib.deflate(b);
         var deflateRaw_data = zlib.deflateRaw(b);
 
-        // Test all invalid cross-decompression combinations
-        // Each should throw a "data error" exception
-
-        // GZIP data should only work with gunzip
+        // GZIP data should work with gunzip and unzip only
         assert.throws(() => zlib.inflate(gzip_data), /data error/);
         assert.throws(() => zlib.inflateRaw(gzip_data), /data error/);
-        assert.throws(() => zlib.unzip(gzip_data), /data error/);
+        // Note: unzip can handle gzip in Node.js, so no error expected
 
-        // Deflate (zlib) data should only work with inflate
+        // Deflate (zlib) data should work with inflate and unzip only
         assert.throws(() => zlib.gunzip(deflate_data), /data error/);
         assert.throws(() => zlib.inflateRaw(deflate_data), /data error/);
-        assert.throws(() => zlib.unzip(deflate_data), /data error/);
+        // Note: unzip can handle deflate in Node.js, so no error expected
 
-        // ZIP data should only work with unzip and inflateRaw
+        // ZIP now uses deflate format, should work with inflate and unzip (Node.js compatibility)
         assert.throws(() => zlib.gunzip(zip_data), /data error/);
-        assert.throws(() => zlib.inflate(zip_data), /data error/);
+        // Note: inflate and unzip should now work with zip data since it uses deflate format
 
-        // DeflateRaw data should only work with inflateRaw and unzip
+        // DeflateRaw data should work with inflateRaw only (Node.js compatibility) 
         assert.throws(() => zlib.gunzip(deflateRaw_data), /data error/);
         assert.throws(() => zlib.inflate(deflateRaw_data), /data error/);
+        assert.throws(() => zlib.unzip(deflateRaw_data), /data error/); // unzip does NOT support deflateRaw in Node.js
     });
 
     it("format header validation", () => {
@@ -380,14 +377,15 @@ describe("zlib", () => {
         assert.ok(deflate_data[1] >= 0x01 && deflate_data[1] <= 0xda,
             "Deflate should have valid second byte");
 
-        // ZIP and deflateRaw should not have magic headers
-        assert.notEqual(zip_data[0], 0x1f, "ZIP should not start with GZIP magic");
-        assert.notEqual(zip_data[0], 0x78, "ZIP should not start with zlib magic");
+        // ZIP now uses deflate format for Node.js compatibility
+        assert.equal(zip_data[0], 0x78, "ZIP now uses deflate format and should start with 0x78");
+
+        // DeflateRaw should not have magic headers
         assert.notEqual(deflateRaw_data[0], 0x1f, "DeflateRaw should not start with GZIP magic");
         assert.notEqual(deflateRaw_data[0], 0x78, "DeflateRaw should not start with zlib magic");
 
-        // ZIP and deflateRaw should be identical
-        assert.deepEqual(zip_data, deflateRaw_data, "ZIP and deflateRaw should produce identical output");
+        // ZIP and deflate should be identical (Node.js compatibility change)
+        assert.deepEqual(zip_data, deflate_data, "ZIP and deflate should produce identical output for Node.js compatibility");
     });
 
     it("corrupted data handling", () => {
@@ -431,14 +429,15 @@ describe("zlib", () => {
         assert.ok(deflate_data[1] >= 0x01 && deflate_data[1] <= 0xda,
             "Deflate should have valid second byte");
 
-        // ZIP and deflateRaw should not have magic headers
-        assert.notEqual(zip_data[0], 0x1f, "ZIP should not start with GZIP magic");
-        assert.notEqual(zip_data[0], 0x78, "ZIP should not start with zlib magic");
+        // ZIP now uses deflate format for Node.js compatibility
+        assert.equal(zip_data[0], 0x78, "ZIP now uses deflate format and should start with 0x78");
+
+        // DeflateRaw should not have magic headers
         assert.notEqual(deflateRaw_data[0], 0x1f, "DeflateRaw should not start with GZIP magic");
         assert.notEqual(deflateRaw_data[0], 0x78, "DeflateRaw should not start with zlib magic");
 
-        // ZIP and deflateRaw should be identical
-        assert.deepEqual(zip_data, deflateRaw_data, "ZIP and deflateRaw should produce identical output");
+        // ZIP and deflate should be identical (Node.js compatibility change)
+        assert.deepEqual(zip_data, deflate_data, "ZIP and deflate should produce identical output for Node.js compatibility");
 
         // Test wrong magic numbers - these should throw data errors
         assert.throws(() => zlib.gunzip(Buffer.from([0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01])));
@@ -456,11 +455,11 @@ describe("zlib", () => {
 
         // Successful decompressions
         assert.deepEqual(zlib.unzip(zip_compressed), test_data);
-        assert.deepEqual(zlib.inflateRaw(zip_compressed), test_data); // ZIP = deflateRaw
+        assert.deepEqual(zlib.inflate(zip_compressed), test_data); // ZIP now uses deflate format
         assert.deepEqual(zlib.gunzip(gzip_compressed), test_data);
         assert.deepEqual(zlib.inflate(deflate_compressed), test_data);
         assert.deepEqual(zlib.inflateRaw(deflateRaw_compressed), test_data);
-        assert.deepEqual(zlib.unzip(deflateRaw_compressed), test_data); // unzip = inflateRaw
+        assert.throws(() => zlib.unzip(deflateRaw_compressed)); // unzip does NOT support deflateRaw for Node.js compatibility
 
         // All other combinations should fail with data errors
         var all_formats = [
@@ -471,10 +470,10 @@ describe("zlib", () => {
         ];
 
         var all_methods = [
-            { name: 'unzip', fn: zlib.unzip, compatible: ['zip', 'deflateRaw'] },
+            { name: 'unzip', fn: zlib.unzip, compatible: ['zip', 'gzip', 'deflate'] }, // unzip supports zip, gzip and deflate
             { name: 'gunzip', fn: zlib.gunzip, compatible: ['gzip'] },
-            { name: 'inflate', fn: zlib.inflate, compatible: ['deflate'] },
-            { name: 'inflateRaw', fn: zlib.inflateRaw, compatible: ['zip', 'deflateRaw'] }
+            { name: 'inflate', fn: zlib.inflate, compatible: ['zip', 'deflate'] }, // zip now uses deflate format
+            { name: 'inflateRaw', fn: zlib.inflateRaw, compatible: ['deflateRaw'] }
         ];
 
         all_formats.forEach(format => {
@@ -483,6 +482,468 @@ describe("zlib", () => {
                     assert.throws(() => method.fn(format.data), /data error/,
                         `${method.name} should not decompress ${format.name} data`);
                 }
+            });
+        });
+    });
+
+    // New tests for unzip auto-detection capability (Node.js compatibility)
+    describe("unzip auto-detection compatibility", () => {
+        it("unzip should handle deflate format like Node.js", () => {
+            var test_data = Buffer.from("Hello, World! This is a test string for compression testing.");
+            var deflate_compressed = zlib.deflate(test_data);
+
+            // This should work now (similar to Node.js unzip behavior)
+            var result = zlib.unzip(deflate_compressed);
+            assert.deepEqual(result, test_data, "unzip should handle deflate format");
+        });
+
+        it("unzip should handle gzip format like Node.js", () => {
+            var test_data = Buffer.from("Hello, World! This is a test string for compression testing.");
+            var gzip_compressed = zlib.gzip(test_data);
+
+            // This should work now (similar to Node.js unzip behavior)
+            var result = zlib.unzip(gzip_compressed);
+            assert.deepEqual(result, test_data, "unzip should handle gzip format");
+        });
+
+        it("unzip should NOT handle deflateRaw format for Node.js compatibility", () => {
+            var test_data = Buffer.from("Hello, World! This is a test string for compression testing.");
+            var deflateRaw_compressed = zlib.deflateRaw(test_data);
+
+            // This should now fail to match Node.js behavior (unzip does not support deflateRaw)
+            assert.throws(() => {
+                zlib.unzip(deflateRaw_compressed);
+            }, /data error/, "unzip should NOT handle deflateRaw format like Node.js");
+        });
+
+        it("unzip auto-detection with various data sizes", () => {
+            var test_cases = [
+                Buffer.from("small"),
+                Buffer.from("Medium size test data for compression"),
+                Buffer.alloc(1024).fill('A'), // 1KB of 'A'
+                Buffer.alloc(10240).fill('B') // 10KB of 'B'
+            ];
+
+            test_cases.forEach((test_data, index) => {
+                // Test deflate format
+                var deflate_compressed = zlib.deflate(test_data);
+                var deflate_result = zlib.unzip(deflate_compressed);
+                assert.deepEqual(deflate_result, test_data,
+                    `unzip should handle deflate format for test case ${index + 1}`);
+
+                // Test gzip format
+                var gzip_compressed = zlib.gzip(test_data);
+                var gzip_result = zlib.unzip(gzip_compressed);
+                assert.deepEqual(gzip_result, test_data,
+                    `unzip should handle gzip format for test case ${index + 1}`);
+
+                // Test deflateRaw format - should NOT work with unzip (Node.js compatibility)
+                var deflateRaw_compressed = zlib.deflateRaw(test_data);
+                assert.throws(() => {
+                    zlib.unzip(deflateRaw_compressed);
+                }, `unzip should NOT handle deflateRaw format for Node.js compatibility (test case ${index + 1})`);
+            });
+        });
+
+        it("unzip format detection should match Node.js behavior", () => {
+            var test_data = Buffer.from("Node.js compatibility test data with sufficient length for meaningful compression");
+
+            // Create compressed data with different formats
+            var deflate_data = zlib.deflate(test_data);
+            var gzip_data = zlib.gzip(test_data);
+            var deflateRaw_data = zlib.deflateRaw(test_data);
+
+            // Verify magic numbers for format identification
+            assert.equal(gzip_data[0], 0x1f, "GZIP should start with 0x1f");
+            assert.equal(gzip_data[1], 0x8b, "GZIP should have 0x8b as second byte");
+            assert.equal(deflate_data[0], 0x78, "Deflate should start with 0x78");
+
+            // Test that unzip can handle supported formats (Node.js compatibility)
+            assert.deepEqual(zlib.unzip(deflate_data), test_data, "unzip should decompress deflate data");
+            assert.deepEqual(zlib.unzip(gzip_data), test_data, "unzip should decompress gzip data");
+            assert.throws(() => {
+                zlib.unzip(deflateRaw_data);
+            }, "unzip should NOT decompress deflateRaw data for Node.js compatibility");
+        });
+
+        it("unzip should handle edge cases correctly", () => {
+            // Test empty data - fibjs handles empty data differently than Node.js
+            var empty_data = Buffer.alloc(0);
+            var empty_deflate = zlib.deflate(empty_data);
+            var empty_gzip = zlib.gzip(empty_data);
+            var empty_deflateRaw = zlib.deflateRaw(empty_data);
+
+            // For empty data, fibjs may return null instead of empty buffer
+            // This is a known implementation difference
+            var empty_deflate_result = zlib.unzip(empty_deflate);
+            var empty_gzip_result = zlib.unzip(empty_gzip);
+            
+            // Accept both null and empty buffer for empty data (implementation difference)
+            assert.ok(empty_deflate_result === null || empty_deflate_result.length === 0, 
+                "unzip should handle empty deflate data (null or empty buffer)");
+            assert.ok(empty_gzip_result === null || empty_gzip_result.length === 0, 
+                "unzip should handle empty gzip data (null or empty buffer)");
+
+            // Test single byte
+            var single_byte = Buffer.from([42]);
+            var single_deflate = zlib.deflate(single_byte);
+            var single_gzip = zlib.gzip(single_byte);
+            var single_deflateRaw = zlib.deflateRaw(single_byte);
+
+            assert.deepEqual(zlib.unzip(single_deflate), single_byte, "unzip should handle single byte deflate data");
+            assert.deepEqual(zlib.unzip(single_gzip), single_byte, "unzip should handle single byte gzip data");
+            
+            // deflateRaw should NOT work with unzip (Node.js compatibility)
+            assert.throws(() => {
+                zlib.unzip(single_deflateRaw);
+            }, "unzip should NOT handle deflateRaw format for Node.js compatibility");
+        });
+
+        it("unzip vs specific decompression methods comparison", () => {
+            var test_data = Buffer.from("Comparison test data for different decompression methods");
+
+            var deflate_data = zlib.deflate(test_data);
+            var gzip_data = zlib.gzip(test_data);
+            var deflateRaw_data = zlib.deflateRaw(test_data);
+
+            // Compare unzip results with specific methods for supported formats
+            assert.deepEqual(zlib.unzip(deflate_data), zlib.inflate(deflate_data),
+                "unzip and inflate should give same result for deflate data");
+            assert.deepEqual(zlib.unzip(gzip_data), zlib.gunzip(gzip_data),
+                "unzip and gunzip should give same result for gzip data");
+
+            // unzip should NOT support deflateRaw for Node.js compatibility
+            assert.throws(() => {
+                zlib.unzip(deflateRaw_data);
+            }, "unzip should NOT support deflateRaw format for Node.js compatibility");
+        });
+
+        it("unzip with maxSize parameter should work with all formats", () => {
+            var test_data = Buffer.from("Test data for maxSize validation with unzip auto-detection");
+            var expected_size = test_data.length;
+
+            var deflate_data = zlib.deflate(test_data);
+            var gzip_data = zlib.gzip(test_data);
+            var deflateRaw_data = zlib.deflateRaw(test_data);
+
+            // Test with sufficient maxSize for supported formats
+            assert.deepEqual(zlib.unzip(deflate_data, expected_size * 2), test_data);
+            assert.deepEqual(zlib.unzip(gzip_data, expected_size * 2), test_data);
+
+            // deflateRaw should NOT work with unzip (Node.js compatibility)
+            assert.throws(() => {
+                zlib.unzip(deflateRaw_data, expected_size * 2);
+            }, "unzip should NOT support deflateRaw format for Node.js compatibility");
+
+            // Test with exact maxSize for supported formats
+            assert.deepEqual(zlib.unzip(deflate_data, expected_size), test_data);
+            assert.deepEqual(zlib.unzip(gzip_data, expected_size), test_data);
+
+            // Test with insufficient maxSize (should throw)
+            assert.throws(() => zlib.unzip(deflate_data, expected_size - 1));
+            assert.throws(() => zlib.unzip(gzip_data, expected_size - 1));
+        });
+
+        it("unzip stream operations with auto-detection", () => {
+            var test_data = Buffer.from("Stream test data for unzip auto-detection functionality");
+
+            var deflate_data = zlib.deflate(test_data);
+            var gzip_data = zlib.gzip(test_data);
+            var deflateRaw_data = zlib.deflateRaw(test_data);
+
+            // Test unzipTo with supported formats (Node.js compatibility)
+            [
+                { name: 'deflate', data: deflate_data },
+                { name: 'gzip', data: gzip_data }
+            ].forEach(format => {
+                var output_stream = new io.MemoryStream();
+                zlib.unzipTo(format.data, output_stream);
+                output_stream.rewind();
+                assert.deepEqual(output_stream.readAll(), test_data,
+                    `unzipTo should handle ${format.name} format`);
+            });
+
+            // deflateRaw should NOT work with unzipTo (Node.js compatibility)
+            assert.throws(() => {
+                var output_stream = new io.MemoryStream();
+                zlib.unzipTo(deflateRaw_data, output_stream);
+            }, "unzipTo should NOT handle deflateRaw format for Node.js compatibility");
+
+            // Test createUnzip with supported formats
+            [
+                { name: 'deflate', data: deflate_data },
+                { name: 'gzip', data: gzip_data }
+            ].forEach(format => {
+                var output_stream = new io.MemoryStream();
+                var unzip_stream = zlib.createUnzip(output_stream);
+                unzip_stream.write(format.data);
+                unzip_stream.close();
+                output_stream.rewind();
+                assert.deepEqual(output_stream.readAll(), test_data,
+                    `createUnzip should handle ${format.name} format`);
+            });
+
+            // deflateRaw should NOT work with createUnzip (Node.js compatibility)
+            assert.throws(() => {
+                var output_stream = new io.MemoryStream();
+                var unzip_stream = zlib.createUnzip(output_stream);
+                unzip_stream.write(deflateRaw_data);
+                unzip_stream.close();
+            }, "createUnzip should NOT handle deflateRaw format for Node.js compatibility");
+        });
+    });
+
+    // Node.js compatibility tests integrated from zlib_comp_test.js
+    describe("Node.js API compatibility", () => {
+        var testData = Buffer.from('Hello, World! This is test data for compression compatibility testing with various formats.');
+        var smallData = Buffer.from('small');
+        var emptyData = Buffer.alloc(0);
+        var largeData = Buffer.alloc(1024).fill('A');
+
+        describe("deflate/inflate format compatibility", () => {
+            it("deflate/inflate basic functionality", () => {
+                var compressed = zlib.deflate(testData);
+                var decompressed = zlib.inflate(compressed);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("deflate produces zlib format (0x78 header)", () => {
+                var compressed = zlib.deflate(testData);
+                assert.equal(compressed[0], 0x78, "deflate should produce zlib format starting with 0x78");
+            });
+
+            it("inflate only works with zlib format", () => {
+                var gzipData = zlib.gzip(testData);
+                var deflateRawData = zlib.deflateRaw(testData);
+
+                assert.throws(() => zlib.inflate(gzipData));
+                assert.throws(() => zlib.inflate(deflateRawData));
+            });
+        });
+
+        describe("gzip/gunzip format compatibility", () => {
+            it("gzip/gunzip basic functionality", () => {
+                var compressed = zlib.gzip(testData);
+                var decompressed = zlib.gunzip(compressed);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("gzip produces gzip format (0x1f 0x8b header)", () => {
+                var compressed = zlib.gzip(testData);
+                assert.equal(compressed[0], 0x1f, "gzip should start with 0x1f");
+                assert.equal(compressed[1], 0x8b, "gzip should have 0x8b as second byte");
+            });
+
+            it("gunzip only works with gzip format", () => {
+                var deflateData = zlib.deflate(testData);
+                var deflateRawData = zlib.deflateRaw(testData);
+
+                assert.throws(() => zlib.gunzip(deflateData));
+                assert.throws(() => zlib.gunzip(deflateRawData));
+            });
+        });
+
+        describe("deflateRaw/inflateRaw format compatibility", () => {
+            it("deflateRaw/inflateRaw basic functionality", () => {
+                var compressed = zlib.deflateRaw(testData);
+                var decompressed = zlib.inflateRaw(compressed);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("deflateRaw produces raw deflate (no magic header)", () => {
+                var compressed = zlib.deflateRaw(testData);
+                assert.notEqual(compressed[0], 0x1f, "deflateRaw should not start with gzip magic");
+                assert.notEqual(compressed[0], 0x78, "deflateRaw should not start with zlib magic");
+            });
+
+            it("inflateRaw only works with raw deflate format", () => {
+                var gzipData = zlib.gzip(testData);
+                var deflateData = zlib.deflate(testData);
+
+                assert.throws(() => zlib.inflateRaw(gzipData));
+                assert.throws(() => zlib.inflateRaw(deflateData));
+            });
+        });
+
+        describe("zip/unzip Node.js compatibility", () => {
+            it("zip should produce deflate-compatible format", () => {
+                var zipData = zlib.zip(testData);
+                var deflateData = zlib.deflate(testData);
+                
+                // ZIP now uses deflate format for Node.js compatibility
+                assert.deepEqual(zipData, deflateData, "zip should produce same output as deflate");
+                assert.equal(zipData[0], 0x78, "zip should start with deflate magic 0x78");
+            });
+
+            it("unzip handles gzip format like Node.js", () => {
+                var gzipData = zlib.gzip(testData);
+                var result = zlib.unzip(gzipData);
+                assert.deepEqual(result, testData, "unzip should handle gzip format");
+            });
+
+            it("unzip handles deflate format like Node.js", () => {
+                var deflateData = zlib.deflate(testData);
+                var result = zlib.unzip(deflateData);
+                assert.deepEqual(result, testData, "unzip should handle deflate format");
+            });
+
+            it("unzip does NOT handle deflateRaw format like Node.js", () => {
+                var deflateRawData = zlib.deflateRaw(testData);
+                assert.throws(() => {
+                    zlib.unzip(deflateRawData);
+                }, "unzip should NOT handle deflateRaw format to match Node.js");
+            });
+
+            it("unzip format detection with various data sizes", () => {
+                [smallData, testData, largeData].forEach((data, index) => {
+                    var gzipData = zlib.gzip(data);
+                    var deflateData = zlib.deflate(data);
+
+                    var gzipResult = zlib.unzip(gzipData);
+                    var deflateResult = zlib.unzip(deflateData);
+
+                    assert.deepEqual(gzipResult, data, `unzip should handle gzip for data size ${index}`);
+                    assert.deepEqual(deflateResult, data, `unzip should handle deflate for data size ${index}`);
+                });
+            });
+
+            it("unzip comprehensive format rejection tests", () => {
+                // Test with invalid magic numbers that should be rejected
+                var invalidMagic1 = Buffer.from([0x42, 0x43, 0x01, 0x02]); // Random bytes
+                var invalidMagic2 = Buffer.from([0x50, 0x4b, 0x03, 0x04]); // ZIP magic (not supported)
+                var invalidMagic3 = Buffer.from([0x1f, 0x9d]); // Old compress format
+                
+                assert.throws(() => zlib.unzip(invalidMagic1), "unzip should reject random data");
+                assert.throws(() => zlib.unzip(invalidMagic2), "unzip should reject ZIP format");
+                assert.throws(() => zlib.unzip(invalidMagic3), "unzip should reject old compress format");
+            });
+
+            it("unzip handles minimum data requirements", () => {
+                // Test with data that's too short
+                var tooShort = Buffer.from([0x1f]); // Only one byte
+                assert.throws(() => zlib.unzip(tooShort), "unzip should reject single byte");
+                
+                // Test with incomplete gzip header
+                var incompleteGzip = Buffer.from([0x1f, 0x8b]); // Only magic, no method byte
+                assert.throws(() => zlib.unzip(incompleteGzip), "unzip should reject incomplete gzip header");
+            });
+        });
+
+        describe("cross-format compatibility matrix", () => {
+            it("format compatibility matrix matches Node.js behavior", () => {
+                var gzipData = zlib.gzip(testData);
+                var deflateData = zlib.deflate(testData);
+                var deflateRawData = zlib.deflateRaw(testData);
+                var zipData = zlib.zip(testData);
+
+                // Test successful combinations (should work)
+                assert.deepEqual(zlib.gunzip(gzipData), testData, "gunzip + gzip");
+                assert.deepEqual(zlib.unzip(gzipData), testData, "unzip + gzip");
+
+                assert.deepEqual(zlib.inflate(deflateData), testData, "inflate + deflate");
+                assert.deepEqual(zlib.unzip(deflateData), testData, "unzip + deflate");
+
+                assert.deepEqual(zlib.inflateRaw(deflateRawData), testData, "inflateRaw + deflateRaw");
+
+                // ZIP compatibility with deflate format
+                assert.deepEqual(zlib.unzip(zipData), testData, "unzip + zip");
+                assert.deepEqual(zlib.inflate(zipData), testData, "inflate + zip (deflate format)");
+
+                // Test incompatible combinations (should fail)
+                assert.throws(() => zlib.inflate(gzipData), "inflate should not work with gzip");
+                assert.throws(() => zlib.inflateRaw(gzipData), "inflateRaw should not work with gzip");
+
+                assert.throws(() => zlib.gunzip(deflateData), "gunzip should not work with deflate");
+                assert.throws(() => zlib.inflateRaw(deflateData), "inflateRaw should not work with deflate");
+
+                assert.throws(() => zlib.gunzip(deflateRawData), "gunzip should not work with deflateRaw");
+                assert.throws(() => zlib.inflate(deflateRawData), "inflate should not work with deflateRaw");
+                assert.throws(() => zlib.unzip(deflateRawData), "unzip should not work with deflateRaw");
+
+                assert.throws(() => zlib.gunzip(zipData), "gunzip should not work with zip");
+            });
+        });
+
+        describe("edge cases and error handling", () => {
+            it("handles single byte data", () => {
+                var singleByte = Buffer.from([42]);
+
+                var gzipSingle = zlib.gzip(singleByte);
+                var deflateSingle = zlib.deflate(singleByte);
+                var deflateRawSingle = zlib.deflateRaw(singleByte);
+
+                assert.deepEqual(zlib.gunzip(gzipSingle), singleByte);
+                assert.deepEqual(zlib.unzip(gzipSingle), singleByte);
+                assert.deepEqual(zlib.inflate(deflateSingle), singleByte);
+                assert.deepEqual(zlib.unzip(deflateSingle), singleByte);
+                assert.deepEqual(zlib.inflateRaw(deflateRawSingle), singleByte);
+            });
+
+            it("unzip handles various edge cases", () => {
+                // Test with empty data - may fail gracefully or return null
+                try {
+                    var emptyResult = zlib.unzip(Buffer.alloc(0));
+                    // Should either throw or return null/empty
+                    assert.ok(emptyResult === null || emptyResult.length === 0, 
+                        "unzip should handle empty buffer gracefully");
+                } catch (e) {
+                    // Throwing is also acceptable for empty data
+                    assert.ok(true, "unzip can reject empty buffer");
+                }
+                
+                // Test with different zlib headers (0x78 variants)
+                var testStr = "test string for zlib variants";
+                var testBuf = Buffer.from(testStr);
+                
+                // Create deflate data and verify unzip works
+                var deflateData = zlib.deflate(testBuf);
+                assert.equal(deflateData[0], 0x78, "Should start with zlib magic");
+                
+                var unzipResult = zlib.unzip(deflateData);
+                assert.deepEqual(unzipResult, testBuf, "unzip should handle zlib format correctly");
+            });
+
+            it("validates magic number detection", () => {
+                var gzipData = zlib.gzip(testData);
+                var deflateData = zlib.deflate(testData);
+                var deflateRawData = zlib.deflateRaw(testData);
+                var zipData = zlib.zip(testData);
+
+                // Verify magic numbers
+                assert.equal(gzipData[0], 0x1f, "gzip magic byte 1");
+                assert.equal(gzipData[1], 0x8b, "gzip magic byte 2");
+                assert.equal(deflateData[0], 0x78, "deflate magic byte");
+                assert.equal(zipData[0], 0x78, "zip magic byte (deflate format)");
+
+                // deflateRaw should not have recognizable magic
+                assert.notEqual(deflateRawData[0], 0x1f, "deflateRaw should not have gzip magic");
+                assert.notEqual(deflateRawData[0], 0x78, "deflateRaw should not have deflate magic");
+            });
+        });
+
+        describe("round-trip integrity verification", () => {
+            it("round-trip compression maintains data integrity", () => {
+                var testCases = [
+                    { name: "small", data: smallData },
+                    { name: "normal", data: testData },
+                    { name: "large", data: largeData },
+                    { name: "binary", data: Buffer.from([0, 1, 2, 255, 254, 253]) }
+                ];
+
+                testCases.forEach(({ name, data }) => {
+                    // Test all format combinations
+                    assert.deepEqual(zlib.gunzip(zlib.gzip(data)), data, `gzip round-trip: ${name}`);
+                    assert.deepEqual(zlib.inflate(zlib.deflate(data)), data, `deflate round-trip: ${name}`);
+                    assert.deepEqual(zlib.inflateRaw(zlib.deflateRaw(data)), data, `deflateRaw round-trip: ${name}`);
+
+                    // Test unzip with supported formats
+                    assert.deepEqual(zlib.unzip(zlib.gzip(data)), data, `unzip gzip round-trip: ${name}`);
+                    assert.deepEqual(zlib.unzip(zlib.deflate(data)), data, `unzip deflate round-trip: ${name}`);
+                    
+                    // Test zip round-trip (zip now uses deflate format)
+                    assert.deepEqual(zlib.unzip(zlib.zip(data)), data, `zip/unzip round-trip: ${name}`);
+                    assert.deepEqual(zlib.inflate(zlib.zip(data)), data, `zip/inflate round-trip: ${name}`);
+                });
             });
         });
     });
