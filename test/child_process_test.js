@@ -253,9 +253,15 @@ describe("child_process", () => {
             assert.throws(() => {
                 child_process.execSync("nonexistent_command_12345");
             }, (error) => {
-                assert.equal(error.status, 127);
+                if (process.platform == "win32") {
+                    assert.equal(error.status, 1);
+                } else {
+                    assert.equal(error.status, 127);
+                }
                 assert.equal(error.signal, null);
-                assert.ok(error.stderr.includes("command not found") || error.stderr.includes("not found"));
+                assert.ok(error.stderr.includes("command not found") ||
+                    error.stderr.includes("not found") ||
+                    error.stderr.includes("not recognized"));
                 return true;
             });
 
