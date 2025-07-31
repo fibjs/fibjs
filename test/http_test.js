@@ -2007,6 +2007,152 @@ describe("http", () => {
                     assert.ok(responseText.includes("/request:") && responseText.includes("test"));
                 });
 
+                it("Buffer body with application/octet-stream Content-Type", () => {
+                    // Test user's specific scenario: Buffer with application/octet-stream
+                    var buf = new Buffer("binary file content data");
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: buf,
+                        headers: {
+                            'Content-Type': 'application/octet-stream',
+                            'X-File-Name': 'testfile.bin'
+                        }
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                    // Should contain the buffer content
+                    assert.ok(responseText.includes("binary file content data"));
+                });
+
+                it("Buffer body with binary data", () => {
+                    // Test Buffer with actual binary data (non-UTF8)
+                    var binaryData = new Buffer([0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD]);
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: binaryData,
+                        headers: {
+                            'Content-Type': 'application/octet-stream'
+                        }
+                    });
+                    // Should not throw encoding errors
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                });
+
+                it("Large Buffer body", () => {
+                    // Test with larger Buffer to check for encoding issues
+                    var largeBuffer = new Buffer(1024);
+                    largeBuffer.fill(0x41); // Fill with 'A' character
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: largeBuffer,
+                        headers: {
+                            'Content-Type': 'application/octet-stream'
+                        }
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                    // Should handle large buffer without issues
+                    assert.ok(responseText.length > 20); // Should have received substantial content
+                });
+
+                it("Buffer body with application/octet-stream Content-Type - encoding error case", () => {
+                    // This test reproduces the specific user-reported issue
+                    // When Buffer is used as body with application/octet-stream Content-Type,
+                    // it should NOT cause "FormData encode: unsupported content type" error
+                    var fileData = new Buffer("file content data");
+
+                    // This should work without throwing FormData encoding errors
+                    assert.doesNotThrow(() => {
+                        var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                            body: fileData,
+                            headers: {
+                                'Content-Type': 'application/octet-stream',
+                                'X-File-Name': 'upload.bin'
+                            }
+                        });
+                        var responseText = response.body.read().toString();
+                        assert.ok(responseText.includes("/request:"));
+                    });
+                });
+
+                it("Binary Buffer upload scenario", () => {
+                    // Test scenario similar to file upload with binary data
+                    var binaryData = new Buffer([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
+
+                    // This represents typical file upload scenario and should work
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: binaryData,
+                        headers: {
+                            'Content-Type': 'application/octet-stream',
+                            'X-File-Name': 'image.png'
+                        }
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                });
+
+                it("UInt8Array body", () => {
+                    // Test UInt8Array as body type
+                    var uint8Array = new Uint8Array([72, 101, 108, 108, 111]); // "Hello" in ASCII
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: uint8Array
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                    assert.ok(responseText.includes("Hello"));
+                });
+
+                it("UInt8Array body with application/octet-stream Content-Type", () => {
+                    // Test UInt8Array with application/octet-stream Content-Type (user's scenario)
+                    var uint8Array = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: uint8Array,
+                        headers: {
+                            'Content-Type': 'application/octet-stream',
+                            'X-File-Name': 'test.png'
+                        }
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                });
+
+                it("UInt8Array body with binary data - encoding error case", () => {
+                    // This test reproduces the potential UInt8Array encoding issue
+                    // When UInt8Array is used as body with application/octet-stream Content-Type,
+                    // it should NOT cause "FormData encode: unsupported content type" error
+                    var binaryData = new Uint8Array(256);
+                    for (var i = 0; i < 256; i++) {
+                        binaryData[i] = i; // Fill with all possible byte values
+                    }
+
+                    // This should work without throwing FormData encoding errors
+                    assert.doesNotThrow(() => {
+                        var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                            body: binaryData,
+                            headers: {
+                                'Content-Type': 'application/octet-stream',
+                                'X-File-Name': 'binary.dat'
+                            }
+                        });
+                        var responseText = response.body.read().toString();
+                        assert.ok(responseText.includes("/request:"));
+                    });
+                });
+
+                it("Large UInt8Array body", () => {
+                    // Test with larger UInt8Array to check for encoding issues
+                    var largeArray = new Uint8Array(2048);
+                    largeArray.fill(65); // Fill with 'A' character
+                    var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: largeArray,
+                        headers: {
+                            'Content-Type': 'application/octet-stream'
+                        }
+                    });
+                    var responseText = response.body.read().toString();
+                    assert.ok(responseText.includes("/request:"));
+                    // Should handle large UInt8Array without issues
+                    assert.ok(responseText.length > 20); // Should have received substantial content
+                });
+
                 it("URLSearchParams body", () => {
                     var params = new URLSearchParams();
                     params.append("key1", "value1");
@@ -2271,6 +2417,50 @@ describe("http", () => {
                         }
                     });
                     assert.equal(response.body.read().toString(), "multipart/form-data; boundary=custom");
+                });
+
+                it("Buffer body with manual application/octet-stream", () => {
+                    // Test scenario like the user's upload case
+                    var buf = new Buffer("binary data content");
+                    var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: buf,
+                        headers: {
+                            "Content-Type": "application/octet-stream",
+                            "X-File-Name": "filename"
+                        }
+                    });
+                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                });
+
+                it("Buffer body uses default Content-Type", () => {
+                    // Test Buffer without explicit Content-Type
+                    var buf = new Buffer("test buffer data");
+                    var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: buf
+                    });
+                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                });
+
+                it("UInt8Array body with manual application/octet-stream", () => {
+                    // Test UInt8Array scenario like the user's upload case
+                    var uint8Array = new Uint8Array([98, 105, 110, 97, 114, 121]); // "binary" in ASCII
+                    var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: uint8Array,
+                        headers: {
+                            "Content-Type": "application/octet-stream",
+                            "X-File-Name": "data.bin"
+                        }
+                    });
+                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                });
+
+                it("UInt8Array body uses default Content-Type", () => {
+                    // Test UInt8Array without explicit Content-Type
+                    var uint8Array = new Uint8Array([116, 101, 115, 116]); // "test" in ASCII
+                    var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: uint8Array
+                    });
+                    assert.equal(response.body.read().toString(), "application/octet-stream");
                 });
             });
 

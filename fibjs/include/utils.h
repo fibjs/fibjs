@@ -908,8 +908,11 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     return true;
 }
 
-inline bool IsJSBuffer(v8::Local<v8::Value> v)
+inline bool IsJSBuffer(v8::Local<v8::Value> v, bool strict = true)
 {
+    if (!strict && (v->IsArrayBuffer() || v->IsArrayBufferView() || v->IsTypedArray()))
+        return true;
+
     if (!v->IsUint8Array())
         return false;
 

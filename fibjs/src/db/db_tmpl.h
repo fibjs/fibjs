@@ -59,7 +59,7 @@ private:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
 
-        if (IsJSBuffer(v) || v->IsArrayBuffer() || v->IsArrayBufferView() || v->IsTypedArray()) {
+        if (IsJSBuffer(v, false)) {
             obj_ptr<Buffer_base> bin;
             GetArgumentValue(isolate, v, bin);
             str.append(impl::escape_binary(bin.As<Buffer>()));

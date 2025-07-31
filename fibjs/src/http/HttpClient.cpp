@@ -1147,6 +1147,10 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
                 buf = new Buffer(s.c_str(), s.length());
                 if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
                     headers->set("Content-Type", "application/x-www-form-urlencoded");
+            } else if (IsJSBuffer(v, false) && GetArgumentValue(isolate, v, buf) == 0) {
+                // Handle Buffer type directly - don't try to encode as FormData
+                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                    headers->set("Content-Type", "application/octet-stream");
             } else {
                 bool has_ContentType = false;
 
