@@ -12,7 +12,7 @@
 
 namespace fibjs {
 
-result_t subtle_base::digest(exlib::string algorithm, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t subtle_base::digest(exlib::string algorithm, Buffer_base* data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (md == NULL)
@@ -24,17 +24,16 @@ result_t subtle_base::digest(exlib::string algorithm, Buffer_base* data, obj_ptr
     EVP_DigestInit_ex(ctx, md, NULL);
     EVP_DigestUpdate(ctx, buf->data(), buf->length());
 
-    obj_ptr<Buffer> bufValue = new Buffer(NULL, EVP_MD_size(md));
+    uint32_t len = EVP_MD_size(md);
+    std::shared_ptr<v8::BackingStore> datas = NewBackingStore(len);
+    EVP_DigestFinal(ctx, (unsigned char*)datas->Data(), &len);
 
-    uint32_t len = bufValue->length();
-    EVP_DigestFinal(ctx, bufValue->data(), &len);
-
-    retVal = bufValue;
+    retVal = std::move(datas);
 
     return 0;
 }
 
-result_t subtle_base::digest(v8::Local<v8::Object> algorithm, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t subtle_base::digest(v8::Local<v8::Object> algorithm, Buffer_base* data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         Isolate* isolate = ac->isolate();

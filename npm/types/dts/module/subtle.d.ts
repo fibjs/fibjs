@@ -16,7 +16,7 @@ declare module 'subtle' {
      *     @return 返回计算得到的哈希值
      *     
      */
-    function digest(algorithm: string, data: Class_Buffer): Promise<Class_Buffer>;
+    function digest(algorithm: string, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
      * @description 计算给定数据的哈希值
@@ -33,7 +33,7 @@ declare module 'subtle' {
      *     @return 返回计算得到的哈希值
      *     
      */
-    function digest(algorithm: FIBJS.GeneralObject, data: Class_Buffer): Promise<Class_Buffer>;
+    function digest(algorithm: FIBJS.GeneralObject, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
      * @description 导出 key 的信息，如果 key 不可导出，则返回一个错误

@@ -10,7 +10,7 @@ module subtle
     @param data 指定要计算哈希值的数据
     @return 返回计算得到的哈希值
     */
-    static Buffer digest(String algorithm, Buffer data) promise;
+    static ArrayBuffer digest(String algorithm, Buffer data) promise;
 
     /*! @brief 计算给定数据的哈希值
 
@@ -25,7 +25,7 @@ module subtle
     @param data 指定要计算哈希值的数据
     @return 返回计算得到的哈希值
     */
-    static Buffer digest(Object algorithm, Buffer data) promise;
+    static ArrayBuffer digest(Object algorithm, Buffer data) promise;
 
     /*! @brief 导出 key 的信息，如果 key 不可导出，则返回一个错误
 

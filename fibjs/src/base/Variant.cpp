@@ -101,6 +101,12 @@ Variant::operator v8::Local<v8::Value>() const
         obj->valueOf(v);
         return v;
     }
+    case VT_ArrayBuffer:
+        if (m_Val.arrayBuffer) {
+            std::shared_ptr<v8::BackingStore> backingStore = *reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(m_Val.arrayBuffer);
+            return v8::ArrayBuffer::New(isolate->m_isolate, backingStore);
+        }
+        break;
     case VT_JSValue:
         return jsVal();
     case VT_JSON: {

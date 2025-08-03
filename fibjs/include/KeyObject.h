@@ -148,8 +148,8 @@ public:
     result_t ExportKey(keyEncodingParam* param, Variant& retVal);
 
 public:
-    result_t ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal);
-    result_t ExportPublicKey(keyEncodingParam* param, Variant& retVal);
+    result_t ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal, bool useBackingStore = false);
+    result_t ExportPublicKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore = false);
     result_t ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal);
 
     result_t ParsePublicKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);
@@ -157,8 +157,8 @@ public:
 
 public:
     result_t ExportPrivateKey(exlib::string format, exlib::string type, exlib::string cipher_name,
-        Buffer_base* passphrase, Variant& retVal);
-    result_t ExportPrivateKey(keyEncodingParam* param, Variant& retVal);
+        Buffer_base* passphrase, Variant& retVal, bool useBackingStore = false);
+    result_t ExportPrivateKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore = false);
     result_t ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal);
 
     result_t ParsePrivateKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);

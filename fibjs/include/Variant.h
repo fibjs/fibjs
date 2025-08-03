@@ -59,6 +59,7 @@ public:
         VT_Date,
         VT_String,
         VT_Object,
+        VT_ArrayBuffer,
         VT_JSValue,
         VT_JSON,
         VT_UNBOUND_ARRAY,
@@ -138,6 +139,12 @@ public:
         operator=(v);
     }
 
+    Variant(std::shared_ptr<v8::BackingStore> v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     template <typename T>
     Variant(obj_ptr<T>& v)
         : m_type(VT_Undefined)
@@ -169,6 +176,8 @@ public:
         else if (_t == VT_JSValue) {
             v8::Local<v8::Value>& jsobj = jsVal();
             jsobj.~Local();
+        } else if (_t == VT_ArrayBuffer) {
+            reinterpret_cast<std::shared_ptr<v8::BackingStore>*>(m_Val.arrayBuffer)->~shared_ptr();
         }
 
         set_type(VT_Undefined);
@@ -191,6 +200,13 @@ public:
 
         if (_t == VT_JSValue)
             return operator=(v.jsVal());
+
+        if (_t == VT_ArrayBuffer) {
+            clear();
+            set_type(VT_ArrayBuffer);
+            new (m_Val.arrayBuffer) std::shared_ptr<v8::BackingStore>(*reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(v.m_Val.arrayBuffer));
+            return *this;
+        }
 
         assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
 
@@ -228,6 +244,11 @@ public:
             return (object() == v.object());
         case VT_JSValue:
             return jsVal()->StrictEquals(v.jsVal());
+        case VT_ArrayBuffer: {
+            auto ab1 = reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(m_Val.arrayBuffer);
+            auto ab2 = reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(v.m_Val.arrayBuffer);
+            return *ab1 == *ab2 || (ab1->get() && ab2->get() && (*ab1)->ByteLength() == (*ab2)->ByteLength() && memcmp((*ab1)->Data(), (*ab2)->Data(), (*ab1)->ByteLength()) == 0);
+        }
         default:
             return false;
         }
@@ -331,6 +352,14 @@ public:
         return operator=((obj_base*)v);
     }
 
+    Variant& operator=(std::shared_ptr<v8::BackingStore> v)
+    {
+        clear();
+        set_type(VT_ArrayBuffer);
+        new (m_Val.arrayBuffer) std::shared_ptr<v8::BackingStore>(v);
+        return *this;
+    }
+
     template <typename T>
     Variant& operator=(obj_ptr<T>& v)
     {
@@ -390,6 +419,34 @@ public:
         if (type() != VT_String)
             return "";
         return strVal();
+    }
+
+    std::shared_ptr<v8::BackingStore> arrayBuffer() const
+    {
+        if (type() != VT_ArrayBuffer)
+            return nullptr;
+        return *reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(m_Val.arrayBuffer);
+    }
+
+    size_t arrayBufferLength() const
+    {
+        auto ab = arrayBuffer();
+        if (!ab)
+            return 0;
+        return ab->ByteLength();
+    }
+
+    void* arrayBufferData() const
+    {
+        auto ab = arrayBuffer();
+        if (!ab)
+            return nullptr;
+        return ab->Data();
+    }
+
+    bool isArrayBuffer() const
+    {
+        return type() == VT_ArrayBuffer && arrayBuffer() != nullptr;
     }
 
     operator v8::Local<v8::Value>() const;
@@ -515,6 +572,7 @@ private:
         int64_t longVal;
         double dblVal;
         obj_base* objVal;
+        char arrayBuffer[sizeof(std::shared_ptr<v8::BackingStore>)];
         char dateVal[sizeof(date_t)];
         char strVal[sizeof(exlib::string)];
         char jsVal[sizeof(v8::Global<v8::Value>)];

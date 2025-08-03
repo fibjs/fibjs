@@ -297,7 +297,7 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
     return ParsePublicKey(format, type, namedCurve, _passphrase, _key);
 }
 
-result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal)
+result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal, bool useBackingStore)
 {
     BIOPointer bio(BIO_new(BIO_s_mem()));
     int ret;
@@ -339,8 +339,18 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
         BUF_MEM* bptr;
         BIO_get_mem_ptr(bio, &bptr);
 
-        obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
-        retVal = buf;
+        if (useBackingStore) {
+            // Use BackingStore for webcrypto compatibility
+            std::shared_ptr<v8::BackingStore> store = NewBackingStore(bptr->length);
+            if (bptr->length > 0 && store->Data() && bptr->data) {
+                memcpy(store->Data(), bptr->data, bptr->length);
+            }
+            retVal = store;
+        } else {
+            // Use Buffer for crypto module compatibility
+            obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
+            retVal = buf;
+        }
     } else if (format == "raw") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
@@ -366,18 +376,32 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
             if (len == 0)
                 return openssl_error();
 
-            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
-            EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, (unsigned char*)buf->data(), len, nullptr);
-
-            retVal = buf;
+            if (useBackingStore) {
+                // Use BackingStore for webcrypto compatibility
+                std::shared_ptr<v8::BackingStore> store = NewBackingStore(len);
+                EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, (unsigned char*)store->Data(), len, nullptr);
+                retVal = store;
+            } else {
+                // Use Buffer for crypto module compatibility
+                obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+                EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, (unsigned char*)buf->data(), len, nullptr);
+                retVal = buf;
+            }
         } else if (is_okp_curve(nid)) {
             size_t len = 0;
             EVP_PKEY_get_raw_public_key(m_pkey, nullptr, &len);
 
-            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
-            EVP_PKEY_get_raw_public_key(m_pkey, buf->data(), &len);
-
-            retVal = buf;
+            if (useBackingStore) {
+                // Use BackingStore for webcrypto compatibility
+                std::shared_ptr<v8::BackingStore> store = NewBackingStore(len);
+                EVP_PKEY_get_raw_public_key(m_pkey, (unsigned char*)store->Data(), &len);
+                retVal = store;
+            } else {
+                // Use Buffer for crypto module compatibility
+                obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+                EVP_PKEY_get_raw_public_key(m_pkey, buf->data(), &len);
+                retVal = buf;
+            }
         } else
             return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
@@ -386,9 +410,9 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     return 0;
 }
 
-result_t KeyObject::ExportPublicKey(keyEncodingParam* param, Variant& retVal)
+result_t KeyObject::ExportPublicKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore)
 {
-    return ExportPublicKey(param->format, param->type, retVal);
+    return ExportPublicKey(param->format, param->type, retVal, useBackingStore);
 }
 
 result_t KeyObject::ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal)

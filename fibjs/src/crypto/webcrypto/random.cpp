@@ -35,7 +35,10 @@ result_t webcrypto_base::randomUUID(exlib::string& retVal)
     if (RAND_bytes(buf, sizeof(buf)) != 1)
         return openssl_error();
 
+    // Set version to 4
     buf[6] = (buf[6] & 0x0f) | 0x40;
+    // Set variant bits to 10
+    buf[8] = (buf[8] & 0x3f) | 0x80;
 
     retVal.resize(36);
     char* sbuf = retVal.data();

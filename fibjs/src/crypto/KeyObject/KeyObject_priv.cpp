@@ -5,10 +5,11 @@
  *      Author: lion
  */
 
-#include "encoding.h"
+#include "object.h"
 #include "ifs/crypto.h"
 #include "KeyObject.h"
 #include "Buffer.h"
+#include "encoding.h"
 
 namespace fibjs {
 
@@ -232,7 +233,7 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
 }
 
 result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, exlib::string cipher_name,
-    Buffer_base* passphrase, Variant& retVal)
+    Buffer_base* passphrase, Variant& retVal, bool useBackingStore)
 {
     result_t hr;
 
@@ -312,8 +313,18 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
         BUF_MEM* bptr;
         BIO_get_mem_ptr(bio, &bptr);
 
-        obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
-        retVal = buf;
+        if (useBackingStore) {
+            // Use BackingStore for webcrypto compatibility
+            std::shared_ptr<v8::BackingStore> store = NewBackingStore(bptr->length);
+            if (bptr->length > 0 && store->Data() && bptr->data) {
+                memcpy(store->Data(), bptr->data, bptr->length);
+            }
+            retVal = store;
+        } else {
+            // Use Buffer for crypto module compatibility
+            obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
+            retVal = buf;
+        }
     } else if (format == "raw") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
@@ -324,18 +335,33 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
             int degree_bytes = (degree_bits / CHAR_BIT) + (7 + (degree_bits % CHAR_BIT)) / 8;
 
             const BIGNUM* d = EC_KEY_get0_private_key(ec);
-            obj_ptr<Buffer> buf = new Buffer(nullptr, degree_bytes);
-            BN_bn2binpad(d, buf->data(), degree_bytes);
 
-            retVal = buf;
+            if (useBackingStore) {
+                // Use BackingStore for webcrypto compatibility
+                std::shared_ptr<v8::BackingStore> store = NewBackingStore(degree_bytes);
+                BN_bn2binpad(d, (unsigned char*)store->Data(), degree_bytes);
+                retVal = store;
+            } else {
+                // Use Buffer for crypto module compatibility
+                obj_ptr<Buffer> buf = new Buffer(nullptr, degree_bytes);
+                BN_bn2binpad(d, buf->data(), degree_bytes);
+                retVal = buf;
+            }
         } else if (is_okp_curve(nid)) {
             size_t len = 0;
             EVP_PKEY_get_raw_private_key(m_pkey, nullptr, &len);
 
-            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
-            EVP_PKEY_get_raw_private_key(m_pkey, buf->data(), &len);
-
-            retVal = buf;
+            if (useBackingStore) {
+                // Use BackingStore for webcrypto compatibility
+                std::shared_ptr<v8::BackingStore> store = NewBackingStore(len);
+                EVP_PKEY_get_raw_private_key(m_pkey, (unsigned char*)store->Data(), &len);
+                retVal = store;
+            } else {
+                // Use Buffer for crypto module compatibility
+                obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+                EVP_PKEY_get_raw_private_key(m_pkey, buf->data(), &len);
+                retVal = buf;
+            }
         } else
             return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
@@ -344,9 +370,9 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     return 0;
 }
 
-result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, Variant& retVal)
+result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore)
 {
-    return ExportPrivateKey(param->format, param->type, param->cipher, param->passphrase, retVal);
+    return ExportPrivateKey(param->format, param->type, param->cipher, param->passphrase, retVal, useBackingStore);
 }
 
 result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal)
