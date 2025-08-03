@@ -16,6 +16,8 @@ result_t CryptoKey::generate()
 {
     if (m_key_type == kKeyNameECDSA)
         return generate_ecdsa();
+    if (m_key_type == kKeyNameEd25519)
+        return generate_ed25519();
     return 0;
 }
 
@@ -64,6 +66,19 @@ result_t CryptoKey::generate_ecdsa()
     return createPublicKey();
 }
 
+result_t CryptoKey::generate_ed25519()
+{
+    if (m_usageMap.find("sign") == m_usageMap.end())
+        return Runtime::setError("WebCrypto: Ed25519 key must have 'sign' usage");
+
+    m_key = new KeyObject();
+    result_t hr = m_key->generateKey("Ed25519", nullptr);
+    if (hr < 0)
+        return hr;
+
+    return createPublicKey();
+}
+
 result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extractable, v8::Local<v8::Array> usages,
     Variant& retVal, AsyncEvent* ac)
 {
@@ -100,6 +115,23 @@ result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extracta
         retVal = key;
 
     return 0;
+}
+
+result_t subtle_base::generateKey(exlib::string algorithm, bool extractable, v8::Local<v8::Array> usages,
+    Variant& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        Isolate* isolate = ac->isolate();
+
+        // Create temporary algorithm object and call the object overload
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Object> algObj = v8::Object::New(isolate->m_isolate);
+        algObj->Set(context, isolate->NewString("name"), isolate->NewString(algorithm)).IsJust();
+
+        return generateKey(algObj, extractable, usages, retVal, ac);
+    }
+
+    return generateKey(v8::Local<v8::Object>(), extractable, usages, retVal, ac);
 }
 
 }

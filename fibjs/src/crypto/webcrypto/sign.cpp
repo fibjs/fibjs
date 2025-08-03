@@ -43,13 +43,16 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
                 if (hr < 0)
                     return hr;
 
-                hr = GetConfigValue(isolate, _hash_obj, "name", name, true);
+                hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
                 if (hr < 0)
                     return hr;
             }
         }
 
         ac->m_ctx[1] = hash;
+    } else if (qstricmp(name.c_str(), "ed25519") == 0) {
+        // Ed25519 doesn't use hash parameter - it has built-in SHA-512
+        ac->m_ctx[1] = exlib::string("");
     }
 
     return 0;
@@ -67,6 +70,16 @@ result_t subtle_base::sign(v8::Local<v8::Object> algorithm, CryptoKey_base* key,
 
     CryptoKey* _key = (CryptoKey*)key;
     exlib::string hash = ac->m_ctx[1].string();
+    exlib::string name = ac->m_ctx[0].string();
+
+    // Check if the key has 'sign' usage
+    if (_key->m_usageMap.find("sign") == _key->m_usageMap.end())
+        return Runtime::setError("WebCrypto: key does not have 'sign' usage");
+
+    // Ed25519 uses DER encoding and empty hash (built-in SHA-512)
+    if (qstricmp(name.c_str(), "ed25519") == 0) {
+        return _sign("", data, _key->m_key, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+    }
 
     return _sign(hash, data, _key->m_key, kSigEncP1363, DEFAULT_PADDING, NO_SALTLEN, retVal);
 }
@@ -83,8 +96,46 @@ result_t subtle_base::verify(v8::Local<v8::Object> algorithm, CryptoKey_base* ke
 
     CryptoKey* _key = (CryptoKey*)key;
     exlib::string hash = ac->m_ctx[1].string();
+    exlib::string name = ac->m_ctx[0].string();
+
+    // Check if the key has 'verify' usage
+    if (_key->m_usageMap.find("verify") == _key->m_usageMap.end())
+        return Runtime::setError("WebCrypto: key does not have 'verify' usage");
+
+    // Ed25519 uses DER encoding and empty hash (built-in SHA-512)
+    if (qstricmp(name.c_str(), "ed25519") == 0) {
+        return _verify("", data, _key->m_key, signature, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+    }
 
     return _verify(hash, data, _key->m_key, signature, kSigEncP1363, DEFAULT_PADDING, NO_SALTLEN, retVal);
+}
+
+result_t subtle_base::sign(exlib::string algorithm, CryptoKey_base* key, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(2);
+
+        ac->m_ctx[0] = algorithm;
+        ac->m_ctx[1] = exlib::string("");
+
+        return CALL_E_NOSYNC;
+    }
+
+    return sign(v8::Local<v8::Object>(), key, data, retVal, ac);
+}
+
+result_t subtle_base::verify(exlib::string algorithm, CryptoKey_base* key, Buffer_base* signature, Buffer_base* data, bool& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(2);
+
+        ac->m_ctx[0] = algorithm;
+        ac->m_ctx[1] = exlib::string("");
+
+        return CALL_E_NOSYNC;
+    }
+
+    return verify(v8::Local<v8::Object>(), key, signature, data, retVal, ac);
 }
 
 }

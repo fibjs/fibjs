@@ -46,6 +46,9 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     if (qstricmp(name.c_str(), "ECDSA") == 0)
         return get_ecdsa_param(params);
 
+    if (qstricmp(name.c_str(), "Ed25519") == 0)
+        return get_ed25519_param(params);
+
     return Runtime::setError("WebCrypto: unknown key name: " + name);
 }
 
@@ -85,6 +88,14 @@ result_t CryptoKey::get_ecdsa_param(v8::Local<v8::Object> params)
     return check_asymmetric_usage();
 }
 
+result_t CryptoKey::get_ed25519_param(v8::Local<v8::Object> params)
+{
+    m_key_type = kKeyNameEd25519;
+    m_algorithm->add("name", "Ed25519");
+
+    return check_asymmetric_usage();
+}
+
 result_t CryptoKey::check_asymmetric_import_usage()
 {
     if (m_key->type() == KeyObject::kKeyTypePrivate) {
@@ -111,10 +122,20 @@ result_t CryptoKey::check_ecdsa_import_param()
     return check_asymmetric_import_usage();
 }
 
+result_t CryptoKey::check_ed25519_import_param()
+{
+    // Ed25519 keys don't have namedCurve parameter to check like ECDSA
+    // For Ed25519, we just need to verify the key type matches
+    return check_asymmetric_import_usage();
+}
+
 result_t CryptoKey::check_import_param()
 {
     if (m_key_type == kKeyNameECDSA)
         return check_ecdsa_import_param();
+
+    if (m_key_type == kKeyNameEd25519)
+        return check_ed25519_import_param();
 
     return check_asymmetric_import_usage();
 }
@@ -122,6 +143,9 @@ result_t CryptoKey::check_import_param()
 result_t CryptoKey::check_name(exlib::string name)
 {
     if (m_key_type == kKeyNameECDSA && qstricmp(name.c_str(), "ecdsa"))
+        return Runtime::setError("CryptoKey: invalid key algorithm");
+
+    if (m_key_type == kKeyNameEd25519 && qstricmp(name.c_str(), "ed25519"))
         return Runtime::setError("CryptoKey: invalid key algorithm");
 
     return 0;

@@ -252,6 +252,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
         exlib::string d;
         hr = GetJwkValue(key, "d", d);
         if (hr == CALL_E_PARAMNOTOPTIONAL) {
+            // No private key component, this is a public key
             exlib::string x;
             hr = GetJwkValue(key, "x", x);
             if (hr < 0)
@@ -262,15 +263,17 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
                 return openssl_error();
 
             type = kKeyTypePublic;
+        } else {
+            // Has private key component
+            if (hr < 0)
+                return hr;
+
+            m_pkey = EVP_PKEY_new_raw_private_key(nid, nullptr, (const unsigned char*)d.c_str(), d.length());
+            if (!m_pkey)
+                return openssl_error();
+
+            type = kKeyTypePrivate;
         }
-        if (hr < 0)
-            return hr;
-
-        m_pkey = EVP_PKEY_new_raw_private_key(nid, nullptr, (const unsigned char*)d.c_str(), d.length());
-        if (!m_pkey)
-            return openssl_error();
-
-        type = kKeyTypePrivate;
     } else if (type == kKeyTypePrivate) {
         exlib::string d;
         hr = GetJwkValue(key, "d", d);

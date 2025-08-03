@@ -18,7 +18,8 @@ enum KeyName {
     kKeyNameAES,
     kKeyNameHMAC,
     kKeyNameRSA,
-    kKeyNameECDSA
+    kKeyNameECDSA,
+    kKeyNameEd25519
 };
 
 class CryptoKey : public CryptoKey_base {
@@ -32,11 +33,13 @@ public:
 public:
     result_t get_param(v8::Local<v8::Object> params, bool extractable, v8::Local<v8::Array> usages);
     result_t get_ecdsa_param(v8::Local<v8::Object> params);
+    result_t get_ed25519_param(v8::Local<v8::Object> params);
     result_t check_asymmetric_usage();
 
 public:
     result_t check_import_param();
     result_t check_ecdsa_import_param();
+    result_t check_ed25519_import_param();
     result_t check_asymmetric_import_usage();
 
     result_t check_name(exlib::string name);
@@ -44,6 +47,7 @@ public:
 public:
     result_t generate();
     result_t generate_ecdsa();
+    result_t generate_ed25519();
 
 public:
     result_t createPublicKey();
