@@ -240,7 +240,7 @@ function mapMemMethodReturnTypeToDtsType(memReturnType, {
         // For multiple return values, create a tuple with named elements
         const tupleElements = memReturnType.map(returnParam => {
             const gMap = generalTypeMap(returnParam.type, { allInterfacesNames, allModuleNames });
-            
+
             if (gMap && gMap.type) {
                 if (gMap.refType && dtsUnitName !== returnParam.type) {
                     addRefToTripleSlashDirectivesHost(gMap.refType, {
@@ -257,12 +257,12 @@ function mapMemMethodReturnTypeToDtsType(memReturnType, {
                 else if (gMap.type === dom.type.boolean) typeString = 'boolean';
                 else if (gMap.type === dom.type.void) typeString = 'void';
                 else typeString = returnParam.type; // fallback to original type name
-                
+
                 return `${returnParam.name}: ${typeString}`;
             }
             return `${returnParam.name}: any`;
         });
-        
+
         // Create a named tuple type using namedTypeReference
         return dom.create.namedTypeReference(`[${tupleElements.join(', ')}]`);
     }
@@ -309,12 +309,12 @@ function mapParamTypeToDtsType(paramType, {
                 refType: paramType,
             })
         }
-        
+
         // Handle array types if isarray is present
         if (paramInfo.isarray) {
             result.type = dom.create.array(result.type);
         }
-        
+
         return result
     }
 
@@ -627,7 +627,7 @@ function processDeclareInterface(def, {
                 const eventParam = dom.create.parameter('event', dom.type.stringLiteral(mem.name));
                 const callbackType = dom.create.functionType([], dom.type.void);
                 const listenerParam = dom.create.parameter('listener', callbackType);
-                
+
                 dtsUnit.members.push(dtsUnitMember = dom.create.method(
                     'on',
                     [eventParam, listenerParam],
@@ -988,16 +988,16 @@ function gen_bridge_dts({
 module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
     const totalDefs = Object.keys(defs).length;
     console.log(`   🔷 Generating TypeScript definitions for ${totalDefs} declarations...`);
-    
+
     const {
         allModuleNames,
     } = gen_dts_for_declare(defs, { DTS_DIST_DIR });
 
     console.log(`   📦 Generating fibjs import definitions...`);
     gen_fibjs_import_dts({ DTS_DIST_DIR });
-    
+
     console.log(`   🌉 Generating bridge definitions for ${allModuleNames.size} modules...`);
     gen_bridge_dts({ allModuleNames, DTS_DIST_DIR });
-    
+
     console.log(`   ✅ TypeScript definitions saved to ${path.basename(DTS_DIST_DIR)}/`);
 }

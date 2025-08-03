@@ -24,7 +24,7 @@ public:
 public:
     // Buffer_base
     static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -35,14 +35,14 @@ public:
     static result_t allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
     static result_t from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
-    static result_t from(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
+    static result_t from(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t isEncoding(exlib::string codec, bool& retVal);
     static result_t byteLength(exlib::string str, exlib::string codec, int32_t& retVal);
-    static result_t byteLength(v8::Local<v8::ArrayBuffer> str, int32_t& retVal);
+    static result_t byteLength(std::shared_ptr<v8::BackingStore> str, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::Uint8Array> str, int32_t& retVal);
     static result_t byteLength(Buffer_base* str, int32_t& retVal);
     static result_t compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
@@ -298,7 +298,7 @@ inline void Buffer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 1);
 
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    ARG(std::shared_ptr<v8::BackingStore>, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
@@ -342,7 +342,7 @@ inline result_t Buffer_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_
 
     METHOD_OVER(3, 1);
 
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    ARG(std::shared_ptr<v8::BackingStore>, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
@@ -455,7 +455,7 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(3, 1);
 
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    ARG(std::shared_ptr<v8::BackingStore>, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
@@ -540,7 +540,7 @@ inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    ARG(std::shared_ptr<v8::BackingStore>, 0);
 
     hr = byteLength(v0, vr);
 

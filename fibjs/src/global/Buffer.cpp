@@ -38,7 +38,7 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
     return from(datas, retVal);
 }
 
-result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
+result_t Buffer_base::_new(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
     return from(datas, byteOffset, length, retVal);
 }
@@ -140,20 +140,18 @@ result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t leng
     return 0;
 }
 
-result_t Buffer_base::from(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
+result_t Buffer_base::from(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
 {
-    std::shared_ptr<v8::BackingStore> cnt = datas->GetBackingStore();
-
     if (byteOffset < 0)
         byteOffset = 0;
 
     if (length < 0)
-        length = cnt->ByteLength() - byteOffset;
+        length = datas->ByteLength() - byteOffset;
 
-    if (length < 0 || length > cnt->ByteLength() - byteOffset)
+    if (length < 0 || length > datas->ByteLength() - byteOffset)
         length = 0;
 
-    retVal = new Buffer((uint8_t*)cnt->Data() + byteOffset, length);
+    retVal = new Buffer((uint8_t*)datas->Data() + byteOffset, length);
 
     return 0;
 }
@@ -168,7 +166,7 @@ result_t Buffer_base::from(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, 
     else if (length > datas->ByteLength() - byteOffset)
         return CALL_E_INVALIDARG;
 
-    return from(datas->Buffer(), byteOffset + datas->ByteOffset(), length, retVal);
+    return from(datas->Buffer()->GetBackingStore(), byteOffset + datas->ByteOffset(), length, retVal);
 }
 
 result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
@@ -778,7 +776,7 @@ result_t Buffer_base::byteLength(exlib::string str, exlib::string codec, int32_t
     return 0;
 }
 
-result_t Buffer_base::byteLength(v8::Local<v8::ArrayBuffer> str, int32_t& retVal)
+result_t Buffer_base::byteLength(std::shared_ptr<v8::BackingStore> str, int32_t& retVal)
 {
     obj_ptr<Buffer_base> buf;
 

@@ -960,6 +960,22 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::L
     return 0;
 }
 
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::shared_ptr<v8::BackingStore>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    if (!v->IsArrayBuffer() && !v->IsArrayBufferView() && !v->IsTypedArray())
+        return CALL_E_TYPEMISMATCH;
+
+    v8::Local<v8::ArrayBuffer> ab = v8::Local<v8::ArrayBuffer>::Cast(v);
+    vr = ab->GetBackingStore();
+    if (vr == nullptr)
+        return CALL_E_TYPEMISMATCH;
+
+    return 0;
+}
+
 template <class T>
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::vector<T>& vr, bool bStrict = false)
 {
@@ -1083,6 +1099,11 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, int64_t v)
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)
 {
     return isolate->NewString(str);
+}
+
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::shared_ptr<v8::BackingStore>& store)
+{
+    return v8::ArrayBuffer::New(isolate->m_isolate, std::move(store));
 }
 
 // inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::string& str)

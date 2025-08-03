@@ -20,7 +20,7 @@ public:
     result_t slice(int32_t start, int32_t end, exlib::string contentType, BlobImpl& retVal);
     result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal);
     result_t text(exlib::string& retVal, AsyncEvent* ac);
-    result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac);
+    result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
 
 public:
     void init(Buffer_base* buffer, const exlib::string& type)
@@ -81,7 +81,7 @@ public:
         return m_impl.text(retVal, ac);
     }
 
-    virtual result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
     {
         return m_impl.arrayBuffer(retVal, ac);
     }
@@ -113,7 +113,7 @@ public:
         return m_impl.text(retVal, ac);
     }
 
-    virtual result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
     {
         return m_impl.arrayBuffer(retVal, ac);
     }

@@ -28,7 +28,7 @@ public:
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal) = 0;
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,7 +44,7 @@ public:
 
 public:
     ASYNC_MEMBERVALUE1(Blob_base, text, exlib::string);
-    ASYNC_MEMBERVALUE1(Blob_base, arrayBuffer, v8::Local<v8::ArrayBuffer>);
+    ASYNC_MEMBERVALUE1(Blob_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
 };
 }
 
@@ -192,7 +192,7 @@ inline void Blob_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Blob_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::ArrayBuffer> vr;
+    std::shared_ptr<v8::BackingStore> vr;
 
     ASYNC_METHOD_INSTANCE(Blob_base);
     ASYNC_METHOD_ENTER("Blob.arrayBuffer");

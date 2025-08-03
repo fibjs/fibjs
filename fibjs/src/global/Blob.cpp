@@ -132,25 +132,29 @@ result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, 
 
 result_t BlobImpl::text(exlib::string& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     return m_buffer->toString("utf8", 0, retVal);
 }
 
-result_t BlobImpl::arrayBuffer(v8::Local<v8::ArrayBuffer>& retVal, AsyncEvent* ac)
+result_t BlobImpl::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    Isolate* isolate = ac->isolate();
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     Buffer* buf = m_buffer.As<Buffer>();
     int32_t bufSize = buf->length();
     const uint8_t* data = buf->data();
 
     // Create new backing store and copy data
-    std::unique_ptr<v8::BackingStore> store = v8::ArrayBuffer::NewBackingStore(isolate->m_isolate, bufSize);
+    std::shared_ptr<v8::BackingStore> store = NewBackingStore(bufSize);
     if (bufSize > 0 && store->Data() && data) {
         memcpy(store->Data(), data, bufSize);
     }
 
     // Create ArrayBuffer with the backing store
-    retVal = v8::ArrayBuffer::New(isolate->m_isolate, std::move(store));
+    retVal = std::move(store);
 
     return 0;
 }
