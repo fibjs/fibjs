@@ -215,6 +215,15 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
                 }
             }
 
+            if (!buffer) {
+                v8::Local<v8::String> partStr = part->ToString(isolate->context()).ToLocalChecked();
+                if (partStr.IsEmpty()) {
+                    return CALL_E_TYPEMISMATCH;
+                }
+                v8::String::Utf8Value str(isolate->m_isolate, partStr);
+                hr = Buffer_base::from(*str, "utf8", buffer);
+            }
+
             int32_t bufferSize;
             buffer->get_length(bufferSize);
             totalSize += bufferSize;
