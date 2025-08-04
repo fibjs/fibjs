@@ -51,8 +51,8 @@ public:
     static result_t clearHrInterval(v8::Local<v8::Value> t);
     static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
     static result_t clearImmediate(v8::Local<v8::Value> t);
-    static result_t btoa(Buffer_base* data, bool url, exlib::string& retVal);
-    static result_t atob(exlib::string data, obj_ptr<Buffer_base>& retVal);
+    static result_t btoa(exlib::string data, exlib::string& retVal);
+    static result_t atob(exlib::string data, exlib::string& retVal);
     static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
@@ -340,19 +340,18 @@ inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG(exlib::string, 0);
 
-    hr = btoa(v0.get(), v1, vr);
+    hr = btoa(v0, vr);
 
     METHOD_RETURN();
 }
 
 inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Buffer_base> vr;
+    exlib::string vr;
 
     METHOD_ENTER();
 

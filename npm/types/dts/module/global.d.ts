@@ -266,11 +266,10 @@ declare module 'global' {
     /**
      * @description 以 base64 方式编码数据
      * 	 @param data 要编码的数据
-     * 	 @param url 指定是否使用 url 安全字符编码
      * 	 @return 返回编码的字符串
      * 	 
      */
-    function btoa(data: Class_Buffer, url?: boolean): string;
+    function btoa(data: string): string;
 
     /**
      * @description 以 base64 方式解码字符串为二进制数据
@@ -278,7 +277,7 @@ declare module 'global' {
      * 	 @return 返回解码的二进制数据
      * 	 
      */
-    function atob(data: string): Class_Buffer;
+    function atob(data: string): string;
 
     /**
      * @description 请求指定的 url，并返回结果，等同于 http.request(url, ...)

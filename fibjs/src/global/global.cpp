@@ -33,16 +33,6 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
     return Isolate::current()->m_topSandbox->require(id, s_root, retVal);
 }
 
-result_t global_base::btoa(Buffer_base* data, bool url, exlib::string& retVal)
-{
-    return base64_base::encode(data, url, retVal);
-}
-
-result_t global_base::atob(exlib::string data, obj_ptr<Buffer_base>& retVal)
-{
-    return base64_base::decode(data, retVal);
-}
-
 result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {

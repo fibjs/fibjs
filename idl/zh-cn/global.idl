@@ -189,16 +189,15 @@ module global
 
     /*! @brief 以 base64 方式编码数据
 	 @param data 要编码的数据
-	 @param url 指定是否使用 url 安全字符编码
 	 @return 返回编码的字符串
 	 */
-    static String btoa(Buffer data, Boolean url = false);
+    static String btoa(String data);
 
     /*! @brief 以 base64 方式解码字符串为二进制数据
 	 @param data 要解码的字符串
 	 @return 返回解码的二进制数据
 	 */
-    static Buffer atob(String data);
+    static String atob(String data);
 
     /*! @brief 请求指定的 url，并返回结果，等同于 http.request(url, ...)
      opts 包含请求的附加选项，支持的内容如下：
