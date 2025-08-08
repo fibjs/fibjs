@@ -14,7 +14,11 @@ namespace fibjs {
 
 class Iterator : public Iterator_base {
 public:
-    Iterator(object_base* obj, std::function<void(size_t, v8::Local<v8::Value>&)> proc)
+    typedef std::function<void(bool)> IteratorCallback;
+    typedef std::function<void(size_t, Variant&, IteratorCallback)> IteratorFunc;
+
+public:
+    Iterator(object_base* obj, IteratorFunc proc)
         : m_obj(obj)
         , m_proc(proc)
         , m_index(0)
@@ -30,26 +34,30 @@ public:
         return 0;
     }
 
-    virtual result_t next(obj_ptr<NextType>& retVal)
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
     {
-        retVal = new NextType();
-
-        if (!m_done)
-            m_proc(m_index++, retVal->value);
-
-        if (retVal->value.IsEmpty()) {
-            retVal->value = v8::Undefined(holder()->m_isolate);
+        if (m_done) {
+            retVal = new NextType();
             retVal->done = true;
-            m_done = true;
-        } else
-            retVal->done = false;
+            return 0;
+        }
 
-        return 0;
+        if (ac->isSync()) {
+            return CALL_E_NOSYNC;
+        }
+
+        retVal = new NextType();
+        m_proc(m_index++, retVal->value, [this, &retVal, ac](bool done) {
+            retVal->done = m_done = !done;
+            ac->post(0);
+        });
+
+        return CALL_E_PENDDING;
     }
 
 private:
     obj_ptr<object_base> m_obj;
-    std::function<void(size_t, v8::Local<v8::Value>&)> m_proc;
+    IteratorFunc m_proc;
     size_t m_index;
     bool m_done;
 };

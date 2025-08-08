@@ -369,11 +369,14 @@ result_t XmlNodeList::cloneChilds(XmlNode_base* to)
 
 result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 {
-    retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
-        if (index < m_childs.size()) {
-            XmlNodeImpl* child = m_childs[index];
-            retVal = child->m_node->wrap(holder());
+    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+        if (index >= m_childs.size()) {
+            cb(false);
+            return;
         }
+
+        retVal = m_childs[index]->m_node;
+        cb(true);
     });
     return 0;
 }

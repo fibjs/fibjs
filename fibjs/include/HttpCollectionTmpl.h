@@ -279,37 +279,47 @@ public:
 
     result_t keys(obj_ptr<Iterator_base>& retVal)
     {
-        retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
-            if (index < m_map.size()) {
-                Isolate* isolate = Isolate::current();
-                retVal = isolate->NewString(m_map[index].first);
+        retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+            if (index >= m_map.size()) {
+                cb(false);
+                return;
             }
+
+            retVal = m_map[index].first;
+            cb(true);
         });
         return 0;
     }
 
     result_t values(obj_ptr<Iterator_base>& retVal)
     {
-        retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
-            if (index < m_map.size()) {
-                retVal = m_map[index].second;
+        retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+            if (index >= m_map.size()) {
+                cb(false);
+                return;
             }
+
+            retVal = m_map[index].second;
+            cb(true);
         });
         return 0;
     }
 
     result_t entries(obj_ptr<Iterator_base>& retVal)
     {
-        retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
-            if (index < m_map.size()) {
-                Isolate* isolate = Isolate::current();
-                v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
-
-                pair& _pair = m_map[index];
-                array->Set(isolate->context(), 0, isolate->NewString(_pair.first)).IsJust();
-                array->Set(isolate->context(), 1, _pair.second).IsJust();
-                retVal = array;
+        retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+            if (index >= m_map.size()) {
+                cb(false);
+                return;
             }
+
+            obj_ptr<NArray> array = new NArray();
+
+            array->append(m_map[index].first);
+            array->append(m_map[index].second);
+
+            retVal = array;
+            cb(true);
         });
         return 0;
     }
