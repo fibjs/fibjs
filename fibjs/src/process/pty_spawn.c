@@ -8,6 +8,8 @@
 #ifndef _WIN32
 
 #include <sys/wait.h>
+#include <sys/ioctl.h>
+#include <termios.h>
 #if defined(__APPLE__)
 #include <util.h>
 #else
@@ -51,34 +53,35 @@ int uv__close(int fd); /* preserves errno */
 int uv__close_nocheckstdio(int fd);
 int uv__make_pipe(int fds[2], int flags);
 
-int uv__cloexec_fcntl(int fd, int set) {
-  int flags;
-  int r;
+int uv__cloexec_fcntl(int fd, int set)
+{
+    int flags;
+    int r;
 
-  do
-    r = fcntl(fd, F_GETFD);
-  while (r == -1 && errno == EINTR);
+    do
+        r = fcntl(fd, F_GETFD);
+    while (r == -1 && errno == EINTR);
 
-  if (r == -1)
-    return UV__ERR(errno);
+    if (r == -1)
+        return UV__ERR(errno);
 
-  /* Bail out now if already set/clear. */
-  if (!!(r & FD_CLOEXEC) == !!set)
+    /* Bail out now if already set/clear. */
+    if (!!(r & FD_CLOEXEC) == !!set)
+        return 0;
+
+    if (set)
+        flags = r | FD_CLOEXEC;
+    else
+        flags = r & ~FD_CLOEXEC;
+
+    do
+        r = fcntl(fd, F_SETFD, flags);
+    while (r == -1 && errno == EINTR);
+
+    if (r)
+        return UV__ERR(errno);
+
     return 0;
-
-  if (set)
-    flags = r | FD_CLOEXEC;
-  else
-    flags = r & ~FD_CLOEXEC;
-
-  do
-    r = fcntl(fd, F_SETFD, flags);
-  while (r == -1 && errno == EINTR);
-
-  if (r)
-    return UV__ERR(errno);
-
-  return 0;
 }
 
 static void uv__chld(uv_signal_t* handle, int signum)
@@ -212,12 +215,12 @@ static void uv__process_child_init(const uv_process_options_t* options,
 
     if (options->flags & (UV_PROCESS_SETUID | UV_PROCESS_SETGID)) {
         /* When dropping privileges from root, the `setgroups` call will
-     * remove any extraneous groups. If we don't call this, then
-     * even though our uid has dropped, we may still have groups
-     * that enable us to do super-user things. This will fail if we
-     * aren't root, so don't bother checking the return value, this
-     * is just done as an optimistic privilege dropping function.
-     */
+         * remove any extraneous groups. If we don't call this, then
+         * even though our uid has dropped, we may still have groups
+         * that enable us to do super-user things. This will fail if we
+         * aren't root, so don't bother checking the return value, this
+         * is just done as an optimistic privilege dropping function.
+         */
         SAVE_ERRNO(setgroups(0, NULL));
     }
 
@@ -236,10 +239,10 @@ static void uv__process_child_init(const uv_process_options_t* options,
     }
 
     /* Reset signal disposition.  Use a hard-coded limit because NSIG
-   * is not fixed on Linux: it's either 32, 34 or 64, depending on
-   * whether RT signals are enabled.  We are not allowed to touch
-   * RT signal handlers, glibc uses them internally.
-   */
+     * is not fixed on Linux: it's either 32, 34 or 64, depending on
+     * whether RT signals are enabled.  We are not allowed to touch
+     * RT signal handlers, glibc uses them internally.
+     */
     for (n = 1; n < 32; n += 1) {
         if (n == SIGKILL || n == SIGSTOP)
             continue; /* Can't be changed. */
@@ -270,11 +273,26 @@ static void uv__process_child_init(const uv_process_options_t* options,
     _exit(127);
 }
 
-int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd)
+int pty_resize(int fd, int cols, int rows)
+{
+    struct winsize winsize;
+
+    if (fd < 0 || cols <= 0 || rows <= 0)
+        return -1;
+
+    winsize.ws_col = cols;
+    winsize.ws_row = rows;
+    winsize.ws_xpixel = 0;
+    winsize.ws_ypixel = 0;
+
+    return ioctl(fd, TIOCSWINSZ, &winsize);
+}
+
+int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd, int cols, int rows)
 {
     int signal_pipe[2] = { -1, -1 };
     int pipes_storage[8][2];
-    int(*pipes)[2];
+    int (*pipes)[2];
     int stdio_count;
     ssize_t r;
     pid_t pid;
@@ -321,6 +339,11 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
     if (pid == 0) {
         uv__process_child_init(options, stdio_count, pipes, signal_pipe[1]);
         abort();
+    }
+
+    /* Set initial terminal size if specified */
+    if (cols > 0 && rows > 0) {
+        pty_resize(*terminalfd, cols, rows);
     }
 
     /* Release lock in parent process */

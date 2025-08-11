@@ -11,6 +11,7 @@
 #include "ChildProcess.h"
 #include "UVStream.h"
 #include "AbortController.h"
+#include <signal.h>
 
 namespace fibjs {
 
@@ -329,10 +330,12 @@ result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
     if (windowsHide)
         uv_options.flags |= UV_PROCESS_WINDOWS_HIDE;
 
+    // Parse PTY options
+    GetConfigValue(isolate, options, "cols", m_cols);
+    GetConfigValue(isolate, options, "rows", m_rows);
+
     return 0;
 }
-
-extern "C" int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd);
 result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork)
 {
     result_t hr;
@@ -364,8 +367,9 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 #ifndef _WIN32
         if (m_pty) {
             int32_t terminalfd;
-            err = pty_spawn(s_uv_loop, &m_process, &uv_options, &terminalfd);
+            err = pty_spawn(s_uv_loop, &m_process, &uv_options, &terminalfd, m_cols, m_rows);
             if (err >= 0) {
+                m_terminalfd = terminalfd;
                 UVStream::uv_pipe(m_stdio[0], terminalfd, [this](int32_t fd) -> void {
                     on_handle_close();
                 });
@@ -611,6 +615,50 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 
     retVal = m_stdio[2];
 
+    return 0;
+}
+
+result_t ChildProcess::resize(int32_t cols, int32_t rows)
+{
+#ifndef _WIN32
+    if (!m_pty)
+        return CHECK_ERROR(Runtime::setError("resize() only available in PTY mode"));
+
+    if (cols <= 0 || rows <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (m_terminalfd == -1)
+        return CHECK_ERROR(Runtime::setError("PTY not available"));
+
+    int result = pty_resize(m_terminalfd, cols, rows);
+    if (result == 0) {
+        m_cols = cols;
+        m_rows = rows;
+        // Send SIGWINCH signal to child process
+        if (m_process.pid > 0) {
+            ::kill(m_process.pid, SIGWINCH);
+        }
+    }
+
+    return result == 0 ? 0 : CHECK_ERROR(Runtime::setError("resize failed"));
+#else
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+#endif
+}
+
+result_t ChildProcess::get_cols(int32_t& retVal)
+{
+    if (!m_pty)
+        return CHECK_ERROR(Runtime::setError("cols property only available in PTY mode"));
+    retVal = m_cols;
+    return 0;
+}
+
+result_t ChildProcess::get_rows(int32_t& retVal)
+{
+    if (!m_pty)
+        return CHECK_ERROR(Runtime::setError("rows property only available in PTY mode"));
+    retVal = m_rows;
     return 0;
 }
 

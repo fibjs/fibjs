@@ -23,7 +23,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *       @param signal 传递的信号
      *      
      */
-    kill(signal: string): void;
+    kill(signal?: string): void;
 
     /**
      * @description 等待当前对象指向的进程结束，并返回进程结束代码
@@ -50,6 +50,24 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *     
      */
     send(msg: any): void;
+
+    /**
+     * @description 调整当前子进程的终端大小
+     *      @param cols 终端的列数
+     *      @param rows 终端的行数
+     *     
+     */
+    resize(cols: number, rows: number): void;
+
+    /**
+     * @description 查询当前终端的列数 
+     */
+    readonly cols: number;
+
+    /**
+     * @description 查询当前终端的行数 
+     */
+    readonly rows: number;
 
     /**
      * @description 查询当前进程占用的内存和花费的时间

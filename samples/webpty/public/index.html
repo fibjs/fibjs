@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal</title>
+    
+    <!-- xterm.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .container {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 8px 10px;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #444;
+        }
+
+        .header h1 {
+            margin: 5px 0;
+            font-size: 16px;
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        .header .controls {
+            display: inline-block;
+        }
+
+        .header button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            margin: 0 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .header button:hover {
+            background-color: #005a9e;
+        }
+
+        .header button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+
+        .status {
+            text-align: center;
+            padding: 4px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .status.connecting {
+            background-color: #ffa500;
+            color: #000;
+        }
+
+        .status.connected {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .status.disconnected {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        .terminal-container {
+            flex: 1;
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        #terminal {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* 确保终端字符精确对齐 */
+        .xterm-viewport, .xterm-screen {
+            font-variant-ligatures: none;
+            text-rendering: optimizeSpeed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Web Terminal</h1>
+            <div class="controls">
+                <button id="connectBtn">Connect</button>
+                <button id="disconnectBtn" disabled>Disconnect</button>
+                <button id="clearBtn">Clear</button>
+                <button id="resizeBtn">Fit</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status connecting">Connecting...</div>
+        
+        <div class="terminal-container">
+            <div id="terminal"></div>
+        </div>
+    </div>
+
+    <!-- xterm.js JavaScript -->
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+
+    <script>
+        class WebTerminal {
+            constructor() {
+                this.term = null;
+                this.socket = null;
+                this.fitAddon = null;
+                this.isConnected = false;
+                
+                this.init();
+                this.bindEvents();
+            }
+
+            init() {
+                // Create terminal
+                this.term = new Terminal({
+                    cursorBlink: true,
+                    cursorStyle: 'block',
+                    bellStyle: 'none',
+                    convertEol: true,
+                    disableStdin: false,
+                    scrollback: 10000,
+                    tabStopWidth: 8,
+                    // Important: allow proper terminal behavior
+                    allowTransparency: false,
+                    altClickMovesCursor: false,
+                    // Terminal type and behavior settings  
+                    termName: 'xterm-256color',
+                    theme: {
+                        background: '#000000',
+                        foreground: '#ffffff',
+                        cursor: '#ffffff',
+                        black: '#000000',
+                        red: '#cd3131',
+                        green: '#0dbc79',
+                        yellow: '#e5e510',
+                        blue: '#2472c8',
+                        magenta: '#bc3fbc',
+                        cyan: '#11a8cd',
+                        white: '#e5e5e5',
+                        brightBlack: '#666666',
+                        brightRed: '#f14c4c',
+                        brightGreen: '#23d18b',
+                        brightYellow: '#f5f543',
+                        brightBlue: '#3b8eea',
+                        brightMagenta: '#d670d6',
+                        brightCyan: '#29b8db',
+                        brightWhite: '#e5e5e5'
+                    },
+                    fontSize: 14,
+                    fontFamily: '"JetBrains Mono", "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", "Menlo", monospace',
+                    rows: 30,
+                    cols: 80
+                });
+
+                // Add fit addon
+                this.fitAddon = new FitAddon.FitAddon();
+                this.term.loadAddon(this.fitAddon);
+
+                // Open terminal in DOM
+                this.term.open(document.getElementById('terminal'));
+                this.fitAddon.fit();
+
+                // Handle terminal input
+                this.term.onData((data) => {
+                    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                        this.socket.send(JSON.stringify({
+                            type: 'data',
+                            data: data
+                        }));
+                    }
+                });
+
+                // Handle terminal resize
+                this.term.onResize(({ cols, rows }) => {
+                    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                        this.socket.send(JSON.stringify({
+                            type: 'resize',
+                            cols: cols,
+                            rows: rows
+                        }));
+                    }
+                });
+
+                // Auto connect
+                this.connect();
+            }
+
+            bindEvents() {
+                // Connect button
+                document.getElementById('connectBtn').addEventListener('click', () => {
+                    this.connect();
+                });
+
+                // Disconnect button
+                document.getElementById('disconnectBtn').addEventListener('click', () => {
+                    this.disconnect();
+                });
+
+                // Clear button
+                document.getElementById('clearBtn').addEventListener('click', () => {
+                    this.term.clear();
+                });
+
+                // Resize button
+                document.getElementById('resizeBtn').addEventListener('click', () => {
+                    this.fitTerminal();
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    // Use a small delay to ensure DOM layout is complete
+                    setTimeout(() => {
+                        this.fitTerminal();
+                    }, 50);
+                });
+
+                // Also handle initial load
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        this.fitTerminal();
+                    }, 100);
+                });
+
+                // Handle page unload
+                window.addEventListener('beforeunload', () => {
+                    if (this.socket) {
+                        this.socket.close();
+                    }
+                });
+            }
+
+            connect() {
+                if (this.isConnected) {
+                    return;
+                }
+
+                this.updateStatus('connecting', 'Connecting...');
+                
+                try {
+                    // WebSocket URL - adjust as needed
+                    const wsUrl = `ws://${window.location.hostname}:${window.location.port || 8081}/shell`;
+                    this.socket = new WebSocket(wsUrl);
+
+                    this.socket.onopen = () => {
+                        this.isConnected = true;
+                        this.updateStatus('connected', 'Connected');
+                        this.updateButtons();
+                        this.term.focus();
+                        
+                        // Fit terminal after connection
+                        setTimeout(() => {
+                            this.fitTerminal();
+                        }, 100);
+                    };
+
+                    this.socket.onmessage = (event) => {
+                        try {
+                            const message = JSON.parse(event.data);
+                            
+                            if (message.type === 'data') {
+                                this.term.write(message.data);
+                            } else if (message.type === 'init') {
+                                this.term.write(message.data);
+                                // Update terminal size to match server
+                                if (message.cols && message.rows) {
+                                    this.term.resize(message.cols, message.rows);
+                                }
+                            } else if (message.type === 'resize_ack') {
+                                console.log(`Terminal resized on server: ${message.cols}x${message.rows}`);
+                            }
+                        } catch (error) {
+                            // Fallback: treat as plain text for backward compatibility
+                            this.term.write(event.data);
+                        }
+                    };
+
+                    this.socket.onclose = (event) => {
+                        this.isConnected = false;
+                        this.updateStatus('disconnected', `Disconnected (Code: ${event.code})`);
+                        this.updateButtons();
+                        
+                        if (event.code !== 1000) {
+                            this.term.writeln(`\r\nConnection closed unexpectedly. Code: ${event.code}`);
+                        }
+                    };
+
+                    this.socket.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.updateStatus('disconnected', 'Connection error');
+                        this.term.writeln('\r\nWebSocket connection error occurred.');
+                    };
+
+                } catch (error) {
+                    console.error('Failed to connect:', error);
+                    this.updateStatus('disconnected', 'Connection failed');
+                    this.term.writeln(`\r\nFailed to establish connection: ${error.message}`);
+                }
+            }
+
+            disconnect() {
+                if (this.socket) {
+                    this.socket.close(1000, 'User disconnected');
+                    this.socket = null;
+                }
+                this.isConnected = false;
+                this.updateStatus('disconnected', 'Disconnected');
+                this.updateButtons();
+                this.term.writeln('\r\nDisconnected from server.');
+            }
+
+            fitTerminal() {
+                if (this.fitAddon) {
+                    this.fitAddon.fit();
+                    // The onResize event will automatically send resize message to server
+                }
+            }
+
+            updateStatus(type, message) {
+                const statusElement = document.getElementById('status');
+                statusElement.className = `status ${type}`;
+                statusElement.textContent = message;
+            }
+
+            updateButtons() {
+                const connectBtn = document.getElementById('connectBtn');
+                const disconnectBtn = document.getElementById('disconnectBtn');
+                
+                connectBtn.disabled = this.isConnected;
+                disconnectBtn.disabled = !this.isConnected;
+            }
+
+            // Send command programmatically
+            sendCommand(command) {
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify({
+                        type: 'data',
+                        data: command + '\r'
+                    }));
+                }
+            }
+        }
+
+        // Initialize terminal when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            const terminal = new WebTerminal();
+            
+            // Expose terminal instance to window for debugging
+            window.terminal = terminal;
+            
+            // Example: You can send commands programmatically
+            // terminal.sendCommand('ls -la');
+        });
+    </script>
+</body>
+</html>

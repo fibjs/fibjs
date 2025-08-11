@@ -31,6 +31,9 @@ public:
     virtual result_t get_connected(bool& retVal) = 0;
     virtual result_t disconnect() = 0;
     virtual result_t send(v8::Local<v8::Value> msg) = 0;
+    virtual result_t resize(int32_t cols, int32_t rows) = 0;
+    virtual result_t get_cols(int32_t& retVal) = 0;
+    virtual result_t get_rows(int32_t& retVal) = 0;
     virtual result_t usage(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
     virtual result_t get_killed(bool& retVal) = 0;
@@ -58,6 +61,9 @@ public:
     static void s_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_cols(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_rows(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_usage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_killed(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +97,7 @@ inline ClassInfo& ChildProcess_base::class_info()
         { "join", s_join, false, ClassData::ASYNC_ASYNC },
         { "disconnect", s_disconnect, false, ClassData::ASYNC_SYNC },
         { "send", s_send, false, ClassData::ASYNC_SYNC },
+        { "resize", s_resize, false, ClassData::ASYNC_SYNC },
         { "usage", s_usage, false, ClassData::ASYNC_SYNC },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
         { "unref", s_unref, false, ClassData::ASYNC_SYNC }
@@ -98,6 +105,8 @@ inline ClassInfo& ChildProcess_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "connected", s_get_connected, block_set, false },
+        { "cols", s_get_cols, block_set, false },
+        { "rows", s_get_rows, block_set, false },
         { "pid", s_get_pid, block_set, false },
         { "killed", s_get_killed, block_set, false },
         { "exitCode", s_get_exitCode, block_set, false },
@@ -132,9 +141,9 @@ inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>&
 
     hr = pInst->kill(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 0, "SIGTERM");
 
     hr = pInst->kill(v0);
 
@@ -196,6 +205,49 @@ inline void ChildProcess_base::s_send(const v8::FunctionCallbackInfo<v8::Value>&
     hr = pInst->send(v0);
 
     METHOD_VOID();
+}
+
+inline void ChildProcess_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    hr = pInst->resize(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void ChildProcess_base::s_get_cols(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_cols(vr);
+
+    METHOD_RETURN();
+}
+
+inline void ChildProcess_base::s_get_rows(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_rows(vr);
+
+    METHOD_RETURN();
 }
 
 inline void ChildProcess_base::s_usage(const v8::FunctionCallbackInfo<v8::Value>& args)

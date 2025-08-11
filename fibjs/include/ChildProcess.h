@@ -15,6 +15,14 @@
 #undef stderr
 #include "ifs/child_process.h"
 
+// PTY function declarations
+#ifndef _WIN32
+extern "C" {
+int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd, int cols, int rows);
+int pty_resize(int fd, int cols, int rows);
+}
+#endif
+
 namespace fibjs {
 
 class ChildProcess : public ChildProcess_base {
@@ -38,6 +46,9 @@ public:
         : m_ipc(-1)
         , m_pty(false)
         , m_killed(false)
+        , m_cols(80)
+        , m_rows(24)
+        , m_terminalfd(-1)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -60,6 +71,9 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal);
+    virtual result_t resize(int32_t cols, int32_t rows);
+    virtual result_t get_cols(int32_t& retVal);
+    virtual result_t get_rows(int32_t& retVal);
     virtual result_t ref(obj_ptr<ChildProcess_base>& retVal);
     virtual result_t unref(obj_ptr<ChildProcess_base>& retVal);
 
@@ -100,6 +114,9 @@ public:
     std::atomic<int32_t> m_handle_count = 1;
 
     bool m_pty;
+    int32_t m_cols;
+    int32_t m_rows;
+    int32_t m_terminalfd;
 
     bool m_killed;
     int32_t m_exitCode;
