@@ -13,6 +13,11 @@
 #include "AbortController.h"
 #include <signal.h>
 
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#include <termios.h>
+#endif
+
 namespace fibjs {
 
 void ChildProcess::on_uv_close(uv_handle_t* handle)
@@ -33,6 +38,13 @@ void ChildProcess::on_handle_close()
         } else {
             args[1].setNull();
         }
+
+        // Clean up PTY resources on Windows
+#ifdef _WIN32
+        if (m_pty) {
+            pty_cleanup(&m_process);
+        }
+#endif
 
         _emit("close", args, 2);
         m_vholder.Release();
@@ -123,7 +135,6 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     uv_options.stdio = stdios;
     uv_options.stdio_count = 3;
 
-#ifndef _WIN32
     int32_t pty_cnt = 0;
     for (i = 0; i < 3; i++)
         if (stddefs[i].type() == Variant::VT_String && stddefs[i].string() == "pty")
@@ -147,7 +158,6 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
 
     if (pty_cnt > 0)
         return CHECK_ERROR(Runtime::setError("ChildProcess: every element of stdio must be \'pty\'."));
-#endif
 
     for (i = 0; i < 3; i++) {
         if (stddefs[i].type() == Variant::VT_Integer) {
@@ -364,7 +374,6 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     hr = uv_call([&] {
         int32_t err;
 
-#ifndef _WIN32
         if (m_pty) {
             int32_t stdinfd, stdoutfd;
             err = pty_spawn(s_uv_loop, &m_process, &uv_options, &stdinfd, &stdoutfd, m_cols, m_rows);
@@ -384,7 +393,6 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
                 m_handle_count.fetch_add(1);
             }
         } else
-#endif
             err = uv_spawn(s_uv_loop, &m_process, &uv_options);
 
         if (err < 0)
@@ -627,7 +635,6 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 
 result_t ChildProcess::resize(int32_t cols, int32_t rows)
 {
-#ifndef _WIN32
     if (!m_pty)
         return CHECK_ERROR(Runtime::setError("resize() only available in PTY mode"));
 
@@ -637,21 +644,26 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
     if (m_stdinfd == -1 && m_stdoutfd == -1)
         return CHECK_ERROR(Runtime::setError("PTY not available"));
 
-    // Use whichever fd is available (both should point to the same pty)
-    int fd_to_use = (m_stdinfd != -1) ? m_stdinfd : m_stdoutfd;
-    int result = pty_resize(fd_to_use, cols, rows);
-    if (result == 0) {
-        m_cols = cols;
-        m_rows = rows;
-        // Send SIGWINCH signal to child process
-        if (m_process.pid > 0) {
-            ::kill(m_process.pid, SIGWINCH);
-        }
-    }
+    // Update stored cols and rows
+    m_cols = cols;
+    m_rows = rows;
 
+#ifdef _WIN32
+    // Call resize function with process handle on Windows
+    int result = pty_resize(&m_process, cols, rows);
     return result == 0 ? 0 : CHECK_ERROR(Runtime::setError("resize failed"));
 #else
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    // On POSIX systems, call ioctl directly
+    struct winsize winsize;
+    winsize.ws_col = cols;
+    winsize.ws_row = rows;
+    winsize.ws_xpixel = 0;
+    winsize.ws_ypixel = 0;
+
+    // Use whichever fd is available (both should point to the same pty)
+    int fd_to_use = (m_stdinfd != -1) ? m_stdinfd : m_stdoutfd;
+    int result = ioctl(fd_to_use, TIOCSWINSZ, &winsize);
+    return result == 0 ? 0 : CHECK_ERROR(Runtime::setError("resize failed"));
 #endif
 }
 

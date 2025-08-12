@@ -13,6 +13,8 @@ var http = require('http');
 var io = require('io');
 var os = require('os');
 
+const isWin32 = process.platform === "win32";
+
 var envKeys = require('./process/const.env_keys.js');
 
 describe("child_process", () => {
@@ -117,27 +119,6 @@ describe("child_process", () => {
             assert.closeTo(offsets[1], 2000, 1000);
         });
 
-        if (process.platform != "win32")
-            it("pty output", () => {
-                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')], {
-                    stdio: 'pty'
-                });
-                var stdout = new io.BufferedStream(bs.stdout);
-
-                assert.equal(stdout.readLine(), "exec testing....\r");
-
-                var t0 = new Date().getTime();
-
-                stdout.readLine();
-                var offsets = []
-                offsets[0] = new Date().getTime() - t0;
-                assert.closeTo(offsets[0], 1000, 500);
-
-                stdout.readLine();
-                offsets[1] = new Date().getTime() - t0;
-                assert.closeTo(offsets[1], 2000, 1000);
-            });
-
         it("console stdout output", () => {
             var status = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
             assert.equal(status, 0);
@@ -156,6 +137,224 @@ describe("child_process", () => {
             var str1 = bs.stdout.read(100).toString();
             assert.equal(str, str1);
         })
+    });
+
+    describe("pty", () => {
+        it("basic pty functionality", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')], {
+                stdio: 'pty'
+            });
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            // Function to strip ANSI escape sequences for ConPTY compatibility
+            function stripAnsi(str) {
+                return str.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+            }
+
+            if (isWin32) {
+                var line = stdout.readLine();
+                var cleanLine = stripAnsi(line);
+                assert.equal(cleanLine, "exec testing....");
+            } else
+                assert.equal(stdout.readLine(), "exec testing....\r");
+
+            var t0 = new Date().getTime();
+
+            stdout.readLine();
+            var offsets = []
+            offsets[0] = new Date().getTime() - t0;
+            assert.closeTo(offsets[0], 1000, 500);
+
+            stdout.readLine();
+            offsets[1] = new Date().getTime() - t0;
+            assert.closeTo(offsets[1], 2000, 1000);
+        });
+
+        it("pty with custom initial size", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pty',
+                cols: 100,
+                rows: 30
+            });
+
+            // Check that the process has the specified dimensions
+            assert.equal(bs.cols, 100);
+            assert.equal(bs.rows, 30);
+
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            // Function to strip ANSI escape sequences for ConPTY compatibility
+            function stripAnsi(str) {
+                return str.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+            }
+
+            if (isWin32) {
+                var line = stdout.readLine();
+                var cleanLine = stripAnsi(line);
+                assert.equal(cleanLine, "PTY_TEST_OUTPUT");
+            } else {
+                assert.equal(stdout.readLine(), "PTY_TEST_OUTPUT\r");
+            }
+
+            bs.join();
+            assert.equal(bs.exitCode, 42);
+        });
+
+        it("pty default size", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pty'
+            });
+
+            // Default size should be 80x24
+            assert.equal(bs.cols, 80);
+            assert.equal(bs.rows, 24);
+
+            bs.join();
+        });
+
+        it("pty resize functionality", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_resize_test.js')], {
+                stdio: 'pty',
+                cols: 80,
+                rows: 24
+            });
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            // Check initial size
+            assert.equal(bs.cols, 80);
+            assert.equal(bs.rows, 24);
+
+            // Read initial size output
+            var initialLine = stdout.readLine();
+            if (isWin32) {
+                // Strip ANSI sequences for Windows ConPTY
+                initialLine = initialLine.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+            } else {
+                // Remove carriage return for Unix PTY
+                initialLine = initialLine.replace(/\r$/, '');
+            }
+            assert.equal(initialLine, "RESIZE:80x24");
+
+            // Resize the PTY
+            bs.resize(120, 40);
+
+            // Check that resize was successful
+            assert.equal(bs.cols, 120);
+            assert.equal(bs.rows, 40);
+
+            // Read resize notification (may take a moment to appear)
+            var resizeLine;
+            var attempts = 0;
+            while (attempts < 10) {
+                try {
+                    resizeLine = stdout.readLine();
+                    if (isWin32) {
+                        resizeLine = resizeLine.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+                    } else {
+                        resizeLine = resizeLine.replace(/\r$/, '');
+                    }
+                    if (resizeLine.includes("RESIZE:120x40")) {
+                        break;
+                    }
+                } catch (e) {
+                    coroutine.sleep(100);
+                    attempts++;
+                }
+            }
+
+            // Should have received resize notification
+            assert.ok(resizeLine && resizeLine.includes("RESIZE:120x40"), `Expected resize notification, got: ${resizeLine}`);
+
+            // Test another resize
+            bs.resize(60, 20);
+            assert.equal(bs.cols, 60);
+            assert.equal(bs.rows, 20);
+
+            // Clean up
+            bs.kill();
+            bs.join();
+        });
+
+        it("pty resize with invalid parameters", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pty',
+                cols: 80,
+                rows: 24
+            });
+
+            // Test invalid resize parameters
+            assert.throws(() => {
+                bs.resize(0, 24);
+            });
+
+            assert.throws(() => {
+                bs.resize(80, 0);
+            });
+
+            assert.throws(() => {
+                bs.resize(-10, 24);
+            });
+
+            assert.throws(() => {
+                bs.resize(80, -5);
+            });
+
+            // Valid resize should work
+            assert.doesNotThrow(() => {
+                bs.resize(80, 24);
+            });
+
+            bs.join();
+        });
+
+        it("pty resize on non-pty process should fail", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pipe'
+            });
+
+            // Resize should fail on non-PTY process
+            assert.throws(() => {
+                bs.resize(80, 24);
+            });
+
+            bs.join();
+        });
+
+        it("cols and rows getters", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pty',
+                cols: 90,
+                rows: 35
+            });
+
+            // Check getter properties
+            assert.equal(bs.cols, 90);
+            assert.equal(bs.rows, 35);
+
+            // Resize and check again
+            bs.resize(110, 50);
+            assert.equal(bs.cols, 110);
+            assert.equal(bs.rows, 50);
+
+            bs.join();
+        });
+
+        it("cols and rows getters on non-pty process", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'pty_simple_test.js')], {
+                stdio: 'pipe'
+            });
+
+            // cols and rows should throw error for non-PTY processes
+            assert.throws(() => {
+                var cols = bs.cols;
+            }, /cols property only available in PTY mode/);
+
+            assert.throws(() => {
+                var rows = bs.rows;
+            }, /rows property only available in PTY mode/);
+
+            bs.join();
+        });
     });
 
     it("stdin/stdout", () => {
@@ -184,7 +383,7 @@ describe("child_process", () => {
             var ret = child_process.exec("echo hello");
             assert.equal(ret.stdout, "hello" + os.EOL);
 
-            if (process.platform == "win32") {
+            if (isWin32) {
                 var ret = child_process.exec(`echo "hello world"`);
                 assert.equal(ret.stdout, `"hello world"\r\n`);
 
@@ -253,7 +452,7 @@ describe("child_process", () => {
             assert.throws(() => {
                 child_process.execSync("nonexistent_command_12345");
             }, (error) => {
-                if (process.platform == "win32") {
+                if (isWin32) {
                     assert.equal(error.status, 1);
                 } else {
                     assert.equal(error.status, 127);
@@ -265,7 +464,7 @@ describe("child_process", () => {
                 return true;
             });
 
-            if (process.platform == "win32") {
+            if (isWin32) {
                 var ret = child_process.execSync(`echo "hello world"`);
                 assert.equal(ret, `"hello world"\r\n`);
             } else {
@@ -618,7 +817,7 @@ describe("child_process", () => {
         assert.equal(result.stdout, result.output[1]);
         assert.equal(result.stderr, result.output[2]);
 
-        if (process.platform == "win32") {
+        if (isWin32) {
             assert.equal(result.stdout, "stdout output.\r\n");
             assert.equal(result.stderr, "stderr output.\r\n");
         } else {

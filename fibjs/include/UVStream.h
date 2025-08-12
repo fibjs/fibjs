@@ -184,12 +184,12 @@ public:
                         m_buf.resize(m_pos);
 
                     m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
-                    
+
                     // Add pipedump output for named pipe read
                     if (g_pipedump && m_this->m_handle.type == UV_NAMED_PIPE) {
                         outLog(console_base::C_NOTICE, clean_string(m_buf.c_str(), m_buf.length()));
                     }
-                    
+
                     m_ac->apost(0);
                 } else
                     m_ac->apost(CALL_RETURN_NULL);
@@ -219,7 +219,7 @@ public:
             m_data = Buffer::Cast(data);
             m_buf.base = (char*)m_data->data();
             m_buf.len = (uint32_t)m_data->length();
-            
+
             // Add pipedump output for named pipe write
             if (g_pipedump && pThis->m_handle.type == UV_NAMED_PIPE) {
                 outLog(console_base::C_WARN, clean_string((char*)m_data->data(), m_data->length()));

@@ -16,12 +16,11 @@
 #include "ifs/child_process.h"
 
 // PTY function declarations
-#ifndef _WIN32
 extern "C" {
 int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* stdinfd, int* stdoutfd, int cols, int rows);
-int pty_resize(int fd, int cols, int rows);
+int pty_resize(uv_process_t* process, int cols, int rows);
+void pty_cleanup(uv_process_t* process);
 }
-#endif
 
 namespace fibjs {
 

@@ -273,7 +273,7 @@ static void uv__process_child_init(const uv_process_options_t* options,
     _exit(127);
 }
 
-int pty_resize(int fd, int cols, int rows)
+static int pty_resize_fd(int fd, int cols, int rows)
 {
     struct winsize winsize;
 
@@ -286,6 +286,22 @@ int pty_resize(int fd, int cols, int rows)
     winsize.ws_ypixel = 0;
 
     return ioctl(fd, TIOCSWINSZ, &winsize);
+}
+
+int pty_resize(uv_process_t* process, int cols, int rows)
+{
+    // On POSIX systems, resize is handled directly in ChildProcess::resize
+    // This function is kept for interface compatibility
+    (void)process;
+    (void)cols;
+    (void)rows;
+    return 0;
+}
+
+void pty_cleanup(uv_process_t* process)
+{
+    // On POSIX systems, no special cleanup is needed for PTY
+    (void)process;
 }
 
 int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* stdinfd, int* stdoutfd, int cols, int rows)
@@ -361,7 +377,7 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
 
     /* Set initial terminal size if specified */
     if (cols > 0 && rows > 0) {
-        pty_resize(masterfd, cols, rows);
+        pty_resize_fd(masterfd, cols, rows);
     }
 
     /* Close the original masterfd as we now have separate fds */
