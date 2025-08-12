@@ -14,93 +14,121 @@ const svr = new http.Server(8081, {
 
         console.log(`Using shell: ${defaultShell}`);
 
-        // Spawn a shell process with PTY support
-        const shell = process.platform === 'win32' ? 'cmd.exe' : defaultShell;
-        const args = process.platform === 'win32' ? [] : ['-i']; // Interactive mode
-        const child = child_process.spawn(shell, args, {
-            stdio: 'pty',
-            cols: 80,
-            rows: 24,
-            env: {
-                ...process.env,
-                TERM: 'xterm-256color',
-                COLORTERM: 'truecolor',
-                SHELL: defaultShell,
-                // Make sure terminal is interactive
-                PS1: isZsh ? '%n@%m:%~%# ' : '\\u@\\h:\\w\\$ ',
-                // Enable colors
-                CLICOLOR: '1',
-                FORCE_COLOR: '1'
-            }
-        });
+        let child = null;
+        let isInitialized = false;
 
-        console.log(`PTY created: ${child.cols}x${child.rows}`);
+        // Function to create PTY with specified dimensions
+        function createPTY(cols, rows) {
+            const shell = process.platform === 'win32' ? 'cmd.exe' : defaultShell;
+            const args = process.platform === 'win32' ? [] : ['-i']; // Interactive mode
 
-        // Handle child process output (PTY combines stdout and stderr)
-        child.stdout.on('data', (data) => {
-            if (socket.readyState === ws.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'data',
-                    data: data.toString()
-                }));
-            }
-        });
+            child = child_process.spawn(shell, args, {
+                stdio: 'pty',
+                cols: cols || 80,
+                rows: rows || 24,
+                env: {
+                    ...process.env,
+                    TERM: 'xterm-256color',
+                    COLORTERM: 'truecolor',
+                    SHELL: defaultShell,
+                    // Make sure terminal is interactive
+                    PS1: isZsh ? '%n@%m:%~%# ' : '\\u@\\h:\\w\\$ ',
+                    // Enable colors
+                    CLICOLOR: '1',
+                    FORCE_COLOR: '1'
+                }
+            });
 
-        // Handle child process exit
-        child.on('exit', (code, signal) => {
-            console.log(`Child process exited with code ${code}, signal ${signal}`);
-            if (socket.readyState === ws.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'data',
-                    data: `\r\nProcess exited with code: ${code}\r\n`
-                }));
-                socket.close();
-            }
-        });
+            console.log(`PTY created: ${child.cols}x${child.rows}`);
+            isInitialized = true;
 
-        // Handle child process errors
-        child.on('error', (error) => {
-            console.error('Child process error:', error);
-            if (socket.readyState === ws.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'data',
-                    data: `\r\nProcess error: ${error.message}\r\n`
-                }));
-            }
-        });
+            // Handle child process output (PTY combines stdout and stderr)
+            child.stdout.on('data', (data) => {
+                if (socket.readyState === ws.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'data',
+                        data: data.toString()
+                    }));
+                }
+            });
+
+            // Handle child process exit
+            child.on('exit', (code, signal) => {
+                console.log(`Child process exited with code ${code}, signal ${signal}`);
+                if (socket.readyState === ws.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'data',
+                        data: `\r\nProcess exited with code: ${code}\r\n`
+                    }));
+                    socket.close();
+                }
+            });
+
+            // Handle child process errors
+            child.on('error', (error) => {
+                console.error('Child process error:', error);
+                if (socket.readyState === ws.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'data',
+                        data: `\r\nProcess error: ${error.message}\r\n`
+                    }));
+                }
+            });
+
+            // Send welcome message with initial terminal info
+            socket.send(JSON.stringify({
+                type: 'init',
+                data: 'Welcome to FibJS Web Terminal with Resize Support!\r\n',
+                cols: child.cols,
+                rows: child.rows
+            }));
+        }
 
         // Handle WebSocket messages (user input and resize commands)
         socket.onmessage = (event) => {
             try {
                 const message = JSON.parse(event.data);
 
-                if (message.type === 'resize') {
+                if (message.type === 'init') {
+                    // Handle initial terminal size from client
+                    if (!isInitialized) {
+                        const { cols, rows } = message;
+                        console.log(`Received initial size from client: ${cols}x${rows}`);
+                        createPTY(cols, rows);
+                    }
+                } else if (message.type === 'resize') {
                     // Handle terminal resize
-                    const { cols, rows } = message;
-                    if (cols > 0 && rows > 0) {
-                        child.resize(cols, rows);
+                    if (child && isInitialized) {
+                        const { cols, rows } = message;
+                        if (cols > 0 && rows > 0) {
+                            child.resize(cols, rows);
 
-                        // Send confirmation back to client
-                        socket.send(JSON.stringify({
-                            type: 'resize_ack',
-                            cols: child.cols,
-                            rows: child.rows
-                        }));
+                            // Send confirmation back to client
+                            socket.send(JSON.stringify({
+                                type: 'resize_ack',
+                                cols: child.cols,
+                                rows: child.rows
+                            }));
+                        }
                     }
                 } else if (message.type === 'data') {
                     // Handle regular input data
-                    child.stdin.write(message.data);
+                    if (child && isInitialized) {
+                        child.stdin.write(message.data);
+                    }
                 }
             } catch (error) {
                 // Fallback: treat as plain text input for backward compatibility
-                child.stdin.write(event.data);
+                if (child && isInitialized) {
+                    child.stdin.write(event.data);
+                }
             }
         };
 
         // Handle WebSocket close
         socket.onclose = () => {
             console.log('WebSocket connection closed');
-            if (!child.killed) {
+            if (child && !child.killed) {
                 child.kill('SIGTERM');
             }
         };
@@ -110,12 +138,10 @@ const svr = new http.Server(8081, {
             console.error('WebSocket error:', error);
         };
 
-        // Send welcome message with initial terminal info
+        // Send ready message to request initial size from client
         socket.send(JSON.stringify({
-            type: 'init',
-            data: 'Welcome to FibJS Web Terminal with Resize Support!\r\n',
-            cols: child.cols,
-            rows: child.rows
+            type: 'ready',
+            message: 'Server ready for initialization'
         }));
     }),
     '*': path.resolve(__dirname, 'public')

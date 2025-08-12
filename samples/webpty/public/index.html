@@ -282,17 +282,26 @@
                         this.updateButtons();
                         this.term.focus();
                         
-                        // Fit terminal after connection
-                        setTimeout(() => {
-                            this.fitTerminal();
-                        }, 100);
+                        // Don't fit terminal here - wait for server ready signal
                     };
 
                     this.socket.onmessage = (event) => {
                         try {
                             const message = JSON.parse(event.data);
                             
-                            if (message.type === 'data') {
+                            if (message.type === 'ready') {
+                                // Server is ready for initialization, send current terminal size
+                                this.fitAddon.fit();
+                                const cols = this.term.cols;
+                                const rows = this.term.rows;
+                                
+                                console.log(`Sending initial size to server: ${cols}x${rows}`);
+                                this.socket.send(JSON.stringify({
+                                    type: 'init',
+                                    cols: cols,
+                                    rows: rows
+                                }));
+                            } else if (message.type === 'data') {
                                 this.term.write(message.data);
                             } else if (message.type === 'init') {
                                 this.term.write(message.data);
