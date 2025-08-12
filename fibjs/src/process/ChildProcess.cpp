@@ -366,15 +366,22 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
 #ifndef _WIN32
         if (m_pty) {
-            int32_t terminalfd;
-            err = pty_spawn(s_uv_loop, &m_process, &uv_options, &terminalfd, m_cols, m_rows);
+            int32_t stdinfd, stdoutfd;
+            err = pty_spawn(s_uv_loop, &m_process, &uv_options, &stdinfd, &stdoutfd, m_cols, m_rows);
             if (err >= 0) {
-                m_terminalfd = terminalfd;
-                UVStream::uv_pipe(m_stdio[0], terminalfd, [this](int32_t fd) -> void {
+                m_stdinfd = stdinfd;
+                m_stdoutfd = stdoutfd;
+
+                // Create separate streams for stdin (write-only) and stdout (read-only)
+                UVStream::uv_pipe(m_stdio[0], stdinfd, [this](int32_t fd) -> void {
                     on_handle_close();
                 });
                 m_handle_count.fetch_add(1);
-                m_stdio[1] = m_stdio[0];
+
+                UVStream::uv_pipe(m_stdio[1], stdoutfd, [this](int32_t fd) -> void {
+                    on_handle_close();
+                });
+                m_handle_count.fetch_add(1);
             }
         } else
 #endif
@@ -627,10 +634,12 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
     if (cols <= 0 || rows <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (m_terminalfd == -1)
+    if (m_stdinfd == -1 && m_stdoutfd == -1)
         return CHECK_ERROR(Runtime::setError("PTY not available"));
 
-    int result = pty_resize(m_terminalfd, cols, rows);
+    // Use whichever fd is available (both should point to the same pty)
+    int fd_to_use = (m_stdinfd != -1) ? m_stdinfd : m_stdoutfd;
+    int result = pty_resize(fd_to_use, cols, rows);
     if (result == 0) {
         m_cols = cols;
         m_rows = rows;

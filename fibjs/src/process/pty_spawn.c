@@ -288,7 +288,7 @@ int pty_resize(int fd, int cols, int rows)
     return ioctl(fd, TIOCSWINSZ, &winsize);
 }
 
-int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd, int cols, int rows)
+int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* stdinfd, int* stdoutfd, int cols, int rows)
 {
     int signal_pipe[2] = { -1, -1 };
     int pipes_storage[8][2];
@@ -300,6 +300,7 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
     int exec_errorno;
     int i;
     int status;
+    int masterfd;
 
     uv__handle_init(loop, (uv_handle_t*)process, UV_PROCESS);
     QUEUE_INIT(&process->queue);
@@ -324,9 +325,8 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
 
     /* Acquire write lock to prevent opening new fds in worker threads */
     uv_rwlock_wrlock(&loop->cloexec_lock);
-    // pid = fork();
 
-    pid = forkpty(terminalfd, NULL, NULL, NULL);
+    pid = forkpty(&masterfd, NULL, NULL, NULL);
 
     if (pid == -1) {
         err = UV__ERR(errno);
@@ -341,10 +341,31 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
         abort();
     }
 
+    /* Create separate fds for stdin (write) and stdout (read) */
+    /* Both point to the same PTY master, but will be used differently */
+    *stdinfd = dup(masterfd); // For writing to child's stdin
+    *stdoutfd = dup(masterfd); // For reading from child's stdout
+
+    if (*stdinfd == -1 || *stdoutfd == -1) {
+        err = UV__ERR(errno);
+        if (*stdinfd != -1)
+            uv__close(*stdinfd);
+        if (*stdoutfd != -1)
+            uv__close(*stdoutfd);
+        uv__close(masterfd);
+        uv_rwlock_wrunlock(&loop->cloexec_lock);
+        uv__close(signal_pipe[0]);
+        uv__close(signal_pipe[1]);
+        return err;
+    }
+
     /* Set initial terminal size if specified */
     if (cols > 0 && rows > 0) {
-        pty_resize(*terminalfd, cols, rows);
+        pty_resize(masterfd, cols, rows);
     }
+
+    /* Close the original masterfd as we now have separate fds */
+    uv__close(masterfd);
 
     /* Release lock in parent process */
     uv_rwlock_wrunlock(&loop->cloexec_lock);

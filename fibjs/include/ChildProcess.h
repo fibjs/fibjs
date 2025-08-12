@@ -18,7 +18,7 @@
 // PTY function declarations
 #ifndef _WIN32
 extern "C" {
-int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd, int cols, int rows);
+int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* stdinfd, int* stdoutfd, int cols, int rows);
 int pty_resize(int fd, int cols, int rows);
 }
 #endif
@@ -48,7 +48,8 @@ public:
         , m_killed(false)
         , m_cols(80)
         , m_rows(24)
-        , m_terminalfd(-1)
+        , m_stdinfd(-1)
+        , m_stdoutfd(-1)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -116,7 +117,8 @@ public:
     bool m_pty;
     int32_t m_cols;
     int32_t m_rows;
-    int32_t m_terminalfd;
+    int32_t m_stdinfd;
+    int32_t m_stdoutfd;
 
     bool m_killed;
     int32_t m_exitCode;
