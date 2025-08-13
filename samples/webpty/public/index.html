@@ -140,6 +140,9 @@
                 this.socket = null;
                 this.fitAddon = null;
                 this.isConnected = false;
+                this.heartbeatTimer = null;
+                this.lastActivity = Date.now();
+                this.heartbeatInterval = 15000; // 15 seconds
                 
                 this.init();
                 this.bindEvents();
@@ -197,6 +200,7 @@
 
                 // Handle terminal input
                 this.term.onData((data) => {
+                    this.updateLastActivity();
                     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
                         this.socket.send(JSON.stringify({
                             type: 'data',
@@ -281,11 +285,13 @@
                         this.updateStatus('connected', 'Connected');
                         this.updateButtons();
                         this.term.focus();
+                        this.startHeartbeat();
                         
                         // Don't fit terminal here - wait for server ready signal
                     };
 
                     this.socket.onmessage = (event) => {
+                        this.updateLastActivity();
                         try {
                             const message = JSON.parse(event.data);
                             
@@ -295,7 +301,6 @@
                                 const cols = this.term.cols;
                                 const rows = this.term.rows;
                                 
-                                console.log(`Sending initial size to server: ${cols}x${rows}`);
                                 this.socket.send(JSON.stringify({
                                     type: 'init',
                                     cols: cols,
@@ -310,7 +315,9 @@
                                     this.term.resize(message.cols, message.rows);
                                 }
                             } else if (message.type === 'resize_ack') {
-                                console.log(`Terminal resized on server: ${message.cols}x${message.rows}`);
+                                // Terminal resized successfully
+                            } else if (message.type === 'pong') {
+                                // Handle pong response from server
                             }
                         } catch (error) {
                             // Fallback: treat as plain text for backward compatibility
@@ -320,6 +327,7 @@
 
                     this.socket.onclose = (event) => {
                         this.isConnected = false;
+                        this.stopHeartbeat();
                         this.updateStatus('disconnected', `Disconnected (Code: ${event.code})`);
                         this.updateButtons();
                         
@@ -342,6 +350,7 @@
             }
 
             disconnect() {
+                this.stopHeartbeat();
                 if (this.socket) {
                     this.socket.close(1000, 'User disconnected');
                     this.socket = null;
@@ -371,6 +380,37 @@
                 
                 connectBtn.disabled = this.isConnected;
                 disconnectBtn.disabled = !this.isConnected;
+            }
+
+            startHeartbeat() {
+                this.stopHeartbeat();
+                this.heartbeatTimer = setInterval(() => {
+                    const timeSinceLastActivity = Date.now() - this.lastActivity;
+                    if (timeSinceLastActivity >= this.heartbeatInterval) {
+                        this.sendPing();
+                    }
+                }, 1000); // Check every second
+            }
+
+            stopHeartbeat() {
+                if (this.heartbeatTimer) {
+                    clearInterval(this.heartbeatTimer);
+                    this.heartbeatTimer = null;
+                }
+            }
+
+            updateLastActivity() {
+                this.lastActivity = Date.now();
+            }
+
+            sendPing() {
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify({
+                        type: 'ping',
+                        timestamp: Date.now()
+                    }));
+                    this.updateLastActivity();
+                }
             }
 
             // Send command programmatically

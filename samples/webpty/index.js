@@ -5,21 +5,17 @@ const child_process = require('child_process');
 
 const svr = new http.Server(8081, {
     '/shell': ws.upgrade(socket => {
-        console.log('New WebSocket connection established');
-
         // 检测默认shell
         const defaultShell = process.env.SHELL || '/bin/bash';
         const isZsh = defaultShell.includes('zsh');
         const isBash = defaultShell.includes('bash');
-
-        console.log(`Using shell: ${defaultShell}`);
 
         let child = null;
         let isInitialized = false;
 
         // Function to create PTY with specified dimensions
         function createPTY(cols, rows) {
-            const shell = process.platform === 'win32' ? 'cmd.exe' : defaultShell;
+            const shell = process.platform === 'win32' ? 'powershell.exe' : defaultShell;
             const args = process.platform === 'win32' ? [] : ['-i']; // Interactive mode
 
             child = child_process.spawn(shell, args, {
@@ -39,7 +35,6 @@ const svr = new http.Server(8081, {
                 }
             });
 
-            console.log(`PTY created: ${child.cols}x${child.rows}`);
             isInitialized = true;
 
             // Handle child process output (PTY combines stdout and stderr)
@@ -54,7 +49,6 @@ const svr = new http.Server(8081, {
 
             // Handle child process exit
             child.on('exit', (code, signal) => {
-                console.log(`Child process exited with code ${code}, signal ${signal}`);
                 if (socket.readyState === ws.OPEN) {
                     socket.send(JSON.stringify({
                         type: 'data',
@@ -93,7 +87,6 @@ const svr = new http.Server(8081, {
                     // Handle initial terminal size from client
                     if (!isInitialized) {
                         const { cols, rows } = message;
-                        console.log(`Received initial size from client: ${cols}x${rows}`);
                         createPTY(cols, rows);
                     }
                 } else if (message.type === 'resize') {
@@ -116,6 +109,13 @@ const svr = new http.Server(8081, {
                     if (child && isInitialized) {
                         child.stdin.write(message.data);
                     }
+                } else if (message.type === 'ping') {
+                    // Handle ping message for heartbeat
+                    socket.send(JSON.stringify({
+                        type: 'pong',
+                        timestamp: Date.now(),
+                        originalTimestamp: message.timestamp
+                    }));
                 }
             } catch (error) {
                 // Fallback: treat as plain text input for backward compatibility
@@ -127,7 +127,6 @@ const svr = new http.Server(8081, {
 
         // Handle WebSocket close
         socket.onclose = () => {
-            console.log('WebSocket connection closed');
             if (child && !child.killed) {
                 child.kill('SIGTERM');
             }
@@ -147,5 +146,5 @@ const svr = new http.Server(8081, {
     '*': path.resolve(__dirname, 'public')
 });
 
-console.log('Starting web terminal server on http://localhost:8081');
+console.log('Web terminal server started on http://localhost:8081');
 svr.start();
