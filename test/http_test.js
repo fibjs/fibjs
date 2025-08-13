@@ -943,11 +943,9 @@ describe("http", () => {
         req.setHeader('Content-Type', "text/plain; charset=utf-8");
         assert.equal(req.text(), v);
 
-        // test reading text with wrong content-type should throw
+        // test reading text with wrong content-type should not throw
         req.setHeader('Content-Type', "application/json");
-        assert.throws(() => {
-            req.text();
-        });
+        assert.equal(req.text(), 'hello world');
 
         var rep = new http.Response();
 

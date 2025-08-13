@@ -142,12 +142,12 @@ result_t HttpMessage::text(exlib::string data, exlib::string& retVal)
 
 result_t HttpMessage::text(exlib::string& retVal)
 {
-    exlib::string strType;
+    // exlib::string strType;
 
-    if (firstHeader("Content-Type", strType) != CALL_RETURN_NULL) {
-        if (strType.find("text") == exlib::string::npos)
-            return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
-    }
+    // if (firstHeader("Content-Type", strType) != CALL_RETURN_NULL) {
+    //     if (strType.find("text") == exlib::string::npos)
+    //         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
+    // }
 
     return Message::text(retVal);
 }

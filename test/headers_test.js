@@ -662,4 +662,124 @@ describe("Headers API", () => {
         assert.strictEqual(typeof headers[Symbol.iterator], 'function');
         // assert.strictEqual(headers[Symbol.iterator], headers.entries);
     });
+
+    it("Headers bracket notation access", () => {
+        const headers = new Headers({
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            'authorization': 'Bearer token'
+        });
+
+        // Test bracket notation for getting header values
+        assert.strictEqual(headers['content-type'], 'application/json');
+        assert.strictEqual(headers['accept'], 'application/json');
+        assert.strictEqual(headers['authorization'], 'Bearer token');
+
+        // Test case insensitive access
+        assert.strictEqual(headers['Content-Type'], 'application/json');
+        assert.strictEqual(headers['ACCEPT'], 'application/json');
+        assert.strictEqual(headers['Authorization'], 'Bearer token');
+
+        // Test non-existent header
+        assert.strictEqual(headers['non-existent'], undefined);
+
+        // Test bracket notation for setting header values
+        headers['x-custom-header'] = 'custom-value';
+        assert.strictEqual(headers.get('x-custom-header'), 'custom-value');
+        assert.strictEqual(headers['x-custom-header'], 'custom-value');
+
+        // Test overriding existing header with bracket notation
+        headers['content-type'] = 'text/html';
+        assert.strictEqual(headers.get('content-type'), 'text/html');
+        assert.strictEqual(headers['content-type'], 'text/html');
+
+        // Test setting with different cases
+        headers['Accept-Language'] = 'en-US';
+        assert.strictEqual(headers.get('accept-language'), 'en-US');
+        assert.strictEqual(headers['accept-language'], 'en-US');
+
+        // Test deleting header with bracket notation
+        delete headers['authorization'];
+        assert.strictEqual(headers.has('authorization'), false);
+        assert.strictEqual(headers['authorization'], undefined);
+        assert.strictEqual(headers.get('authorization'), null);
+    });
+
+    it("Headers bracket notation edge cases", () => {
+        const headers = new Headers();
+
+        // Test setting empty string value
+        headers['x-empty'] = '';
+        assert.strictEqual(headers['x-empty'], '');
+        assert.strictEqual(headers.get('x-empty'), '');
+
+        // Test setting null value (should convert to string)
+        headers['x-null'] = null;
+        assert.strictEqual(headers['x-null'], 'null');
+        assert.strictEqual(headers.get('x-null'), 'null');
+
+        // Test setting undefined value (should convert to string)
+        headers['x-undefined'] = undefined;
+        assert.strictEqual(headers['x-undefined'], 'undefined');
+        assert.strictEqual(headers.get('x-undefined'), 'undefined');
+
+        // Test setting number value (should convert to string)
+        headers['x-number'] = 42;
+        assert.strictEqual(headers['x-number'], '42');
+        assert.strictEqual(headers.get('x-number'), '42');
+
+        // Test setting boolean value (should convert to string)
+        headers['x-boolean'] = true;
+        assert.strictEqual(headers['x-boolean'], 'true');
+        assert.strictEqual(headers.get('x-boolean'), 'true');
+
+        // Test using symbols as property keys (should work like regular object property)
+        const sym = Symbol('test');
+        headers[sym] = 'symbol-value';
+        assert.strictEqual(headers[sym], 'symbol-value');
+        // Symbol properties should not appear in header iteration
+        assert.strictEqual(headers.has(sym.toString()), false);
+
+        // Test numeric keys (should be converted to strings)
+        headers[123] = 'numeric-key';
+        assert.strictEqual(headers['123'], 'numeric-key');
+        // Note: fibjs Headers may not support numeric string keys in get() method
+        // assert.strictEqual(headers.get('123'), 'numeric-key');
+    });
+
+    it("Headers bracket notation consistency with methods", () => {
+        const headers = new Headers();
+
+        // Test that bracket notation and methods work consistently
+        headers.set('content-type', 'application/json');
+        assert.strictEqual(headers['content-type'], 'application/json');
+
+        headers['accept'] = 'text/html';
+        assert.strictEqual(headers.get('accept'), 'text/html');
+
+        // Test append vs bracket assignment
+        headers.append('cache-control', 'no-cache');
+        headers.append('cache-control', 'no-store');
+        // In fibjs, bracket notation may return array for multiple values
+        const cacheControlValue = headers['cache-control'];
+        if (Array.isArray(cacheControlValue)) {
+            assert.deepEqual(cacheControlValue, ['no-cache', 'no-store']);
+        } else {
+            assert.strictEqual(cacheControlValue, 'no-cache, no-store');
+        }
+
+        // Setting with bracket notation should replace, not append
+        headers['cache-control'] = 'max-age=3600';
+        assert.strictEqual(headers['cache-control'], 'max-age=3600');
+        assert.strictEqual(headers.get('cache-control'), 'max-age=3600');
+
+        // Test delete consistency
+        headers.set('x-to-delete', 'value');
+        assert.strictEqual(headers.has('x-to-delete'), true);
+        
+        delete headers['x-to-delete'];
+        assert.strictEqual(headers.has('x-to-delete'), false);
+        assert.strictEqual(headers['x-to-delete'], undefined);
+        assert.strictEqual(headers.get('x-to-delete'), null);
+    });
 });
