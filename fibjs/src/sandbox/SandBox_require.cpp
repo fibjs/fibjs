@@ -58,17 +58,27 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     hr = l->run_module(&context, script, srcname, mod, exports, extarg, in_cjs);
 
     lock->release();
+
+    bool is_terminated = isolate->m_isolate->IsExecutionTerminating();
+    if (is_terminated)
+        isolate->m_isolate->CancelTerminateExecution();
+
     mod->DeletePrivate(_context, strPendding).IsJust();
 
     if (hr < 0) {
         // delete from modules
         mod->Delete(_context, strExports).IsJust();
         _mods->Delete(_context, strModule).IsJust();
+        if (is_terminated)
+            isolate->m_isolate->TerminateExecution();
         return hr;
     }
 
     // use module.exports as result value
     retVal = mod;
+
+    if (is_terminated)
+        isolate->m_isolate->TerminateExecution();
     return 0;
 }
 
