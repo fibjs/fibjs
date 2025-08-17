@@ -32,6 +32,8 @@ extern bool g_track_native_object;
 
 extern bool g_openssl_legacy_provider;
 
+extern bool g_sync_console;
+
 struct OptData {
     const char* name;
     int32_t size;
