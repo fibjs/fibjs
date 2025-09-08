@@ -267,7 +267,9 @@ private:
             module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
             for (int i = 0; i < export_names.size() - 1; ++i) {
                 v8::Local<v8::String> name = export_names[i + 1];
-                v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
+                v8::Local<v8::Value> value = obj->Get(_context, name).FromMaybe(v8::Local<v8::Value>());
+                if (value.IsEmpty())
+                    return v8::Local<v8::Module>();
                 module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value).IsJust();
             }
         } else {
