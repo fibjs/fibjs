@@ -39,6 +39,16 @@ result_t tty_base::isatty(int32_t fd, bool& retVal)
     return 0;
 }
 
+result_t tty_base::isatty(FileHandle_base* fd, bool& retVal)
+{
+    int32_t _fd;
+    result_t hr = fd->get_fd(_fd);
+    if (hr < 0)
+        return hr;
+
+    return isatty(_fd, retVal);
+}
+
 result_t TTYInputStream::get_isRaw(bool& retVal)
 {
     retVal = m_isRaw;

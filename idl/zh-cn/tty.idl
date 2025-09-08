@@ -12,4 +12,10 @@ module tty
      @return 如果文件描述符同一个终端窗口关联则返回 true ，否则返回 false
     */
     static Boolean isatty(Integer fd);
+
+    /*! @brief 查询是否是命令交互窗口
+    @param fd 文件句柄对象
+     @return 如果文件句柄同一个终端窗口关联则返回 true ，否则返回 false
+    */
+    static Boolean isatty(FileHandle fd);
 };
