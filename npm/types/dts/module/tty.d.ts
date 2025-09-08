@@ -1,4 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/TTYInputStream.d.ts" />
+/// <reference path="../interface/TTYOutputStream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /**
  * @description tty 模块
@@ -10,6 +12,16 @@
  *  
  */
 declare module 'tty' {
+    /**
+     * @description TTY 输入流对象，参见 TTYInputStream 
+     */
+    const ReadStream: typeof Class_TTYInputStream;
+
+    /**
+     * @description TTY 输出流对象，参见 TTYOutputStream 
+     */
+    const WriteStream: typeof Class_TTYOutputStream;
+
     /**
      * @description 查询是否是命令交互窗口
      *     @param fd 文件描述符

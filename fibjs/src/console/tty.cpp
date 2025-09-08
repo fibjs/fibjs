@@ -49,6 +49,32 @@ result_t tty_base::isatty(FileHandle_base* fd, bool& retVal)
     return isatty(_fd, retVal);
 }
 
+result_t TTYInputStream_base::_new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    bool _tty;
+    result_t hr = tty_base::isatty(fd, _tty);
+    if (hr < 0)
+        return hr;
+
+    if (!_tty)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new TTYInputStream(fd);
+    return 0;
+}
+
+result_t TTYInputStream_base::_new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    int32_t _fd;
+    result_t hr = fd->get_fd(_fd);
+    if (hr < 0)
+        return hr;
+
+    return _new(_fd, opts, retVal, This);
+}
+
 result_t TTYInputStream::get_isRaw(bool& retVal)
 {
     retVal = m_isRaw;
@@ -65,6 +91,32 @@ result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>
     retVal = this;
 
     return 0;
+}
+
+result_t TTYOutputStream_base::_new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    bool _tty;
+    result_t hr = tty_base::isatty(fd, _tty);
+    if (hr < 0)
+        return hr;
+
+    if (!_tty)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new TTYOutputStream(fd);
+    return 0;
+}
+
+result_t TTYOutputStream_base::_new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    int32_t _fd;
+    result_t hr = fd->get_fd(_fd);
+    if (hr < 0)
+        return hr;
+
+    return _new(_fd, opts, retVal, This);
 }
 
 const char* TTYOutputStream::kClearToLineBeginning = "\x1b[1K";

@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
+/// <reference path="../interface/FileHandle.d.ts" />
 /**
  * @description tty 写流对象, 用于处理 tty 输出
  * 
@@ -12,6 +13,22 @@
  *  
  */
 declare class Class_TTYOutputStream extends Class_Stream {
+    /**
+     * @description 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件描述符
+     *      @param fd 指定底层的文件描述符, 该描述符必须是一个 tty 设备
+     *      @param opts 传递给 Stream 构造函数的选项对象
+     *      
+     */
+    constructor(fd: number, opts?: FIBJS.GeneralObject);
+
+    /**
+     * @description 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件对象
+     *      @param fd 指定底层的文件对象, 该文件对象必须是一个 tty 设备
+     *      @param opts 传递给 Stream 构造函数的选项对象
+     *      
+     */
+    constructor(fd: Class_FileHandle, opts?: FIBJS.GeneralObject);
+
     /**
      * @description 恒为 true
      *     

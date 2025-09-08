@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class TTYInputStream_base;
+class TTYOutputStream_base;
 class FileHandle_base;
 
 class tty_base : public object_base {
@@ -41,6 +43,8 @@ public:
 };
 }
 
+#include "ifs/TTYInputStream.h"
+#include "ifs/TTYOutputStream.h"
 #include "ifs/FileHandle.h"
 
 namespace fibjs {
@@ -50,9 +54,14 @@ inline ClassInfo& tty_base::class_info()
         { "isatty", s_static_isatty, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "ReadStream", TTYInputStream_base::class_info },
+        { "WriteStream", TTYOutputStream_base::class_info }
+    };
+
     static ClassData s_cd = {
         "tty", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };

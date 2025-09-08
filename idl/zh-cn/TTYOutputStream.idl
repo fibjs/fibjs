@@ -9,6 +9,18 @@
  */
 interface TTYOutputStream : Stream
 {
+    /*! @brief 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件描述符
+     @param fd 指定底层的文件描述符, 该描述符必须是一个 tty 设备
+     @param opts 传递给 Stream 构造函数的选项对象
+     */
+    TTYOutputStream(Integer fd, Object opts = {});
+
+    /*! @brief 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件对象
+     @param fd 指定底层的文件对象, 该文件对象必须是一个 tty 设备
+     @param opts 传递给 Stream 构造函数的选项对象
+     */
+    TTYOutputStream(FileHandle fd, Object opts = {});
+
     /*! @brief 恒为 true
     */
     readonly Boolean isTTY;
