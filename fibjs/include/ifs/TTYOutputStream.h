@@ -29,6 +29,7 @@ public:
     virtual result_t get_isTTY(bool& retVal) = 0;
     virtual result_t get_columns(int32_t& retVal) = 0;
     virtual result_t get_rows(int32_t& retVal) = 0;
+    virtual result_t get__writableState(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t clearLine(int32_t dir) = 0;
     virtual result_t clearScreenDown() = 0;
     virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac) = 0;
@@ -44,6 +45,7 @@ public:
     static void s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_columns(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_rows(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get__writableState(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cursorTo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,7 +74,8 @@ inline ClassInfo& TTYOutputStream_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "isTTY", s_get_isTTY, block_set, false },
         { "columns", s_get_columns, block_set, false },
-        { "rows", s_get_rows, block_set, false }
+        { "rows", s_get_rows, block_set, false },
+        { "_writableState", s_get__writableState, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -176,6 +179,20 @@ inline void TTYOutputStream_base::s_get_rows(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER(0, 0);
 
     hr = pInst->get_rows(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TTYOutputStream_base::s_get__writableState(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(TTYOutputStream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get__writableState(vr);
 
     METHOD_RETURN();
 }

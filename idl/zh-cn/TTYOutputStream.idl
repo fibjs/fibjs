@@ -33,6 +33,10 @@ interface TTYOutputStream : Stream
     */
     readonly Integer rows;
 
+    /*! @brief 返回此 TTYOutputStream 对应的终端的可写状态对象
+     */
+    readonly Object _writableState;
+
     /*! @brief 根据 dir 指示的方向 clear line
 
      dir 的方向:

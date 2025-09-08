@@ -48,6 +48,12 @@ declare class Class_TTYOutputStream extends Class_Stream {
     readonly rows: number;
 
     /**
+     * @description 返回此 TTYOutputStream 对应的终端的可写状态对象
+     *      
+     */
+    readonly _writableState: FIBJS.GeneralObject;
+
+    /**
      * @description 根据 dir 指示的方向 clear line
      * 
      *      dir 的方向:
