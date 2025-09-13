@@ -15,7 +15,7 @@
  * - 'pipe'：相当于 ['pipe', 'pipe', 'pipe']（默认值）。
  * - 'ignore'：相当于 ['ignore', 'ignore', 'ignore']。
  * - 'inherit'：相当于 ['inherit', 'inherit', 'inherit'] 或 [0, 1, 2]。
- * - 'pty'：相当于 ['pty', 'pty', 'pty']。不支持 Windows。
+ * - 'pty'：相当于 ['pty', 'pty', 'pty']。
  * 
  * 否则， options.stdio 的值需是数组（其中每个索引对应于子进程中的文件描述符）。 文件描述符 0、1 和 2 分别对应于 stdin、stdout 和 stderr。 其他的文件描述符可以被指定用于在父进程和子进程之间创建其他的管道。 值可以是以下之一：
  * 
@@ -58,7 +58,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -81,7 +83,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -103,7 +107,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -127,7 +133,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -152,7 +160,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -176,7 +186,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -199,7 +211,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -221,7 +235,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -243,7 +259,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -266,7 +284,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -288,7 +308,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param module 指定要运行的命令
@@ -311,7 +333,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param module 指定要运行的命令
@@ -332,7 +356,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -356,7 +382,9 @@ declare module 'child_process' {
      *         "uid": 0, // configure the user identity of the process
      *         "gid": 0, // con
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
      *      ```
      *      @param command 指定要运行的命令
