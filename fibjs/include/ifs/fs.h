@@ -42,7 +42,7 @@ public:
     static result_t unlink(exlib::string path, AsyncEvent* ac);
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
-    static result_t rmdir(exlib::string path, AsyncEvent* ac);
+    static result_t rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
@@ -154,7 +154,7 @@ public:
     ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, v8::Local<v8::Object>);
-    ASYNC_STATIC1(fs_base, rmdir, exlib::string);
+    ASYNC_STATIC2(fs_base, rmdir, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
@@ -372,14 +372,15 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.rmdir");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = acb_rmdir(v0, cb, args);
+        hr = acb_rmdir(v0, v1, cb, args);
     else
-        hr = ac_rmdir(v0);
+        hr = ac_rmdir(v0, v1);
 
     METHOD_VOID();
 }

@@ -51,7 +51,7 @@ function assert_stat_property(statObj) {
 }
 
 function rmdir_recursive(pathname) {
-    if(!fs.exists(pathname)) return;
+    if (!fs.exists(pathname)) return;
     var files = fs.readdir(pathname);
     for (var i = 0; i < files.length; i++) {
         var file = path.join(pathname, files[i]);
@@ -238,6 +238,248 @@ describe('fs', () => {
         assert.equal(fs.exists(pathname1), false);
     });
 
+    it("rmdir recursive", () => {
+        // Create nested directory structure for testing
+        var recursive_test_path = path.join(homedir, 'rmdir_recursive_test' + vmid);
+        var nested_path = path.join(recursive_test_path, 'level1', 'level2', 'level3');
+        var file_in_nested = path.join(nested_path, 'test_file.txt');
+        var file_in_root = path.join(recursive_test_path, 'root_file.txt');
+
+        // Create the nested structure
+        fs.mkdir(nested_path, { recursive: true });
+        fs.writeFile(file_in_nested, 'nested file content');
+        fs.writeFile(file_in_root, 'root file content');
+
+        // Verify structure exists
+        assert.equal(fs.exists(recursive_test_path), true);
+        assert.equal(fs.exists(nested_path), true);
+        assert.equal(fs.exists(file_in_nested), true);
+        assert.equal(fs.exists(file_in_root), true);
+
+        // Remove recursively
+        fs.rmdir(recursive_test_path, { recursive: true });
+
+        // Verify everything is removed
+        assert.equal(fs.exists(recursive_test_path), false);
+        assert.equal(fs.exists(nested_path), false);
+        assert.equal(fs.exists(file_in_nested), false);
+        assert.equal(fs.exists(file_in_root), false);
+    });
+
+    it("rmdir recursive should throw error when directory does not exist", () => {
+        var non_existent_path = path.join(homedir, 'non_existent_dir' + vmid + Date.now());
+
+        // Should throw error for non-existent directory (following Node.js behavior)
+        assert.throws(() => {
+            fs.rmdir(non_existent_path, { recursive: true });
+        });
+    });
+
+    it("rmdir recursive should work on single file", () => {
+        var test_file_path = path.join(homedir, 'test_file_for_rmdir' + vmid + '.txt');
+
+        // Create a test file
+        fs.writeFile(test_file_path, 'test content');
+        assert.equal(fs.exists(test_file_path), true);
+
+        // Remove file using rmdir recursive (Node.js supports this)
+        fs.rmdir(test_file_path, { recursive: true });
+
+        // Verify file is removed
+        assert.equal(fs.exists(test_file_path), false);
+    });
+
+    it("rmdir recursive with complex nested structure", () => {
+        var base_path = path.join(homedir, 'rmdir_complex_test' + vmid);
+
+        // Create a complex nested structure
+        var paths = {
+            level1_dir1: path.join(base_path, 'level1_dir1'),
+            level1_dir2: path.join(base_path, 'level1_dir2'),
+            level1_file: path.join(base_path, 'level1_file.txt'),
+            level2_dir1: path.join(base_path, 'level1_dir1', 'level2_dir1'),
+            level2_dir2: path.join(base_path, 'level1_dir1', 'level2_dir2'),
+            level2_file1: path.join(base_path, 'level1_dir1', 'level2_file1.txt'),
+            level2_file2: path.join(base_path, 'level1_dir2', 'level2_file2.txt'),
+            level3_dir: path.join(base_path, 'level1_dir1', 'level2_dir1', 'level3_dir'),
+            level3_file1: path.join(base_path, 'level1_dir1', 'level2_dir1', 'level3_file1.txt'),
+            level3_file2: path.join(base_path, 'level1_dir1', 'level2_dir2', 'level3_file2.txt'),
+            level4_file: path.join(base_path, 'level1_dir1', 'level2_dir1', 'level3_dir', 'level4_file.txt')
+        };
+
+        // Create directories
+        fs.mkdir(paths.level1_dir1, { recursive: true });
+        fs.mkdir(paths.level1_dir2, { recursive: true });
+        fs.mkdir(paths.level2_dir1, { recursive: true });
+        fs.mkdir(paths.level2_dir2, { recursive: true });
+        fs.mkdir(paths.level3_dir, { recursive: true });
+
+        // Create files at different levels
+        fs.writeFile(paths.level1_file, 'level 1 file content');
+        fs.writeFile(paths.level2_file1, 'level 2 file 1 content');
+        fs.writeFile(paths.level2_file2, 'level 2 file 2 content');
+        fs.writeFile(paths.level3_file1, 'level 3 file 1 content');
+        fs.writeFile(paths.level3_file2, 'level 3 file 2 content');
+        fs.writeFile(paths.level4_file, 'level 4 file content');
+
+        // Verify structure exists
+        assert.equal(fs.exists(base_path), true);
+        for (var key in paths) {
+            assert.equal(fs.exists(paths[key]), true, 'Path should exist: ' + paths[key]);
+        }
+
+        // Remove entire structure recursively
+        fs.rmdir(base_path, { recursive: true });
+
+        // Verify everything is removed
+        assert.equal(fs.exists(base_path), false);
+        for (var key in paths) {
+            assert.equal(fs.exists(paths[key]), false, 'Path should be removed: ' + paths[key]);
+        }
+    });
+
+    it("rmdir recursive with empty directories", () => {
+        var base_path = path.join(homedir, 'rmdir_empty_dirs_test' + vmid);
+
+        // Create nested empty directories
+        var empty_dirs = [
+            path.join(base_path, 'empty1'),
+            path.join(base_path, 'empty2'),
+            path.join(base_path, 'empty1', 'empty1_1'),
+            path.join(base_path, 'empty1', 'empty1_2'),
+            path.join(base_path, 'empty1', 'empty1_1', 'empty1_1_1'),
+            path.join(base_path, 'empty2', 'empty2_1')
+        ];
+
+        // Create all directories
+        empty_dirs.forEach(dir => {
+            fs.mkdir(dir, { recursive: true });
+            assert.equal(fs.exists(dir), true);
+        });
+
+        // Remove recursively
+        fs.rmdir(base_path, { recursive: true });
+
+        // Verify all removed
+        assert.equal(fs.exists(base_path), false);
+        empty_dirs.forEach(dir => {
+            assert.equal(fs.exists(dir), false);
+        });
+    });
+
+    it("rmdir recursive with mixed file types", () => {
+        var base_path = path.join(homedir, 'rmdir_mixed_types_test' + vmid);
+
+        // Create mixed structure
+        fs.mkdir(path.join(base_path, 'subdir'), { recursive: true });
+
+        // Create different types of files
+        fs.writeFile(path.join(base_path, 'text.txt'), 'text file');
+        fs.writeFile(path.join(base_path, 'data.dat'), 'binary data');
+        fs.writeFile(path.join(base_path, 'config.json'), '{"test": true}');
+        fs.writeFile(path.join(base_path, 'script.js'), 'console.log("test");');
+        fs.writeFile(path.join(base_path, 'subdir', 'nested.txt'), 'nested file');
+
+        // Create some files with special names
+        fs.writeFile(path.join(base_path, '.hidden'), 'hidden file');
+        fs.writeFile(path.join(base_path, 'file with spaces.txt'), 'spaces in name');
+        fs.writeFile(path.join(base_path, '中文文件.txt'), 'chinese filename');
+
+        // Verify all exist
+        var files = [
+            'text.txt', 'data.dat', 'config.json', 'script.js',
+            '.hidden', 'file with spaces.txt', '中文文件.txt',
+            path.join('subdir', 'nested.txt')
+        ];
+
+        files.forEach(file => {
+            assert.equal(fs.exists(path.join(base_path, file)), true, 'File should exist: ' + file);
+        });
+
+        // Remove all recursively
+        fs.rmdir(base_path, { recursive: true });
+
+        // Verify all removed
+        assert.equal(fs.exists(base_path), false);
+    });
+
+    it("rmdir recursive with deep nesting", () => {
+        var base_path = path.join(homedir, 'rmdir_deep_test' + vmid);
+
+        // Create very deep nested structure (20 levels)
+        var current_path = base_path;
+        var all_paths = [base_path];
+
+        for (var i = 1; i <= 20; i++) {
+            current_path = path.join(current_path, 'level' + i);
+            all_paths.push(current_path);
+        }
+
+        // Create the deep structure
+        fs.mkdir(current_path, { recursive: true });
+
+        // Add files at various depths
+        fs.writeFile(path.join(base_path, 'root.txt'), 'root file');
+        fs.writeFile(path.join(base_path, 'level1', 'level1.txt'), 'level 1 file');
+        fs.writeFile(path.join(base_path, 'level1', 'level2', 'level3', 'level4', 'level5', 'mid.txt'), 'middle file');
+        fs.writeFile(current_path + path.sep + 'deep.txt', 'deepest file');
+
+        // Verify structure exists
+        all_paths.forEach(p => {
+            assert.equal(fs.exists(p), true, 'Deep path should exist: ' + p);
+        });
+
+        // Remove entire deep structure
+        fs.rmdir(base_path, { recursive: true });
+
+        // Verify all removed
+        assert.equal(fs.exists(base_path), false);
+        all_paths.forEach(p => {
+            assert.equal(fs.exists(p), false, 'Deep path should be removed: ' + p);
+        });
+    });
+
+    it("rmdir recursive with large number of files", () => {
+        var base_path = path.join(homedir, 'rmdir_many_files_test' + vmid);
+
+        // Create structure with many files
+        fs.mkdir(base_path, { recursive: true });
+        fs.mkdir(path.join(base_path, 'subdir1'), { recursive: true });
+        fs.mkdir(path.join(base_path, 'subdir2'), { recursive: true });
+
+        // Create 100 files in root
+        for (var i = 0; i < 100; i++) {
+            fs.writeFile(path.join(base_path, 'file' + i + '.txt'), 'content ' + i);
+        }
+
+        // Create 50 files in each subdirectory
+        for (var i = 0; i < 50; i++) {
+            fs.writeFile(path.join(base_path, 'subdir1', 'sub1_file' + i + '.txt'), 'sub1 content ' + i);
+            fs.writeFile(path.join(base_path, 'subdir2', 'sub2_file' + i + '.txt'), 'sub2 content ' + i);
+        }
+
+        // Verify some files exist
+        assert.equal(fs.exists(path.join(base_path, 'file0.txt')), true);
+        assert.equal(fs.exists(path.join(base_path, 'file99.txt')), true);
+        assert.equal(fs.exists(path.join(base_path, 'subdir1', 'sub1_file0.txt')), true);
+        assert.equal(fs.exists(path.join(base_path, 'subdir2', 'sub2_file49.txt')), true);
+
+        // Count total items (should be 200 files + 2 subdirs + 1 root = 203 items to remove)
+        var root_items = fs.readdir(base_path);
+        var sub1_items = fs.readdir(path.join(base_path, 'subdir1'));
+        var sub2_items = fs.readdir(path.join(base_path, 'subdir2'));
+
+        assert.equal(root_items.length, 102); // 100 files + 2 subdirs
+        assert.equal(sub1_items.length, 50);
+        assert.equal(sub2_items.length, 50);
+
+        // Remove all recursively
+        fs.rmdir(base_path, { recursive: true });
+
+        // Verify completely removed
+        assert.equal(fs.exists(base_path), false);
+    });
+
     it("mkdir recursive", () => {
         var recursive_path = path.join(pathname, 'test_dir');
         fs.mkdir(recursive_path, {
@@ -377,7 +619,7 @@ describe('fs', () => {
         var testFile = fs.openFile(path.join(__dirname, 'fs_test.js.data_event' + vmid), 'w+');
         var receivedData = [];
         var dataEventCount = 0;
-        
+
         // Write data to trigger data events
         testFile.write('Hello, ');
         testFile.write('World!');
@@ -389,10 +631,10 @@ describe('fs', () => {
             receivedData.push(data.toString());
             dataEventCount++;
         });
-        
+
         // Let the fiber yield to process data events
         coroutine.sleep(10);
-        
+
         // Verify that data events were triggered
         assert.equal(dataEventCount, 1);
         assert.deepEqual(receivedData, ['Hello, World! Test file data event.']);
@@ -401,7 +643,7 @@ describe('fs', () => {
         testFile.rewind();
         var fullContent = testFile.read().toString();
         assert.equal(fullContent, 'Hello, World! Test file data event.');
-        
+
         testFile.close();
         fs.unlink(path.join(__dirname, 'fs_test.js.data_event' + vmid));
     });
@@ -1029,18 +1271,18 @@ describe('fs', () => {
 
     it("write methods return value validation", () => {
         var fn = path.join(__dirname, 'fs_write_test' + vmid);
-        
+
         try {
             // Test fs.writeFile return value
             var testContent = 'File write test content';
             var result = fs.writeFile(fn, testContent);
             // writeFile should return undefined (void function)
             assert.equal(result, 23);
-            
+
             // Verify file was written
             var readContent = fs.readFile(fn).toString();
             assert.equal(readContent, testContent);
-            
+
             // Test fs.appendFile return value
             result = fs.appendFile(fn, ' appended');
             // appendFile should return undefined (void function)
@@ -1051,20 +1293,20 @@ describe('fs', () => {
             var writeData = 'Handle write test';
             var bytesWritten = f.write(writeData);
             assert.equal(bytesWritten, writeData.length);
-            
+
             // Test write with Buffer
             f.rewind();
             f.truncate(0);
             var bufferData = new Buffer('Buffer write test');
             bytesWritten = f.write(bufferData);
             assert.equal(bytesWritten, bufferData.length);
-            
+
             // Test write with empty string
             f.rewind();
             f.truncate(0);
             bytesWritten = f.write('');
             assert.equal(bytesWritten, 0);
-            
+
             f.close();
         } finally {
             try {
