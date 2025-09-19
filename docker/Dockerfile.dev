@@ -1,0 +1,18 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy fibjs binary from temporary build context
+COPY fibjs /usr/local/bin/fibjs
+
+# Make it executable and ensure PATH is correct
+RUN chmod +x /usr/local/bin/fibjs
+
+# Ensure PATH includes /usr/local/bin
+ENV PATH="/usr/local/bin:${PATH}"
+
+CMD ["fibjs"]
