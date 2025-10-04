@@ -6,11 +6,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy fibjs binary from temporary build context
-COPY fibjs /usr/local/bin/fibjs
+# Copy fibjs binaries from build context
+ARG TARGETPLATFORM
+COPY binaries/ /tmp/binaries/
 
-# Make it executable and ensure PATH is correct
-RUN chmod +x /usr/local/bin/fibjs
+# Copy the correct binary based on target platform
+RUN case ${TARGETPLATFORM} in \
+    "linux/amd64") \
+    cp /tmp/binaries/fibjs-amd64 /usr/local/bin/fibjs ;; \
+    "linux/arm64") \
+    cp /tmp/binaries/fibjs-arm64 /usr/local/bin/fibjs ;; \
+    "linux/arm/v7") \
+    cp /tmp/binaries/fibjs-arm /usr/local/bin/fibjs ;; \
+    "linux/ppc64le") \
+    cp /tmp/binaries/fibjs-ppc64le /usr/local/bin/fibjs ;; \
+    "linux/riscv64") \
+    cp /tmp/binaries/fibjs-riscv64 /usr/local/bin/fibjs ;; \
+    *) \
+    echo "Unsupported platform: ${TARGETPLATFORM}" && exit 1 ;; \
+    esac
+
+# Make it executable and clean up
+RUN chmod +x /usr/local/bin/fibjs && \
+    rm -rf /tmp/binaries
 
 # Ensure PATH includes /usr/local/bin
 ENV PATH="/usr/local/bin:${PATH}"
