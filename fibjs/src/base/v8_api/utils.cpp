@@ -36,7 +36,17 @@ void setAsyncFunctoin(Local<Function> func)
 {
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
     i::Handle<i::JSFunction> _func = i::Cast<i::JSFunction>(obj);
-    _func->shared()->set_kind(i::FunctionKind::kAsyncFunction);
+    i::Tagged<i::SharedFunctionInfo> shared = _func->shared();
+
+    // Set function kind to async
+    shared->set_kind(i::FunctionKind::kAsyncFunction);
+
+    // Remove prototype to avoid V8 internal state conflicts
+    if (shared->IsApiFunction()) {
+        i::Tagged<i::FunctionTemplateInfo> func_data = shared->api_func_data();
+        i::Handle<i::FunctionTemplateInfo> template_info(func_data, _func->GetIsolate());
+        template_info->set_remove_prototype(true);
+    }
 }
 
 void initImportMeta(Isolate* isolate, Local<Module> module)
