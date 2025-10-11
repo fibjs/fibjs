@@ -99,6 +99,8 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             hr = key->m_key->ParsePublicKey("der", format, "", nullptr, buf);
         else if (key->m_key_type == kKeyNameECDSA && format == "raw")
             hr = key->m_key->ParsePublicKey(format, "", key->m_algorithm->get("namedCurve").string(), nullptr, buf);
+        else if (key->m_key_type == kKeyNameECDH && format == "raw")
+            hr = key->m_key->ParsePublicKey(format, "", key->m_algorithm->get("namedCurve").string(), nullptr, buf);
         else if (key->m_key_type == kKeyNameEd25519 && format == "raw")
             hr = key->m_key->ParsePublicKey(format, "", "Ed25519", nullptr, buf);
         else

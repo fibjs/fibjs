@@ -49,6 +49,9 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     if (qstricmp(name.c_str(), "Ed25519") == 0)
         return get_ed25519_param(params);
 
+    if (qstricmp(name.c_str(), "ECDH") == 0)
+        return get_ecdh_param(params);
+
     return Runtime::setError("WebCrypto: unknown key name: " + name);
 }
 
@@ -96,6 +99,38 @@ result_t CryptoKey::get_ed25519_param(v8::Local<v8::Object> params)
     return check_asymmetric_usage();
 }
 
+result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
+{
+    Isolate* isolate = holder();
+    result_t hr;
+    exlib::string namedCurve;
+
+    m_key_type = kKeyNameECDH;
+    m_algorithm->add("name", "ECDH");
+
+    hr = GetConfigValue(isolate, params, "namedCurve", namedCurve, true);
+    if (hr < 0)
+        return hr;
+
+    if (qstricmp(namedCurve.c_str(), "P-256") == 0)
+        m_algorithm->add("namedCurve", "P-256");
+    else if (qstricmp(namedCurve.c_str(), "P-384") == 0)
+        m_algorithm->add("namedCurve", "P-384");
+    else if (qstricmp(namedCurve.c_str(), "P-521") == 0)
+        m_algorithm->add("namedCurve", "P-521");
+    else
+        return Runtime::setError("WebCrypto: unknown curve name: " + namedCurve);
+
+    // Check ECDH specific usages
+    for (auto& it : m_usageMap) {
+        if (qstrcmp(it.first.c_str(), "deriveKey")
+            && qstrcmp(it.first.c_str(), "deriveBits"))
+            return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for ECDH key");
+    }
+
+    return 0;
+}
+
 result_t CryptoKey::check_asymmetric_import_usage()
 {
     if (m_key->type() == KeyObject::kKeyTypePrivate) {
@@ -129,6 +164,38 @@ result_t CryptoKey::check_ed25519_import_param()
     return check_asymmetric_import_usage();
 }
 
+result_t CryptoKey::check_ecdh_import_param()
+{
+    const char* namedCurve = m_key->namedCurve();
+    if (!namedCurve || qstricmp(namedCurve, m_algorithm->get("namedCurve").string().c_str()) != 0)
+        return Runtime::setError("WebCrypto: invalid key algorithm");
+
+    // Check ECDH specific import usages
+    if (m_key->type() == KeyObject::kKeyTypePrivate) {
+        bool hasValidUsage = false;
+        if (m_usageMap.find("deriveKey") != m_usageMap.end())
+            hasValidUsage = true;
+        if (m_usageMap.find("deriveBits") != m_usageMap.end())
+            hasValidUsage = true;
+
+        if (!hasValidUsage)
+            return Runtime::setError("WebCrypto: ECDH private key must have 'deriveKey' or 'deriveBits' usage");
+
+        // Check for invalid usages
+        for (auto& it : m_usageMap) {
+            if (qstrcmp(it.first.c_str(), "deriveKey")
+                && qstrcmp(it.first.c_str(), "deriveBits"))
+                return Runtime::setError("WebCrypto: ECDH private key must not have '" + it.first + "' usage");
+        }
+    } else {
+        // Public keys for ECDH should have no usages
+        if (!m_usageMap.empty())
+            return Runtime::setError("WebCrypto: ECDH public key must not have any usages");
+    }
+
+    return 0;
+}
+
 result_t CryptoKey::check_import_param()
 {
     if (m_key_type == kKeyNameECDSA)
@@ -136,6 +203,9 @@ result_t CryptoKey::check_import_param()
 
     if (m_key_type == kKeyNameEd25519)
         return check_ed25519_import_param();
+
+    if (m_key_type == kKeyNameECDH)
+        return check_ecdh_import_param();
 
     return check_asymmetric_import_usage();
 }
@@ -146,6 +216,9 @@ result_t CryptoKey::check_name(exlib::string name)
         return Runtime::setError("CryptoKey: invalid key algorithm");
 
     if (m_key_type == kKeyNameEd25519 && qstricmp(name.c_str(), "ed25519"))
+        return Runtime::setError("CryptoKey: invalid key algorithm");
+
+    if (m_key_type == kKeyNameECDH && qstricmp(name.c_str(), "ecdh"))
         return Runtime::setError("CryptoKey: invalid key algorithm");
 
     return 0;

@@ -139,5 +139,25 @@ declare module 'subtle' {
      */
     function verify(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
+    /**
+     * @description 从基本密钥派生出位数组
+     *     @param algorithm 指定派生算法
+     *     @param baseKey 指定用于派生的基本密钥
+     *     @param length 指定派生的位数
+     *     @return 返回派生得到的位数组
+     *     
+     */
+    function deriveBits(algorithm: string, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
+
+    /**
+     * @description 从基本密钥派生出位数组
+     *     @param algorithm 指定派生算法
+     *     @param baseKey 指定用于派生的基本密钥
+     *     @param length 指定派生的位数
+     *     @return 返回派生得到的位数组
+     *     
+     */
+    function deriveBits(algorithm: FIBJS.GeneralObject, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
+
 }
 

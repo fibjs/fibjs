@@ -18,6 +18,8 @@ result_t CryptoKey::generate()
         return generate_ecdsa();
     if (m_key_type == kKeyNameEd25519)
         return generate_ed25519();
+    if (m_key_type == kKeyNameECDH)
+        return generate_ecdh();
     return 0;
 }
 
@@ -35,11 +37,16 @@ result_t CryptoKey::createPublicKey()
     m_publicKey->m_algorithm = m_algorithm;
     m_publicKey->m_extractable = true;
 
-    auto it = m_usageMap.find("verify");
-    if (it != m_usageMap.end()) {
-        m_publicKey->m_usageMap.emplace("verify", true);
-        m_usageMap.erase(it);
+    // Handle usage distribution based on key type
+    if (m_key_type == kKeyNameECDSA || m_key_type == kKeyNameEd25519) {
+        // For signing algorithms, move 'verify' usage to public key
+        auto it = m_usageMap.find("verify");
+        if (it != m_usageMap.end()) {
+            m_publicKey->m_usageMap.emplace("verify", true);
+            m_usageMap.erase(it);
+        }
     }
+    // For ECDH, public key should have no usages (already empty)
 
     return 0;
 }
@@ -73,6 +80,30 @@ result_t CryptoKey::generate_ed25519()
 
     m_key = new KeyObject();
     result_t hr = m_key->generateKey("Ed25519", nullptr);
+    if (hr < 0)
+        return hr;
+
+    return createPublicKey();
+}
+
+result_t CryptoKey::generate_ecdh()
+{
+    bool hasValidUsage = false;
+    if (m_usageMap.find("deriveKey") != m_usageMap.end())
+        hasValidUsage = true;
+    if (m_usageMap.find("deriveBits") != m_usageMap.end())
+        hasValidUsage = true;
+
+    if (!hasValidUsage)
+        return Runtime::setError("WebCrypto: ECDH key must have 'deriveKey' or 'deriveBits' usage");
+
+    Variant v;
+    obj_ptr<generateKeyPairParam> param = new generateKeyPairParam();
+    m_algorithm->get("namedCurve", v);
+    param->namedCurve = v.string();
+
+    m_key = new KeyObject();
+    result_t hr = m_key->generateKey("EC", param);
     if (hr < 0)
         return hr;
 

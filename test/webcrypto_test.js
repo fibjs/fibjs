@@ -814,6 +814,424 @@ describe("webcrypto", () => {
             });
         });
 
+        describe("ECDH Key Operations", () => {
+            const supportedCurves = ["P-256", "P-384", "P-521"];
+
+            // Test vectors from Node.js WebCrypto tests
+            const testVectors = {
+                "P-521": {
+                    pkcs8: '3081ee020100301006072a8648ce3d020106052b810400230481d63081d302010' +
+                        '1044201a67ed321915a64aa359b7d648ddc2618fa8e8d1867e8f71830b10d25ed' +
+                        '2891faf12f3c7e75421a2ea264f9a915320d274fe1470742b984e96b98912081f' +
+                        'acd478da18189038186000400209d483f28666881c6641f3a126f400f51e46511' +
+                        '70fe678c75e85712e2868adc850824997bebf0bc82b43028a6d2ec1777ca45279' +
+                        'f7206a3ea8b5cd2073f493e45000cb54c3a5acaa268c56710428878d98b8afbf6' +
+                        '8a612153632846d807e92672698f1b9c611de7d38e34cd6c73889092c56e52d68' +
+                        '0f1dfd092b87ac8ef9ff3c8fb48',
+                    spki: '30819b301006072a8648ce3d020106052b81040023038186000400ee69f94715d7' +
+                        '01e9e2011333d4f4f96cba7d91f88b112baf75cf09cc1f8aca97618da9389822d2' +
+                        '9b6fe9996a61203ef752b771e8958fc4677bb3778565ab60d6ed00deab6761895b' +
+                        '935e3ad325fb8549e56f13786aa73f88a2ecfe40933473d8aef240c4dfd7d506f2' +
+                        '2cdd0e55558f3fbf05ebf7efef7a72d78f46469b8448f26e2712',
+                    derivedKey: '009c2bce57be80adab3b07385b8e5990eb7d6fdebdb01bf35371a4f6075e9d288ac12a6dfe03aa5743bc81709d49a822940219b64b768acd520fa1368ea0af8d475d',
+                    derivedKeyShort: '009c2bce57be80adab3b07385b8e5990eb7d6fdebdb01bf35371a4f6075e9d288ac12a6dfe03aa5743bc81709d49a822940219b64b768acd520fa1368ea0',
+                    derivedKeyTruncated: '009c2bce57be80adab3b07385b8e5990eb7d6fdebdb01bf35371a4f6075e9d288ac12a6dfe03aa5743bc81709d49a822940219b64b768acd520fa1368ea0af8d40',
+                    keySize: 66
+                },
+                "P-384": {
+                    pkcs8: '3081b6020100301006072a8648ce3d020106052b8104002204819e30819b02010' +
+                        '10430f871a5666589c14a5747263ef85b319cc023db6e35676c3d781eef8b055f' +
+                        'cfbe86fa0d06d056b5195fb1323af8de25b3a16403620004f11965df7dd4594d0' +
+                        '419c5086482a3b826b9797f9be0bd0d109c9e1e9989c1b9a92b8f269f98e17ad1' +
+                        '84ba73c1f79762af45af8141602642da271a6bb0ffeb0cb4478fcf707e661aa6d' +
+                        '6cdf51549c88c3f130be9e8201f6f6a09f4185aaf95c4',
+                    spki: '3076301006072a8648ce3d020106052b810400220362000491822dc2af59c18f5b' +
+                        '67f80df61a2603c2a8f0b3c0af822d63c279701a824560404401dde9a56ee52757' +
+                        'ea8bc748d4c82b5337b48d7b65583a3d572438880036bac6730f42ca5278966bd5' +
+                        'f21e86e21d30c5a6d0463ec513dd509ffcdcaf1ff5',
+                    derivedKey: 'e0bd6bce0aef8ca48838a6e2fcc57e67b9c5e8860c5f0be9dabec53e454e18a0a174c48888a26488115b2dc9f1dfa52d',
+                    derivedKeyShort: 'e0bd6bce0aef8ca48838a6e2fcc57e67b9c5e8860c5f0be9dabec53e454e18a0a174c48888a26488115b2dc9',
+                    derivedKeyTruncated: 'e0bd6bce0aef8ca48838a6e2fcc57e67b9c5e8860c5f0be9dabec53e454e18a0a174c48888a26488115b2dc9f1dfa0',
+                    keySize: 48
+                }
+            };
+
+            it("should generate ECDH key pairs for supported curves", async () => {
+                for (const curve of supportedCurves) {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    assert(keyPair.privateKey instanceof CryptoKey);
+                    assert(keyPair.publicKey instanceof CryptoKey);
+
+                    // Verify key attributes
+                    assert.strictEqual(keyPair.privateKey.type, "private");
+                    assert.strictEqual(keyPair.publicKey.type, "public");
+                    assert.strictEqual(keyPair.privateKey.algorithm.name, "ECDH");
+                    assert.strictEqual(keyPair.privateKey.algorithm.namedCurve, curve);
+                    assert.deepStrictEqual(keyPair.privateKey.usages.sort(), ["deriveKey", "deriveBits"].sort());
+                    assert.deepStrictEqual(keyPair.publicKey.usages, []);
+                }
+            });
+
+            it("should set public key extractable to true by default", async () => {
+                const keyPair = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    false,
+                    ["deriveKey", "deriveBits"]
+                );
+
+                assert.strictEqual(keyPair.privateKey.extractable, false);
+                assert.strictEqual(keyPair.publicKey.extractable, true);
+            });
+
+            it("should throw for unsupported curves", async () => {
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDH",
+                            namedCurve: "secp256k1"
+                        },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+                });
+            });
+
+            it("should throw for invalid key usages", async () => {
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDH",
+                            namedCurve: "P-256"
+                        },
+                        true,
+                        ["sign", "verify"]
+                    );
+                });
+            });
+
+            it("should import ECDH keys from test vectors", async () => {
+                for (const [curve, vectors] of Object.entries(testVectors)) {
+                    const privateKey = await global.crypto.subtle.importKey(
+                        'pkcs8',
+                        Buffer.from(vectors.pkcs8, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const publicKey = await global.crypto.subtle.importKey(
+                        'spki',
+                        Buffer.from(vectors.spki, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        []
+                    );
+
+                    assert(privateKey instanceof CryptoKey);
+                    assert(publicKey instanceof CryptoKey);
+                    assert.strictEqual(privateKey.type, "private");
+                    assert.strictEqual(publicKey.type, "public");
+                    assert.strictEqual(privateKey.algorithm.name, "ECDH");
+                    assert.strictEqual(privateKey.algorithm.namedCurve, curve);
+                    assert.strictEqual(publicKey.algorithm.name, "ECDH");
+                    assert.strictEqual(publicKey.algorithm.namedCurve, curve);
+                }
+            });
+
+            it("should export and re-import ECDH keys", async () => {
+                const keyPair = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+
+                // Test JWK format
+                const jwkPrivate = await global.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+                const jwkPublic = await global.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+
+                assert.strictEqual(typeof jwkPrivate, "object");
+                assert.strictEqual(typeof jwkPublic, "object");
+                assert.strictEqual(jwkPrivate.kty, "EC");
+                assert.strictEqual(jwkPublic.kty, "EC");
+                assert.strictEqual(jwkPrivate.crv, "P-256");
+                assert.strictEqual(jwkPublic.crv, "P-256");
+
+                // Re-import the exported keys
+                const importedPrivate = await global.crypto.subtle.importKey(
+                    "jwk",
+                    jwkPrivate,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+
+                const importedPublic = await global.crypto.subtle.importKey(
+                    "jwk",
+                    jwkPublic,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    []
+                );
+
+                assert(importedPrivate instanceof CryptoKey);
+                assert(importedPublic instanceof CryptoKey);
+
+                // Test PKCS8 format
+                const pkcs8Key = await global.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+                assert(pkcs8Key instanceof ArrayBuffer);
+                const importedPkcs8Key = await global.crypto.subtle.importKey(
+                    "pkcs8",
+                    pkcs8Key,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+                assert(importedPkcs8Key instanceof CryptoKey);
+
+                // Test SPKI format
+                const spkiKey = await global.crypto.subtle.exportKey("spki", keyPair.publicKey);
+                assert(spkiKey instanceof ArrayBuffer);
+                const importedSpkiKey = await global.crypto.subtle.importKey(
+                    "spki",
+                    spkiKey,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    []
+                );
+                assert(importedSpkiKey instanceof CryptoKey);
+
+                // Test Raw format
+                const rawKey = await global.crypto.subtle.exportKey("raw", keyPair.publicKey);
+                assert(rawKey instanceof ArrayBuffer);
+                const importedRawKey = await global.crypto.subtle.importKey(
+                    "raw",
+                    rawKey,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    []
+                );
+                assert(importedRawKey instanceof CryptoKey);
+            });
+
+            it("should perform ECDH deriveBits with test vectors", async () => {
+                for (const [curve, vectors] of Object.entries(testVectors)) {
+                    const privateKey = await global.crypto.subtle.importKey(
+                        'pkcs8',
+                        Buffer.from(vectors.pkcs8, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const publicKey = await global.crypto.subtle.importKey(
+                        'spki',
+                        Buffer.from(vectors.spki, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        []
+                    );
+
+                    // Good parameters
+                    const bits = await global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: publicKey
+                    }, privateKey, 8 * vectors.keySize);
+
+                    assert(bits instanceof ArrayBuffer);
+                    assert.strictEqual(Buffer.from(bits).toString('hex'), vectors.derivedKey);
+
+                    // Case insensitivity
+                    const bits2 = await global.crypto.subtle.deriveBits({
+                        name: 'eCdH',
+                        public: publicKey
+                    }, privateKey, 8 * vectors.keySize);
+
+                    assert.strictEqual(Buffer.from(bits2).toString('hex'), vectors.derivedKey);
+
+                    // Null length (should use default)
+                    const bits3 = await global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: publicKey
+                    }, privateKey, null);
+
+                    assert.strictEqual(Buffer.from(bits3).toString('hex'), vectors.derivedKey);
+
+                    // Default length
+                    const bits4 = await global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: publicKey
+                    }, privateKey);
+
+                    assert.strictEqual(Buffer.from(bits4).toString('hex'), vectors.derivedKey);
+
+                    // Short result
+                    const bits5 = await global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: publicKey
+                    }, privateKey, 8 * vectors.keySize - 32);
+
+                    assert.strictEqual(
+                        Buffer.from(bits5).toString('hex'),
+                        vectors.derivedKeyShort);
+
+                    // Non-multiple of 8
+                    const bits6 = await global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: publicKey
+                    }, privateKey, 8 * vectors.keySize - 11);
+
+                    assert.strictEqual(
+                        Buffer.from(bits6).toString('hex'),
+                        vectors.derivedKeyTruncated);
+                }
+            });
+
+            it("should perform ECDH deriveKey with test vectors", async () => {
+                for (const [curve, vectors] of Object.entries(testVectors)) {
+                    const privateKey = await global.crypto.subtle.importKey(
+                        'pkcs8',
+                        Buffer.from(vectors.pkcs8, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const publicKey = await global.crypto.subtle.importKey(
+                        'spki',
+                        Buffer.from(vectors.spki, 'hex'),
+                        {
+                            name: "ECDH",
+                            namedCurve: curve
+                        },
+                        true,
+                        []
+                    );
+                }
+            });
+
+            it("should handle ECDH errors correctly", async () => {
+                const keyPair = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+
+                // Missing public property
+                await assert.rejects(
+                    global.crypto.subtle.deriveBits(
+                        { name: 'ECDH' },
+                        keyPair.privateKey,
+                        256),
+                    { code: 'ERR_MISSING_OPTION' });
+
+                // The public property is not a CryptoKey
+                await assert.rejects(
+                    global.crypto.subtle.deriveBits(
+                        {
+                            name: 'ECDH',
+                            public: { message: 'Not a CryptoKey' }
+                        },
+                        keyPair.privateKey,
+                        256),
+                    { code: 'ERR_INVALID_ARG_TYPE' });
+
+                // Base key is not a private key
+                await assert.rejects(
+                    global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: keyPair.publicKey
+                    }, keyPair.publicKey, 256), {
+                    message: /baseKey does not have deriveBits usage|private key/
+                });
+
+                // Public is not a public key
+                await assert.rejects(
+                    global.crypto.subtle.deriveBits({
+                        name: 'ECDH',
+                        public: keyPair.privateKey
+                    }, keyPair.privateKey, 256), {
+                    message: /algorithm.public must be a public key|public key/
+                });
+
+                // Test with wrong algorithm public key
+                const { publicKey: wrongKey } = await global.crypto.subtle.generateKey(
+                    {
+                        name: 'ECDSA',
+                        namedCurve: 'P-256'
+                    }, false, ['sign', 'verify']);
+
+                await assert.rejects(global.crypto.subtle.deriveBits({
+                    name: 'ECDH',
+                    public: wrongKey
+                }, keyPair.privateKey, 256), {
+                    message: /algorithm.public must be an ECDH key/
+                });
+
+                // Private key does not have correct usages for deriveBits
+                const restrictedPrivateKey = await global.crypto.subtle.importKey(
+                    'jwk',
+                    await global.crypto.subtle.exportKey('jwk', keyPair.privateKey),
+                    {
+                        name: 'ECDH',
+                        namedCurve: 'P-256'
+                    }, false, ['deriveKey']);
+
+                await assert.rejects(global.crypto.subtle.deriveBits({
+                    name: 'ECDH',
+                    public: keyPair.publicKey,
+                }, restrictedPrivateKey, 256), {
+                    message: /baseKey does not have deriveBits usage/
+                });
+            });
+        });
+
         describe("String Algorithm Parameter Compatibility", () => {
             it("should support string algorithm in generateKey", async () => {
                 const key = await global.crypto.subtle.generateKey(
@@ -836,7 +1254,7 @@ describe("webcrypto", () => {
                 );
 
                 const data = new Uint8Array([1, 2, 3, 4]);
-                
+
                 // Sign with string algorithm
                 const signature = await global.crypto.subtle.sign(
                     "Ed25519",  // String format
@@ -1255,6 +1673,4 @@ describe("webcrypto", () => {
             assert.strictEqual(verified, true);
         });
     });
-
-
 });
