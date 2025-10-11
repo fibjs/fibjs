@@ -18,37 +18,13 @@
 #include "EventInfo.h"
 #import <WebKit/WebKit.h>
 
-@interface WKWebViewHandler : WKWebView <WKScriptMessageHandler, WKURLSchemeHandler, WKNavigationDelegate>
+@class WKWebViewHandler;
+
+@interface WebViewMessageHandler : NSObject <WKScriptMessageHandler, WKURLSchemeHandler>
 @property (nonatomic, assign) fibjs::WebView* webView;
-- (instancetype)initWithWebView:(fibjs::WebView*)webView;
-- (void)removeFromSuperview;
 @end
 
-@implementation WKWebViewHandler
-- (instancetype)initWithWebView:(fibjs::WebView*)webView
-{
-    self = [super init];
-    if (self) {
-        _webView = webView;
-    }
-    return self;
-}
-
-- (void)removeFromSuperview
-{
-    _webView = nil;
-    [super removeFromSuperview];
-}
-
-- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id>*)change context:(void*)context
-{
-    if (_webView) {
-        if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
-            NSString* newTitle = change[NSKeyValueChangeNewKey];
-            [_webView->m_window setTitle:newTitle];
-        }
-    }
-}
+@implementation WebViewMessageHandler
 
 - (void)userContentController:(WKUserContentController*)userContentController didReceiveScriptMessage:(WKScriptMessage*)message
 {
@@ -72,26 +48,6 @@
                 }
             }
         }
-    }
-}
-
-- (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
-{
-    if (_webView) {
-        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
-        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
-        ei->emit();
-    }
-}
-
-- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
-{
-    if (_webView) {
-        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
-        exlib::string url = [[[webView URL] absoluteString] UTF8String];
-        ei->add("url", url);
-        ei->emit();
-        _webView->postWaitFor(url);
     }
 }
 
@@ -156,6 +112,52 @@
 
 - (void)webView:(WKWebView*)webView stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
 {
+}
+
+@end
+
+@interface WKWebViewHandler : WKWebView <WKNavigationDelegate>
+@property (nonatomic, assign) fibjs::WebView* webView;
+@property (nonatomic, strong) WebViewMessageHandler* messageHandler;
+- (void)removeFromSuperview;
+@end
+
+@implementation WKWebViewHandler
+
+- (void)removeFromSuperview
+{
+    _webView = nil;
+    [super removeFromSuperview];
+}
+
+- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id>*)change context:(void*)context
+{
+    if (_webView) {
+        if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
+            NSString* newTitle = change[NSKeyValueChangeNewKey];
+            [_webView->m_window setTitle:newTitle];
+        }
+    }
+}
+
+- (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
+{
+    if (_webView) {
+        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
+        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
+        ei->emit();
+    }
+}
+
+- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
+{
+    if (_webView) {
+        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
+        exlib::string url = [[[webView URL] absoluteString] UTF8String];
+        ei->add("url", url);
+        ei->emit();
+        _webView->postWaitFor(url);
+    }
 }
 
 @end
@@ -232,12 +234,13 @@ result_t WebView::createWebView()
     WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
     configuration.processPool = globalProcessPool;
 
-    WKWebViewHandler* webView = [[WKWebViewHandler alloc] initWithWebView:this];
-    m_webview = webView;
+    // Create message handler
+    WebViewMessageHandler* messageHandler = [[WebViewMessageHandler alloc] init];
+    messageHandler.webView = this;
 
     WKUserContentController* userContentController = [[WKUserContentController alloc] init];
-    [userContentController addScriptMessageHandler:webView name:@"message"];
-    [userContentController addScriptMessageHandler:webView name:@"command"];
+    [userContentController addScriptMessageHandler:messageHandler name:@"message"];
+    [userContentController addScriptMessageHandler:messageHandler name:@"command"];
 
     WKUserScript* userScript = [[WKUserScript alloc] initWithSource:s_bridge_code
                                                       injectionTime:WKUserScriptInjectionTimeAtDocumentStart
@@ -245,7 +248,9 @@ result_t WebView::createWebView()
     [userContentController addUserScript:userScript];
 
     configuration.userContentController = userContentController;
-    [configuration setURLSchemeHandler:webView forURLScheme:@"fs"];
+    
+    // Set URL scheme handler before creating the webView
+    [configuration setURLSchemeHandler:messageHandler forURLScheme:@"fs"];
 
     if (m_options->devtools.value()) {
         WKPreferences* preferences = [[WKPreferences alloc] init];
@@ -256,7 +261,11 @@ result_t WebView::createWebView()
     static std::string safariVersion = readSafariVersion();
     configuration.applicationNameForUserAgent = [NSString stringWithUTF8String:safariVersion.c_str()];
 
-    [webView initWithFrame:CGRectZero configuration:configuration];
+    // Create webView with the properly configured configuration
+    WKWebViewHandler* webView = [[WKWebViewHandler alloc] initWithFrame:CGRectZero configuration:configuration];
+    webView.webView = this;
+    webView.messageHandler = messageHandler;
+    m_webview = webView;
     [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 
     [webView addObserver:webView forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
