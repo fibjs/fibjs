@@ -1150,6 +1150,7 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
 
 v8::Local<v8::Value> FillError(result_t hr);
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
+v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::StackTrace> stack);
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 {

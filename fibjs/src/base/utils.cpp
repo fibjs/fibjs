@@ -167,6 +167,55 @@ v8::Local<v8::Value> FillError(result_t hr)
     return FillError(hr, getResultMessage(hr));
 }
 
+v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::StackTrace> stack)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Value> v = v8::Exception::Error(isolate->NewString(msg));
+    v8::Local<v8::Object> e = v.As<v8::Object>();
+    v8::Local<v8::Context> context = isolate->context();
+
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
+
+    const char* _name = uv_error_name(hr);
+    if (_name)
+        e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
+
+    // Set custom stack trace if provided
+    if (!stack.IsEmpty()) {
+        // Build stack trace string from frames
+        exlib::string stack_str = msg + "\n";
+        int frame_count = stack->GetFrameCount();
+        
+        for (int i = 0; i < frame_count; i++) {
+            v8::Local<v8::StackFrame> frame = stack->GetFrame(isolate->m_isolate, i);
+            
+            v8::String::Utf8Value script_name(isolate->m_isolate, frame->GetScriptName());
+            v8::String::Utf8Value function_name(isolate->m_isolate, frame->GetFunctionName());
+            
+            stack_str += "    at ";
+            if (*function_name && strlen(*function_name) > 0) {
+                stack_str += *function_name;
+                stack_str += " (";
+            }
+            if (*script_name) {
+                stack_str += *script_name;
+            }
+            stack_str += ":";
+            stack_str += std::to_string(frame->GetLineNumber());
+            stack_str += ":";
+            stack_str += std::to_string(frame->GetColumn());
+            if (*function_name && strlen(*function_name) > 0) {
+                stack_str += ")";
+            }
+            stack_str += "\n";
+        }
+        
+        e->Set(context, isolate->NewString("stack"), isolate->NewString(stack_str)).IsJust();
+    }
+
+    return e;
+}
+
 v8::Local<v8::Value> ThrowResult(result_t hr)
 {
     Isolate* isolate = Isolate::current();

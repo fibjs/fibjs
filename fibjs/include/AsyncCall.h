@@ -465,6 +465,7 @@ protected:
 
 private:
     exlib::string m_error;
+    v8::Global<v8::StackTrace> m_stack_trace;
     int32_t m_v;
 };
 }

@@ -142,12 +142,18 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Object> cb, object_base* pThis)
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
     m_is_promise = !cb->IsFunction();
+
+    // Capture current stack trace for error reporting
+    v8::Local<v8::StackTrace> stack = v8::StackTrace::CurrentStackTrace(
+        m_isolate->m_isolate, 10, v8::StackTrace::kDetailed);
+    m_stack_trace.Reset(m_isolate->m_isolate, stack);
 }
 
 AsyncCallBack::~AsyncCallBack()
 {
     m_isolate->Unref();
     m_cb.Reset();
+    m_stack_trace.Reset();
 }
 
 void AsyncCallBack::async_call(int32_t v)
@@ -212,8 +218,13 @@ void AsyncCallBack::processPromiseResult()
         }
 
         resolver->Resolve(m_isolate->context(), result).IsJust();
-    } else
-        resolver->Reject(m_isolate->context(), FillError(m_v)).IsJust();
+    } else {
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error);
+
+        v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
+        resolver->Reject(m_isolate->context(), FillError(m_v, getResultMessage(m_v), stack)).IsJust();
+    }
 
     delete this;
 }
@@ -241,7 +252,8 @@ int AsyncCallBack::syncFunc()
                 Runtime::setError(m_error);
 
             args.resize(1);
-            args[0] = FillError(m_v);
+            v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
+            args[0] = FillError(m_v, getResultMessage(m_v), stack);
         }
 
         v8::Local<v8::Value> oThis;
