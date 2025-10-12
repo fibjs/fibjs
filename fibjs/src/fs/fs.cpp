@@ -693,7 +693,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
             }
 
             // Check if it's a regular file
-            if (S_ISREG(pThis->statbuf.st_mode)) {
+            if (S_IFREG & pThis->statbuf.st_mode) {
                 // It's a file, remove it directly
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
@@ -702,7 +702,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                     delete pThis;
                 }
                 return;
-            } else if (S_ISDIR(pThis->statbuf.st_mode)) {
+            } else if (S_IFDIR & pThis->statbuf.st_mode) {
                 // It's a directory, scan contents first
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
