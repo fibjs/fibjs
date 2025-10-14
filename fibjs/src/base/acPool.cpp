@@ -277,6 +277,9 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
         v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
 
         if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
+            if (hr == CALL_E_EXCEPTION)
+                m_error = Runtime::errMessage();
+
             m_v = hr;
             processPromiseResult();
         } else
