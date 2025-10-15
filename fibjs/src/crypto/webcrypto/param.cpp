@@ -52,6 +52,9 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     if (qstricmp(name.c_str(), "ECDH") == 0)
         return get_ecdh_param(params);
 
+    if (qstricmp(name.c_str(), "HMAC") == 0)
+        return get_hmac_param(params);
+
     return Runtime::setError("WebCrypto: unknown key name: " + name);
 }
 
@@ -126,6 +129,54 @@ result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
         if (qstrcmp(it.first.c_str(), "deriveKey")
             && qstrcmp(it.first.c_str(), "deriveBits"))
             return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for ECDH key");
+    }
+
+    return 0;
+}
+
+result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
+{
+    Isolate* isolate = holder();
+    result_t hr;
+    exlib::string hash;
+
+    m_key_type = kKeyNameHMAC;
+    m_algorithm->add("name", "HMAC");
+
+    // Get hash parameter - similar pattern to ECDSA
+    v8::Local<v8::Value> _hash;
+    hr = GetConfigValue(isolate, params, "hash", _hash);
+    if (hr < 0 || _hash.IsEmpty() || _hash->IsUndefined())
+        return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+
+    if (_hash->IsString() || _hash->IsStringObject()) {
+        hash = *v8::String::Utf8Value(isolate->m_isolate, _hash);
+    } else {
+        v8::Local<v8::Object> _hash_obj;
+        hr = GetArgumentValue(isolate, _hash, _hash_obj, true);
+        if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+        if (hr < 0)
+            return hr;
+    }
+
+    // Validate hash algorithm
+    if (qstricmp(hash.c_str(), "SHA-1") && qstricmp(hash.c_str(), "SHA-256")
+        && qstricmp(hash.c_str(), "SHA-384") && qstricmp(hash.c_str(), "SHA-512"))
+        return Runtime::setError("WebCrypto: unknown hash algorithm: " + hash);
+
+    // Create hash object with name property
+    obj_ptr<NObject> hashObj = new NObject();
+    hashObj->add("name", hash);
+    m_algorithm->add("hash", hashObj);
+
+    // Check HMAC specific usages
+    for (auto& it : m_usageMap) {
+        if (qstrcmp(it.first.c_str(), "sign")
+            && qstrcmp(it.first.c_str(), "verify"))
+            return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for HMAC key");
     }
 
     return 0;
@@ -207,7 +258,30 @@ result_t CryptoKey::check_import_param()
     if (m_key_type == kKeyNameECDH)
         return check_ecdh_import_param();
 
+    if (m_key_type == kKeyNameHMAC)
+        return check_hmac_import_param();
+
     return check_asymmetric_import_usage();
+}
+
+result_t CryptoKey::check_hmac_import_param()
+{
+    // HMAC keys are secret keys, not public/private
+    // Check for valid usages
+    bool hasSign = m_usageMap.find("sign") != m_usageMap.end();
+    bool hasVerify = m_usageMap.find("verify") != m_usageMap.end();
+
+    if (!hasSign && !hasVerify)
+        return Runtime::setError("WebCrypto: HMAC key must have at least 'sign' or 'verify' usage");
+
+    // Check for invalid usages
+    for (auto& it : m_usageMap) {
+        if (qstrcmp(it.first.c_str(), "sign")
+            && qstrcmp(it.first.c_str(), "verify"))
+            return Runtime::setError("WebCrypto: HMAC key must not have '" + it.first + "' usage");
+    }
+
+    return 0;
 }
 
 result_t CryptoKey::check_name(exlib::string name)
@@ -219,6 +293,9 @@ result_t CryptoKey::check_name(exlib::string name)
         return Runtime::setError("CryptoKey: invalid key algorithm");
 
     if (m_key_type == kKeyNameECDH && qstricmp(name.c_str(), "ecdh"))
+        return Runtime::setError("CryptoKey: invalid key algorithm");
+
+    if (m_key_type == kKeyNameHMAC && qstricmp(name.c_str(), "hmac"))
         return Runtime::setError("CryptoKey: invalid key algorithm");
 
     return 0;

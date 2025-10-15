@@ -122,16 +122,16 @@ public:
 public:
     result_t createSecretKey(const unsigned char* key, size_t size);
     result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKAsymmetricKey(NObject* hwk, KeyType type);
+    result_t ImportJWKKey(NObject* hwk, KeyType type);
     result_t ImportJWKRsaKey(NObject* key, KeyType type);
     result_t ImportJWKEcKey(NObject* key, KeyType type);
     result_t ImportJWKOKPKey(NObject* key, KeyType type);
 
-    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> jwk, KeyType type)
+    result_t ImportJWKKey(v8::Local<v8::Object> jwk, KeyType type)
     {
         obj_ptr<NObject> key = new NObject();
         key->add(jwk);
-        return ImportJWKAsymmetricKey(key, type);
+        return ImportJWKKey(key, type);
     }
 
 public:

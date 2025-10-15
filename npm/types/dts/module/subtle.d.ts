@@ -11,16 +11,6 @@ declare module 'subtle' {
     /**
      * @description 计算给定数据的哈希值
      * 
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
-     *     
-     */
-    function digest(algorithm: string, data: Class_Buffer): Promise<ArrayBuffer>;
-
-    /**
-     * @description 计算给定数据的哈希值
-     * 
      *     algorithm 的 name 属性指定哈希算法，例如：
      *     ```
      *     {
@@ -34,6 +24,16 @@ declare module 'subtle' {
      *     
      */
     function digest(algorithm: FIBJS.GeneralObject, data: Class_Buffer): Promise<ArrayBuffer>;
+
+    /**
+     * @description 计算给定数据的哈希值
+     * 
+     *     @param algorithm 指定哈希算法
+     *     @param data 指定要计算哈希值的数据
+     *     @return 返回计算得到的哈希值
+     *     
+     */
+    function digest(algorithm: string, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
      * @description 导出 key 的信息，如果 key 不可导出，则返回一个错误
@@ -54,7 +54,7 @@ declare module 'subtle' {
      *     @return 返回生成的 key
      *     
      */
-    function generateKey(algorithm: string, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKey(algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
      * @description 生成一个新的 key
@@ -65,7 +65,7 @@ declare module 'subtle' {
      *     @return 返回生成的 key
      *     
      */
-    function generateKey(algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKey(algorithm: string, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
      * @description 导入 key
@@ -102,7 +102,7 @@ declare module 'subtle' {
      *     @return 返回签名后的数据
      *     
      */
-    function sign(algorithm: string, key: Class_CryptoKey, data: Class_Buffer): Promise<Class_Buffer>;
+    function sign(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
      * @description 使用 key 对数据进行签名
@@ -113,19 +113,7 @@ declare module 'subtle' {
      *     @return 返回签名后的数据
      *     
      */
-    function sign(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description 使用 key 对数据进行验签
-     * 
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
-     *     
-     */
-    function verify(algorithm: string, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
+    function sign(algorithm: string, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
      * @description 使用 key 对数据进行验签
@@ -140,14 +128,16 @@ declare module 'subtle' {
     function verify(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description 使用 key 对数据进行验签
+     * 
+     *     @param algorithm 指定签名算法
+     *     @param key 指定用于验签的 key
+     *     @param signature 指定签名数据
+     *     @param data 指定要验签的数据
+     *     @return 返回验签结果
      *     
      */
-    function deriveBits(algorithm: string, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
+    function verify(algorithm: string, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
      * @description 从基本密钥派生出位数组
@@ -158,6 +148,16 @@ declare module 'subtle' {
      *     
      */
     function deriveBits(algorithm: FIBJS.GeneralObject, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
+
+    /**
+     * @description 从基本密钥派生出位数组
+     *     @param algorithm 指定派生算法
+     *     @param baseKey 指定用于派生的基本密钥
+     *     @param length 指定派生的位数
+     *     @return 返回派生得到的位数组
+     *     
+     */
+    function deriveBits(algorithm: string, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
 
 }
 

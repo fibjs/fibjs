@@ -284,7 +284,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
             return hr;
 
         if (IsJSObject(k))
-            return ImportJWKAsymmetricKey(k.As<v8::Object>(), type);
+            return ImportJWKKey(k.As<v8::Object>(), type);
 
         obj_ptr<KeyObject_base> key_ = KeyObject_base::getInstance(k);
         if (key_) {
@@ -324,7 +324,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
         if (hr < 0)
             return hr;
 
-        return ImportJWKAsymmetricKey(jwk, type);
+        return ImportJWKKey(jwk, type);
     }
 
     if (type == kKeyTypePublic)

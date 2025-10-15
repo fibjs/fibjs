@@ -299,7 +299,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
     return 0;
 }
 
-result_t KeyObject::ImportJWKAsymmetricKey(NObject* jwk, KeyType type)
+result_t KeyObject::ImportJWKKey(NObject* jwk, KeyType type)
 {
     result_t hr;
 
@@ -314,6 +314,19 @@ result_t KeyObject::ImportJWKAsymmetricKey(NObject* jwk, KeyType type)
         return ImportJWKEcKey(jwk, type);
     else if (kty == "OKP")
         return ImportJWKOKPKey(jwk, type);
+    else if (kty == "oct") {
+        // Handle symmetric key (HMAC) import
+        exlib::string k;
+        hr = GetConfigValue(jwk, "k", k);
+        if (hr < 0)
+            return hr;
+
+        // Decode base64url key data
+        exlib::string keyData;
+        base64Decode(k.c_str(), k.length(), keyData);
+
+        return createSecretKey((const unsigned char*)keyData.c_str(), keyData.length());
+    }
 
     return CALL_E_INVALID_CALL;
 }

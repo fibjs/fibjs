@@ -36,6 +36,7 @@ public:
     result_t get_ecdsa_param(v8::Local<v8::Object> params);
     result_t get_ed25519_param(v8::Local<v8::Object> params);
     result_t get_ecdh_param(v8::Local<v8::Object> params);
+    result_t get_hmac_param(v8::Local<v8::Object> params);
     result_t check_asymmetric_usage();
 
 public:
@@ -43,6 +44,7 @@ public:
     result_t check_ecdsa_import_param();
     result_t check_ed25519_import_param();
     result_t check_ecdh_import_param();
+    result_t check_hmac_import_param();
     result_t check_asymmetric_import_usage();
 
     result_t check_name(exlib::string name);

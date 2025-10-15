@@ -70,6 +70,96 @@ describe("webcrypto", () => {
                 assert.strictEqual(variantBits & 0b1100, 0b1000); // Variant bits should be 10xx
             }
         });
+
+        describe("Edge Cases", () => {
+            it("should handle extreme array sizes for getRandomValues", () => {
+                // Test minimum size
+                const minResult = global.crypto.getRandomValues(new Uint8Array(1));
+                assert.strictEqual(minResult.length, 1);
+
+                // Test maximum allowed size
+                const maxAllowed = 65536;
+                const maxResult = global.crypto.getRandomValues(new Uint8Array(maxAllowed));
+                assert.strictEqual(maxResult.length, maxAllowed);
+
+                // Test just over the limit
+                assert.throws(() => {
+                    global.crypto.getRandomValues(new Uint8Array(maxAllowed + 1));
+                }, /QuotaExceededError|too large|Value is out of range/);
+            });
+
+            it("should validate UUID format strictly", () => {
+                for (let i = 0; i < 100; i++) {
+                    const uuid = global.crypto.randomUUID();
+
+                    // Check exact length
+                    assert.strictEqual(uuid.length, 36);
+
+                    // Check dash positions
+                    assert.strictEqual(uuid[8], '-');
+                    assert.strictEqual(uuid[13], '-');
+                    assert.strictEqual(uuid[18], '-');
+                    assert.strictEqual(uuid[23], '-');
+
+                    // Check version 4 in position 14
+                    assert.strictEqual(uuid[14], '4');
+
+                    // Check variant bits in position 19 (should be 8, 9, a, or b)
+                    assert(/[89ab]/.test(uuid[19]));
+
+                    // Check all other characters are hex
+                    const withoutDashes = uuid.replace(/-/g, '');
+                    assert(/^[0-9a-f]{32}$/i.test(withoutDashes));
+                }
+            });
+
+            it("should handle concurrent getRandomValues calls", () => {
+                const results = [];
+                const numCalls = 50;
+
+                for (let i = 0; i < numCalls; i++) {
+                    results.push(global.crypto.getRandomValues(new Uint8Array(16)));
+                }
+
+                // Check all results are different
+                for (let i = 0; i < results.length; i++) {
+                    for (let j = i + 1; j < results.length; j++) {
+                        assert.notDeepStrictEqual(results[i], results[j]);
+                    }
+                }
+            });
+
+            it("should handle concurrent randomUUID calls", () => {
+                const uuids = new Set();
+                const numCalls = 100;
+
+                for (let i = 0; i < numCalls; i++) {
+                    const uuid = global.crypto.randomUUID();
+                    assert.strictEqual(uuids.has(uuid), false, `Duplicate UUID: ${uuid}`);
+                    uuids.add(uuid);
+                }
+            });
+
+            it("should handle typed array views correctly", () => {
+                const buffer = new ArrayBuffer(16);
+                const view1 = new Uint8Array(buffer, 0, 8);
+                const view2 = new Uint8Array(buffer, 8, 8);
+
+                global.crypto.getRandomValues(view1);
+                global.crypto.getRandomValues(view2);
+
+                // Check that both views were filled
+                const fullView = new Uint8Array(buffer);
+                let hasNonZero = false;
+                for (let i = 0; i < fullView.length; i++) {
+                    if (fullView[i] !== 0) {
+                        hasNonZero = true;
+                        break;
+                    }
+                }
+                assert.strictEqual(hasNonZero, true);
+            });
+        });
     });
 
     describe("SubtleCrypto", () => {
@@ -151,6 +241,91 @@ describe("webcrypto", () => {
 
                 assert.deepStrictEqual(new Uint8Array(hash1), new Uint8Array(hash2));
                 assert.deepStrictEqual(new Uint8Array(hash1), new Uint8Array(hash3));
+            });
+
+            describe("Edge Cases", () => {
+                it("should handle extremely large data", async () => {
+                    // Test with 1MB of data
+                    const largeData = new Uint8Array(1024 * 1024).fill(0xAA);
+                    const hash = await global.crypto.subtle.digest("SHA-256", largeData);
+                    assert.strictEqual(hash.byteLength, 32);
+                });
+
+                it("should handle zero-length data consistently", async () => {
+                    const emptyBuffer = new ArrayBuffer(0);
+                    const emptyUint8 = new Uint8Array(0);
+                    const emptyBuffer2 = Buffer.alloc(0);
+
+                    const hash1 = await global.crypto.subtle.digest("SHA-256", emptyBuffer);
+                    const hash2 = await global.crypto.subtle.digest("SHA-256", emptyUint8);
+                    const hash3 = await global.crypto.subtle.digest("SHA-256", emptyBuffer2);
+
+                    assert.deepStrictEqual(new Uint8Array(hash1), new Uint8Array(hash2));
+                    assert.deepStrictEqual(new Uint8Array(hash1), new Uint8Array(hash3));
+                });
+
+                it("should reject invalid algorithm names", async () => {
+                    const data = new Uint8Array([1, 2, 3]);
+
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.digest("INVALID_ALGO_12345", data);
+                    });
+
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.digest("SHA-999", data);
+                    });
+
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.digest("", data);
+                    });
+                });
+
+                it("should handle unusual but valid input types", async () => {
+                    const data = [1, 2, 3, 4];
+
+                    // Test with Int8Array
+                    const int8Array = new Int8Array(data);
+                    const hash1 = await global.crypto.subtle.digest("SHA-256", int8Array);
+
+                    // Test with Uint16Array (should be treated as bytes)
+                    const uint16Array = new Uint16Array([0x0201, 0x0403]);  // Same bytes as [1,2,3,4] in little endian
+                    const hash2 = await global.crypto.subtle.digest("SHA-256", uint16Array);
+
+                    assert.strictEqual(hash1.byteLength, 32);
+                    assert.strictEqual(hash2.byteLength, 32);
+                });
+
+                it("should handle concurrent digest operations", async () => {
+                    const data = new Uint8Array([1, 2, 3, 4]);
+                    const promises = [];
+
+                    for (let i = 0; i < 20; i++) {
+                        promises.push(global.crypto.subtle.digest("SHA-256", data));
+                    }
+
+                    const results = await Promise.all(promises);
+
+                    // All results should be identical
+                    for (let i = 1; i < results.length; i++) {
+                        assert.deepStrictEqual(new Uint8Array(results[0]), new Uint8Array(results[i]));
+                    }
+                });
+
+                it("should verify digest compatibility with Node.js crypto", async () => {
+                    const testData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]); // "Hello"
+
+                    for (const algorithm of ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512']) {
+                        const webCryptoHash = await global.crypto.subtle.digest(algorithm, testData);
+                        const nodeAlgorithm = algorithm.toLowerCase().replace('-', '');
+                        const nodejsHash = crypto.createHash(nodeAlgorithm).update(testData).digest();
+
+                        assert.deepStrictEqual(
+                            new Uint8Array(webCryptoHash),
+                            new Uint8Array(nodejsHash),
+                            `${algorithm} hash mismatch`
+                        );
+                    }
+                });
             });
         });
 
@@ -418,6 +593,10 @@ describe("webcrypto", () => {
                     data
                 );
 
+                // Check signature is ArrayBuffer
+                assert(signature instanceof ArrayBuffer, 'ECDSA signature should be ArrayBuffer');
+                assert.strictEqual(signature.constructor.name, 'ArrayBuffer', 'ECDSA signature constructor should be ArrayBuffer');
+
                 const isValid = await global.crypto.subtle.verify(
                     {
                         name: "ECDSA",
@@ -533,6 +712,206 @@ describe("webcrypto", () => {
                 );
 
                 assert.strictEqual(isValid, true);
+            });
+
+            describe("Edge Cases", () => {
+                it("should handle all supported curves", async () => {
+                    const curves = ["P-256", "P-384", "P-521"];
+
+                    for (const curve of curves) {
+                        const keyPair = await global.crypto.subtle.generateKey(
+                            {
+                                name: "ECDSA",
+                                namedCurve: curve
+                            },
+                            true,
+                            ["sign", "verify"]
+                        );
+
+                        assert.strictEqual(keyPair.privateKey.algorithm.namedCurve, curve);
+                        assert.strictEqual(keyPair.publicKey.algorithm.namedCurve, curve);
+
+                        // Test sign/verify with each curve
+                        const data = new Uint8Array([1, 2, 3, 4]);
+                        const signature = await global.crypto.subtle.sign(
+                            { name: "ECDSA", hash: "SHA-256" },
+                            keyPair.privateKey,
+                            data
+                        );
+
+                        const isValid = await global.crypto.subtle.verify(
+                            { name: "ECDSA", hash: "SHA-256" },
+                            keyPair.publicKey,
+                            signature,
+                            data
+                        );
+
+                        assert.strictEqual(isValid, true, `Failed for curve ${curve}`);
+                    }
+                });
+
+                it("should handle all supported hash algorithms", async () => {
+                    const hashes = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    for (const hash of hashes) {
+                        const signature = await global.crypto.subtle.sign(
+                            { name: "ECDSA", hash },
+                            keyPair.privateKey,
+                            data
+                        );
+
+                        const isValid = await global.crypto.subtle.verify(
+                            { name: "ECDSA", hash },
+                            keyPair.publicKey,
+                            signature,
+                            data
+                        );
+
+                        assert.strictEqual(isValid, true, `Failed for hash ${hash}`);
+                    }
+                });
+
+                it("should reject invalid key usages combinations", async () => {
+                    const keyParams = { name: "ECDSA", namedCurve: "P-256" };
+
+                    // Invalid: empty usages
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.generateKey(keyParams, true, []);
+                    });
+
+                    // Invalid: unsupported usage
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.generateKey(keyParams, true, ["encrypt"]);
+                    });
+
+                    // Invalid: mixed usages from different algorithms
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.generateKey(keyParams, true, ["sign", "deriveKey"]);
+                    });
+                });
+
+                it("should handle malformed signatures gracefully", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    // Test with empty signature
+                    const isValid1 = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        new ArrayBuffer(0),
+                        data
+                    );
+                    assert.strictEqual(isValid1, false);
+
+                    // Test with wrong length signature
+                    const isValid2 = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        new ArrayBuffer(32), // Should be 64 bytes for P-256
+                        data
+                    );
+                    assert.strictEqual(isValid2, false);
+
+                    // Test with random signature
+                    const randomSig = new ArrayBuffer(64);
+                    new Uint8Array(randomSig).fill(0xFF);
+                    const isValid3 = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        randomSig,
+                        data
+                    );
+                    assert.strictEqual(isValid3, false);
+                });
+
+                it("should handle large data efficiently", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    // Test with 1MB data
+                    const largeData = new Uint8Array(1024 * 1024);
+                    for (let i = 0; i < largeData.length; i++) {
+                        largeData[i] = i % 256;
+                    }
+
+                    const signature = await global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.privateKey,
+                        largeData
+                    );
+
+                    const isValid = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        signature,
+                        largeData
+                    );
+
+                    assert.strictEqual(isValid, true);
+                });
+
+                it("should validate cross-platform compatibility", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    // Export keys to JWK format
+                    const jwkPublic = await global.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+                    const jwkPrivate = await global.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+                    // Sign with WebCrypto
+                    const webCryptoSig = await global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.privateKey,
+                        data
+                    );
+
+                    // Verify with Node.js crypto
+                    const nodeVerified = crypto.verify("sha256", data, {
+                        format: 'jwk',
+                        key: jwkPublic,
+                        dsaEncoding: 'ieee-p1363'
+                    }, Buffer.from(webCryptoSig));
+
+                    assert.strictEqual(nodeVerified, true);
+
+                    // Sign with Node.js crypto
+                    const nodeSig = crypto.sign("sha256", data, {
+                        format: 'jwk',
+                        key: jwkPrivate,
+                        dsaEncoding: 'ieee-p1363'
+                    });
+
+                    // Verify with WebCrypto
+                    const webCryptoVerified = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        nodeSig,
+                        data
+                    );
+
+                    assert.strictEqual(webCryptoVerified, true);
+                });
             });
         });
 
@@ -679,6 +1058,10 @@ describe("webcrypto", () => {
                     Ed25519.data
                 );
 
+                // Check signature is ArrayBuffer
+                assert(signature instanceof ArrayBuffer, 'Ed25519 signature should be ArrayBuffer');
+                assert.strictEqual(signature.constructor.name, 'ArrayBuffer', 'Ed25519 signature constructor should be ArrayBuffer');
+
                 // Test verification
                 const isValid = await global.crypto.subtle.verify(
                     { name: "Ed25519" },
@@ -810,6 +1193,232 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify"]
                     );
+                });
+            });
+
+            describe("Edge Cases", () => {
+                it("should handle extremely large data", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    // Test with 1MB data
+                    const largeData = new Uint8Array(1024 * 1024);
+                    for (let i = 0; i < largeData.length; i++) {
+                        largeData[i] = i % 256;
+                    }
+
+                    const signature = await global.crypto.subtle.sign(
+                        { name: "Ed25519" },
+                        keyPair.privateKey,
+                        largeData
+                    );
+
+                    const isValid = await global.crypto.subtle.verify(
+                        { name: "Ed25519" },
+                        keyPair.publicKey,
+                        signature,
+                        largeData
+                    );
+
+                    assert.strictEqual(isValid, true);
+                    assert.strictEqual(signature.byteLength, 64); // Ed25519 signatures are always 64 bytes
+                });
+
+                it("should handle concurrent operations", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+                    const numOperations = 15;
+
+                    // Concurrent signing
+                    const signPromises = Array(numOperations).fill().map(() =>
+                        global.crypto.subtle.sign({ name: "Ed25519" }, keyPair.privateKey, data)
+                    );
+
+                    const signatures = await Promise.all(signPromises);
+
+                    // All signatures should be deterministic and identical for Ed25519
+                    for (let i = 1; i < signatures.length; i++) {
+                        assert.deepStrictEqual(
+                            new Uint8Array(signatures[0]),
+                            new Uint8Array(signatures[i]),
+                            `Signature ${i} differs from signature 0`
+                        );
+                    }
+
+                    // Concurrent verification
+                    const verifyPromises = signatures.map(sig =>
+                        global.crypto.subtle.verify({ name: "Ed25519" }, keyPair.publicKey, sig, data)
+                    );
+
+                    const results = await Promise.all(verifyPromises);
+                    results.forEach((result, index) => {
+                        assert.strictEqual(result, true, `Verification failed for signature ${index}`);
+                    });
+                });
+
+                it("should handle malformed keys gracefully", async () => {
+                    const { Ed25519 } = testVectors;
+
+                    // Test with truncated PKCS8
+                    const truncatedPkcs8 = Buffer.from(Ed25519.pkcs8, 'hex').slice(0, 20);
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.importKey(
+                            'pkcs8',
+                            truncatedPkcs8,
+                            { name: "Ed25519" },
+                            true,
+                            ["sign"]
+                        );
+                    });
+
+                    // Test with corrupted SPKI
+                    const corruptedSpki = Buffer.from(Ed25519.spki, 'hex');
+                    corruptedSpki[10] = 0xFF; // Corrupt a byte
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.importKey(
+                            'spki',
+                            corruptedSpki,
+                            { name: "Ed25519" },
+                            true,
+                            ["verify"]
+                        );
+                    });
+                });
+
+                it("should handle edge cases in JWK format", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const jwkPublic = await global.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+                    const jwkPrivate = await global.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+                    // Test case sensitivity
+                    const jwkUpperCase = { ...jwkPublic, kty: "OKP", crv: "Ed25519" };
+                    const importedKey = await global.crypto.subtle.importKey(
+                        "jwk",
+                        jwkUpperCase,
+                        { name: "Ed25519" },
+                        true,
+                        ["verify"]
+                    );
+                    assert(importedKey instanceof CryptoKey);
+
+                    // Test with extra properties
+                    const jwkWithExtra = { ...jwkPrivate, extra_prop: "should_be_ignored" };
+                    const importedPrivateKey = await global.crypto.subtle.importKey(
+                        "jwk",
+                        jwkWithExtra,
+                        { name: "Ed25519" },
+                        true,
+                        ["sign"]
+                    );
+                    assert(importedPrivateKey instanceof CryptoKey);
+
+                    // Test with missing optional properties
+                    const jwkMinimal = {
+                        kty: jwkPublic.kty,
+                        crv: jwkPublic.crv,
+                        x: jwkPublic.x
+                    };
+                    const importedMinimal = await global.crypto.subtle.importKey(
+                        "jwk",
+                        jwkMinimal,
+                        { name: "Ed25519" },
+                        true,
+                        ["verify"]
+                    );
+                    assert(importedMinimal instanceof CryptoKey);
+                });
+
+                it("should validate signature determinism", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    // Sign the same data multiple times
+                    const sig1 = await global.crypto.subtle.sign({ name: "Ed25519" }, keyPair.privateKey, data);
+                    const sig2 = await global.crypto.subtle.sign({ name: "Ed25519" }, keyPair.privateKey, data);
+                    const sig3 = await global.crypto.subtle.sign({ name: "Ed25519" }, keyPair.privateKey, data);
+
+                    // Ed25519 signatures should be deterministic
+                    assert.deepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig2));
+                    assert.deepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig3));
+                });
+
+                it("should test Ed25519 internal consistency", async () => {
+                    // Test Ed25519 key generation and signing consistency
+                    const keyPair1 = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const keyPair2 = await global.crypto.subtle.generateKey(
+                        { name: "Ed25519" },
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    const data = Buffer.from([1, 2, 3, 4]);
+
+                    // Test that different keys produce different signatures
+                    const sig1 = await global.crypto.subtle.sign(
+                        { name: "Ed25519" },
+                        keyPair1.privateKey,
+                        data
+                    );
+
+                    const sig2 = await global.crypto.subtle.sign(
+                        { name: "Ed25519" },
+                        keyPair2.privateKey,
+                        data
+                    );
+
+                    // Signatures should be different with different keys
+                    assert.notDeepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig2));
+
+                    // But each key should verify its own signature
+                    const valid1 = await global.crypto.subtle.verify(
+                        { name: "Ed25519" },
+                        keyPair1.publicKey,
+                        sig1,
+                        data
+                    );
+
+                    const valid2 = await global.crypto.subtle.verify(
+                        { name: "Ed25519" },
+                        keyPair2.publicKey,
+                        sig2,
+                        data
+                    );
+
+                    assert.strictEqual(valid1, true);
+                    assert.strictEqual(valid2, true);
+
+                    // Cross-verification should fail
+                    const invalidCross = await global.crypto.subtle.verify(
+                        { name: "Ed25519" },
+                        keyPair1.publicKey,
+                        sig2,
+                        data
+                    );
+
+                    assert.strictEqual(invalidCross, false);
                 });
             });
         });
@@ -1228,6 +1837,1032 @@ describe("webcrypto", () => {
                     public: keyPair.publicKey,
                 }, restrictedPrivateKey, 256), {
                     message: /baseKey does not have deriveBits usage/
+                });
+            });
+
+            describe("Edge Cases", () => {
+                it("should handle derive operations with different bit lengths", async () => {
+                    const { publicKey: publicKey1, privateKey: privateKey1 } = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const { publicKey: publicKey2 } = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    // Test various bit lengths
+                    const bitLengths = [8, 16, 32, 64, 128, 256];
+
+                    for (const length of bitLengths) {
+                        const bits = await global.crypto.subtle.deriveBits(
+                            { name: 'ECDH', public: publicKey2 },
+                            privateKey1,
+                            length
+                        );
+
+                        assert.strictEqual(bits.byteLength, length / 8);
+                    }
+                });
+
+                it("should handle cross-curve compatibility errors", async () => {
+                    const curves = ["P-256", "P-384", "P-521"];
+                    const keyPairs = {};
+
+                    // Generate key pairs for each curve
+                    for (const curve of curves) {
+                        keyPairs[curve] = await global.crypto.subtle.generateKey(
+                            { name: "ECDH", namedCurve: curve },
+                            true,
+                            ["deriveKey", "deriveBits"]
+                        );
+                    }
+
+                    // Test that cross-curve operations fail
+                    for (let i = 0; i < curves.length; i++) {
+                        for (let j = 0; j < curves.length; j++) {
+                            if (i === j) continue;
+
+                            const curve1 = curves[i];
+                            const curve2 = curves[j];
+
+                            await assert.rejects(async () => {
+                                await global.crypto.subtle.deriveBits(
+                                    { name: 'ECDH', public: keyPairs[curve2].publicKey },
+                                    keyPairs[curve1].privateKey,
+                                    256
+                                );
+                            }, {
+                                message: /curve mismatch|Invalid key|key curves must match/
+                            });
+                        }
+                    }
+                });
+
+                it("should handle reasonable derived key lengths", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    // Test with maximum reasonable length for P-256 (256 bits = 32 bytes)
+                    const bits = await global.crypto.subtle.deriveBits(
+                        { name: 'ECDH', public: keyPair.publicKey },
+                        keyPair.privateKey,
+                        256
+                    );
+
+                    assert.strictEqual(bits.byteLength, 32);
+
+                    // Test with smaller lengths
+                    const bits128 = await global.crypto.subtle.deriveBits(
+                        { name: 'ECDH', public: keyPair.publicKey },
+                        keyPair.privateKey,
+                        128
+                    );
+
+                    assert.strictEqual(bits128.byteLength, 16);
+
+                    // Test that results are consistent
+                    const bits256Again = await global.crypto.subtle.deriveBits(
+                        { name: 'ECDH', public: keyPair.publicKey },
+                        keyPair.privateKey,
+                        256
+                    );
+
+                    assert.deepStrictEqual(new Uint8Array(bits), new Uint8Array(bits256Again));
+                });
+
+                it("should handle concurrent derive operations", async () => {
+                    const keyPair1 = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const keyPair2 = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const numOperations = 10;
+
+                    // Concurrent deriveBits operations
+                    const derivePromises = Array(numOperations).fill().map(() =>
+                        global.crypto.subtle.deriveBits(
+                            { name: 'ECDH', public: keyPair2.publicKey },
+                            keyPair1.privateKey,
+                            256
+                        )
+                    );
+
+                    const results = await Promise.all(derivePromises);
+
+                    // All results should be identical
+                    for (let i = 1; i < results.length; i++) {
+                        assert.deepStrictEqual(
+                            new Uint8Array(results[0]),
+                            new Uint8Array(results[i])
+                        );
+                    }
+                });
+
+                it("should validate ECDH key operations consistency", async () => {
+                    // Test ECDH key generation and derivation consistency
+                    const keyPair1 = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    const keyPair2 = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    // Derive shared secret using keyPair1.private + keyPair2.public
+                    const secret1 = await global.crypto.subtle.deriveBits(
+                        { name: 'ECDH', public: keyPair2.publicKey },
+                        keyPair1.privateKey,
+                        256
+                    );
+
+                    // Derive shared secret using keyPair2.private + keyPair1.public
+                    const secret2 = await global.crypto.subtle.deriveBits(
+                        { name: 'ECDH', public: keyPair1.publicKey },
+                        keyPair2.privateKey,
+                        256
+                    );
+
+                    // Shared secrets should be identical (ECDH property)
+                    assert.deepStrictEqual(new Uint8Array(secret1), new Uint8Array(secret2));
+
+                    // Test key properties
+                    assert(keyPair1.privateKey instanceof CryptoKey);
+                    assert(keyPair1.publicKey instanceof CryptoKey);
+                    assert.strictEqual(keyPair1.publicKey.algorithm.name, "ECDH");
+                    assert.strictEqual(keyPair1.privateKey.algorithm.name, "ECDH");
+                    assert.strictEqual(keyPair1.publicKey.algorithm.namedCurve, "P-256");
+                    assert.strictEqual(keyPair1.privateKey.algorithm.namedCurve, "P-256");
+                });
+
+                it("should handle invalid derive parameters", async () => {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDH", namedCurve: "P-256" },
+                        true,
+                        ["deriveKey", "deriveBits"]
+                    );
+
+                    // Test with null length (should use default or throw)
+                    try {
+                        const result = await global.crypto.subtle.deriveBits(
+                            { name: 'ECDH', public: keyPair.publicKey },
+                            keyPair.privateKey,
+                            null
+                        );
+                        // If it succeeds, verify it's reasonable
+                        assert(result instanceof ArrayBuffer);
+                        assert(result.byteLength > 0);
+                    } catch (e) {
+                        // It's also valid to throw an error
+                        assert(e instanceof Error || e instanceof TypeError);
+                    }
+
+                    // Test with missing public key (should definitely throw)
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.deriveBits(
+                            { name: 'ECDH' }, // Missing public key
+                            keyPair.privateKey,
+                            256
+                        );
+                    });
+
+                    // Test with wrong algorithm name
+                    await assert.rejects(async () => {
+                        await global.crypto.subtle.deriveBits(
+                            { name: 'INVALID', public: keyPair.publicKey },
+                            keyPair.privateKey,
+                            256
+                        );
+                    });
+                });
+            });
+        });
+
+        describe("HMAC Key Operations", () => {
+            const testVectors = [
+                {
+                    hash: 'SHA-256',
+                    key: Buffer.from('0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b', 'hex'),
+                    data: Buffer.from('4869205468657265', 'hex'),
+                    signature: Buffer.from('b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7', 'hex')
+                },
+                {
+                    hash: 'SHA-384',
+                    key: Buffer.from('0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b', 'hex'),
+                    data: Buffer.from('4869205468657265', 'hex'),
+                    signature: Buffer.from('afd03944d84895626b0825f4ab46907f15f9dadbe4101ec682aa034c7cebc59cfaea9ea9076ede7f4af152e8b2fa9cb6', 'hex')
+                },
+                {
+                    hash: 'SHA-512',
+                    key: Buffer.from('0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b', 'hex'),
+                    data: Buffer.from('4869205468657265', 'hex'),
+                    signature: Buffer.from('87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854', 'hex')
+                }
+            ];
+
+            describe("importKey", () => {
+                it("should import HMAC key with raw format and SHA-256", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: hash
+                        },
+                        false,
+                        ['sign', 'verify']
+                    );
+
+                    assert(cryptoKey instanceof CryptoKey);
+                    assert.strictEqual(cryptoKey.type, "secret");
+                    assert.strictEqual(cryptoKey.algorithm.name, "HMAC");
+                    assert.strictEqual(cryptoKey.algorithm.hash.name, hash);
+                    assert.deepStrictEqual(cryptoKey.usages.sort(), ["sign", "verify"]);
+                });
+
+                it("should import HMAC key with raw format and SHA-384", async () => {
+                    const { hash, key } = testVectors[1];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: hash
+                        },
+                        false,
+                        ['sign', 'verify']
+                    );
+
+                    assert(cryptoKey instanceof CryptoKey);
+                    assert.strictEqual(cryptoKey.type, "secret");
+                    assert.strictEqual(cryptoKey.algorithm.name, "HMAC");
+                    assert.strictEqual(cryptoKey.algorithm.hash.name, hash);
+                });
+
+                it("should import HMAC key with raw format and SHA-512", async () => {
+                    const { hash, key } = testVectors[2];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: hash
+                        },
+                        false,
+                        ['sign', 'verify']
+                    );
+
+                    assert(cryptoKey instanceof CryptoKey);
+                    assert.strictEqual(cryptoKey.type, "secret");
+                    assert.strictEqual(cryptoKey.algorithm.name, "HMAC");
+                    assert.strictEqual(cryptoKey.algorithm.hash.name, hash);
+                });
+
+                it("should import HMAC key with only sign usage", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: hash
+                        },
+                        false,
+                        ['sign']
+                    );
+
+                    assert.deepStrictEqual(cryptoKey.usages, ["sign"]);
+                });
+
+                it("should import HMAC key with only verify usage", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: hash
+                        },
+                        false,
+                        ['verify']
+                    );
+
+                    assert.deepStrictEqual(cryptoKey.usages, ["verify"]);
+                });
+
+                it("should support hash parameter as object", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        {
+                            name: 'HMAC',
+                            hash: { name: hash }
+                        },
+                        false,
+                        ['sign', 'verify']
+                    );
+
+                    assert.strictEqual(cryptoKey.algorithm.hash.name, hash);
+                });
+
+                it("should support different input types for key data", async () => {
+                    const { hash, key } = testVectors[0];
+
+                    // Test with Buffer
+                    const key1 = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    // Test with Uint8Array
+                    const key2 = await global.crypto.subtle.importKey(
+                        'raw',
+                        new Uint8Array(key),
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    // Test with ArrayBuffer
+                    const buffer = new ArrayBuffer(key.length);
+                    new Uint8Array(buffer).set(key);
+                    const key3 = await global.crypto.subtle.importKey(
+                        'raw',
+                        buffer,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    assert(key1 instanceof CryptoKey);
+                    assert(key2 instanceof CryptoKey);
+                    assert(key3 instanceof CryptoKey);
+                });
+            });
+
+            describe("exportKey", () => {
+                it("should export HMAC key in JWK format", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        true,  // extractable
+                        ['sign', 'verify']
+                    );
+
+                    const jwk = await global.crypto.subtle.exportKey('jwk', cryptoKey);
+
+                    assert.strictEqual(typeof jwk, 'object');
+                    assert.strictEqual(jwk.kty, 'oct');
+                    assert.strictEqual(typeof jwk.k, 'string');
+                    assert.strictEqual(jwk.alg, `HS${hash.replace('SHA-', '')}`);
+                });
+
+                it("should export HMAC key in raw format", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        true,  // extractable
+                        ['sign', 'verify']
+                    );
+
+                    const rawKey = await global.crypto.subtle.exportKey('raw', cryptoKey);
+
+                    assert(rawKey instanceof ArrayBuffer);
+                    assert.deepStrictEqual(new Uint8Array(rawKey), new Uint8Array(key));
+                });
+
+                it("should throw when exporting non-extractable key", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,  // not extractable
+                        ['sign', 'verify']
+                    );
+
+                    await assert.rejects(
+                        async () => {
+                            await global.crypto.subtle.exportKey('raw', cryptoKey);
+                        },
+                        {
+                            message: /[Kk]ey.*not.*extractable|not.*extractable/
+                        }
+                    );
+                });
+
+                it("should re-import exported JWK key", async () => {
+                    const { hash, key } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    const jwk = await global.crypto.subtle.exportKey('jwk', cryptoKey);
+                    const reimportedKey = await global.crypto.subtle.importKey(
+                        'jwk',
+                        jwk,
+                        { name: 'HMAC', hash },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    assert(reimportedKey instanceof CryptoKey);
+                    assert.strictEqual(reimportedKey.algorithm.name, 'HMAC');
+                    assert.strictEqual(reimportedKey.algorithm.hash.name, hash);
+                });
+            });
+
+            describe("sign", () => {
+                it("should return ArrayBuffer for all signature types", async () => {
+                    // Test HMAC
+                    const hmacKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        false,
+                        ['sign']
+                    );
+                    const data = new Uint8Array([1, 2, 3, 4]);
+                    const hmacSignature = await global.crypto.subtle.sign('HMAC', hmacKey, data);
+
+                    assert(hmacSignature instanceof ArrayBuffer, 'HMAC signature should be ArrayBuffer');
+                    assert.strictEqual(hmacSignature.constructor.name, 'ArrayBuffer', 'HMAC signature constructor should be ArrayBuffer');
+                    assert.strictEqual(typeof hmacSignature.byteLength, 'number', 'HMAC signature should have byteLength property');
+
+                    // Test ECDSA
+                    const ecdsaKeyPair = await global.crypto.subtle.generateKey(
+                        { name: 'ECDSA', namedCurve: 'P-256' },
+                        false,
+                        ['sign', 'verify']
+                    );
+                    const ecdsaSignature = await global.crypto.subtle.sign(
+                        { name: 'ECDSA', hash: 'SHA-256' },
+                        ecdsaKeyPair.privateKey,
+                        data
+                    );
+
+                    assert(ecdsaSignature instanceof ArrayBuffer, 'ECDSA signature should be ArrayBuffer');
+                    assert.strictEqual(ecdsaSignature.constructor.name, 'ArrayBuffer', 'ECDSA signature constructor should be ArrayBuffer');
+                    assert.strictEqual(typeof ecdsaSignature.byteLength, 'number', 'ECDSA signature should have byteLength property');
+
+                    // Test Ed25519
+                    const ed25519KeyPair = await global.crypto.subtle.generateKey(
+                        { name: 'Ed25519' },
+                        false,
+                        ['sign', 'verify']
+                    );
+                    const ed25519Signature = await global.crypto.subtle.sign(
+                        'Ed25519',
+                        ed25519KeyPair.privateKey,
+                        data
+                    );
+
+                    assert(ed25519Signature instanceof ArrayBuffer, 'Ed25519 signature should be ArrayBuffer');
+                    assert.strictEqual(ed25519Signature.constructor.name, 'ArrayBuffer', 'Ed25519 signature constructor should be ArrayBuffer');
+                    assert.strictEqual(typeof ed25519Signature.byteLength, 'number', 'Ed25519 signature should have byteLength property');
+                });
+
+                it("should sign data with HMAC-SHA256", async () => {
+                    const { hash, key, data, signature: expectedSignature } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+
+                    assert(signature instanceof ArrayBuffer);
+                    assert.deepStrictEqual(
+                        Buffer.from(signature),
+                        expectedSignature
+                    );
+                });
+
+                it("should sign data with HMAC-SHA384", async () => {
+                    const { hash, key, data, signature: expectedSignature } = testVectors[1];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+
+                    assert(signature instanceof ArrayBuffer);
+                    assert.deepStrictEqual(
+                        Buffer.from(signature),
+                        expectedSignature
+                    );
+                });
+
+                it("should sign data with HMAC-SHA512", async () => {
+                    const { hash, key, data, signature: expectedSignature } = testVectors[2];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+
+                    assert(signature instanceof ArrayBuffer);
+                    assert.deepStrictEqual(
+                        Buffer.from(signature),
+                        expectedSignature
+                    );
+                });
+
+                it("should support algorithm parameter as object with hash", async () => {
+                    const { hash, key, data } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    const signature = await global.crypto.subtle.sign(
+                        { name: 'HMAC', hash: { name: hash } },
+                        cryptoKey,
+                        data
+                    );
+
+                    assert(signature instanceof ArrayBuffer);
+                });
+
+                it("should support different input types for data", async () => {
+                    const { hash, key } = testVectors[0];
+                    const data = [1, 2, 3, 4];
+
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    // Test with Uint8Array
+                    const sig1 = await global.crypto.subtle.sign('HMAC', cryptoKey, new Uint8Array(data));
+
+                    // Test with ArrayBuffer
+                    const buffer = new ArrayBuffer(4);
+                    const view = new Uint8Array(buffer);
+                    view.set(data);
+                    const sig2 = await global.crypto.subtle.sign('HMAC', cryptoKey, buffer);
+
+                    // Test with Buffer
+                    const sig3 = await global.crypto.subtle.sign('HMAC', cryptoKey, Buffer.from(data));
+
+                    assert.deepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig2));
+                    assert.deepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig3));
+                });
+
+                it("should throw if key usage does not include sign", async () => {
+                    const { hash, key, data } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']  // Only verify, not sign
+                    );
+
+                    await assert.rejects(
+                        async () => {
+                            await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+                        },
+                        {
+                            message: /[Uu]nable.*sign|not.*sign.*usage|does.*not.*have.*sign/
+                        }
+                    );
+                });
+
+                it("should match Node.js crypto HMAC output", async () => {
+                    const { hash, key, data } = testVectors[0];
+
+                    // Create HMAC using WebCrypto
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']
+                    );
+
+                    const webCryptoSignature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+
+                    // Create HMAC using Node.js crypto module
+                    const hmac = crypto.createHmac(hash.toLowerCase().replace('-', ''), key);
+                    hmac.update(data);
+                    const nodeSignature = hmac.digest();
+
+                    assert.deepStrictEqual(
+                        Buffer.from(webCryptoSignature),
+                        nodeSignature
+                    );
+                });
+            });
+
+            describe("verify", () => {
+                it("should verify HMAC-SHA256 signature", async () => {
+                    const { hash, key, data, signature } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+
+                    assert.strictEqual(isValid, true);
+                });
+
+                it("should verify HMAC-SHA384 signature", async () => {
+                    const { hash, key, data, signature } = testVectors[1];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+
+                    assert.strictEqual(isValid, true);
+                });
+
+                it("should verify HMAC-SHA512 signature", async () => {
+                    const { hash, key, data, signature } = testVectors[2];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+
+                    assert.strictEqual(isValid, true);
+                });
+
+                it("should verify self-signed HMAC signature", async () => {
+                    const { hash, key, data } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign', 'verify']
+                    );
+
+                    const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+
+                    assert.strictEqual(isValid, true);
+                });
+
+                it("should fail verification with wrong signature", async () => {
+                    const { hash, key, data } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const wrongSignature = Buffer.alloc(32, 0xFF);
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, wrongSignature, data);
+
+                    assert.strictEqual(isValid, false);
+                });
+
+                it("should fail verification with altered data", async () => {
+                    const { hash, key, data, signature } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const alteredData = Buffer.from(data);
+                    alteredData[0] = 255 - alteredData[0];
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, alteredData);
+
+                    assert.strictEqual(isValid, false);
+                });
+
+                it("should throw if key usage does not include verify", async () => {
+                    const { hash, key, data, signature } = testVectors[0];
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['sign']  // Only sign, not verify
+                    );
+
+                    await assert.rejects(
+                        async () => {
+                            await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+                        },
+                        {
+                            message: /[Uu]nable.*verify|not.*verify.*usage|does.*not.*have.*verify/
+                        }
+                    );
+                });
+
+                it("should verify Node.js crypto HMAC signature", async () => {
+                    const { hash, key, data } = testVectors[0];
+
+                    // Create HMAC using Node.js crypto module
+                    const hmac = crypto.createHmac(hash.toLowerCase().replace('-', ''), key);
+                    hmac.update(data);
+                    const nodeSignature = hmac.digest();
+
+                    // Verify with WebCrypto
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash },
+                        false,
+                        ['verify']
+                    );
+
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, nodeSignature, data);
+
+                    assert.strictEqual(isValid, true);
+                });
+            });
+
+            describe("Edge Cases", () => {
+                it("should handle extremely small and large key sizes", async () => {
+                    // Test with very small key (8 bytes)
+                    const smallKey = new Uint8Array(8).fill(0xAA);
+                    const cryptoKeySmall = await global.crypto.subtle.importKey(
+                        'raw',
+                        smallKey,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    // Test with very large key (1KB)
+                    const largeKey = new Uint8Array(1024);
+                    for (let i = 0; i < largeKey.length; i++) {
+                        largeKey[i] = i % 256;
+                    }
+                    const cryptoKeyLarge = await global.crypto.subtle.importKey(
+                        'raw',
+                        largeKey,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    // Both should work
+                    const sigSmall = await global.crypto.subtle.sign('HMAC', cryptoKeySmall, data);
+                    const sigLarge = await global.crypto.subtle.sign('HMAC', cryptoKeyLarge, data);
+
+                    assert(sigSmall instanceof ArrayBuffer);
+                    assert(sigLarge instanceof ArrayBuffer);
+                    assert.strictEqual(sigSmall.byteLength, 32); // SHA-256 output
+                    assert.strictEqual(sigLarge.byteLength, 32); // SHA-256 output
+                });
+
+                it("should handle all combinations of hash algorithms", async () => {
+                    const hashes = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'];
+                    const expectedSizes = { 'SHA-1': 20, 'SHA-256': 32, 'SHA-384': 48, 'SHA-512': 64 };
+
+                    const keyData = new Uint8Array(32).fill(0x42);
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    for (const hash of hashes) {
+                        const cryptoKey = await global.crypto.subtle.importKey(
+                            'raw',
+                            keyData,
+                            { name: 'HMAC', hash },
+                            true,
+                            ['sign', 'verify']
+                        );
+
+                        const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+                        assert.strictEqual(signature.byteLength, expectedSizes[hash], `Wrong size for ${hash}`);
+
+                        const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, data);
+                        assert.strictEqual(isValid, true, `Verification failed for ${hash}`);
+                    }
+                });
+
+                it("should handle concurrent HMAC operations", async () => {
+                    const keyData = new Uint8Array(32).fill(0x42);
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        keyData,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+                    const numOperations = 20;
+
+                    // Concurrent signing
+                    const signPromises = Array(numOperations).fill().map(() =>
+                        global.crypto.subtle.sign('HMAC', cryptoKey, data)
+                    );
+
+                    const signatures = await Promise.all(signPromises);
+
+                    // All signatures should be identical (HMAC is deterministic)
+                    for (let i = 1; i < signatures.length; i++) {
+                        assert.deepStrictEqual(
+                            new Uint8Array(signatures[0]),
+                            new Uint8Array(signatures[i]),
+                            `Signature ${i} differs`
+                        );
+                    }
+
+                    // Concurrent verification
+                    const verifyPromises = signatures.map(sig =>
+                        global.crypto.subtle.verify('HMAC', cryptoKey, sig, data)
+                    );
+
+                    const results = await Promise.all(verifyPromises);
+                    results.forEach((result, index) => {
+                        assert.strictEqual(result, true, `Verification ${index} failed`);
+                    });
+                });
+
+                it("should handle malformed HMAC signatures", async () => {
+                    const keyData = new Uint8Array(32).fill(0x42);
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        keyData,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    const data = new Uint8Array([1, 2, 3, 4]);
+
+                    // Test with empty signature
+                    const valid1 = await global.crypto.subtle.verify('HMAC', cryptoKey, new ArrayBuffer(0), data);
+                    assert.strictEqual(valid1, false);
+
+                    // Test with wrong length signature
+                    const wrongLengthSig = new ArrayBuffer(16); // Should be 32 for SHA-256
+                    const valid2 = await global.crypto.subtle.verify('HMAC', cryptoKey, wrongLengthSig, data);
+                    assert.strictEqual(valid2, false);
+
+                    // Test with random signature
+                    const randomSig = new ArrayBuffer(32);
+                    new Uint8Array(randomSig).fill(0xFF);
+                    const valid3 = await global.crypto.subtle.verify('HMAC', cryptoKey, randomSig, data);
+                    assert.strictEqual(valid3, false);
+                });
+
+                it("should handle large data efficiently", async () => {
+                    const keyData = new Uint8Array(32).fill(0x42);
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        keyData,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    // Test with 10MB data
+                    const largeData = new Uint8Array(10 * 1024 * 1024);
+                    for (let i = 0; i < largeData.length; i++) {
+                        largeData[i] = i % 256;
+                    }
+
+                    const signature = await global.crypto.subtle.sign('HMAC', cryptoKey, largeData);
+                    const isValid = await global.crypto.subtle.verify('HMAC', cryptoKey, signature, largeData);
+
+                    assert.strictEqual(isValid, true);
+                    assert.strictEqual(signature.byteLength, 32); // SHA-256
+                });
+
+                it("should validate comprehensive Node.js compatibility", async () => {
+                    const testVectors = [
+                        { hash: 'SHA-1', key: Buffer.from('secret-key'), data: Buffer.from('test-data') },
+                        { hash: 'SHA-256', key: Buffer.from('another-secret'), data: Buffer.from('more-test-data') },
+                        { hash: 'SHA-384', key: Buffer.from('yet-another-key'), data: Buffer.from('even-more-data') },
+                        { hash: 'SHA-512', key: Buffer.from('final-secret-key'), data: Buffer.from('final-test-data') }
+                    ];
+
+                    for (const vector of testVectors) {
+                        // Create HMAC with Node.js
+                        const nodeHmac = crypto.createHmac(vector.hash.toLowerCase().replace('-', ''), vector.key);
+                        const nodeSignature = nodeHmac.update(vector.data).digest();
+
+                        // Import key to WebCrypto
+                        const cryptoKey = await global.crypto.subtle.importKey(
+                            'raw',
+                            vector.key,
+                            { name: 'HMAC', hash: vector.hash },
+                            true,
+                            ['sign', 'verify']
+                        );
+
+                        // Sign with WebCrypto
+                        const webSignature = await global.crypto.subtle.sign('HMAC', cryptoKey, vector.data);
+
+                        // Compare signatures
+                        assert.deepStrictEqual(
+                            new Uint8Array(webSignature),
+                            new Uint8Array(nodeSignature),
+                            `Signature mismatch for ${vector.hash}`
+                        );
+
+                        // Cross-verify
+                        const webVerified = await global.crypto.subtle.verify('HMAC', cryptoKey, nodeSignature, vector.data);
+                        assert.strictEqual(webVerified, true, `WebCrypto failed to verify Node.js signature for ${vector.hash}`);
+                    }
+                });
+
+                it("should handle JWK format edge cases", async () => {
+                    const keyData = new Uint8Array(32).fill(0x42);
+                    const cryptoKey = await global.crypto.subtle.importKey(
+                        'raw',
+                        keyData,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    const jwk = await global.crypto.subtle.exportKey('jwk', cryptoKey);
+
+                    // Test re-import with case variations
+                    const jwkVariation = {
+                        ...jwk,
+                        kty: 'oct',  // Ensure lowercase
+                        alg: 'HS256'  // Standard algorithm identifier
+                    };
+
+                    const reimportedKey = await global.crypto.subtle.importKey(
+                        'jwk',
+                        jwkVariation,
+                        { name: 'HMAC', hash: 'SHA-256' },
+                        true,
+                        ['sign', 'verify']
+                    );
+
+                    // Test that reimported key works the same
+                    const data = new Uint8Array([1, 2, 3, 4]);
+                    const sig1 = await global.crypto.subtle.sign('HMAC', cryptoKey, data);
+                    const sig2 = await global.crypto.subtle.sign('HMAC', reimportedKey, data);
+
+                    assert.deepStrictEqual(new Uint8Array(sig1), new Uint8Array(sig2));
                 });
             });
         });
@@ -1671,6 +3306,433 @@ describe("webcrypto", () => {
             }, publicKey, signature, data);
 
             assert.strictEqual(verified, true);
+        });
+    });
+
+    // Comprehensive edge case and error handling tests
+    describe("Comprehensive Edge Cases and Error Handling", () => {
+        describe("Memory and Resource Management", () => {
+            it("should handle multiple large key generations", async () => {
+                const keys = [];
+                const numKeys = 20;
+
+                for (let i = 0; i < numKeys; i++) {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-521" }, // Largest curve
+                        true,
+                        ["sign", "verify"]
+                    );
+                    keys.push(keyPair);
+                }
+
+                // Verify all keys are valid
+                const data = new Uint8Array([1, 2, 3, 4]);
+                for (const keyPair of keys) {
+                    const signature = await global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.privateKey,
+                        data
+                    );
+
+                    const isValid = await global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        signature,
+                        data
+                    );
+
+                    assert.strictEqual(isValid, true);
+                }
+            });
+
+            it("should handle rapid key operations", async () => {
+                const operations = [];
+                const numOps = 50;
+
+                for (let i = 0; i < numOps; i++) {
+                    operations.push(global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["sign", "verify"]
+                    ));
+                }
+
+                const keyPairs = await Promise.all(operations);
+                assert.strictEqual(keyPairs.length, numOps);
+
+                // Ensure all generated keys are unique
+                const publicKeyExports = await Promise.all(
+                    keyPairs.map(kp => global.crypto.subtle.exportKey("raw", kp.publicKey))
+                );
+
+                for (let i = 0; i < publicKeyExports.length; i++) {
+                    for (let j = i + 1; j < publicKeyExports.length; j++) {
+                        assert.notDeepStrictEqual(
+                            new Uint8Array(publicKeyExports[i]),
+                            new Uint8Array(publicKeyExports[j]),
+                            `Keys ${i} and ${j} are identical`
+                        );
+                    }
+                }
+            });
+        });
+
+        describe("Input Validation and Error Conditions", () => {
+            it("should handle null and undefined parameters gracefully", async () => {
+                // Test null algorithm
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest(null, new Uint8Array([1, 2, 3]));
+                });
+
+                // Test undefined data
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", undefined);
+                });
+
+                // Test null key in generateKey
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.generateKey(null, true, ["sign"]);
+                });
+            });
+
+            it("should handle invalid type conversions", async () => {
+                // Test that string data is accepted (fibjs auto-converts strings to buffers)
+                const stringResult = await global.crypto.subtle.digest("SHA-256", "test-string");
+                assert.strictEqual(stringResult.byteLength, 32);
+
+                // Test object data (should fail)
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", {});
+                });
+
+                // Test null data (should fail)
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", null);
+                });
+
+                // Test invalid generateKey calls
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.generateKey(
+                        { invalidProperty: true },
+                        true,
+                        ["sign"]
+                    );
+                });
+
+                // Test invalid key usages
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        "not-an-array"
+                    );
+                });
+            });
+
+            it("should handle extreme parameter values", async () => {
+                // Test with extremely large arrays for getRandomValues
+                assert.throws(() => {
+                    global.crypto.getRandomValues(new Uint8Array(65537)); // Over limit
+                });
+
+                // Test digest with maximum practical data size
+                const maxData = new Uint8Array(10 * 1024 * 1024); // 10MB
+                maxData.fill(0xAA);
+                const hash = await global.crypto.subtle.digest("SHA-256", maxData);
+                assert.strictEqual(hash.byteLength, 32);
+            });
+
+            it("should handle malformed key import data", async () => {
+                // Test with invalid JWK
+                const invalidJwk = {
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "invalid-base64",
+                    y: "also-invalid"
+                };
+
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.importKey(
+                        "jwk",
+                        invalidJwk,
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["verify"]
+                    );
+                });
+
+                // Test with truncated SPKI data
+                const truncatedSpki = new Uint8Array([48, 59, 48, 19]); // Invalid ASN.1
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.importKey(
+                        "spki",
+                        truncatedSpki,
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        true,
+                        ["verify"]
+                    );
+                });
+            });
+        });
+
+        describe("Cross-Algorithm Compatibility", () => {
+            it("should prevent cross-algorithm key usage", async () => {
+                const ecdsaKey = await global.crypto.subtle.generateKey(
+                    { name: "ECDSA", namedCurve: "P-256" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const ed25519Key = await global.crypto.subtle.generateKey(
+                    { name: "Ed25519" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const data = new Uint8Array([1, 2, 3, 4]);
+
+                // Try to use ECDSA key with Ed25519 algorithm
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.sign(
+                        { name: "Ed25519" },
+                        ecdsaKey.privateKey,
+                        data
+                    );
+                });
+
+                // Try to use Ed25519 key with ECDSA algorithm
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        ed25519Key.privateKey,
+                        data
+                    );
+                });
+            });
+
+            it("should handle algorithm parameter variations", async () => {
+                const keyPair = await global.crypto.subtle.generateKey(
+                    { name: "ECDSA", namedCurve: "P-256" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const data = new Uint8Array([1, 2, 3, 4]);
+
+                // Test different case variations
+                const signature1 = await global.crypto.subtle.sign(
+                    { name: "ECDSA", hash: "SHA-256" },
+                    keyPair.privateKey,
+                    data
+                );
+
+                const signature2 = await global.crypto.subtle.sign(
+                    { name: "ecdsa", hash: "sha-256" },
+                    keyPair.privateKey,
+                    data
+                );
+
+                // Both should work (case insensitive)
+                const valid1 = await global.crypto.subtle.verify(
+                    { name: "ECDSA", hash: "SHA-256" },
+                    keyPair.publicKey,
+                    signature1,
+                    data
+                );
+
+                const valid2 = await global.crypto.subtle.verify(
+                    { name: "ecdsa", hash: "sha-256" },
+                    keyPair.publicKey,
+                    signature2,
+                    data
+                );
+
+                assert.strictEqual(valid1, true);
+                assert.strictEqual(valid2, true);
+            });
+        });
+
+        describe("Performance and Stress Testing", () => {
+            it("should handle high-frequency operations", async () => {
+                const keyPair = await global.crypto.subtle.generateKey(
+                    { name: "ECDSA", namedCurve: "P-256" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const operations = [];
+                const numOps = 100;
+                const data = new Uint8Array([1, 2, 3, 4]);
+
+                // High-frequency signing
+                for (let i = 0; i < numOps; i++) {
+                    operations.push(global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.privateKey,
+                        data
+                    ));
+                }
+
+                const signatures = await Promise.all(operations);
+                assert.strictEqual(signatures.length, numOps);
+
+                // Verify all signatures
+                const verifications = signatures.map(sig =>
+                    global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        keyPair.publicKey,
+                        sig,
+                        data
+                    )
+                );
+
+                const results = await Promise.all(verifications);
+                results.forEach((result, index) => {
+                    assert.strictEqual(result, true, `Verification ${index} failed`);
+                });
+            });
+
+            it("should handle mixed algorithm concurrent operations", async () => {
+                const ecdsaKeyPair = await global.crypto.subtle.generateKey(
+                    { name: "ECDSA", namedCurve: "P-256" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const ed25519KeyPair = await global.crypto.subtle.generateKey(
+                    { name: "Ed25519" },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                const hmacKey = await global.crypto.subtle.importKey(
+                    'raw',
+                    new Uint8Array(32).fill(0x42),
+                    { name: 'HMAC', hash: 'SHA-256' },
+                    true,
+                    ['sign', 'verify']
+                );
+
+                const data = new Uint8Array([1, 2, 3, 4]);
+
+                // Concurrent operations across different algorithms
+                const [ecdsaSig, ed25519Sig, hmacSig, hash] = await Promise.all([
+                    global.crypto.subtle.sign(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        ecdsaKeyPair.privateKey,
+                        data
+                    ),
+                    global.crypto.subtle.sign(
+                        { name: "Ed25519" },
+                        ed25519KeyPair.privateKey,
+                        data
+                    ),
+                    global.crypto.subtle.sign(
+                        'HMAC',
+                        hmacKey,
+                        data
+                    ),
+                    global.crypto.subtle.digest("SHA-256", data)
+                ]);
+
+                // Verify all operations succeeded
+                assert(ecdsaSig instanceof ArrayBuffer);
+                assert(ed25519Sig instanceof ArrayBuffer);
+                assert(hmacSig instanceof ArrayBuffer);
+                assert(hash instanceof ArrayBuffer);
+
+                // Cross-verify
+                const [ecdsaValid, ed25519Valid, hmacValid] = await Promise.all([
+                    global.crypto.subtle.verify(
+                        { name: "ECDSA", hash: "SHA-256" },
+                        ecdsaKeyPair.publicKey,
+                        ecdsaSig,
+                        data
+                    ),
+                    global.crypto.subtle.verify(
+                        { name: "Ed25519" },
+                        ed25519KeyPair.publicKey,
+                        ed25519Sig,
+                        data
+                    ),
+                    global.crypto.subtle.verify(
+                        'HMAC',
+                        hmacKey,
+                        hmacSig,
+                        data
+                    )
+                ]);
+
+                assert.strictEqual(ecdsaValid, true);
+                assert.strictEqual(ed25519Valid, true);
+                assert.strictEqual(hmacValid, true);
+            });
+        });
+
+        describe("Platform Compatibility Validation", () => {
+            it("should match Node.js crypto behavior for all digest algorithms", async () => {
+                const testData = new Uint8Array([72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]); // "Hello World"
+                const algorithms = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'];
+
+                for (const algorithm of algorithms) {
+                    const webCryptoHash = await global.crypto.subtle.digest(algorithm, testData);
+                    const nodeAlgorithm = algorithm.toLowerCase().replace('-', '');
+                    const nodeHash = crypto.createHash(nodeAlgorithm).update(testData).digest();
+
+                    assert.deepStrictEqual(
+                        new Uint8Array(webCryptoHash),
+                        new Uint8Array(nodeHash),
+                        `${algorithm} mismatch between WebCrypto and Node.js`
+                    );
+                }
+            });
+
+            it("should maintain consistent key export formats", async () => {
+                const algorithms = [
+                    { name: "ECDSA", namedCurve: "P-256" },
+                    { name: "ECDSA", namedCurve: "P-384" },
+                    { name: "ECDSA", namedCurve: "P-521" }
+                ];
+
+                for (const algorithm of algorithms) {
+                    const keyPair = await global.crypto.subtle.generateKey(
+                        algorithm,
+                        true,
+                        ["sign", "verify"]
+                    );
+
+                    // Export in all supported formats
+                    const [jwkPublic, jwkPrivate, spki, pkcs8, raw] = await Promise.all([
+                        global.crypto.subtle.exportKey("jwk", keyPair.publicKey),
+                        global.crypto.subtle.exportKey("jwk", keyPair.privateKey),
+                        global.crypto.subtle.exportKey("spki", keyPair.publicKey),
+                        global.crypto.subtle.exportKey("pkcs8", keyPair.privateKey),
+                        global.crypto.subtle.exportKey("raw", keyPair.publicKey)
+                    ]);
+
+                    // Verify format integrity
+                    assert.strictEqual(typeof jwkPublic, "object");
+                    assert.strictEqual(typeof jwkPrivate, "object");
+                    assert(spki instanceof ArrayBuffer);
+                    assert(pkcs8 instanceof ArrayBuffer);
+                    assert(raw instanceof ArrayBuffer);
+
+                    // Verify JWK structure
+                    assert.strictEqual(jwkPublic.kty, "EC");
+                    assert.strictEqual(jwkPrivate.kty, "EC");
+                    assert.strictEqual(jwkPublic.crv, algorithm.namedCurve);
+                    assert.strictEqual(jwkPrivate.crv, algorithm.namedCurve);
+
+                    // Test round-trip import
+                    const [reimportedPublic, reimportedPrivate] = await Promise.all([
+                        global.crypto.subtle.importKey("jwk", jwkPublic, algorithm, true, ["verify"]),
+                        global.crypto.subtle.importKey("jwk", jwkPrivate, algorithm, true, ["sign"])
+                    ]);
+
+                    assert(reimportedPublic instanceof CryptoKey);
+                    assert(reimportedPrivate instanceof CryptoKey);
+                }
+            });
         });
     });
 });

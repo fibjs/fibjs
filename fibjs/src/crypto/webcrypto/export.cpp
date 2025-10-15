@@ -22,8 +22,54 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
     if (!ckey->m_extractable)
         return Runtime::setError("Key is not extractable");
 
-    if (format == "jwk")
-        return ckey->m_key->export_json(retVal);
+    if (format == "jwk") {
+        result_t hr = ckey->m_key->export_json(retVal);
+        if (hr < 0)
+            return hr;
+
+        // For HMAC keys, add the 'alg' field to the JWK
+        if (ckey->m_key_type == kKeyNameHMAC && keyType == KeyObject::kKeyTypeSecret) {
+            // Get the hash algorithm from the key's algorithm
+            obj_ptr<NObject> algorithm = ckey->m_algorithm;
+            if (algorithm) {
+                Variant hashValue;
+                hr = algorithm->get("hash", hashValue);
+
+                exlib::string hash;
+                // Extract hash string from either object {name: "SHA-256"} or direct string "SHA-256"
+                if (hr == 0 && hashValue.type() == Variant::VT_Object) {
+                    obj_ptr<NObject> hashObj = (NObject*)hashValue.object();
+                    if (hashObj) {
+                        Variant nameValue;
+                        if (hashObj->get("name", nameValue) == 0 && nameValue.type() == Variant::VT_String) {
+                            hash = nameValue.string();
+                        }
+                    }
+                } else if (hr == 0 && hashValue.type() == Variant::VT_String) {
+                    hash = hashValue.string();
+                }
+
+                // Convert hash to JWK alg field
+                if (!hash.empty()) {
+                    exlib::string alg;
+                    if (hash == "SHA-256")
+                        alg = "HS256";
+                    else if (hash == "SHA-384")
+                        alg = "HS384";
+                    else if (hash == "SHA-512")
+                        alg = "HS512";
+
+                    if (!alg.empty() && retVal.type() == Variant::VT_Object) {
+                        obj_ptr<NObject> jwk = (NObject*)retVal.object();
+                        if (jwk) {
+                            jwk->add("alg", alg);
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
 
     exlib::string type;
     if (format != "raw") {
@@ -36,6 +82,18 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
         return ckey->m_key->ExportPublicKey(format, type, retVal, true); // Use BackingStore for webcrypto
     case KeyObject::kKeyTypePrivate:
         return ckey->m_key->ExportPrivateKey(format, type, "", nullptr, retVal, true); // Use BackingStore for webcrypto
+    case KeyObject::kKeyTypeSecret:
+        if (format == "raw") {
+            // Export secret key as raw bytes
+            KeyObject* key_obj = (KeyObject*)ckey->m_key.get();
+            std::shared_ptr<v8::BackingStore> store = NewBackingStore(key_obj->length());
+            if (key_obj->length() > 0 && store->Data() && key_obj->data()) {
+                memcpy(store->Data(), key_obj->data(), key_obj->length());
+            }
+            retVal = store;
+            return 0;
+        }
+        return Runtime::setError("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats");
     }
 
     return Runtime::setError("Invalid key type");
@@ -83,7 +141,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
     key->m_key = new KeyObject();
     if (format == "jwk") {
         obj_ptr<NObject> jwk = (NObject*)ac->m_ctx[1].object();
-        hr = key->m_key->ImportJWKAsymmetricKey(jwk, KeyObject::kKeyTypeUnknown);
+        hr = key->m_key->ImportJWKKey(jwk, KeyObject::kKeyTypeUnknown);
         if (hr < 0)
             return hr;
 
@@ -103,7 +161,10 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             hr = key->m_key->ParsePublicKey(format, "", key->m_algorithm->get("namedCurve").string(), nullptr, buf);
         else if (key->m_key_type == kKeyNameEd25519 && format == "raw")
             hr = key->m_key->ParsePublicKey(format, "", "Ed25519", nullptr, buf);
-        else
+        else if (key->m_key_type == kKeyNameHMAC && format == "raw") {
+            Buffer* b = Buffer::Cast(buf);
+            hr = ((KeyObject*)key->m_key.get())->createSecretKey(b->data(), b->length());
+        } else
             return Runtime::setError("WebCrypto: unknown key format: " + format);
 
         if (hr < 0)

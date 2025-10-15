@@ -6,14 +6,6 @@ module subtle
 {
     /*! @brief 计算给定数据的哈希值
 
-    @param algorithm 指定哈希算法
-    @param data 指定要计算哈希值的数据
-    @return 返回计算得到的哈希值
-    */
-    static ArrayBuffer digest(String algorithm, Buffer data) promise;
-
-    /*! @brief 计算给定数据的哈希值
-
     algorithm 的 name 属性指定哈希算法，例如：
     ```
     {
@@ -26,6 +18,14 @@ module subtle
     @return 返回计算得到的哈希值
     */
     static ArrayBuffer digest(Object algorithm, Buffer data) promise;
+
+    /*! @brief 计算给定数据的哈希值
+
+    @param algorithm 指定哈希算法
+    @param data 指定要计算哈希值的数据
+    @return 返回计算得到的哈希值
+    */
+    static ArrayBuffer digest(String algorithm, Buffer data) promise;
 
     /*! @brief 导出 key 的信息，如果 key 不可导出，则返回一个错误
 
@@ -42,7 +42,7 @@ module subtle
     @param usages 指定 key 的用途
     @return 返回生成的 key
     */
-    static Variant generateKey(String algorithm, Boolean extractable, Array usages) promise;
+    static Variant generateKey(Object algorithm, Boolean extractable, Array usages) promise;
 
     /*! @brief 生成一个新的 key
 
@@ -51,7 +51,7 @@ module subtle
     @param usages 指定 key 的用途
     @return 返回生成的 key
     */
-    static Variant generateKey(Object algorithm, Boolean extractable, Array usages) promise;
+    static Variant generateKey(String algorithm, Boolean extractable, Array usages) promise;
 
     /*! @brief 导入 key
 
@@ -82,7 +82,7 @@ module subtle
     @param data 指定要签名的数据
     @return 返回签名后的数据
     */
-    static Buffer sign(String algorithm, CryptoKey key, Buffer data) promise;
+    static ArrayBuffer sign(Object algorithm, CryptoKey key, Buffer data) promise;
 
     /*! @brief 使用 key 对数据进行签名
 
@@ -91,17 +91,7 @@ module subtle
     @param data 指定要签名的数据
     @return 返回签名后的数据
     */
-    static Buffer sign(Object algorithm, CryptoKey key, Buffer data) promise;
-
-    /*! @brief 使用 key 对数据进行验签
-
-    @param algorithm 指定签名算法
-    @param key 指定用于验签的 key
-    @param signature 指定签名数据
-    @param data 指定要验签的数据
-    @return 返回验签结果
-    */
-    static Boolean verify(String algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
+    static ArrayBuffer sign(String algorithm, CryptoKey key, Buffer data) promise;
 
     /*! @brief 使用 key 对数据进行验签
 
@@ -113,13 +103,15 @@ module subtle
     */
     static Boolean verify(Object algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
 
-    /*! @brief 从基本密钥派生出位数组
-    @param algorithm 指定派生算法
-    @param baseKey 指定用于派生的基本密钥
-    @param length 指定派生的位数
-    @return 返回派生得到的位数组
+    /*! @brief 使用 key 对数据进行验签
+
+    @param algorithm 指定签名算法
+    @param key 指定用于验签的 key
+    @param signature 指定签名数据
+    @param data 指定要验签的数据
+    @return 返回验签结果
     */
-    static ArrayBuffer deriveBits(String algorithm, CryptoKey baseKey, Integer length = -1) promise;
+    static Boolean verify(String algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
 
     /*! @brief 从基本密钥派生出位数组
     @param algorithm 指定派生算法
@@ -128,4 +120,12 @@ module subtle
     @return 返回派生得到的位数组
     */
     static ArrayBuffer deriveBits(Object algorithm, CryptoKey baseKey, Integer length = -1) promise;
+
+    /*! @brief 从基本密钥派生出位数组
+    @param algorithm 指定派生算法
+    @param baseKey 指定用于派生的基本密钥
+    @param length 指定派生的位数
+    @return 返回派生得到的位数组
+    */
+    static ArrayBuffer deriveBits(String algorithm, CryptoKey baseKey, Integer length = -1) promise;
 };
