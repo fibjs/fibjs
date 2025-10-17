@@ -2,6 +2,7 @@
 /// <reference path="../module/crypto_constants.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
+/// <reference path="../interface/ECDH.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Cipher.d.ts" />
@@ -35,6 +36,14 @@ declare module 'crypto' {
      *      
      */
     function getHashes(): any[];
+
+    /**
+     * @description 根据给定的 ECC 曲线名称创建一个 ECDH 对象
+     *      @param curve 指定 ECC 曲线名称
+     *      @return 返回 ECDH 对象
+     *     
+     */
+    function createECDH(curve: string): Class_ECDH;
 
     /**
      * @description 根据给定的算法名称创建一个信息摘要对象

@@ -15,6 +15,12 @@ module crypto
      */
     static Array getHashes();
 
+    /*! @brief 根据给定的 ECC 曲线名称创建一个 ECDH 对象
+     @param curve 指定 ECC 曲线名称
+     @return 返回 ECDH 对象
+    */
+    static ECDH createECDH(String curve);
+
     /*! @brief 根据给定的算法名称创建一个信息摘要对象
      @param algo 指定信息摘要对象的算法
      @return 返回信息摘要对象

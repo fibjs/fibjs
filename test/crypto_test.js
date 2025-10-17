@@ -4284,5 +4284,7 @@ describe('crypto', () => {
         assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])));
         assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'));
     });
+
+    require("./ecdh_test.js");
 });
 

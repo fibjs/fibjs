@@ -18,6 +18,7 @@ namespace fibjs {
 class crypto_constants_base;
 class KeyObject_base;
 class X509Certificate_base;
+class ECDH_base;
 class Digest_base;
 class Buffer_base;
 class Cipher_base;
@@ -54,6 +55,7 @@ public:
 public:
     // crypto_base
     static result_t getHashes(v8::Local<v8::Array>& retVal);
+    static result_t createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
     static result_t createHmac(exlib::string algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t getCiphers(v8::Local<v8::Array>& retVal);
@@ -127,6 +129,7 @@ public:
 
 public:
     static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createECDH(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getCiphers(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -190,6 +193,7 @@ public:
 #include "ifs/crypto_constants.h"
 #include "ifs/KeyObject.h"
 #include "ifs/X509Certificate.h"
+#include "ifs/ECDH.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/Cipher.h"
@@ -204,6 +208,7 @@ inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "getHashes", s_static_getHashes, true, ClassData::ASYNC_SYNC },
+        { "createECDH", s_static_createECDH, true, ClassData::ASYNC_SYNC },
         { "createHash", s_static_createHash, true, ClassData::ASYNC_SYNC },
         { "createHmac", s_static_createHmac, true, ClassData::ASYNC_SYNC },
         { "getCiphers", s_static_getCiphers, true, ClassData::ASYNC_SYNC },
@@ -266,6 +271,21 @@ inline void crypto_base::s_static_getHashes(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(0, 0);
 
     hr = getHashes(vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createECDH(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ECDH_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = createECDH(v0, vr);
 
     METHOD_RETURN();
 }
