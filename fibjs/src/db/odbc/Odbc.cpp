@@ -226,8 +226,14 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         return CHECK_ERROR(Runtime::setError("odbc: no driver specified."));
 
     exlib::string pathname = u->pathname();
+    
+    exlib::string username;
+    exlib::string password;
+    Url::decodeURI(u->username(), username);
+    Url::decodeURI(u->password(), password);
+
     return odbc_connect(driver, u->hostname().c_str(), port,
-        u->username().c_str(), u->password().c_str(),
+        username.c_str(), password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn);
 }
 

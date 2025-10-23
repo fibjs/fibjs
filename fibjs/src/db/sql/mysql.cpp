@@ -183,8 +183,14 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     obj_ptr<mysql> conn = new mysql();
 
     exlib::string pathname = u->pathname();
-    hr = conn->connect(u->hostname().c_str(), nPort, u->username().c_str(),
-        u->password().c_str(),
+
+    exlib::string username;
+    exlib::string password;
+    Url::decodeURI(u->username(), username);
+    Url::decodeURI(u->password(), password);
+
+    hr = conn->connect(u->hostname().c_str(), nPort, username.c_str(),
+        password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "");
     if (hr < 0)
         return hr;
