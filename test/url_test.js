@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+const { describe, it, todo } = require('node:test');
+const assert = require('node:assert');
 
 const isWindows = process.platform === 'win32';
 const isFibjs = typeof process !== 'undefined' && process.versions && process.versions.fibjs;
@@ -2956,6 +2956,870 @@ describe("url", () => {
 
         assert.strictEqual(urls.length, 100);
         assert.strictEqual(urls[50].pathname, '/updated/50');
+    });
+
+    describe("URL Authentication", () => {
+        describe("Classic API (url.parse)", () => {
+            it("should parse basic auth correctly", () => {
+                const testCases = [
+                    {
+                        input: "http://user:pass@example.com/",
+                        expected: { auth: "user:pass" }
+                    },
+                    {
+                        input: "http://user@example.com/",
+                        expected: { auth: "user" }
+                    },
+                    {
+                        input: "http://:pass@example.com/",
+                        expected: { auth: ":pass" }
+                    },
+                    {
+                        input: "http://:@example.com/",
+                        expected: { auth: ":" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = url.parse(input);
+                    assert.strictEqual(parsed.auth, expected.auth);
+                });
+            });
+
+            it("should handle encoded characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%3Aname:pass%40word@example.com/",
+                        expected: { auth: "user:name:pass@word" }
+                    },
+                    {
+                        input: "http://user%40domain:pass%3Aword@example.com/",
+                        expected: { auth: "user@domain:pass:word" }
+                    },
+                    {
+                        input: "http://user%2Fname:pass%2Fword@example.com/",
+                        expected: { auth: "user/name:pass/word" }
+                    },
+                    {
+                        input: "http://user%20name:pass%20word@example.com/",
+                        expected: { auth: "user name:pass word" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = url.parse(input);
+                    assert.strictEqual(parsed.auth, expected.auth);
+                });
+            });
+
+            it("should handle special characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%21:pass%21@example.com/",
+                        expected: { auth: "user!:pass!" }
+                    },
+                    {
+                        input: "http://user%24:pass%24@example.com/",
+                        expected: { auth: "user$:pass$" }
+                    },
+                    {
+                        input: "http://user%26:pass%26@example.com/",
+                        expected: { auth: "user&:pass&" }
+                    },
+                    {
+                        input: "http://user%27:pass%27@example.com/",
+                        expected: { auth: "user':pass'" }
+                    },
+                    {
+                        input: "http://user%28:pass%29@example.com/",
+                        expected: { auth: "user(:pass)" }
+                    },
+                    {
+                        input: "http://user%2A:pass%2B@example.com/",
+                        expected: { auth: "user*:pass+" }
+                    },
+                    {
+                        input: "http://user%2C:pass%3B@example.com/",
+                        expected: { auth: "user,:pass;" }
+                    },
+                    {
+                        input: "http://user%3D:pass%3F@example.com/",
+                        expected: { auth: "user=:pass?" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = url.parse(input);
+                    assert.strictEqual(parsed.auth, expected.auth);
+                });
+            });
+
+            it("should handle Unicode characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%C3%A9:pass%C3%A9@example.com/",
+                        expected: { auth: "useré:passé" }
+                    },
+                    {
+                        input: "http://%E4%B8%AD%E6%96%87:%E5%AF%86%E7%A0%81@example.com/",
+                        expected: { auth: "中文:密码" }
+                    },
+                    {
+                        input: "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",
+                        expected: { auth: "😀:🔒" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = url.parse(input);
+                    assert.strictEqual(parsed.auth, expected.auth);
+                });
+            });
+
+            it("should handle empty auth components", () => {
+                const testCases = [
+                    {
+                        input: "http://example.com/",
+                        expected: { auth: null }
+                    },
+                    {
+                        input: "http://@example.com/",
+                        expected: { auth: "" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = url.parse(input);
+                    assert.strictEqual(parsed.auth, expected.auth);
+                });
+            });
+        });
+
+        describe("WHATWG URL API", () => {
+            it("should parse basic auth correctly", () => {
+                const testCases = [
+                    {
+                        input: "http://user:pass@example.com/",
+                        expected: { username: "user", password: "pass" }
+                    },
+                    {
+                        input: "http://user@example.com/",
+                        expected: { username: "user", password: "" }
+                    },
+                    {
+                        input: "http://:pass@example.com/",
+                        expected: { username: "", password: "pass" }
+                    },
+                    {
+                        input: "http://:@example.com/",
+                        expected: { username: "", password: "" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = new URL(input);
+                    assert.strictEqual(parsed.username, expected.username);
+                    assert.strictEqual(parsed.password, expected.password);
+                });
+            });
+
+            it("should handle percent-encoded characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%3Aname:pass%40word@example.com/",
+                        expected: { username: "user%3Aname", password: "pass%40word" }
+                    },
+                    {
+                        input: "http://user%40domain:pass%3Aword@example.com/",
+                        expected: { username: "user%40domain", password: "pass%3Aword" }
+                    },
+                    {
+                        input: "http://user%2Fname:pass%2Fword@example.com/",
+                        expected: { username: "user%2Fname", password: "pass%2Fword" }
+                    },
+                    {
+                        input: "http://user%20name:pass%20word@example.com/",
+                        expected: { username: "user%20name", password: "pass%20word" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = new URL(input);
+                    assert.strictEqual(parsed.username, expected.username);
+                    assert.strictEqual(parsed.password, expected.password);
+                });
+            });
+
+            it("should handle special characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%21:pass%21@example.com/",
+                        expected: { username: "user%21", password: "pass%21" }
+                    },
+                    {
+                        input: "http://user%24:pass%24@example.com/",
+                        expected: { username: "user%24", password: "pass%24" }
+                    },
+                    {
+                        input: "http://user%26:pass%26@example.com/",
+                        expected: { username: "user%26", password: "pass%26" }
+                    },
+                    {
+                        input: "http://user%27:pass%27@example.com/",
+                        expected: { username: "user%27", password: "pass%27" }
+                    },
+                    {
+                        input: "http://user%28:pass%29@example.com/",
+                        expected: { username: "user%28", password: "pass%29" }
+                    },
+                    {
+                        input: "http://user%2A:pass%2B@example.com/",
+                        expected: { username: "user%2A", password: "pass%2B" }
+                    },
+                    {
+                        input: "http://user%2C:pass%3B@example.com/",
+                        expected: { username: "user%2C", password: "pass%3B" }
+                    },
+                    {
+                        input: "http://user%3D:pass%3F@example.com/",
+                        expected: { username: "user%3D", password: "pass%3F" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = new URL(input);
+                    assert.strictEqual(parsed.username, expected.username);
+                    assert.strictEqual(parsed.password, expected.password);
+                });
+            });
+
+            it("should handle Unicode characters in auth", () => {
+                const testCases = [
+                    {
+                        input: "http://user%C3%A9:pass%C3%A9@example.com/",
+                        expected: { username: "user%C3%A9", password: "pass%C3%A9" }
+                    },
+                    {
+                        input: "http://%E4%B8%AD%E6%96%87:%E5%AF%86%E7%A0%81@example.com/",
+                        expected: { username: "%E4%B8%AD%E6%96%87", password: "%E5%AF%86%E7%A0%81" }
+                    },
+                    {
+                        input: "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",
+                        expected: { username: "%F0%9F%98%80", password: "%F0%9F%94%92" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = new URL(input);
+                    assert.strictEqual(parsed.username, expected.username);
+                    assert.strictEqual(parsed.password, expected.password);
+                });
+            });
+
+            it("should handle empty auth components", () => {
+                const testCases = [
+                    {
+                        input: "http://example.com/",
+                        expected: { username: "", password: "" }
+                    },
+                    {
+                        input: "http://@example.com/",
+                        expected: { username: "", password: "" }
+                    }
+                ];
+
+                testCases.forEach(({ input, expected }) => {
+                    const parsed = new URL(input);
+                    assert.strictEqual(parsed.username, expected.username);
+                    assert.strictEqual(parsed.password, expected.password);
+                });
+            });
+
+            it("should allow setting username and password properties", () => {
+                const url = new URL("http://example.com/");
+
+                // Set username
+                url.username = "testuser";
+                assert.strictEqual(url.username, "testuser");
+                assert.strictEqual(url.href, "http://testuser@example.com/");
+
+                // Set password
+                url.password = "testpass";
+                assert.strictEqual(url.password, "testpass");
+                assert.strictEqual(url.href, "http://testuser:testpass@example.com/");
+
+                // Set username with special characters
+                url.username = "user@domain";
+                assert.strictEqual(url.username, "user%40domain");
+                assert.strictEqual(url.href, "http://user%40domain:testpass@example.com/");
+
+                // Set password with special characters
+                url.password = "pass:word";
+                assert.strictEqual(url.password, "pass%3Aword");
+                assert.strictEqual(url.href, "http://user%40domain:pass%3Aword@example.com/");
+            });
+
+            it("should handle setting Unicode auth", () => {
+                const url = new URL("http://example.com/");
+
+                // Set Unicode username
+                url.username = "用户";
+                assert.strictEqual(url.username, "%E7%94%A8%E6%88%B7");
+                assert.strictEqual(url.href, "http://%E7%94%A8%E6%88%B7@example.com/");
+
+                // Set Unicode password
+                url.password = "密码";
+                assert.strictEqual(url.password, "%E5%AF%86%E7%A0%81");
+                assert.strictEqual(url.href, "http://%E7%94%A8%E6%88%B7:%E5%AF%86%E7%A0%81@example.com/");
+
+                // Set emoji
+                url.username = "😀";
+                url.password = "🔒";
+                assert.strictEqual(url.username, "%F0%9F%98%80");
+                assert.strictEqual(url.password, "%F0%9F%94%92");
+                assert.strictEqual(url.href, "http://%F0%9F%98%80:%F0%9F%94%92@example.com/");
+            });
+
+            it("should clear auth when setting empty values", () => {
+                const url = new URL("http://user:pass@example.com/");
+
+                // Clear password
+                url.password = "";
+                assert.strictEqual(url.password, "");
+                assert.strictEqual(url.href, "http://user@example.com/");
+
+                // Clear username
+                url.username = "";
+                assert.strictEqual(url.username, "");
+                assert.strictEqual(url.href, "http://example.com/");
+            });
+        });
+
+        describe("Auth encoding edge cases", () => {
+            it("should handle reserved characters correctly", () => {
+                // Test characters that need encoding in userinfo
+                const reservedChars = [
+                    { char: "@", encoded: "%40" },
+                    { char: ":", encoded: "%3A" },
+                    { char: "/", encoded: "%2F" },
+                    { char: "?", encoded: "%3F" },
+                    { char: "#", encoded: "%23" },
+                    { char: "[", encoded: "%5B" },
+                    { char: "]", encoded: "%5D" },
+                    { char: " ", encoded: "%20" }
+                ];
+
+                reservedChars.forEach(({ char, encoded }) => {
+                    // Test in URL string
+                    const urlString = `http://user${encoded}:pass${encoded}@example.com/`;
+                    const parsedClassic = url.parse(urlString);
+                    const parsedWHATWG = new URL(urlString);
+
+                    assert.strictEqual(parsedClassic.auth, `user${char}:pass${char}`);
+                    assert.strictEqual(parsedWHATWG.username, `user${encoded}`);
+                    assert.strictEqual(parsedWHATWG.password, `pass${encoded}`);
+
+                    // Test setting via WHATWG API
+                    const url2 = new URL("http://example.com/");
+                    url2.username = `user${char}`;
+                    url2.password = `pass${char}`;
+                    assert.strictEqual(url2.username, `user${encoded}`);
+                    assert.strictEqual(url2.password, `pass${encoded}`);
+                    assert.strictEqual(url2.href, urlString);
+                });
+            });
+
+            it("should handle percent sign correctly", () => {
+                // Test percent sign encoding
+                const testCases = [
+                    {
+                        input: "http://user%25:pass%25@example.com/",
+                        expectedAuth: "user%:pass%",
+                        expectedUsername: "user%25",
+                        expectedPassword: "pass%25"
+                    },
+                    {
+                        input: "http://user%2525:pass%2525@example.com/",
+                        expectedAuth: "user%25:pass%25",
+                        expectedUsername: "user%2525",
+                        expectedPassword: "pass%2525"
+                    }
+                ];
+
+                testCases.forEach(({ input, expectedAuth, expectedUsername, expectedPassword }) => {
+                    const parsedClassic = url.parse(input);
+                    const parsedWHATWG = new URL(input);
+
+                    assert.strictEqual(parsedClassic.auth, expectedAuth);
+                    assert.strictEqual(parsedWHATWG.username, expectedUsername);
+                    assert.strictEqual(parsedWHATWG.password, expectedPassword);
+                });
+            });
+
+            it("should handle invalid percent encoding", () => {
+                // Test invalid percent sequences - these should throw in classic API
+                const testCases = [
+                    "http://user%:pass@example.com/",
+                    "http://user%G:pass@example.com/",
+                    "http://user%1:pass@example.com/",
+                    "http://user%1G:pass@example.com/"
+                ];
+
+                testCases.forEach(input => {
+                    // Classic API should throw on invalid percent encoding
+                    assert.throws(() => {
+                        url.parse(input);
+                    }, (error) => {
+                        return error.message.includes("URI malformed");
+                    });
+
+                    // WHATWG API should handle gracefully
+                    const parsedWHATWG = new URL(input);
+                    assert.ok(typeof parsedWHATWG.username === 'string');
+                    assert.ok(typeof parsedWHATWG.password === 'string');
+                });
+            });
+
+            it("should handle very long auth strings", () => {
+                const longUsername = "a".repeat(1000);
+                const longPassword = "b".repeat(1000);
+
+                const url = new URL("http://example.com/");
+                url.username = longUsername;
+                url.password = longPassword;
+
+                assert.strictEqual(url.username, longUsername);
+                assert.strictEqual(url.password, longPassword);
+                assert.ok(url.href.includes(encodeURIComponent(longUsername)));
+            });
+        });
+
+        describe("Cross-compatibility tests", () => {
+            it("should produce consistent results between classic and WHATWG APIs", () => {
+                const testUrls = [
+                    "http://user:pass@example.com/",
+                    "http://user%40domain:pass%3Aword@example.com/",
+                    "http://%E7%94%A8%E6%88%B7:%E5%AF%86%E7%A0%81@example.com/",
+                    "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",
+                    "http://user%20name:pass%20word@example.com/"
+                ];
+
+                testUrls.forEach(testUrl => {
+                    const classic = url.parse(testUrl);
+                    const whatwg = new URL(testUrl);
+
+                    // Classic API decodes, WHATWG preserves encoding
+                    // The relationship should be that decoding WHATWG gives classic result
+                    if (classic.auth) {
+                        const [classicUsername, ...classicPasswordParts] = classic.auth.split(':');
+                        const classicPassword = classicPasswordParts.join(':');
+
+                        // WHATWG should be the encoded version of classic
+                        assert.strictEqual(decodeURIComponent(whatwg.username), classicUsername);
+                        assert.strictEqual(decodeURIComponent(whatwg.password), classicPassword || '');
+                    }
+                });
+            });
+
+            it("should handle round-trip encoding correctly", () => {
+                const testCases = [
+                    { username: "user@domain", password: "pass:word" },
+                    { username: "用户", password: "密码" },
+                    { username: "😀", password: "🔒" },
+                    { username: "user name", password: "pass word" }
+                    // Note: user%test is excluded because Node.js doesn't auto-encode literal % characters
+                    // This is a known limitation where literal % in userinfo needs manual handling
+                ];
+
+                testCases.forEach(({ username, password }) => {
+                    const url = new URL("http://example.com/");
+                    url.username = username;
+                    url.password = password;
+
+                    // Parse the generated URL
+                    const reparsed = new URL(url.href);
+
+                    // WHATWG preserves the encoded form, so we need to decode to compare
+                    assert.strictEqual(decodeURIComponent(reparsed.username), username);
+                    assert.strictEqual(decodeURIComponent(reparsed.password), password);
+                });
+            });
+
+            it("should handle literal percent characters as a special case", () => {
+                // Node.js has a limitation where literal % characters in userinfo
+                // are not automatically encoded to %25, leading to invalid percent sequences
+                const url = new URL("http://example.com/");
+                url.username = "user%test";
+                url.password = "pass%test";
+
+                // The URL will contain invalid percent encoding
+                assert.strictEqual(url.username, "user%test");
+                assert.strictEqual(url.password, "pass%test");
+
+                // Attempting to decode will fail
+                assert.throws(() => {
+                    decodeURIComponent(url.username);
+                }, URIError);
+
+                assert.throws(() => {
+                    decodeURIComponent(url.password);
+                }, URIError);
+            });
+        });
+
+        describe("Extended encoding character tests", () => {
+            describe("Classic API - Extended character sets", () => {
+                it("should handle various punctuation and symbols", () => {
+                    const testCases = [
+                        // Basic punctuation marks
+                        {
+                            input: "http://user%21name:pass%3Fword@example.com/",
+                            expected: { auth: "user!name:pass?word" }
+                        },
+                        {
+                            input: "http://user%23tag:pass%24money@example.com/",
+                            expected: { auth: "user#tag:pass$money" }
+                        },
+                        {
+                            input: "http://user%26corp:pass%2Bplus@example.com/",
+                            expected: { auth: "user&corp:pass+plus" }
+                        },
+                        {
+                            input: "http://user%3Dequal:pass%25percent@example.com/",
+                            expected: { auth: "user=equal:pass%percent" }
+                        },
+                        // Brackets and parentheses
+                        {
+                            input: "http://user%28test%29:pass%5Barray%5D@example.com/",
+                            expected: { auth: "user(test):pass[array]" }
+                        },
+                        {
+                            input: "http://user%7Bobject%7D:pass%3Chtml%3E@example.com/",
+                            expected: { auth: "user{object}:pass<html>" }
+                        },
+                        // Quotes and apostrophes
+                        {
+                            input: "http://user%22quote%22:pass%27apostrophe%27@example.com/",
+                            expected: { auth: 'user"quote":pass\'apostrophe\'' }
+                        },
+                        {
+                            input: "http://user%60backtick%60:pass%7Etilde@example.com/",
+                            expected: { auth: "user`backtick`:pass~tilde" }
+                        }
+                    ];
+
+                    testCases.forEach(({ input, expected }) => {
+                        const parsed = url.parse(input);
+                        assert.strictEqual(parsed.auth, expected.auth);
+                    });
+                });
+
+                it("should handle various Unicode categories", () => {
+                    const testCases = [
+                        // Chinese characters
+                        {
+                            input: "http://%E7%94%A8%E6%88%B7:%E5%AF%86%E7%A0%81@example.com/",
+                            expected: { auth: "用户:密码" }
+                        },
+                        // Japanese characters
+                        {
+                            input: "http://%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC:%E3%83%91%E3%82%B9%E3%83%AF%E3%83%BC%E3%83%89@example.com/",
+                            expected: { auth: "ユーザー:パスワード" }
+                        },
+                        // Arabic characters
+                        {
+                            input: "http://%D9%85%D8%B3%D8%AA%D8%AE%D8%AF%D9%85:%D9%83%D9%84%D9%85%D8%A9%20%D9%85%D8%B1%D9%88%D8%B1@example.com/",
+                            expected: { auth: "مستخدم:كلمة مرور" }
+                        },
+                        // Russian characters
+                        {
+                            input: "http://%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C:%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C@example.com/",
+                            expected: { auth: "пользователь:пароль" }
+                        },
+                        // Emoji
+                        {
+                            input: "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",
+                            expected: { auth: "😀:🔒" }
+                        },
+                        {
+                            input: "http://%F0%9F%91%A4%F0%9F%92%BC:%F0%9F%8E%AF%F0%9F%94%91@example.com/",
+                            expected: { auth: "👤💼:🎯🔑" }
+                        }
+                    ];
+
+                    testCases.forEach(({ input, expected }) => {
+                        const parsed = url.parse(input);
+                        assert.strictEqual(parsed.auth, expected.auth);
+                    });
+                });
+
+                it("should handle mixed encoding patterns", () => {
+                    const testCases = [
+                        // Mix of encoded and unencoded ASCII
+                        {
+                            input: "http://user%40domain.com:pass@example.com/",
+                            expected: { auth: "user@domain.com:pass" }
+                        },
+                        {
+                            input: "http://user:pass%40domain.com@example.com/",
+                            expected: { auth: "user:pass@domain.com" }
+                        },
+                        // Mix of ASCII and Unicode
+                        {
+                            input: "http://admin%E7%94%A8%E6%88%B7:123%E5%AF%86%E7%A0%81@example.com/",
+                            expected: { auth: "admin用户:123密码" }
+                        },
+                        // Multiple consecutive encoded characters
+                        {
+                            input: "http://%41%42%43:%44%45%46@example.com/",
+                            expected: { auth: "ABC:DEF" }
+                        },
+                        // Encoded space variations
+                        {
+                            input: "http://user%20name:pass%09tab@example.com/",
+                            expected: { auth: "user name:pass\ttab" }
+                        },
+                        {
+                            input: "http://user%0Anewline:pass%0Dreturn@example.com/",
+                            expected: { auth: "user\nnewline:pass\rreturn" }
+                        }
+                    ];
+
+                    testCases.forEach(({ input, expected }) => {
+                        const parsed = url.parse(input);
+                        assert.strictEqual(parsed.auth, expected.auth);
+                    });
+                });
+
+                it("should handle edge case encoded sequences", () => {
+                    const testCases = [
+                        // Null byte (encoded)
+                        {
+                            input: "http://user%00null:pass%00byte@example.com/",
+                            expected: { auth: "user\x00null:pass\x00byte" }
+                        },
+                        // Control characters
+                        {
+                            input: "http://user%01:pass%1F@example.com/",
+                            expected: { auth: "user\x01:pass\x1F" }
+                        },
+                        // DEL character
+                        {
+                            input: "http://user%7F:pass@example.com/",
+                            expected: { auth: "user\x7F:pass" }
+                        },
+                        // Case insensitive hex
+                        {
+                            input: "http://user%3a:pass%3A@example.com/",
+                            expected: { auth: "user::pass:" }
+                        },
+                        {
+                            input: "http://user%2f:pass%2F@example.com/",
+                            expected: { auth: "user/:pass/" }
+                        }
+                    ];
+
+                    testCases.forEach(({ input, expected }) => {
+                        const parsed = url.parse(input);
+                        assert.strictEqual(parsed.auth, expected.auth);
+                    });
+                });
+            });
+
+            describe("WHATWG URL API - Extended character sets", () => {
+                it("should preserve encoding for special characters", () => {
+                    const testCases = [
+                        {
+                            input: "http://user%21:pass%3F@example.com/",
+                            expected: { username: "user%21", password: "pass%3F" }
+                        },
+                        {
+                            input: "http://user%40domain:pass%2Btest@example.com/",
+                            expected: { username: "user%40domain", password: "pass%2Btest" }
+                        },
+                        {
+                            input: "http://%E7%94%A8%E6%88%B7:%E5%AF%86%E7%A0%81@example.com/",
+                            expected: { username: "%E7%94%A8%E6%88%B7", password: "%E5%AF%86%E7%A0%81" }
+                        },
+                        {
+                            input: "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",
+                            expected: { username: "%F0%9F%98%80", password: "%F0%9F%94%92" }
+                        }
+                    ];
+
+                    testCases.forEach(({ input, expected }) => {
+                        const parsed = new URL(input);
+                        assert.strictEqual(parsed.username, expected.username);
+                        assert.strictEqual(parsed.password, expected.password);
+                    });
+                });
+
+                it("should handle setting various Unicode characters", () => {
+                    const testCases = [
+                        // Mathematical symbols
+                        { username: "α", password: "β" },
+                        { username: "∑", password: "∏" },
+                        { username: "∞", password: "≈" },
+                        // Currency symbols
+                        { username: "€", password: "¥" },
+                        { username: "£", password: "$" },
+                        // Arrows and shapes
+                        { username: "→", password: "←" },
+                        { username: "▲", password: "▼" },
+                        // Musical notation
+                        { username: "♪", password: "♫" },
+                        { username: "🎵", password: "🎶" },
+                        // Various emoji categories
+                        { username: "🌍", password: "🌎" },
+                        { username: "🚀", password: "✨" },
+                        { username: "🔐", password: "🗝️" }
+                    ];
+
+                    testCases.forEach(({ username, password }) => {
+                        const testUrl = new URL("http://example.com/");
+                        testUrl.username = username;
+                        testUrl.password = password;
+
+                        // Verify the values were set correctly
+                        assert.strictEqual(decodeURIComponent(testUrl.username), username);
+                        assert.strictEqual(decodeURIComponent(testUrl.password), password);
+                    });
+                });
+
+                it("should handle complex Unicode sequences", () => {
+                    const testCases = [
+                        // Combining characters
+                        { username: "é", password: "ñ" },
+                        { username: "ü", password: "ö" },
+                        // Surrogate pairs (emoji)
+                        { username: "👨‍💻", password: "🏳️‍🌈" },
+                        { username: "👩‍👩‍👧‍👦", password: "🧑‍🤝‍🧑" },
+                        // Mixed scripts
+                        { username: "Hello世界", password: "123ПривΕt" },
+                        { username: "🌟test星", password: "pass🔑key" }
+                    ];
+
+                    testCases.forEach(({ username, password }) => {
+                        const testUrl = new URL("http://example.com/");
+                        testUrl.username = username;
+                        testUrl.password = password;
+
+                        // Verify the values were set correctly
+                        assert.strictEqual(decodeURIComponent(testUrl.username), username);
+                        assert.strictEqual(decodeURIComponent(testUrl.password), password);
+                    });
+                });
+            });
+
+            describe("Error handling for malformed encoding", () => {
+                it("should handle various invalid percent encoding patterns", () => {
+                    const invalidCases = [
+                        "http://user%:pass@example.com/",          // Incomplete percent sequence
+                        "http://user%1:pass@example.com/",         // Single hex digit
+                        "http://user%GG:pass@example.com/",        // Invalid hex characters
+                        "http://user%ZZ:pass@example.com/",        // Invalid hex characters
+                        "http://user%1G:pass@example.com/",        // Mixed valid/invalid hex
+                        "http://user%G1:pass@example.com/"         // Mixed valid/invalid hex
+                    ];
+
+                    invalidCases.forEach(invalidUrl => {
+                        // Classic API should throw for invalid percent encoding
+                        assert.throws(() => {
+                            url.parse(invalidUrl);
+                        }, (error) => {
+                            return error.message.includes("URI malformed") ||
+                                error.message.includes("Invalid URL");
+                        });
+
+                        // WHATWG API treats invalid percent sequences as literal characters
+                        // This is a known difference between the two APIs
+                        assert.doesNotThrow(() => {
+                            new URL(invalidUrl);
+                        });
+                    });
+                });
+
+                it("should handle percent sequences at boundaries", () => {
+                    const boundaryCases = [
+                        "http://user%2@example.com/",              // Incomplete at end of username
+                        "http://user:%2@example.com/",             // Incomplete at end of password
+                        "http://%2:pass@example.com/",             // Incomplete at start of username
+                        "http://:%2@example.com/",                 // Incomplete at start of password
+                        "http://user%@example.com/",               // Lone percent in username
+                        "http://user:%@example.com/"               // Lone percent in password
+                    ];
+
+                    boundaryCases.forEach(boundaryUrl => {
+                        assert.throws(() => {
+                            url.parse(boundaryUrl);
+                        }, (error) => {
+                            return error.message.includes("URI malformed") ||
+                                error.message.includes("Invalid URL");
+                        });
+                    });
+                });
+            });
+
+            describe("Cross-compatibility with extended characters", () => {
+                it("should maintain consistency between APIs for Unicode", () => {
+                    const unicodeUrls = [
+                        "http://%E7%94%A8%E6%88%B7:%E5%AF%86%E7%A0%81@example.com/",  // Chinese
+                        "http://%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C:%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C@example.com/", // Russian
+                        "http://%F0%9F%98%80:%F0%9F%94%92@example.com/",            // Emoji
+                        "http://admin%E7%94%A8%E6%88%B7:123%E5%AF%86%E7%A0%81@example.com/", // Mixed
+                        "http://%41%42%43:%44%45%46@example.com/"                   // All encoded ASCII
+                    ];
+
+                    unicodeUrls.forEach(testUrl => {
+                        const classic = url.parse(testUrl);
+                        const whatwg = new URL(testUrl);
+
+                        if (classic.auth) {
+                            const [classicUsername, ...classicPasswordParts] = classic.auth.split(':');
+                            const classicPassword = classicPasswordParts.join(':');
+
+                            // WHATWG should be the encoded version of classic
+                            assert.strictEqual(decodeURIComponent(whatwg.username), classicUsername);
+                            assert.strictEqual(decodeURIComponent(whatwg.password), classicPassword || '');
+                        }
+                    });
+                });
+
+                it("should handle round-trip with complex characters", () => {
+                    const complexCases = [
+                        { username: "用户@domain.com", password: "密码123" },
+                        { username: "🚀admin", password: "🔐secure🔑" },
+                        { username: "test!@#$", password: "pass&*()" },
+                        { username: "αβγδε", password: "∑∏∞≈≠" },
+                        { username: "♪♫♬", password: "🎵🎶🎼" },
+                        { username: "👨‍💻", password: "🏳️‍🌈" }
+                    ];
+
+                    complexCases.forEach(({ username, password }) => {
+                        const testUrl = new URL("http://example.com/");
+                        testUrl.username = username;
+                        testUrl.password = password;
+
+                        // Re-parse the URL
+                        const reparsed = new URL(testUrl.href);
+
+                        // Should maintain the values through round-trip
+                        assert.strictEqual(decodeURIComponent(reparsed.username), username);
+                        assert.strictEqual(decodeURIComponent(reparsed.password), password);
+
+                        // Classic API should also decode correctly
+                        const classicParsed = url.parse(testUrl.href);
+                        if (classicParsed.auth) {
+                            const [parsedUsername, ...passwordParts] = classicParsed.auth.split(':');
+                            const parsedPassword = passwordParts.join(':');
+
+                            assert.strictEqual(parsedUsername, username);
+                            assert.strictEqual(parsedPassword, password);
+                        }
+                    });
+                });
+            });
+        });
     });
 
     describe("FibJS URL Implementation Specifics", () => {

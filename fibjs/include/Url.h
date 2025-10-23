@@ -266,6 +266,8 @@ public:
     bool m_parseQuery = false;
     bool m_slashes = false;
     bool m_isLegacy = false;
+    bool m_hasAuthSeparator = false; // Track if @ symbol was found
+    exlib::string m_originalAuth; // Store original auth for legacy mode
     ada::result<ada::url_aggregator> m_url;
     obj_ptr<URLSearchParams> m_searchParams;
 };

@@ -145,6 +145,46 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
         p = url.c_str();
     }
 
+    // Extract original auth info before parsing
+    m_originalAuth.clear();
+    m_hasAuthSeparator = false;
+    size_t at_pos = url.find('@');
+    if (at_pos != exlib::string::npos) {
+        m_hasAuthSeparator = true;
+        size_t protocol_end = url.find("://");
+        if (protocol_end != exlib::string::npos) {
+            size_t auth_start = protocol_end + 3;
+            if (auth_start < at_pos) {
+                m_originalAuth = url.substr(auth_start, at_pos - auth_start);
+            }
+        }
+    }
+
+    // Validate percent encoding in the URL string
+    const char* url_str = url.c_str();
+    for (size_t i = 0; i < url.length(); i++) {
+        if (url_str[i] == '%') {
+            // Check if we have at least 2 more characters
+            if (i + 2 >= url.length()) {
+                return Runtime::setError("url: URI malformed");
+            }
+
+            // Check if the next two characters are valid hex digits
+            char c1 = url_str[i + 1];
+            char c2 = url_str[i + 2];
+
+            bool c1_valid = (c1 >= '0' && c1 <= '9') || (c1 >= 'A' && c1 <= 'F') || (c1 >= 'a' && c1 <= 'f');
+            bool c2_valid = (c2 >= '0' && c2 <= '9') || (c2 >= 'A' && c2 <= 'F') || (c2 >= 'a' && c2 <= 'f');
+
+            if (!c1_valid || !c2_valid) {
+                return Runtime::setError("url: URI malformed");
+            }
+
+            // Skip the two hex digits
+            i += 2;
+        }
+    }
+
     exlib::string str = url;
     const char* p1 = qstrchr(p, ':');
     if (p1 && !is_slash(p1[1])) {
@@ -345,16 +385,41 @@ result_t Url::get_origin(exlib::string& retVal)
 
 result_t Url::get_auth(exlib::string& retVal)
 {
+    if (m_isLegacy) {
+        // In legacy mode, check if we found an @ symbol during parsing
+        if (!m_hasAuthSeparator) {
+            return CALL_RETURN_NULL;
+        }
+
+        // If we have @ separator, decode and return the auth (even if empty)
+        exlib::string decoded_auth = m_originalAuth;
+        decodeURI(decoded_auth, decoded_auth);
+        retVal = decoded_auth;
+
+        return 0;
+    }
+
+    // For non-legacy mode (WHATWG API), use the parsed components
     if (m_url) {
         exlib::string username = m_url->get_username();
         exlib::string password = m_url->get_password();
-        exlib::string str;
+
+        // Check if the original URL contained auth info by checking the href
+        exlib::string href = m_url->get_href();
+        size_t at_pos = href.find('@');
+
+        // If no @ symbol found, return null like Node.js
+        if (at_pos == exlib::string::npos) {
+            return CALL_RETURN_NULL;
+        }
 
         retVal = username;
-        if (password.length() > 0) {
+        if (!password.empty()) {
             retVal.append(1, ':');
             retVal.append(password);
         }
+    } else {
+        return CALL_RETURN_NULL;
     }
 
     return 0;
