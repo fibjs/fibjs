@@ -266,7 +266,7 @@ module crypto
      */
     static Buffer hkdf(String algoName, Buffer password, Buffer salt, Buffer info, Integer size) async;
 
-    /*! @brief 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
+    /*! @brief 使用 pbkdf2 算法根据明文 password 生成要求的二进制钥匙
      @param password 指定使用的密码
      @param salt 指定 hmac 使用的 salt
      @param iterations 指定迭代次数
@@ -275,6 +275,15 @@ module crypto
      @return 返回生成的二进制钥匙
      */
     static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
+
+    /*! @brief 使用 scrypt 算法生成密钥
+     @param password 指定使用的密码
+     @param salt 指定使用的 salt
+     @param keylen 指定要生成的密钥长度
+     @param options 指定可选参数，支持 N, r, p, maxmem
+     @return 返回生成的二进制钥匙
+     */
+    static Buffer scrypt(Buffer password, Buffer salt, Integer keylen, Object options = {}) async;
 
     /*! @brief 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
      @param privateKey 指定私钥

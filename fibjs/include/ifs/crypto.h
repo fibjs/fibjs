@@ -84,6 +84,7 @@ public:
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t scrypt(Buffer_base* password, Buffer_base* salt, int32_t keylen, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t privateDecrypt(Buffer_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateDecrypt(KeyObject_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateDecrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
@@ -151,6 +152,7 @@ public:
     static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_scrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_privateDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_privateEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_publicDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -169,6 +171,7 @@ public:
     ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Buffer_base*, Buffer_base*, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, scrypt, Buffer_base*, Buffer_base*, int32_t, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Buffer_base*, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Buffer_base*, KeyObject_base*, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Buffer_base*, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
@@ -230,6 +233,7 @@ inline ClassInfo& crypto_base::class_info()
         { "generateKeyPair", s_static_generateKeyPair, true, ClassData::ASYNC_ASYNC },
         { "hkdf", s_static_hkdf, true, ClassData::ASYNC_ASYNC },
         { "pbkdf2", s_static_pbkdf2, true, ClassData::ASYNC_ASYNC },
+        { "scrypt", s_static_scrypt, true, ClassData::ASYNC_ASYNC },
         { "privateDecrypt", s_static_privateDecrypt, true, ClassData::ASYNC_SYNC },
         { "privateEncrypt", s_static_privateEncrypt, true, ClassData::ASYNC_SYNC },
         { "publicDecrypt", s_static_publicDecrypt, true, ClassData::ASYNC_SYNC },
@@ -688,6 +692,27 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_pbkdf2(v0.get(), v1.get(), v2, v3, v4, cb, args);
     else
         hr = ac_pbkdf2(v0.get(), v1.get(), v2, v3, v4, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_scrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("crypto.scrypt");
+
+    METHOD_OVER(4, 3);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(int32_t, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_scrypt(v0.get(), v1.get(), v2, v3, cb, args);
+    else
+        hr = ac_scrypt(v0.get(), v1.get(), v2, v3, vr);
 
     METHOD_RETURN();
 }

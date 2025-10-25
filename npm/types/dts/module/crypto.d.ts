@@ -353,7 +353,7 @@ declare module 'crypto' {
     function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
+     * @description 使用 pbkdf2 算法根据明文 password 生成要求的二进制钥匙
      *      @param password 指定使用的密码
      *      @param salt 指定 hmac 使用的 salt
      *      @param iterations 指定迭代次数
@@ -365,6 +365,19 @@ declare module 'crypto' {
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
 
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 scrypt 算法生成密钥
+     *      @param password 指定使用的密码
+     *      @param salt 指定使用的 salt
+     *      @param keylen 指定要生成的密钥长度
+     *      @param options 指定可选参数，支持 N, r, p, maxmem
+     *      @return 返回生成的二进制钥匙
+     *      
+     */
+    function scrypt(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    function scrypt(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密

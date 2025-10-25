@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "crypto_util.h"
 #include <openssl/kdf.h>
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -151,6 +152,63 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     int32_t hr = PKCS5_PBKDF2_HMAC((const char*)buf->data(), buf->length(),
         (const unsigned char*)saltBuf->data(), saltBuf->length(),
         iterations, md, size, ret->data());
+    if (hr != 1)
+        return openssl_error();
+
+    retVal = ret;
+    return 0;
+}
+
+result_t crypto_base::scrypt(Buffer_base* password, Buffer_base* salt, int32_t keylen,
+    v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (keylen < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    class ScryptOptions : public obj_base {
+    public:
+        LOAD_OPTIONS(ScryptOptions, (N)(r)(p)(maxmem));
+
+    public:
+        std::optional<int64_t> N = 16384; // CPU/memory cost parameter (must be power of 2)
+        std::optional<int32_t> r = 8; // Block size parameter
+        std::optional<int32_t> p = 1; // Parallelization parameter
+        std::optional<int64_t> maxmem = 32 * 1024 * 1024; // Default 32MB
+    };
+
+    if (ac->isSync()) {
+        obj_ptr<ScryptOptions> opt;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = ScryptOptions::load(isolate, options, opt);
+        if (hr < 0)
+            return hr;
+
+        // Validate N is a power of 2 and greater than 1
+        uint64_t N = opt->N.value();
+        if (N < 2 || (N & (N - 1)) != 0)
+            return CHECK_ERROR(Runtime::setError("Invalid scrypt params"));
+
+        // Validate r and p are not zero
+        if (opt->r.value() == 0 || opt->p.value() == 0)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = opt;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    ScryptOptions* opt = (ScryptOptions*)ac->m_ctx[0].object();
+
+    Buffer* pwd = Buffer::Cast(password);
+    Buffer* saltBuf = Buffer::Cast(salt);
+    obj_ptr<Buffer> ret = new Buffer(NULL, keylen);
+
+    int32_t hr = EVP_PBE_scrypt((const char*)pwd->data(), pwd->length(),
+        (const unsigned char*)saltBuf->data(), saltBuf->length(),
+        opt->N.value(), opt->r.value(), opt->p.value(), opt->maxmem.value(),
+        ret->data(), keylen);
+
     if (hr != 1)
         return openssl_error();
 

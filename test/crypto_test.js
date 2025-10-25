@@ -4203,6 +4203,96 @@ describe('crypto', () => {
         });
     });
 
+    describe('scryptSync', () => {
+        it('basic usage with different key lengths', () => {
+            const key16 = crypto.scryptSync('password', 'salt', 16);
+            const key24 = crypto.scryptSync('password', 'salt', 24);
+            const key32 = crypto.scryptSync('password', 'salt', 32);
+            const key64 = crypto.scryptSync('password', 'salt', 64);
+
+            assert.ok(Buffer.isBuffer(key16));
+            assert.equal(key16.length, 16);
+            assert.equal(key24.length, 24);
+            assert.equal(key32.length, 32);
+            assert.equal(key64.length, 64);
+
+            // Verify known test vectors
+            assert.equal(key16.toString('hex'), '745731af4484f323968969eda289aeee');
+            assert.equal(key24.toString('hex'), '745731af4484f323968969eda289aeee005b5903ac561e64');
+            assert.equal(key32.toString('hex'), '745731af4484f323968969eda289aeee005b5903ac561e64a5aca121797bf773');
+            assert.equal(key64.toString('hex'), '745731af4484f323968969eda289aeee005b5903ac561e64a5aca121797bf7734ef9fd58422e2e22183bcacba9ec87ba0c83b7a2e788f03ce0da06463433cda6');
+        });
+
+        it('deterministic output', () => {
+            const keyA = crypto.scryptSync('password', 'salt', 32);
+            const keyB = crypto.scryptSync('password', 'salt', 32);
+            assert.deepEqual(keyA, keyB);
+            assert.equal(keyA.toString('hex'), '745731af4484f323968969eda289aeee005b5903ac561e64a5aca121797bf773');
+        });
+
+        it('different passwords produce different outputs', () => {
+            const key_pass1 = crypto.scryptSync('password1', 'salt', 32);
+            const key_pass2 = crypto.scryptSync('password2', 'salt', 32);
+            assert.notDeepEqual(key_pass1, key_pass2);
+            assert.equal(key_pass1.toString('hex'), 'fa946df94699efccaa2c8ddb754b410fc289e4874d2047cfe138d031302c5b28');
+            assert.equal(key_pass2.toString('hex'), '0e2018dd372be24a7f16e71656b772923809ff426995edb7b7826935042af1b8');
+        });
+
+        it('different salts produce different outputs', () => {
+            const key_salt1 = crypto.scryptSync('password', 'salt1', 32);
+            const key_salt2 = crypto.scryptSync('password', 'salt2', 32);
+            assert.notDeepEqual(key_salt1, key_salt2);
+            assert.equal(key_salt1.toString('hex'), '02df9dae2c387878dadc5f11604f2f66df697f215f083955edc0408bb50f7f14');
+            assert.equal(key_salt2.toString('hex'), 'b84442ae3b96ad17e4f35ddaff4ee73ad537271ea3a57918ff257196b6e2a75a');
+        });
+
+        it('Buffer inputs', () => {
+            const keyFromBuffer = crypto.scryptSync(Buffer.from('password'), Buffer.from('salt'), 32);
+            const keyFromString = crypto.scryptSync('password', 'salt', 32);
+            assert.deepEqual(keyFromBuffer, keyFromString);
+        });
+
+        it('known test vectors', () => {
+            const key_secret = crypto.scryptSync('secret', 'salt', 32);
+            assert.equal(key_secret.toString('hex'), '05ffaebcca41770af425d4ba9b4e7bcdff532237dca931c192a36d94db7307d4');
+
+            const key_digits = crypto.scryptSync('0123456789', 'salt', 32);
+            assert.equal(key_digits.toString('hex'), '6aa56b9e08ad5347ddc9b7c5e2ec586db53ebdfe980144145c75b69d20d6cf24');
+        });
+
+        it('custom options (N, r, p)', () => {
+            const keyDefault = crypto.scryptSync('password', 'salt', 32);
+            const keyCustom = crypto.scryptSync('password', 'salt', 32, { N: 1024, r: 8, p: 1 });
+            assert.notDeepEqual(keyDefault, keyCustom);
+            assert.equal(keyCustom.toString('hex'), '16dbc8906763c7f048977a68f9d305f7710e068ca2cd95dab372125bb3f19608');
+        });
+
+        it('maxmem option', () => {
+            const keyWithMaxmem = crypto.scryptSync('password', 'salt', 32, { N: 1024, r: 8, p: 1, maxmem: 32 * 1024 * 1024 });
+            assert.equal(keyWithMaxmem.length, 32);
+            assert.equal(keyWithMaxmem.toString('hex'), '16dbc8906763c7f048977a68f9d305f7710e068ca2cd95dab372125bb3f19608');
+        });
+
+        it('UTF-8 encoding', () => {
+            const keyUTF8 = crypto.scryptSync('密码', '盐', 32);
+            assert.equal(keyUTF8.length, 32);
+            assert.equal(keyUTF8.toString('hex'), 'b76d9153be458fd3ba8adc8f5a724763c5939a8297cd7b849dc1849886bfbf11');
+        });
+
+        it('error handling - invalid keylen', () => {
+            assert.throws(() => {
+                crypto.scryptSync('password', 'salt', -1);
+            });
+        });
+
+        it('error handling - invalid N', () => {
+            // N not power of 2
+            assert.throws(() => {
+                crypto.scryptSync('password', 'salt', 32, { N: 1000 });
+            });
+        });
+    });
+
     it("getHashes", () => {
         var hashes = crypto.getHashes();
         assert.isArray(hashes);
