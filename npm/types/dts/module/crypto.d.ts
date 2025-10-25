@@ -70,6 +70,24 @@ declare module 'crypto' {
     function getCiphers(): any[];
 
     /**
+     * @description 根据加密算法名称获取算法信息
+     *      @param name 指定要查询的算法名称
+     *      @param options 可选参数，可指定 keyLength 和 ivLength 用于进一步过滤
+     *      @return 返回包含算法信息的对象，如果算法不存在或选项不匹配则返回 undefined。返回对象包含以下属性：name, nid, blockSize, ivLength, keyLength, mode
+     *      
+     */
+    function getCipherInfo(name: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
+     * @description 根据加密算法 NID 获取算法信息
+     *      @param nid 指定要查询的算法 NID
+     *      @param options 可选参数，可指定 keyLength 和 ivLength 用于进一步过滤
+     *      @return 返回包含算法信息的对象，如果算法不存在或选项不匹配则返回 undefined。返回对象包含以下属性：name, nid, blockSize, ivLength, keyLength, mode
+     *      
+     */
+    function getCipherInfo(nid: number, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
      * @description 创建一个对称加密的加密对象
      *      @param algorithm 指定加密算法
      *      @param key 指定加密解密密码
@@ -309,6 +327,14 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
 
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 生成一个随机的 RFC 4122 版本 4 的 UUID
+     *      @param options 可选参数，可指定 disableEntropyCache 禁用熵缓存（该选项被忽略，仅为兼容性保留）
+     *      @return 返回一个 UUID v4 字符串
+     *      
+     */
+    function randomUUID(options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2

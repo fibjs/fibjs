@@ -4387,6 +4387,92 @@ describe('crypto', () => {
         assert.ok(hashes.includes('sha384'));
     });
 
+    describe('getCipherInfo', () => {
+        it('basic usage', () => {
+            const ciphers = crypto.getCiphers();
+
+            assert.strictEqual(crypto.getCipherInfo(-1), undefined);
+            assert.strictEqual(crypto.getCipherInfo('cipher that does not exist'), undefined);
+
+            for (const cipher of ciphers.slice(0, 10)) { // Test first 10 ciphers
+                const info = crypto.getCipherInfo(cipher);
+                assert.ok(info);
+                const info2 = crypto.getCipherInfo(info.nid);
+                assert.deepStrictEqual(info, info2);
+            }
+        });
+
+        it('aes-128-cbc details', () => {
+            const info = crypto.getCipherInfo('aes-128-cbc');
+            assert.strictEqual(info.name, 'aes-128-cbc');
+            assert.strictEqual(info.nid, 419);
+            assert.strictEqual(info.blockSize, 16);
+            assert.strictEqual(info.ivLength, 16);
+            assert.strictEqual(info.keyLength, 16);
+            assert.strictEqual(info.mode, 'cbc');
+        });
+
+        it('keyLength and ivLength options', () => {
+            assert(!crypto.getCipherInfo('aes-128-cbc', { keyLength: 12 }));
+            assert(crypto.getCipherInfo('aes-128-cbc', { keyLength: 16 }));
+            assert(!crypto.getCipherInfo('aes-128-cbc', { ivLength: 12 }));
+            assert(crypto.getCipherInfo('aes-128-cbc', { ivLength: 16 }));
+        });
+
+        it('CCM mode ivLength validation', () => {
+            assert(!crypto.getCipherInfo('aes-128-ccm', { ivLength: 1 }));
+            assert(!crypto.getCipherInfo('aes-128-ccm', { ivLength: 14 }));
+            for (let n = 7; n <= 13; n++)
+                assert(crypto.getCipherInfo('aes-128-ccm', { ivLength: n }));
+        });
+
+        it('OCB mode ivLength validation', () => {
+            assert(!crypto.getCipherInfo('aes-128-ocb', { ivLength: 16 }));
+            for (let n = 1; n < 16; n++)
+                assert(crypto.getCipherInfo('aes-128-ocb', { ivLength: n }));
+        });
+    });
+
+    describe('randomUUID', () => {
+        it('generates valid UUID v4', () => {
+            const last = new Set(['00000000-0000-0000-0000-000000000000']);
+
+            // Generate multiple UUIDs to ensure uniqueness
+            for (let n = 0; n < 50; n++) {
+                const uuid = crypto.randomUUID();
+                assert(!last.has(uuid));
+                last.add(uuid);
+                assert.strictEqual(typeof uuid, 'string');
+                assert.strictEqual(uuid.length, 36);
+
+                // Validate UUID v4 format
+                assert.match(
+                    uuid,
+                    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+                );
+
+                // Check version 4 identifier
+                assert.strictEqual(
+                    Buffer.from(uuid.slice(14, 16), 'hex')[0] & 0x40, 0x40
+                );
+
+                // Check reserved bits
+                assert.strictEqual(
+                    Buffer.from(uuid.slice(19, 21), 'hex')[0] & 0b1100_0000, 0b1000_0000
+                );
+            }
+        });
+
+        it('disableEntropyCache option', () => {
+            const uuid1 = crypto.randomUUID({ disableEntropyCache: true });
+            const uuid2 = crypto.randomUUID({ disableEntropyCache: true });
+
+            assert.match(uuid1, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+            assert.match(uuid2, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+            assert.notStrictEqual(uuid1, uuid2);
+        });
+    });
+
     it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf1 to crash", () => {
         assert.throws(() => {
             crypto.pbkdf1(null, null, 0, -1, 1);

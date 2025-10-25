@@ -16,6 +16,7 @@
 #include "KeyObject.h"
 #include "encoding.h"
 #include <string.h>
+#include <algorithm>
 
 namespace fibjs {
 
@@ -39,6 +40,126 @@ result_t crypto_base::getCiphers(v8::Local<v8::Array>& retVal)
 {
     g_ciphers->valueOf(retVal);
     return 0;
+}
+
+// Helper function to get mode name from mode constant
+static const char* GetCipherMode(int mode)
+{
+    switch (mode) {
+    case EVP_CIPH_STREAM_CIPHER:
+        return "stream";
+    case EVP_CIPH_ECB_MODE:
+        return "ecb";
+    case EVP_CIPH_CBC_MODE:
+        return "cbc";
+    case EVP_CIPH_CFB_MODE:
+        return "cfb";
+    case EVP_CIPH_OFB_MODE:
+        return "ofb";
+    case EVP_CIPH_CTR_MODE:
+        return "ctr";
+    case EVP_CIPH_GCM_MODE:
+        return "gcm";
+    case EVP_CIPH_CCM_MODE:
+        return "ccm";
+    case EVP_CIPH_XTS_MODE:
+        return "xts";
+    case EVP_CIPH_WRAP_MODE:
+        return "wrap";
+    case EVP_CIPH_OCB_MODE:
+        return "ocb";
+    case EVP_CIPH_SIV_MODE:
+        return "siv";
+    default:
+        return "unknown";
+    }
+}
+
+// Helper function to create cipher info object
+static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
+    v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    if (!cipher)
+        return CALL_RETURN_UNDEFINED;
+
+    // Get cipher properties
+    int nid = EVP_CIPHER_nid(cipher);
+    const char* name = EVP_CIPHER_name(cipher);
+    int block_size = EVP_CIPHER_block_size(cipher);
+    int key_length = EVP_CIPHER_key_length(cipher);
+    int iv_length = EVP_CIPHER_iv_length(cipher);
+    int mode = EVP_CIPHER_mode(cipher);
+
+    // Convert name to lowercase to match Node.js behavior
+    exlib::string lowercase_name = name;
+    std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), ::tolower);
+
+    // Check optional filters
+    result_t hr;
+    int32_t expected_key_length;
+    int32_t expected_iv_length;
+
+    // Check keyLength filter
+    hr = GetConfigValue(isolate, options, "keyLength", expected_key_length, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (hr == 0) {
+        if (key_length != expected_key_length)
+            return CALL_RETURN_UNDEFINED;
+    }
+
+    // Check ivLength filter
+    hr = GetConfigValue(isolate, options, "ivLength", expected_iv_length, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (hr == 0) {
+        // Special handling for CCM and OCB modes which support variable IV lengths
+        if (mode == EVP_CIPH_CCM_MODE) {
+            // CCM mode supports IV length from 7 to 13 bytes
+            if (expected_iv_length < 7 || expected_iv_length > 13)
+                return CALL_RETURN_UNDEFINED;
+        } else if (mode == EVP_CIPH_OCB_MODE) {
+            // OCB mode supports IV length from 1 to 15 bytes
+            if (expected_iv_length < 1 || expected_iv_length > 15)
+                return CALL_RETURN_UNDEFINED;
+        } else {
+            // For other modes, IV length must match exactly
+            if (iv_length != expected_iv_length)
+                return CALL_RETURN_UNDEFINED;
+        }
+    }
+
+    // Create result object
+    v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
+    v8::Local<v8::Context> context = isolate->context();
+
+    info->Set(context, isolate->NewString("name"), isolate->NewString(lowercase_name)).Check();
+    info->Set(context, isolate->NewString("nid"), v8::Integer::New(isolate->m_isolate, nid)).Check();
+    info->Set(context, isolate->NewString("blockSize"), v8::Integer::New(isolate->m_isolate, block_size)).Check();
+    info->Set(context, isolate->NewString("ivLength"), v8::Integer::New(isolate->m_isolate, iv_length)).Check();
+    info->Set(context, isolate->NewString("keyLength"), v8::Integer::New(isolate->m_isolate, key_length)).Check();
+    info->Set(context, isolate->NewString("mode"), isolate->NewString(GetCipherMode(mode))).Check();
+
+    retVal = info;
+    return 0;
+}
+
+result_t crypto_base::getCipherInfo(exlib::string name, v8::Local<v8::Object> options,
+    v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current(options);
+    const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
+    return CreateCipherInfo(isolate, cipher, options, retVal);
+}
+
+result_t crypto_base::getCipherInfo(int32_t nid, v8::Local<v8::Object> options,
+    v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current(options);
+    const EVP_CIPHER* cipher = EVP_get_cipherbynid(nid);
+    return CreateCipherInfo(isolate, cipher, options, retVal);
 }
 
 result_t crypto_base::createCipher(exlib::string algorithm, Buffer_base* key,

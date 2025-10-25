@@ -8,6 +8,7 @@
 #include "object.h"
 #include "crypto_util.h"
 #include "ifs/crypto.h"
+#include "ifs/uuid.h"
 #include "Buffer.h"
 #include <crypto/rand.h>
 
@@ -66,6 +67,12 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
     randomBytes(size, rand, ac);
 
     return buffer->fill(rand, offset, offset + size, retVal);
+}
+
+result_t crypto_base::randomUUID(v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    // Generate UUID v4 using uuid module
+    return uuid_base::v4(retVal);
 }
 
 }
