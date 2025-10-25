@@ -61,11 +61,22 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    NSURL* nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
-    NSURLRequest* request = [NSURLRequest requestWithURL:nsurl];
-
     WKWebView* webView = (WKWebView*)m_webview;
-    [webView loadRequest:request];
+    
+    // Stop any ongoing navigation before starting a new one
+    if (webView.isLoading) {
+        [webView stopLoading];
+        // Give a small delay to ensure stopLoading completes
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            NSURL* nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+            NSURLRequest* request = [NSURLRequest requestWithURL:nsurl];
+            [webView loadRequest:request];
+        });
+    } else {
+        NSURL* nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+        NSURLRequest* request = [NSURLRequest requestWithURL:nsurl];
+        [webView loadRequest:request];
+    }
 
     return 0;
 }
@@ -87,7 +98,18 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    [(WKWebView*)m_webview loadHTMLString:[NSString stringWithUTF8String:html.c_str()] baseURL:nil];
+    WKWebView* webView = (WKWebView*)m_webview;
+    
+    // Stop any ongoing navigation before loading new HTML
+    if (webView.isLoading) {
+        [webView stopLoading];
+        // Give a small delay to ensure stopLoading completes
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [webView loadHTMLString:[NSString stringWithUTF8String:html.c_str()] baseURL:nil];
+        });
+    } else {
+        [webView loadHTMLString:[NSString stringWithUTF8String:html.c_str()] baseURL:nil];
+    }
 
     return 0;
 }
