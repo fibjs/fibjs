@@ -156,6 +156,13 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
     e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
 
     const char* _name = uv_error_name(hr);
+    if (!_name) {
+        // Try to translate system error code to UV error code for proper naming
+        int uv_err = uv_translate_sys_error(hr);
+        if (uv_err != UV_UNKNOWN)
+            _name = uv_error_name(uv_err);
+    }
+
     if (_name)
         e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
 
@@ -177,6 +184,13 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::Sta
     e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
 
     const char* _name = uv_error_name(hr);
+    if (!_name) {
+        // Try to translate system error code to UV error code for proper naming
+        int uv_err = uv_translate_sys_error(hr);
+        if (uv_err != UV_UNKNOWN)
+            _name = uv_error_name(uv_err);
+    }
+
     if (_name)
         e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
 
@@ -185,13 +199,13 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::Sta
         // Build stack trace string from frames
         exlib::string stack_str = msg + "\n";
         int frame_count = stack->GetFrameCount();
-        
+
         for (int i = 0; i < frame_count; i++) {
             v8::Local<v8::StackFrame> frame = stack->GetFrame(isolate->m_isolate, i);
-            
+
             v8::String::Utf8Value script_name(isolate->m_isolate, frame->GetScriptName());
             v8::String::Utf8Value function_name(isolate->m_isolate, frame->GetFunctionName());
-            
+
             stack_str += "    at ";
             if (*function_name && strlen(*function_name) > 0) {
                 stack_str += *function_name;
@@ -209,7 +223,7 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::Sta
             }
             stack_str += "\n";
         }
-        
+
         e->Set(context, isolate->NewString("stack"), isolate->NewString(stack_str)).IsJust();
     }
 
