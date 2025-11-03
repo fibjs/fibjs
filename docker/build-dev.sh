@@ -80,7 +80,6 @@ if ! docker buildx ls | grep -q "${BUILDER_NAME}"; then
         # Simple grep/sed parsing for proxy settings
         HTTP_PROXY=$(cat "$DAEMON_CONFIG" | grep '"http-proxy"' | sed 's/.*"http-proxy"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
         HTTPS_PROXY=$(cat "$DAEMON_CONFIG" | grep '"https-proxy"' | sed 's/.*"https-proxy"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
-        NO_PROXY=$(cat "$DAEMON_CONFIG" | grep '"no-proxy"' | sed 's/.*"no-proxy"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
         
         # Build proxy options for buildx
         if [ -n "$HTTP_PROXY" ]; then
@@ -90,14 +89,6 @@ if ! docker buildx ls | grep -q "${BUILDER_NAME}"; then
         if [ -n "$HTTPS_PROXY" ]; then
             PROXY_OPTS="$PROXY_OPTS --driver-opt env.HTTPS_PROXY=$HTTPS_PROXY"
             echo "📋 Using HTTPS proxy from Docker daemon: $HTTPS_PROXY"
-        fi
-        if [ -n "$NO_PROXY" ]; then
-            # Clean up NO_PROXY value - remove CIDR notation which buildx doesn't support
-            NO_PROXY_CLEAN=$(echo "$NO_PROXY" | sed 's/[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\/[0-9]*//g' | sed 's/,,*/,/g' | sed 's/^,//;s/,$//')
-            if [ -n "$NO_PROXY_CLEAN" ]; then
-                PROXY_OPTS="$PROXY_OPTS --driver-opt env.NO_PROXY=$NO_PROXY_CLEAN"
-                echo "📋 Using NO_PROXY from Docker daemon (cleaned): $NO_PROXY_CLEAN"
-            fi
         fi
         
         if [ -z "$PROXY_OPTS" ]; then
