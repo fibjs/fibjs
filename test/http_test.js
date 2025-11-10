@@ -1876,6 +1876,20 @@ describe("http", () => {
                 } else if (r.address == "/host:") {
                     r.response.write(r.address);
                     r.response.write(r.firstHeader('host'));
+                } else if (r.address == "/large_file") {
+                    // Simulate a large file response for HEAD request testing
+                    // Create a body larger than default maxBodySize (64MB)
+                    // We use 100MB to ensure it exceeds the limit
+                    var largeSize = 100 * 1024 * 1024; // 100MB
+                    r.response.setHeader("Content-Type", "application/octet-stream");
+
+                    // Create a large buffer (this will set the correct Content-Length)
+                    var largeBuffer = new Buffer(largeSize);
+                    r.response.body.write(largeBuffer);
+                } else if (r.address == "/gzip_test") {
+                    r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 } else if (r.address != "/gzip_test") {
                     r.response.appendHeader("set-cookie", [
                         "request=value; domain=127.0.0.1; path=/request",
@@ -1891,10 +1905,6 @@ describe("http", () => {
 
                     if (r.hasHeader("test_headers"))
                         r.response.json(r.allHeader("test_headers"));
-                } else {
-                    r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
-                    r.response.appendHeader("Content-Type", "text/html");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
 
@@ -2619,6 +2629,31 @@ describe("http", () => {
                         assert.equal(r.headers['no_test_header'], "true");
                     });
                 });
+            });
+
+            it("large Content-Length should not be rejected", () => {
+                // Test that HEAD requests with large Content-Length (>maxBodySize) are accepted
+                // The Content-Length is 100MB which exceeds default maxBodySize of 64MB
+                var response = http.head("http://127.0.0.1:" + (8882 + base_port) + "/large_file");
+
+                // Should not throw error even though Content-Length exceeds maxBodySize
+                assert.equal(response.statusCode, 200);
+                assert.equal(response.headers['Content-Length'], "104857600"); // 100MB = 100*1024*1024
+                assert.equal(response.headers['Content-Type'], "application/octet-stream");
+                assert.equal(response.body.read(), null); // HEAD response has no body
+            });
+
+            it("large Content-Length with custom maxBodySize", () => {
+                // Even with a very small maxBodySize, HEAD request should still work
+                var hc = new http.Client();
+                hc.maxBodySize = 1; // Set to 1MB
+
+                var response = hc.head("http://127.0.0.1:" + (8882 + base_port) + "/large_file");
+
+                // Should not throw error
+                assert.equal(response.statusCode, 200);
+                assert.equal(response.headers['Content-Length'], "104857600"); // 100MB = 100*1024*1024
+                assert.equal(response.body.read(), null);
             });
         });
 

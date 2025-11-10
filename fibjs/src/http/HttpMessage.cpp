@@ -239,9 +239,10 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
                 if (!qstricmp(m_strLine.c_str(), "content-length:", 15)) {
                     m_pThis->m_contentLength = atoi(m_strLine.c_str() + 15);
 
-                    if ((m_pThis->m_contentLength < 0)
-                        || (m_pThis->m_maxBodySize >= 0
-                            && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024))
+                    if (!m_pThis->m_bNoBody
+                        && ((m_pThis->m_contentLength < 0)
+                            || (m_pThis->m_maxBodySize >= 0
+                                && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
 
                     if (m_pThis->m_bNoBody) {
