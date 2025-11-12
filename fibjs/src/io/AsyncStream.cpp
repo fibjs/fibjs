@@ -48,7 +48,21 @@ result_t startRecvStream(Stream_base* stream, exlib::atomic& readState)
 
         virtual int32_t error(int32_t v)
         {
-            m_this->_emit("error", v);
+            // Like TcpServer, treat socket close errors as normal termination
+            // instead of error events
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL || v == CALL_E_NETNAME_DELETED) {
+                m_this->_emit("close");
+                return v;
+            }
+
+            // Emit error event in JS context with proper Error object
+            m_isolate->sync([this, v]() -> int32_t {
+                v8::Local<v8::Value> err = FillError(v);
+                bool retVal;
+                m_this->_emit("error", &err, 1, retVal);
+                return 0;
+            });
+            
             return v;
         }
 
