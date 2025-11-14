@@ -158,7 +158,7 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
     const char* _name = uv_error_name(hr);
     if (!_name) {
         // Try to translate system error code to UV error code for proper naming
-        int uv_err = uv_translate_sys_error(hr);
+        int uv_err = uv_translate_sys_error(-hr);
         if (uv_err != UV_UNKNOWN)
             _name = uv_error_name(uv_err);
     }
@@ -186,7 +186,7 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::Sta
     const char* _name = uv_error_name(hr);
     if (!_name) {
         // Try to translate system error code to UV error code for proper naming
-        int uv_err = uv_translate_sys_error(hr);
+        int uv_err = uv_translate_sys_error(-hr);
         if (uv_err != UV_UNKNOWN)
             _name = uv_error_name(uv_err);
     }

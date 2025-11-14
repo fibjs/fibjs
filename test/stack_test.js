@@ -53,7 +53,6 @@ describe("stack", () => {
             util.sync(test_callback)();
         });
         coroutine.sleep(10);
-        console.log(fb.stack);
         assert.equal(`    at util.sync.stub (native code)`, fb.stack.split("\n")[0]);
     });
 
@@ -62,10 +61,6 @@ describe("stack", () => {
             level1_callback((err) => {
                 if (err) {
                     try {
-                        console.log('=== Callback Error Stack ===');
-                        console.log(err.stack);
-                        console.log('=== End Stack ===');
-
                         assert.ok(err.stack.includes('level1_callback'), "Stack should include level1_callback");
                         assert.ok(err.stack.includes('level2_callback'), "Stack should include level2_callback");
                         assert.ok(err.stack.includes('level3_callback'), "Stack should include level3_callback");
@@ -88,10 +83,6 @@ describe("stack", () => {
             } catch (e) {
                 error_caught = e;
             }
-
-            console.log('=== Promise Error Stack ===');
-            console.log(error_caught.stack);
-            console.log('=== End Stack ===');
 
             assert.ok(error_caught !== null, "Should catch an error");
             assert.ok(error_caught.stack.includes('level1_promise'), "Stack should include level1_promise");
