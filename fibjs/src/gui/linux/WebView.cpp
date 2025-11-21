@@ -242,13 +242,26 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
     eval_callback_data* data = (eval_callback_data*)user_data;
     GError* error = NULL;
     WebKitJavascriptResult* js_result = webkit_web_view_run_javascript_finish(WEBKIT_WEB_VIEW(object), result, &error);
+
     if (error) {
+        // Check if this is the specific "Unsupported result type" error from WebKit (error code 601)
+        // This error occurs when JavaScript code returns a Promise, which WebKit cannot serialize
+        // We should ignore this error and return undefined, as the Promise result will be handled asynchronously
+        if (g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, 601)) {
+            // Ignore Promise return values
+            g_clear_error(&error);
+            data->m_ac->post(0);
+            delete data;
+            return;
+        }
+
         if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && (!g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, WEBKIT_JAVASCRIPT_ERROR_SCRIPT_FAILED) || (error->message && *(error->message)))) {
             data->m_ac->post(Runtime::setError(error->message));
             g_clear_error(&error);
             delete data;
             return;
         }
+        g_clear_error(&error);
     }
 
     if (js_result) {
@@ -264,8 +277,9 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         }
 
         webkit_javascript_result_unref(js_result);
-    } else
+    } else {
         data->m_ac->post(0);
+    }
 
     delete data;
 }
