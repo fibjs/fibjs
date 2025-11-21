@@ -557,7 +557,7 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     return CALL_E_INVALID_CALL;
 }

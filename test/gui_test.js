@@ -1027,8 +1027,8 @@ async function async_eval(func) {
             });
         }
 
-        if (!ios)
-            it("takeScreenshot", () => {
+        if (!ios) {
+            it("takeScreenshot - visible area only", () => {
                 const win = gui.open({
                     width: 100,
                     height: 100
@@ -1041,16 +1041,53 @@ async function async_eval(func) {
                 coroutine.sleep(10);
 
                 const pixelRatio = win.eval('window.devicePixelRatio');
-                var buf = win.takeScreenshot();
+                const viewportWidth = win.eval('window.innerWidth');
+                const viewportHeight = win.eval('window.innerHeight');
+
+                var buf = win.takeScreenshot(false);
                 win.close();
 
                 assert.isObject(buf);
 
                 var png = new PNG(buf);
 
-                assert.equal(png.width, 500 * pixelRatio);
-                assert.equal(png.height, 1000 * pixelRatio);
+                // With fullPage=false, should capture only the visible viewport area
+                assert.equal(png.width, viewportWidth * pixelRatio);
+                assert.equal(png.height, viewportHeight * pixelRatio);
             });
+
+            it("takeScreenshot - full page", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                win.setHtml(`<html><body style="margin:0px;padding:0px;"><div style="width:500px;height:1000px;background-color:red"></div></body></html>`);
+
+                win.waitFor();
+                coroutine.sleep(10);
+
+                if (process.platform === 'darwin') {
+                    // On macOS, fullPage should throw an error
+                    assert.throws(() => {
+                        win.takeScreenshot(true);
+                    });
+                    win.close();
+                } else {
+                    // On other platforms, should capture the full content (500x1000)
+                    const pixelRatio = win.eval('window.devicePixelRatio');
+                    var buf = win.takeScreenshot(true);
+                    win.close();
+
+                    assert.isObject(buf);
+
+                    var png = new PNG(buf);
+                    assert.equal(png.width, 500 * pixelRatio);
+                    assert.equal(png.height, 1000 * pixelRatio);
+                }
+            });
+        }
 
         it("webview object should not be gc until close", () => {
             var cnt = 0

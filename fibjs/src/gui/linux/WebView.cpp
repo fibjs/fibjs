@@ -467,14 +467,14 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
     }
 }
 
-result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
-    WebKitSnapshotRegion region = WEBKIT_SNAPSHOT_REGION_FULL_DOCUMENT;
+    WebKitSnapshotRegion region = fullPage ? WEBKIT_SNAPSHOT_REGION_FULL_DOCUMENT : WEBKIT_SNAPSHOT_REGION_VISIBLE;
     WebKitSnapshotOptions options = WEBKIT_SNAPSHOT_OPTIONS_NONE;
 
     webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, ac));

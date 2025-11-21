@@ -62,7 +62,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
         return hr;
 
     WKWebView* webView = (WKWebView*)m_webview;
-    
+
     // Stop any ongoing navigation before starting a new one
     if (webView.isLoading) {
         [webView stopLoading];
@@ -99,7 +99,7 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
         return hr;
 
     WKWebView* webView = (WKWebView*)m_webview;
-    
+
     // Stop any ongoing navigation before loading new HTML
     if (webView.isLoading) {
         [webView stopLoading];
@@ -400,41 +400,31 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
+    if (fullPage)
+        return Runtime::setError("fullPage screenshot is not supported on macOS");
+
     WKWebView* webView = (WKWebView*)m_webview;
-    [webView evaluateJavaScript:@"[document.body.scrollWidth, document.body.scrollHeight];"
-              completionHandler:^(id result, NSError* error) {
-                  if ([result isKindOfClass:[NSArray class]]) {
-                      NSArray* resultArray = (NSArray*)result;
+    // Capture only the visible area without changing the frame
+    [webView takeSnapshotWithConfiguration:nil
+                         completionHandler:^(NSImage* snapshotImage, NSError* error) {
+                             if (snapshotImage) {
+                                 NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
+                                 NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
 
-                      NSRect orig = webView.frame;
-                      webView.frame = NSMakeRect(0, 0, [resultArray[0] intValue], [resultArray[1] intValue]);
+                                 retVal = new Buffer([data bytes], [data length]);
+                                 ac->post(0);
 
-                      [webView takeSnapshotWithConfiguration:nil
-                                           completionHandler:^(NSImage* snapshotImage, NSError* error) {
-                                               if (snapshotImage) {
-                                                   NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
-                                                   NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
-
-                                                   retVal = new Buffer([data bytes], [data length]);
-                                                   ac->post(0);
-
-                                                   [rep release];
-                                               } else {
-                                                   ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
-                                               }
-
-                                               webView.frame = orig;
-                                           }];
-                  } else {
-                      ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
-                  }
-              }];
+                                 [rep release];
+                             } else {
+                                 ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
+                             }
+                         }];
 
     return CALL_E_PENDDING;
 }

@@ -406,7 +406,7 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -414,10 +414,15 @@ result_t WebView::takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
-    exlib::string command = R"({
+    exlib::string command = fullPage ? R"({
         "format": "png",
         "fromSurface": true,
         "captureBeyondViewport": true
+    })"
+                                     : R"({
+        "format": "png",
+        "fromSurface": true,
+        "captureBeyondViewport": false
     })";
 
     exlib::wstring wcommand = utf8to16String(command);

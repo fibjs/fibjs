@@ -49,7 +49,7 @@ public:
     virtual result_t isActived(bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t active(AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
-    virtual result_t takeScreenshot(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
 
@@ -131,7 +131,7 @@ public:
     ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE1(WebView_base, isActived, bool);
     ASYNC_MEMBER0(WebView_base, active);
-    ASYNC_MEMBERVALUE1(WebView_base, takeScreenshot, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE2(WebView_base, takeScreenshot, bool, obj_ptr<Buffer_base>);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -581,12 +581,14 @@ inline void WebView_base::s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Va
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.takeScreenshot");
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(bool, 0, false);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_takeScreenshot(cb, args);
+        hr = pInst->acb_takeScreenshot(v0, cb, args);
     else
-        hr = pInst->ac_takeScreenshot(vr);
+        hr = pInst->ac_takeScreenshot(v0, vr);
 
     METHOD_RETURN();
 }
