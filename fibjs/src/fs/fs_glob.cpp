@@ -14,6 +14,7 @@
 #include "AsyncUV.h"
 #include "utils.h"
 #include "Stat.h"
+#include "DirEntry.h"
 #include <set>
 #include <algorithm>
 #include <optional>
@@ -47,18 +48,18 @@ static exlib::string removeTrailingPathSeparator(const exlib::string& pattern)
     return pattern.substr(0, pattern.length() - 1);
 }
 
-// Structure to hold path and stat information
+// Structure to hold path and dirent information
 struct GlobResult {
     exlib::string path;
-    obj_ptr<Stat> stat;
+    obj_ptr<DirEntry> dirent;
 
     GlobResult(const exlib::string& p)
         : path(p)
     {
     }
-    GlobResult(const exlib::string& p, obj_ptr<Stat> s)
+    GlobResult(const exlib::string& p, obj_ptr<DirEntry> d)
         : path(p)
-        , stat(s)
+        , dirent(d)
     {
     }
 
@@ -283,17 +284,12 @@ static int findFirstWildcardComponent(const std::vector<exlib::string>& componen
     return -1;
 }
 
-// Helper function to create Stat object for a file
-static obj_ptr<Stat> createStat(const exlib::string& fullPath)
+// Helper function to create DirEntry object for a file
+static obj_ptr<DirEntry> createDirEntry(const exlib::string& name, const exlib::string& parentPath, uint32_t mode)
 {
-    AutoReq req;
-    int32_t ret = uv_fs_stat(NULL, &req, fullPath.c_str(), NULL);
-    if (ret < 0)
-        return NULL;
-
-    obj_ptr<Stat> stat = new Stat();
-    stat->fill(fullPath, &req.statbuf);
-    return stat;
+    obj_ptr<DirEntry> dirent = new DirEntry();
+    dirent->fill(name, parentPath, mode);
+    return dirent;
 }
 
 // Simplified recursive function to walk directory tree and collect matching files
@@ -324,16 +320,23 @@ static void walkDirectorySimple(
                 if (!shouldIgnore(currentPath.empty() ? "." : currentPath, excludePatterns)) {
                     exlib::string resultPath = currentPath.empty() ? "." : currentPath;
                     if (withFileTypes) {
-                        exlib::string fullPath;
+                        exlib::string name;
+                        exlib::string parent;
                         if (!currentPath.empty()) {
-                            // Use path module's os_join for proper cross-platform path construction
-                            os_join(basePath, currentPath, fullPath);
+                            path_base::basename(currentPath, "", name);
+                            path_base::dirname(currentPath, parent);
+                            if (parent.empty())
+                                parent = basePath;
+                            else
+                                os_join(basePath, parent, parent);
                         } else {
-                            fullPath = basePath;
+                            path_base::basename(basePath, "", name);
+                            path_base::dirname(basePath, parent);
                         }
-                        obj_ptr<Stat> stat = createStat(fullPath);
-                        if (stat) {
-                            results.insert(GlobResult(resultPath, stat));
+                        // For ** patterns, we know these are directories
+                        obj_ptr<DirEntry> dirent = createDirEntry(name, parent, UV_DIRENT_DIR);
+                        if (dirent) {
+                            results.insert(GlobResult(resultPath, dirent));
                         } else {
                             results.insert(GlobResult(resultPath));
                         }
@@ -400,15 +403,14 @@ static void walkDirectorySimple(
                 exlib::string entryFullPath;
                 if (!currentPath.empty()) {
                     // Use path module's os_join for proper cross-platform path construction
-                    os_join(basePath, currentPath, entryName, entryFullPath);
+                    os_join(basePath, currentPath, entryFullPath);
                 } else {
-                    // Use path module's os_join for proper cross-platform path construction
-                    os_join(basePath, entryName, entryFullPath);
+                    entryFullPath = basePath;
                 }
 
-                obj_ptr<Stat> stat = createStat(entryFullPath);
-                if (stat) {
-                    results.insert(GlobResult(relativePath, stat));
+                obj_ptr<DirEntry> direntObj = createDirEntry(entryName, entryFullPath, dirent_type_to_mode(dirent.type));
+                if (direntObj) {
+                    results.insert(GlobResult(relativePath, direntObj));
                 } else {
                     results.insert(GlobResult(relativePath));
                 }
@@ -500,9 +502,16 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                 int32_t ret = uv_fs_stat(NULL, &req, normalizedPattern.c_str(), NULL);
                 if (ret >= 0) {
                     if (withFileTypes) {
-                        obj_ptr<Stat> stat = createStat(normalizedPattern);
-                        if (stat) {
-                            results.insert(GlobResult(normalizedPattern, stat));
+                        exlib::string name, parent;
+                        path_base::basename(normalizedPattern, "", name);
+                        path_base::dirname(normalizedPattern, parent);
+
+                        // Use st_mode directly
+                        uint32_t mode = req.statbuf.st_mode;
+
+                        obj_ptr<DirEntry> dirent = createDirEntry(name, parent, mode);
+                        if (dirent) {
+                            results.insert(GlobResult(normalizedPattern, dirent));
                         } else {
                             results.insert(GlobResult(normalizedPattern));
                         }
@@ -614,8 +623,8 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                         absolutePath = basePath + result.path; // Simple fallback
                     }
 
-                    if (result.stat) {
-                        results.insert(GlobResult(absolutePath, result.stat));
+                    if (result.dirent) {
+                        results.insert(GlobResult(absolutePath, result.dirent));
                     } else {
                         results.insert(GlobResult(absolutePath));
                     }
@@ -630,8 +639,8 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
     // Convert set to sorted array
     for (const auto& result : results) {
-        if (withFileTypes && result.stat) {
-            retVal->append((object_base*)result.stat);
+        if (withFileTypes && result.dirent) {
+            retVal->append((object_base*)result.dirent);
         } else {
             retVal->append(result.path);
         }

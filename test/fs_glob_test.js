@@ -1158,5 +1158,103 @@ describe("fs.glob", () => {
             // Note: ** pattern doesn't include hidden files by default in Node.js
         });
     });
+
+    // ==================== withFileTypes 选项测试 ====================
+    describe("withFileTypes option", () => {
+
+        it("should return DirEntry objects when withFileTypes is true", async () => {
+            const asyncGen = await fs.glob("*.js", { cwd: testDir, withFileTypes: true });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            assert.ok(result.length > 0);
+
+            // Check that entries are DirEntry objects
+            result.forEach(entry => {
+                assert.ok(entry.name, "Entry should have name property");
+                assert.ok(entry.parentPath, "Entry should have parentPath property");
+                assert.equal(typeof entry.isFile, 'function', "Entry should have isFile method");
+                assert.equal(typeof entry.isDirectory, 'function', "Entry should have isDirectory method");
+                assert.equal(typeof entry.isSymbolicLink, 'function', "Entry should have isSymbolicLink method");
+            });
+        });
+
+        it("should correctly identify files vs directories with withFileTypes", async () => {
+            const asyncGen = await fs.glob("*", { cwd: testDir, withFileTypes: true });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            // Find a known file
+            const indexJs = result.find(entry => entry.name === 'index.js');
+            assert.ok(indexJs, "Should find index.js");
+            assert.ok(indexJs.isFile(), "index.js should be a file");
+            assert.ok(!indexJs.isDirectory(), "index.js should not be a directory");
+
+            // Find a known directory
+            const srcDir = result.find(entry => entry.name === 'src');
+            assert.ok(srcDir, "Should find src directory");
+            assert.ok(srcDir.isDirectory(), "src should be a directory");
+            assert.ok(!srcDir.isFile(), "src should not be a file");
+        });
+
+        it("should return DirEntry objects with recursive glob", async () => {
+            const asyncGen = await fs.glob("**/*.js", { cwd: testDir, withFileTypes: true });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            assert.ok(result.length > 0, "Should find some .js files");
+
+            // All results should be files (not directories)
+            result.forEach(entry => {
+                assert.ok(entry.isFile(), `${entry.name} should be a file`);
+                assert.ok(!entry.isDirectory(), `${entry.name} should not be a directory`);
+                assert.ok(entry.name.endsWith('.js'), `${entry.name} should end with .js`);
+            });
+        });
+
+        it("should return DirEntry objects for multiple patterns", async () => {
+            const asyncGen = await fs.glob(["*.js", "*.txt"], { cwd: testDir, withFileTypes: true });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            assert.ok(result.length >= 4, "Should find at least 4 files (.js and .txt)");
+
+            // Check all are files
+            result.forEach(entry => {
+                assert.ok(entry.isFile(), `${entry.name} should be a file`);
+                assert.ok(
+                    entry.name.endsWith('.js') || entry.name.endsWith('.txt'),
+                    `${entry.name} should end with .js or .txt`
+                );
+            });
+        });
+
+        it("should have correct parentPath in DirEntry objects", async () => {
+            const asyncGen = await fs.glob("src/*.jsx", { cwd: testDir, withFileTypes: true });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            if (result.length > 0) {
+                const entry = result[0];
+                const expectedParentPath = path.join(testDir, 'src');
+                assert.equal(
+                    path.normalize(entry.parentPath),
+                    path.normalize(expectedParentPath),
+                    "Parent path should be correct"
+                );
+            }
+        });
+
+        it("should work with exclude option and withFileTypes", async () => {
+            const asyncGen = await fs.glob("**/*.js", {
+                cwd: testDir,
+                withFileTypes: true,
+                exclude: ["**/node_modules/**"]
+            });
+            const result = await asyncGeneratorToArray(asyncGen);
+
+            // Check that all results are DirEntry objects
+            result.forEach(entry => {
+                assert.ok(entry.isFile(), "Should be a file");
+                assert.ok(!entry.name.includes('node_modules'), "Should not include node_modules");
+            });
+        });
+    });
 });
+
 

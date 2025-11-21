@@ -27,7 +27,32 @@ inline int32_t ftruncate64(int32_t fd, __int64 where)
     return 0;
 }
 
-#define S_ISLNK(m) (((m)&S_IFMT) == S_IFLNK)
+#define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
+
+// Define missing S_IS* macros for Windows
+#ifndef S_ISREG
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+#ifndef S_ISFIFO
+#define S_ISFIFO(m) (0) // Not supported on Windows
+#endif
+
+#ifndef S_ISSOCK
+#define S_ISSOCK(m) (0) // Not supported on Windows
+#endif
+
+#ifndef S_ISBLK
+#define S_ISBLK(m) (0) // Not supported on Windows
+#endif
+
+#ifndef S_ISCHR
+#define S_ISCHR(m) (0) // Not supported on Windows
+#endif
 
 #ifdef _MSC_VER
 #define stat64 _stati64

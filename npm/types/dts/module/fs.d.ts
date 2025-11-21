@@ -370,7 +370,8 @@ declare module 'fs' {
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "recursive": false // specify whether all subdirectories should be watched or only the current directory
+     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
      *      }
      *      ```
      *      @param path 指定查询的目录
@@ -389,6 +390,7 @@ declare module 'fs' {
      *      ```JavaScript
      *      {
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
      * 
@@ -408,6 +410,7 @@ declare module 'fs' {
      *      ```JavaScript
      *      {
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
      * 

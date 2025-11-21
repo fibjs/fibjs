@@ -15,6 +15,7 @@
 #include "path.h"
 #include "Buffer.h"
 #include "Stat.h"
+#include "DirEntry.h"
 #include "FileStream.h"
 #include "AsyncUV.h"
 #include "utils.h"
@@ -564,7 +565,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
             AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
 
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            if (ret < 0 || !(S_IFDIR & pThis->statbuf.st_mode)) {
+            if (ret < 0 || !S_ISDIR(pThis->statbuf.st_mode)) {
                 pThis->m_ac->apost(pThis->m_last_err);
                 delete pThis;
                 return;
@@ -684,7 +685,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            
+
             if (ret < 0) {
                 // Path doesn't exist or other error
                 pThis->m_ac->apost(ret);
@@ -693,7 +694,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
             }
 
             // Check if it's a regular file
-            if (S_IFREG & pThis->statbuf.st_mode) {
+            if (S_ISREG(pThis->statbuf.st_mode)) {
                 // It's a file, remove it directly
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
@@ -702,7 +703,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                     delete pThis;
                 }
                 return;
-            } else if (S_IFDIR & pThis->statbuf.st_mode) {
+            } else if (S_ISDIR(pThis->statbuf.st_mode)) {
                 // It's a directory, scan contents first
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
@@ -727,7 +728,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            
+
             if (ret < 0) {
                 pThis->m_ac->apost(ret);
                 delete pThis;
@@ -748,7 +749,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            
+
             if (ret < 0) {
                 pThis->m_ac->apost(ret);
                 delete pThis;
@@ -763,7 +764,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            
+
             pThis->m_ac->apost(ret);
             delete pThis;
         }
@@ -772,7 +773,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
             int32_t ret = (int32_t)uv_fs_get_result(req);
-            
+
             pThis->m_ac->apost(ret);
             delete pThis;
         }
@@ -793,11 +794,11 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
             // Get next entry to remove
             auto entry = m_entries.back();
             m_entries.pop_back();
-            
+
             exlib::string entry_path = m_path + PATH_SLASH + entry.first;
-            
+
             uv_fs_req_cleanup(this);
-            
+
             if (entry.second == UV_DIRENT_DIR) {
                 // For directories, create a new AsyncUVRMDir instance
                 AsyncUVRMDir* subRemover = new AsyncUVRMDir(entry_path, new SubDirEvent(this));
@@ -819,8 +820,11 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
 
         class SubDirEvent : public AsyncEvent {
         public:
-            SubDirEvent(AsyncUVRMDir* parent) : m_parent(parent) {}
-            
+            SubDirEvent(AsyncUVRMDir* parent)
+                : m_parent(parent)
+            {
+            }
+
             virtual void apost(int32_t hr) override
             {
                 if (hr < 0) {
@@ -831,7 +835,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                 }
                 delete this;
             }
-            
+
         private:
             AsyncUVRMDir* m_parent;
         };
@@ -985,11 +989,15 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
 {
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(opts);
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(2);
 
         bool recursive = false;
         GetConfigValue(isolate, opts, "recursive", recursive);
         ac->m_ctx[0] = recursive;
+
+        bool withFileTypes = false;
+        GetConfigValue(isolate, opts, "withFileTypes", withFileTypes);
+        ac->m_ctx[1] = withFileTypes;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -997,6 +1005,7 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
     os_normalize(path, path, true);
 
     bool recursive = ac->m_ctx[0].boolVal();
+    bool withFileTypes = ac->m_ctx[1].boolVal();
     QuickArray<exlib::string> paths;
     retVal = new NArray();
 
@@ -1008,7 +1017,13 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
 
         uv_dirent_t dirent;
         while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
-            retVal->append(dirent.name);
+            if (withFileTypes) {
+                obj_ptr<DirEntry> pDirEntry = new DirEntry();
+                pDirEntry->fill(dirent.name, path, dirent_type_to_mode(dirent.type));
+                retVal->append(pDirEntry);
+            } else {
+                retVal->append(dirent.name);
+            }
             if (dirent.type == UV_DIRENT_DIR && recursive)
                 paths.append(dirent.name);
         }
@@ -1028,7 +1043,13 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
 
             while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
                 exlib::string full_path = _path + PATH_SLASH + dirent.name;
-                retVal->append(full_path);
+                if (withFileTypes) {
+                    obj_ptr<DirEntry> pDirEntry = new DirEntry();
+                    pDirEntry->fill(dirent.name, path + PATH_SLASH + _path, dirent_type_to_mode(dirent.type));
+                    retVal->append(pDirEntry);
+                } else {
+                    retVal->append(full_path);
+                }
                 if (dirent.type == UV_DIRENT_DIR)
                     paths.append(full_path);
             }

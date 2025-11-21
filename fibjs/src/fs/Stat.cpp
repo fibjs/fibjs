@@ -242,48 +242,31 @@ result_t Stat::isHidden(bool& retVal)
 
 result_t Stat::isBlockDevice(bool& retVal)
 {
-#ifdef _WIN32
-    retVal = false;
-#else
     retVal = S_ISBLK(m_mode);
-#endif
-
     return 0;
 }
 
 result_t Stat::isCharacterDevice(bool& retVal)
 {
-#ifdef _WIN32
-    retVal = false;
-#else
     retVal = S_ISCHR(m_mode);
-#endif
-
     return 0;
 }
 
 result_t Stat::isDirectory(bool& retVal)
 {
-    retVal = (S_IFDIR & m_mode) != 0;
-
+    retVal = S_ISDIR(m_mode);
     return 0;
 }
 
 result_t Stat::isFIFO(bool& retVal)
 {
-#ifdef _WIN32
-    retVal = false;
-#else
     retVal = S_ISFIFO(m_mode);
-#endif
-
     return 0;
 }
 
 result_t Stat::isFile(bool& retVal)
 {
-    retVal = (S_IFREG & m_mode) != 0;
-
+    retVal = S_ISREG(m_mode);
     return 0;
 }
 

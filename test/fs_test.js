@@ -1157,14 +1157,61 @@ describe('fs', () => {
 
     it("readdir", () => {
         var fl = fs.readdir(path.join(__dirname, 'dir_test'));
-        assert.deepEqual(fl, ["dir1", "file1", "file2"]);
+        assert.deepEqual(fl.sort(), ["dir1", "file1", "file2"]);
 
         var fl = fs.readdir(path.join(__dirname, 'dir_test'), { recursive: true });
 
         if (win)
-            assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1\\file3"]);
+            assert.deepEqual(fl.sort(), ["dir1", "dir1\\file3", "file1", "file2"]);
         else
-            assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1/file3"]);
+            assert.deepEqual(fl.sort(), ["dir1", "dir1/file3", "file1", "file2"]);
+    });
+
+    it("readdir with withFileTypes", () => {
+        var entries = fs.readdir(path.join(__dirname, 'dir_test'), { withFileTypes: true });
+        assert.equal(entries.length, 3);
+
+        // Check entries are DirEntry objects
+        entries.forEach(entry => {
+            assert.ok(entry.name);
+            assert.ok(entry.parentPath);
+            assert.equal(typeof entry.isDirectory, 'function');
+            assert.equal(typeof entry.isFile, 'function');
+        });
+
+        // Sort entries by name for consistent testing
+        entries.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Check first entry (dir1)
+        assert.equal(entries[0].name, "dir1");
+        assert.equal(entries[0].parentPath, path.join(__dirname, 'dir_test'));
+        assert.ok(entries[0].isDirectory());
+        assert.ok(!entries[0].isFile());
+
+        // Check second entry (file1)
+        assert.equal(entries[1].name, "file1");
+        assert.equal(entries[1].parentPath, path.join(__dirname, 'dir_test'));
+        assert.ok(!entries[1].isDirectory());
+        assert.ok(entries[1].isFile());
+
+        // Check third entry (file2)
+        assert.equal(entries[2].name, "file2");
+        assert.equal(entries[2].parentPath, path.join(__dirname, 'dir_test'));
+        assert.ok(!entries[2].isDirectory());
+        assert.ok(entries[2].isFile());
+
+        // Test with recursive option
+        var recursiveEntries = fs.readdir(path.join(__dirname, 'dir_test'), {
+            recursive: true,
+            withFileTypes: true
+        });
+        assert.equal(recursiveEntries.length, 4);
+
+        // All should be DirEntry objects
+        recursiveEntries.forEach(entry => {
+            assert.ok(entry.name);
+            assert.ok(entry.parentPath);
+        });
     });
 
     it("writeFile & appendFile", () => {
