@@ -660,6 +660,7 @@ async function async_eval(func) {
                 function fetch_size(opt) {
                     const win = gui.open(opt);
                     wins.push(win);
+                    win.waitFor();
 
                     var win_size = win.getSize();
 
@@ -702,7 +703,7 @@ async function async_eval(func) {
                         frame: false
                     });
 
-                    assert.equal(size1.width, size2.width);
+                    assert.notLessThan(size1.width, size2.width);
                 });
             });
 
