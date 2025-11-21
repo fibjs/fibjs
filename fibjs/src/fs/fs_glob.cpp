@@ -143,6 +143,20 @@ static bool isAbsolutePattern(const exlib::string& pattern)
     return (hr >= 0) ? retVal : false;
 }
 
+#ifdef _WIN32
+// Helper function to check if a pattern is UNC path (Windows only)
+static bool isUNCPath(const exlib::string& pattern)
+{
+    return pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\';
+}
+
+// Helper function to check if a pattern has a drive letter (Windows only)
+static bool hasDriveLetter(const exlib::string& pattern)
+{
+    return pattern.length() >= 3 && qisascii(pattern[0]) && pattern[1] == ':' && isPathSlash(pattern[2]);
+}
+#endif
+
 // Helper function to normalize pattern
 // Use path module's normalize function for better pattern handling
 static exlib::string normalizePattern(const exlib::string& pattern)
@@ -230,20 +244,19 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
     size_t start = 0;
     size_t pos = 0;
 
+#ifdef _WIN32
+    // Special handling for UNC paths - skip the initial "\\" and treat it as a single entity
+    if (isUNCPath(workingPattern)) {
+        start = 2; // Skip the UNC prefix \\
+        pos = 2;
+    }
+#endif
+
     // Use path module's path separator detection for better cross-platform compatibility
     while (pos < workingPattern.length()) {
         char c = workingPattern[pos];
-        bool isPathSep = false;
 
-#ifdef _WIN32
-        // On Windows, both / and \ are valid path separators
-        isPathSep = (c == '/' || c == '\\');
-#else
-        // On POSIX, only / is a path separator
-        isPathSep = (c == '/');
-#endif
-
-        if (isPathSep) {
+        if (isPathSlash(c)) {
             if (pos > start) {
                 components.push_back(workingPattern.substr(start, pos - start));
             }
@@ -258,11 +271,7 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
     } else if (start == workingPattern.length() && workingPattern.length() > 0) {
         // Pattern ends with separator, add empty component to preserve trailing separator meaning
         char lastChar = workingPattern[workingPattern.length() - 1];
-#ifdef _WIN32
-        if (lastChar == '/' || lastChar == '\\') {
-#else
-        if (lastChar == '/') {
-#endif
+        if (isPathSlash(lastChar)) {
             components.push_back("");
         }
     }
@@ -525,20 +534,20 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                 if (wildcardIndex == 0) {
 #ifdef _WIN32
                     // First component has wildcard, we need to handle drive letter
-                    // Extract drive letter from original pattern if present
-                    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
-                        basePath = pattern.substr(0, 3); // e.g., "C:\"
-                    } else if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
+                    // Extract drive letter from normalized pattern if present
+                    if (hasDriveLetter(normalizedPattern)) {
+                        basePath = normalizedPattern.substr(0, 3); // e.g., "C:\"
+                    } else if (isUNCPath(normalizedPattern)) {
                         // UNC path - find the first component (\\server\share)
                         size_t pos = 2;
                         int backslashCount = 0;
-                        while (pos < pattern.length() && backslashCount < 2) {
-                            if (pattern[pos] == '\\') {
+                        while (pos < normalizedPattern.length() && backslashCount < 2) {
+                            if (isPathSlash(normalizedPattern[pos])) {
                                 backslashCount++;
                             }
                             pos++;
                         }
-                        basePath = pattern.substr(0, pos - 1);
+                        basePath = normalizedPattern.substr(0, pos - 1);
                     } else {
                         basePath = "\\"; // Fallback
                     }
@@ -553,18 +562,28 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
 #ifdef _WIN32
                     // Handle Windows drive letter
-                    if (pattern.length() >= 3 && pattern[1] == ':' && isPathSlash(pattern[2])) {
+                    if (hasDriveLetter(normalizedPattern)) {
                         // For patterns like "D:\path\*.js", components are ["D:", "path", "*.js"]
                         // Build vector with drive letter and path components
                         baseComponents.push_back(components[0] + "\\");
                         for (int i = 1; i < wildcardIndex; ++i) {
                             baseComponents.push_back(components[i]);
                         }
-                    } else if (pattern.length() >= 2 && pattern[0] == '\\' && pattern[1] == '\\') {
-                        // UNC path - start with UNC prefix
-                        baseComponents.push_back("\\\\");
+
+                        // Use os_join for cross-platform path construction
+                        result_t hr = os_join(baseComponents, basePath);
+                        if (hr < 0) {
+                            basePath = "";
+                        }
+                    } else if (isUNCPath(normalizedPattern)) {
+                        // UNC path - manually construct to preserve \\ prefix
+                        // Cannot use os_join because it may normalize away the UNC prefix
+                        basePath = "\\\\";
                         for (int i = 0; i < wildcardIndex; ++i) {
-                            baseComponents.push_back(components[i]);
+                            if (i > 0) {
+                                basePath += "\\";
+                            }
+                            basePath += components[i];
                         }
                     } else {
                         // Regular absolute path
@@ -572,13 +591,12 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                         for (int i = 0; i < wildcardIndex; ++i) {
                             baseComponents.push_back(components[i]);
                         }
-                    }
 
-                    // Use os_join for cross-platform path construction
-                    result_t hr = os_join(baseComponents, basePath);
-                    if (hr < 0) {
-                        // This should not happen with os_join, but keep as safety fallback
-                        basePath = ""; // Handle error case
+                        // Use os_join for cross-platform path construction
+                        result_t hr = os_join(baseComponents, basePath);
+                        if (hr < 0) {
+                            basePath = "";
+                        }
                     }
 #else
                     // POSIX path - start with root
