@@ -93,7 +93,7 @@ describe('ms', () => {
         var testMs = new io.MemoryStream();
         var receivedData = [];
         var dataEventCount = 0;
-        
+
         // Write data to trigger data events
         testMs.write('Hello, ');
         testMs.write('World!');
@@ -105,10 +105,10 @@ describe('ms', () => {
             receivedData.push(data.toString());
             dataEventCount++;
         });
-        
+
         // Let the fiber yield to process data events
         coroutine.sleep(10);
-        
+
         // Verify that data events were triggered
         assert.equal(dataEventCount, 1);
         assert.deepEqual(receivedData, ['Hello, World! Test data event.']);
@@ -121,24 +121,75 @@ describe('ms', () => {
 
     it("write return value validation", () => {
         var testMs = new io.MemoryStream();
-        
+
         // Test write return value with string
         var testData = 'Hello, World!';
         var bytesWritten = testMs.write(testData);
         assert.equal(bytesWritten, testData.length);
-        
+
         // Test write return value with Buffer
         var bufferData = new Buffer('Buffer test data');
         bytesWritten = testMs.write(bufferData);
         assert.equal(bytesWritten, bufferData.length);
-        
+
         // Test write return value with empty string
         bytesWritten = testMs.write('');
         assert.equal(bytesWritten, 0);
-        
+
         // Verify total size
         var expectedSize = testData.length + bufferData.length + 0;
         assert.equal(testMs.size(), expectedSize);
+    });
+
+    it("write with encoding", () => {
+        var testMs = new io.MemoryStream();
+
+        // Test write with utf8 encoding (default)
+        var bytesWritten = testMs.write('Hello', 'utf8');
+        assert.equal(bytesWritten, 5);
+
+        // Test write with utf-8 encoding
+        bytesWritten = testMs.write(' World', 'utf-8');
+        assert.equal(bytesWritten, 6);
+
+        // Verify content
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), 'Hello World');
+
+        // Test write Chinese characters with utf8
+        testMs = new io.MemoryStream();
+        bytesWritten = testMs.write('中文', 'utf8');
+        assert.equal(bytesWritten, 6); // 2 Chinese characters = 6 bytes in UTF-8
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), '中文');
+
+        // Test write with hex encoding
+        testMs = new io.MemoryStream();
+        bytesWritten = testMs.write('48656c6c6f', 'hex');
+        assert.equal(bytesWritten, 5); // "Hello" = 5 bytes
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), 'Hello');
+
+        // Test write with base64 encoding
+        testMs = new io.MemoryStream();
+        bytesWritten = testMs.write('SGVsbG8=', 'base64');
+        assert.equal(bytesWritten, 5); // "Hello" = 5 bytes
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), 'Hello');
+
+        // Test write with latin1 encoding
+        testMs = new io.MemoryStream();
+        bytesWritten = testMs.write('Hello', 'latin1');
+        assert.equal(bytesWritten, 5);
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), 'Hello');
+
+        // Test write with binary encoding (alias for latin1)
+        testMs = new io.MemoryStream();
+        bytesWritten = testMs.write('Hello', 'binary');
+        assert.equal(bytesWritten, 5);
+        testMs.rewind();
+        assert.equal(testMs.read().toString(), 'Hello');
     });
 });
 

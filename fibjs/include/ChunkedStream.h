@@ -141,11 +141,6 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
-    {
-        return io_base::copyStream(this, stm, bytes, retVal, ac);
-    }
-
 public:
     obj_ptr<BufferedStream_base> m_stm;
     int32_t m_maxChunkSize;

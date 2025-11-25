@@ -348,12 +348,6 @@ public:
         return CALL_E_PENDDING;
     }
 
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes,
-        int64_t& retVal, AsyncEvent* ac)
-    {
-        return io_base::copyStream(this, stm, bytes, retVal, ac);
-    }
-
     virtual result_t get_timeout(int32_t& retVal)
     {
         retVal = m_timeout;

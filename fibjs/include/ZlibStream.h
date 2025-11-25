@@ -148,11 +148,6 @@ public:
         return (new asyncWrite(this, m_stm, Z_FINISH, ac))->post(0);
     }
 
-    result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
-    {
-        return CALL_E_INVALID_CALL;
-    }
-
 public:
     result_t process(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
@@ -334,7 +329,7 @@ protected:
         INFLATE_MODE_ZLIB,
         INFLATE_MODE_RAW
     };
-    
+
     inflate_mode m_mode;
     int32_t m_bytes_read;
 };
@@ -433,7 +428,7 @@ public:
             }
             m_auto_detect_init = true;
         }
-        
+
         // If we still don't have format, return error
         if (!m_auto_detect_init) {
             return Z_DATA_ERROR;
@@ -451,7 +446,7 @@ private:
         }
 
         unsigned char* data = strm.next_in;
-        
+
         // Check for GZIP format (0x1f, 0x8b)
         if (data[0] == GZIP_HEADER_ID1 && strm.avail_in >= 2 && data[1] == GZIP_HEADER_ID2) {
             // For GZIP format, we need at least the minimum header size (10 bytes)
@@ -465,7 +460,7 @@ private:
             m_mode = INFLATE_MODE_GZIP;
             return inflateInit2(&strm, GZIP_WINDOW_BITS) == Z_OK;
         }
-        
+
         // Check for zlib/deflate format (0x78, 0x9c or other valid combinations)
         if (data[0] == 0x78) {
             // For zlib format, we need at least 2 bytes for the header
@@ -475,7 +470,7 @@ private:
             m_mode = INFLATE_MODE_ZLIB;
             return inflateInit2(&strm, ZLIB_WINDOW_BITS) == Z_OK;
         }
-        
+
         // For Node.js compatibility, unzip should NOT handle deflateRaw format
         // Only support gzip and deflate (zlib) formats like Node.js unzipSync
         return false;

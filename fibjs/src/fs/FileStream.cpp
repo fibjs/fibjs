@@ -172,15 +172,6 @@ result_t FileStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return Write(data);
 }
 
-result_t FileStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
-    AsyncEvent* ac)
-{
-    if (m_fd == -1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    return io_base::copyStream(this, stm, bytes, retVal, ac);
-}
-
 result_t FileStream::open(exlib::string fname, exlib::string flags)
 {
     close();

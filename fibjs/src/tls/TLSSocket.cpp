@@ -524,15 +524,6 @@ result_t TLSSocket::close(AsyncEvent* ac)
     return (new AsyncClose(this, ac))->post(0);
 }
 
-result_t TLSSocket::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
-{
-    result_t hr = is_ready();
-    if (hr < 0)
-        return hr;
-
-    return io_base::copyStream(this, stm, bytes, retVal, ac);
-}
-
 int TLSSocket::Write(const char* data, int len)
 {
     BIO_clear_retry_flags(m_bio_out);

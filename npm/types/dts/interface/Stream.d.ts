@@ -33,6 +33,28 @@ declare class Class_Stream extends Class_EventEmitter {
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
+     * @description 将给定的字符串写入流
+     *      @param data 给定要写入的数据
+     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
+     *      @return 返回实际写入的字节数
+     *      
+     */
+    write(data: Class_Buffer, encoding: string): number;
+
+    write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 将给定的字符串写入流
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
+     *      @return 返回实际写入的字节数
+     *      
+     */
+    write(data: string, encoding?: string): number;
+
+    write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
      * @description 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。
      *      @return 返回当前流对象
      *      

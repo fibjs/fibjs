@@ -196,14 +196,6 @@ result_t RangeStream::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t RangeStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
-{
-    if (!m_stream)
-        return CALL_E_CLOSED;
-
-    return io_base::copyStream(this, stm, bytes, retVal, ac);
-}
-
 result_t RangeStream::seek(int64_t offset, int32_t whence)
 {
     switch (whence) {

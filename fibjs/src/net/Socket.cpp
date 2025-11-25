@@ -117,15 +117,6 @@ result_t Socket::flush(AsyncEvent* ac)
     return 0;
 }
 
-result_t Socket::copyTo(Stream_base* stm, int64_t bytes,
-    int64_t& retVal, AsyncEvent* ac)
-{
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    return io_base::copyStream(this, stm, bytes, retVal, ac);
-}
-
 result_t Socket::close(AsyncEvent* ac)
 {
     if (m_aio.m_fd == INVALID_SOCKET)

@@ -158,12 +158,6 @@ result_t BufferedStream::close(AsyncEvent* ac)
     return m_stm->close(ac);
 }
 
-result_t BufferedStream::copyTo(Stream_base* stm, int64_t bytes,
-    int64_t& retVal, AsyncEvent* ac)
-{
-    return io_base::copyStream(this, stm, bytes, retVal, ac);
-}
-
 result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
     AsyncEvent* ac)
 {
