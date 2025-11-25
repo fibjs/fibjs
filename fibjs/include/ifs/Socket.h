@@ -38,6 +38,8 @@ public:
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setKeepAlive(bool enable, int32_t initialDelay) = 0;
+    virtual result_t setNoDelay(bool noDelay) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
 
@@ -58,6 +60,8 @@ public:
     static void s_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -80,6 +84,8 @@ inline ClassInfo& Socket_base::class_info()
         { "bind", s_bind, false, ClassData::ASYNC_SYNC },
         { "listen", s_listen, false, ClassData::ASYNC_SYNC },
         { "accept", s_accept, false, ClassData::ASYNC_ASYNC },
+        { "setKeepAlive", s_setKeepAlive, false, ClassData::ASYNC_SYNC },
+        { "setNoDelay", s_setNoDelay, false, ClassData::ASYNC_SYNC },
         { "recv", s_recv, false, ClassData::ASYNC_ASYNC },
         { "send", s_send, false, ClassData::ASYNC_ASYNC }
     };
@@ -309,6 +315,35 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->ac_accept(vr);
 
     METHOD_RETURN();
+}
+
+inline void Socket_base::s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Socket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 0);
+
+    OPT_ARG(bool, 0, false);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->setKeepAlive(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void Socket_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Socket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(bool, 0, true);
+
+    hr = pInst->setNoDelay(v0);
+
+    METHOD_VOID();
 }
 
 inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -22,29 +22,37 @@
 
 namespace fibjs {
 
-void setOption(intptr_t& sockfd)
+void setKeepAlive(SOCKET sockfd, int32_t enable, int32_t initialDelay, int32_t keepInterval = 0, int32_t keepCount = 0)
 {
-    int32_t keepAlive = 1;
-    setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive,
-        sizeof(keepAlive));
+    setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (void*)&enable, sizeof(enable));
 
+    if (enable && initialDelay > 0) {
 #ifdef TCP_KEEPIDLE
-    int32_t keepIdle = KEEPALIVE_TIMEOUT;
-    setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepIdle, sizeof(keepIdle));
+        setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (void*)&initialDelay, sizeof(initialDelay));
 #endif
 
 #ifdef TCP_KEEPINTVL
-    int32_t keepInterval = 20;
-    int32_t keepCount = 10;
-
-    setsockopt(sockfd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepInterval,
-        sizeof(keepInterval));
-    setsockopt(sockfd, SOL_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
+        if (keepInterval <= 0)
+            keepInterval = 1;
+        setsockopt(sockfd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepInterval, sizeof(keepInterval));
 #endif
 
-    int32_t noDelay = 1;
+#ifdef TCP_KEEPCNT
+        if (keepCount > 0)
+            setsockopt(sockfd, SOL_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
+#endif
+    }
+}
 
-    setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (void*)&noDelay, sizeof(noDelay));
+void setNoDelay(SOCKET sockfd, int32_t enable)
+{
+    setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (void*)&enable, sizeof(enable));
+}
+
+void setOption(SOCKET sockfd)
+{
+    setKeepAlive(sockfd, 1, KEEPALIVE_TIMEOUT, 20, 10);
+    setNoDelay(sockfd, 1);
 }
 
 static struct ev_loop* s_loop;

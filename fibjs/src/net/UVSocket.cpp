@@ -273,4 +273,28 @@ result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent*
     uv_post(new AsyncRead(this, false, bytes, retVal, ac));
     return CALL_E_PENDDING;
 }
+
+result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
+{
+    if (m_family == net_base::C_AF_UNIX)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t hr = uv_tcp_keepalive(&m_tcp, enable ? 1 : 0, initialDelay);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    return 0;
+}
+
+result_t UVSocket::setNoDelay(bool noDelay)
+{
+    if (m_family == net_base::C_AF_UNIX)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t hr = uv_tcp_nodelay(&m_tcp, noDelay ? 1 : 0);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    return 0;
+}
 }

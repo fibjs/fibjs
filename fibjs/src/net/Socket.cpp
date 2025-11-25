@@ -322,4 +322,25 @@ result_t Socket::unbind(obj_ptr<object_base>& retVal)
 {
     return unbind_dispose(retVal);
 }
+
+extern void setKeepAlive(SOCKET sockfd, int32_t enable, int32_t initialDelay, int32_t keepInterval, int32_t keepCount);
+extern void setNoDelay(SOCKET sockfd, int32_t enable);
+
+result_t Socket::setKeepAlive(bool enable, int32_t initialDelay)
+{
+    if (m_aio.m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    fibjs::setKeepAlive(m_aio.m_fd, enable ? 1 : 0, initialDelay, 0, 0);
+    return 0;
+}
+
+result_t Socket::setNoDelay(bool noDelay)
+{
+    if (m_aio.m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    fibjs::setNoDelay(m_aio.m_fd, noDelay ? 1 : 0);
+    return 0;
+}
 }

@@ -93,6 +93,21 @@ declare class Class_Socket extends Class_Stream {
     accept(callback: (err: Error | undefined | null, retVal: Class_Socket)=>any): void;
 
     /**
+     * @description 启用或禁用 TCP 保持活动机制
+     *      @param enable 指定是否启用保持活动机制，缺省为 false
+     *      @param initialDelay 指定初始延迟时间，单位为秒，缺省为 0
+     *      
+     */
+    setKeepAlive(enable?: boolean, initialDelay?: number): void;
+
+    /**
+     * @description 启用或禁用 Nagle 算法
+     *      @param noDelay 指定是否禁用 Nagle 算法，缺省为 true
+     *      
+     */
+    setNoDelay(noDelay?: boolean): void;
+
+    /**
      * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
      *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
      *      @return 返回从连接读取的数据

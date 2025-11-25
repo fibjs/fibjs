@@ -39,6 +39,8 @@ public:
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
+    virtual result_t setKeepAlive(bool enable, int32_t initialDelay);
+    virtual result_t setNoDelay(bool noDelay);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
 

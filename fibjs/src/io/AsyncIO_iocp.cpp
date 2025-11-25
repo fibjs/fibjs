@@ -21,22 +21,32 @@
 
 namespace fibjs {
 
+void setKeepAlive(SOCKET s, int32_t enable, int32_t initialDelay, int32_t keepInterval = 0, int32_t keepCount = 0)
+{
+    (void)keepCount; // Windows does not support keepCount
+
+    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char*)&enable, sizeof(enable));
+
+    if (enable && initialDelay > 0) {
+        if (keepInterval <= 0)
+            keepInterval = 1;
+        tcp_keepalive Settings = { 1, (ULONG)initialDelay * 1000, (ULONG)keepInterval * 1000 };
+        DWORD dwBytes = 0L;
+
+        WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
+            &dwBytes, NULL, NULL);
+    }
+}
+
+void setNoDelay(SOCKET s, int32_t enable)
+{
+    setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&enable, sizeof(enable));
+}
+
 void setOption(SOCKET s)
 {
-    int32_t keepAlive = 1;
-    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char*)&keepAlive,
-        sizeof(keepAlive));
-
-    tcp_keepalive Settings = { 1, KEEPALIVE_TIMEOUT * 1000, 20 * 1000 };
-    DWORD dwBytes = 0L;
-
-    WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
-        &dwBytes, NULL, NULL);
-
-    int32_t noDelay = 1;
-
-    setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&noDelay,
-        sizeof(noDelay));
+    setKeepAlive(s, 1, KEEPALIVE_TIMEOUT, 20);
+    setNoDelay(s, 1);
 }
 
 HANDLE s_hIocp;
