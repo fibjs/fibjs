@@ -285,12 +285,13 @@ enum {
     METHOD_INSTANCE(cls)           \
     scope l(pInst);
 
-#define LOAD_ENTER()                    \
-    result_t hr = CALL_E_BADPARAMCOUNT; \
-    bool bStrict = true;                \
-    int32_t argc1 = 1;                  \
-    OptArgs args(v);                    \
-    do {                                \
+#define LOAD_ENTER()                       \
+    result_t hr = CALL_E_BADPARAMCOUNT;    \
+    Isolate* isolate = Isolate::current(); \
+    bool bStrict = true;                   \
+    int32_t argc1 = 1;                     \
+    OptArgs args(v);                       \
+    do {                                   \
         do {
 
 #define LOAD_RETURN() \
@@ -639,23 +640,23 @@ public:                                                  \
     {                                                    \
     }
 
-#define LOAD_OPTION_MEMBER(r, data, elem)                                          \
-    hr = GetConfigValue(isolate, opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
-    if (hr < 0)                                                                    \
+#define LOAD_OPTION_MEMBER(r, data, elem)                                 \
+    hr = GetConfigValue(opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
+    if (hr < 0)                                                           \
         return hr;
 
-#define LOAD_OPTIONS(Class, Members)                                                       \
-    static Class* getInstance(v8::Local<v8::Value> v) { return nullptr; }                  \
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Class>& retVal) \
-    {                                                                                      \
-        if (!IsJSObject(v))                                                                \
-            return CALL_E_TYPEMISMATCH;                                                    \
-        v8::Local<v8::Object> opt = v.As<v8::Object>();                                    \
-        obj_ptr<Class> o = new Class();                                                    \
-        result_t hr = 0;                                                                   \
-        BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)                              \
-        retVal = o;                                                                        \
-        return 0;                                                                          \
+#define LOAD_OPTIONS(Class, Members)                                      \
+    static Class* getInstance(v8::Local<v8::Value> v) { return nullptr; } \
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<Class>& retVal)  \
+    {                                                                     \
+        if (!IsJSObject(v))                                               \
+            return CALL_E_TYPEMISMATCH;                                   \
+        v8::Local<v8::Object> opt = v.As<v8::Object>();                   \
+        obj_ptr<Class> o = new Class();                                   \
+        result_t hr = 0;                                                  \
+        BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)             \
+        retVal = o;                                                       \
+        return 0;                                                         \
     }
 
 #ifndef ARRAYSIZE
@@ -887,7 +888,7 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
     if (bStrict)
         return CALL_E_TYPEMISMATCH;
 
-    return T::load(isolate, v, vr);
+    return T::load(v, vr);
 }
 
 class Buffer_base;
@@ -1031,11 +1032,12 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant
 result_t setRuntimeError(result_t code, const char* err = nullptr);
 
 template <typename T>
-result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
+result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
 {
     if (o.IsEmpty())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
 
+    Isolate* isolate = Isolate::current(o);
     JSValue v = o->Get(isolate->context(), isolate->NewString(key));
     if (v->IsUndefined())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
@@ -1044,13 +1046,14 @@ result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* k
 }
 
 template <typename T>
-result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)
+result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)
 {
     if (o.IsEmpty())
         return CALL_E_PARAMNOTOPTIONAL;
 
     T n1;
-    result_t hr = GetConfigValue(isolate, o, key, n1, bStrict);
+    Isolate* isolate = Isolate::current(o);
+    result_t hr = GetConfigValue(o, key, n1, bStrict);
     if (hr >= 0)
         n = n1;
     else if (hr != CALL_E_PARAMNOTOPTIONAL)
@@ -1060,9 +1063,10 @@ result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* k
 }
 
 template <typename T>
-result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
+result_t GetConfigValue(v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
 {
     JSValue v;
+    Isolate* isolate = Isolate::current(o);
     if (!o.IsEmpty())
         v = o->Get(isolate->context(), i);
     if (v.IsEmpty() || v->IsUndefined()) {

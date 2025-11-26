@@ -448,11 +448,10 @@ public:
 result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(opts);
         ac->m_ctx.resize(1);
 
         obj_ptr<GlobOptions> _opts;
-        result_t hr = GlobOptions::load(isolate, opts, _opts);
+        result_t hr = GlobOptions::load(opts, _opts);
         if (hr < 0)
             return hr;
 

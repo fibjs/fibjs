@@ -82,7 +82,7 @@ public:
         result_t hr;
         v8::Local<v8::Array> levels;
 
-        hr = GetConfigValue(isolate, o, "levels", levels);
+        hr = GetConfigValue(o, "levels", levels);
         if (hr == CALL_E_PARAMNOTOPTIONAL) {
         } else if (hr < 0)
             return hr;

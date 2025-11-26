@@ -80,12 +80,10 @@ result_t KeyObject::fixSM2PublicKey()
 
 result_t KeyObject::toX25519_publicKey(v8::Local<v8::Object> options)
 {
-    Isolate* isolate = holder();
-
     int32_t key_type = EVP_PKEY_id(m_pkey);
     if (key_type == EVP_PKEY_ED25519) {
         bool toX25519 = false;
-        result_t hr = GetConfigValue(isolate, options, "toX25519", toX25519, true);
+        result_t hr = GetConfigValue(options, "toX25519", toX25519, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -270,7 +268,7 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
     exlib::string type;
     exlib::string namedCurve;
 
-    hr = GetConfigValue(isolate, key, "format", format, true);
+    hr = GetConfigValue(key, "format", format, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -280,16 +278,16 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
         return hr;
 
     obj_ptr<Buffer_base> _passphrase;
-    hr = GetConfigValue(isolate, key, "passphrase", _passphrase);
+    hr = GetConfigValue(key, "passphrase", _passphrase);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     if (format == "der") {
-        hr = GetConfigValue(isolate, key, "type", type, true);
+        hr = GetConfigValue(key, "type", type, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
     } else if (format == "raw") {
-        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
+        hr = GetConfigValue(key, "namedCurve", namedCurve, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
     }

@@ -42,14 +42,13 @@ result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Handler_base* hdl
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = Isolate::current(This);
     exlib::string address;
-    hr = GetConfigValue(isolate, options, "address", address, true);
+    hr = GetConfigValue(options, "address", address, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     int32_t port;
-    hr = GetConfigValue(isolate, options, "port", port, true);
+    hr = GetConfigValue(options, "port", port, true);
     if (hr < 0)
         return hr;
 

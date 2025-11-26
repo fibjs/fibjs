@@ -89,10 +89,8 @@ result_t url_base::fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> opti
     bool isWindows = false;
 #endif
 
-    if (!options.IsEmpty()) {
-        Isolate* isolate = Isolate::current(options);
-        GetConfigValue(isolate, options, "windows", isWindows, true);
-    }
+    if (!options.IsEmpty())
+        GetConfigValue(options, "windows", isWindows, true);
 
     std::string_view pathname = u->m_url->get_pathname();
 
@@ -199,10 +197,8 @@ result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> optio
     bool isWindows = false;
 #endif
 
-    if (!options.IsEmpty()) {
-        Isolate* isolate = Isolate::current(options);
-        GetConfigValue(isolate, options, "windows", isWindows, true);
-    }
+    if (!options.IsEmpty())
+        GetConfigValue(options, "windows", isWindows, true);
 
     exlib::string domain;
 

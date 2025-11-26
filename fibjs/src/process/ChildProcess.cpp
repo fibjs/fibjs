@@ -109,7 +109,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
 
     Variant stddefs[3];
     v8::Local<v8::Value> v;
-    hr = GetConfigValue(isolate, options, "stdio", v);
+    hr = GetConfigValue(options, "stdio", v);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         for (i = 0; i < 3; i++)
             stddefs[i] = fork ? "inherit" : "pipe";
@@ -202,7 +202,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     v8::Local<v8::Context> context = isolate->context();
 
     int32_t uid;
-    hr = GetConfigValue(isolate, options, "uid", uid);
+    hr = GetConfigValue(options, "uid", uid);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -212,7 +212,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     }
 
     int32_t gid;
-    hr = GetConfigValue(isolate, options, "gid", gid);
+    hr = GetConfigValue(options, "gid", gid);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -223,7 +223,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 
     v8::Local<v8::Object> opt_envs;
     v8::Local<v8::Value> opt_envs_v;
-    GetConfigValue(isolate, options, "env", opt_envs_v);
+    GetConfigValue(options, "env", opt_envs_v);
     if (IsEmpty(opt_envs_v)) {
         hr = process_base::get_env(opt_envs);
         if (hr < 0)
@@ -319,30 +319,28 @@ result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
 
 result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
 {
-    Isolate* isolate = holder();
-
     process_base::cwd(cwd);
-    GetConfigValue(isolate, options, "cwd", cwd);
+    GetConfigValue(options, "cwd", cwd);
     uv_options.cwd = cwd.c_str();
 
     bool detached = false;
-    GetConfigValue(isolate, options, "detached", detached);
+    GetConfigValue(options, "detached", detached);
     if (detached)
         uv_options.flags |= UV_PROCESS_DETACHED;
 
     bool windowsVerbatimArguments = false;
-    GetConfigValue(isolate, options, "windowsVerbatimArguments", windowsVerbatimArguments);
+    GetConfigValue(options, "windowsVerbatimArguments", windowsVerbatimArguments);
     if (windowsVerbatimArguments)
         uv_options.flags |= UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS;
 
     bool windowsHide = false;
-    GetConfigValue(isolate, options, "windowsHide", windowsHide);
+    GetConfigValue(options, "windowsHide", windowsHide);
     if (windowsHide)
         uv_options.flags |= UV_PROCESS_WINDOWS_HIDE;
 
     // Parse PTY options
-    GetConfigValue(isolate, options, "cols", m_cols);
-    GetConfigValue(isolate, options, "rows", m_rows);
+    GetConfigValue(options, "cols", m_cols);
+    GetConfigValue(options, "rows", m_rows);
 
     return 0;
 }
@@ -417,7 +415,7 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     }
 
     obj_ptr<AbortSignal_base> abortSignal;
-    GetConfigValue(isolate, options, "signal", abortSignal);
+    GetConfigValue(options, "signal", abortSignal);
     if (abortSignal) {
         AbortSignal* signal = abortSignal.As<AbortSignal>();
         if (signal->is_aborted()) {

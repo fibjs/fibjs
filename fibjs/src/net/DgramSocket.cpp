@@ -58,21 +58,20 @@ result_t dgram_base::createSocket(exlib::string type, v8::Local<v8::Function> ca
 
 result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(opts);
     result_t hr;
 
     bool reuseAddr = false;
-    hr = GetConfigValue(isolate, opts, "reuseAddr", reuseAddr);
+    hr = GetConfigValue(opts, "reuseAddr", reuseAddr);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     bool ipv6Only = false;
-    hr = GetConfigValue(isolate, opts, "ipv6Only", ipv6Only);
+    hr = GetConfigValue(opts, "ipv6Only", ipv6Only);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     exlib::string type;
-    hr = GetConfigValue(isolate, opts, "type", type);
+    hr = GetConfigValue(opts, "type", type);
     if (hr < 0)
         return hr;
 
@@ -85,11 +84,11 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocke
     if (hr < 0)
         return hr;
 
-    hr = GetConfigValue(isolate, opts, "recvBufferSize", s->m_recvbuf_size);
+    hr = GetConfigValue(opts, "recvBufferSize", s->m_recvbuf_size);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, opts, "sendBufferSize", s->m_sendbuf_size);
+    hr = GetConfigValue(opts, "sendBufferSize", s->m_sendbuf_size);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -208,19 +207,17 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync()) {
-        Isolate* isolate = holder();
-
         m_holder = new ValueHolder(wrap());
 
         result_t hr;
 
         int32_t port;
-        hr = GetConfigValue(isolate, opts, "port", port);
+        hr = GetConfigValue(opts, "port", port);
         if (hr < 0)
             return hr;
 
         exlib::string addr;
-        hr = GetConfigValue(isolate, opts, "address", addr);
+        hr = GetConfigValue(opts, "address", addr);
         if (hr < 0)
             return hr;
 

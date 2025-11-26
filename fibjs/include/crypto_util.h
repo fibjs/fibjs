@@ -130,7 +130,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
 {
     result_t hr;
     v8::Local<v8::Value> v;
-    hr = GetConfigValue(isolate, o, "key", v, true);
+    hr = GetConfigValue(o, "key", v, true);
     if (hr < 0)
         return hr;
 
@@ -142,7 +142,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
         if (hr < 0)
             return hr;
 
-        hr = GetConfigValue(isolate, o, "encoding", encoding, true);
+        hr = GetConfigValue(o, "encoding", encoding, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 

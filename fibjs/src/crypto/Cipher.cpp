@@ -100,7 +100,7 @@ static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
     int32_t expected_iv_length;
 
     // Check keyLength filter
-    hr = GetConfigValue(isolate, options, "keyLength", expected_key_length, true);
+    hr = GetConfigValue(options, "keyLength", expected_key_length, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -110,7 +110,7 @@ static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
     }
 
     // Check ivLength filter
-    hr = GetConfigValue(isolate, options, "ivLength", expected_iv_length, true);
+    hr = GetConfigValue(options, "ivLength", expected_iv_length, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -416,7 +416,7 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
     if (IsSupportedAuthenticatedMode(cipher)) {
         int auth_tag_len = kNoAuthTagLength;
 
-        hr = GetConfigValue(holder(), options, "authTagLength", auth_tag_len, true);
+        hr = GetConfigValue(options, "authTagLength", auth_tag_len, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -504,7 +504,7 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
 
     if (mode == EVP_CIPH_CCM_MODE) {
         int plaintext_len = kNoAuthTagLength;
-        result_t hr = GetConfigValue(holder(), options, "plaintextLength", plaintext_len, true);
+        result_t hr = GetConfigValue(options, "plaintextLength", plaintext_len, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -543,7 +543,7 @@ result_t Cipher::setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_
 result_t Cipher::setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     exlib::string encoding = "utf8";
-    result_t hr = GetConfigValue(holder(), options, "encoding", encoding, true);
+    result_t hr = GetConfigValue(options, "encoding", encoding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 

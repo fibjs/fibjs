@@ -54,7 +54,6 @@ result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current();
     bool isAbs = false;
     path_base::isAbsolute(path, isAbs);
     if (!isAbs)
@@ -66,17 +65,17 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     result_t hr;
 
     v = true;
-    hr = GetConfigValue(isolate, opts, "file_system", v, false);
+    hr = GetConfigValue(opts, "file_system", v, false);
     if (hr >= 0)
         worker->m_isolate->m_enable_FileSystem = v;
 
     v = false;
-    hr = GetConfigValue(isolate, opts, "safe_buffer", v, false);
+    hr = GetConfigValue(opts, "safe_buffer", v, false);
     if (hr >= 0)
         worker->m_isolate->m_safe_buffer = v;
 
     v8::Local<v8::Value> data;
-    hr = GetConfigValue(isolate, opts, "workerData", data, false);
+    hr = GetConfigValue(opts, "workerData", data, false);
     if (hr >= 0) {
         obj_ptr<WorkerMessage> wm = new WorkerMessage(data);
         hr = wm->unbind();

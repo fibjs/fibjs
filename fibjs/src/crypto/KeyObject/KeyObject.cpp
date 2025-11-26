@@ -67,11 +67,10 @@ result_t crypto_base::createSecretKey(exlib::string key, exlib::string encoding,
 
 result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(options);
     result_t hr;
 
     obj_ptr<KeyObject_base> privateKey;
-    hr = GetConfigValue(isolate, options, "privateKey", privateKey, true);
+    hr = GetConfigValue(options, "privateKey", privateKey, true);
     if (hr < 0)
         return hr;
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
@@ -80,7 +79,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         return Runtime::setError("property 'privateKey' must be a private key");
 
     obj_ptr<KeyObject_base> publicKey;
-    hr = GetConfigValue(isolate, options, "publicKey", publicKey, true);
+    hr = GetConfigValue(options, "publicKey", publicKey, true);
     if (hr < 0)
         return hr;
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
@@ -271,15 +270,13 @@ result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>&
 result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 {
     result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
 
     exlib::string format = "pem";
-    hr = GetConfigValue(isolate, key, "format", format, true);
+    hr = GetConfigValue(key, "format", format, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         v8::Local<v8::Value> k;
 
-        hr = GetConfigValue(isolate, key, "key", k);
+        hr = GetConfigValue(key, "key", k);
         if (hr < 0)
             return hr;
 
@@ -320,7 +317,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
     if (format == "jwk") {
         v8::Local<v8::Object> jwk;
 
-        hr = GetConfigValue(isolate, key, "key", jwk, true);
+        hr = GetConfigValue(key, "key", jwk, true);
         if (hr < 0)
             return hr;
 

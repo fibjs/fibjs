@@ -16,9 +16,8 @@ namespace fibjs {
 result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current(options);
 
-    hr = GetConfigValue(isolate, options, "secureContext", retVal, true);
+    hr = GetConfigValue(options, "secureContext", retVal, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -101,7 +100,7 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
     result_t hr;
 
     obj_ptr<X509Certificate_base> ca;
-    hr = GetConfigValue(isolate, options, "ca", ca);
+    hr = GetConfigValue(options, "ca", ca);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: ca must be a valid X509Certificate.");
     if (hr != CALL_E_PARAMNOTOPTIONAL)
@@ -198,11 +197,10 @@ result_t SecureContext::get_key(obj_ptr<KeyObject_base>& retVal)
 
 result_t SecureContext::set_cert(v8::Local<v8::Object> options)
 {
-    Isolate* isolate = holder();
     result_t hr;
     obj_ptr<X509Certificate_base> certs;
 
-    hr = GetConfigValue(isolate, options, "cert", certs);
+    hr = GetConfigValue(options, "cert", certs);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: cert must be a valid X509Certificate.");
 
@@ -281,13 +279,12 @@ inline result_t ver_string(int32_t ver, exlib::string& retVal)
 
 result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool isServer)
 {
-    Isolate* isolate = holder();
     result_t hr;
     exlib::string ver;
     int32_t maxVersion = 0;
     int32_t minVersion = 0;
 
-    hr = GetConfigValue(isolate, options, "maxVersion", ver, true);
+    hr = GetConfigValue(options, "maxVersion", ver, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: maxVersion must be a valid string.");
 
@@ -297,7 +294,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
             return hr;
     }
 
-    hr = GetConfigValue(isolate, options, "minVersion", ver, true);
+    hr = GetConfigValue(options, "minVersion", ver, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: minVersion must be a valid string.");
 
@@ -310,7 +307,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
     const SSL_METHOD* method = nullptr;
     exlib::string secureProtocol;
 
-    hr = GetConfigValue(isolate, options, "secureProtocol", secureProtocol, true);
+    hr = GetConfigValue(options, "secureProtocol", secureProtocol, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: secureProtocol must be a valid string.");
 
@@ -414,7 +411,6 @@ result_t SecureContext::get_secureProtocol(exlib::string& retVal)
 
 result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
 {
-    Isolate* isolate = holder();
     result_t hr;
 
     int32_t verify_mode;
@@ -422,15 +418,15 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
     bool rejectUnverified = true;
     bool rejectUnauthorized = !isServer;
 
-    hr = GetConfigValue(isolate, options, "requestCert", requestCert);
+    hr = GetConfigValue(options, "requestCert", requestCert);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: requestCert must be a valid boolean.");
 
-    hr = GetConfigValue(isolate, options, "rejectUnverified", rejectUnverified);
+    hr = GetConfigValue(options, "rejectUnverified", rejectUnverified);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: rejectUnverified must be a valid boolean.");
 
-    hr = GetConfigValue(isolate, options, "rejectUnauthorized", rejectUnauthorized);
+    hr = GetConfigValue(options, "rejectUnauthorized", rejectUnauthorized);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
 
@@ -479,26 +475,26 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
     result_t hr;
 
     int32_t SNICacheSize;
-    hr = GetConfigValue(isolate, options, "SNICacheSize", SNICacheSize);
+    hr = GetConfigValue(options, "SNICacheSize", SNICacheSize);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: SNICacheSize must be a valid number.");
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         m_sniContexts.resize(SNICacheSize);
 
     int64_t SNICacheIdleTimeout = 300;
-    hr = GetConfigValue(isolate, options, "SNICacheIdleTimeout", SNICacheIdleTimeout);
+    hr = GetConfigValue(options, "SNICacheIdleTimeout", SNICacheIdleTimeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: SNICacheIdleTimeout must be a valid number.");
 
     int64_t SNICacheTimeout = 300;
-    hr = GetConfigValue(isolate, options, "SNICacheTimeout", SNICacheTimeout);
+    hr = GetConfigValue(options, "SNICacheTimeout", SNICacheTimeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: SNICacheTimeout must be a valid number.");
 
     m_sniContexts.set_timeout(SNICacheIdleTimeout, SNICacheTimeout);
 
     v8::Local<v8::Function> js_sn_resolver;
-    hr = GetConfigValue(isolate, options, "SNIResolver", js_sn_resolver);
+    hr = GetConfigValue(options, "SNIResolver", js_sn_resolver);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: SNIResolver must be a valid function.");
 
@@ -563,11 +559,10 @@ result_t SecureContext::get_rejectUnauthorized(bool& retVal)
 
 result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
 {
-    Isolate* isolate = holder();
     result_t hr;
     int32_t timeout;
 
-    hr = GetConfigValue(isolate, options, "sessionTimeout", timeout);
+    hr = GetConfigValue(options, "sessionTimeout", timeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: sessionTimeout must be a valid number.");
 

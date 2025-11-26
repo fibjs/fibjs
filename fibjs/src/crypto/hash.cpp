@@ -179,7 +179,7 @@ result_t crypto_base::scrypt(Buffer_base* password, Buffer_base* salt, int32_t k
     if (ac->isSync()) {
         obj_ptr<ScryptOptions> opt;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = ScryptOptions::load(isolate, options, opt);
+        result_t hr = ScryptOptions::load(options, opt);
         if (hr < 0)
             return hr;
 

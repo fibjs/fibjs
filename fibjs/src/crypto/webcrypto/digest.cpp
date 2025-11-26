@@ -36,12 +36,10 @@ result_t subtle_base::digest(exlib::string algorithm, Buffer_base* data, std::sh
 result_t subtle_base::digest(v8::Local<v8::Object> algorithm, Buffer_base* data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
         ac->m_ctx.resize(1);
 
         exlib::string alg;
-        result_t hr = GetConfigValue(isolate, algorithm, "name", alg, true);
+        result_t hr = GetConfigValue(algorithm, "name", alg, true);
         if (hr < 0)
             return hr;
 

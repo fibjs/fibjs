@@ -351,7 +351,6 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
         return 0;
     }
 
-    Isolate* isolate = holder();
     result_t hr;
 
     while (true) {
@@ -379,7 +378,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
 
             exlib::string type;
             v8::Local<v8::Object> o = v.As<v8::Object>();
-            GetConfigValue(isolate, o, "type", type);
+            GetConfigValue(o, "type", type);
 
             retVal = type == "module" ? kESModule : kCommonJS;
             return 0;

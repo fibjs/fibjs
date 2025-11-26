@@ -80,18 +80,16 @@ result_t HttpCookie::parse(exlib::string header)
 
 result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
 {
-    Isolate* isolate = holder();
-
     if (bBase) {
-        GetConfigValue(isolate, opts, "name", m_name);
-        GetConfigValue(isolate, opts, "value", m_value);
+        GetConfigValue(opts, "name", m_name);
+        GetConfigValue(opts, "value", m_value);
     }
 
-    GetConfigValue(isolate, opts, "expires", m_expires);
-    GetConfigValue(isolate, opts, "domain", m_domain);
-    GetConfigValue(isolate, opts, "path", m_path);
-    GetConfigValue(isolate, opts, "secure", m_secure);
-    GetConfigValue(isolate, opts, "httpOnly", m_httpOnly);
+    GetConfigValue(opts, "expires", m_expires);
+    GetConfigValue(opts, "domain", m_domain);
+    GetConfigValue(opts, "path", m_path);
+    GetConfigValue(opts, "secure", m_secure);
+    GetConfigValue(opts, "httpOnly", m_httpOnly);
 
     return 0;
 }

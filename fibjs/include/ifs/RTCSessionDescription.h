@@ -26,7 +26,7 @@ public:
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal);
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,7 +75,7 @@ inline void RTCSessionDescription_base::__new(const v8::FunctionCallbackInfo<v8:
     CONSTRUCT_RETURN();
 }
 
-inline result_t RTCSessionDescription_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal)
+inline result_t RTCSessionDescription_base::load(v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal)
 {
     obj_ptr<RTCSessionDescription_base> vr;
 

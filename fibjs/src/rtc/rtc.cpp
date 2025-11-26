@@ -115,7 +115,7 @@ result_t rtc_base::startServer(v8::Local<v8::Object> config)
 
     obj_ptr<ServerOptions> options;
     Isolate* isolate = Isolate::current(config);
-    result_t hr = ServerOptions::load(isolate, config, options);
+    result_t hr = ServerOptions::load(config, options);
     if (hr < 0)
         return hr;
 
@@ -186,7 +186,7 @@ result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
 
     obj_ptr<SctpOptions> options;
     Isolate* isolate = Isolate::current(settings);
-    result_t hr = SctpOptions::load(isolate, settings, options);
+    result_t hr = SctpOptions::load(settings, options);
     if (hr < 0)
         return hr;
 

@@ -598,16 +598,15 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
 inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathObject, exlib::string& retVal)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current(pathObject);
 
     exlib::string dir;
-    hr = GetConfigValue(isolate, pathObject, "dir", dir, true);
+    hr = GetConfigValue(pathObject, "dir", dir, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     exlib::string root;
 
-    hr = GetConfigValue(isolate, pathObject, "root", root, true);
+    hr = GetConfigValue(pathObject, "root", root, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -618,19 +617,19 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
     }
 
     exlib::string base;
-    hr = GetConfigValue(isolate, pathObject, "base", base, true);
+    hr = GetConfigValue(pathObject, "base", base, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     if (!base.length()) {
         exlib::string tmp;
-        hr = GetConfigValue(isolate, pathObject, "name", tmp, true);
+        hr = GetConfigValue(pathObject, "name", tmp, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
         base += tmp;
 
-        hr = GetConfigValue(isolate, pathObject, "ext", tmp, true);
+        hr = GetConfigValue(pathObject, "ext", tmp, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 

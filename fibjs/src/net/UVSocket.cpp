@@ -247,7 +247,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, AsyncEvent* ac)
     if (ac->isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = ConnectOptions::load(isolate, options, opts);
+        result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 

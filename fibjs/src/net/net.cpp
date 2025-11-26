@@ -188,7 +188,7 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
     if (ac->isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = ConnectOptions::load(isolate, options, opts);
+        result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 

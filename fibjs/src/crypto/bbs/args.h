@@ -18,7 +18,6 @@ namespace fibjs {
 
 static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* ac)
 {
-    Isolate* isolate = ac->isolate();
     result_t hr;
 
     ac->m_ctx.resize(4);
@@ -34,7 +33,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* 
     ac->m_ctx[0] = key_;
 
     exlib::string suite = "Bls12381Sha256";
-    hr = GetConfigValue(isolate, opts, "suite", suite);
+    hr = GetConfigValue(opts, "suite", suite);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (suite == "Bls12381Sha256")
@@ -45,13 +44,13 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* 
         return Runtime::setError("crypto: suite must be 'Bls12381Sha256' or 'Bls12381Shake256'");
 
     obj_ptr<Buffer_base> header;
-    hr = GetConfigValue(isolate, opts, "header", header);
+    hr = GetConfigValue(opts, "header", header);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[2] = header;
 
     obj_ptr<Buffer_base> proof_header;
-    hr = GetConfigValue(isolate, opts, "proof_header", proof_header);
+    hr = GetConfigValue(opts, "proof_header", proof_header);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[3] = proof_header;

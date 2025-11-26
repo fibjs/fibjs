@@ -476,7 +476,7 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
     bool table = false;
     if (!options.IsEmpty())
-        GetConfigValue(isolate, options, "table", table, true);
+        GetConfigValue(options, "table", table, true);
 
     if (table) {
         bool colors = false;
@@ -484,9 +484,9 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         bool encode_string = true;
 
         if (!options.IsEmpty()) {
-            GetConfigValue(isolate, options, "colors", colors, true);
-            GetConfigValue(isolate, options, "fields", fields, true);
-            GetConfigValue(isolate, options, "encode_string", encode_string, true);
+            GetConfigValue(options, "colors", colors, true);
+            GetConfigValue(options, "fields", fields, true);
+            GetConfigValue(options, "encode_string", encode_string, true);
         }
 
         retVal = table_format(isolate, obj, fields, colors, encode_string);
@@ -497,10 +497,10 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         int32_t maxStringLength = DEFAULT_MAX_STRING_LENGTH;
 
         if (!options.IsEmpty()) {
-            GetConfigValue(isolate, options, "colors", colors, true);
-            GetConfigValue(isolate, options, "depth", depth, true);
-            GetConfigValue(isolate, options, "maxArrayLength", maxArrayLength, true);
-            GetConfigValue(isolate, options, "maxStringLength", maxStringLength, true);
+            GetConfigValue(options, "colors", colors, true);
+            GetConfigValue(options, "depth", depth, true);
+            GetConfigValue(options, "maxArrayLength", maxArrayLength, true);
+            GetConfigValue(options, "maxStringLength", maxStringLength, true);
         }
 
         retVal = json_format(isolate, obj, colors, depth, maxArrayLength, maxStringLength);

@@ -193,7 +193,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
 {
     obj_ptr<MenuItem> mi;
     Isolate* isolate = Isolate::current(item);
-    result_t hr = MenuItem::load(isolate, item, mi);
+    result_t hr = MenuItem::load(item, mi);
     if (hr < 0)
         return hr;
 

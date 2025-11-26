@@ -579,10 +579,9 @@ result_t X509Certificate::next(obj_ptr<X509Certificate_base>& retVal)
 
 result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal)
 {
-    Isolate* isolate = holder();
     int flags = 0;
     exlib::string subject("default");
-    result_t hr = GetConfigValue(isolate, options, "subject", subject, true);
+    result_t hr = GetConfigValue(options, "subject", subject, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -610,10 +609,9 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
 
 result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal)
 {
-    Isolate* isolate = holder();
     int flags = 0;
     exlib::string subject("default");
-    result_t hr = GetConfigValue(isolate, options, "subject", subject, true);
+    result_t hr = GetConfigValue(options, "subject", subject, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -625,28 +623,28 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
         return Runtime::setError("Invalid subject option");
 
     bool wildcards = true;
-    hr = GetConfigValue(isolate, options, "wildcards", wildcards, true);
+    hr = GetConfigValue(options, "wildcards", wildcards, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (!wildcards)
         flags |= X509_CHECK_FLAG_NO_WILDCARDS;
 
     bool partialWildcards = true;
-    hr = GetConfigValue(isolate, options, "partialWildcards", partialWildcards, true);
+    hr = GetConfigValue(options, "partialWildcards", partialWildcards, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (!partialWildcards)
         flags |= X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
 
     bool multiLabelWildcards = false;
-    hr = GetConfigValue(isolate, options, "multiLabelWildcards", multiLabelWildcards, true);
+    hr = GetConfigValue(options, "multiLabelWildcards", multiLabelWildcards, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (!multiLabelWildcards)
         flags |= X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;
 
     bool singleLabelSubdomains = false;
-    hr = GetConfigValue(isolate, options, "singleLabelSubdomains", singleLabelSubdomains, true);
+    hr = GetConfigValue(options, "singleLabelSubdomains", singleLabelSubdomains, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (singleLabelSubdomains)

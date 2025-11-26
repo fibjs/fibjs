@@ -384,7 +384,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     make_ov_params(new_ovs);
                     txts.push('    CONSTRUCT_RETURN();\n}\n');
 
-                    txts.push(`inline result_t ${cls}_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)\n{`);
+                    txts.push(`inline result_t ${cls}_base::load(v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)\n{`);
                     txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
                     txts.push(`    LOAD_ENTER();\n`);
                     make_ov_params(new_ovs, true);
@@ -989,7 +989,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
             txts.push("");
             if (hasNew) {
                 txts.push("public:\n    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);");
-                txts.push(`    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal);\n`);
+                txts.push(`    static result_t load(v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal);\n`);
             }
             else if (staticCallAsFunc)
                 txts.push([
@@ -1003,7 +1003,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     "        ThrowTypeError(\"not a constructor\");\n    }\n"
                 ].join(''));
 
-                txts.push(`    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)`);
+                txts.push(`    static result_t load(v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)`);
                 txts.push(`    { return CALL_E_TYPEMISMATCH; }\n`);
             }
         }

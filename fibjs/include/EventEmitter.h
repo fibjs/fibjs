@@ -275,10 +275,8 @@ public:
 
     result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
     {
-        Isolate* _isolate = Isolate::current(func);
-
         bool _once = false;
-        result_t hr = GetConfigValue(_isolate, options, "once", _once, true);
+        result_t hr = GetConfigValue(options, "once", _once, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 

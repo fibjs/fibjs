@@ -29,16 +29,14 @@ result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,
 result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
     obj_ptr<RTCSessionDescription_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current(description);
-
     result_t hr;
     exlib::string type, sdp;
 
-    hr = GetConfigValue(isolate, description, "type", type, true);
+    hr = GetConfigValue(description, "type", type, true);
     if (hr < 0)
         return hr;
 
-    hr = GetConfigValue(isolate, description, "sdp", sdp, true);
+    hr = GetConfigValue(description, "sdp", sdp, true);
     if (hr < 0)
         return hr;
 
@@ -188,7 +186,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     rtc::DataChannelInit init;
 
     bool ordered;
-    hr = GetConfigValue(isolate, options, "ordered", ordered, true);
+    hr = GetConfigValue(options, "ordered", ordered, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -196,7 +194,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     }
 
     int32_t maxPacketLifeTime;
-    hr = GetConfigValue(isolate, options, "maxPacketLifeTime", maxPacketLifeTime, true);
+    hr = GetConfigValue(options, "maxPacketLifeTime", maxPacketLifeTime, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -204,7 +202,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     }
 
     int32_t maxRetransmits;
-    hr = GetConfigValue(isolate, options, "maxRetransmits", maxRetransmits, true);
+    hr = GetConfigValue(options, "maxRetransmits", maxRetransmits, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -212,7 +210,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     }
 
     exlib::string protocol;
-    hr = GetConfigValue(isolate, options, "protocol", protocol, true);
+    hr = GetConfigValue(options, "protocol", protocol, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -220,7 +218,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     }
 
     bool negotiated;
-    hr = GetConfigValue(isolate, options, "negotiated", negotiated, true);
+    hr = GetConfigValue(options, "negotiated", negotiated, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -228,7 +226,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     }
 
     int32_t id;
-    hr = GetConfigValue(isolate, options, "id", id, true);
+    hr = GetConfigValue(options, "id", id, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -649,7 +647,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     rtc::Configuration config;
 
     exlib::string bindAddress;
-    hr = GetConfigValue(holder(), options, "bindAddress", bindAddress, true);
+    hr = GetConfigValue(options, "bindAddress", bindAddress, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -657,7 +655,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string certificateType;
-    hr = GetConfigValue(holder(), options, "certificateType", certificateType, true);
+    hr = GetConfigValue(options, "certificateType", certificateType, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -672,7 +670,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string iceTransportPolicy;
-    hr = GetConfigValue(holder(), options, "iceTransportPolicy", iceTransportPolicy, true);
+    hr = GetConfigValue(options, "iceTransportPolicy", iceTransportPolicy, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -685,7 +683,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     v8::Local<v8::Array> iceServers;
-    hr = GetConfigValue(isolate, options, "iceServers", iceServers, true);
+    hr = GetConfigValue(options, "iceServers", iceServers, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -694,20 +692,20 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
             for (uint32_t i = 0; i < iceServers->Length(); i++) {
                 v8::Local<v8::Object> iceServer;
 
-                hr = GetConfigValue(isolate, iceServers, i, iceServer, true);
+                hr = GetConfigValue(iceServers, i, iceServer, true);
                 if (hr < 0)
                     return hr;
 
                 std::optional<exlib::string> username, credential;
-                hr = GetConfigValue(isolate, iceServer, "username", username, true);
+                hr = GetConfigValue(iceServer, "username", username, true);
                 if (hr < 0)
                     return hr;
-                hr = GetConfigValue(isolate, iceServer, "credential", credential, true);
+                hr = GetConfigValue(iceServer, "credential", credential, true);
                 if (hr < 0)
                     return hr;
 
                 v8::Local<v8::Value> urlv;
-                hr = GetConfigValue(isolate, iceServer, "urls", urlv, true);
+                hr = GetConfigValue(iceServer, "urls", urlv, true);
                 if (hr < 0)
                     return hr;
 
@@ -728,7 +726,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
                     for (uint32_t j = 0; j < urls->Length(); j++) {
                         exlib::string url;
-                        hr = GetConfigValue(isolate, urls, j, url, true);
+                        hr = GetConfigValue(urls, j, url, true);
                         if (hr < 0)
                             return hr;
 
@@ -749,7 +747,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));
 
     int32_t port;
-    hr = GetConfigValue(isolate, options, "port", port, true);
+    hr = GetConfigValue(options, "port", port, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -757,7 +755,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     int32_t maxMessageSize;
-    hr = GetConfigValue(isolate, options, "maxMessageSize", maxMessageSize, true);
+    hr = GetConfigValue(options, "maxMessageSize", maxMessageSize, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -765,7 +763,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     bool enableIceUdpMux;
-    hr = GetConfigValue(isolate, options, "enableIceUdpMux", enableIceUdpMux, true);
+    hr = GetConfigValue(options, "enableIceUdpMux", enableIceUdpMux, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -773,7 +771,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     bool disableFingerprintVerification;
-    hr = GetConfigValue(isolate, options, "disableFingerprintVerification", disableFingerprintVerification, true);
+    hr = GetConfigValue(options, "disableFingerprintVerification", disableFingerprintVerification, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -781,7 +779,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string iceUfrag;
-    hr = GetConfigValue(isolate, options, "iceUfrag", iceUfrag, true);
+    hr = GetConfigValue(options, "iceUfrag", iceUfrag, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -789,7 +787,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string icePwd;
-    hr = GetConfigValue(isolate, options, "icePwd", icePwd, true);
+    hr = GetConfigValue(options, "icePwd", icePwd, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -797,7 +795,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string certPem;
-    hr = GetConfigValue(isolate, options, "certPem", certPem, true);
+    hr = GetConfigValue(options, "certPem", certPem, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -805,7 +803,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string keyPem;
-    hr = GetConfigValue(isolate, options, "keyPem", keyPem, true);
+    hr = GetConfigValue(options, "keyPem", keyPem, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -813,7 +811,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     }
 
     exlib::string keyPass;
-    hr = GetConfigValue(isolate, options, "keyPass", keyPass, true);
+    hr = GetConfigValue(options, "keyPass", keyPass, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;

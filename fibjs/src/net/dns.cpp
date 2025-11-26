@@ -101,7 +101,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
     if (ac->isSync()) {
         obj_ptr<LookupOptions> opt;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = LookupOptions::load(isolate, options, opt);
+        result_t hr = LookupOptions::load(options, opt);
         if (hr < 0)
             return hr;
 

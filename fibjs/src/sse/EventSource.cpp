@@ -192,7 +192,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     Isolate* isolate = es->holder();
     obj_ptr<HttpClient_base> hc = isolate->m_httpclient;
-    GetConfigValue(isolate, options, "httpClient", hc, true);
+    GetConfigValue(options, "httpClient", hc, true);
 
     AsyncEventSource* ac = new AsyncEventSource(hc.As<HttpClient>(), es, url);
 
@@ -268,7 +268,7 @@ result_t EventSource::close(AsyncEvent* ac)
 
 result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
 {
-    if(m_readyState != sse_base::C_SENDER) {
+    if (m_readyState != sse_base::C_SENDER) {
         return CHECK_ERROR(Runtime::setError("EventSource.send: can only be called when readyState is sse.SENDER"));
     }
 
@@ -276,7 +276,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         Isolate* isolate = Isolate::current(options);
 
         obj_ptr<SendOptions> opts;
-        result_t hr = SendOptions::load(isolate, options, opts);
+        result_t hr = SendOptions::load(options, opts);
         if (hr < 0)
             return hr;
 

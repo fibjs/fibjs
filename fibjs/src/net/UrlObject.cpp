@@ -215,7 +215,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     exlib::string password;
     JSValue v;
 
-    if (GetConfigValue(isolate, args, "protocol", str, true) >= 0) {
+    if (GetConfigValue(args, "protocol", str, true) >= 0) {
         const char* p = str.c_str();
         int32_t len = str.length();
 
@@ -235,11 +235,11 @@ result_t Url::format(v8::Local<v8::Object> args)
     }
 
     bool slashes = is_slashed_protocol(url.c_str());
-    if (GetConfigValue(isolate, args, "slashes", slashes) >= 0 && slashes)
+    if (GetConfigValue(args, "slashes", slashes) >= 0 && slashes)
         url += "//";
     m_slashes = slashes;
 
-    if (GetConfigValue(isolate, args, "auth", str, true) >= 0) {
+    if (GetConfigValue(args, "auth", str, true) >= 0) {
         size_t pos = str.find(':');
         if (pos != exlib::string::npos) {
             username = str.substr(0, pos);
@@ -248,8 +248,8 @@ result_t Url::format(v8::Local<v8::Object> args)
             username = str;
     }
 
-    GetConfigValue(isolate, args, "username", username, true);
-    GetConfigValue(isolate, args, "password", password, true);
+    GetConfigValue(args, "username", username, true);
+    GetConfigValue(args, "password", password, true);
 
     if (username.length() > 0 || password.length() > 0) {
         encoding_base::encodeURIComponent(username, false, username);
@@ -261,22 +261,22 @@ result_t Url::format(v8::Local<v8::Object> args)
     }
 
     bool hasHost = false;
-    if (GetConfigValue(isolate, args, "host", str, true) >= 0) {
+    if (GetConfigValue(args, "host", str, true) >= 0) {
         url += ada::idna::to_ascii(str);
         hasHost = true;
-    } else if (GetConfigValue(isolate, args, "hostname", str, true) >= 0) {
+    } else if (GetConfigValue(args, "hostname", str, true) >= 0) {
         if (str.find(':') != exlib::string::npos && str[0] != '[')
             url += '[' + str + ']';
         else
             url += ada::idna::to_ascii(str);
 
-        if (GetConfigValue(isolate, args, "port", str) >= 0)
+        if (GetConfigValue(args, "port", str) >= 0)
             url += ":" + str;
 
         hasHost = true;
     }
 
-    if (GetConfigValue(isolate, args, "pathname", str, true) >= 0) {
+    if (GetConfigValue(args, "pathname", str, true) >= 0) {
         if (hasHost && !isJavascript) {
             if (!is_slash(str[0]))
                 url += "/";
@@ -295,10 +295,10 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (!IsEmpty(v))
         set_query(v);
 
-    if (GetConfigValue(isolate, args, "search", str, true) >= 0)
+    if (GetConfigValue(args, "search", str, true) >= 0)
         set_search(str);
 
-    if (GetConfigValue(isolate, args, "hash", str, true) >= 0)
+    if (GetConfigValue(args, "hash", str, true) >= 0)
         set_hash(str);
 
     return 0;

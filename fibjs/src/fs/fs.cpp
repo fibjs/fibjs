@@ -180,12 +180,10 @@ result_t fs_base::readFile(exlib::string fname, v8::Local<v8::Object> options,
     Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(options);
-
         ac->m_ctx.resize(1);
 
         exlib::string encoding;
-        GetConfigValue(isolate, options, "encoding", encoding);
+        GetConfigValue(options, "encoding", encoding);
         ac->m_ctx[0] = encoding;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -272,13 +270,12 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v
     AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(options);
         result_t hr;
 
         ac->m_ctx.resize(1);
 
         exlib::string encoding = "utf8";
-        hr = GetConfigValue(isolate, options, "encoding", encoding, true);
+        hr = GetConfigValue(options, "encoding", encoding, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
         ac->m_ctx[0] = encoding;
@@ -629,16 +626,14 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
         ac->m_ctx.resize(2);
 
         bool recursive = false;
-        GetConfigValue(isolate, opt, "recursive", recursive);
+        GetConfigValue(opt, "recursive", recursive);
         ac->m_ctx[0] = recursive;
 
         int32_t mode = 0777;
-        GetConfigValue(isolate, opt, "mode", mode);
+        GetConfigValue(opt, "mode", mode);
         ac->m_ctx[1] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -848,12 +843,10 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
         ac->m_ctx.resize(1);
 
         bool recursive = false;
-        GetConfigValue(isolate, opt, "recursive", recursive);
+        GetConfigValue(opt, "recursive", recursive);
         ac->m_ctx[0] = recursive;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -988,15 +981,14 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(opts);
         ac->m_ctx.resize(2);
 
         bool recursive = false;
-        GetConfigValue(isolate, opts, "recursive", recursive);
+        GetConfigValue(opts, "recursive", recursive);
         ac->m_ctx[0] = recursive;
 
         bool withFileTypes = false;
-        GetConfigValue(isolate, opts, "withFileTypes", withFileTypes);
+        GetConfigValue(opts, "withFileTypes", withFileTypes);
         ac->m_ctx[1] = withFileTypes;
 
         return CHECK_ERROR(CALL_E_NOSYNC);

@@ -12,7 +12,6 @@ namespace fibjs {
 
 result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8::Local<v8::Array> usages)
 {
-    Isolate* isolate = holder();
     result_t hr;
     exlib::string name;
 
@@ -22,7 +21,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
 
     for (int32_t i = 0; i < len; i++) {
         exlib::string usage;
-        hr = GetConfigValue(isolate, usages, i, usage, true);
+        hr = GetConfigValue(usages, i, usage, true);
         if (hr < 0)
             return hr;
 
@@ -39,7 +38,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
         m_usageMap.emplace(usage, true);
     }
 
-    hr = GetConfigValue(isolate, params, "name", name, true);
+    hr = GetConfigValue(params, "name", name, true);
     if (hr < 0)
         return hr;
 
@@ -71,14 +70,13 @@ result_t CryptoKey::check_asymmetric_usage()
 
 result_t CryptoKey::get_ecdsa_param(v8::Local<v8::Object> params)
 {
-    Isolate* isolate = holder();
     result_t hr;
     exlib::string namedCurve;
 
     m_key_type = kKeyNameECDSA;
     m_algorithm->add("name", "ECDSA");
 
-    hr = GetConfigValue(isolate, params, "namedCurve", namedCurve, true);
+    hr = GetConfigValue(params, "namedCurve", namedCurve, true);
     if (hr < 0)
         return hr;
 
@@ -104,14 +102,13 @@ result_t CryptoKey::get_ed25519_param(v8::Local<v8::Object> params)
 
 result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
 {
-    Isolate* isolate = holder();
     result_t hr;
     exlib::string namedCurve;
 
     m_key_type = kKeyNameECDH;
     m_algorithm->add("name", "ECDH");
 
-    hr = GetConfigValue(isolate, params, "namedCurve", namedCurve, true);
+    hr = GetConfigValue(params, "namedCurve", namedCurve, true);
     if (hr < 0)
         return hr;
 
@@ -145,7 +142,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
 
     // Get hash parameter - similar pattern to ECDSA
     v8::Local<v8::Value> _hash;
-    hr = GetConfigValue(isolate, params, "hash", _hash);
+    hr = GetConfigValue(params, "hash", _hash);
     if (hr < 0 || _hash.IsEmpty() || _hash->IsUndefined())
         return Runtime::setError("WebCrypto: HMAC requires hash parameter");
 
@@ -157,7 +154,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
         if (hr < 0)
             return hr;
 
-        hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+        hr = GetConfigValue(_hash_obj, "name", hash, true);
         if (hr < 0)
             return hr;
     }

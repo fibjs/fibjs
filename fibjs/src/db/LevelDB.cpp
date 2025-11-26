@@ -472,20 +472,19 @@ result_t LevelDB::forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Obje
 
     it->getValue(from, to);
     if (!opt.IsEmpty()) {
-        Isolate* isolate = holder();
         result_t hr;
 
-        hr = GetConfigValue(isolate, opt, "skip", it->m_skip, true);
+        hr = GetConfigValue(opt, "skip", it->m_skip, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
-        hr = GetConfigValue(isolate, opt, "limit", it->m_limit, true);
+        hr = GetConfigValue(opt, "limit", it->m_limit, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
         if (it->m_limit == 0)
             return Runtime::setError("limit must be greater than 0");
 
-        hr = GetConfigValue(isolate, opt, "reverse", it->m_reverse, true);
+        hr = GetConfigValue(opt, "reverse", it->m_reverse, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
     }

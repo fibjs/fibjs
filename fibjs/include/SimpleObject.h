@@ -147,12 +147,10 @@ public:
         result_t hr;
         int32_t len = jsarray->Length();
 
-        Isolate* isolate = holder();
-
         for (int32_t i = 0; i < len; i++) {
             T v;
 
-            hr = GetConfigValue(isolate, jsarray, i, v);
+            hr = GetConfigValue(jsarray, i, v);
             if (hr < 0)
                 return hr;
 

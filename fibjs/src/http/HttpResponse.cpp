@@ -471,7 +471,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
     if (ac->isSync()) {
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = Options::load(isolate, options, _options);
+        result_t hr = Options::load(options, _options);
         if (hr < 0)
             return hr;
 
@@ -500,7 +500,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options,
     if (ac->isSync()) {
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
-        result_t hr = Options::load(isolate, options, _options);
+        result_t hr = Options::load(options, _options);
         if (hr < 0)
             return hr;
 

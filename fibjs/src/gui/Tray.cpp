@@ -56,7 +56,7 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
     retVal = tray;
 
     Isolate* isolate = Isolate::current(opt);
-    result_t hr = Tray::OpenOptions::load(isolate, opt, tray->m_options);
+    result_t hr = Tray::OpenOptions::load(opt, tray->m_options);
     if (hr < 0)
         return hr;
 

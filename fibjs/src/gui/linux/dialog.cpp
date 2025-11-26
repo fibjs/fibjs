@@ -27,7 +27,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         Isolate* isolate = Isolate::current(options);
 
         obj_ptr<DialogOptions> opts;
-        result_t hr = DialogOptions::load(isolate, options, opts);
+        result_t hr = DialogOptions::load(options, opts);
         if (hr < 0)
             return hr;
 

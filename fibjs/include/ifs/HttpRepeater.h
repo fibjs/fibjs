@@ -32,7 +32,7 @@ public:
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpRepeater_base>& retVal);
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<HttpRepeater_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -94,7 +94,7 @@ inline void HttpRepeater_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
     CONSTRUCT_RETURN();
 }
 
-inline result_t HttpRepeater_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<HttpRepeater_base>& retVal)
+inline result_t HttpRepeater_base::load(v8::Local<v8::Value> v, obj_ptr<HttpRepeater_base>& retVal)
 {
     obj_ptr<HttpRepeater_base> vr;
 

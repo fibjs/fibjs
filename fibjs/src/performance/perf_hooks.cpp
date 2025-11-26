@@ -40,13 +40,13 @@ result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
     std::vector<exlib::string> entryTypes;
     result_t hr;
 
-    hr = GetConfigValue(isolate, options, "entryTypes", entryTypes, true);
+    hr = GetConfigValue(options, "entryTypes", entryTypes, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     if (entryTypes.empty()) {
         exlib::string type;
-        hr = GetConfigValue(isolate, options, "type", type, true);
+        hr = GetConfigValue(options, "type", type, true);
         if (hr < 0)
             return hr;
 
@@ -209,12 +209,12 @@ result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> option
     result_t hr;
 
     double _now = perf_now();
-    hr = GetConfigValue(isolate, options, "startTime", _now, true);
+    hr = GetConfigValue(options, "startTime", _now, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     v8::Local<v8::Value> detail;
-    GetConfigValue(isolate, options, "detail", detail);
+    GetConfigValue(options, "detail", detail);
 
     obj_ptr<PerformanceMark> mark = new PerformanceMark(name, _now, detail);
 
@@ -282,12 +282,12 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     result_t hr;
 
     v8::Local<v8::Value> detail;
-    GetConfigValue(isolate, options, "detail", detail);
+    GetConfigValue(options, "detail", detail);
 
     double startTime = 0;
     exlib::string startMark;
     v8::Local<v8::Value> start;
-    hr = GetConfigValue(isolate, options, "start", start);
+    hr = GetConfigValue(options, "start", start);
     if (hr >= 0) {
         if (start->IsString()) {
             GetArgumentValue(isolate, start, startMark, true);
@@ -298,7 +298,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     }
 
     double durationTime = 0;
-    hr = GetConfigValue(isolate, options, "duration", durationTime, true);
+    hr = GetConfigValue(options, "duration", durationTime, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -310,7 +310,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
             return Runtime::setError("end must not be specified when duration is specified");
     } else {
         v8::Local<v8::Value> end;
-        hr = GetConfigValue(isolate, options, "end", end);
+        hr = GetConfigValue(options, "end", end);
         if (hr >= 0) {
             if (end->IsString()) {
                 GetArgumentValue(isolate, end, endMark, true);

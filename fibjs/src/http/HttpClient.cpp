@@ -57,60 +57,58 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = holder();
-
-    hr = GetConfigValue(isolate, options, "keepAlive", m_keepAlive);
+    hr = GetConfigValue(options, "keepAlive", m_keepAlive);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "timeout", m_timeout);
+    hr = GetConfigValue(options, "timeout", m_timeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "enableCookie", m_enableCookie);
+    hr = GetConfigValue(options, "enableCookie", m_enableCookie);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "autoRedirect", m_autoRedirect);
+    hr = GetConfigValue(options, "autoRedirect", m_autoRedirect);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "enableEncoding", m_enableEncoding);
+    hr = GetConfigValue(options, "enableEncoding", m_enableEncoding);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "maxHeadersCount", m_maxHeadersCount);
+    hr = GetConfigValue(options, "maxHeadersCount", m_maxHeadersCount);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "maxHeaderSize", m_maxHeaderSize);
+    hr = GetConfigValue(options, "maxHeaderSize", m_maxHeaderSize);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "maxBodySize", m_maxBodySize);
+    hr = GetConfigValue(options, "maxBodySize", m_maxBodySize);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "userAgent", m_userAgent);
+    hr = GetConfigValue(options, "userAgent", m_userAgent);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "poolSize", m_poolSize);
+    hr = GetConfigValue(options, "poolSize", m_poolSize);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "poolTimeout", m_poolTimeout);
+    hr = GetConfigValue(options, "poolTimeout", m_poolTimeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "http_proxy", m_http_proxy);
+    hr = GetConfigValue(options, "http_proxy", m_http_proxy);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     hr = set_http_proxy(m_http_proxy);
     if (hr < 0)
         return hr;
 
-    hr = GetConfigValue(isolate, options, "https_proxy", m_https_proxy);
+    hr = GetConfigValue(options, "https_proxy", m_https_proxy);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     hr = set_https_proxy(m_https_proxy);
@@ -1090,7 +1088,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     ac->m_ctx.resize(6);
 
     exlib::string _method(method);
-    GetConfigValue(isolate, opts, "method", _method, true);
+    GetConfigValue(opts, "method", _method, true);
     ac->m_ctx[0] = _method;
 
     obj_ptr<Url> u = new Url();
@@ -1109,7 +1107,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     u = uo.As<Url>();
     ac->m_ctx[1] = u;
 
-    hr = GetConfigValue(isolate, opts, "headers", headers);
+    hr = GetConfigValue(opts, "headers", headers);
     if (hr >= 0) {
         ac->m_ctx[2] = headers;
     } else if (hr == CALL_E_PARAMNOTOPTIONAL) {
@@ -1221,12 +1219,12 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     ac->m_ctx[3] = stm;
 
     obj_ptr<SeekableStream_base> rsp_stm;
-    hr = GetConfigValue(isolate, opts, "response_body", rsp_stm);
+    hr = GetConfigValue(opts, "response_body", rsp_stm);
     if (hr >= 0)
         ac->m_ctx[4] = rsp_stm;
 
     bool keepAlive = m_keepAlive;
-    hr = GetConfigValue(isolate, opts, "keepAlive", keepAlive);
+    hr = GetConfigValue(opts, "keepAlive", keepAlive);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[5] = keepAlive;

@@ -35,22 +35,22 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
     result_t hr;
 
     exlib::string filename("<anonymous>");
-    hr = GetConfigValue(isolate, opts, "filename", filename, true);
+    hr = GetConfigValue(opts, "filename", filename, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     int32_t lineOffset = 0;
-    hr = GetConfigValue(isolate, opts, "lineOffset", lineOffset, true);
+    hr = GetConfigValue(opts, "lineOffset", lineOffset, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     int32_t columnOffset = 0;
-    hr = GetConfigValue(isolate, opts, "columnOffset", columnOffset, true);
+    hr = GetConfigValue(opts, "columnOffset", columnOffset, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     obj_ptr<Buffer_base> cachedData;
-    hr = GetConfigValue(isolate, opts, "cachedData", cachedData, true);
+    hr = GetConfigValue(opts, "cachedData", cachedData, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -118,7 +118,7 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
     Isolate* isolate = holder();
 
     int32_t timeout = 0;
-    result_t hr = GetConfigValue(isolate, opts, "timeout", timeout, true);
+    result_t hr = GetConfigValue(opts, "timeout", timeout, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 

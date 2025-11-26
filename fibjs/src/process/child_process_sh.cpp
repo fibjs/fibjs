@@ -166,12 +166,12 @@ result_t child_process_base::ssh(exlib::string host, v8::Local<v8::Object> optio
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, 4);
 
     exlib::string user;
-    GetConfigValue(isolate, options, "user", user);
+    GetConfigValue(options, "user", user);
     if (!user.empty())
         host = user + "@" + host;
 
     int32_t port = 22;
-    GetConfigValue(isolate, options, "port", port);
+    GetConfigValue(options, "port", port);
     char port_str[16];
     snprintf(port_str, sizeof(port_str), "%d", port);
 

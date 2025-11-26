@@ -207,11 +207,11 @@ result_t HeapSnapshot::load(exlib::string fname)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     o = v.As<v8::Object>();
-    hr = GetConfigValue(isolate, o, "node_count", node_count);
+    hr = GetConfigValue(o, "node_count", node_count);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetConfigValue(isolate, o, "edge_count", edge_count);
+    hr = GetConfigValue(o, "edge_count", edge_count);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 

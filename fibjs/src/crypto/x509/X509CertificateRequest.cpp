@@ -72,15 +72,15 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
 
     name = X509_NAME_new();
     v8::Local<v8::Object> subject;
-    hr = GetConfigValue(isolate, options, subject_name, subject, true);
+    hr = GetConfigValue(options, subject_name, subject, true);
     if (hr == 0) {
         v8::Local<v8::Array> props = subject->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
         int32_t len = props->Length();
         for (int i = 0; i < len; i++) {
             exlib::string key_, value_;
 
-            GetConfigValue(isolate, props, i, key_, true);
-            hr = GetConfigValue(isolate, subject, key_.c_str(), value_, true);
+            GetConfigValue(props, i, key_, true);
+            hr = GetConfigValue(subject, key_.c_str(), value_, true);
             if (hr != 0)
                 return hr;
 
@@ -91,7 +91,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
         return Runtime::setError("subject must be object");
 
     exlib::string hashAlgorithm = EVP_PKEY_id(key->pkey()) == EVP_PKEY_SM2 ? "sm3" : "sha256";
-    hr = GetConfigValue(isolate, options, "hashAlgorithm", hashAlgorithm, true);
+    hr = GetConfigValue(options, "hashAlgorithm", hashAlgorithm, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -253,11 +253,10 @@ result_t X509CertificateRequest::checkPrivateKey(KeyObject_base* privateKey, boo
 
 result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> options, const char* key, int nid, const char** names)
 {
-    Isolate* isolate = holder();
     v8::Local<v8::Array> list;
     result_t hr;
 
-    hr = GetConfigValue(isolate, options, key, list, true);
+    hr = GetConfigValue(options, key, list, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         return 0;
     if (hr < 0)
@@ -267,7 +266,7 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
     int32_t len = list->Length();
     for (int32_t i = 0; i < len; i++) {
         exlib::string item;
-        hr = GetConfigValue(isolate, list, i, item, true);
+        hr = GetConfigValue(list, i, item, true);
         if (hr != 0)
             return hr;
 
@@ -304,8 +303,6 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = holder();
-
     X509Pointer cert = X509_new();
     if (cert == nullptr)
         return openssl_error();
@@ -330,7 +327,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
         date_t validFrom;
         validFrom.now();
-        hr = GetConfigValue(isolate, options, "validFrom", validFrom, true);
+        hr = GetConfigValue(options, "validFrom", validFrom, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -339,7 +336,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
             return openssl_error();
 
         date_t validTo;
-        hr = GetConfigValue(isolate, options, "validTo", validTo, true);
+        hr = GetConfigValue(options, "validTo", validTo, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -349,7 +346,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
                 return openssl_error();
         } else {
             int32_t days = 100;
-            hr = GetConfigValue(isolate, options, "days", days, true);
+            hr = GetConfigValue(options, "days", days, true);
             if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                 return hr;
 
@@ -362,7 +359,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
         exlib::string basic_constraints = "critical";
 
         bool ca = false;
-        hr = GetConfigValue(isolate, options, "ca", ca, true);
+        hr = GetConfigValue(options, "ca", ca, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
         if (ca)
@@ -371,7 +368,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
             basic_constraints.append(", CA:FALSE");
 
         int32_t pathlen = -1;
-        hr = GetConfigValue(isolate, options, "pathlen", pathlen, true);
+        hr = GetConfigValue(options, "pathlen", pathlen, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
         if (pathlen >= 0) {

@@ -20,7 +20,7 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
     result_t hr;
 
     exlib::string dsaEncoding;
-    hr = GetConfigValue(isolate, key, "dsaEncoding", dsaEncoding, true);
+    hr = GetConfigValue(key, "dsaEncoding", dsaEncoding, true);
     if (hr == 0) {
         if (dsaEncoding == "ieee-p1363")
             enc = kSigEncP1363;
@@ -29,11 +29,11 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, key, "padding", padding, true);
+    hr = GetConfigValue(key, "padding", padding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate, key, "saltLength", salt_len, true);
+    hr = GetConfigValue(key, "saltLength", salt_len, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 

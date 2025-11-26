@@ -92,7 +92,7 @@ void WebView::app_rpc(exlib::string json)
             v8::Local<v8::Object> app = v.As<v8::Object>();
 
             exlib::string method;
-            hr = GetConfigValue(isolate, req, "method", method, true);
+            hr = GetConfigValue(req, "method", method, true);
             if (hr < 0) {
                 result->Set(context, isolate->NewString("error"), isolate->NewString("method is required")).IsJust();
                 break;
@@ -126,7 +126,7 @@ void WebView::app_rpc(exlib::string json)
             JSFunction func = app.As<v8::Function>();
 
             std::vector<v8::Local<v8::Value>> params;
-            hr = GetConfigValue(isolate, req, "params", params);
+            hr = GetConfigValue(req, "params", params);
             if (hr < 0) {
                 result->Set(context, isolate->NewString("error"), isolate->NewString("params is required")).IsJust();
                 break;
@@ -164,7 +164,7 @@ void WebView::app_rpc(exlib::string json)
 result_t WebView::setup(v8::Local<v8::Object> opt)
 {
     Isolate* isolate = Isolate::current(opt);
-    result_t hr = OpenOptions::load(isolate, opt, m_options);
+    result_t hr = OpenOptions::load(opt, m_options);
     if (hr < 0)
         return hr;
 

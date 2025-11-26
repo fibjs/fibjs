@@ -27,12 +27,10 @@ result_t Blob_base::_new(Buffer_base* blobData, v8::Local<v8::Object> options, o
 result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current(This);
-
     obj_ptr<File> file = new File();
     file->m_name = name;
 
-    result_t hr = GetConfigValue(isolate, options, "lastModified", file->m_lastModified, true);
+    result_t hr = GetConfigValue(options, "lastModified", file->m_lastModified, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         date_t d;
         d.now();
@@ -57,17 +55,16 @@ result_t File_base::_new(Buffer_base* blobData, exlib::string name, v8::Local<v8
 
 result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current(This);
     result_t hr;
     obj_ptr<Buffer_base> blobData;
     exlib::string name;
 
-    hr = GetConfigValue(isolate, options, "data", blobData);
+    hr = GetConfigValue(options, "data", blobData);
     if (hr < 0) {
         return hr;
     }
 
-    hr = GetConfigValue(isolate, options, "name", name, true);
+    hr = GetConfigValue(options, "name", name, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL) {
         return hr;
     }

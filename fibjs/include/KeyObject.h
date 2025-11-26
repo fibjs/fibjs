@@ -12,9 +12,9 @@
 
 namespace fibjs {
 
-#define GET_OPT_PARAM(name)                                      \
-    hr = GetConfigValue(isolate, options, #name, o->name, true); \
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)                 \
+#define GET_OPT_PARAM(name)                             \
+    hr = GetConfigValue(options, #name, o->name, true); \
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)        \
         return hr;
 
 class generateKeyPairParam : public obj_base {
@@ -22,7 +22,6 @@ public:
     static result_t load(v8::Local<v8::Object> options, obj_ptr<generateKeyPairParam>& retVal)
     {
         obj_ptr<generateKeyPairParam> o = new generateKeyPairParam();
-        Isolate* isolate = Isolate::current(options);
         result_t hr;
 
         GET_OPT_PARAM(modulusLength);
@@ -55,7 +54,6 @@ public:
     static result_t load(v8::Local<v8::Object> options, obj_ptr<keyEncodingParam>& retVal)
     {
         obj_ptr<keyEncodingParam> o = new keyEncodingParam();
-        Isolate* isolate = Isolate::current(options);
         result_t hr;
 
         GET_OPT_PARAM(format);
@@ -70,11 +68,10 @@ public:
 
     static result_t load(v8::Local<v8::Object> options, const char* key, obj_ptr<keyEncodingParam>& retVal)
     {
-        Isolate* isolate = Isolate::current(options);
         result_t hr;
 
         v8::Local<v8::Object> opt;
-        hr = GetConfigValue(isolate, options, key, opt, true);
+        hr = GetConfigValue(options, key, opt, true);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             return 0;
         if (hr < 0)

@@ -166,7 +166,6 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(options);
         exlib::string cmd;
         v8::Local<v8::Value> opts_;
         v8::Local<v8::Object> opts;
@@ -177,7 +176,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         opts = opts_.As<v8::Object>();
 
         exlib::string codec("utf8");
-        GetConfigValue(isolate, opts, "encoding", codec);
+        GetConfigValue(opts, "encoding", codec);
 
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)
@@ -394,7 +393,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         opts = opts_.As<v8::Object>();
 
         exlib::string codec("buffer");
-        GetConfigValue(isolate, opts, "encoding", codec);
+        GetConfigValue(opts, "encoding", codec);
 
         result_t hr = child_process_base::spawn(command, args, opts, cp);
         if (hr < 0) {

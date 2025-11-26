@@ -120,8 +120,6 @@ result_t tls_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
         ac->m_ctx.resize(2);
 
         obj_ptr<SecureContext_base> ctx;
@@ -132,7 +130,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj
         ac->m_ctx[0] = ctx;
 
         int32_t timeout = 0;
-        hr = GetConfigValue(isolate, options, "timeout", timeout);
+        hr = GetConfigValue(options, "timeout", timeout);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -149,7 +147,6 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj
 result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(options);
         ac->m_ctx.resize(2);
 
         obj_ptr<SecureContext_base> ctx;
@@ -160,7 +157,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         ac->m_ctx[0] = ctx;
 
         int32_t timeout = 0;
-        hr = GetConfigValue(isolate, options, "timeout", timeout);
+        hr = GetConfigValue(options, "timeout", timeout);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -189,7 +186,7 @@ result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         ac->m_ctx[0] = ctx;
 
         obj_ptr<ConnectOptions> opts;
-        hr = ConnectOptions::load(isolate, options, opts);
+        hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 

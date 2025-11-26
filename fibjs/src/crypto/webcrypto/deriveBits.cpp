@@ -25,7 +25,7 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
     ac->m_ctx.resize(2);
 
     exlib::string name;
-    hr = GetConfigValue(isolate, algorithm, "name", name, true);
+    hr = GetConfigValue(algorithm, "name", name, true);
     if (hr < 0)
         return hr;
 
@@ -66,7 +66,7 @@ result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base
     CryptoKey* _baseKey = (CryptoKey*)baseKey;
     exlib::string name = ac->m_ctx[0].string();
 
-        // Check if the baseKey has 'deriveBits' usage
+    // Check if the baseKey has 'deriveBits' usage
     if (_baseKey->m_usageMap.find("deriveBits") == _baseKey->m_usageMap.end())
         return Runtime::setError("WebCrypto: baseKey does not have deriveBits usage");
 

@@ -20,7 +20,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
     ac->m_ctx.resize(2);
 
     exlib::string name;
-    hr = GetConfigValue(isolate, algorithm, "name", name, true);
+    hr = GetConfigValue(algorithm, "name", name, true);
     if (hr < 0)
         return hr;
 
@@ -43,7 +43,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
                 if (hr < 0)
                     return hr;
 
-                hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+                hr = GetConfigValue(_hash_obj, "name", hash, true);
                 if (hr < 0)
                     return hr;
             }
@@ -64,7 +64,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
         v8::Local<v8::Value> _hash = key_algorithm->Get(context, isolate->NewString("hash")).FromMaybe(v8::Local<v8::Value>());
         if (!_hash.IsEmpty() && _hash->IsObject()) {
             v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
-            hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+            hr = GetConfigValue(_hash_obj, "name", hash, true);
             if (hr < 0)
                 return hr;
         }
@@ -232,7 +232,7 @@ result_t subtle_base::sign(exlib::string algorithm, CryptoKey_base* key, Buffer_
             if (!_hash.IsEmpty() && _hash->IsObject()) {
                 v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
                 exlib::string hash;
-                hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+                hr = GetConfigValue(_hash_obj, "name", hash, true);
                 if (hr < 0)
                     return hr;
                 ac->m_ctx[1] = hash;
@@ -274,7 +274,7 @@ result_t subtle_base::verify(exlib::string algorithm, CryptoKey_base* key, Buffe
             if (!_hash.IsEmpty() && _hash->IsObject()) {
                 v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
                 exlib::string hash;
-                hr = GetConfigValue(isolate, _hash_obj, "name", hash, true);
+                hr = GetConfigValue(_hash_obj, "name", hash, true);
                 if (hr < 0)
                     return hr;
                 ac->m_ctx[1] = hash;

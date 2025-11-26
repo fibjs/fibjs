@@ -110,19 +110,19 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
         return hr;
     KeyObject* key__ = key_.As<KeyObject>();
 
-    hr = GetConfigValue(isolate, key, "padding", padding, true);
+    hr = GetConfigValue(key, "padding", padding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     exlib::string encoding = "utf8";
-    hr = GetConfigValue(isolate, key, "encoding", encoding, true);
+    hr = GetConfigValue(key, "encoding", encoding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     const EVP_MD* digest = nullptr;
     if (useo_aep) {
         exlib::string oaepHash = "sha1";
-        hr = GetConfigValue(isolate, key, "oaepHash", oaepHash, true);
+        hr = GetConfigValue(key, "oaepHash", oaepHash, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -132,7 +132,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
     }
 
     obj_ptr<Buffer_base> oaep_label;
-    hr = GetConfigValue(isolate, key, "oaepLabel", v);
+    hr = GetConfigValue(key, "oaepLabel", v);
     if (hr == 0) {
         hr = GetArgumentValue(isolate, v, oaep_label, false, encoding.c_str());
         if (hr < 0)
