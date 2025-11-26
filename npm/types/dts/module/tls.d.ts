@@ -90,13 +90,35 @@ declare module 'tls' {
     /**
      * @description 根据 url 创建一个 tls/ssl 连接
      *      @param url 指定连接的 URL
-     *      @param optionns 指定连接的选项
+     *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
      *      
      */
-    function connect(url: string, optionns: FIBJS.GeneralObject): Class_Stream;
+    function connect(url: string, options: FIBJS.GeneralObject): Class_Stream;
 
-    function connect(url: string, optionns: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接
+     *      @param port 指定连接的端口号
+     *      @param host 指定连接的主机名，缺省为 "localhost"
+     *      @param options 指定连接的选项
+     *      @return 返回 tls/ssl 连接对象
+     *      
+     */
+    function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
+
+    function connect(port: number, host?: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接
+     *      @param options 指定连接的选项
+     *      @return 返回 tls/ssl 连接对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject): Class_Stream;
+
+    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
 }
 

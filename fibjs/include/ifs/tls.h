@@ -31,7 +31,9 @@ public:
     static result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string url, v8::Local<v8::Object> optionns, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -53,6 +55,8 @@ public:
     ASYNC_STATICVALUE3(tls_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(tls_base, connect, exlib::string, SecureContext_base*, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(tls_base, connect, exlib::string, v8::Local<v8::Object>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE2(tls_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
 };
 }
 
@@ -162,6 +166,26 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, v1, cb, args);
     else
         hr = ac_connect(v0, v1, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "localhost");
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, cb, args);
+    else
+        hr = ac_connect(v0, vr);
 
     METHOD_RETURN();
 }

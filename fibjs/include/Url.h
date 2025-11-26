@@ -263,6 +263,19 @@ public:
     }
 
 public:
+    static bool isIPv4(exlib::string ip)
+    {
+        sockaddr_in dst;
+        return uv_ip4_addr(ip.c_str(), 0, &dst) == 0;
+    }
+
+    static bool isIPv6(exlib::string ip)
+    {
+        sockaddr_in6 dst;
+        return uv_ip6_addr(ip.c_str(), 0, &dst) == 0;
+    }
+
+public:
     bool m_parseQuery = false;
     bool m_slashes = false;
     bool m_isLegacy = false;

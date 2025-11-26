@@ -62,8 +62,22 @@ module tls
 
     /*! @brief 根据 url 创建一个 tls/ssl 连接
      @param url 指定连接的 URL
-     @param optionns 指定连接的选项
+     @param options 指定连接的选项
      @return 返回 tls/ssl 连接对象
      */
-    static Stream connect(String url, Object optionns) async;
+    static Stream connect(String url, Object options) async;
+
+    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接
+     @param port 指定连接的端口号
+     @param host 指定连接的主机名，缺省为 "localhost"
+     @param options 指定连接的选项
+     @return 返回 tls/ssl 连接对象
+     */
+    static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
+
+    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接
+     @param options 指定连接的选项
+     @return 返回 tls/ssl 连接对象
+     */
+    static Stream connect(Object options) async;
 };

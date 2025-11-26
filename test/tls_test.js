@@ -556,6 +556,24 @@ describe('tls', () => {
                 tls.connect(`ssl://localhost:${9080 + base_port}`);
             });
         });
+
+        it('with port, host, options', () => {
+            var ss = tls.connect(9080 + base_port, "localhost", {
+                secureContext: ctx
+            });
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+        });
+
+        it('with options object containing port and host', () => {
+            var ss = tls.connect({
+                port: 9080 + base_port,
+                host: "localhost",
+                secureContext: ctx
+            });
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+        });
     });
 
     it("copyTo", () => {
