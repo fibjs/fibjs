@@ -61,7 +61,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
         ON_STATE(asyncConnect, connect)
         {
             Socket_base::_new(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
-            return m_sock->connect(m_host, m_port, m_timeout, next(handshake));
+            return m_sock->connect(m_port, m_host, m_timeout, next(handshake));
         }
 
         ON_STATE(asyncConnect, handshake)

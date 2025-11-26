@@ -62,7 +62,7 @@ result_t Redis::connect(const char* host, int32_t port, AsyncEvent* ac)
 
     m_subMode = 0;
 
-    return m_sock->connect(host, port, 0, ac);
+    return m_sock->connect(port, host, 0, ac);
 }
 
 #define REDIS_MAX_LINE 1024

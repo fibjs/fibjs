@@ -33,7 +33,9 @@ public:
     virtual result_t get_localPort(int32_t& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
-    virtual result_t connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac) = 0;
+    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string path, int32_t timeout, AsyncEvent* ac) = 0;
+    virtual result_t connect(v8::Local<v8::Object> options, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog) = 0;
@@ -66,7 +68,9 @@ public:
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER3(Socket_base, connect, exlib::string, int32_t, int32_t);
+    ASYNC_MEMBER3(Socket_base, connect, int32_t, exlib::string, int32_t);
+    ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
+    ASYNC_MEMBER1(Socket_base, connect, v8::Local<v8::Object>);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Socket_base, send, Buffer_base*, int32_t);
@@ -249,16 +253,35 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(Socket_base);
     ASYNC_METHOD_ENTER("Socket.connect");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 1);
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "localhost");
     OPT_ARG(int32_t, 2, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, v2);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, cb, args);
+    else
+        hr = pInst->ac_connect(v0);
 
     METHOD_VOID();
 }

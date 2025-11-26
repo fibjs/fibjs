@@ -71,7 +71,9 @@ function test_net(eng, use_uv) {
             assert.equal(net.backend(), backend);
         });
 
-        it("echo", () => {
+        describe("echo server", () => {
+            var s, _port;
+
             function connect(c) {
                 console.log(c.remoteAddress, c.remotePort, "->",
                     c.localAddress, c.localPort);
@@ -92,27 +94,29 @@ function test_net(eng, use_uv) {
                 } catch (e) { }
             }
 
-            var s = new net.Socket(net_config.family);
-            test_util.push(s);
+            before(() => {
+                s = new net.Socket(net_config.family);
+                test_util.push(s);
 
-            var _port = getPort();
+                _port = getPort();
 
-            s.bind(_port);
-            s.listen();
-            assert.equal(s.localPort, _port);
-            coroutine.start(accept, s);
+                s.bind(_port);
+                s.listen();
+                assert.equal(s.localPort, _port);
+                coroutine.start(accept, s);
+            });
 
-            function conn_socket() {
+            it("socket.connect(port, address)", () => {
                 var s1 = new net.Socket(net_config.family);
-                s1.connect(net_config.address, _port);
+                s1.connect(_port, net_config.address);
                 console.log(s1.remoteAddress, s1.remotePort, "<-",
                     s1.localAddress, s1.localPort);
                 s1.send(new Buffer("GET / HTTP/1.0"));
                 assert.equal("GET / HTTP/1.0", s1.recv());
                 s1.close();
-            }
+            });
 
-            function conn() {
+            it("net.connect(url)", () => {
                 var s1 = net.connect('tcp://' + net_config.host + ':' + (_port));
                 console.log(s1.remoteAddress, s1.remotePort, "<-",
                     s1.localAddress, s1.localPort);
@@ -120,15 +124,38 @@ function test_net(eng, use_uv) {
                 s1.send(new Buffer("GET / HTTP/1.0"));
                 assert.equal("GET / HTTP/1.0", s1.recv());
                 s1.close();
-            }
+            });
 
-            conn_socket();
-            conn();
+            it("socket.connect({ host, port })", () => {
+                var s1 = new net.Socket(net_config.family);
+                s1.connect({ host: net_config.address, port: _port });
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                assert.equal(s1.remotePort, _port);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
 
-            // assert.throws(() => {
-            //     var s1 = new net.Socket(net_config.family);
-            //     s1.connect("999.999.999.999", _port);
-            // });
+            it("net.connect(port, host)", () => {
+                var s1 = net.connect(_port, net_config.address);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                assert.equal(s1.remotePort, _port);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("net.connect({ host, port })", () => {
+                var s1 = net.connect({ host: net_config.address, port: _port });
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                assert.equal(s1.remotePort, _port);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
         });
 
         it("write and send return value validation", () => {
@@ -164,7 +191,7 @@ function test_net(eng, use_uv) {
 
             // Test write return value with string
             var s1 = new net.Socket(net_config.family);
-            s1.connect(net_config.address, _port);
+            s1.connect(_port, net_config.address);
 
             var testData = 'Hello Network World!';
             var bytesWritten = s1.write(testData);
@@ -233,7 +260,7 @@ function test_net(eng, use_uv) {
             coroutine.start(accept1, s1);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
             var data = c1.read(5000);
             assert.equal(data.length, 5000);
             assert.equal(data.toString(), str.substr(0, 5000));
@@ -260,7 +287,7 @@ function test_net(eng, use_uv) {
             coroutine.start(accept1, s1);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
 
             coroutine.sleep(10);
 
@@ -299,7 +326,7 @@ function test_net(eng, use_uv) {
             coroutine.start(accept1, s1);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
 
             const cnt = 5;
             var evs = [];
@@ -356,7 +383,7 @@ function test_net(eng, use_uv) {
 
             function t_conn() {
                 var c1 = new net.Socket();
-                c1.connect('127.0.0.1', _port);
+                c1.connect(_port, '127.0.0.1');
 
                 var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
                 assert.equal(c1.copyTo(f1), str.length);
@@ -412,7 +439,7 @@ function test_net(eng, use_uv) {
             coroutine.start(accept2, s2);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
             assert.equal('a', c1.recv(100));
             assert.equal('ab', c1.read(2));
             assert.equal('c', c1.read(1));
@@ -454,7 +481,7 @@ function test_net(eng, use_uv) {
             coroutine.start(accept3, s3);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
 
             var receivedData = [];
             var dataEvent = new coroutine.Event();
@@ -510,13 +537,13 @@ function test_net(eng, use_uv) {
                 assert.equal(t, 0);
 
                 var c1 = new net.Socket();
-                c1.connect('127.0.0.1', _port);
+                c1.connect(_port, '127.0.0.1');
                 c1.close();
                 coroutine.sleep(10);
                 assert.equal(t, 1);
 
                 var c1 = new net.Socket();
-                c1.connect('127.0.0.1', _port);
+                c1.connect(_port, '127.0.0.1');
                 c1.close();
                 coroutine.sleep(10);
                 assert.equal(t, 2);
@@ -550,7 +577,7 @@ function test_net(eng, use_uv) {
                 coroutine.start(accept2, s2);
 
                 var c1 = new net.Socket();
-                c1.connect('127.0.0.1', _port);
+                c1.connect(_port, '127.0.0.1');
                 coroutine.sleep(100);
 
                 c1.send('1234');
@@ -589,7 +616,7 @@ function test_net(eng, use_uv) {
 
             test_util.gc();
 
-            c1.connect('127.0.0.1', _port);
+            c1.connect(_port, '127.0.0.1');
 
             var t1 = new Date();
             c1.timeout = 300;
@@ -605,7 +632,7 @@ function test_net(eng, use_uv) {
             var c2 = new net.Socket();
             var t1 = new Date();
             assert.throws(() => {
-                c2.connect('192.166.166.166', 8086 + base_port, 300);
+                c2.connect(8086 + base_port, '192.166.166.166', 300);
             });
             var t2 = new Date();
 
@@ -632,7 +659,7 @@ function test_net(eng, use_uv) {
                 var c1 = new net.Socket();
                 coroutine.start(close_it, c1);
                 assert.throws(() => {
-                    c1.connect('12.0.0.1', 80);
+                    c1.connect(80, '12.0.0.1');
                 });
             });
 
@@ -650,7 +677,7 @@ function test_net(eng, use_uv) {
 
             it("abort read", () => {
                 var c1 = new net.Socket();
-                c1.connect('127.0.0.1', 8080 + base_port);
+                c1.connect(8080 + base_port, '127.0.0.1');
                 coroutine.start(close_it, c1);
                 assert.throws(() => {
                     c1.read();
@@ -802,7 +829,7 @@ function test_net(eng, use_uv) {
 
                 function conn_socket() {
                     var s1 = new net.Socket(net.AF_UNIX);
-                    s1.connect(_path, 0);
+                    s1.connect(_path);
                     s1.send(new Buffer("GET / HTTP/1.0"));
                     assert.equal("GET / HTTP/1.0", s1.recv());
                     s1.close();
@@ -822,7 +849,7 @@ function test_net(eng, use_uv) {
 
                 assert.throws(() => {
                     var s1 = new net.Socket(net.AF_UNIX);
-                    s1.connect("999.999.999.999");
+                    s1.connect(0, "999.999.999.999");
                 });
             });
 

@@ -268,7 +268,7 @@ result_t Socket::listen(int32_t backlog)
     return 0;
 }
 
-result_t Socket::connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac)
+result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, AsyncEvent* ac)
 {
 #ifdef _WIN32
     if (!m_bBind) {
@@ -285,6 +285,30 @@ result_t Socket::connect(exlib::string host, int32_t port, int32_t timeout, Asyn
     }
 
     return m_aio.connect(host, port, ac, timer);
+}
+
+result_t Socket::connect(exlib::string path, int32_t timeout, AsyncEvent* ac)
+{
+    return connect(0, path, timeout, ac);
+}
+
+result_t Socket::connect(v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<ConnectOptions> opts;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = ConnectOptions::load(isolate, options, opts);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = opts;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), ac);
 }
 
 result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)

@@ -12,6 +12,7 @@
 #include "Url.h"
 #include "options.h"
 #include "AsyncUV.h"
+#include "Socket.h"
 
 namespace fibjs {
 
@@ -151,7 +152,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             return hr;
 
         retVal = socket;
-        return socket->connect(u->hostname(), nPort, timeout, ac);
+        return socket->connect(nPort, u->hostname(), timeout, ac);
     } else {
         obj_ptr<Socket_base> socket;
 
@@ -160,8 +161,45 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             return hr;
 
         retVal = socket;
-        return socket->connect(url.substr(5), 0, timeout, ac);
+        return socket->connect(url.substr(5), timeout, ac);
     }
+}
+
+result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    bool is_ipv6 = false;
+    isIPv6(host, is_ipv6);
+    int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+
+    obj_ptr<Socket_base> socket;
+    result_t hr = Socket_base::_new(family, socket);
+    if (hr < 0)
+        return hr;
+
+    retVal = socket;
+    return socket->connect(port, host, timeout, ac);
+}
+
+result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<ConnectOptions> opts;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = ConnectOptions::load(isolate, options, opts);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = opts;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,

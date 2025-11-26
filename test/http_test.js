@@ -1264,7 +1264,7 @@ describe("http", () => {
 
         beforeEach(() => {
             c = new net.Socket();
-            c.connect('127.0.0.1', 8881 + base_port);
+            c.connect(8881 + base_port, '127.0.0.1');
 
             bs = new io.BufferedStream(c);
             bs.EOL = "\r\n";

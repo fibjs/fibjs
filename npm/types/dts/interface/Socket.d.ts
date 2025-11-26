@@ -50,14 +50,39 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description 建立一个 tcp 连接
-     *      @param host 指定对方地址或主机名，也可以指向 unix socket 和 Windows pipe 路径
-     *      @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，此参数需要为 0
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
      *      @param timeout 指定超时时间，单位是毫秒，默认为 0
      *      
      */
-    connect(host: string, port: number, timeout?: number): void;
+    connect(port: number, host?: string, timeout?: number): void;
 
-    connect(host: string, port: number, timeout?: number, callback: (err: Error | undefined | null)=>any): void;
+    connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 建立一个 unix socket 或 Windows pipe 连接
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      
+     */
+    connect(path: string, timeout?: number): void;
+
+    connect(path: string, timeout?: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 建立一个连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象，可以包含以下属性：
+     *     
+     */
+    connect(options: FIBJS.GeneralObject): void;
+
+    connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口

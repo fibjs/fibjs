@@ -94,6 +94,34 @@ declare module 'net' {
     function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
+     * @description 创建一个 Socket 对象并建立连接
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connect(port: number, host?: string, timeout?: number): Class_Stream;
+
+    function connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject): Class_Stream;
+
+    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
      * @description 创建一个 Smtp 对象，参见 Smtp 
      */
     const Smtp: typeof Class_Smtp;

@@ -364,7 +364,7 @@ describe('tls', () => {
     describe('TLSSocket', () => {
         function connect() {
             var s1 = new net.Socket();
-            s1.connect("127.0.0.1", 9080 + base_port);
+            s1.connect(9080 + base_port, "127.0.0.1");
             test_util.push(s1);
 
             var ss = new tls.TLSSocket(ctx);
@@ -440,21 +440,21 @@ describe('tls', () => {
 
         it("write return value validation", () => {
             var ss = connect();
-            
+
             // Test write return value with string
             var testData = 'Hello TLS World!';
             var bytesWritten = ss.write(testData);
             assert.equal(bytesWritten, testData.length);
-            
+
             // Test write return value with Buffer
             var testBuffer = new Buffer('TLS Buffer Data');
             bytesWritten = ss.write(testBuffer);
             assert.equal(bytesWritten, testBuffer.length);
-            
+
             // Test write return value with empty string
             bytesWritten = ss.write('');
             assert.equal(bytesWritten, 0);
-                        
+
             ss.close();
         });
 
@@ -464,7 +464,7 @@ describe('tls', () => {
     describe('verification', () => {
         function connect() {
             var s1 = new net.Socket();
-            s1.connect("127.0.0.1", 9080 + base_port);
+            s1.connect(9080 + base_port, "127.0.0.1");
             test_util.push(s1);
             return s1;
         }
@@ -573,7 +573,7 @@ describe('tls', () => {
 
         function t_conn() {
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', 9082 + base_port);
+            c1.connect(9082 + base_port, "127.0.0.1");
 
             var ss = new tls.TLSSocket(ctx);
             ss.connect(c1);
@@ -608,7 +608,7 @@ describe('tls', () => {
 
         for (var i = 0; i < 10; i++) {
             var s1 = new net.Socket();
-            s1.connect("127.0.0.1", 9083 + base_port);
+            s1.connect(9083 + base_port, "127.0.0.1");
 
             var cs = new tls.TLSSocket(ctx);
             cs.connect(s1);
@@ -633,7 +633,7 @@ describe('tls', () => {
 
         for (var i = 0; i < 10; i++) {
             var s1 = new net.Socket();
-            s1.connect("127.0.0.1", 9084 + base_port);
+            s1.connect(9084 + base_port, "127.0.0.1");
 
             var cs = new tls.TLSSocket(ctx);
             cs.connect(s1);
@@ -663,7 +663,7 @@ describe('tls', () => {
         svr.start();
 
         var s1 = new net.Socket();
-        s1.connect("127.0.0.1", 9086 + base_port);
+        s1.connect(9086 + base_port, "127.0.0.1");
 
         var cs = new tls.TLSSocket(ctx);
         cs.connect(s1, "test1");
@@ -674,7 +674,7 @@ describe('tls', () => {
         cs.close();
 
         var s2 = new net.Socket();
-        s2.connect("127.0.0.1", 9086 + base_port);
+        s2.connect(9086 + base_port, "127.0.0.1");
         var cs1 = new tls.TLSSocket(ctx);
 
         assert.throws(() => {

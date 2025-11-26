@@ -73,7 +73,7 @@ describe("buffered stream", () => {
 
         for (var i = 3; i < 100000; i *= 3) {
             var conn = new net.Socket();
-            conn.connect('127.0.0.1', 8182 + base_port);
+            conn.connect(8182 + base_port, '127.0.0.1');
             t_read(conn, i);
         }
     });

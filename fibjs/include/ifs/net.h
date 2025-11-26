@@ -41,6 +41,8 @@ public:
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(exlib::string ip, int32_t& retVal);
@@ -77,6 +79,8 @@ public:
     ASYNC_STATICVALUE2(net_base, ip, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(net_base, ipv6, exlib::string, exlib::string);
     ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE2(net_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, openSmtp, exlib::string, int32_t, obj_ptr<Smtp_base>);
 };
 }
@@ -241,6 +245,26 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, v1, cb, args);
     else
         hr = ac_connect(v0, v1, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "localhost");
+    OPT_ARG(int32_t, 2, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, cb, args);
+    else
+        hr = ac_connect(v0, vr);
 
     METHOD_RETURN();
 }

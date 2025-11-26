@@ -12,8 +12,19 @@
 #include "AsyncIO.h"
 #include "Timer.h"
 #include "AsyncStream.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
+
+class ConnectOptions : public obj_base {
+public:
+    LOAD_OPTIONS(ConnectOptions, (host)(port)(timeout));
+
+public:
+    std::optional<exlib::string> host = "localhost";
+    std::optional<int32_t> port = 0;
+    std::optional<int32_t> timeout = 0;
+};
 
 class Socket : public AsyncStream<Socket_base> {
     FIBER_FREE();
@@ -61,7 +72,9 @@ public:
     virtual result_t get_localPort(int32_t& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
-    virtual result_t connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac);
+    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, AsyncEvent* ac);
+    virtual result_t connect(exlib::string path, int32_t timeout, AsyncEvent* ac);
+    virtual result_t connect(v8::Local<v8::Object> options, AsyncEvent* ac);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);

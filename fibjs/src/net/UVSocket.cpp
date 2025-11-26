@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/io.h"
+#include "Socket.h"
 #include "UVSocket.h"
 #include "Buffer.h"
 
@@ -184,7 +185,7 @@ result_t UVSocket::listen(int32_t backlog)
     });
 }
 
-result_t UVSocket::connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, AsyncEvent* ac)
 {
     class AsyncConnect : public uv_connect_t,
                          public UVTimeout {
@@ -234,6 +235,30 @@ result_t UVSocket::connect(exlib::string host, int32_t port, int32_t timeout, As
             return uv_tcp_connect(new AsyncConnect(this, timeout, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
         });
     }
+}
+
+result_t UVSocket::connect(exlib::string path, int32_t timeout, AsyncEvent* ac)
+{
+    return connect(0, path, timeout, ac);
+}
+
+result_t UVSocket::connect(v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<ConnectOptions> opts;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = ConnectOptions::load(isolate, options, opts);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = opts;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), ac);
 }
 
 result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
