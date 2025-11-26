@@ -543,6 +543,14 @@ describe('tls', () => {
             assert.equal("GET / HTTP/1.0", ss.read());
         });
 
+        it('with context in options', () => {
+            var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, {
+                secureContext: ctx
+            });
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+        });
+
         it('default context', () => {
             assert.throws(() => {
                 tls.connect(`ssl://localhost:${9080 + base_port}`);

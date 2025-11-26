@@ -15,8 +15,15 @@ namespace fibjs {
 
 result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal)
 {
+    result_t hr;
+    Isolate* isolate = Isolate::current(options);
+
+    hr = GetConfigValue(isolate, options, "secureContext", retVal, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     obj_ptr<SecureContext> ctx = new SecureContext();
-    result_t hr = ctx->init(options, isServer);
+    hr = ctx->init(options, isServer);
     if (hr)
         return hr;
 
