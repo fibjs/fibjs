@@ -185,7 +185,7 @@ result_t UVSocket::listen(int32_t backlog)
     });
 }
 
-result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     class AsyncConnect : public uv_connect_t,
                          public UVTimeout {
@@ -211,6 +211,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, As
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    retVal = this;
     if (m_family == net_base::C_AF_UNIX) {
         return uv_async([&] {
             uv_pipe_connect(new AsyncConnect(this, timeout, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
@@ -237,12 +238,12 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, As
     }
 }
 
-result_t UVSocket::connect(exlib::string path, int32_t timeout, AsyncEvent* ac)
+result_t UVSocket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    return connect(0, path, timeout, ac);
+    return connect(0, path, timeout, retVal, ac);
 }
 
-result_t UVSocket::connect(v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         obj_ptr<ConnectOptions> opts;
@@ -258,7 +259,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, AsyncEvent* ac)
     }
 
     ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
-    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), ac);
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
 }
 
 result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)

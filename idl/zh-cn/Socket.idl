@@ -34,14 +34,16 @@ interface Socket : Stream
      @param port 指定对方端口
      @param host 指定对方地址或主机名，缺省为 localhost
      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     @return 返回连接的 Socket 对象
      */
-    connect(Integer port, String host = "localhost", Integer timeout = 0) async;
+    Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
 
     /*! @brief 建立一个 unix socket 或 Windows pipe 连接
      @param path 指定 unix socket 或 Windows pipe 路径
      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     @return 返回连接的 Socket 对象
      */
-    connect(String path, Integer timeout = 0) async;
+    Stream connect(String path, Integer timeout = 0) async;
 
     /*! @brief 建立一个连接
 
@@ -51,8 +53,9 @@ interface Socket : Stream
       - timeout: 指定超时时间，单位是毫秒，默认为 0
 
      @param options 指定连接选项对象，可以包含以下属性：
+     @return 返回连接的 Socket 对象
     */
-    connect(Object options) async;
+    Stream connect(Object options) async;
 
     /*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
      @param port 指定绑定的端口

@@ -60,7 +60,8 @@ public:
     ON_STATE(asyncConnect, connect)
     {
         Socket_base::_new(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
-        return m_sock->connect(m_port, m_host, m_timeout, next(handshake));
+        return m_sock->connect(m_port, m_host, m_timeout,
+            reinterpret_cast<obj_ptr<Stream_base>&>(m_sock), next(handshake));
     }
 
     ON_STATE(asyncConnect, handshake)
