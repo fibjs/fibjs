@@ -32,6 +32,10 @@ public:
     virtual result_t write(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t resume(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t pause(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
@@ -55,6 +59,7 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +77,10 @@ public:
     ASYNC_MEMBERVALUE2(Stream_base, write, Buffer_base*, int32_t);
     ASYNC_MEMBERVALUE3(Stream_base, write, Buffer_base*, exlib::string, int32_t);
     ASYNC_MEMBERVALUE3(Stream_base, write, exlib::string, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE1(Stream_base, end, int32_t);
+    ASYNC_MEMBERVALUE2(Stream_base, end, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE3(Stream_base, end, Buffer_base*, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE3(Stream_base, end, exlib::string, exlib::string, int32_t);
     ASYNC_MEMBER0(Stream_base, flush);
     ASYNC_MEMBER0(Stream_base, close);
     ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
@@ -88,6 +97,7 @@ inline ClassInfo& Stream_base::class_info()
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "resume", s_resume, false, ClassData::ASYNC_SYNC },
         { "pause", s_pause, false, ClassData::ASYNC_SYNC },
+        { "end", s_end, false, ClassData::ASYNC_ASYNC },
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
@@ -209,6 +219,52 @@ inline void Stream_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(0, 0);
 
     hr = pInst->pause(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    ASYNC_METHOD_INSTANCE(Stream_base);
+    ASYNC_METHOD_ENTER("Stream.end");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(cb, args);
+    else
+        hr = pInst->ac_end(vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0.get(), cb, args);
+    else
+        hr = pInst->ac_end(v0.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(exlib::string, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0.get(), v1, cb, args);
+    else
+        hr = pInst->ac_end(v0.get(), v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0, v1, cb, args);
+    else
+        hr = pInst->ac_end(v0, v1, vr);
 
     METHOD_RETURN();
 }

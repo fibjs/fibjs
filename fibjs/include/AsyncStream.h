@@ -68,6 +68,27 @@ public:
         return 0;
     }
 
+    virtual result_t end(int32_t& retVal, AsyncEvent* ac)
+    {
+        retVal = 0;
+        return 0;
+    }
+
+    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+    {
+        return static_cast<T*>(this)->write(data, retVal, ac);
+    }
+
+    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    {
+        return this->write(data, encoding, retVal, ac);
+    }
+
+    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    {
+        return this->write(data, encoding, retVal, ac);
+    }
+
     virtual result_t ref(obj_ptr<Stream_base>& retVal)
     {
         object_base::isolate_ref();

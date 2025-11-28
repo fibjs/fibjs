@@ -42,6 +42,30 @@ interface Stream : EventEmitter
      */
     Stream pause();
 
+    /*! @brief 结束流操作，可选择性地写入最后的数据
+     @return 返回一个异步对象
+     */
+    Integer end() async;
+
+    /*! @brief 将给定的文件缓冲区写入流并结束流操作
+     @param data 给定要写入的文件缓冲区数据
+     @return 返回一个异步对象
+     */
+    Integer end(Buffer data) async;
+
+    /*! @brief 将给定的文件缓冲区写入流并结束流操作
+     @param data 给定要写入的文件缓冲区数据
+     @return 返回一个异步对象
+     */
+    Integer end(Buffer data, String encoding) async;
+
+    /*! @brief 将给定的字符串写入流并结束流操作
+     @param data 给定要写入的字符串数据
+     @param encoding 指定字符串的编码方式，缺省为 "utf8"
+     @return 返回一个异步对象
+     */
+    Integer end(String data, String encoding = "utf8") async;
+
     /*! @brief 将文件缓冲区内容写入物理设备 */
     flush() async;
 

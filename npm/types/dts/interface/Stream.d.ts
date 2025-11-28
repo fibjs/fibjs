@@ -69,6 +69,46 @@ declare class Class_Stream extends Class_EventEmitter {
     pause(): Class_Stream;
 
     /**
+     * @description 结束流操作，可选择性地写入最后的数据
+     *      @return 返回一个异步对象
+     *      
+     */
+    end(): number;
+
+    end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 将给定的文件缓冲区写入流并结束流操作
+     *      @param data 给定要写入的文件缓冲区数据
+     *      @return 返回一个异步对象
+     *      
+     */
+    end(data: Class_Buffer): number;
+
+    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 将给定的文件缓冲区写入流并结束流操作
+     *      @param data 给定要写入的文件缓冲区数据
+     *      @return 返回一个异步对象
+     *      
+     */
+    end(data: Class_Buffer, encoding: string): number;
+
+    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 将给定的字符串写入流并结束流操作
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
+     *      @return 返回一个异步对象
+     *      
+     */
+    end(data: string, encoding?: string): number;
+
+    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
      * @description 将文件缓冲区内容写入物理设备 
      */
     flush(): void;
