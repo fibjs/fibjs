@@ -255,6 +255,19 @@ enum {
     do {                                                                                                   \
         do {
 
+#define ASYNC_METHOD_ENTER_FUNC(name)                                                                      \
+    METHOD_NAME(name);                                                                                     \
+    Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
+    V8_SCOPE(isolate->m_isolate);                                                                          \
+    result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
+    bool bStrict = true;                                                                                   \
+    int32_t argc1 = args.Length();                                                                         \
+    v8::Local<v8::Object> cb;                                                                              \
+    if (args.Data()->IsTrue())                                                                             \
+        cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
+    do {                                                                                                   \
+        do {
+
 #define CONSTRUCT_INIT()                       \
     Isolate* isolate = Isolate::current(args); \
     if (class_info().init_isolate(isolate))    \

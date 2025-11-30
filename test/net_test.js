@@ -208,6 +208,120 @@ function test_net(eng, use_uv) {
                 assert.equal(receivedData, "GET / HTTP/1.0");
                 s1.close();
             });
+
+            it("socket.connect(port, host, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.connect(_port, net_config.address, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("socket.connect(port, host, timeout, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.connect(_port, net_config.address, 5000, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("socket.connect(options, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.connect({ host: net_config.address, port: _port }, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("net.connect(port, host, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+                var s1;
+
+                s1 = net.connect(_port, net_config.address, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("net.connect(port, host, timeout, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+                var s1;
+
+                s1 = net.connect(_port, net_config.address, 5000, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
+
+            it("net.connect(options, connectListener)", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+                var s1;
+
+                s1 = net.connect({ host: net_config.address, port: _port }, function () {
+                    connected = true;
+                    connectEvent.set();
+                });
+
+                connectEvent.wait();
+                assert.ok(connected);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            });
         });
 
         it("write and send return value validation", () => {

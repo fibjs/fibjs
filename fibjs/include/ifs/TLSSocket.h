@@ -29,6 +29,8 @@ public:
     static result_t _new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac) = 0;
+    virtual result_t connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncEvent* ac) = 0;
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
@@ -60,6 +62,8 @@ public:
 
 public:
     ASYNC_MEMBER2(TLSSocket_base, connect, Stream_base*, exlib::string);
+    ASYNC_MEMBER2(TLSSocket_base, connect, Stream_base*, v8::Local<v8::Function>);
+    ASYNC_MEMBER3(TLSSocket_base, connect, Stream_base*, exlib::string, v8::Local<v8::Function>);
     ASYNC_MEMBER1(TLSSocket_base, accept, Stream_base*);
 };
 }
@@ -155,7 +159,7 @@ inline result_t TLSSocket_base::load(v8::Local<v8::Value> v, obj_ptr<TLSSocket_b
 inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
-    ASYNC_METHOD_ENTER("TLSSocket.connect");
+    ASYNC_METHOD_ENTER_FUNC("TLSSocket.connect");
 
     METHOD_OVER(2, 1);
 
@@ -166,6 +170,27 @@ inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
         hr = pInst->acb_connect(v0.get(), v1, cb, args);
     else
         hr = pInst->ac_connect(v0.get(), v1);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0.get(), v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0.get(), v1);
+
+    METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0.get(), v1, v2, cb, args);
+    else
+        hr = pInst->ac_connect(v0.get(), v1, v2);
 
     METHOD_VOID();
 }

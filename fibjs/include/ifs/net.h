@@ -43,6 +43,12 @@ public:
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(exlib::string ip, int32_t& retVal);
@@ -81,6 +87,12 @@ public:
     ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE2(net_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE5(net_base, connect, int32_t, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(net_base, connect, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, openSmtp, exlib::string, int32_t, obj_ptr<Smtp_base>);
 };
 }
@@ -234,7 +246,7 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Stream_base> vr;
 
-    ASYNC_METHOD_ENTER("net.connect");
+    ASYNC_METHOD_ENTER_FUNC("net.connect");
 
     METHOD_OVER(2, 1);
 
@@ -265,6 +277,70 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, cb, args);
     else
         hr = ac_connect(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
+        hr = ac_connect(v0, v1, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(4, 4);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    ARG(int32_t, 2);
+    ARG(v8::Local<v8::Function>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
+        hr = ac_connect(v0, v1, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
+        hr = ac_connect(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -195,8 +195,87 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
-    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
+    ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
+    return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
+}
+
+result_t net_base::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, "localhost", 0, connectListener, retVal, ac);
+}
+
+result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, host, 0, connectListener, retVal, ac);
+}
+
+result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        bool is_ipv6 = false;
+        isIPv6(host, is_ipv6);
+        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+
+        obj_ptr<Socket_base> socket;
+        result_t hr = Socket_base::_new(family, socket);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = socket;
+
+        v8::Local<v8::Object> _retVal;
+        socket->once("connect", connectListener, _retVal);
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    Socket_base* socket = (Socket_base*)ac->m_ctx[0].object();
+    return socket->connect(port, host, timeout, retVal, ac);
+}
+
+result_t net_base::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(0, path, 0, connectListener, retVal, ac);
+}
+
+result_t net_base::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(0, path, timeout, connectListener, retVal, ac);
+}
+
+result_t net_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        obj_ptr<ConnectOptions> opts;
+        Isolate* isolate = Isolate::current(options);
+        result_t hr = ConnectOptions::load(options, opts);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(2);
+        ac->m_ctx[0] = opts;
+
+        bool is_ipv6 = false;
+        isIPv6(opts->host.value(), is_ipv6);
+        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+
+        obj_ptr<Socket_base> socket;
+        hr = Socket_base::_new(family, socket);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx[1] = socket;
+
+        v8::Local<v8::Object> _retVal;
+        socket->once("connect", connectListener, _retVal);
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
+    Socket_base* socket = (Socket_base*)ac->m_ctx[1].object();
+    return socket->connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,

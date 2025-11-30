@@ -7,6 +7,22 @@ var cloneDeep = require('clone-deep');
 global.cwrap = 0;
 
 module.exports = function (defs, docsFolder) {
+    // Generate function signature for better error messages
+    function getMethodSignature(className, method) {
+        var sig = className + '.' + method.name + '(';
+        if (method.params && method.params.length > 0) {
+            sig += method.params.map(p => {
+                var paramStr = '';
+                if (p.type) paramStr += p.type + ' ';
+                paramStr += p.name;
+                if (p.isarray) paramStr += '[]';
+                return paramStr;
+            }).join(', ');
+        }
+        sig += ')';
+        return sig;
+    }
+
     function check_docs() {
         for (var n in defs) {
             var def = defs[n];
@@ -19,19 +35,20 @@ module.exports = function (defs, docsFolder) {
                     console.error(n + '.' + m.name, 'not documented.');
 
                 if (m.params) {
+                    var methodSig = getMethodSignature(n, m);
                     if (m.params.length !== m.doc.params.length)
-                        console.error('params of', n + '.' + m.name, 'not well documented.');
+                        console.error('params of', methodSig, 'not well documented.');
                     else {
                         for (var i = 0; i < m.params.length; i++) {
                             if (m.params[i].name !== m.doc.params[i].name)
-                                console.error('params', m.params[i].name, 'of', n + '.' + m.name, 'not well documented.');
+                                console.error('params', m.params[i].name, 'of', methodSig, 'not well documented.');
                         }
                     }
                 }
 
                 if (m.type && m.memType == 'method') {
                     if (!m.doc.return)
-                        console.error('return of', n + '.' + m.name, 'not well documented.');
+                        console.error('return of', getMethodSignature(n, m), 'not well documented.');
                 }
             });
         }
@@ -389,7 +406,7 @@ module.exports = function (defs, docsFolder) {
                 var method_defs = {};
                 var deflist = [];
                 var overriddenMethods = new Set();
-                
+
                 // First pass: identify which methods are overridden in this class
                 def.members.forEach(fn => {
                     if (fn.memType === 'method' && fn.name !== def.declare.name) {
@@ -400,19 +417,19 @@ module.exports = function (defs, docsFolder) {
                 // Second pass: collect inherited method overloads for overridden methods
                 if (def.declare.extend && def.declare.extend !== 'object' && defs[def.declare.extend]) {
                     var parentDef = defs[def.declare.extend];
-                    
+
                     if (parentDef.members) {
                         parentDef.members.forEach(fn => {
-                            if (fn.memType === "method" && 
-                                fn.name !== parentDef.declare.name && 
+                            if (fn.memType === "method" &&
+                                fn.name !== parentDef.declare.name &&
                                 overriddenMethods.has(fn.name)) {
-                                
+
                                 // Create unique key that includes static/instance distinction
                                 var fname = fn.name + (fn.static ? ':static' : ':instance');
-                                
+
                                 // Check if parent method has already been processed and has overs
                                 var parentOverloads = fn.overs || [fn];
-                                
+
                                 // Add all parent overloads
                                 parentOverloads.forEach(parentOverload => {
                                     if (!method_defs.hasOwnProperty(fname)) {
@@ -433,7 +450,7 @@ module.exports = function (defs, docsFolder) {
                     if (fn.memType === 'method' && fn.name !== def.declare.name) {
                         // Create unique key that includes static/instance distinction
                         var fname = fn.name + (fn.static ? ':static' : ':instance');
-                        
+
                         if (method_defs.hasOwnProperty(fname)) {
                             // Method already exists (either inherited or from previous overload), add to overs
                             method_defs[fname].overs.push(fn);

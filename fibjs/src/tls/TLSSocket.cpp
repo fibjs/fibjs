@@ -229,6 +229,21 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
     return 0;
 }
 
+result_t TLSSocket::connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncEvent* ac)
+{
+    return connect(socket, "", connectListener, ac);
+}
+
+result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        v8::Local<v8::Object> _retVal;
+        once("connect", connectListener, _retVal);
+    }
+
+    return connect(socket, server_name, ac);
+}
+
 result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
 {
     result_t hr = is_not_connected();

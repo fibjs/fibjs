@@ -88,6 +88,76 @@ declare class Class_Socket extends Class_Stream {
     connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(port: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(port: number, host: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(path: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(path: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口
      *      @param port 指定绑定的端口
      *      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统

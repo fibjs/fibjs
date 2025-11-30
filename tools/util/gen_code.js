@@ -391,6 +391,17 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     txts.push('    LOAD_RETURN();\n}\n');
                 });
 
+                // Check if any overload has Function as last parameter
+                function hasLastParamFunction(ovs) {
+                    return ovs.some(ov => {
+                        if (ov.params && ov.params.length > 0) {
+                            var lastParam = ov.params[ov.params.length - 1];
+                            return lastParam.type === 'Function';
+                        }
+                        return false;
+                    });
+                }
+
                 const recorder_statics = record_exist();
                 static_ovs.forEach(ov => {
                     if (recorder_statics.isRecorded(ov.name)) return;
@@ -399,9 +410,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    if (ov.async)
-                        txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
-                    else
+                    if (ov.async) {
+                        if (hasLastParamFunction(static_ovs))
+                            txts.push(`    ASYNC_METHOD_ENTER_FUNC("${cls}.${ov.symbol}${ov.name}");\n`);
+                        else
+                            txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
+                    } else
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
 
@@ -421,7 +435,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                     if (ov.async) {
                         txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
-                        txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
+                        if (hasLastParamFunction(inst_mem_ovs))
+                            txts.push(`    ASYNC_METHOD_ENTER_FUNC("${cls}.${ov.symbol}${ov.name}");\n`);
+                        else
+                            txts.push(`    ASYNC_METHOD_ENTER("${cls}.${ov.symbol}${ov.name}");\n`);
                     } else {
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                         txts.push(`    METHOD_ENTER();\n`);

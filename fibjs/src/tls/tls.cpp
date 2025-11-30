@@ -44,13 +44,13 @@ result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 
 class asyncConnect : public AsyncState {
 public:
-    asyncConnect(const exlib::string host, int32_t port, bool ipv6, SecureContext_base* ctx,
+    asyncConnect(const exlib::string host, int32_t port, bool ipv6, TLSSocket_base* ssl_sock,
         int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
         : AsyncState(ac)
         , m_host(host)
         , m_port(port)
         , m_ipv6(ipv6)
-        , m_ctx(ctx)
+        , m_ssl_sock(ssl_sock)
         , m_timeout(timeout)
         , m_retVal(retVal)
     {
@@ -66,8 +66,6 @@ public:
 
     ON_STATE(asyncConnect, handshake)
     {
-        m_ssl_sock = new TLSSocket();
-        m_ssl_sock->init(m_ctx);
         return m_ssl_sock->connect(m_sock, m_host, next(ok));
     }
 
@@ -81,20 +79,75 @@ private:
     const exlib::string m_host;
     int32_t m_port;
     bool m_ipv6;
-    obj_ptr<SecureContext_base> m_ctx;
+    obj_ptr<TLSSocket_base> m_ssl_sock;
     int32_t m_timeout;
     obj_ptr<Stream_base>& m_retVal;
     obj_ptr<Socket_base> m_sock;
-    obj_ptr<TLSSocket> m_ssl_sock;
 };
 
 result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
+    return connect(url, secureContext, timeout, v8::Local<v8::Function>(), retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    Isolate* isolate = ac->isolate();
+    return connect(url, isolate->m_ctx, timeout, v8::Local<v8::Function>(), retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(url, options, v8::Local<v8::Function>(), retVal, ac);
+}
+
+result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, host, options, v8::Local<v8::Function>(), retVal, ac);
+}
+
+result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(options, v8::Local<v8::Function>(), retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    Isolate* isolate = ac->isolate();
+    return connect(url, isolate->m_ctx, 0, connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    Isolate* isolate = ac->isolate();
+    return connect(url, isolate->m_ctx, timeout, connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(url, secureContext, 0, connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
     if (qstrcmp(url.c_str(), "ssl:", 4))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
+        ssl_sock->init(secureContext);
+
+        if (!connectListener.IsEmpty()) {
+            v8::Local<v8::Object> _retVal;
+            ssl_sock->once("connect", connectListener, _retVal);
+        }
+
+        ac->m_ctx[0] = ssl_sock;
+
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
     obj_ptr<Url> u = new Url();
 
@@ -107,18 +160,18 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t nPort = atoi(port.c_str());
+    obj_ptr<TLSSocket> ssl_sock;
+    if (ac->m_ctx.size() == 0) {
+        ssl_sock = new TLSSocket();
+        ssl_sock->init(secureContext);
+    } else
+        ssl_sock = (TLSSocket*)ac->m_ctx[0].object();
 
-    return (new asyncConnect(u->hostname(), nPort, u->isIPv6(), secureContext, timeout, retVal, ac))
+    return (new asyncConnect(u->hostname(), nPort, u->isIPv6(), ssl_sock, timeout, retVal, ac))
         ->post(0);
 }
 
-result_t tls_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
-{
-    Isolate* isolate = ac->isolate();
-    return connect(url, isolate->m_ctx, timeout, retVal, ac);
-}
-
-result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
@@ -128,7 +181,15 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = ctx;
+        obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
+        ssl_sock->init(ctx);
+
+        if (!connectListener.IsEmpty()) {
+            v8::Local<v8::Object> _retVal;
+            ssl_sock->once("connect", connectListener, _retVal);
+        }
+
+        ac->m_ctx[0] = ssl_sock;
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
@@ -140,12 +201,30 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, obj
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    SecureContext_base* ctx = (SecureContext_base*)ac->m_ctx[0].object();
     int32_t timeout = ac->m_ctx[1].intVal();
-    return connect(url, ctx, timeout, retVal, ac);
+    return connect(url, nullptr, timeout, connectListener, retVal, ac);
 }
 
-result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t tls_base::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, "localhost", connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    v8::Local<v8::Object> options;
+    if (ac->isSync())
+        options = v8::Object::New(ac->isolate()->m_isolate);
+
+    return connect(port, host, options, connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(int32_t port, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, "localhost", options, connectListener, retVal, ac);
+}
+
+result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
@@ -155,7 +234,15 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = ctx;
+        obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
+        ssl_sock->init(ctx);
+
+        if (!connectListener.IsEmpty()) {
+            v8::Local<v8::Object> _retVal;
+            ssl_sock->once("connect", connectListener, _retVal);
+        }
+
+        ac->m_ctx[0] = ssl_sock;
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
@@ -167,13 +254,13 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    SecureContext_base* ctx = (SecureContext_base*)ac->m_ctx[0].object();
+    TLSSocket_base* ssl_sock = (TLSSocket_base*)ac->m_ctx[0].object();
     int32_t timeout = ac->m_ctx[1].intVal();
-    return (new asyncConnect(host, port, Url::isIPv6(host), ctx, timeout, retVal, ac))
+    return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, ac))
         ->post(0);
 }
 
-result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t tls_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
@@ -184,7 +271,15 @@ result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = ctx;
+        obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
+        ssl_sock->init(ctx);
+
+        if (!connectListener.IsEmpty()) {
+            v8::Local<v8::Object> _retVal;
+            ssl_sock->once("connect", connectListener, _retVal);
+        }
+
+        ac->m_ctx[0] = ssl_sock;
 
         obj_ptr<ConnectOptions> opts;
         hr = ConnectOptions::load(options, opts);
@@ -196,12 +291,12 @@ result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    SecureContext_base* ctx = (SecureContext_base*)ac->m_ctx[0].object();
+    TLSSocket_base* ssl_sock = (TLSSocket_base*)ac->m_ctx[0].object();
     ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[1].object();
     exlib::string host = opts->host.value();
     int32_t port = opts->port.value();
     int32_t timeout = opts->timeout.value();
-    return (new asyncConnect(host, port, Url::isIPv6(host), ctx, timeout, retVal, ac))
+    return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, ac))
         ->post(0);
 }
 }

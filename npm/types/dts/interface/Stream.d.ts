@@ -90,6 +90,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description 将给定的文件缓冲区写入流并结束流操作
      *      @param data 给定要写入的文件缓冲区数据
+     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
      *      @return 返回一个异步对象
      *      
      */

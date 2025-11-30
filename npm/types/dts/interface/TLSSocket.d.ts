@@ -43,6 +43,27 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connect(socket: Class_Stream, connectListener: (...args: any[])=>any): void;
+
+    connect(socket: Class_Stream, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connect(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any): void;
+
+    connect(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
      *      @param socket 给定的底层连接
      *     

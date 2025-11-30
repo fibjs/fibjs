@@ -367,6 +367,46 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
     return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
 }
 
+result_t Socket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, "localhost", 0, connectListener, retVal, ac);
+}
+
+result_t Socket::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(port, host, 0, connectListener, retVal, ac);
+}
+
+result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        v8::Local<v8::Object> _retVal;
+        once("connect", connectListener, _retVal);
+    }
+
+    return connect(port, host, timeout, retVal, ac);
+}
+
+result_t Socket::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(0, path, 0, connectListener, retVal, ac);
+}
+
+result_t Socket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    return connect(0, path, timeout, connectListener, retVal, ac);
+}
+
+result_t Socket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        v8::Local<v8::Object> _retVal;
+        once("connect", connectListener, _retVal);
+    }
+
+    return connect(options, retVal, ac);
+}
+
 result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 {
     return m_aio.accept(retVal, ac);

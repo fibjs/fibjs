@@ -513,6 +513,50 @@ describe('tls', () => {
             ss.close();
         });
 
+        it("connect with connectListener", () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var s1 = new net.Socket();
+            s1.connect(9080 + base_port, "127.0.0.1");
+            test_util.push(s1);
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.connect(s1, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it("connect with server_name and connectListener", () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var s1 = new net.Socket();
+            s1.connect(9080 + base_port, "127.0.0.1");
+            test_util.push(s1);
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.connect(s1, "localhost", function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
         // ...existing code...
     });
 
@@ -628,6 +672,119 @@ describe('tls', () => {
             });
             ss.write("GET / HTTP/1.0");
             assert.equal("GET / HTTP/1.0", ss.read());
+        });
+
+        it('with url and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, ctx, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it('with url, timeout and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, ctx, 0, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it('with url, options and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, {
+                ca: ca
+            }, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it('with port, host, options and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect(9080 + base_port, "localhost", {
+                secureContext: ctx
+            }, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it('with port, options and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect(9080 + base_port, {
+                host: "localhost",
+                secureContext: ctx
+            }, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
+        });
+
+        it('with options and connectListener', () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+
+            var ss = tls.connect({
+                port: 9080 + base_port,
+                host: "localhost",
+                secureContext: ctx
+            }, function () {
+                connected = true;
+                connectEvent.set();
+            });
+
+            connectEvent.wait();
+            assert.ok(connected);
+
+            ss.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", ss.read());
+            ss.close();
         });
     });
 
