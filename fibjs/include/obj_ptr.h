@@ -192,7 +192,7 @@ public:
         return p == (T*)lp;
     }
 
-    T* operator->()
+    T* operator->() const
     {
         return p;
     }

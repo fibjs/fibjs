@@ -56,13 +56,14 @@ result_t startRecvStream(Stream_base* stream, exlib::atomic& readState)
             }
 
             // Emit error event in JS context with proper Error object
-            m_isolate->sync([this, v]() -> int32_t {
+            obj_ptr<Stream_base> stream = m_this;
+            m_isolate->sync([stream, v]() -> int32_t {
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
-                m_this->_emit("error", &err, 1, retVal);
+                stream->_emit("error", &err, 1, retVal);
                 return 0;
             });
-            
+
             return v;
         }
 
