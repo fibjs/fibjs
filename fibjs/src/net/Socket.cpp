@@ -14,6 +14,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include "options.h"
+#include "EventInfo.h"
 
 namespace fibjs {
 
@@ -268,8 +269,58 @@ result_t Socket::listen(int32_t backlog)
     return 0;
 }
 
+class connectWrapper : public AsyncEvent {
+public:
+    connectWrapper(Socket* sock, AsyncEvent* ac)
+        : m_sock(sock)
+        , m_ac(ac)
+    {
+        setAsync();
+    }
+
+    connectWrapper(Isolate* isolate, Socket* sock)
+        : AsyncEvent(isolate)
+        , m_sock(sock)
+        , m_ac(nullptr)
+    {
+        setAsync();
+        m_isolate->Ref();
+    }
+
+    ~connectWrapper()
+    {
+        if (!m_ac)
+            m_isolate->Unref();
+    }
+
+    virtual int32_t post(int32_t v)
+    {
+        if (m_ac) {
+            if (v >= 0)
+                m_sock->setConnected();
+            m_ac->post(v);
+        } else {
+            if (v < 0)
+                (new EventInfo(m_sock, "error", v))->emit();
+            else {
+                m_sock->setConnected();
+                (new EventInfo(m_sock, "connect"))->emit();
+            }
+        }
+        delete this;
+        return 0;
+    }
+
+private:
+    obj_ptr<Socket> m_sock;
+    AsyncEvent* m_ac;
+};
+
 result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
 #ifdef _WIN32
     if (!m_bBind) {
         result_t hr = bind(0, TRUE);
@@ -279,13 +330,17 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
 #endif
 
     obj_ptr<Timer> timer;
-    if (ac->isAsync() && timeout > 0) {
+    if (timeout > 0) {
         timer = new IOTimer(timeout, this);
         timer->sleep();
     }
 
     retVal = this;
-    return m_aio.connect(host, port, ac, timer);
+    if (!m_connect_event)
+        return m_aio.connect(host, port, new connectWrapper(this, ac), timer);
+
+    m_aio.connect(host, port, new connectWrapper(holder(), this), timer);
+    return 0;
 }
 
 result_t Socket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)

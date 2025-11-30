@@ -157,6 +157,36 @@ function test_net(eng, use_uv) {
                 s1.close();
             });
 
+            it("async connect with events", () => {
+                var connectEvent = new coroutine.Event();
+                var connected = false;
+                var receivedData = null;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.on('connect', function () {
+                    console.log(this.remoteAddress, this.remotePort, "<-",
+                        this.localAddress, this.localPort);
+                    connected = true;
+                    this.send(new Buffer("GET / HTTP/1.0"));
+                });
+                s1.on('data', function (data) {
+                    receivedData = data.toString();
+                    connectEvent.set();
+                });
+                s1.on('error', function (err) {
+                    console.log('error:', err);
+                    connectEvent.set();
+                });
+
+                s1.connect(_port, net_config.address);
+                console.log('connecting...');
+
+                connectEvent.wait();
+                assert.ok(connected);
+                assert.equal(receivedData, "GET / HTTP/1.0");
+                s1.close();
+            });
+
             it("on data after connect success", () => {
                 var dataEvent = new coroutine.Event();
                 var receivedData = null;

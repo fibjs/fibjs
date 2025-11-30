@@ -250,7 +250,7 @@ result_t EventSource::close(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_readyState == sse_base::C_OPEN) {
-        m_readyState = C_CLOSED;
+        m_readyState = sse_base::C_CLOSED;
 
         if (m_response) {
             obj_ptr<Stream_base> stm;
@@ -258,7 +258,7 @@ result_t EventSource::close(AsyncEvent* ac)
             return stm->close(ac);
         }
     } else if (m_readyState == sse_base::C_SENDER) {
-        m_readyState = C_CLOSED;
+        m_readyState = sse_base::C_CLOSED;
         (new asyncClose(m_stream, ac, m_ac))->apost(0);
         return CALL_E_PENDDING;
     }

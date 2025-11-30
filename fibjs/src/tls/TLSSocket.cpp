@@ -13,6 +13,7 @@
 #include "SecureContext.h"
 #include "X509Certificate.h"
 #include "Buffer.h"
+#include "EventInfo.h"
 #include "options.h"
 
 namespace fibjs {
@@ -104,6 +105,21 @@ public:
     AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, AsyncEvent* ac)
         : AsyncState(ac)
         , m_sock(sock)
+        , m_isolate(nullptr)
+    {
+        init(socket, is_server, server_name);
+    }
+
+    AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, Isolate* isolate)
+        : AsyncState(nullptr)
+        , m_sock(sock)
+        , m_isolate(isolate)
+    {
+        m_isolate->Ref();
+        init(socket, is_server, server_name);
+    }
+
+    void init(Stream_base* socket, bool is_server, exlib::string server_name)
     {
         m_sock->m_read_lock.lock(this);
         m_sock->m_write_lock.lock(this);
@@ -135,6 +151,8 @@ public:
     {
         m_sock->m_write_lock.unlock(this);
         m_sock->m_read_lock.unlock(this);
+        if (m_isolate)
+            m_isolate->Unref();
     }
 
 public:
@@ -156,6 +174,9 @@ public:
 
         switch (m_state) {
         case SSL_ERROR_NONE:
+            m_sock->setConnected();
+            if (m_isolate)
+                (new EventInfo(m_sock, "connect"))->emit();
             return next();
         case SSL_ERROR_WANT_READ:
             return m_sock->m_stream->read(-1, m_sock->m_in, next(read_ok));
@@ -166,6 +187,13 @@ public:
         }
 
         return Runtime::setError("handshake failed");
+    }
+
+    virtual int32_t error(int32_t v)
+    {
+        if (m_isolate)
+            (new EventInfo(m_sock, "error", v))->emit();
+        return v;
     }
 
     ON_STATE(AsyncHandshake, read_ok)
@@ -180,6 +208,7 @@ public:
 
 public:
     obj_ptr<TLSSocket> m_sock;
+    Isolate* m_isolate;
     int32_t m_state;
     int32_t m_len;
 };
@@ -193,7 +222,11 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
+    if (!m_connect_event)
+        return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
+
+    (new AsyncHandshake(this, socket, false, server_name, holder()))->post(0);
+    return 0;
 }
 
 result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)

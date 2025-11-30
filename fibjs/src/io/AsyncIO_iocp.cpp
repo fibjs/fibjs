@@ -321,7 +321,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Socket> s = new Socket();
+    obj_ptr<Socket> s = new Socket(true);
     result_t hr = s->create(m_family);
     if (hr < 0)
         return hr;

@@ -11,7 +11,7 @@
 
 namespace fibjs {
 
-result_t startRecvStream(Stream_base* stream, exlib::atomic& readState)
+void tryStartRead(Stream_base* stream, exlib::atomic& state)
 {
     class asyncRead : public AsyncState {
     public:
@@ -19,15 +19,23 @@ result_t startRecvStream(Stream_base* stream, exlib::atomic& readState)
             : AsyncState(NULL)
             , m_this(pThis)
         {
-            m_this->isolate_ref();
             m_isolate = pThis->holder();
-            m_holder = new ValueHolder(m_this->wrap());
             next(recv);
         }
 
         ~asyncRead()
         {
             m_this->isolate_unref();
+        }
+
+        void start()
+        {
+            m_isolate->sync([this]() -> int32_t {
+                m_holder = new ValueHolder(m_this->wrap());
+                m_this->isolate_ref();
+                apost(0);
+                return 0;
+            });
         }
 
         ON_STATE(asyncRead, recv)
@@ -74,10 +82,8 @@ result_t startRecvStream(Stream_base* stream, exlib::atomic& readState)
         obj_ptr<Buffer_base> m_buf;
     };
 
-    if (readState.CompareAndSwap(ReadState::C_OPEN, ReadState::C_READING) == ReadState::C_OPEN)
+    if (state.dec() == 0)
         (new asyncRead(stream))->apost(0);
-
-    return 0;
 }
 
 }

@@ -18,9 +18,11 @@ class UVSocket : public UVStream_tmpl<Socket_base> {
     FIBER_FREE();
 
 public:
-    UVSocket(int32_t family)
+    UVSocket(int32_t family, bool connected = false)
         : m_family(family)
     {
+        if (!connected)
+            m_state = 2;
     }
 
 public:

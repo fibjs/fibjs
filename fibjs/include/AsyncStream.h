@@ -12,12 +12,7 @@
 
 namespace fibjs {
 
-result_t startRecvStream(Stream_base* stream, exlib::atomic& readState);
-enum ReadState {
-    C_OPEN = 0,
-    C_READING = 1,
-    C_CLOSED = 2
-};
+void tryStartRead(Stream_base* stream, exlib::atomic& state);
 
 template <typename T>
 class AsyncStream : public T {
@@ -26,7 +21,9 @@ public:
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         if (ev == "data")
-            startRecvStream(this, m_readState);
+            startRecvStream();
+        else if (ev == "connect")
+            m_connect_event = true;
 
         return 0;
     }
@@ -57,7 +54,7 @@ public:
 
     virtual result_t resume(obj_ptr<Stream_base>& retVal)
     {
-        startRecvStream(this, m_readState);
+        startRecvStream();
         retVal = this;
         return 0;
     }
@@ -103,8 +100,34 @@ public:
         return 0;
     }
 
-private:
-    exlib::atomic m_readState;
+public:
+    // Start async read stream, called when "data" event is listened or resume() is called
+    // Decrements m_state by 1, only executed once via m_recvStarted guard
+    void startRecvStream()
+    {
+        // Ensure only executed once
+        if (m_recvStarted.CompareAndSwap(0, 1) != 0)
+            return;
+
+        // Decrement state and try to start reading
+        tryStartRead(this, m_state);
+    }
+
+    // Called when connection is established (for Socket)
+    // Decrements m_state by 1
+    void setConnected()
+    {
+        tryStartRead(this, m_state);
+    }
+
+protected:
+    // Stream state as counter:
+    // 0 = ready to start async read (all conditions met)
+    // 1 = waiting for one condition (either startRecvStream or setConnected)
+    // 2 = waiting for two conditions (both startRecvStream and setConnected needed)
+    exlib::atomic m_state = 1; // default: 1 (only need startRecvStream for non-socket streams)
+    exlib::atomic m_recvStarted = 0; // guard to ensure startRecvStream only runs once
+    bool m_connect_event = false;
 };
 
 }

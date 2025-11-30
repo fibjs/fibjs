@@ -380,6 +380,37 @@ describe('tls', () => {
             }
         });
 
+        it("async connect with events", () => {
+            var connectEvent = new coroutine.Event();
+            var connected = false;
+            var receivedData = null;
+
+            var s1 = new net.Socket();
+            s1.connect(9080 + base_port, "127.0.0.1");
+            test_util.push(s1);
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.on('connect', function () {
+                connected = true;
+                this.write("GET / HTTP/1.0");
+            });
+            ss.on('data', function (data) {
+                receivedData = data.toString();
+                connectEvent.set();
+            });
+            ss.on('error', function (err) {
+                console.log('error:', err);
+                connectEvent.set();
+            });
+
+            ss.connect(s1);
+
+            connectEvent.wait();
+            assert.ok(connected);
+            assert.equal(receivedData, "GET / HTTP/1.0");
+            ss.close();
+        });
+
         it("on data after connect success", () => {
             var dataEvent = new coroutine.Event();
             var receivedData = null;

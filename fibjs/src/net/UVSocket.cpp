@@ -10,6 +10,7 @@
 #include "Socket.h"
 #include "UVSocket.h"
 #include "Buffer.h"
+#include "EventInfo.h"
 
 namespace fibjs {
 
@@ -142,7 +143,7 @@ result_t UVSocket::bind(int32_t port, bool allowIPv4)
 
 void UVSocket::on_listen(int status)
 {
-    obj_ptr<UVSocket> sock = new UVSocket(m_family);
+    obj_ptr<UVSocket> sock = new UVSocket(m_family, true); // accepted socket is already connected
     int32_t ret;
 
     if (sock->m_family == net_base::C_AF_UNIX)
@@ -192,19 +193,48 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     public:
         AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncEvent* ac)
             : UVTimeout(pThis, timeout)
+            , m_sock(pThis)
             , m_ac(ac)
         {
+        }
+
+        AsyncConnect(Isolate* isolate, UVSocket* pThis, int32_t timeout)
+            : UVTimeout(pThis, timeout)
+            , m_isolate(isolate)
+            , m_sock(pThis)
+            , m_ac(nullptr)
+        {
+            m_isolate->Ref();
+        }
+
+        ~AsyncConnect()
+        {
+            if (!m_ac)
+                m_isolate->Unref();
         }
 
         static void callback(uv_connect_t* req, int status)
         {
             AsyncConnect* pThis = (AsyncConnect*)req;
 
-            pThis->m_ac->apost(status);
+            if (status >= 0)
+                pThis->m_sock->setConnected();
+
+            if (pThis->m_ac) {
+                pThis->m_ac->apost(status);
+            } else {
+                if (status < 0)
+                    (new EventInfo(pThis->m_sock, "error", status))->emit();
+                else
+                    (new EventInfo(pThis->m_sock, "connect"))->emit();
+            }
+
             pThis->cancel_timer();
         }
 
-    public:
+    private:
+        Isolate* m_isolate = nullptr;
+        obj_ptr<UVSocket> m_sock;
         AsyncEvent* m_ac;
     };
 
@@ -213,10 +243,18 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
     retVal = this;
     if (m_family == net_base::C_AF_UNIX) {
-        return uv_async([&] {
-            uv_pipe_connect(new AsyncConnect(this, timeout, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
+        if (!m_connect_event)
+            return uv_async([&] {
+                uv_pipe_connect(new AsyncConnect(this, timeout, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
+                return 0;
+            });
+
+        uv_async([&] {
+            uv_pipe_connect(new AsyncConnect(holder(), this, timeout), &m_pipe, host.c_str(), AsyncConnect::callback);
             return 0;
         });
+
+        return 0;
     } else {
         inetAddr addr_info;
 
@@ -232,9 +270,16 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 return CHECK_ERROR(CALL_E_INVALIDARG);
         }
 
-        return uv_async([&] {
-            return uv_tcp_connect(new AsyncConnect(this, timeout, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+        if (!m_connect_event)
+            return uv_async([&] {
+                return uv_tcp_connect(new AsyncConnect(this, timeout, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+            });
+
+        uv_async([&] {
+            return uv_tcp_connect(new AsyncConnect(holder(), this, timeout), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
         });
+
+        return 0;
     }
 }
 

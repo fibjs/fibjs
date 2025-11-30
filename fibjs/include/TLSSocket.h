@@ -18,6 +18,12 @@ class TLSSocket : public AsyncStream<TLSSocket_base> {
     FIBER_FREE();
 
 public:
+    TLSSocket()
+    {
+        m_state = 2;
+    }
+
+public:
     // TLSSocket_base
     virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac);
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac);

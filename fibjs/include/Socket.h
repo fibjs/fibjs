@@ -30,13 +30,15 @@ class Socket : public AsyncStream<Socket_base> {
     FIBER_FREE();
 
 public:
-    Socket()
+    Socket(bool connected = false)
         : m_aio(INVALID_SOCKET, net_base::C_AF_INET)
         , m_timeout(0)
 #ifdef _WIN32
         , m_bBind(FALSE)
 #endif
     {
+        if (!connected)
+            m_state = 2;
     }
 
     Socket(SOCKET s, int32_t family)
