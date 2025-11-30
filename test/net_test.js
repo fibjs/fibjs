@@ -156,6 +156,28 @@ function test_net(eng, use_uv) {
                 assert.equal("GET / HTTP/1.0", s1.recv());
                 s1.close();
             });
+
+            it("on data after connect success", () => {
+                var dataEvent = new coroutine.Event();
+                var receivedData = null;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.connect(_port, net_config.address);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+
+                // Register on data after connect success
+                s1.on('data', function (data) {
+                    receivedData = data.toString();
+                    dataEvent.set();
+                });
+
+                s1.send(new Buffer("GET / HTTP/1.0"));
+
+                dataEvent.wait();
+                assert.equal(receivedData, "GET / HTTP/1.0");
+                s1.close();
+            });
         });
 
         it("write and send return value validation", () => {
@@ -936,4 +958,3 @@ function test_net(eng, use_uv) {
 
 test_net("ev", false);
 test_net("uv", true);
-

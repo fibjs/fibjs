@@ -380,6 +380,30 @@ describe('tls', () => {
             }
         });
 
+        it("on data after connect success", () => {
+            var dataEvent = new coroutine.Event();
+            var receivedData = null;
+
+            var s1 = new net.Socket();
+            s1.connect(9080 + base_port, "127.0.0.1");
+            test_util.push(s1);
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.connect(s1);
+
+            // Register on data after connect success
+            ss.on('data', function (data) {
+                receivedData = data.toString();
+                dataEvent.set();
+            });
+
+            ss.write("GET / HTTP/1.0");
+
+            dataEvent.wait();
+            assert.equal(receivedData, "GET / HTTP/1.0");
+            ss.close();
+        });
+
         it("read specific bytes", () => {
             var ss = connect();
             ss.write("GET / HTTP/1.0");
