@@ -8,7 +8,6 @@
 #include "object.h"
 #include "path.h"
 #include "SandBox.h"
-#include "Fiber.h"
 #include "Buffer.h"
 #include "loaders.h"
 #include "ifs/util.h"
@@ -360,8 +359,13 @@ private:
     {
         v8::Local<v8::Context> _context = m_isolate->context();
 
+        m_isolate->m_module_evaluating++;
+
         TryCatch try_catch;
         v8::Local<v8::Value> result = root_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
+
+        m_isolate->m_module_evaluating--;
+
         if (result.IsEmpty()) {
             try_catch.ReThrow();
             return CALL_E_JAVASCRIPT;

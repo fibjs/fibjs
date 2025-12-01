@@ -326,6 +326,8 @@ public:
     bool m_enable_FileSystem;
     bool m_safe_buffer;
 
+    std::atomic<int32_t> m_module_evaluating { 0 };
+
     obj_ptr<SecureContext_base> m_ctx;
 
     LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;

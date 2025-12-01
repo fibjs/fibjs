@@ -64,6 +64,9 @@ void Isolate::PerformMicrotaskCheckpoint()
 
 void Isolate::RunMicrotasks()
 {
+    if (m_module_evaluating > 0)
+        return;
+
     bool not_in_task = false;
     if (m_intask.compare_exchange_strong(not_in_task, true)) {
         if ((RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())) {

@@ -271,6 +271,11 @@ describe('ECMAScript modules', () => {
             }
         });
     });
+
+    it("BUGFIX: Crash when async module triggers microtask during Evaluate", async () => {
+        var m = await import('./esm_files/crash_import/test.mjs');
+        assert.ok(m);
+    });
 });
 
 
