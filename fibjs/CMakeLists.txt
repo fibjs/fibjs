@@ -28,13 +28,7 @@ if("${BUILD_OS}" MATCHES "Linux|Alpine")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK REQUIRED gtk+-3.0)
 
-    # Try webkit2gtk-4.0 first, fallback to webkit2gtk-4.1
-    pkg_check_modules(WEBKIT webkit2gtk-4.0)
-    if(NOT WEBKIT_FOUND)
-        pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.1)
-    endif()
-
-    include_directories(${GTK_INCLUDE_DIRS} ${WEBKIT_INCLUDE_DIRS})
+    include_directories(${GTK_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/../vender/webkitgtk")
 endif()
 
 setup_result_library(${name})
