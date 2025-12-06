@@ -207,7 +207,17 @@ void options(int32_t& pos, char* argv[])
     size_t sz = uv_get_total_memory() / 1024 / 1024;
     sz = sz * 3 / 4;
 
+    // Disable lazy compilation and force eager compilation
     v8::internal::v8_flags.lazy = false;
+    v8::internal::v8_flags.lazy_eval = false;
+    v8::internal::v8_flags.max_lazy = false;
+    
+    // Disable lazy source positions to avoid source code dependency
+    v8::internal::v8_flags.enable_lazy_source_positions = false;
+    v8::internal::v8_flags.stress_lazy_source_positions = false;
+    
+    // Disable lazy feedback allocation
+    v8::internal::v8_flags.lazy_feedback_allocation = false;
 
     v8::internal::v8_flags.max_heap_size = sz;
     v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
@@ -215,11 +225,7 @@ void options(int32_t& pos, char* argv[])
 
     v8::internal::v8_flags.turbo_store_elimination = false;
 
-#ifdef iPhone
-    v8::internal::v8_flags.expose_wasm = false;
-#endif
-
-    v8::internal::v8_flags.harmony_import_assertions = false;
+    // v8::internal::v8_flags.harmony_import_assertions = false;
     v8::internal::v8_flags.harmony_import_attributes = true;
 
     v8::internal::v8_flags.expose_gc = true;

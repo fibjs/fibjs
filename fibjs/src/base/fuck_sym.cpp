@@ -7,6 +7,10 @@ void init_sym()
 
 #if defined(NDEBUG) && defined(linux)
 
+#include <features.h>
+
+#ifdef __GLIBC__
+
 #include "glibc_config.h"
 
 #include <string.h>
@@ -16,6 +20,7 @@ void init_sym()
 #include <time.h>
 #include <errno.h>
 #include <sys/syscall.h>
+#include <stdlib.h>
 
 extern "C" {
 
@@ -28,6 +33,15 @@ void* memcpy(void* dest, const void* src, size_t n)
     return _memcpy(dest, src, n);
 }
 #endif
+
+// GLIBC_2.16
+void* aligned_alloc(size_t alignment, size_t size)
+{
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, alignment, size) != 0)
+        return nullptr;
+    return ptr;
+}
 
 // GLIBC_2.17
 #ifdef GLIB_C_TIME
@@ -95,6 +109,15 @@ int getentropy(void* buf, size_t length)
     return 0;
 }
 
+// GLIBC_2.27
+#ifndef MFD_CLOEXEC
+#define MFD_CLOEXEC 0x0001U
+#endif
+int memfd_create(const char* name, unsigned int flags)
+{
+    return syscall(SYS_memfd_create, name, flags);
+}
+
 // GLIBC_2.28
 #ifdef GLIB_C_FCNTL
 __asm__(".symver _fcntl,fcntl@GLIBC_" GLIB_C_FCNTL);
@@ -131,6 +154,13 @@ double _exp(double x);
 double exp(double x)
 {
     return _exp(x);
+}
+
+// exp2(x) = 2^x = e^(x * ln(2)), avoid glibc version dependency
+#define M_LN2 0.693147180559945309417232121458176568
+double exp2(double x)
+{
+    return _exp(x * M_LN2);
 }
 
 __asm__(".symver _expf,expf@GLIBC_" GLIB_C_MATH);
@@ -202,4 +232,5 @@ int pthread_cond_clockwait(pthread_cond_t* cond, pthread_mutex_t* mutex,
 
 }
 
-#endif
+#endif // __GLIBC__
+#endif // NDEBUG && linux

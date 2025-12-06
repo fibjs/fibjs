@@ -18,6 +18,7 @@
 #include "v8.h"
 #include "exlib/include/qstring.h"
 #include "v8/src/api/api-inl.h"
+#include "v8/src/execution/isolate-utils-inl.h"
 #include "v8_api.h"
 
 using namespace v8;
@@ -44,7 +45,8 @@ void setAsyncFunctoin(Local<Function> func)
     // Remove prototype to avoid V8 internal state conflicts
     if (shared->IsApiFunction()) {
         i::Tagged<i::FunctionTemplateInfo> func_data = shared->api_func_data();
-        i::Handle<i::FunctionTemplateInfo> template_info(func_data, _func->GetIsolate());
+        i::Isolate* _isolate = i::GetIsolateFromWritableObject(*_func);
+        i::Handle<i::FunctionTemplateInfo> template_info(func_data, _isolate);
         template_info->set_remove_prototype(true);
     }
 }

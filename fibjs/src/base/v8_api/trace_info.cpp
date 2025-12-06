@@ -29,11 +29,9 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
 
     for (; !it.done() && deep-- > 0; it.Advance()) {
         i::JavaScriptFrame* frame = it.frame();
-        std::vector<i::FrameSummary> frames;
+        i::FrameSummaries frames = frame->Summarize();
 
-        frame->Summarize(&frames);
-
-        const i::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
+        const i::FrameSummary::JavaScriptFrameSummary& summ = frames.frames[0].AsJavaScript();
         i::Handle<i::Script> script = i::Cast<i::Script>(summ.script());
         if (script->type() == i::Script::Type::kNormal) {
             strBuffer.append(bFirst ? "    at " : "\n    at ");

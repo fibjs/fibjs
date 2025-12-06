@@ -204,7 +204,7 @@ describe('fs', () => {
     });
 
     it("mkdir", () => {
-        fs.mkdir(pathname);
+        fs.mkdir(pathname, 0o755);
         assert.equal(fs.exists(pathname), true);
 
         if (!win) {

@@ -395,7 +395,7 @@ inline result_t _jsonDecode(exlib::string data,
             if (hr < 0)
                 return hr;
 
-            v8::ToLocal(maybe, &retVal);
+            retVal = Utils::ToMaybeLocal(maybe).ToLocalChecked();
             return 0;
         }
 
