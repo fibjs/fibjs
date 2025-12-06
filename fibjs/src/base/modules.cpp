@@ -12,6 +12,7 @@ namespace fibjs {
 void importBuiltinModule()
 {
     IMPORT_MODULE(assert);
+    IMPORT_MODULE(async_hooks);
     IMPORT_MODULE(base32);
     IMPORT_MODULE(base58);
     IMPORT_MODULE(base64);

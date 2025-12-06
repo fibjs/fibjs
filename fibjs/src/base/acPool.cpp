@@ -147,6 +147,11 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Object> cb, object_base* pThis)
     v8::Local<v8::StackTrace> stack = v8::StackTrace::CurrentStackTrace(
         m_isolate->m_isolate, 10, v8::StackTrace::kDetailed);
     m_stack_trace.Reset(m_isolate->m_isolate, stack);
+
+    // Capture current async context for AsyncLocalStorage propagation
+    JSFiber* fb = JSFiber::current();
+    if (fb && !fb->m_async_ctx.IsEmpty())
+        m_async_ctx.Reset(m_isolate->m_isolate, fb->m_async_ctx.Get(m_isolate->m_isolate));
 }
 
 AsyncCallBack::~AsyncCallBack()
@@ -154,6 +159,7 @@ AsyncCallBack::~AsyncCallBack()
     m_isolate->Unref();
     m_cb.Reset();
     m_stack_trace.Reset();
+    m_async_ctx.Reset();
 }
 
 void AsyncCallBack::async_call(int32_t v)
@@ -233,6 +239,19 @@ int AsyncCallBack::syncFunc()
 {
     JSFiber::EnterJsScope s;
 
+    // Restore async context for AsyncLocalStorage propagation
+    JSFiber* fb = JSFiber::current();
+    v8::Global<v8::Value> savedCtx;
+    v8::Isolate* v8_isolate = m_isolate->m_isolate;
+    if (fb) {
+        if (!fb->m_async_ctx.IsEmpty())
+            savedCtx.Reset(v8_isolate, fb->m_async_ctx.Get(v8_isolate));
+        if (!m_async_ctx.IsEmpty())
+            fb->m_async_ctx.Reset(v8_isolate, m_async_ctx.Get(v8_isolate));
+        else
+            fb->m_async_ctx.Reset();
+    }
+
     if (m_is_promise) {
         processPromiseResult();
     } else {
@@ -266,6 +285,14 @@ int AsyncCallBack::syncFunc()
             .IsEmpty();
 
         delete this;
+    }
+
+    // Restore previous async context
+    if (fb) {
+        if (!savedCtx.IsEmpty())
+            fb->m_async_ctx.Reset(v8_isolate, savedCtx.Get(v8_isolate));
+        else
+            fb->m_async_ctx.Reset();
     }
 
     return 0;

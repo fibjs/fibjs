@@ -78,6 +78,11 @@ public:
         m_func.Reset(isolate->m_isolate, func);
         m_this.Reset(isolate->m_isolate, pThis);
 
+        // Capture current async context for AsyncLocalStorage propagation
+        JSFiber* fb = JSFiber::current();
+        if (fb && !fb->m_async_ctx.IsEmpty())
+            m_async_ctx.Reset(isolate->m_isolate, fb->m_async_ctx.Get(isolate->m_isolate));
+
         start();
     }
 
@@ -139,6 +144,9 @@ public:
     void* m_c_entry_fp_ = NULL;
     void* m_handler_ = NULL;
     bool m_termed = false;
+    
+    // Fiber-local async context for AsyncLocalStorage
+    v8::Global<v8::Value> m_async_ctx;
 
 private:
     int64_t m_id;

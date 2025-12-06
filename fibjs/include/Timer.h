@@ -133,6 +133,11 @@ public:
         ref(retVal);
 
         m_callback.Reset(isolate->m_isolate, callback);
+
+        // Capture current async context for AsyncLocalStorage propagation
+        JSFiber* fb = JSFiber::current();
+        if (fb && !fb->m_async_ctx.IsEmpty())
+            m_async_ctx.Reset(isolate->m_isolate, fb->m_async_ctx.Get(isolate->m_isolate));
     }
 
 protected:
@@ -188,12 +193,32 @@ public:
         v8::Local<v8::Function> callback = m_callback.Get(isolate->m_isolate);
         std::vector<v8::Local<v8::Value>> argv;
 
+        // Restore async context for AsyncLocalStorage propagation
+        JSFiber* fb = JSFiber::current();
+        v8::Global<v8::Value> savedCtx;
+        if (fb) {
+            if (!fb->m_async_ctx.IsEmpty())
+                savedCtx.Reset(isolate->m_isolate, fb->m_async_ctx.Get(isolate->m_isolate));
+            if (!m_async_ctx.IsEmpty())
+                fb->m_async_ctx.Reset(isolate->m_isolate, m_async_ctx.Get(isolate->m_isolate));
+            else
+                fb->m_async_ctx.Reset();
+        }
+
         int32_t nArgCount = (int32_t)m_argv.size();
         argv.resize(nArgCount);
         for (int i = 0; i < nArgCount; i++)
             argv[i] = m_argv[i].Get(isolate->m_isolate);
 
         callback->Call(callback->GetCreationContextChecked(), wrap(), (int32_t)argv.size(), argv.data()).IsEmpty();
+
+        // Restore previous async context
+        if (fb) {
+            if (!savedCtx.IsEmpty())
+                fb->m_async_ctx.Reset(isolate->m_isolate, savedCtx.Get(isolate->m_isolate));
+            else
+                fb->m_async_ctx.Reset();
+        }
     }
 
     virtual void on_timer()
@@ -211,6 +236,7 @@ public:
         obj_ptr<Timer_base> retVal;
 
         m_callback.Reset();
+        m_async_ctx.Reset();
         unref(retVal);
     }
 
@@ -218,6 +244,7 @@ private:
     bool m_hr;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
+    v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
 };
 
 class TimeoutScope {

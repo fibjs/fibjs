@@ -17,6 +17,7 @@
 #include "TTYStream.h"
 #include "EventEmitter.h"
 #include "PerformanceObserver.h"
+#include "Fiber.h"
 
 using namespace v8;
 
@@ -247,6 +248,61 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
     }
 }
 
+// Promise Hook callback for AsyncLocalStorage context propagation
+static void PromiseHookCallback(v8::PromiseHookType type, v8::Local<v8::Promise> promise,
+    v8::Local<v8::Value> parent)
+{
+    Isolate* isolate = Isolate::current(promise->GetIsolate());
+    if (!isolate || isolate->m_async_context_symbol.IsEmpty())
+        return;
+
+    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
+    if (context.IsEmpty())
+        return;
+
+    v8::Local<v8::Private> symbol = isolate->m_async_context_symbol.Get(isolate->m_isolate);
+    JSFiber* fb = JSFiber::current();
+
+    switch (type) {
+    case v8::PromiseHookType::kInit: {
+        // When a new promise is created, capture the current async context from fiber.
+        // We only capture from fiber, NOT from parent promise. Parent inheritance
+        // causes issues with await: the internal promise created by V8 for await
+        // inherits the awaited promise's context, which incorrectly restores that
+        // context after await completes.
+        if (fb && !fb->m_async_ctx.IsEmpty()) {
+            v8::Local<v8::Value> ctx = fb->m_async_ctx.Get(isolate->m_isolate);
+            if (!ctx.IsEmpty() && ctx->IsMap())
+                promise->SetPrivate(context, symbol, ctx).FromJust();
+        }
+        break;
+    }
+    case v8::PromiseHookType::kBefore: {
+        // Before promise callback executes, restore promise's context to fiber.
+        // In fibjs, each microtask runs in an independent fiber, so we don't need
+        // to save/restore prior context - the fiber will be destroyed after callback.
+        if (fb) {
+            v8::MaybeLocal<v8::Value> maybeCtx = promise->GetPrivate(context, symbol);
+            if (!maybeCtx.IsEmpty()) {
+                v8::Local<v8::Value> ctx = maybeCtx.ToLocalChecked();
+                if (!ctx.IsEmpty() && !ctx->IsUndefined() && ctx->IsMap())
+                    fb->m_async_ctx.Reset(isolate->m_isolate, ctx);
+                else
+                    fb->m_async_ctx.Reset();
+            } else {
+                fb->m_async_ctx.Reset();
+            }
+        }
+        break;
+    }
+    case v8::PromiseHookType::kAfter:
+        // No action needed - fiber will be destroyed after callback
+        break;
+    case v8::PromiseHookType::kResolve:
+        break;
+    }
+}
+
 void Isolate::init()
 {
     v8::Locker locker(m_isolate);
@@ -275,6 +331,10 @@ void Isolate::init()
     m_isolate->SetHostInitializeImportMetaObjectCallback(SandBox::ImportMetaObjectCallback);
 
     m_isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
+
+    // Initialize Promise Hook for AsyncLocalStorage context propagation
+    m_async_context_symbol.Reset(m_isolate, v8::Private::New(m_isolate, NewString("asyncContext")));
+    m_isolate->SetPromiseHook(PromiseHookCallback);
 
     init_process_ipc(this);
 }

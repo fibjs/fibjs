@@ -1,0 +1,175 @@
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * @description 该对象允许您在异步操作中存储和检索数据
+ * 
+ *  AsyncLocalStorage 可用于在异步调用链中传递数据，类似于线程本地存储。每个异步操作都可以访问其创建时的存储数据，而不会与其他异步操作的数据混淆。
+ * 
+ *  以下是一个简单的示例：
+ *  ```javascript
+ *  const { AsyncLocalStorage } = require('async_hooks');
+ *  const als = new AsyncLocalStorage();
+ * 
+ *  als.run({ requestId: 'req-123' }, () => {
+ *      setTimeout(() => {
+ *          const store = als.getStore();
+ *          console.log(store.requestId);  // 输出: req-123
+ *      }, 100);
+ *  });
+ *  ```
+ *  
+ */
+declare class Class_AsyncLocalStorage extends Class_object {
+    /**
+     * @description 创建一个新的 AsyncLocalStorage 实例
+     * 
+     *      options 支持以下选项：
+     *       - defaultValue: 指定默认值，当没有存储值时返回该值
+     *       - name: 为 AsyncLocalStorage 实例指定一个名称，便于调试
+     * 
+     *      @param options 一个可选的对象，用于配置 AsyncLocalStorage 实例
+     *     
+     */
+    constructor(options?: FIBJS.GeneralObject);
+
+    /**
+     * @description 获取 AsyncLocalStorage 实例的名称
+     * 
+     *      名称在创建实例时通过 options.name 设置，用于调试目的。如果未设置，返回空字符串。
+     *     
+     */
+    readonly name: string;
+
+    /**
+     * @description 创建一个快照函数，用于捕获当前的异步上下文
+     * 
+     *      返回的函数可以在任何时候调用，它会在捕获时的上下文中执行传入的回调函数。
+     * 
+     *      示例：
+     *      ```javascript
+     *      const runInContext = als.run({ id: 1 }, () => AsyncLocalStorage.snapshot());
+     *      // 稍后在不同的上下文中
+     *      als.run({ id: 2 }, () => {
+     *          runInContext(() => {
+     *              console.log(als.getStore().id);  // 输出: 1
+     *          });
+     *      });
+     *      ```
+     * 
+     *      @return 返回一个函数，该函数接受一个回调并在捕获的上下文中执行它
+     *     
+     */
+    static snapshot(): (...args: any[])=>any;
+
+    /**
+     * @description 将函数绑定到当前的异步上下文
+     * 
+     *      返回一个新函数，该函数在调用时会在捕获时的异步上下文中执行原始函数。
+     *      这对于确保回调函数在正确的上下文中执行非常有用。
+     * 
+     *      示例：
+     *      ```javascript
+     *      const bound = als.run({ id: 1 }, () => {
+     *          return AsyncLocalStorage.bind(() => als.getStore());
+     *      });
+     *      als.run({ id: 2 }, () => {
+     *          console.log(bound().id);  // 输出: 1
+     *      });
+     *      ```
+     * 
+     *      @param fn 要绑定的函数
+     *      @return 返回绑定到当前上下文的新函数
+     *     
+     */
+    static bind(fn: (...args: any[])=>any): (...args: any[])=>any;
+
+    /**
+     * @description 禁用当前 AsyncLocalStorage 实例
+     * 
+     *      调用此方法后，getStore() 将返回 undefined（除非设置了 defaultValue），并且不再传播存储数据到后续的异步操作。
+     *     
+     */
+    disable(): void;
+
+    /**
+     * @description 获取当前异步上下文中的存储数据
+     * 
+     *      如果在 run() 或 enterWith() 设置的上下文中调用，返回对应的存储数据。
+     *      如果不在任何上下文中，返回 undefined 或创建实例时指定的 defaultValue。
+     * 
+     *      @return 返回当前上下文中的存储数据
+     *     
+     */
+    getStore(): any;
+
+    /**
+     * @description 进入一个新的异步上下文，并设置存储数据
+     * 
+     *      与 run() 不同，enterWith() 不需要回调函数，它会在当前执行上下文中设置存储数据，
+     *      该数据会传播到后续的所有异步操作，直到当前异步上下文结束。
+     * 
+     *      示例：
+     *      ```javascript
+     *      setImmediate(() => {
+     *          als.enterWith({ id: 1 });
+     *          setTimeout(() => {
+     *              console.log(als.getStore().id);  // 输出: 1
+     *          }, 100);
+     *      });
+     *      ```
+     * 
+     *      @param store 要存储的数据
+     *     
+     */
+    enterWith(store: any): void;
+
+    /**
+     * @description 在新的异步上下文中运行回调函数
+     * 
+     *      创建一个新的异步上下文，在该上下文中设置存储数据，然后执行回调函数。
+     *      回调函数内部及其触发的所有异步操作都可以通过 getStore() 获取该存储数据。
+     *      回调执行完毕后，上下文自动恢复到调用 run() 之前的状态。
+     * 
+     *      示例：
+     *      ```javascript
+     *      const result = als.run({ userId: 'user-1' }, (a, b) => {
+     *          console.log(als.getStore().userId);  // 输出: user-1
+     *          return a + b;
+     *      }, 10, 20);
+     *      console.log(result);  // 输出: 30
+     *      ```
+     * 
+     *      @param store 要存储的数据
+     *      @param callback 要执行的回调函数
+     *      @param args 传递给回调函数的参数
+     *      @return 返回回调函数的返回值
+     *     
+     */
+    run(store: any, callback: (...args: any[])=>any, ...args: any[]): any;
+
+    /**
+     * @description 暂时退出当前异步上下文执行回调函数
+     * 
+     *      在回调执行期间，getStore() 将返回 undefined（或 defaultValue）。
+     *      回调执行完毕后，恢复到原来的上下文。
+     * 
+     *      示例：
+     *      ```javascript
+     *      als.run({ id: 1 }, () => {
+     *          console.log(als.getStore().id);  // 输出: 1
+     *          als.exit(() => {
+     *              console.log(als.getStore());  // 输出: undefined
+     *          });
+     *          console.log(als.getStore().id);  // 输出: 1
+     *      });
+     *      ```
+     * 
+     *      @param callback 要执行的回调函数
+     *      @param args 传递给回调函数的参数
+     *      @return 返回回调函数的返回值
+     *     
+     */
+    exit(callback: (...args: any[])=>any, ...args: any[]): any;
+
+}
+

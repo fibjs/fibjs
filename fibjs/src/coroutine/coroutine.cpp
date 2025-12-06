@@ -41,6 +41,10 @@ private:
 
             s->set_caller(m_caller);
 
+            // Restore async context for AsyncLocalStorage propagation
+            if (!m_async_ctx.IsEmpty())
+                s->m_async_ctx.Reset(m_isolate->m_isolate, m_async_ctx.Get(m_isolate->m_isolate));
+
             m_pos++;
             if (func.IsEmpty()) {
                 v8::Local<v8::Function> func1 = JSValue(datas->Get(context, pos)).As<v8::Function>();
@@ -76,6 +80,10 @@ private:
         m_pos = 0;
         m_caller = JSFiber::current();
 
+        // Capture async context for AsyncLocalStorage propagation
+        if (m_caller && !m_caller->m_async_ctx.IsEmpty())
+            m_async_ctx.Reset(m_isolate->m_isolate, m_caller->m_async_ctx.Get(m_isolate->m_isolate));
+
         for (i = 0; i < m_fibers; i++)
             m_isolate->sync([this]() -> int {
                 return _worker();
@@ -87,6 +95,7 @@ private:
         m_datas.Reset();
         m_func.Reset();
         m_retVal.Reset();
+        m_async_ctx.Reset();
 
         return m_error ? CHECK_ERROR(CALL_E_INTERNAL) : 0;
     }
@@ -142,8 +151,9 @@ public:
     v8::Global<v8::Array> m_datas;
     v8::Global<v8::Function> m_func;
     v8::Global<v8::Array> m_retVal;
+    v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     obj_ptr<Event> m_event;
-    obj_ptr<Fiber_base> m_caller;
+    JSFiber* m_caller;
     bool m_error;
 };
 

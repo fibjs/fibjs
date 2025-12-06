@@ -1,0 +1,6 @@
+/*! @brief 定义异步钩子模块 */
+module async_hooks
+{
+    /*! @brief AsyncLocalStorage 对象，参见 AsyncLocalStorage */
+    static AsyncLocalStorage;
+};

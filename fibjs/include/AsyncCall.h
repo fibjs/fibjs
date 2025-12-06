@@ -466,6 +466,7 @@ protected:
 private:
     exlib::string m_error;
     v8::Global<v8::StackTrace> m_stack_trace;
+    v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     int32_t m_v;
 };
 }

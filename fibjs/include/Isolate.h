@@ -276,6 +276,9 @@ public:
 
     v8::Global<v8::ObjectTemplate> m_global_template;
 
+    // Private symbol for storing async context on Promise objects
+    v8::Global<v8::Private> m_async_context_symbol;
+
     obj_ptr<SandBox> m_topSandbox;
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
