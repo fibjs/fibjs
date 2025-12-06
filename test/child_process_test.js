@@ -1093,6 +1093,7 @@ describe("child_process", () => {
             });
 
             p.join();
+            p.stdout.close(); // Close stdout to trigger close event
             coroutine.sleep(100); // Allow time for close event to be processed
 
             // close event should be triggered
@@ -1147,6 +1148,7 @@ describe("child_process", () => {
             });
 
             p.join();
+            p.stdout.close(); // Close stdout to trigger close event
             coroutine.sleep(100); // Allow time for close event to be processed
 
             assert.equal(messageReceived, true);
@@ -1167,6 +1169,7 @@ describe("child_process", () => {
             });
 
             p.join();
+            p.stdout.close(); // Close stdout to trigger close event
             coroutine.sleep(100); // Allow time for close event to be processed
             processEndTime = new Date().getTime();
 
@@ -1191,11 +1194,147 @@ describe("child_process", () => {
             });
 
             p.join();
+            p.stdout.close(); // Close stdout to trigger close event
             coroutine.sleep(100); // Allow time for close event to be processed
 
             // Both listeners should be called
             assert.equal(closeCount, 2);
             assert.equal(totalCode, 246); // 123 * 2
+        });
+
+        it("exit event fires without closing stdout", () => {
+            var exitTriggered = false;
+            var closeTriggered = false;
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'pipe'
+            });
+
+            p.on('exit', (code) => {
+                exitTriggered = true;
+            });
+
+            p.on('close', (code) => {
+                closeTriggered = true;
+            });
+
+            p.join();
+            coroutine.sleep(100);
+
+            // exit event should fire, but close should NOT fire without closing stdout
+            assert.equal(exitTriggered, true);
+            assert.equal(closeTriggered, false);
+        });
+
+        it("stdout readable after join", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec2.js'), 'arg1', 'arg2'], {
+                stdio: 'pipe'
+            });
+
+            p.join();
+
+            // stdout should still be accessible after join
+            assert.notEqual(p.stdout, null);
+
+            // Should be able to read data
+            var data = p.stdout.read();
+            assert.notEqual(data, null);
+
+            var result = JSON.parse(data.toString());
+            assert.equal(result.length, 4);
+        });
+
+        it("exit and close event order", () => {
+            var events = [];
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'pipe'
+            });
+
+            p.on('exit', (code) => {
+                events.push('exit');
+            });
+
+            p.on('close', (code) => {
+                events.push('close');
+            });
+
+            p.join();
+            p.stdout.close();
+            coroutine.sleep(100);
+
+            // exit should come before close
+            assert.equal(events[0], 'exit');
+            assert.equal(events[1], 'close');
+        });
+
+        it("close stderr does not trigger close event", () => {
+            var closeTriggered = false;
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'pipe'
+            });
+
+            p.on('close', () => {
+                closeTriggered = true;
+            });
+
+            p.join();
+            p.stderr.close(); // Close stderr instead of stdout
+            coroutine.sleep(100);
+
+            // close event should NOT trigger from stderr.close
+            assert.equal(closeTriggered, false);
+        });
+
+        it("multiple stdout.close calls are safe", () => {
+            var closeCount = 0;
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'pipe'
+            });
+
+            p.on('close', () => {
+                closeCount++;
+            });
+
+            p.join();
+            p.stdout.close();
+            p.stdout.close(); // Second close should be safe
+            p.stdout.close(); // Third close should be safe
+            coroutine.sleep(100);
+
+            // close event should only fire once
+            assert.equal(closeCount, 1);
+        });
+
+        it("on data mode triggers close event automatically", () => {
+            var dataReceived = false;
+            var closeTriggered = false;
+            var stdoutClosed = false;
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_close_immediate.js')], {
+                stdio: 'pipe'
+            });
+
+            p.stdout.on('data', (data) => {
+                dataReceived = true;
+            });
+
+            p.stdout.on('close', () => {
+                stdoutClosed = true;
+            });
+
+            p.on('close', (code) => {
+                closeTriggered = true;
+            });
+
+            p.join();
+            coroutine.sleep(100);
+
+            // When using on('data'), close events should fire automatically
+            assert.equal(stdoutClosed, true);
+            assert.equal(closeTriggered, true);
         });
 
         if (process.platform != "win32")

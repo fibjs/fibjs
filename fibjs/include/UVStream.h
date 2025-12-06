@@ -325,8 +325,14 @@ public:
         AsyncRead::post_all_result(pThis, UV_EPIPE);
         AsyncWrite::post_all_result(pThis, UV_EPIPE);
 
+        pThis->on_handle_closed();
+
         if (pThis->ac_close)
             pThis->ac_close->apost(0);
+    }
+
+    virtual void on_handle_closed()
+    {
     }
 
     virtual result_t close(AsyncEvent* ac)
@@ -397,11 +403,21 @@ public:
 
     ~UVStream()
     {
-        if (m_on_close)
+        if (m_on_close) {
             m_on_close(m_fd);
+            m_on_close = nullptr;
+        }
     }
 
 public:
+    virtual void on_handle_closed()
+    {
+        if (m_on_close) {
+            m_on_close(m_fd);
+            m_on_close = nullptr;
+        }
+    }
+
     virtual result_t onEventEmit(exlib::string ev)
     {
         if (ev == "close") {

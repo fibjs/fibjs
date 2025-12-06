@@ -23,32 +23,34 @@ namespace fibjs {
 void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
-    cp->on_handle_close();
+
+    // If no stdout pipe exists, trigger close event on process close
+    if (!cp->m_stdio[1])
+        cp->emit_close();
+
     cp->isolate_unref();
 }
 
-void ChildProcess::on_handle_close()
+void ChildProcess::emit_close()
 {
-    if (m_handle_count.fetch_sub(1) == 1) {
-        Variant args[2];
+    Variant args[2];
 
-        args[0] = m_exitCode;
-        if (m_exitCode < 0) {
-            args[1] = signo_string(-m_exitCode);
-        } else {
-            args[1].setNull();
-        }
+    args[0] = m_exitCode;
+    if (m_exitCode < 0) {
+        args[1] = signo_string(-m_exitCode);
+    } else {
+        args[1].setNull();
+    }
 
-        // Clean up PTY resources on Windows
+    // Clean up PTY resources on Windows
 #ifdef _WIN32
-        if (m_pty) {
-            pty_cleanup(&m_process);
-        }
+    if (m_pty) {
+        pty_cleanup(&m_process);
+    }
 #endif
 
-        _emit("close", args, 2);
-        m_vholder.Release();
-    }
+    _emit("close", args, 2);
+    m_vholder.Release();
 }
 
 void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_signal)
@@ -66,30 +68,27 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
 
-    Isolate* isolate = cp->holder();
-    isolate->sync([cp]() -> int {
-        for (int32_t i = 0; i < 4; i++) {
-            if (cp->m_stdio[i]) {
-                cp->m_stdio[i].Release();
-            }
-        }
-
-        return 0;
-    });
-
     cp->_emit("exit", args, 2);
+
     uv_close((uv_handle_t*)handle, on_uv_close);
 }
 
 result_t ChildProcess::create_pipe(int32_t idx)
 {
-    result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx, [this](int32_t fd) -> void {
-        on_handle_close();
-    });
+    // Only stdout (idx=1) triggers close event when closed
+    std::function<void(int32_t)> onClose = nullptr;
+    if (idx == 1) {
+        // prevent GC from releasing this before the callback is called
+        Ref();
+        onClose = [this](int32_t fd) -> void {
+            emit_close();
+            Unref();
+        };
+    }
+
+    result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx, onClose);
     if (hr < 0)
         return hr;
-
-    m_handle_count.fetch_add(1);
 
     stdios[idx].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
     stdios[idx].data.stream = (uv_stream_t*)&m_stdio[idx]->m_pipe;
@@ -380,15 +379,12 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
                 m_stdoutfd = stdoutfd;
 
                 // Create separate streams for stdin (write-only) and stdout (read-only)
-                UVStream::uv_pipe(m_stdio[0], stdinfd, [this](int32_t fd) -> void {
-                    on_handle_close();
-                });
-                m_handle_count.fetch_add(1);
+                // stdout (idx=1) triggers close event when closed
+                UVStream::uv_pipe(m_stdio[0], stdinfd, nullptr);
 
                 UVStream::uv_pipe(m_stdio[1], stdoutfd, [this](int32_t fd) -> void {
-                    on_handle_close();
+                    emit_close();
                 });
-                m_handle_count.fetch_add(1);
             }
         } else
             err = uv_spawn(s_uv_loop, &m_process, &uv_options);
