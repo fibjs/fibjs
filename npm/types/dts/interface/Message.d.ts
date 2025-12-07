@@ -177,5 +177,12 @@ declare class Class_Message extends Class_object {
      */
     lastError: string;
 
+    /**
+     * @description 复制当前消息对象
+     *      @return 返回复制的消息对象
+     *     
+     */
+    clone(): Class_Message;
+
 }
 

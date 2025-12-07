@@ -821,4 +821,38 @@ result_t HttpMessage::clear()
     return 0;
 }
 
+result_t HttpMessage::clone(obj_ptr<Message_base>& retVal)
+{
+    // HttpMessage is an abstract base class, cannot be cloned directly
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+void HttpMessage::copyTo(HttpMessage* target)
+{
+    // Copy base Message properties
+    Message::copyTo(target);
+
+    // Copy HttpMessage specific properties
+    target->m_protocol = m_protocol;
+    target->m_keepAlive = m_keepAlive;
+    target->m_upgrade = m_upgrade;
+    target->m_maxHeadersCount = m_maxHeadersCount;
+    target->m_maxHeaderSize = m_maxHeaderSize;
+    target->m_maxChunkSize = m_maxChunkSize;
+    target->m_maxBodySize = m_maxBodySize;
+    target->m_origin = m_origin;
+    target->m_encoding = m_encoding;
+    target->m_contentLength = m_contentLength;
+    target->m_bChunked = m_bChunked;
+
+    // Clone headers by iterating over the map directly
+    if (m_headers) {
+        target->m_headers = new Headers();
+        for (size_t i = 0; i < m_headers->m_map.size(); i++) {
+            auto& p = m_headers->m_map[i];
+            target->m_headers->append(p.first, p.second.string());
+        }
+    }
+}
+
 } /* namespace fibjs */

@@ -598,4 +598,18 @@ result_t WebSocketMessage::set_maxSize(int32_t newVal)
     return 0;
 }
 
+result_t WebSocketMessage::clone(obj_ptr<Message_base>& retVal)
+{
+    int32_t type;
+    m_message->get_type(type);
+
+    obj_ptr<WebSocketMessage> msg = new WebSocketMessage(type, m_masked, m_compress, m_maxSize);
+
+    // Copy base Message properties
+    m_message->copyTo(msg->m_message);
+
+    retVal = msg;
+    return 0;
+}
+
 } /* namespace fibjs */

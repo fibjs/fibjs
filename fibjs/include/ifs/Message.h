@@ -58,6 +58,7 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_lastError(exlib::string& retVal) = 0;
     virtual result_t set_lastError(exlib::string newVal) = 0;
+    virtual result_t clone(obj_ptr<Message_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -89,6 +90,7 @@ public:
     static void s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_lastError(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_lastError(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -117,7 +119,8 @@ inline ClassInfo& Message_base::class_info()
         { "isEnded", s_isEnded, false, ClassData::ASYNC_SYNC },
         { "clear", s_clear, false, ClassData::ASYNC_SYNC },
         { "sendTo", s_sendTo, false, ClassData::ASYNC_ASYNC },
-        { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC }
+        { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC },
+        { "clone", s_clone, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -545,5 +548,19 @@ inline void Message_base::s_set_lastError(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->set_lastError(v0);
 
     METHOD_VOID();
+}
+
+inline void Message_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Message_base> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->clone(vr);
+
+    METHOD_RETURN();
 }
 }

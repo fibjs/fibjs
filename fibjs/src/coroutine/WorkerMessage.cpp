@@ -148,4 +148,11 @@ result_t WorkerMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options
     return m_message->readFrom(stm, options, ac);
 }
 
+result_t WorkerMessage::clone(obj_ptr<Message_base>& retVal)
+{
+    // WorkerMessage contains a Variant which may reference complex V8 objects
+    // that cannot be safely cloned. Return an error for now.
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
 } /* namespace fibjs */

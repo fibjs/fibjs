@@ -74,6 +74,7 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
+    virtual result_t clone(obj_ptr<Message_base>& retVal);
 
 public:
     // HttpMessage_base

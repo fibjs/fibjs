@@ -202,6 +202,79 @@ describe('ws', () => {
             test_msg_1(65535);
             test_msg_1(65536);
         });
+
+        describe("clone", () => {
+            it("should clone basic WebSocketMessage", () => {
+                var msg = new ws.Message();
+                msg.type = ws.TEXT;
+                msg.masked = true;
+                msg.compress = false;
+                msg.body.write(Buffer.from("Hello WebSocket"));
+
+                var cloned = msg.clone();
+
+                assert.equal(cloned.type, ws.TEXT);
+                assert.equal(cloned.masked, true);
+                assert.equal(cloned.compress, false);
+                cloned.body.rewind();
+                assert.equal(cloned.body.readAll().toString(), "Hello WebSocket");
+            });
+
+            it("should clone WebSocketMessage with compress", () => {
+                var msg = new ws.Message();
+                msg.type = ws.BINARY;
+                msg.masked = false;
+                msg.compress = true;
+                msg.body.write(Buffer.from([0x01, 0x02, 0x03, 0x04]));
+
+                var cloned = msg.clone();
+
+                assert.equal(cloned.type, ws.BINARY);
+                assert.equal(cloned.masked, false);
+                assert.equal(cloned.compress, true);
+                cloned.body.rewind();
+                assert.deepEqual(cloned.body.readAll(), Buffer.from([0x01, 0x02, 0x03, 0x04]));
+            });
+
+            it("original should not be affected by clone modification", () => {
+                var msg = new ws.Message();
+                msg.type = ws.TEXT;
+                msg.masked = true;
+                msg.maxSize = 1024;
+                msg.body.write(Buffer.from("original"));
+
+                var cloned = msg.clone();
+                cloned.masked = false;
+                cloned.maxSize = 2048;
+
+                assert.equal(msg.masked, true);
+                assert.equal(msg.maxSize, 1024);
+            });
+
+            it("should clone PING message", () => {
+                var msg = new ws.Message();
+                msg.type = ws.PING;
+                msg.body.write(Buffer.from("ping data"));
+
+                var cloned = msg.clone();
+
+                assert.equal(cloned.type, ws.PING);
+                cloned.body.rewind();
+                assert.equal(cloned.body.readAll().toString(), "ping data");
+            });
+
+            it("should clone PONG message", () => {
+                var msg = new ws.Message();
+                msg.type = ws.PONG;
+                msg.body.write(Buffer.from("pong data"));
+
+                var cloned = msg.clone();
+
+                assert.equal(cloned.type, ws.PONG);
+                cloned.body.rewind();
+                assert.equal(cloned.body.readAll().toString(), "pong data");
+            });
+        });
     });
 
     describe('WebSocketHandler', () => {

@@ -1201,6 +1201,221 @@ describe("http", () => {
         });
     });
 
+    describe("Response clone", () => {
+        it("should clone basic Response", () => {
+            var res = new http.Response("hello world");
+            var cloned = res.clone();
+
+            assert.equal(cloned.text(), "hello world");
+            assert.equal(cloned.statusCode, 200);
+        });
+
+        it("should clone Response with status", () => {
+            var res = new http.Response("not found", { status: 404, statusText: "Not Found" });
+            var cloned = res.clone();
+
+            assert.equal(cloned.statusCode, 404);
+            assert.equal(cloned.statusMessage, "Not Found");
+            assert.equal(cloned.text(), "not found");
+        });
+
+        it("should clone Response with headers", () => {
+            var res = new http.Response("data", {
+                headers: {
+                    "X-Custom": "value",
+                    "Content-Type": "text/plain"
+                }
+            });
+            var cloned = res.clone();
+
+            assert.equal(cloned.firstHeader("X-Custom"), "value");
+            assert.equal(cloned.firstHeader("Content-Type"), "text/plain");
+        });
+
+        it("original Response should not be affected by clone modification", () => {
+            var res = new http.Response("original");
+            var cloned = res.clone();
+
+            cloned.statusCode = 500;
+            cloned.setHeader("X-New", "new-value");
+
+            assert.equal(res.statusCode, 200);
+            assert.equal(res.hasHeader("X-New"), false);
+        });
+
+        it("should clone empty body Response", () => {
+            var res = new http.Response();
+            var cloned = res.clone();
+
+            assert.equal(cloned.statusCode, 200);
+        });
+    });
+
+    describe("Request clone", () => {
+        it("should clone basic Request", () => {
+            var req = new http.Request();
+            req.method = "POST";
+            req.address = "/api/test";
+            req.write("request body");
+
+            var cloned = req.clone();
+
+            assert.equal(cloned.method, "POST");
+            assert.equal(cloned.address, "/api/test");
+            assert.equal(cloned.text(), "request body");
+        });
+
+        it("should clone Request with headers", () => {
+            var req = new http.Request();
+            req.setHeader("Authorization", "Bearer token123");
+            req.setHeader("X-Request-ID", "abc123");
+
+            var cloned = req.clone();
+
+            assert.equal(cloned.firstHeader("Authorization"), "Bearer token123");
+            assert.equal(cloned.firstHeader("X-Request-ID"), "abc123");
+        });
+
+        it("original Request should not be affected by clone modification", () => {
+            var req = new http.Request();
+            req.method = "GET";
+            req.setHeader("X-Original", "value");
+
+            var cloned = req.clone();
+
+            cloned.method = "PUT";
+            cloned.setHeader("X-New", "new-value");
+
+            assert.equal(req.method, "GET");
+            assert.equal(req.hasHeader("X-New"), false);
+        });
+
+        it("should clone Request with queryString", () => {
+            var req = new http.Request();
+            req.address = "/api/users";
+            req.queryString = "page=1&limit=10";
+
+            var cloned = req.clone();
+
+            assert.equal(cloned.address, "/api/users");
+            assert.equal(cloned.queryString, "page=1&limit=10");
+        });
+
+        it("should clone Request with protocol", () => {
+            var req = new http.Request();
+            req.protocol = "HTTP/2.0";
+
+            var cloned = req.clone();
+
+            assert.equal(cloned.protocol, "HTTP/2.0");
+        });
+
+        it("should clone Request with multiple headers", () => {
+            var req = new http.Request();
+            req.appendHeader("Accept", "text/html");
+            req.appendHeader("Accept", "application/json");
+
+            var cloned = req.clone();
+
+            var all = cloned.allHeader("Accept");
+            assert.equal(all.length, 2);
+        });
+
+        it("body streams should be independent after clone", () => {
+            var req = new http.Request();
+            req.write("original body content");
+
+            var cloned = req.clone();
+
+            // Read from cloned
+            assert.equal(cloned.text(), "original body content");
+
+            // Original should still have the body
+            assert.equal(req.text(), "original body content");
+        });
+    });
+
+    describe("Response clone advanced", () => {
+        it("should clone Response with cookies", () => {
+            var res = new http.Response();
+            res.addCookie(new http.Cookie({
+                name: "session",
+                value: "abc123"
+            }));
+            res.addCookie(new http.Cookie({
+                name: "token",
+                value: "xyz789"
+            }));
+
+            var cloned = res.clone();
+
+            assert.equal(cloned.cookies.length, 2);
+            assert.equal(cloned.cookies[0].name, "session");
+            assert.equal(cloned.cookies[1].name, "token");
+        });
+
+        it("should clone Response with protocol", () => {
+            var res = new http.Response();
+            res.protocol = "HTTP/2.0";
+
+            var cloned = res.clone();
+
+            assert.equal(cloned.protocol, "HTTP/2.0");
+        });
+
+        it("should clone Response keepAlive setting", () => {
+            var res = new http.Response();
+            res.keepAlive = false;
+
+            var cloned = res.clone();
+
+            assert.equal(cloned.keepAlive, false);
+        });
+
+        it("should clone Response with multiple headers of same name", () => {
+            var res = new http.Response();
+            res.appendHeader("Set-Cookie", "a=1");
+            res.appendHeader("Set-Cookie", "b=2");
+
+            var cloned = res.clone();
+
+            var all = cloned.allHeader("Set-Cookie");
+            assert.equal(all.length, 2);
+        });
+
+        it("body streams should be independent after clone", () => {
+            var res = new http.Response("response body content");
+
+            var cloned = res.clone();
+
+            // Read from cloned
+            assert.equal(cloned.text(), "response body content");
+
+            // Original should still have the body
+            assert.equal(res.text(), "response body content");
+        });
+
+        it("should clone Response with Buffer body", () => {
+            var buf = Buffer.from([0x00, 0x01, 0x02, 0xff, 0xfe]);
+            var res = new http.Response(buf);
+
+            var cloned = res.clone();
+
+            var clonedBuf = cloned.body.readAll();
+            assert.deepEqual(clonedBuf, buf);
+        });
+
+        it("should clone Response with large body", () => {
+            var largeData = "x".repeat(100000);
+            var res = new http.Response(largeData);
+
+            var cloned = res.clone();
+
+            assert.equal(cloned.text(), largeData);
+            assert.equal(res.text(), largeData);
+        });
+    });
+
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();

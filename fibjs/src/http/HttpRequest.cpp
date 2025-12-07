@@ -516,4 +516,23 @@ result_t HttpRequest::get_query(obj_ptr<URLSearchParams_base>& retVal)
     return 0;
 }
 
+result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<HttpRequest> req = new HttpRequest();
+
+    // Copy HttpMessage properties
+    m_message->copyTo(req->m_message);
+
+    // Copy HttpRequest specific properties
+    req->m_method = m_method;
+    req->m_address = m_address;
+    req->m_queryString = m_queryString;
+
+    // Note: m_cookies, m_query, m_form are lazily parsed,
+    // they will be recreated on demand from headers/body
+
+    retVal = req;
+    return 0;
+}
+
 } /* namespace fibjs */

@@ -578,6 +578,14 @@ describe("mq", () => {
         var m = new mq.Message();
     });
 
+    it("Message clone should throw for base Message", () => {
+        var m = new mq.Message();
+        m.write("test data");
+        assert.throws(() => {
+            m.clone();
+        });
+    });
+
     after(test_util.cleanup);
 
     describe("function handler", () => {

@@ -56,7 +56,11 @@ public:
         return m_body;
     }
 
-private:
+    // Clone this message - must be implemented by concrete subclasses
+    virtual result_t clone(obj_ptr<Message_base>& retVal);
+
+    // Helper method to copy base Message properties to another Message instance
+    void copyTo(Message* target);
     int32_t m_type;
     obj_ptr<NArray> m_params;
     exlib::string m_value;

@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
+#include "ifs/fs.h"
 
 namespace fibjs {
 
@@ -282,6 +283,51 @@ result_t Message::set_lastError(exlib::string newVal)
 {
     m_lastError = newVal;
     return 0;
+}
+
+result_t Message::clone(obj_ptr<Message_base>& retVal)
+{
+    // Message is an abstract base class, cannot be cloned directly
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+void Message::copyTo(Message* target)
+{
+    target->m_type = m_type;
+    target->m_value = m_value;
+    target->m_lastError = m_lastError;
+    target->m_end = m_end;
+
+    // Clone params array
+    if (m_params) {
+        target->m_params = new NArray();
+        int32_t len = m_params->length();
+        for (int32_t i = 0; i < len; i++) {
+            Variant v;
+            m_params->_indexed_getter(i, v);
+            target->m_params->append(v);
+        }
+    }
+
+    // Clone body stream
+    if (m_body) {
+        int64_t pos;
+        m_body->tell(pos);
+        m_body->rewind();
+
+        obj_ptr<Buffer_base> buf;
+        result_t hr = m_body->ac_readAll(buf);
+
+        m_body->seek(pos, fs_base::C_SEEK_SET);
+
+        if (hr >= 0 && buf) {
+            obj_ptr<MemoryStream> ms = new MemoryStream();
+            int32_t len;
+            ms->write(buf, len, nullptr);
+            ms->rewind();
+            target->m_body = ms;
+        }
+    }
 }
 
 } /* namespace fibjs */

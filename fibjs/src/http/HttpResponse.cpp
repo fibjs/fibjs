@@ -696,4 +696,31 @@ result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncEv
     return m_message->sendHeader(stm, strCommand, content_length, ac);
 }
 
+result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+
+    // Copy HttpMessage properties
+    m_message->copyTo(resp->m_message);
+
+    // Copy HttpResponse specific properties
+    resp->m_statusCode = m_statusCode;
+    resp->m_statusMessage = m_statusMessage;
+
+    // Clone cookies array
+    if (m_cookies) {
+        resp->m_cookies = new NArray();
+        int32_t len = m_cookies->length();
+        for (int32_t i = 0; i < len; i++) {
+            Variant v;
+            m_cookies->_indexed_getter(i, v);
+            // Cookies are HttpCookie objects, add directly (shallow copy)
+            resp->m_cookies->append(v);
+        }
+    }
+
+    retVal = resp;
+    return 0;
+}
+
 } /* namespace fibjs */

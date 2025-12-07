@@ -116,4 +116,9 @@ interface Message : object
 
     /*! @brief 查询和设置消息处理的最后错误 */
     String lastError;
+
+    /*! @brief 复制当前消息对象
+     @return 返回复制的消息对象
+    */
+    Message clone();
 };

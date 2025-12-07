@@ -79,6 +79,12 @@ public:
 
     result_t clear();
 
+    // Clone this message - must be implemented by concrete subclasses
+    virtual result_t clone(obj_ptr<Message_base>& retVal);
+
+    // Helper method to copy HttpMessage properties to another HttpMessage instance
+    void copyTo(HttpMessage* target);
+
 public:
     result_t send(Stream_base* stm, exlib::string& strCommand,
         AsyncEvent* ac);
