@@ -12,6 +12,7 @@
 #include "FormData.h"
 #include "URLSearchParams.h"
 #include "Headers.h"
+#include "ifs/TLSSocket.h"
 
 namespace fibjs {
 
@@ -430,6 +431,41 @@ result_t HttpRequest::get_address(exlib::string& retVal)
 result_t HttpRequest::set_address(exlib::string newVal)
 {
     m_address = newVal;
+    return 0;
+}
+
+result_t HttpRequest::get_url(exlib::string& retVal)
+{
+    // Determine protocol: check X-Forwarded-Proto header first, then check if socket is TLS
+    exlib::string protocol;
+    if (firstHeader("X-Forwarded-Proto", protocol) == CALL_RETURN_NULL || protocol.empty()) {
+        obj_ptr<Stream_base> socket;
+        if (m_message->get_socket(socket) == 0 && socket) {
+            if (TLSSocket_base::getInstance(socket))
+                protocol = "https";
+            else
+                protocol = "http";
+        } else {
+            protocol = "http";
+        }
+    }
+
+    // Get host from Host header
+    exlib::string host;
+    if (firstHeader("Host", host) == CALL_RETURN_NULL || host.empty())
+        host = "localhost";
+
+    // Build full URL
+    retVal = protocol;
+    retVal.append("://");
+    retVal.append(host);
+    retVal.append(m_address);
+
+    if (!m_queryString.empty()) {
+        retVal.append(1, '?');
+        retVal.append(m_queryString);
+    }
+
     return 0;
 }
 

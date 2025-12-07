@@ -33,6 +33,7 @@ public:
     virtual result_t set_method(exlib::string newVal) = 0;
     virtual result_t get_address(exlib::string& retVal) = 0;
     virtual result_t set_address(exlib::string newVal) = 0;
+    virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_queryString(exlib::string& retVal) = 0;
     virtual result_t set_queryString(exlib::string newVal) = 0;
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
@@ -50,6 +51,7 @@ public:
     static void s_set_method(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_address(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_address(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_url(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_queryString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_queryString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -70,6 +72,7 @@ inline ClassInfo& HttpRequest_base::class_info()
         { "response", s_get_response, block_set, false },
         { "method", s_get_method, s_set_method, false },
         { "address", s_get_address, s_set_address, false },
+        { "url", s_get_url, block_set, false },
         { "queryString", s_get_queryString, s_set_queryString, false },
         { "cookies", s_get_cookies, block_set, false },
         { "form", s_get_form, block_set, false },
@@ -183,6 +186,20 @@ inline void HttpRequest_base::s_set_address(const v8::FunctionCallbackInfo<v8::V
     hr = pInst->set_address(v0);
 
     METHOD_VOID();
+}
+
+inline void HttpRequest_base::s_get_url(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_url(vr);
+
+    METHOD_RETURN();
 }
 
 inline void HttpRequest_base::s_get_queryString(const v8::FunctionCallbackInfo<v8::Value>& args)

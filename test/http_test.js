@@ -1431,6 +1431,58 @@ describe("http", () => {
         });
     });
 
+    describe("Request.url", () => {
+        it("should build url with host and address", () => {
+            var req = new http.Request();
+            req.address = "/api/test";
+            req.setHeader("Host", "example.com");
+
+            assert.equal(req.url, "http://example.com/api/test");
+        });
+
+        it("should build url with host, port and address", () => {
+            var req = new http.Request();
+            req.address = "/api/test";
+            req.setHeader("Host", "example.com:8080");
+
+            assert.equal(req.url, "http://example.com:8080/api/test");
+        });
+
+        it("should build url with queryString", () => {
+            var req = new http.Request();
+            req.address = "/api/search";
+            req.queryString = "q=hello&page=1";
+            req.setHeader("Host", "example.com");
+
+            assert.equal(req.url, "http://example.com/api/search?q=hello&page=1");
+        });
+
+        it("should use X-Forwarded-Proto header for protocol", () => {
+            var req = new http.Request();
+            req.address = "/secure";
+            req.setHeader("Host", "api.example.com");
+            req.setHeader("X-Forwarded-Proto", "https");
+
+            assert.equal(req.url, "https://api.example.com/secure");
+        });
+
+        it("should default host to localhost", () => {
+            var req = new http.Request();
+            req.address = "/test";
+
+            assert.equal(req.url, "http://localhost/test");
+        });
+
+        it("should handle empty queryString", () => {
+            var req = new http.Request();
+            req.address = "/path";
+            req.queryString = "";
+            req.setHeader("Host", "example.com");
+
+            assert.equal(req.url, "http://example.com/path");
+        });
+    });
+
     describe("Response clone advanced", () => {
         it("should clone Response with cookies", () => {
             var res = new http.Response();

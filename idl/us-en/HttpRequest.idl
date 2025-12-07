@@ -11,6 +11,9 @@ interface HttpRequest : HttpMessage
     /*! @brief querying and setting the address of the request */
     String address;
 
+    /*! @brief get the full URL of the request, including protocol, host, path and query string */
+    readonly String url;
+
     /*! @brief querying and setting the query string of the request */
     String queryString;
 
