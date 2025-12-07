@@ -41,7 +41,12 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
         resp->set_statusMessage(opts->statusText.value());
 
     if (opts->headers.has_value()) {
-        hr = resp->setHeader(opts->headers.value());
+        auto& headersVar = opts->headers.value();
+        if (std::holds_alternative<v8::Local<v8::Object>>(headersVar)) {
+            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(headersVar));
+        } else {
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(headersVar).get());
+        }
         if (hr < 0)
             return hr;
     }
@@ -223,6 +228,11 @@ result_t HttpResponse::appendHeader(v8::Local<v8::Object> map)
     return m_message->appendHeader(map);
 }
 
+result_t HttpResponse::appendHeader(Headers_base* headers)
+{
+    return m_message->appendHeader(headers);
+}
+
 result_t HttpResponse::appendHeader(exlib::string name, exlib::string value)
 {
     return m_message->appendHeader(name, value);
@@ -236,6 +246,11 @@ result_t HttpResponse::appendHeader(exlib::string name, v8::Local<v8::Array> val
 result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
 {
     return m_message->setHeader(map);
+}
+
+result_t HttpResponse::setHeader(Headers_base* headers)
+{
+    return m_message->setHeader(headers);
 }
 
 result_t HttpResponse::setHeader(exlib::string name, exlib::string value)

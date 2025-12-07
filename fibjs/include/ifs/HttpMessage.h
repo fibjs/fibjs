@@ -45,9 +45,11 @@ public:
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t appendHeader(v8::Local<v8::Object> map) = 0;
+    virtual result_t appendHeader(Headers_base* headers) = 0;
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t appendHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
+    virtual result_t setHeader(Headers_base* headers) = 0;
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t setHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t removeHeader(exlib::string name) = 0;
@@ -410,6 +412,12 @@ inline void HttpMessage_base::s_appendHeader(const v8::FunctionCallbackInfo<v8::
 
     hr = pInst->appendHeader(v0);
 
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Headers_base>, 0);
+
+    hr = pInst->appendHeader(v0.get());
+
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
@@ -437,6 +445,12 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
     ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->setHeader(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Headers_base>, 0);
+
+    hr = pInst->setHeader(v0.get());
 
     METHOD_OVER(2, 2);
 

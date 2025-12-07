@@ -83,6 +83,13 @@ declare class Class_HttpMessage extends Class_Message {
     appendHeader(map: FIBJS.GeneralObject): void;
 
     /**
+     * @description 添加消息头，添加数据并不修改已存在的键值的消息头
+     *      @param headers 指定要添加的 Headers 对象
+     *      
+     */
+    appendHeader(headers: Class_Headers): void;
+
+    /**
      * @description 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
      *      @param name 指定要添加的键值
      *      @param values 指定要添加的一组数据
@@ -104,6 +111,13 @@ declare class Class_HttpMessage extends Class_Message {
      *      
      */
     setHeader(map: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 设定消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
+     *      @param headers 指定要设定的 Headers 对象
+     *      
+     */
+    setHeader(headers: Class_Headers): void;
 
     /**
      * @description 设定指定名称的一组消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头

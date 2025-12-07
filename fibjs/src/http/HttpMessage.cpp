@@ -759,6 +759,16 @@ result_t HttpMessage::appendHeader(v8::Local<v8::Object> map)
     return m_headers->append(map);
 }
 
+result_t HttpMessage::appendHeader(Headers_base* headers)
+{
+    Headers* hdrs = static_cast<Headers*>(headers);
+    for (int32_t i = 0; i < (int32_t)hdrs->m_map.size(); i++) {
+        auto& it = hdrs->m_map[i];
+        m_headers->append(it.first, it.second.string());
+    }
+    return 0;
+}
+
 result_t HttpMessage::appendHeader(exlib::string name, exlib::string value)
 {
     return m_headers->append(name, value);
@@ -772,6 +782,12 @@ result_t HttpMessage::appendHeader(exlib::string name, v8::Local<v8::Array> valu
 result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
 {
     return m_headers->set(map);
+}
+
+result_t HttpMessage::setHeader(Headers_base* headers)
+{
+    m_headers->clear();
+    return m_headers->init(headers);
 }
 
 result_t HttpMessage::setHeader(exlib::string name, exlib::string value)

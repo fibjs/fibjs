@@ -34,7 +34,7 @@ public:
     public:
         std::optional<int32_t> status;
         std::optional<exlib::string> statusText;
-        std::optional<v8::Local<v8::Object>> headers;
+        std::optional<std::variant<v8::Local<v8::Object>, obj_ptr<Headers_base>>> headers;
     };
 
 public:
@@ -98,9 +98,11 @@ public:
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
     virtual result_t appendHeader(v8::Local<v8::Object> map);
+    virtual result_t appendHeader(Headers_base* headers);
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t appendHeader(exlib::string name, exlib::string value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
+    virtual result_t setHeader(Headers_base* headers);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t setHeader(exlib::string name, exlib::string value);
     virtual result_t removeHeader(exlib::string name);
@@ -126,17 +128,6 @@ public:
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
     {
         return m_message->allHeader(name, retVal);
-    }
-
-    result_t appendHeader(Headers_base* map)
-    {
-        Headers* headers = static_cast<Headers*>(map);
-        for (int32_t i = 0; i < (int32_t)headers->m_map.size(); i++) {
-            auto& it = headers->m_map[i];
-            appendHeader(it.first, it.second.string());
-        }
-
-        return 0;
     }
 
     exlib::string prepareHeaders();

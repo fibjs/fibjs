@@ -11,6 +11,7 @@
 #include "HttpCollection.h"
 #include "FormData.h"
 #include "URLSearchParams.h"
+#include "Headers.h"
 
 namespace fibjs {
 
@@ -181,6 +182,16 @@ result_t HttpRequest::appendHeader(v8::Local<v8::Object> map)
     return m_message->appendHeader(map);
 }
 
+result_t HttpRequest::appendHeader(Headers_base* headers)
+{
+    Headers* hdrs = static_cast<Headers*>(headers);
+    for (int32_t i = 0; i < (int32_t)hdrs->m_map.size(); i++) {
+        auto& it = hdrs->m_map[i];
+        _appendHeader(it.first, it.second.string());
+    }
+    return 0;
+}
+
 result_t HttpRequest::appendHeader(exlib::string name, exlib::string value)
 {
     return m_message->appendHeader(name, value);
@@ -194,6 +205,11 @@ result_t HttpRequest::appendHeader(exlib::string name, v8::Local<v8::Array> valu
 result_t HttpRequest::setHeader(v8::Local<v8::Object> map)
 {
     return m_message->setHeader(map);
+}
+
+result_t HttpRequest::setHeader(Headers_base* headers)
+{
+    return m_message->setHeader(headers);
 }
 
 result_t HttpRequest::setHeader(exlib::string name, exlib::string value)

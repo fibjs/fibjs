@@ -69,9 +69,11 @@ public:
     result_t firstHeader(exlib::string name, exlib::string& retVal);
     result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
     result_t appendHeader(v8::Local<v8::Object> map);
+    result_t appendHeader(Headers_base* headers);
     result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t appendHeader(exlib::string name, exlib::string value);
     result_t setHeader(v8::Local<v8::Object> map);
+    result_t setHeader(Headers_base* headers);
     result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t setHeader(exlib::string name, exlib::string value);
     result_t removeHeader(exlib::string name);

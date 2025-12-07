@@ -301,6 +301,102 @@ describe("http", () => {
             assert.deepEqual(d['f'], "Wed, 12 Dec 2012 12:12:12 GMT");
             assert.deepEqual(new Date(d['f']), t);
         });
+
+        describe("Headers object passing", () => {
+            it("Request.appendHeader with Headers object", () => {
+                var req = new http.Request();
+                var headers = new http.Headers();
+                headers.append("X-Custom", "value1");
+                headers.append("X-Custom", "value2");
+                headers.append("Content-Type", "application/json");
+
+                req.appendHeader(headers);
+
+                assert.deepEqual(req.allHeader("X-Custom"), ["value1", "value2"]);
+                assert.equal(req.firstHeader("Content-Type"), "application/json");
+            });
+
+            it("Request.setHeader with Headers object", () => {
+                var req = new http.Request();
+                req.setHeader("X-Old", "old-value");
+
+                var headers = new http.Headers();
+                headers.append("X-New", "new-value");
+                headers.append("Content-Type", "text/plain");
+
+                req.setHeader(headers);
+
+                assert.isFalse(req.hasHeader("X-Old"));
+                assert.equal(req.firstHeader("X-New"), "new-value");
+                assert.equal(req.firstHeader("Content-Type"), "text/plain");
+            });
+
+            it("Request.appendHeader with Headers handles Connection header", () => {
+                var req = new http.Request();
+                req.keepAlive = false;
+
+                var headers = new http.Headers();
+                headers.append("Connection", "keep-alive");
+
+                req.appendHeader(headers);
+
+                assert.equal(req.keepAlive, true);
+            });
+
+            it("Response.appendHeader with Headers object", () => {
+                var res = new http.Response();
+                var headers = new http.Headers();
+                headers.append("X-Custom", "value1");
+                headers.append("X-Custom", "value2");
+                headers.append("Content-Type", "application/json");
+
+                res.appendHeader(headers);
+
+                assert.deepEqual(res.allHeader("X-Custom"), ["value1", "value2"]);
+                assert.equal(res.firstHeader("Content-Type"), "application/json");
+            });
+
+            it("Response.setHeader with Headers object", () => {
+                var res = new http.Response();
+                res.setHeader("X-Old", "old-value");
+
+                var headers = new http.Headers();
+                headers.append("X-New", "new-value");
+                headers.append("Content-Type", "text/plain");
+
+                res.setHeader(headers);
+
+                assert.isFalse(res.hasHeader("X-Old"));
+                assert.equal(res.firstHeader("X-New"), "new-value");
+                assert.equal(res.firstHeader("Content-Type"), "text/plain");
+            });
+
+            it("new Response with Headers object in options", () => {
+                var headers = new http.Headers();
+                headers.append("X-Custom", "custom-value");
+                headers.append("Content-Type", "application/json");
+
+                var res = new http.Response("body", {
+                    status: 201,
+                    headers: headers
+                });
+
+                assert.equal(res.statusCode, 201);
+                assert.equal(res.firstHeader("X-Custom"), "custom-value");
+                assert.equal(res.firstHeader("Content-Type"), "application/json");
+            });
+
+            it("new Response with Headers object preserves multiple values", () => {
+                var headers = new http.Headers();
+                headers.append("Set-Cookie", "a=1");
+                headers.append("Set-Cookie", "b=2");
+                headers.append("Set-Cookie", "c=3");
+
+                var res = new http.Response("", { headers: headers });
+
+                assert.deepEqual(res.allHeader("Set-Cookie"), ["a=1", "b=2", "c=3"]);
+            });
+        });
     });
 
     describe("cookie", () => {
