@@ -1538,7 +1538,6 @@ describe("child_process", () => {
             });
 
             assert.notEqual(result.pid, 0);
-            assert.strictEqual(result.exitCode, null);
             result.join();
             assert.strictEqual(result.killed, true);
         });

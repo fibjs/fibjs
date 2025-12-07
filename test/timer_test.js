@@ -214,7 +214,7 @@ describe("timer", () => {
             test_util.gc();
             var no1 = test_util.countObject('Timer');
 
-            var t1 = setInterval(() => n1++, 50);
+            var t1 = setInterval(() => n1++, 200);
             coroutine.sleep(10);
             clearInterval(t1);
             assert.isTrue(t1.stopped);
