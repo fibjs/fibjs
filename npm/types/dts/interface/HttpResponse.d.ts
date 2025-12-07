@@ -30,6 +30,23 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     constructor();
 
     /**
+     * @description HttpResponse 构造函数，创建一个新的 HttpResponse 对象（Web API 兼容）
+     *      
+     *      支持 Web 标准 Response 构造方式，例如：
+     *      ```JavaScript
+     *      const response = new http.Response("Hello World", {
+     *          status: 200,
+     *          statusText: "OK",
+     *          headers: { "Content-Type": "text/plain" }
+     *      });
+     *      ```
+     *      @param body 响应体内容，可以是字符串、Buffer 或 null
+     *      @param options 选项对象，支持 status、statusText、headers 属性
+     *     
+     */
+    constructor(body: any, options?: FIBJS.GeneralObject);
+
+    /**
      * @description 查询和设置响应消息的返回状态 
      */
     statusCode: number;

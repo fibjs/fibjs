@@ -25,6 +25,7 @@ class HttpResponse_base : public HttpMessage_base {
 public:
     // HttpResponse_base
     static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Value> body, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_statusCode(int32_t& retVal) = 0;
     virtual result_t set_statusCode(int32_t newVal) = 0;
     virtual result_t get_statusMessage(exlib::string& retVal) = 0;
@@ -105,6 +106,13 @@ inline void HttpResponse_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     hr = _new(vr, args.This());
 
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
+
     CONSTRUCT_RETURN();
 }
 
@@ -113,6 +121,13 @@ inline result_t HttpResponse_base::load(v8::Local<v8::Value> v, obj_ptr<HttpResp
     obj_ptr<HttpResponse_base> vr;
 
     LOAD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
 
     LOAD_RETURN();
 }

@@ -14,6 +14,12 @@
 
 namespace fibjs {
 
+// Helper function to convert body value to SeekableStream
+// Handles: null/undefined, string, Buffer, Blob, FormData, URLSearchParams, SeekableStream
+// defaultFormUrlEncoded: true for HttpClient (historical), false for Response (Web API standard)
+result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
+    obj_ptr<SeekableStream_base>& retVal, Headers_base* headers = NULL, bool defaultFormUrlEncoded = false);
+
 class HttpMessage : public Message {
 public:
     HttpMessage(bool bResponse = false)

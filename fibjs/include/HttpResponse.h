@@ -16,6 +16,7 @@ namespace fibjs {
 class HttpResponse : public HttpResponse_base {
 
 public:
+    // Options for sendTo/readFrom
     class Options : public obj_base {
     public:
         LOAD_OPTIONS(Options, (header_only)(content_length));
@@ -23,6 +24,17 @@ public:
     public:
         std::optional<bool> header_only = false;
         std::optional<bool> content_length;
+    };
+
+    // Options for Web API compatible constructor: new Response(body, options)
+    class ResponseOptions : public obj_base {
+    public:
+        LOAD_OPTIONS(ResponseOptions, (status)(statusText)(headers));
+
+    public:
+        std::optional<int32_t> status;
+        std::optional<exlib::string> statusText;
+        std::optional<v8::Local<v8::Object>> headers;
     };
 
 public:

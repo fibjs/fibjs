@@ -9,13 +9,56 @@
 #include "ifs/http.h"
 #include "HttpResponse.h"
 #include "HttpCookie.h"
+#include "HttpMessage.h"
 #include "Buffer.h"
+#include "MemoryStream.h"
 
 namespace fibjs {
 
 result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpResponse();
+    return 0;
+}
+
+result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object> options,
+    obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(options);
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+    result_t hr;
+
+    // Load options using ResponseOptions
+    obj_ptr<HttpResponse::ResponseOptions> opts;
+    hr = HttpResponse::ResponseOptions::load(options, opts);
+    if (hr < 0)
+        return hr;
+
+    if (opts->status.has_value())
+        resp->set_statusCode(opts->status.value());
+
+    if (opts->statusText.has_value())
+        resp->set_statusMessage(opts->statusText.value());
+
+    if (opts->headers.has_value()) {
+        hr = resp->setHeader(opts->headers.value());
+        if (hr < 0)
+            return hr;
+    }
+
+    // Handle body using body_to_stream helper
+    obj_ptr<SeekableStream_base> stm;
+    obj_ptr<Headers_base> hdrs;
+    resp->get_headers(hdrs);
+
+    hr = body_to_stream(isolate, body, stm, hdrs);
+    if (hr < 0)
+        return hr;
+
+    if (stm)
+        resp->set_body(stm);
+
+    retVal = resp;
     return 0;
 }
 

@@ -1056,6 +1056,151 @@ describe("http", () => {
         assert.deepEqual(rep.pack(), v);
     });
 
+    describe("Response constructor", () => {
+        it("empty constructor", () => {
+            var res = new http.Response();
+            assert.equal(res.status, 200);
+            assert.equal(res.statusMessage, "");
+            assert.equal(res.body.size(), 0);
+        });
+
+        it("string body", () => {
+            var res = new http.Response("Hello World");
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 11);
+            assert.equal(res.text(), "Hello World");
+            assert.equal(res.firstHeader("Content-Type"), "text/plain;charset=UTF-8");
+        });
+
+        it("Buffer body", () => {
+            var res = new http.Response(Buffer.from("Binary data"));
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 11);
+            assert.equal(res.text(), "Binary data");
+            assert.equal(res.firstHeader("Content-Type"), "application/octet-stream");
+        });
+
+        it("Blob body with type", () => {
+            var blob = new Blob(["Hello from Blob"], { type: "text/html" });
+            var res = new http.Response(blob);
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 15);
+            assert.equal(res.text(), "Hello from Blob");
+            assert.equal(res.firstHeader("Content-Type"), "text/html");
+        });
+
+        it("Blob body without type", () => {
+            var blob = new Blob(["data"]);
+            var res = new http.Response(blob);
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 4);
+            assert.equal(res.firstHeader("Content-Type"), "application/octet-stream");
+        });
+
+        it("URLSearchParams body", () => {
+            var params = new URLSearchParams({ name: "test", value: "123" });
+            var res = new http.Response(params);
+            assert.equal(res.status, 200);
+            assert.equal(res.text(), "name=test&value=123");
+            assert.equal(res.firstHeader("Content-Type"), "application/x-www-form-urlencoded");
+        });
+
+        it("SeekableStream body", () => {
+            var ms = new io.MemoryStream();
+            ms.write(Buffer.from("stream data"));
+            ms.rewind();
+            var res = new http.Response(ms);
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 11);
+            assert.equal(res.text(), "stream data");
+        });
+
+        it("null body", () => {
+            var res = new http.Response(null);
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 0);
+        });
+
+        it("undefined body", () => {
+            var res = new http.Response(undefined);
+            assert.equal(res.status, 200);
+            assert.equal(res.body.size(), 0);
+        });
+
+        it("status option", () => {
+            var res = new http.Response("Created", { status: 201 });
+            assert.equal(res.status, 201);
+            assert.equal(res.text(), "Created");
+        });
+
+        it("statusText option", () => {
+            var res = new http.Response("", { status: 201, statusText: "Created" });
+            assert.equal(res.status, 201);
+            assert.equal(res.statusMessage, "Created");
+        });
+
+        it("headers option as object", () => {
+            var res = new http.Response("test", {
+                headers: {
+                    "X-Custom": "value",
+                    "X-Another": "another"
+                }
+            });
+            assert.equal(res.firstHeader("X-Custom"), "value");
+            assert.equal(res.firstHeader("X-Another"), "another");
+        });
+
+        it("full options", () => {
+            var res = new http.Response("Success!", {
+                status: 201,
+                statusText: "Created",
+                headers: {
+                    "Content-Type": "text/plain",
+                    "X-Custom": "test"
+                }
+            });
+            assert.equal(res.status, 201);
+            assert.equal(res.statusMessage, "Created");
+            assert.equal(res.firstHeader("Content-Type"), "text/plain");
+            assert.equal(res.firstHeader("X-Custom"), "test");
+            assert.equal(res.text(), "Success!");
+        });
+
+        it("Content-Type from options overrides default", () => {
+            var res = new http.Response("Hello", {
+                headers: { "Content-Type": "application/custom" }
+            });
+            assert.equal(res.firstHeader("Content-Type"), "application/custom");
+        });
+
+        it("204 No Content", () => {
+            var res = new http.Response(null, { status: 204, statusText: "No Content" });
+            assert.equal(res.status, 204);
+            assert.equal(res.statusMessage, "No Content");
+            assert.equal(res.body.size(), 0);
+        });
+
+        it("ok property", () => {
+            var res200 = new http.Response("", { status: 200 });
+            assert.equal(res200.ok, true);
+
+            var res201 = new http.Response("", { status: 201 });
+            assert.equal(res201.ok, true);
+
+            var res299 = new http.Response("", { status: 299 });
+            assert.equal(res299.ok, true);
+
+            var res300 = new http.Response("", { status: 300 });
+            assert.equal(res300.ok, false);
+
+            var res404 = new http.Response("", { status: 404 });
+            assert.equal(res404.ok, false);
+
+            var res500 = new http.Response("", { status: 500 });
+            assert.equal(res500.ok, false);
+        });
+    });
+
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();

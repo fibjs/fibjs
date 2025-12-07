@@ -6,6 +6,7 @@
 
 #include "object.h"
 #include "HttpClient.h"
+#include "HttpMessage.h"
 #include "Buffer.h"
 #include "Blob.h"
 #include "MemoryStream.h"
@@ -1122,74 +1123,9 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         return CALL_E_JAVASCRIPT;
 
     if (!v->IsUndefined()) {
-        if ((stm = SeekableStream_base::getInstance(v)) == NULL) {
-            stm = new MemoryStream();
-            obj_ptr<Buffer_base> buf;
-            obj_ptr<Blob_base> blob;
-            obj_ptr<FormData_base> formData;
-            obj_ptr<URLSearchParams_base> params;
-
-            if (v->IsString()) {
-                hr = GetArgumentValue(isolate, v, buf);
-                if (hr < 0)
-                    return hr;
-
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                    headers->set("Content-Type", "application/x-www-form-urlencoded");
-            } else if ((params = URLSearchParams_base::getInstance(v)) != NULL) {
-                exlib::string s;
-                hr = params->toString(s);
-                if (hr < 0)
-                    return hr;
-
-                buf = new Buffer(s.c_str(), s.length());
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                    headers->set("Content-Type", "application/x-www-form-urlencoded");
-            } else if (IsJSBuffer(v, false) && GetArgumentValue(isolate, v, buf) == 0) {
-                // Handle Buffer type directly - don't try to encode as FormData
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                    headers->set("Content-Type", "application/octet-stream");
-            } else {
-                bool has_ContentType = false;
-
-                if ((blob = Blob_base::getInstance(v)) == NULL && GetArgumentValue(isolate, v, formData) == 0) {
-                    exlib::string mimeType;
-                    if (headers->first("Content-Type", ct) != CALL_RETURN_NULL) {
-                        has_ContentType = true;
-                        mimeType = ct.string();
-                    } else {
-                        mimeType = "application/x-www-form-urlencoded";
-                    }
-
-                    hr = formData->encode(mimeType, blob);
-                    if (hr < 0)
-                        return hr;
-                }
-
-                if (blob || (blob = Blob_base::getInstance(v)) != NULL) {
-                    buf = blob.As<Blob>()->m_impl.getBuffer();
-                    if (!has_ContentType || headers->first("Content-Type", ct) == CALL_RETURN_NULL) {
-                        exlib::string mimeType;
-                        blob->get_type(mimeType);
-                        if (!mimeType.empty())
-                            headers->set("Content-Type", mimeType);
-                        else
-                            headers->set("Content-Type", "application/x-www-form-urlencoded");
-                    }
-                }
-
-                if (!buf) {
-                    hr = GetArgumentValue(isolate, v, buf);
-                    if (hr < 0)
-                        return hr;
-
-                    if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-                        headers->set("Content-Type", "application/x-www-form-urlencoded");
-                }
-            }
-
-            stm->cc_write(buf, len);
-        }
+        hr = body_to_stream(isolate, v, stm, headers, true);
+        if (hr < 0 && hr != CALL_RETURN_NULL)
+            return hr;
     } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
         obj_ptr<Buffer_base> buf;
         stm = new MemoryStream();
@@ -1200,7 +1136,9 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
             return hr;
 
         buf = new Buffer(s.c_str(), s.length());
+        int32_t len;
         stm->cc_write(buf, len);
+        Variant ct;
         if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
             headers->set("Content-Type", "application/json");
     } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
@@ -1211,7 +1149,9 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         if (hr < 0)
             return hr;
 
+        int32_t len;
         stm->cc_write(buf, len);
+        Variant ct;
         if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
             headers->set("Content-Type", "application/msgpack");
     }

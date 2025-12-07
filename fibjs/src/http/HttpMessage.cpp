@@ -9,10 +9,129 @@
 #include "HttpMessage.h"
 #include "parse.h"
 #include "Buffer.h"
+#include "Blob.h"
+#include "MemoryStream.h"
 #include "ChunkedStream.h"
+#include "ifs/URLSearchParams.h"
+#include "ifs/FormData.h"
 #include <string.h>
 
 namespace fibjs {
+
+result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
+    obj_ptr<SeekableStream_base>& retVal, Headers_base* headers, bool defaultFormUrlEncoded)
+{
+    result_t hr;
+    int32_t len;
+
+    // null or undefined - no body
+    if (body.IsEmpty() || body->IsNullOrUndefined())
+        return CALL_RETURN_NULL;
+
+    // Already a SeekableStream - use directly
+    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(body);
+    if (stm) {
+        retVal = stm;
+        return 0;
+    }
+
+    // Convert various types to Buffer and write to MemoryStream
+    stm = new MemoryStream();
+    obj_ptr<Buffer_base> buf;
+    obj_ptr<Blob_base> blob;
+    obj_ptr<FormData_base> formData;
+    obj_ptr<URLSearchParams_base> params;
+
+    // Default content types based on context:
+    // - HttpClient request: application/x-www-form-urlencoded (historical behavior)
+    // - Response constructor: text/plain;charset=UTF-8 (Web API standard)
+    const char* stringDefaultType = defaultFormUrlEncoded ? "application/x-www-form-urlencoded" : "text/plain;charset=UTF-8";
+    const char* binaryDefaultType = defaultFormUrlEncoded ? "application/x-www-form-urlencoded" : "application/octet-stream";
+
+    if (body->IsString()) {
+        hr = GetArgumentValue(isolate, body, buf);
+        if (hr < 0)
+            return hr;
+
+        if (headers) {
+            Variant ct;
+            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                headers->set("Content-Type", stringDefaultType);
+        }
+    } else if ((params = URLSearchParams_base::getInstance(body)) != NULL) {
+        exlib::string s;
+        hr = params->toString(s);
+        if (hr < 0)
+            return hr;
+
+        buf = new Buffer(s.c_str(), s.length());
+        if (headers) {
+            Variant ct;
+            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                headers->set("Content-Type", "application/x-www-form-urlencoded");
+        }
+    } else if (IsJSBuffer(body, false) && GetArgumentValue(isolate, body, buf) == 0) {
+        // Handle Buffer type directly
+        if (headers) {
+            Variant ct;
+            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                headers->set("Content-Type", "application/octet-stream");
+        }
+    } else {
+        bool has_ContentType = false;
+
+        if ((blob = Blob_base::getInstance(body)) == NULL && GetArgumentValue(isolate, body, formData) == 0) {
+            exlib::string mimeType;
+            if (headers) {
+                Variant ct;
+                if (headers->first("Content-Type", ct) != CALL_RETURN_NULL) {
+                    has_ContentType = true;
+                    mimeType = ct.string();
+                } else {
+                    mimeType = "application/x-www-form-urlencoded";
+                }
+            } else {
+                mimeType = "application/x-www-form-urlencoded";
+            }
+
+            hr = formData->encode(mimeType, blob);
+            if (hr < 0)
+                return hr;
+        }
+
+        if (blob || (blob = Blob_base::getInstance(body)) != NULL) {
+            buf = blob.As<Blob>()->m_impl.getBuffer();
+            if (headers) {
+                Variant ct;
+                if (!has_ContentType || headers->first("Content-Type", ct) == CALL_RETURN_NULL) {
+                    exlib::string mimeType;
+                    blob->get_type(mimeType);
+                    if (!mimeType.empty())
+                        headers->set("Content-Type", mimeType);
+                    else
+                        headers->set("Content-Type", binaryDefaultType);
+                }
+            }
+        }
+
+        if (!buf) {
+            hr = GetArgumentValue(isolate, body, buf);
+            if (hr < 0)
+                return hr;
+
+            if (headers) {
+                Variant ct;
+                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                    headers->set("Content-Type", binaryDefaultType);
+            }
+        }
+    }
+
+    stm->write(buf, len, nullptr);
+    stm->rewind();
+    retVal = stm;
+    return 0;
+}
 
 #define TINY_SIZE 32768
 

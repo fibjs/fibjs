@@ -131,8 +131,10 @@ result_t Message::text(exlib::string data, exlib::string& retVal)
 
 result_t Message::text(exlib::string& retVal)
 {
-    if (m_body == NULL)
-        return CALL_RETURN_NULL;
+    if (m_body == NULL) {
+        retVal = "";
+        return 0;
+    }
 
     result_t hr;
     obj_ptr<Buffer_base> data;
@@ -142,8 +144,10 @@ result_t Message::text(exlib::string& retVal)
     if (hr < 0)
         return hr;
 
-    if (hr == CALL_RETURN_NULL)
-        return CALL_RETURN_NULL;
+    if (hr == CALL_RETURN_NULL) {
+        retVal = "";
+        return 0;
+    }
 
     return data->toString(retVal);
 }
