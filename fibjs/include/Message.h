@@ -9,6 +9,7 @@
 
 #include "ifs/Message.h"
 #include "ifs/SeekableStream.h"
+#include "MemoryStream.h"
 
 namespace fibjs {
 
@@ -53,6 +54,14 @@ public:
 public:
     obj_ptr<SeekableStream_base>& body()
     {
+        return m_body;
+    }
+
+    // Ensure body stream exists for writing, creates MemoryStream if needed
+    obj_ptr<SeekableStream_base>& ensure_body()
+    {
+        if (m_body == NULL)
+            m_body = new MemoryStream();
         return m_body;
     }
 

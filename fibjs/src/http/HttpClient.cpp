@@ -584,15 +584,16 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
             if (!m_response_body && m_response->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
                 m_response->removeHeader("Content-Encoding");
 
-                m_response->get_body(m_body);
-                m_unzip = new MemoryStream();
+                if (m_response->get_body(m_body) != CALL_RETURN_NULL && m_body) {
+                    m_unzip = new MemoryStream();
 
-                if (hdr == "gzip")
-                    return zlib_base::gunzipTo(m_body, m_unzip,
-                        m_hc->m_maxBodySize, next(close));
-                else if (hdr == "deflate")
-                    return zlib_base::inflateRawTo(m_body, m_unzip,
-                        m_hc->m_maxBodySize, next(close));
+                    if (hdr == "gzip")
+                        return zlib_base::gunzipTo(m_body, m_unzip,
+                            m_hc->m_maxBodySize, next(close));
+                    else if (hdr == "deflate")
+                        return zlib_base::inflateRawTo(m_body, m_unzip,
+                            m_hc->m_maxBodySize, next(close));
+                }
             }
 
             return next(close);

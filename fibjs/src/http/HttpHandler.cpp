@@ -769,15 +769,16 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     if (type != 0) {
                         m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
 
-                        m_rep->get_body(m_body);
-                        m_body->rewind();
+                        if (m_rep->get_body(m_body) != CALL_RETURN_NULL && m_body) {
+                            m_body->rewind();
 
-                        m_zip = new MemoryStream();
+                            m_zip = new MemoryStream();
 
-                        if (type == 1)
-                            return zlib_base::gzipTo(m_body, m_zip, next(zip));
-                        else
-                            return zlib_base::deflateTo(m_body, m_zip, -1, next(zip));
+                            if (type == 1)
+                                return zlib_base::gzipTo(m_body, m_zip, next(zip));
+                            else
+                                return zlib_base::deflateTo(m_body, m_zip, -1, next(zip));
+                        }
                     }
                 }
             }

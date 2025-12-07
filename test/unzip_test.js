@@ -26,13 +26,13 @@ describe("zip", () => {
         }
     });
     after(() => {
-        if (efile1)
+        if (efile1 && fs.exists(efile1))
             fs.unlink(efile1);
 
-        if (efile2)
+        if (efile2 && fs.exists(efile2))
             fs.unlink(efile2);
 
-        if (efile3)
+        if (efile3 && fs.exists(efile3))
             fs.unlink(efile3);
 
         if (fs.exists(path.join(__dirname, 'unzip_test.js.extract')))
@@ -41,8 +41,14 @@ describe("zip", () => {
         if (fs.exists(path.join(__dirname, 'unzip_test.zip' + vmid)))
             fs.unlink(path.join(__dirname, 'unzip_test.zip' + vmid));
 
-        if (fs.exists(pathname))
+        // Clean up any remaining files in test directory
+        if (fs.exists(pathname)) {
+            var files = fs.readdir(pathname);
+            for (var i = 0; i < files.length; i++) {
+                fs.unlink(path.join(pathname, files[i]));
+            }
             fs.rmdir(pathname);
+        }
 
         ms.close();
         ms1.close();
@@ -154,7 +160,7 @@ describe("zip", () => {
         zipfile.write(buf, 'unzip_test.js.bak');
 
         var rep = new http.Request();
-        rep.body.write("0123456789");
+        rep.write(Buffer.from("0123456789"));
 
         rep.sendTo(ms1);
         ms1.rewind();

@@ -217,7 +217,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
         {
             m_pThis->get_body(m_body);
 
-            if (m_pThis->m_compress) {
+            if (m_pThis->m_compress && m_body) {
                 m_data = new MemoryStream();
 
                 if (m_wss && m_wss->m_compress) {
@@ -236,6 +236,8 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
 
         ON_STATE(asyncSendTo, deflate)
         {
+            if (!m_body)
+                return next(head);
             m_body->rewind();
             return m_body->copyTo(m_zip, -1, m_size, next(flush));
         }
@@ -250,8 +252,9 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
             if (m_take_over)
                 m_wss->m_deflate->attach(NULL);
 
-            int64_t size;
-            m_data->size(size);
+            int64_t size = 0;
+            if (m_data)
+                m_data->size(size);
             if (m_pThis->m_compress)
                 size -= 4;
             m_size = size;
@@ -306,6 +309,9 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
 
         ON_STATE(asyncSendTo, sendData)
         {
+            if (!m_data || m_size == 0)
+                return next();
+
             m_data->rewind();
             return copy(m_data, m_stm, m_size, m_mask, next());
         }
@@ -359,7 +365,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             , m_mask(0)
             , m_take_over(false)
         {
-            m_pThis->get_body(m_body);
+            m_body = m_pThis->m_message->ensure_body();
             m_zip = m_body;
             next(head);
         }

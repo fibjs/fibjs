@@ -690,7 +690,7 @@ describe("http", () => {
             assert.equal('200', req.headers['head2']);
             assert.equal(10, req.length);
             assert.equal('test', req.headers['content-type']);
-            assert.equal('0123456789', req.body.read());
+            assert.equal('0123456789', req.body.readAll().toString());
 
             assert.equal(req.socket.size(), 94);
             req.clear();
@@ -711,19 +711,19 @@ describe("http", () => {
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.0');
-            assert.equal('123456', r.body.read());
+            assert.equal('123456', r.body.readAll().toString());
 
             var r = get_response("HTTP/1.1 200 ok\r\n\r\n123456");
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.1');
-            assert.isNull(r.body.read());
+            assert.isNull(r.body);
 
             var r = get_response("HTTP/1.1 200 ok\r\nconnection: close\r\n\r\n123456");
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.1');
-            assert.equal('123456', r.body.read());
+            assert.equal('123456', r.body.readAll().toString());
         });
 
         it("keep-alive", () => {
@@ -1157,7 +1157,7 @@ describe("http", () => {
             var res = new http.Response();
             assert.equal(res.status, 200);
             assert.equal(res.statusMessage, "");
-            assert.equal(res.body.size(), 0);
+            assert.isNull(res.body);
         });
 
         it("string body", () => {
@@ -1214,13 +1214,13 @@ describe("http", () => {
         it("null body", () => {
             var res = new http.Response(null);
             assert.equal(res.status, 200);
-            assert.equal(res.body.size(), 0);
+            assert.isNull(res.body);
         });
 
         it("undefined body", () => {
             var res = new http.Response(undefined);
             assert.equal(res.status, 200);
-            assert.equal(res.body.size(), 0);
+            assert.isNull(res.body);
         });
 
         it("status option", () => {
@@ -1273,7 +1273,7 @@ describe("http", () => {
             var res = new http.Response(null, { status: 204, statusText: "No Content" });
             assert.equal(res.status, 204);
             assert.equal(res.statusMessage, "No Content");
-            assert.equal(res.body.size(), 0);
+            assert.isNull(res.body);
         });
 
         it("ok property", () => {
@@ -2393,7 +2393,7 @@ describe("http", () => {
 
                     // Create a large buffer (this will set the correct Content-Length)
                     var largeBuffer = new Buffer(largeSize);
-                    r.response.body.write(largeBuffer);
+                    r.response.write(largeBuffer);
                 } else if (r.address == "/gzip_test") {
                     r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
                     r.response.appendHeader("Content-Type", "text/html");
@@ -2406,7 +2406,8 @@ describe("http", () => {
                         "request3=value; domain=127.0.0.1:" + port + "; path=/request;"
                     ]);
                     r.response.write(r.address);
-                    r.body.copyTo(r.response.body);
+                    if (r.body)
+                        r.body.copyTo(r.response.body);
 
                     if (r.hasHeader("test_header"))
                         r.response.write(r.firstHeader("test_header"));
@@ -3106,16 +3107,16 @@ describe("http", () => {
 
             it("simple", () => {
                 assert.equal(cookie_for['head'], undefined);
-                assert.equal(http.head("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read(), null);
+                assert.isNull(http.head("http://127.0.0.1:" + (8882 + base_port) + "/request").body);
                 assert.equal(cookie_for['head'], "root=value2; request=value; request1=value");
             });
 
             it("header", () => {
-                assert.equal(http.head("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                assert.isNull(http.head("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read(), null);
+                }).body);
 
                 assert.equal(http.head("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     headers: {
@@ -3148,7 +3149,7 @@ describe("http", () => {
                 assert.equal(response.statusCode, 200);
                 assert.equal(response.headers['Content-Length'], "104857600"); // 100MB = 100*1024*1024
                 assert.equal(response.headers['Content-Type'], "application/octet-stream");
-                assert.equal(response.body.read(), null); // HEAD response has no body
+                assert.isNull(response.body); // HEAD response has no body
             });
 
             it("large Content-Length with custom maxBodySize", () => {
@@ -3161,7 +3162,7 @@ describe("http", () => {
                 // Should not throw error
                 assert.equal(response.statusCode, 200);
                 assert.equal(response.headers['Content-Length'], "104857600"); // 100MB = 100*1024*1024
-                assert.equal(response.body.read(), null);
+                assert.isNull(response.body); // HEAD response has no body
             });
         });
 
@@ -3345,7 +3346,8 @@ describe("http", () => {
                     r.response.appendHeader("set-cookie", "request1=value; path=/");
                     r.response.appendHeader("set-cookie", "request2=value; path=/; secure");
                     r.response.write(r.address);
-                    r.body.copyTo(r.response.body);
+                    if (r.body)
+                        r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
                         r.response.write(r.firstHeader("test_header"));
                 } else {
@@ -3403,16 +3405,16 @@ describe("http", () => {
 
             it("simple", () => {
                 assert.equal(cookie_for['head'], undefined);
-                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request").body.read(), null);
+                assert.isNull(hc.head("https://localhost:" + (8883 + base_port) + "/request").body);
                 assert.equal(cookie_for['head'], "request1=value; request2=value");
             });
 
             it("header", () => {
-                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.isNull(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read(), null);
+                }).body);
 
                 assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
@@ -3550,7 +3552,8 @@ describe("http", () => {
                     r.response.appendHeader("set-cookie", "request2=value; domain=127.0.0.1; path=/request; secure");
                     r.response.appendHeader("set-cookie", "request3=value; domain=127.0.0.1:" + port + "; path=/request;");
                     r.response.write(r.address);
-                    r.body.copyTo(r.response.body);
+                    if (r.body)
+                        r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
                         r.response.write(r.firstHeader("test_header"));
                 } else {
@@ -3587,16 +3590,16 @@ describe("http", () => {
 
                 it("simple", () => {
                     assert.equal(cookie_for['head'], undefined);
-                    assert.equal(client.head("http://127.0.0.1:" + (8884 + base_port) + "/request").body.read(), null);
+                    assert.isNull(client.head("http://127.0.0.1:" + (8884 + base_port) + "/request").body);
                     assert.equal(cookie_for['head'], "root=value2; request=value; request1=value");
                 });
 
                 it("header", () => {
-                    assert.equal(client.head("http://127.0.0.1:" + (8884 + base_port) + "/request:", {
+                    assert.isNull(client.head("http://127.0.0.1:" + (8884 + base_port) + "/request:", {
                         headers: {
                             "test_header": "header"
                         }
-                    }).body.read(), null);
+                    }).body);
 
                     assert.equal(client.head("http://127.0.0.1:" + (8884 + base_port) + "/request:", {
                         headers: {

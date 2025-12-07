@@ -519,8 +519,10 @@ void WebSocket::endConnect(SeekableStream_base* body)
     int32_t code = 0;
     exlib::string reason;
 
-    body->rewind();
-    body->cc_readAll(buf);
+    if (body) {
+        body->rewind();
+        body->cc_readAll(buf);
+    }
     if (buf) {
         exlib::string str;
 

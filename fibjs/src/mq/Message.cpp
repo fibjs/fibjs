@@ -84,7 +84,13 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
 result_t Message::get_body(obj_ptr<SeekableStream_base>& retVal)
 {
     if (m_body == NULL)
-        m_body = new MemoryStream();
+        return CALL_RETURN_NULL;
+
+    // Return null for empty body (Web API compatibility)
+    int64_t size = 0;
+    m_body->size(size);
+    if (size == 0)
+        return CALL_RETURN_NULL;
 
     retVal = m_body;
     return 0;

@@ -176,7 +176,7 @@ describe('ws', () => {
                     buf[i] = (i % 10) + 0x30;
                 }
 
-                msg.body.write(buf);
+                msg.write(buf);
                 var ms = new io.MemoryStream();
 
                 msg.sendTo(ms);
@@ -209,7 +209,7 @@ describe('ws', () => {
                 msg.type = ws.TEXT;
                 msg.masked = true;
                 msg.compress = false;
-                msg.body.write(Buffer.from("Hello WebSocket"));
+                msg.write(Buffer.from("Hello WebSocket"));
 
                 var cloned = msg.clone();
 
@@ -225,7 +225,7 @@ describe('ws', () => {
                 msg.type = ws.BINARY;
                 msg.masked = false;
                 msg.compress = true;
-                msg.body.write(Buffer.from([0x01, 0x02, 0x03, 0x04]));
+                msg.write(Buffer.from([0x01, 0x02, 0x03, 0x04]));
 
                 var cloned = msg.clone();
 
@@ -241,7 +241,7 @@ describe('ws', () => {
                 msg.type = ws.TEXT;
                 msg.masked = true;
                 msg.maxSize = 1024;
-                msg.body.write(Buffer.from("original"));
+                msg.write(Buffer.from("original"));
 
                 var cloned = msg.clone();
                 cloned.masked = false;
@@ -254,7 +254,7 @@ describe('ws', () => {
             it("should clone PING message", () => {
                 var msg = new ws.Message();
                 msg.type = ws.PING;
-                msg.body.write(Buffer.from("ping data"));
+                msg.write(Buffer.from("ping data"));
 
                 var cloned = msg.clone();
 
@@ -266,7 +266,7 @@ describe('ws', () => {
             it("should clone PONG message", () => {
                 var msg = new ws.Message();
                 msg.type = ws.PONG;
-                msg.body.write(Buffer.from("pong data"));
+                msg.write(Buffer.from("pong data"));
 
                 var cloned = msg.clone();
 
@@ -313,7 +313,7 @@ describe('ws', () => {
                 buf[i] = (i % 10) + 0x30;
             }
 
-            msg.body.write(buf);
+            msg.write(buf);
 
             msg.sendTo(s);
 
@@ -455,7 +455,7 @@ describe('ws', () => {
             var body = "hello";
             var msg = new ws.Message();
             msg.type = ws.PING;
-            msg.body.write(body);
+            msg.write(Buffer.from(body));
             msg.sendTo(s);
 
             var msg = new ws.Message();
@@ -505,7 +505,7 @@ describe('ws', () => {
 
             msg = new ws.Message();
             msg.type = ws.PING;
-            msg.body.write(body);
+            msg.write(Buffer.from(body));
             msg.sendTo(s);
 
             msg = new ws.Message();
@@ -527,13 +527,14 @@ describe('ws', () => {
 
             msg = new ws.Message();
             msg.type = ws.PING;
-            msg.body.write(body);
+            msg.write(Buffer.from(body));
             msg.sendTo(s);
 
             msg = new ws.Message();
             msg.readFrom(s);
 
             assert.equal(msg.type, ws.PONG);
+            msg.body.rewind();
             assert.equal(msg.body.readAll().toString(), body);
 
             s.close();

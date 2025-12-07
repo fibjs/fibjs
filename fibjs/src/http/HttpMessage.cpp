@@ -201,6 +201,9 @@ public:
         if (m_headerOnly || m_contentLength == 0 || m_body_length > 0)
             return next();
 
+        if (!m_pThis->body())
+            return next();
+
         m_pThis->body()->rewind();
         return m_pThis->body()->copyTo(m_stm, m_contentLength, m_copySize, next(body_ok));
     }
@@ -443,13 +446,13 @@ result_t HttpMessage::readBody(AsyncEvent* ac)
                         return CHECK_ERROR(CALL_E_INVALID_DATA);
                     m_pThis->m_contentLength = 0;
 
-                    m_pThis->get_body(m_body);
+                    m_body = m_pThis->ensure_body();
                     m_chunked = new ChunkedStream(m_stm, m_pThis->m_maxChunkSize, m_pThis->m_maxBodySize);
                     return m_chunked->copyTo(m_body, -1, m_copySize, next(body));
                 }
 
                 if (m_pThis->m_contentLength > 0 || (m_pThis->m_bResponse && !m_pThis->m_keepAlive && m_pThis->m_contentLength == -1)) {
-                    m_pThis->get_body(m_body);
+                    m_body = m_pThis->ensure_body();
                     return m_stm->copyTo(m_body, m_pThis->m_contentLength, m_copySize, next(body));
                 }
             }

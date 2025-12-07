@@ -530,7 +530,8 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
             obj_ptr<Buffer_base> buf;
             obj_ptr<SeekableStream_base> _body;
 
-            get_body(_body);
+            if (get_body(_body) == CALL_RETURN_NULL || !_body)
+                return CHECK_ERROR(Runtime::setError("HttpRequest: body is empty."));
             _body->rewind();
             result_t hr = _body->cc_read((int32_t)len, buf);
             if (hr < 0)
