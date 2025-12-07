@@ -6,6 +6,8 @@
 /// <reference path="../interface/File.d.ts" />
 /// <reference path="../interface/Headers.d.ts" />
 /// <reference path="../interface/FormData.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
@@ -16,7 +18,6 @@
 /// <reference path="../interface/PerformanceObserver.d.ts" />
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
-/// <reference path="../interface/HttpResponse.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
  */
@@ -55,6 +56,16 @@ declare module 'global' {
      * @description 创建一个 FormData 对象，参见 FormData 
      */
     const FormData: typeof Class_FormData;
+
+    /**
+     * @description 创建一个 http 请求对象，参见 HttpRequest 
+     */
+    const Request: typeof Class_HttpRequest;
+
+    /**
+     * @description 创建一个 http 响应对象，参见 HttpResponse 
+     */
+    const Response: typeof Class_HttpResponse;
 
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。

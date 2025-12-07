@@ -22,6 +22,8 @@ class Blob_base;
 class File_base;
 class Headers_base;
 class FormData_base;
+class HttpRequest_base;
+class HttpResponse_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
@@ -32,7 +34,6 @@ class performance_base;
 class PerformanceObserver_base;
 class webcrypto_base;
 class Timer_base;
-class HttpResponse_base;
 
 class global_base : public object_base {
     DECLARE_CLASS(global_base);
@@ -95,6 +96,8 @@ public:
 #include "ifs/File.h"
 #include "ifs/Headers.h"
 #include "ifs/FormData.h"
+#include "ifs/HttpRequest.h"
+#include "ifs/HttpResponse.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
@@ -105,7 +108,6 @@ public:
 #include "ifs/PerformanceObserver.h"
 #include "ifs/webcrypto.h"
 #include "ifs/Timer.h"
-#include "ifs/HttpResponse.h"
 
 namespace fibjs {
 inline ClassInfo& global_base::class_info()
@@ -134,6 +136,8 @@ inline ClassInfo& global_base::class_info()
         { "File", File_base::class_info },
         { "Headers", Headers_base::class_info },
         { "FormData", FormData_base::class_info },
+        { "Request", HttpRequest_base::class_info },
+        { "Response", HttpResponse_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
