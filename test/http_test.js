@@ -1297,6 +1297,42 @@ describe("http", () => {
         });
     });
 
+    describe("Response arrayBuffer", () => {
+        it("should return empty ArrayBuffer for empty Response", () => {
+            var res = new http.Response();
+            var buf = res.arrayBuffer();
+            assert.ok(buf instanceof ArrayBuffer);
+            assert.equal(buf.byteLength, 0);
+        });
+
+        it("should return ArrayBuffer with correct content from body", () => {
+            var res = new http.Response("Hello, World!");
+            var buf = res.arrayBuffer();
+            assert.ok(buf instanceof ArrayBuffer);
+            assert.equal(buf.byteLength, 13);
+            assert.equal(new TextDecoder().decode(buf), "Hello, World!");
+        });
+
+        it("should return ArrayBuffer with correct content for UTF-8 text", () => {
+            var res = new http.Response();
+            res.text("测试中文");
+            var buf = res.arrayBuffer();
+            assert.ok(buf instanceof ArrayBuffer);
+            assert.equal(buf.byteLength, 12); // 4 Chinese characters = 12 bytes in UTF-8
+            assert.equal(new TextDecoder().decode(buf), "测试中文");
+        });
+
+        it("should return ArrayBuffer with binary data", () => {
+            var res = new http.Response();
+            res.write(Buffer.from([0x00, 0x01, 0x02, 0xff, 0xfe]));
+            var buf = res.arrayBuffer();
+            assert.ok(buf instanceof ArrayBuffer);
+            assert.equal(buf.byteLength, 5);
+            var arr = new Uint8Array(buf);
+            assert.deepEqual(Array.from(arr), [0x00, 0x01, 0x02, 0xff, 0xfe]);
+        });
+    });
+
     describe("Response clone", () => {
         it("should clone basic Response", () => {
             var res = new http.Response("hello world");

@@ -12,6 +12,7 @@
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
 #include "ifs/fs.h"
+#include "v8_api.h"
 
 namespace fibjs {
 
@@ -157,6 +158,39 @@ result_t Message::text(exlib::string& retVal)
     }
 
     return data->toString(retVal);
+}
+
+result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+{
+    if (m_body == NULL) {
+        retVal = NewBackingStore(0);
+        return 0;
+    }
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+
+    m_body->rewind();
+    hr = m_body->ac_readAll(data);
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL) {
+        retVal = NewBackingStore(0);
+        return 0;
+    }
+
+    Buffer* buf = data.As<Buffer>();
+    int32_t bufSize = buf->length();
+    const uint8_t* bufData = buf->data();
+
+    std::shared_ptr<v8::BackingStore> store = NewBackingStore(bufSize);
+    if (bufSize > 0 && store->Data() && bufData) {
+        memcpy(store->Data(), bufData, bufSize);
+    }
+
+    retVal = std::move(store);
+    return 0;
 }
 
 result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)

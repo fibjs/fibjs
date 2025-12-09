@@ -274,6 +274,11 @@ result_t HttpMessage::text(exlib::string& retVal)
     return Message::text(retVal);
 }
 
+result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+{
+    return Message::arrayBuffer(retVal);
+}
+
 result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     setHeader("Content-Type", "application/json");

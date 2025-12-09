@@ -73,6 +73,11 @@ result_t HttpRequest::text(exlib::string& retVal)
     return m_message->text(retVal);
 }
 
+result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+{
+    return m_message->arrayBuffer(retVal);
+}
+
 result_t HttpRequest::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     return m_message->json(data, retVal);

@@ -96,6 +96,13 @@ declare class Class_Message extends Class_object {
     text(): string;
 
     /**
+     * @description 以二进制形式返回消息的数据部分
+     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     *      
+     */
+    arrayBuffer(): ArrayBuffer;
+
+    /**
      * @description 以 JSON 编码写入给定的数据
      *      @param data 给定要写入的数据
      *      @return 此方法不会返回数据

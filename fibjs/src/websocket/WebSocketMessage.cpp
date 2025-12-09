@@ -78,6 +78,11 @@ result_t WebSocketMessage::text(exlib::string& retVal)
     return m_message->text(retVal);
 }
 
+result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+{
+    return m_message->arrayBuffer(retVal);
+}
+
 result_t WebSocketMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     return m_message->json(data, retVal);
