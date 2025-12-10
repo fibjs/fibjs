@@ -637,6 +637,18 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
         }
     }
 
+    // Remove trailing slash (except for root paths)
+    size_t len = current.length();
+#ifdef _WIN32
+    // On Windows, keep trailing slash only for drive root like "C:\"
+    if (len > 3 && (current[len - 1] == '\\' || current[len - 1] == '/'))
+        current.resize(len - 1);
+#else
+    // On Unix, keep trailing slash only for root "/"
+    if (len > 1 && current[len - 1] == '/')
+        current.resize(len - 1);
+#endif
+
     retVal = current;
     return 0;
 }
