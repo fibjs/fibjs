@@ -1291,6 +1291,31 @@ describe('fs', () => {
         it("number version", () => {
             proc(false);
         });
+
+        it("realpath should resolve symlink in middle of path", () => {
+            // Create test directory structure
+            var realDir = path.join(__dirname, 'realpath_test_real' + vmid);
+            var linkDir = path.join(__dirname, 'realpath_test_link' + vmid);
+            var realFile = path.join(realDir, 'test.txt');
+            var linkFile = path.join(linkDir, 'test.txt');
+
+            // cleanup first in case of previous failed test
+            try { fs.unlink(linkDir); } catch (e) { }
+            try { fs.unlink(realFile); } catch (e) { }
+            try { fs.rmdir(realDir); } catch (e) { }
+
+            fs.mkdir(realDir);
+            fs.writeFile(realFile, 'realpath test');
+            fs.symlink(realDir, linkDir);
+
+            // realpath should resolve symlink in the middle of path
+            assert.equal(fs.realpath(linkFile), realFile);
+
+            // cleanup
+            fs.unlink(linkDir);
+            fs.unlink(realFile);
+            fs.rmdir(realDir);
+        });
     })
 
     it("access", () => {

@@ -536,46 +536,109 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     const int maxLinks = 40;
     int linkCount = 0;
 
-    while (linkCount < maxLinks) {
+    // Start from root and walk down the path, resolving symlinks at each step
+    exlib::string current;
+    size_t pos = 0;
+
+#ifdef _WIN32
+    // Handle Windows drive letter or UNC path
+    if (resolved.length() >= 2 && resolved[1] == ':') {
+        current = resolved.substr(0, 3); // e.g., "C:\"
+        pos = 3;
+    } else if (resolved.length() >= 2 && resolved[0] == '\\' && resolved[1] == '\\') {
+        // UNC path
+        size_t slash = resolved.find('\\', 2);
+        if (slash != exlib::string::npos) {
+            slash = resolved.find('\\', slash + 1);
+            if (slash != exlib::string::npos) {
+                current = resolved.substr(0, slash + 1);
+                pos = slash + 1;
+            }
+        }
+    }
+#else
+    // Unix: start from root
+    if (resolved.length() > 0 && resolved[0] == '/') {
+        current = "/";
+        pos = 1;
+    }
+#endif
+
+    while (pos < resolved.length()) {
+        // Find next path separator
+        size_t nextSep = resolved.find(PATH_SLASH, pos);
+        exlib::string component;
+
+        if (nextSep == exlib::string::npos) {
+            component = resolved.substr(pos);
+            pos = resolved.length();
+        } else {
+            component = resolved.substr(pos, nextSep - pos);
+            pos = nextSep + 1;
+        }
+
+        if (component.empty() || component == ".")
+            continue;
+
+        // Build path to current component
+        exlib::string testPath = current;
+        if (!testPath.empty() && testPath[testPath.length() - 1] != PATH_SLASH)
+            testPath += PATH_SLASH;
+        testPath += component;
+
+        // Check if this component is a symlink
         obj_ptr<Stat_base> stat;
-        hr = cc_lstat(resolved, stat, ac->isolate());
+        hr = cc_lstat(testPath, stat, ac->isolate());
         if (hr < 0)
             return hr;
 
         bool isSymlink = false;
         stat->isSymbolicLink(isSymlink);
 
-        if (!isSymlink) {
-            // Not a symlink, we're done
-            retVal = resolved;
-            return 0;
-        }
+        if (isSymlink) {
+            if (++linkCount > maxLinks)
+                return CALL_E_FILE_NOT_FOUND; // Too many symlinks
 
-        // Read the symlink target
-        exlib::string linkTarget;
-        hr = cc_readlink(resolved, linkTarget, ac->isolate());
-        if (hr < 0)
-            return hr;
+            // Read the symlink target
+            exlib::string linkTarget;
+            hr = cc_readlink(testPath, linkTarget, ac->isolate());
+            if (hr < 0)
+                return hr;
 
-        linkCount++;
+            // Resolve the link target
+            path_base::isAbsolute(linkTarget, isAbs);
+            if (isAbs) {
+                current = linkTarget;
+            } else {
+                resolvePath(current, linkTarget);
+            }
+            path_base::normalize(current, current);
 
-        // Resolve the link target relative to the symlink's directory
-        path_base::isAbsolute(linkTarget, isAbs);
-
-        if (isAbs) {
-            resolved = linkTarget;
+            // Append remaining path and restart resolution
+            if (pos < resolved.length()) {
+                exlib::string remaining = resolved.substr(pos);
+                resolvePath(current, remaining);
+                path_base::normalize(current, resolved);
+                pos = 0;
+#ifdef _WIN32
+                if (resolved.length() >= 2 && resolved[1] == ':') {
+                    current = resolved.substr(0, 3);
+                    pos = 3;
+                }
+#else
+                if (resolved.length() > 0 && resolved[0] == '/') {
+                    current = "/";
+                    pos = 1;
+                }
+#endif
+            }
         } else {
-            exlib::string dir;
-            path_base::dirname(resolved, dir);
-            resolvePath(dir, linkTarget);
-            resolved = dir;
+            current = testPath;
         }
-
-        path_base::normalize(resolved, resolved);
     }
 
-    // Too many symlinks
-    return CALL_E_FILE_NOT_FOUND;
+    retVal = current;
+    return 0;
 }
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
