@@ -522,13 +522,60 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    AutoReq req;
-    int32_t ret = uv_fs_realpath(NULL, &req, path.c_str(), NULL);
-    if (ret < 0)
-        return ret;
+    result_t hr;
+    exlib::string resolved;
 
-    retVal = (const char*)req.ptr;
-    return 0;
+    // First resolve to absolute path and normalize
+    bool isAbs = false;
+    path_base::isAbsolute(path, isAbs);
+    if (!isAbs)
+        os_resolve(path);
+    path_base::normalize(path, resolved);
+
+    // Loop to resolve symlinks (with a limit to prevent infinite loops)
+    const int maxLinks = 40;
+    int linkCount = 0;
+
+    while (linkCount < maxLinks) {
+        obj_ptr<Stat_base> stat;
+        hr = cc_lstat(resolved, stat, ac->isolate());
+        if (hr < 0)
+            return hr;
+
+        bool isSymlink = false;
+        stat->isSymbolicLink(isSymlink);
+
+        if (!isSymlink) {
+            // Not a symlink, we're done
+            retVal = resolved;
+            return 0;
+        }
+
+        // Read the symlink target
+        exlib::string linkTarget;
+        hr = cc_readlink(resolved, linkTarget, ac->isolate());
+        if (hr < 0)
+            return hr;
+
+        linkCount++;
+
+        // Resolve the link target relative to the symlink's directory
+        path_base::isAbsolute(linkTarget, isAbs);
+
+        if (isAbs) {
+            resolved = linkTarget;
+        } else {
+            exlib::string dir;
+            path_base::dirname(resolved, dir);
+            resolvePath(dir, linkTarget);
+            resolved = dir;
+        }
+
+        path_base::normalize(resolved, resolved);
+    }
+
+    // Too many symlinks
+    return CALL_E_FILE_NOT_FOUND;
 }
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
