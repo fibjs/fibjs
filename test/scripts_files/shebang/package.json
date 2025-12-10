@@ -1,0 +1,9 @@
+{
+    "name": "scripts-test-shebang",
+    "version": "1.0.0",
+    "scripts": {
+        "shebang-env": "FOO=bar test-node-shebang-env",
+        "shebang-pipe": "test-node-shebang | more",
+        "shebang-multi": "test-node-shebang && test-node-shebang-second"
+    }
+}

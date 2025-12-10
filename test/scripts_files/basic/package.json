@@ -1,0 +1,23 @@
+{
+    "name": "scripts-test-basic",
+    "version": "1.0.0",
+    "scripts": {
+        "echo": "echo hello",
+        "echo-args": "echo",
+        "pipe": "echo hello | more",
+        "multi": "echo hello && echo world",
+        "env-inline": "FOO=bar && echo $FOO",
+        "node-check-fibjs": "node -e \"console.log('fibjs:' + !!process.versions.fibjs)\"",
+        "node-check-fibjs-env": "FOO=bar node -e \"console.log('fibjs:' + !!process.versions.fibjs)\"",
+        "node-check-fibjs-pipe": "node -e \"console.log('fibjs:' + !!process.versions.fibjs)\" | more",
+        "node-check-fibjs-multi": "node -e \"console.log('fibjs1:' + !!process.versions.fibjs)\" && node -e \"console.log('fibjs2:' + !!process.versions.fibjs)\"",
+        "node-check-or": "node -e \"console.log('fibjs1:' + !!process.versions.fibjs)\" || node -e \"console.log('fibjs2:' + !!process.versions.fibjs)\"",
+        "node-check-semicolon": "node -e \"console.log('fibjs1:' + !!process.versions.fibjs)\"; node -e \"console.log('fibjs2:' + !!process.versions.fibjs)\"",
+        "node-check-parens": "(node -e \"console.log('fibjs:' + !!process.versions.fibjs)\")",
+        "node-quoted-no-replace": "node -e \"console.log('node command test: ' + !!process.versions.fibjs)\"",
+        "node-multi-env": "FOO=bar BAZ=qux node -e \"console.log('fibjs:' + !!process.versions.fibjs + ',FOO:' + process.env.FOO)\"",
+        "node-env-with-equals": "NODE_OPTIONS=--max-old-space-size=4096 node -e \"console.log('fibjs:' + !!process.versions.fibjs)\"",
+        "node-complex-pipe": "echo start | more && node -e \"console.log('fibjs:' + !!process.versions.fibjs)\" | more",
+        "node-redirect": "node -e \"console.log('fibjs:' + !!process.versions.fibjs)\" 2>&1"
+    }
+}

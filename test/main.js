@@ -79,6 +79,9 @@ run("./rtc_test.js");
 if (process.platform != "linux")
     run("./gui_test.js");
 
+run("./workspaces_test.js");
+run("./scripts_test.js");
+
 run("./registry_test.js");
 run("./uuid_test.js");
 run("./zlib_test.js");
@@ -90,7 +93,6 @@ run("./vec_test.js");
 run("./wasm_test.js");
 
 if (global.full_test) {
-    run("./mongo_test.js");
     run("./redis_test.js");
     run("./tty_test.js");
 }

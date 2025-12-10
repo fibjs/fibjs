@@ -1,0 +1,7 @@
+{
+    "name": "scripts-test-bin-path",
+    "version": "1.0.0",
+    "scripts": {
+        "local-cmd": "test-local-cmd"
+    }
+}
