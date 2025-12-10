@@ -45,10 +45,12 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     int32_t i, j;
     int32_t rc = 0;
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
-    int32_t ovector[RE_SIZE];
+    pcre2_match_data* match_data = pcre2_match_data_create(RE_SIZE, NULL);
 
-    if (msg == NULL)
+    if (msg == NULL) {
+        pcre2_match_data_free(match_data);
         return CHECK_ERROR(CALL_E_BADVARTYPE);
+    }
 
     exlib::string value;
     exlib::string method;
@@ -86,9 +88,10 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
         }
 
-        rc = pcre_exec(r->m_re, NULL, test.c_str(), (int32_t)test.length(),
-            0, 0, ovector, RE_SIZE);
+        rc = pcre2_match(r->m_re, (PCRE2_SPTR)test.c_str(), test.length(),
+            0, 0, match_data, NULL);
         if (rc > 0) {
+            PCRE2_SIZE* ovector = pcre2_get_ovector_pointer(match_data);
             obj_ptr<NArray> list;
 
             msg->get_params(list);
@@ -138,11 +141,13 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
             }
 
+            pcre2_match_data_free(match_data);
             retVal = r->m_hdlr;
             return 0;
         }
     }
 
+    pcre2_match_data_free(match_data);
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
@@ -301,10 +306,10 @@ exlib::string Routing::host2RegExp(exlib::string pattern)
 result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base* hdlr,
     obj_ptr<Routing_base>& retVal)
 {
-    int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF | PCRE_UCP | PCRE_CASELESS;
-    const char* error;
-    int32_t erroffset;
-    pcre* re;
+    uint32_t opt = PCRE2_UCP | PCRE2_CASELESS;
+    int errcode;
+    PCRE2_SIZE erroffset;
+    pcre2_code* re;
     bool bSub = false;
 
     if (pattern.length() > 0 && pattern[0] != '^') {
@@ -329,11 +334,13 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
         }
     }
 
-    re = pcre_compile(pattern.c_str(), opt, &error, &erroffset, NULL);
+    re = pcre2_compile((PCRE2_SPTR)pattern.c_str(), PCRE2_ZERO_TERMINATED, opt, &errcode, &erroffset, NULL);
     if (re == NULL) {
         char buf[1024];
+        PCRE2_UCHAR errbuf[256];
+        pcre2_get_error_message(errcode, errbuf, sizeof(errbuf));
 
-        snprintf(buf, sizeof(buf), "Routing: Compilation failed at offset %d: %s.", erroffset, error);
+        snprintf(buf, sizeof(buf), "Routing: Compilation failed at offset %d: %s.", (int)erroffset, errbuf);
         return CHECK_ERROR(Runtime::setError(buf));
     }
 

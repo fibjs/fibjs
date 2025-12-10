@@ -381,7 +381,7 @@ var p2r_tests = {
             "/(testing)"
         ]
     },
-    "/.+\\*?=^!:${}[]|": {
+    "/.+\\*?=^!:${}\\[\\]|": {
         "/.+*?=^!:${}[]|": [
             "/.+*?=^!:${}[]|"
         ]
@@ -425,7 +425,6 @@ var p2r_tests = {
     "/(apple-)?icon-:res(\\d+).png": {
         "/icon-240.png": [
             "/icon-240.png",
-            undefined,
             "240"
         ],
         "/apple-icon-240.png": [
@@ -441,7 +440,7 @@ var p2r_tests = {
             "route"
         ]
     },
-    "/:remote([\\w-.]+)/:user([\\w-]+)": {
+    "/:remote([\\w.-]+)/:user([\\w-]+)": {
         "/endpoint/user": [
             "/endpoint/user",
             "endpoint",

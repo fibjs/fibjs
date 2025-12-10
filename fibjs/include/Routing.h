@@ -8,7 +8,8 @@
 #pragma once
 
 #include "ifs/Routing.h"
-#include <pcre/pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2/pcre2.h>
 #include <vector>
 
 namespace fibjs {
@@ -17,7 +18,7 @@ class Routing : public Routing_base {
 public:
     class rule : public obj_base {
     public:
-        rule(exlib::string method, pcre* re, Handler_base* hdlr, bool bSub)
+        rule(exlib::string method, pcre2_code* re, Handler_base* hdlr, bool bSub)
             : m_method(method)
             , m_re(re)
             , m_hdlr(hdlr)
@@ -27,12 +28,12 @@ public:
 
         ~rule()
         {
-            pcre_free(m_re);
+            pcre2_code_free(m_re);
         }
 
     public:
         exlib::string m_method;
-        pcre* m_re;
+        pcre2_code* m_re;
         obj_ptr<Handler_base> m_hdlr;
         bool m_bSub;
     };

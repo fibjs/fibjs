@@ -12,7 +12,8 @@
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
-#include <pcre/pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2/pcre2.h>
 #include <openssl/opensslv.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
@@ -109,7 +110,7 @@ static void init_info(Isolate* isolate)
         vender_list->add("leveldb", str);
         vender_list->add("msgpack", msgpack_version());
         vender_list->add("openssl", OPENSSL_FULL_VERSION_STR);
-        vender_list->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
+        vender_list->add("pcre2", STR(PCRE2_MAJOR) "." STR(PCRE2_MINOR));
         vender_list->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
         vender_list->add("sqlite", SQLITE_VERSION);
         vender_list->add("unicode", U_UNICODE_VERSION);
