@@ -539,9 +539,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncEvent* ac)
 
     AsyncEvent* _ac = new WaitExitCode(this, retVal, ac);
     if (m_ev.wait(_ac)) {
-        retVal = m_exitCode;
-        delete _ac;
-        return 0;
+        _ac->apost(0);
     }
 
     return CALL_E_PENDDING;
