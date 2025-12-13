@@ -23,14 +23,17 @@ result_t assert_base::get_AssertionError(v8::Local<v8::Function>& retVal)
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> glob = _context->Global();
 
-    v8::Local<v8::Value> glob_AssertionError = glob->GetPrivate(_context, v8::Private::New(isolate->m_isolate, isolate->NewString("AssertionError"))).FromMaybe(v8::Local<v8::Value>());
+    // Use ForApi instead of New to get the same Private key for the same string
+    v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("AssertionError"));
+    
+    v8::Local<v8::Value> glob_AssertionError = glob->GetPrivate(_context, privateKey).FromMaybe(v8::Local<v8::Value>());
     if (glob_AssertionError.IsEmpty() || glob_AssertionError->IsUndefined()) {
         obj_ptr<SandBox> sbox = new SandBox(false);
 
         sbox->InstallModule("util", util_base::class_info().getModule(isolate));
         sbox->require("internal/assertion_error", "/builtin", glob_AssertionError);
 
-        glob->SetPrivate(_context, v8::Private::New(isolate->m_isolate, isolate->NewString("AssertionError")), glob_AssertionError);
+        glob->SetPrivate(_context, privateKey, glob_AssertionError);
     }
 
     retVal = glob_AssertionError.As<v8::Function>();
@@ -126,7 +129,7 @@ static v8::Local<v8::Value> check_error(v8::Local<v8::Value> exp, v8::Local<v8::
         if (o1.IsEmpty())
             return AssertionError(operator_, exp, error, message);
 
-        for (int i = 0; i < a->Length(); i++) {
+        for (int i = 0; i < (int)a->Length(); i++) {
             v8::Local<v8::Value> p = a->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
             v8::Local<v8::Value> v = o->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
             v8::Local<v8::Value> v1 = o1->Get(_context, p).FromMaybe(v8::Local<v8::Value>());
