@@ -107,6 +107,9 @@ public:
     // Rescan template token after closing brace
     SyntaxKind reScanTemplateToken();
     
+    // Rescan slash token as regular expression literal
+    SyntaxKind reScanSlashToken();
+    
 private:
     char16_t charCodeAt(int pos) const;
     bool isDigit(char16_t ch) const;

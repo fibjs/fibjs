@@ -327,7 +327,13 @@ SyntaxKind Scanner::scanString(char16_t quote) {
             result += m_text.substr(start, m_pos - start);
             m_pos++;
             if (m_pos < (int)m_text.length()) {
+                char16_t next = charCodeAt(m_pos);
                 m_pos++;
+                // Handle \r\n as a single line continuation
+                if (next == CharCode::carriageReturn && m_pos < (int)m_text.length() 
+                    && charCodeAt(m_pos) == CharCode::lineFeed) {
+                    m_pos++;
+                }
             }
             start = m_pos;
             continue;
@@ -746,6 +752,62 @@ rescan:
     return m_token;
 }
 
+SyntaxKind Scanner::reScanSlashToken() {
+    // If current token is not slash, return as-is
+    if (m_token != SyntaxKind::SlashToken && m_token != SyntaxKind::SlashEqualsToken) {
+        return m_token;
+    }
+    
+    // Try to scan as regex literal starting from token start
+    int p = m_tokenStart + 1;
+    bool inEscape = false;
+    bool inCharacterClass = false;
+    
+    while (p < (int)m_text.length()) {
+        char16_t ch = m_text[p];
+        
+        // Newline terminates regex (unterminated)
+        if (ch == CharCode::lineFeed || ch == CharCode::carriageReturn) {
+            return m_token; // Not a valid regex, keep as slash
+        }
+        
+        if (inEscape) {
+            inEscape = false;
+        } else if (ch == CharCode::slash && !inCharacterClass) {
+            // Found closing slash
+            p++;
+            break;
+        } else if (ch == L'[') {
+            inCharacterClass = true;
+        } else if (ch == CharCode::backslash) {
+            inEscape = true;
+        } else if (ch == L']') {
+            inCharacterClass = false;
+        }
+        p++;
+    }
+    
+    // Check if we actually found the closing slash
+    if (p <= m_tokenStart + 1 || m_text[p - 1] != CharCode::slash) {
+        return m_token; // Not a valid regex
+    }
+    
+    // Scan optional flags (a-z, A-Z)
+    while (p < (int)m_text.length()) {
+        char16_t ch = m_text[p];
+        if ((ch >= L'a' && ch <= L'z') || (ch >= L'A' && ch <= L'Z')) {
+            p++;
+        } else {
+            break;
+        }
+    }
+    
+    // Update scanner state
+    m_pos = p;
+    m_token = SyntaxKind::RegularExpressionLiteral;
+    return m_token;
+}
+
 std::vector<Token> Scanner::scanAllTokens() {
     std::vector<Token> tokens;
     setTextPos(0);
@@ -756,6 +818,14 @@ std::vector<Token> Scanner::scanAllTokens() {
     
     while (true) {
         SyntaxKind kind = scan();
+        
+        // Inside template expression, try to rescan slash as regex
+        // This prevents " inside regex from being mistakenly scanned as string start
+        if ((kind == SyntaxKind::SlashToken || kind == SyntaxKind::SlashEqualsToken) 
+            && !templateDepthStack.empty()) {
+            reScanSlashToken();
+            kind = m_token;
+        }
         
         // Track template literal state
         if (kind == SyntaxKind::TemplateHead) {

@@ -2148,6 +2148,138 @@ console.log("Done");`;
 
         });
 
+        describe('Template Literal with Regex containing Quote', () => {
+
+            it('should preserve // in template after regex with quote in interpolation', () => {
+                // Minimal reproduction: regex /"/ inside ${} followed by }" and // in next template
+                const input = '`${/"/}">`\n`// comment`';
+                const expected = '`${/"/}">`\n`// comment`';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve // in template after complex regex interpolation', () => {
+                const input = 'const a = `${x.replace(/"/g, "y")}">`;const b = `// comment`;';
+                const expected = 'const a = `${x.replace(/"/g, "y")}">`;const b = `// comment`;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve // in template after HTML-like template with regex', () => {
+                const input = 'const a = `<div data-x="${y.replace(/"/g, \'&quot;\')}"></div>`;\nconst b = `// comment`;';
+                const expected = 'const a = `<div data-x="${y.replace(/"/g, \'&quot;\')}"></div>`;\nconst b = `// comment`;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('String with Line Continuation (backslash)', () => {
+
+            it('should handle string with CRLF line continuation', () => {
+                const input = 'const x = "a;\\\r\n\\\r\nclass A {\\\r\n}";';
+                const expected = 'const x = "a;\\\r\n\\\r\nclass A {\\\r\n}";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle string with LF line continuation', () => {
+                const input = 'const x = "a;\\\n\\\nclass A {\\\n}";';
+                const expected = 'const x = "a;\\\n\\\nclass A {\\\n}";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle string with mixed continuation patterns', () => {
+                const input = 'const source = "alert(100);\\\r\n\\\r\nclass OverloadedMonster {\\\r\nconstructor();\\\r\nconstructor(name) { }\\\r\n}";';
+                const expected = 'const source = "alert(100);\\\r\n\\\r\nclass OverloadedMonster {\\\r\nconstructor();\\\r\nconstructor(name) { }\\\r\n}";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Syntax Error in Import', () => {
+
+            it('should handle syntax error with semicolon in import braces', () => {
+                const input = 'import { F1; } from "lib";';
+                const expected = 'import { F1; } from "lib";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle syntax error with class keyword in import', () => {
+                const input = 'import { F1, F2 class class class; } from "lib";';
+                const expected = 'import { F1, F2 class class class; } from "lib";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Syntax Error in Class Body', () => {
+
+            it('should handle unrecognized token in class body', () => {
+                const input = 'class A {\n  x: number\n  ~~\n}';
+                const expected = 'class A {\n  x;       \n  ~~\n}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Syntax Error in Export Type', () => {
+
+            it('should handle unrecognized token in export type braces', () => {
+                const input = 'export type { ~ };';
+                const expected = '                  ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle semicolon in export type braces', () => {
+                const input = 'export type { ; };';
+                const expected = '                  ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle number literal in export type braces', () => {
+                const input = 'export type { 123 };';
+                const expected = '                    ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Syntax Error in Export Named', () => {
+
+            it('should handle unrecognized token in export braces', () => {
+                const input = 'export { ~ };';
+                const expected = 'export { ~ };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle semicolon in export braces', () => {
+                const input = 'export { ; };';
+                const expected = 'export { ; };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle number literal in export braces', () => {
+                const input = 'export { 123 };';
+                const expected = 'export { 123 };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Recursion Depth Limit', () => {
+
+            it('should handle normal nesting depth', () => {
+                const depth = 100;
+                const input = '('.repeat(depth) + '1' + ')'.repeat(depth);
+                const result = strip(input);
+                assert.strictEqual(result, input);
+            });
+
+            it('should throw error for excessive nesting depth', () => {
+                const depth = 600;
+                const input = '('.repeat(depth) + '1' + ')'.repeat(depth);
+                assert.throws(() => strip(input), /Maximum recursion depth exceeded/);
+            });
+
+        });
+
     });
 
 });

@@ -108,11 +108,14 @@ struct Overwrite {
  */
 class TsStrip {
 public:
+    static constexpr int MAX_RECURSION_DEPTH = 500;
+
     TsStrip(const exlib::wstring& src, std::vector<Token> tokens)
         : m_src(src)
         , m_tokens(std::move(tokens))
         , m_tokenIndex(0)
         , m_disallowInContext(false)
+        , m_recursionDepth(0)
     {
     }
     
@@ -123,9 +126,16 @@ private:
     std::vector<Token> m_tokens;
     size_t m_tokenIndex;
     bool m_disallowInContext;
+    int m_recursionDepth;
     
     std::vector<Replacement> m_replacements;
     std::vector<Overwrite> m_overwrites;
+
+    void checkRecursionDepth() {
+        if (m_recursionDepth > MAX_RECURSION_DEPTH) {
+            throw std::runtime_error("Maximum recursion depth exceeded");
+        }
+    }
 
     // ========== Token access (basic) ==========
     const Token& currentToken() const {
@@ -399,6 +409,9 @@ void TsStrip::parseExpression() {
  * For strip purposes, we just need to parse the expression structure
  */
 void TsStrip::parseAssignmentExpressionOrHigher() {
+    m_recursionDepth++;
+    checkRecursionDepth();
+    
     // Parse binary expression first
     parseBinaryExpressionOrHigher((int)OperatorPrecedence::Lowest);
 
@@ -419,6 +432,7 @@ void TsStrip::parseAssignmentExpressionOrHigher() {
         } else {
             parseAssignmentExpressionOrHigher();
         }
+        m_recursionDepth--;
         return;
     }
     
@@ -446,6 +460,8 @@ void TsStrip::parseAssignmentExpressionOrHigher() {
         default:
             break;
     }
+    
+    m_recursionDepth--;
 }
 
 /**
@@ -1047,6 +1063,9 @@ void TsStrip::parsePrimaryExpression() {
                         if (token() == SyntaxKind::EqualsToken) {
                             nextToken();
                             parseAssignmentExpressionOrHigher();
+                            // After parsing default value, we've committed to expression parsing
+                            // Don't backtrack to avoid exponential complexity
+                            reparsedAsExpression = true;
                         }
                     } else if (token() == SyntaxKind::OpenBraceToken || token() == SyntaxKind::OpenBracketToken) {
                         // Destructuring pattern in parameter
@@ -1066,6 +1085,7 @@ void TsStrip::parsePrimaryExpression() {
                         if (token() == SyntaxKind::EqualsToken) {
                             nextToken();
                             parseAssignmentExpressionOrHigher();
+                            reparsedAsExpression = true;
                         }
                     } else {
                         // Some other expression (e.g., nested parentheses with arrow function)
@@ -1079,9 +1099,13 @@ void TsStrip::parsePrimaryExpression() {
                         // parameter list. Re-parse the whole parenthesized contents as a full
                         // expression to correctly consume operators like calls, property access,
                         // and nested conditionals.
-                        m_tokenIndex = contentStartIndex;
-                        reparsedAsExpression = true;
-                        parseExpression();
+                        // But if we already parsed as expression, don't backtrack again to avoid
+                        // exponential complexity on malformed input like (E = (E = (E = ...
+                        if (!reparsedAsExpression) {
+                            m_tokenIndex = contentStartIndex;
+                            reparsedAsExpression = true;
+                            parseExpression();
+                        }
                         break;
                     }
                 }
@@ -2322,6 +2346,13 @@ void TsStrip::parseClassMember() {
         nextToken();
         parseExpression();
         parseExpected(SyntaxKind::CloseBracketToken);
+    } else if (token() != SyntaxKind::OpenParenToken && token() != SyntaxKind::ColonToken &&
+               token() != SyntaxKind::EqualsToken && token() != SyntaxKind::SemicolonToken &&
+               token() != SyntaxKind::CloseBraceToken && token() != SyntaxKind::LessThanToken &&
+               token() != SyntaxKind::QuestionToken && token() != SyntaxKind::ExclamationToken) {
+        // Unrecognized token - skip to avoid infinite loop on syntax errors
+        nextToken();
+        return;
     }
     
     // Optional ?
@@ -2332,10 +2363,16 @@ void TsStrip::parseClassMember() {
     }
     
     // Definite assignment !
-    if (token() == SyntaxKind::ExclamationToken && !currentToken().hadLineBreak) {
-        int start = getNodePos();
-        nextToken();
-        addReplacement(start, getNodePos());
+    if (token() == SyntaxKind::ExclamationToken) {
+        if (!currentToken().hadLineBreak) {
+            int start = getNodePos();
+            nextToken();
+            addReplacement(start, getNodePos());
+        } else {
+            // ExclamationToken at line start is a syntax error - skip to avoid infinite loop
+            nextToken();
+            return;
+        }
     }
     
     // Type parameters
@@ -2702,7 +2739,12 @@ void TsStrip::parseImportDeclaration() {
                         nextToken();
                     }
                 }
-                parseOptional(SyntaxKind::CommaToken);
+                if (!parseOptional(SyntaxKind::CommaToken)) {
+                    // Skip unexpected token to avoid infinite loop on syntax errors
+                    if (token() != SyntaxKind::CloseBraceToken) {
+                        nextToken();
+                    }
+                }
             }
         }
         parseExpected(SyntaxKind::CloseBraceToken);
@@ -2761,7 +2803,12 @@ void TsStrip::parseExportDeclaration() {
                         nextToken();
                     }
                 }
-                parseOptional(SyntaxKind::CommaToken);
+                if (!parseOptional(SyntaxKind::CommaToken)) {
+                    // Skip unexpected token to avoid infinite loop on syntax errors
+                    if (token() != SyntaxKind::CloseBraceToken) {
+                        nextToken();
+                    }
+                }
             }
             parseExpected(SyntaxKind::CloseBraceToken);
             if (parseOptional(SyntaxKind::FromKeyword)) {
@@ -2916,7 +2963,12 @@ void TsStrip::parseExportDeclaration() {
                             nextToken();
                         }
                     }
-                    parseOptional(SyntaxKind::CommaToken);
+                    if (!parseOptional(SyntaxKind::CommaToken)) {
+                        // Skip unexpected token to avoid infinite loop on syntax errors
+                        if (token() != SyntaxKind::CloseBraceToken) {
+                            nextToken();
+                        }
+                    }
                 }
             }
             parseExpected(SyntaxKind::CloseBraceToken);
