@@ -8,6 +8,7 @@
 #include "qstring.h"
 #include <vector>
 #include <functional>
+#include <string_view>
 #include "syntax_kind.h"
 
 namespace fibjs {
@@ -86,8 +87,8 @@ public:
     SyntaxKind getToken() const { return m_token; }
     int getTokenStart() const { return m_tokenStart; }
     int getTokenEnd() const { return m_pos; }
-    exlib::wstring getTokenText() const;
-    exlib::wstring getTokenValue() const { return m_tokenValue; }
+    std::u16string_view getTokenText() const;
+    std::u16string_view getTokenValue() const { return m_tokenValue; }
     bool hasPrecedingLineBreak() const { return m_hasLineBreak; }
     
     // Position
@@ -125,7 +126,7 @@ private:
     SyntaxKind scanTemplateOrTemplateTail();
     void scanRegExpFlags();
     
-    SyntaxKind getIdentifierToken(const exlib::wstring& text) const;
+    SyntaxKind getIdentifierToken(std::u16string_view text) const;
     
 private:
     exlib::wstring m_text;  // mutable copy, comments will be erased to spaces
@@ -133,7 +134,7 @@ private:
     int m_startPos;
     int m_tokenStart;
     SyntaxKind m_token;
-    exlib::wstring m_tokenValue;
+    std::u16string_view m_tokenValue;
     bool m_hasLineBreak;
     
     // Erase range to spaces (preserving newlines)

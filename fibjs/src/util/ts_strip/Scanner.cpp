@@ -9,9 +9,26 @@
 namespace fibjs {
 namespace ts {
 
-// Keyword map
-static const std::unordered_map<exlib::wstring, SyntaxKind>& getKeywordMap() {
-    static std::unordered_map<exlib::wstring, SyntaxKind> map = {
+// Transparent hash for string_view lookup in unordered_map
+struct StringViewHash {
+    using is_transparent = void;
+    
+    size_t operator()(std::u16string_view sv) const noexcept {
+        return std::hash<std::u16string_view>{}(sv);
+    }
+};
+
+struct StringViewEqual {
+    using is_transparent = void;
+    
+    bool operator()(std::u16string_view lhs, std::u16string_view rhs) const noexcept {
+        return lhs == rhs;
+    }
+};
+
+// Keyword map with transparent lookup
+static const std::unordered_map<exlib::wstring, SyntaxKind, StringViewHash, StringViewEqual>& getKeywordMap() {
+    static std::unordered_map<exlib::wstring, SyntaxKind, StringViewHash, StringViewEqual> map = {
         {u"abstract", SyntaxKind::AbstractKeyword},
         {u"any", SyntaxKind::AnyKeyword},
         {u"as", SyntaxKind::AsKeyword},
@@ -204,19 +221,19 @@ void Scanner::eraseToSpaces(int start, int end) {
     }
 }
 
-exlib::wstring Scanner::getTokenText() const {
-    return m_text.substr(m_tokenStart, m_pos - m_tokenStart);
+std::u16string_view Scanner::getTokenText() const {
+    return std::u16string_view(m_text.c_str() + m_tokenStart, m_pos - m_tokenStart);
 }
 
 void Scanner::setTextPos(int pos) {
     m_pos = pos;
     m_tokenStart = pos;
     m_token = SyntaxKind::Unknown;
-    m_tokenValue.clear();
+    m_tokenValue = {};
     m_hasLineBreak = false;
 }
 
-SyntaxKind Scanner::getIdentifierToken(const exlib::wstring& text) const {
+SyntaxKind Scanner::getIdentifierToken(std::u16string_view text) const {
     auto& map = getKeywordMap();
     auto it = map.find(text);
     if (it != map.end()) {
@@ -230,7 +247,7 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     while (m_pos < (int)m_text.length() && isIdentifierPart(charCodeAt(m_pos))) {
         m_pos++;
     }
-    m_tokenValue = m_text.substr(start, m_pos - start);
+    m_tokenValue = std::u16string_view(m_text.c_str() + start, m_pos - start);
     return getIdentifierToken(m_tokenValue);
 }
 
@@ -302,29 +319,22 @@ SyntaxKind Scanner::scanNumber() {
     // BigInt suffix
     if (charCodeAt(m_pos) == L'n') {
         m_pos++;
-        m_tokenValue = m_text.substr(start, m_pos - start);
         return SyntaxKind::BigIntLiteral;
     }
     
-    m_tokenValue = m_text.substr(start, m_pos - start);
     return SyntaxKind::NumericLiteral;
 }
 
 SyntaxKind Scanner::scanString(char16_t quote) {
     m_pos++; // skip opening quote
-    exlib::wstring result;
-    int start = m_pos;
     
     while (m_pos < (int)m_text.length()) {
         char16_t ch = charCodeAt(m_pos);
         if (ch == quote) {
-            result += m_text.substr(start, m_pos - start);
             m_pos++; // skip closing quote
-            m_tokenValue = result;
             return SyntaxKind::StringLiteral;
         }
         if (ch == CharCode::backslash) {
-            result += m_text.substr(start, m_pos - start);
             m_pos++;
             if (m_pos < (int)m_text.length()) {
                 char16_t next = charCodeAt(m_pos);
@@ -335,7 +345,6 @@ SyntaxKind Scanner::scanString(char16_t quote) {
                     m_pos++;
                 }
             }
-            start = m_pos;
             continue;
         }
         if (isLineBreak(ch)) {
@@ -345,24 +354,20 @@ SyntaxKind Scanner::scanString(char16_t quote) {
         m_pos++;
     }
     
-    m_tokenValue = m_text.substr(start, m_pos - start);
     return SyntaxKind::StringLiteral;
 }
 
 SyntaxKind Scanner::scanTemplateOrTemplateTail() {
     m_pos++; // skip ` or }
-    int start = m_pos;
     bool isHead = (charCodeAt(m_tokenStart) == CharCode::backtick);
     
     while (m_pos < (int)m_text.length()) {
         char16_t ch = charCodeAt(m_pos);
         if (ch == CharCode::backtick) {
-            m_tokenValue = m_text.substr(start, m_pos - start);
             m_pos++;
             return isHead ? SyntaxKind::NoSubstitutionTemplateLiteral : SyntaxKind::TemplateTail;
         }
         if (ch == CharCode::$ && charCodeAt(m_pos + 1) == CharCode::openBrace) {
-            m_tokenValue = m_text.substr(start, m_pos - start);
             m_pos += 2;
             return isHead ? SyntaxKind::TemplateHead : SyntaxKind::TemplateMiddle;
         }
@@ -373,7 +378,6 @@ SyntaxKind Scanner::scanTemplateOrTemplateTail() {
         m_pos++;
     }
     
-    m_tokenValue = m_text.substr(start);
     return SyntaxKind::NoSubstitutionTemplateLiteral;
 }
 
@@ -381,18 +385,15 @@ SyntaxKind Scanner::reScanTemplateToken() {
     // After a closing brace in a template literal, rescan as template middle or tail
     // Position should be right after the }
     m_tokenStart = m_pos - 1; // Set token start to the } position
-    int start = m_pos;
     
     while (m_pos < (int)m_text.length()) {
         char16_t ch = charCodeAt(m_pos);
         if (ch == CharCode::backtick) {
-            m_tokenValue = m_text.substr(start, m_pos - start);
             m_pos++;
             m_token = SyntaxKind::TemplateTail;
             return m_token;
         }
         if (ch == CharCode::$ && charCodeAt(m_pos + 1) == CharCode::openBrace) {
-            m_tokenValue = m_text.substr(start, m_pos - start);
             m_pos += 2;
             m_token = SyntaxKind::TemplateMiddle;
             return m_token;
@@ -404,7 +405,6 @@ SyntaxKind Scanner::reScanTemplateToken() {
         m_pos++;
     }
     
-    m_tokenValue = m_text.substr(start);
     m_token = SyntaxKind::TemplateTail;
     return m_token;
 }
@@ -412,7 +412,7 @@ SyntaxKind Scanner::reScanTemplateToken() {
 SyntaxKind Scanner::scan() {
     m_startPos = m_pos;
     m_hasLineBreak = false;
-    m_tokenValue.clear();
+    m_tokenValue = {};
 
 rescan:
     skipTrivia();
