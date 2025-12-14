@@ -462,6 +462,13 @@ describe('encoding', () => {
                 assert.equal(iconv.decode(d.name, buf), d.text);
             }
         });
+
+        it("empty codec defaults to utf-8", () => {
+            var s = "Hello, 世界!";
+            var buf = iconv.encode('', s);
+            assert.deepEqual(buf, Buffer.from(s, 'utf-8'));
+            assert.equal(iconv.decode('', buf), s);
+        });
     });
 
     it('uri', () => {

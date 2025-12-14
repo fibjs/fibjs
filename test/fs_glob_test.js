@@ -420,7 +420,7 @@ describe("fs.glob", () => {
             const result = await asyncGeneratorToArray(asyncGen);
             // On case-insensitive file systems (macOS/Windows), should find README.md
             // and return the actual file system name, not the pattern case
-            if (process.platform === 'linux') {
+            if (process.platform === 'linux' || process.platform === 'android') {
                 assert.deepStrictEqual(result, []);
             } else {
                 // On case-insensitive systems, should find the file but return actual name

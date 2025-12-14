@@ -5,10 +5,12 @@ WORKS_DIR=$(dirname "$CUR")
 
 if [ "$2" == "alpine" ]; then
     IMAGE="fibjs/alpine-build-env:$1"
+elif [ "$2" == "android" ]; then
+    IMAGE="fibjs/android-build-env:$1"
 elif [[ "$1" =~ (ubuntu[0-9]+|centos[0-9]+) ]]; then
     IMAGE="fibjs/linux-test-env:$1"
 else
     IMAGE="fibjs/linux-build-env:$1"
 fi
 
-docker run -ti --rm -v ${WORKS_DIR}:${WORKS_DIR} $IMAGE bash -c "cd ${CUR} && bash"
+docker run -ti --rm --privileged -v ${WORKS_DIR}:${WORKS_DIR} $IMAGE bash -c "cd ${CUR} && bash"

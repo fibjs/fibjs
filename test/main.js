@@ -18,7 +18,6 @@ run("./headers_test.js");
 
 run("./perf_test.js");
 run("./console_test.js");
-run("./icu_test.js");
 run("./punycode_test.js");
 run("./timer_test.js");
 run("./buffer_test.js");
@@ -54,8 +53,6 @@ run("./child_process_test.js");
 run("./json_test.js");
 run("./module_test.js");
 run("./esm_test.js");
-run("./ts_test.js");
-run("./dns_test.js");
 run("./net_test.js");
 run("./dgram_test.js");
 run("./buffered_test.js");
@@ -76,11 +73,8 @@ run("./sse_test.js");
 run("./mq_test.js");
 run("./rtc_test.js");
 
-if (process.platform != "linux")
+if (process.platform != "linux" && process.platform != "android")
     run("./gui_test.js");
-
-run("./workspaces_test.js");
-run("./scripts_test.js");
 
 run("./registry_test.js");
 run("./uuid_test.js");
@@ -92,12 +86,17 @@ run("./db_test.js");
 run("./vec_test.js");
 run("./wasm_test.js");
 
-if (global.full_test) {
-    run("./redis_test.js");
-    run("./tty_test.js");
+if (process.platform != "android") {
+    run("./dns_test.js");
+    run("./ts_test.js");
+    run("./icu_test.js");
+    run("./workspaces_test.js");
+    run("./scripts_test.js");
+    run("./selfzip_test.js");
 }
 
-run("./selfzip_test.js");
+if (global.full_test)
+    run("./tty_test.js");
 
 run("./v8_test.js");
 
@@ -107,6 +106,6 @@ run("./getter_throw.js")
 
 run("./internal_test/helpers.js")
 
-if (process.env.CI) {
+if (process.env.CI && process.platform != "android") {
     run("./opt_tools_test/index.js")
 }

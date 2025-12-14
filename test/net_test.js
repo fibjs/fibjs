@@ -40,7 +40,8 @@ var backend = {
     "win32": "IOCP",
     "darwin": "KQueue",
     "freebsd": "KQueue",
-    "linux": "EPoll"
+    "linux": "EPoll",
+    "android": "EPoll"
 }[process.platform];
 
 

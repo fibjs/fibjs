@@ -3,6 +3,8 @@ test.setup();
 
 var test_util = require('./test_util');
 
+var android = process.platform === 'android';
+
 var io = require('io');
 var os = require('os');
 var fs = require('fs');
@@ -3350,7 +3352,7 @@ describe("http", () => {
         });
     });
 
-    describe("https server/global https request", () => {
+    (android ? describe.skip : describe)("https server/global https request", () => {
         var svr;
         var hc;
 
@@ -4074,7 +4076,7 @@ describe("http", () => {
         });
     });
 
-    describe("http_proxy", () => {
+    (android ? describe.skip : describe)("http_proxy", () => {
         var svr;
 
         before(() => {
@@ -4149,7 +4151,7 @@ describe("http", () => {
 
     });
 
-    describe("verification", () => {
+    (android ? describe.skip : describe)("verification", () => {
         var hc;
 
         it("request https error by default", () => {

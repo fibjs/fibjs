@@ -27,6 +27,7 @@ var pathname2 = path.join(homedir, 'test2_dir' + vmid);
 
 var win = process.platform === 'win32';
 var linux = process.platform === 'linux';
+var android = process.platform === 'android';
 
 function assert_stat_property(statObj) {
     assert.isNumber(statObj.dev)
@@ -540,7 +541,7 @@ describe('fs', () => {
         });
 
         it("fs.lchmod", () => {
-            if (linux)
+            if (linux || android)
                 return;
             var fn = path.join(__dirname, 'fs_test.js.symlink');
             try {

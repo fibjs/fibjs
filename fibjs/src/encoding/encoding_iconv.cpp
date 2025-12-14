@@ -63,7 +63,10 @@ encoding_iconv::encoding_iconv(exlib::string charset)
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
 {
-    m_charset = (charset == "gb2312") ? "gbk" : charset;
+    if (charset.empty())
+        m_charset = "utf-8";
+    else
+        m_charset = (charset == "gb2312") ? "gbk" : charset;
 }
 
 encoding_iconv::~encoding_iconv()

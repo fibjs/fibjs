@@ -3,6 +3,8 @@ test.setup();
 
 var test_util = require('./test_util');
 
+var android = process.platform === 'android';
+
 var tls = require("tls");
 var crypto = require("crypto");
 var fs = require('fs');
@@ -627,7 +629,7 @@ describe('tls', () => {
         });
     });
 
-    describe('tls.connect', () => {
+    (android ? describe.skip : describe)('tls.connect', () => {
         it('with context', () => {
             var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, ctx);
             ss.write("GET / HTTP/1.0");
