@@ -26,6 +26,7 @@ run("./atob_btoa_test.js");
 run("./path_test.js");
 run("./path_match_test.js");
 run("./util_test.js");
+run("./ts_strip_test.js");
 run("./types_test.js");
 run("./promise_test.js");
 run("./microtask_test.js");

@@ -301,4 +301,23 @@ module util
      @return Struct info
      */
     static Object buildInfo();
+
+    /*! @brief Convert TypeScript code to JavaScript by removing all type annotations
+
+     This method uses strip-only mode, replacing TypeScript type syntax with spaces while preserving
+     the line and column positions of the source code. This is useful for debugging or generating source maps.
+
+     Note: strip-only mode does not support the following syntax:
+     - enum (requires transformation to IIFE)
+     - const enum (requires inlining)
+     - namespace (requires transformation to IIFE)  
+     - constructor parameter properties (e.g., constructor(public x: string))
+     - import = require() syntax
+     - export = syntax
+     - angle bracket type assertions (e.g., <T>expr, use 'as' syntax instead)
+
+     @param code TypeScript source code
+     @return Converted JavaScript code
+     */
+    static String stripTypeScript(String code);
 };

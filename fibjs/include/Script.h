@@ -14,6 +14,11 @@ namespace fibjs {
 class Script : public Script_base {
 
 public:
+    Script()
+        : m_isModule(false)
+    {
+    }
+
     // Script_base
     virtual result_t runInContext(v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal);
     virtual result_t runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal);
@@ -24,7 +29,9 @@ public:
     result_t init(exlib::string code, v8::Local<v8::Object> opts);
 
 private:
+    bool m_isModule;
     v8::Global<v8::UnboundScript> m_script;
+    v8::Global<v8::Module> m_module;
 };
 
 }

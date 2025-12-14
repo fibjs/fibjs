@@ -817,5 +817,34 @@ declare module 'util' {
      */
     function buildInfo(): FIBJS.GeneralObject;
 
+    /**
+     * @description 将 TypeScript 代码转换为 JavaScript，移除所有类型注解
+     * 
+     *      该方法使用 strip-only 模式，将 TypeScript 的类型语法替换为空格，保持源代码的行列位置不变。
+     *      这对于需要调试或生成 source map 的场景非常有用。
+     * 
+     *      注意：strip-only 模式不支持以下语法：
+     *      - enum（需要转换为 IIFE）
+     *      - const enum（需要内联展开）
+     *      - namespace（需要转换为 IIFE）
+     *      - 构造函数参数属性（如 constructor(public x: string)）
+     *      - import = require() 语法
+     *      - export = 语法
+     *      - 尖括号类型断言（如 <T>expr，请使用 as 语法）
+     * 
+     *      示例：
+     *      ```JavaScript
+     *      var util = require('util');
+     *      var ts = 'const x: string = "hello";';
+     *      var js = util.stripTypeScript(ts);
+     *      console.log(js); // 'const x         = "hello";'
+     *      ```
+     * 
+     *      @param code TypeScript 源代码
+     *      @return 返回转换后的 JavaScript 代码
+     *      
+     */
+    function stripTypeScript(code: string): string;
+
 }
 

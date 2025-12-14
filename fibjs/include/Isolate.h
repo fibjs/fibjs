@@ -273,6 +273,7 @@ public:
     v8::Global<v8::Object> m_env;
 
     v8::Global<v8::Function> m_amaro;
+    v8::Global<v8::Function> m_amaro_transformSync;
 
     v8::Global<v8::ObjectTemplate> m_global_template;
 
@@ -282,6 +283,7 @@ public:
     obj_ptr<SandBox> m_topSandbox;
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
+
 
     std::atomic_bool m_intask;
 

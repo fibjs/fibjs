@@ -11,6 +11,7 @@
 #include "QuickArray.h"
 #include "parse.h"
 #include "SimpleObject.h"
+#include "ts_strip/ts_strip.h"
 #include <unordered_map>
 
 namespace fibjs {
@@ -979,5 +980,16 @@ result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
 
     retVal = arr;
     return 0;
+}
+
+result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
+{
+    try {
+        std::string result = ts_strip::strip(code.c_str());
+        retVal = result.c_str();
+        return 0;
+    } catch (const std::exception& e) {
+        return CHECK_ERROR(Runtime::setError(e.what()));
+    }
 }
 }

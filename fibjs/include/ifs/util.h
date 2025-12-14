@@ -93,6 +93,7 @@ public:
     static result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t callbackify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
+    static result_t stripTypeScript(exlib::string code, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -167,6 +168,7 @@ public:
     static void s_static_promisify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_callbackify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stripTypeScript(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -241,7 +243,8 @@ inline ClassInfo& util_base::class_info()
         { "sync", s_static_sync, true, ClassData::ASYNC_SYNC },
         { "promisify", s_static_promisify, true, ClassData::ASYNC_SYNC },
         { "callbackify", s_static_callbackify, true, ClassData::ASYNC_SYNC },
-        { "buildInfo", s_static_buildInfo, true, ClassData::ASYNC_SYNC }
+        { "buildInfo", s_static_buildInfo, true, ClassData::ASYNC_SYNC },
+        { "stripTypeScript", s_static_stripTypeScript, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -1227,6 +1230,21 @@ inline void util_base::s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(0, 0);
 
     hr = buildInfo(vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_stripTypeScript(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = stripTypeScript(v0, vr);
 
     METHOD_RETURN();
 }
