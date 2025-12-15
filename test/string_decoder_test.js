@@ -1,5 +1,5 @@
-var t = require("test");
-t.setup();
+var { describe, it } = require('node:test');
+var assert = require('assert');
 
 const StringDecoder = require('string_decoder').StringDecoder;
 

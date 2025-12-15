@@ -1,8 +1,9 @@
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
+
 const dns = require('dns');
 const net = require('net');
 const os = require('os');
-const test = require('test');
-test.setup();
 
 var has_ipv6 = dns.lookup('ipv6.com', {
     all: true

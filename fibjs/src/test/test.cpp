@@ -62,6 +62,7 @@ class _case : public obj_base {
         int32_t i, j;
 
         m_block.Reset();
+        m_describe_block.Reset();
         for (i = 0; i < 4; i++)
             for (j = 0; j < (int32_t)m_hooks[i].size(); j++)
                 m_hooks[i][j].Reset();
@@ -104,13 +105,43 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case* p = new _case(name, level);
+        p->m_describe_block.Reset(Isolate::current()->m_isolate, block);
         now->append(p);
 
-        td->m_describe = p;
-        block->Call(block->GetCreationContextChecked(), v8::Object::New(Isolate::current()->m_isolate), 0, NULL).IsEmpty();
-        td->m_describe = now;
-
         return 0;
+    }
+
+    bool expand_describe()
+    {
+        if (m_describe_block.IsEmpty())
+            return true;
+
+        // 如果被标记为跳过（TEST_NONE），不执行 describe block
+        if (m_run_level == TEST_NONE) {
+            m_describe_block.Reset();
+            return true;
+        }
+
+        Isolate* isolate = Isolate::current();
+        TestData* td = TestData::current();
+
+        v8::Local<v8::Function> block = m_describe_block.Get(isolate->m_isolate);
+        m_describe_block.Reset();
+
+        _case* old_describe = td->m_describe;
+        td->m_describe = this;
+
+        v8::Local<v8::Value> result;
+        bool success = block->Call(block->GetCreationContextChecked(),
+            v8::Object::New(isolate->m_isolate), 0, NULL).ToLocal(&result);
+
+        // 如果返回 Promise，等待其完成（处理 async describe）
+        if (success && !result.IsEmpty() && result->IsPromise())
+            isolate->await(result);
+
+        td->m_describe = old_describe;
+
+        return success;
     }
 
     static result_t it(exlib::string name, v8::Local<v8::Function> block, int32_t level)
@@ -181,6 +212,12 @@ public:
             _case *p1, *p2;
 
             if (p->m_pos == 0) {
+                // 展开 describe block（延迟执行）
+                if (!p->expand_describe()) {
+                    clear();
+                    return 0;
+                }
+
                 p->m_begin.now();
                 p->m_retVal = v8::Object::New(isolate->m_isolate);
                 p->m_retVal_tests = v8::Array::New(isolate->m_isolate);
@@ -343,7 +380,8 @@ public:
                     }
                 }
 
-                if (p1->m_status && (p1->m_subs.size() || p1->m_block.IsEmpty())) {
+                // 判断是否是 describe：有 describe_block 或已经展开的 subs，且没有 it 的 block
+                if (p1->m_status && (p1->m_subs.size() || !p1->m_describe_block.IsEmpty() || p1->m_block.IsEmpty())) {
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;
 
@@ -492,6 +530,7 @@ private:
     v8::Local<v8::Array> m_retVal_tests;
 
     v8::Global<v8::Function> m_block;
+    v8::Global<v8::Function> m_describe_block;
     int32_t m_level;
     int32_t m_run_level;
     QuickArray<obj_ptr<_case>> m_subs;
@@ -519,17 +558,17 @@ result_t test_base::_function(exlib::string name, v8::Local<v8::Function> block)
 
 result_t test_suite_base::_function(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, wrapFunction(block), _case::TEST_NORMAL);
+    return _case::describe(name, block, _case::TEST_NORMAL);
 }
 
 result_t test_suite_base::skip(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, wrapFunction(block), _case::TEST_SKIP);
+    return _case::describe(name, block, _case::TEST_SKIP);
 }
 
 result_t test_suite_base::only(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, wrapFunction(block), _case::TEST_ONLY);
+    return _case::describe(name, block, _case::TEST_ONLY);
 }
 
 result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
@@ -587,8 +626,12 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
     return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func));
 }
 
-result_t test_base::run(int32_t mode, v8::Local<v8::Object>& retVal)
+result_t run_test(int32_t mode, v8::Local<v8::Object>& retVal)
 {
+    Isolate* isolate = Isolate::current();
+    isolate->m_isolate->LowMemoryNotification();
+    g_track_native_object = true;
+
     return _case::run(mode, retVal);
 }
 
@@ -689,30 +732,7 @@ result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
     return 0;
 }
 
-result_t test_base::setup()
-{
-    Isolate* isolate = Isolate::current();
 
-    v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::Object> glob = _context->Global();
-
-    isolate->m_isolate->LowMemoryNotification();
-    g_track_native_object = true;
-
-    v8::Local<v8::Object> _test = test_base::class_info().getModule(isolate);
-    const char* names[] = {
-        "describe", "suite", "xdescribe", "odescribe", "assert",
-        "it", "xit", "skip", "oit", "only", "todo",
-        "before", "after", "beforeEach", "afterEach"
-    };
-
-    for (auto& name : names)
-        glob->DefineOwnProperty(_context, isolate->NewString(name),
-                _test->Get(_context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>()))
-            .IsJust();
-
-    return 0;
-}
 
 result_t test_base::get_slow(int32_t& retVal)
 {

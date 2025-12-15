@@ -1,6 +1,7 @@
-var test = require("test");
+var { describe, it, xit } = require('node:test');
+var test = require('node:test');
+var assert = require('assert');
 var fs = require("fs");
-test.setup();
 
 const path = require('path');
 const coroutine = require('coroutine');

@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+var { describe, it, xit, after } = require('node:test');
+var assert = require('assert');
 
 var test_util = require('./test_util');
 

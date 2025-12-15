@@ -1,8 +1,5 @@
 #!/usr/local/bin/fibjs
 
-var test = require("test");
-test.setup();
-
 global.full_test = process.argv.indexOf('--full') >= 0;
 
 const CI_SUBPROCESS_CHECK = !!process.env.CI_SUBPROCESS_CHECK;

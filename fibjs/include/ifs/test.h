@@ -17,7 +17,6 @@ namespace fibjs {
 
 class test_suite_base;
 class assert_base;
-class console_base;
 
 class test_base : public object_base {
     DECLARE_CLASS(test_base);
@@ -39,8 +38,6 @@ public:
     static result_t mustCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t mustNotCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t mustNotCall(v8::Local<v8::Function>& retVal);
-    static result_t run(int32_t mode, v8::Local<v8::Object>& retVal);
-    static result_t setup();
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
 
@@ -65,8 +62,6 @@ public:
     static void s_static_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_mustCall(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_mustNotCall(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_slow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_slow(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -74,7 +69,6 @@ public:
 
 #include "ifs/test_suite.h"
 #include "ifs/assert.h"
-#include "ifs/console.h"
 
 namespace fibjs {
 inline ClassInfo& test_base::class_info()
@@ -92,9 +86,7 @@ inline ClassInfo& test_base::class_info()
         { "beforeEach", s_static_beforeEach, true, ClassData::ASYNC_SYNC },
         { "afterEach", s_static_afterEach, true, ClassData::ASYNC_SYNC },
         { "mustCall", s_static_mustCall, true, ClassData::ASYNC_SYNC },
-        { "mustNotCall", s_static_mustNotCall, true, ClassData::ASYNC_SYNC },
-        { "run", s_static_run, true, ClassData::ASYNC_SYNC },
-        { "setup", s_static_setup, true, ClassData::ASYNC_SYNC }
+        { "mustNotCall", s_static_mustNotCall, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -316,32 +308,6 @@ inline void test_base::s_static_mustNotCall(const v8::FunctionCallbackInfo<v8::V
     hr = mustNotCall(vr);
 
     METHOD_RETURN();
-}
-
-inline void test_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Object> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(int32_t, 0, console_base::C_ERROR);
-
-    hr = run(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void test_base::s_static_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = setup();
-
-    METHOD_VOID();
 }
 
 inline void test_base::s_static_get_slow(const v8::FunctionCallbackInfo<v8::Value>& args)

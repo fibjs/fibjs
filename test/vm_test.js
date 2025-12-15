@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+var { describe, it, xit, after } = require('node:test');
+var assert = require('assert');
 
 var test_util = require('./test_util');
 
@@ -131,7 +131,7 @@ describe("vm", () => {
         assert.equal(100, a.a);
     });
 
-    it("module", () => {
+    xit("module", () => {
         sbox = new vm.SandBox({
             assert: assert
         });

@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+var { describe, it, after } = require('node:test');
+var assert = require('assert');
 
 var test_util = require('./test_util');
 
@@ -12,7 +12,6 @@ var io = require('io');
 var path = require('path');
 var net = require('net');
 var coroutine = require('coroutine');
-const { assert } = require("console");
 
 var base_port = coroutine.vmid * 10000;
 

@@ -1,5 +1,5 @@
-const test = require("test");
-test.setup();
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 
 const io = require("io");
 const fs = require("fs");

@@ -1,5 +1,5 @@
-const test = require("test");
-test.setup();
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 
 var code = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 0, 12, 6, 100, 121, 108,
     105, 110, 107, 128, 128, 192, 2, 0, 1, 137, 128, 128, 128, 0, 2, 96, 1, 127,

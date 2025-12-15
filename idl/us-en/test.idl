@@ -8,14 +8,6 @@
  */
 module test
 {
-    /*! @brief Definition of BDD (Behavior Drive Development) test environment that supports describe, xdescribe, it, xit, before, after, beforeEach and afterEach, while initializing assert and expect
-     */
-    const Integer BDD = 0;
-
-    /*! @brief Definition of TDD (Test Drive Development) test environment to support suite, xsuite, test, xtest, setup, teardown, suiteSetup and suiteTeardown, while initializing assert and expect
-     */
-    const Integer TDD = 1;
-
     /*! @brief The definition of a test module and can be nested definition
      @param name Module name
      @param block Initial code
@@ -60,12 +52,6 @@ module test
      */
     static afterEach(Function func);
 
-    /*! @brief Module to start executing definition
-     @param loglevel Log output level is specified when tested, ERROR, the project focused on the report the error message is displayed, below ERROR, output information displayed at any time, while higher than ERROR, display only reports
-     @return Return the statistical result of test case, return 0 when meet no error, return the error number of errors.
-     */
-    static Integer run(Integer loglevel = console.ERROR);
-
     /*! @brief Assertion test module, if the test is false, then the error, error behavior can be set to continue to run or throw an error */
     static assert;
 
@@ -75,11 +61,6 @@ module test
      @return Return Expect for chain operations
      */
     static Expect expect(Value actual, String msg = "");
-
-    /*! @brief The current test environment initialization script, the test module method to copy a global variable for the current script
-     @param mode Indicates initial mode, default is BDD
-     */
-    static setup(Integer mode = BDD);
 
     /*! @brief Set and get slow test warning threshold in ms, default is 75
      */

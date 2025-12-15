@@ -4,13 +4,6 @@
 /**
  * @description test 模块是一个测试框架，结合断言模块 `assert` 可以方便地编写各种测试用例，可作为函数调用
  * 
- * 在 `fibjs` 中引入 `test` 模块常常需要先进行 `test setup` 操作：
- * 
- * ```JavaScript
- * var test = require('test');
- * test.setup();
- * ```
- * 
  * 在编写测试用例前通常需要先定义一个测试模块用来描述测试内容。
  * 
  * - describe
@@ -223,57 +216,6 @@ declare module 'test' {
      *     
      */
     function mustNotCall(): (...args: any[])=>any;
-
-    /**
-     * @description 开始执行定义的测试模块
-     * 
-     *     测试运行完成后，将以以下形式返回测试结果：
-     *     ```JavaScript
-     *     {
-     *         "total": 2, // number of total test cases
-     *         "pass": 2, // number of passed test cases
-     *         "fail": 0, // number of failed test cases
-     *         "skip": 0, // number of skipped test cases
-     *         "todo": 0, // number of todo test cases
-     *         "time": 0.000000, // time elapsed in seconds
-     *         "cases": [ // details of test cases
-     *             {
-     *                 "name": "test", // name of test case
-     *                 "time": 0.000000, // time elapsed in seconds
-     *                 "result": true, // result of test case
-     *                 "error": null // message of error if test case failed
-     *             },
-     *             {
-     *                 "name": "sub cases", // name of sub test case
-     *                 "total": 1, // number of total test cases
-     *                 "pass": 1, // number of passed test cases
-     *                 "fail": 0, // number of failed test cases
-     *                 "skip": 0, // number of skipped test cases
-     *                 "todo": 0, // number of todo test cases
-     *                 "time": 0.000000, // time elapsed in seconds
-     *                 "cases": [ // details of test cases
-     *                     {
-     *                         "name": "test", // name of test case
-     *                         "time": 0.000000, // time elapsed in seconds
-     *                         "result": true, // result of test case
-     *                         "error": null // message of error if test case failed
-     *                     }
-     *                 ]
-     *             }
-     *         ]
-     *     }
-     *     ```
-     * 
-     *      @param mode 指定进行测试模式，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
-     *      @return 返回测试结果
-     *      
-     */
-    function run(mode: number): FIBJS.GeneralObject;
-
-    /**
-     * @description 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量 
-     */
-    function setup(): void;
 
     /**
      * @description 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75

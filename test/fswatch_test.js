@@ -1,4 +1,5 @@
-var test = require("test");
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 
 var fs = require('fs');
 var io = require('io');
@@ -16,8 +17,6 @@ var {
 } = require('./_helpers/process');
 
 var support_watch_recursive = ['win32', 'darwin'].includes(process.platform);
-
-test.setup();
 
 describe('fs.watch*', () => {
     const basedir = path.resolve(__dirname)

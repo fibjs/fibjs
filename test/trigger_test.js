@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 
 var coroutine = require('coroutine');
 var events = require('events');

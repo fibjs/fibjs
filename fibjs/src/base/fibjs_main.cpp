@@ -7,11 +7,13 @@
 
 #include "fibjs.h"
 #include "ifs/process.h"
-#include "ifs/test.h"
+#include "ifs/console.h"
 #include "SandBox.h"
 #include "Fiber.h"
 
 namespace fibjs {
+
+result_t run_test(int32_t mode, v8::Local<v8::Object>& retVal);
 
 static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
@@ -23,7 +25,7 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
     if (hr >= 0) {
         v8::Local<v8::Object> ret;
-        hr = test_base::run(console_base::C_ERROR, ret);
+        hr = run_test(console_base::C_ERROR, ret);
     }
 
     if (hr < 0) {

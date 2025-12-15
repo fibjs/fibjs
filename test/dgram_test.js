@@ -1,9 +1,9 @@
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
+
 const dgram = require('dgram');
 const coroutine = require('coroutine');
 const os = require('os');
-
-const test = require('test');
-test.setup();
 
 var base_port = coroutine.vmid * 10000;
 const test_util = require('./test_util');

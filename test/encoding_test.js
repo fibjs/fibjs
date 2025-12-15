@@ -1,5 +1,5 @@
-var test = require("test");
-test.setup();
+var { describe, it, xit } = require('node:test');
+var assert = require('assert');
 
 var encoding = require('encoding');
 var json = require('json');

@@ -2,8 +2,8 @@
  * @description run this script to check if any module's test case invalid in SubProcess
  */
 
-const test = require("test");
-test.setup();
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 
 const path = require("path");
 const util = require("util");

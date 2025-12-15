@@ -1,10 +1,10 @@
 'use strict';
 
-const test = require("test");
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
+
 const path = require('path');
 const fs = require('fs');
-
-test.setup();
 
 describe('out', () => {
   it('out tests', () => {

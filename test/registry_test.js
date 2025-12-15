@@ -1,6 +1,6 @@
-var test = require("test");
+var { describe, it, xit, before } = require('node:test');
+var assert = require('assert');
 
-test.setup();
 
 var win = process.platform == 'win32';
 

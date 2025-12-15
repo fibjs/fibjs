@@ -1,4 +1,5 @@
-var test = require("test");
+var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var assert = require('assert');
 var coroutine = require('coroutine');
 var path = require('path');
 var fs = require('fs');
@@ -8,8 +9,6 @@ var io = require('io');
 var {
     ensureDirectoryExisted
 } = require('./_helpers/process');
-
-test.setup();
 
 var vmid = coroutine.vmid;
 
