@@ -188,7 +188,7 @@ public:
     result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
         v8::Local<v8::Object>& retVal);
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
-        v8::Local<v8::Object>& retVal);
+        v8::Local<v8::Object>& retVal, v8::Local<v8::Value>* pendding = nullptr);
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Object>& retVal);
 

@@ -622,7 +622,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 }
 
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
-    v8::Local<v8::Object>& retVal)
+    v8::Local<v8::Object>& retVal, v8::Local<v8::Value>* pendding)
 {
     if (is_relative(id)) {
         resolvePath(base, id);
@@ -636,12 +636,32 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         result_t hr;
 
         hr = resolveId(id, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
+            // Check for pendding promise if module is being loaded
+            if (pendding && !IsEmpty(retVal)) {
+                Isolate* isolate = holder();
+                v8::Local<v8::Context> _context = isolate->context();
+                v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+                JSValue p = retVal->GetPrivate(_context, strPendding);
+                if (p->IsPromise())
+                    *pendding = p;
+            }
             return hr;
+        }
         return resolveModule(base, id, data, type, retVal);
     }
 
-    return resolveFile(id, "", data, type, id, &retVal);
+    result_t hr = resolveFile(id, "", data, type, id, &retVal);
+    // Check for pendding promise if module is being loaded
+    if (pendding && !IsEmpty(retVal)) {
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+        JSValue p = retVal->GetPrivate(_context, strPendding);
+        if (p->IsPromise())
+            *pendding = p;
+    }
+    return hr;
 }
 
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,

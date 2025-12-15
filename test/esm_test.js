@@ -78,6 +78,18 @@ describe('ECMAScript modules', () => {
                 m = await import('./esm_files/esm9.mjs');
             } catch (e) { }
         });
+
+        it("concurrent import of same module", async () => {
+            // Test that concurrent dynamic imports of the same module
+            // return the same module instance (not load twice)
+            var m = await import('./esm_files/esm20.mjs');
+
+            // Both A and B should get the same shared module instance
+            assert.equal(m.a_instanceId, m.b_instanceId);
+            assert.equal(m.a_value, 'SHARED_VALUE');
+            assert.equal(m.b_value, 'SHARED_VALUE');
+            assert.equal(m.same_instance, true);
+        });
     });
 
     describe('import from mjs', () => {

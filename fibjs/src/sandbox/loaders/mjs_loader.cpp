@@ -87,12 +87,17 @@ public:
 
         obj_ptr<Buffer_base> data;
         v8::Local<v8::Value> exports;
+        v8::Local<v8::Value> pendding;
 
-        hr = resove_module(id, base, data, exports);
+        hr = resove_module(id, base, data, exports, pendding);
         if (hr < 0) {
             ThrowResult(hr);
             return v8::MaybeLocal<v8::Promise>();
         }
+
+        // If module is being loaded by another concurrent import, return its pendding promise
+        if (!IsEmpty(pendding))
+            return pendding.As<v8::Promise>();
 
         if (!IsEmpty(exports)) {
             v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
@@ -103,17 +108,13 @@ public:
 
         SandBox::Context context(m_sb, id);
 
-        v8::Local<v8::Module> root_module = load_module(id, data.As<Buffer>(), exports);
-        if (root_module.IsEmpty())
-            return v8::MaybeLocal<v8::Promise>();
-
         v8::Local<v8::String> strExports = m_isolate->NewString("exports");
         v8::Local<v8::String> strModule = m_isolate->NewString(id);
-        exports = v8::Object::New(m_isolate->m_isolate);
+        v8::Local<v8::Value> mod_exports = v8::Object::New(m_isolate->m_isolate);
 
         v8::Local<v8::Object> mod = v8::Object::New(m_isolate->m_isolate);
         mod->Set(_context, m_isolate->NewString("id"), strModule).IsJust();
-        mod->Set(_context, strExports, exports).IsJust();
+        mod->Set(_context, strExports, mod_exports).IsJust();
         mod->Set(_context, m_isolate->NewString("filename"), strModule).IsJust();
 
         v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
@@ -124,7 +125,18 @@ public:
 
         v8::Local<v8::Object> mods = m_sb->mods();
 
+        // Register module to mods BEFORE load_module to prevent race condition
+        // when concurrent imports try to load the same module
         mods->Set(_context, strModule, mod).IsJust();
+
+        v8::Local<v8::Module> root_module = load_module(id, data.As<Buffer>(), exports);
+        if (root_module.IsEmpty()) {
+            // Clean up on failure
+            mod->DeletePrivate(_context, strPendding).IsJust();
+            mod->Delete(_context, strExports).IsJust();
+            mods->Delete(_context, strModule).IsJust();
+            return v8::MaybeLocal<v8::Promise>();
+        }
 
         hr = evaluate(id, mod, root_module);
         if (hr >= 0)
@@ -141,6 +153,51 @@ public:
     }
 
 private:
+    // For dynamic import: check pendding promise and return it if module is being loaded
+    result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>& exports, v8::Local<v8::Value>& pendding)
+    {
+        result_t hr;
+
+        v8::Local<v8::Object> mod;
+        hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod, &pendding);
+        if (hr == CALL_E_FILE_NOT_FOUND)
+            return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
+
+        if (hr < 0)
+            return hr;
+
+        // If pendding promise is returned, let caller handle it
+        if (!IsEmpty(pendding))
+            return 0;
+
+        if (IsEmpty(mod)) {
+            result_t hr;
+            SandBox::ModuleType type;
+
+            hr = m_sb->resolveModuleType(id, type);
+            if (hr)
+                return hr;
+
+            if (type == SandBox::ModuleType::kCommonJS) {
+                hr = m_sb->installScript(id, data, mod, false);
+                if (hr < 0)
+                    return hr;
+            }
+        }
+
+        if (!IsEmpty(mod)) {
+            hr = m_sb->wait_module(mod, exports);
+            if (hr < 0)
+                return hr;
+
+            return 0;
+        }
+
+        return 0;
+    }
+
+    // For static imports in resolveModuleTree: no pendding check needed
     result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& exports)
     {
         result_t hr;
