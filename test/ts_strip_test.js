@@ -152,24 +152,6 @@ function itThrowsDiff(name, input, fibjsErrorPattern, amaroErrorPattern) {
     });
 }
 
-/**
- * Test that only checks output length (for malformed input)
- * @param {string} name - Test name
- * @param {string} input - Input code
- */
-function itMalformed(name, input) {
-    it(name, () => {
-        if (USE_AMARO) {
-            // amaro throws for malformed input
-            assert.throws(() => strip(input));
-        } else {
-            // fibjs preserves length
-            const output = strip(input);
-            assert.strictEqual(output.length, input.length);
-        }
-    });
-}
-
 describe('TypeScript Type Erasure Tests', () => {
 
     describe('Basic Type Annotations', () => {
@@ -1003,7 +985,10 @@ console.log("Done");`;
     describe('JavaScript Syntax Tolerance', () => {
         // amaro is stricter about syntax
 
-        itMalformed('should handle incomplete code', 'const x: number =');
+        itDiff('should handle incomplete code',
+            'const x: number =',
+            'const x         =',  // fibjs: strips type, preserves structure
+            null);  // amaro: throws
 
         it('should handle missing semicolons', () => {
             assert.strictEqual(strip('const x: number = 1\nconst y: string = "a"'), 'const x         = 1\nconst y         = "a"');
@@ -1245,20 +1230,132 @@ console.log("Done");`;
 
     describe('Malformed Code Tolerance', () => {
         // These tests use intentionally malformed syntax that amaro rejects
+        // fibjs tolerates them and strips types where possible, preserving length
 
-        itMalformed('should handle unclosed brace (partial class)', 'class Foo { x: number');
+        itDiff('should handle unclosed brace (partial class)',
+            'class Foo { x: number',
+            'class Foo { x        ',  // fibjs: strips type annotation
+            null);  // amaro: throws
 
-        itMalformed('should handle unclosed paren (partial function)', 'function foo(x: number');
+        itDiff('should handle unclosed paren (partial function)',
+            'function foo(x: number',
+            '                      ',  // fibjs: erases as incomplete function signature
+            null);  // amaro: throws
 
-        itMalformed('should handle extra closing brace', 'const x: number = 1; }');
+        itDiff('should handle extra closing brace',
+            'const x: number = 1; }',
+            'const x         = 1; }',  // fibjs: strips type, keeps extra brace
+            null);  // amaro: throws
 
-        itMalformed('should handle mismatched brackets', 'const x: number = [1, 2)');
+        itDiff('should handle mismatched brackets',
+            'const x: number = [1, 2)',
+            'const x         = [1, 2)',  // fibjs: strips type, keeps mismatched bracket
+            null);  // amaro: throws
 
-        itMalformed('should handle double colon (invalid but tolerated)', 'const x:: number = 1');
+        itDiff('should handle double colon (invalid but tolerated)',
+            'const x:: number = 1',
+            'const x : number = 1',  // fibjs: erases first colon only
+            null);  // amaro: throws
 
-        itMalformed('should handle consecutive operators', 'const x: number = 1 ++ --');
+        itDiff('should handle consecutive operators',
+            'const x: number = 1 ++ --',
+            'const x         = 1 ++ --',  // fibjs: strips type, keeps invalid operators
+            null);  // amaro: throws
 
-        itMalformed('should handle random keywords', 'const x: number = class function');
+        itDiff('should handle random keywords',
+            'const x: number = class function',
+            'const x         = class         ',  // fibjs: strips type, erases dangling function
+            null);  // amaro: throws
+
+        itDiff('should handle truncated type alias',
+            'type T =',
+            '        ',  // fibjs: erases entire type alias
+            null);  // amaro: throws
+
+        itDiff('should handle truncated interface',
+            'interface A {',
+            '             ',  // fibjs: erases entire interface
+            null);  // amaro: throws
+
+        itDiff('should handle truncated object type annotation',
+            'const x: { a: number = 1',
+            'const x                 ',  // fibjs: erases type annotation including truncated object type
+            null);  // amaro: throws
+
+        itDiff('should handle missing identifier before type annotation',
+            'const : number = 1',
+            'const          = 1',  // fibjs: strips type annotation
+            null);  // amaro: throws
+
+        itDiff('should handle unterminated string literal',
+            'const s: string = "unterminated',
+            'const s         = "unterminated',  // fibjs: strips type, keeps unterminated string
+            null);  // amaro: throws
+
+        itDiff('should handle unterminated template literal',
+            'const s: string = `unterminated ${x}',
+            'const s         = `unterminated ${x}',  // fibjs: strips type, keeps unterminated template
+            null);  // amaro: throws
+
+        itDiff('should handle unterminated block comment',
+            'const x: number = 1; /* unterminated',
+            'const x         = 1;                ',  // fibjs: strips type, erases unterminated comment
+            null);  // amaro: throws
+
+        itDiff('should handle unterminated regex literal',
+            'const re: RegExp = /unterminated',
+            'const re         = /unterminated',  // fibjs: strips type, keeps unterminated regex
+            null);  // amaro: throws
+
+        itDiff('should handle incomplete hex escape in string',
+            'const s: string = "\\x";',
+            'const s         = "\\x";',  // fibjs: strips type, keeps invalid escape
+            null);  // amaro: throws
+
+        itDiff('should handle incomplete unicode escape in string',
+            'const s: string = "\\u{";',
+            'const s         = "\\u{";',  // fibjs: strips type, keeps invalid escape
+            null);  // amaro: throws
+
+        itDiff('should handle truncated generic call (missing >)',
+            'foo<string(1);',
+            'foo<string(1);',  // fibjs: preserves as-is (not recognized as type args)
+            null);  // amaro: throws
+
+        itDiff('should handle truncated arrow function (missing >)',
+            'const fn: (x: number) => number = (x: number) = x;',
+            'const fn                        = (x        ) = x;',  // fibjs: strips type annotations
+            null);  // amaro: throws
+
+        itDiff('should handle truncated tuple type',
+            'const t: [number, string = [1, "a"];',
+            'const t                             ',  // fibjs: erases entire type annotation
+            null);  // amaro: throws
+
+        itDiff('should handle truncated conditional type',
+            'type X<T> = T extends string ? 1 :',
+            '                                  ',  // fibjs: erases entire type alias
+            null);  // amaro: throws
+
+        itDiff('should handle truncated mapped type',
+            'type M<T> = { [K in keyof T]:',
+            '                             ',  // fibjs: erases entire type alias
+            null);  // amaro: throws
+
+        itDiff('should handle truncated import statement',
+            'import { a } from "mod"',
+            'import { a } from "mod"',  // fibjs: preserves valid import (just missing semicolon)
+            null);  // amaro: throws
+
+        itDiff('should handle truncated export statement',
+            'export { a',
+            'export { a',  // fibjs: preserves as-is (incomplete but no types)
+            null);  // amaro: throws
+
+        itDiff('should handle truncated object literal after as assertion',
+            'const x = ({ a: 1 } as { a: number',
+            'const x = ({ a: 1 }               ',  // fibjs: strips as assertion including truncated type
+            null);  // amaro: throws
 
     });
 
@@ -1341,6 +1438,12 @@ console.log("Done");`;
             it('should strip arrow function parameter type with return type', () => {
                 const input = 'const fn = (x: number): number => x * 2;';
                 const expected = 'const fn = (x        )         => x * 2;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip arrow function parameter type with default value and return type', () => {
+                const input = 'const avatar = (options: AvatarPluginOptions = {}): BetterAuthPlugin => {}';
+                const expected = 'const avatar = (options                      = {})                   => {}';
                 assert.strictEqual(strip(input), expected);
             });
 

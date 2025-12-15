@@ -1,5 +1,7 @@
 var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 var assert = require('assert');
+var child_process = require('child_process');
+var path = require('path');
 
 describe('TypeScript modules', () => {
     it("require cts", () => {
@@ -47,6 +49,26 @@ describe('TypeScript modules', () => {
         const t = await import('./ts_files/test6.mts');
         assert.deepEqual(t, {
             "test6": "test6"
+        });
+    });
+
+    describe('TypeScript error source display', () => {
+        it("should show original TS source in CTS error", () => {
+            const result = child_process.spawnSync(process.execPath, [
+                path.join(__dirname, 'ts_files/error_test.cts')
+            ]);
+            const stderr = result.stderr.toString();
+            // Error output should contain the original TypeScript source line with type annotations
+            assert.ok(stderr.includes('name: string'), "Error source line should show TypeScript type annotation 'name: string'");
+        });
+
+        it("should show original TS source in MTS error", () => {
+            const result = child_process.spawnSync(process.execPath, [
+                path.join(__dirname, 'ts_files/error_test.mts')
+            ]);
+            const stderr = result.stderr.toString();
+            // Error output should contain the original TypeScript source line with type annotations
+            assert.ok(stderr.includes('name: string'), "Error source line should show TypeScript type annotation 'name: string'");
         });
     });
 });

@@ -1111,9 +1111,6 @@ void TsStrip::parsePrimaryExpression() {
                 }
                 parseExpected(SyntaxKind::CloseParenToken);
 
-                if (reparsedAsExpression) {
-                    return;
-                }
                 // Check for arrow function return type annotation
                 // Only check for return type if we're actually going to see =>
                 // This distinguishes (a, b): T => ... from (a, b) : c in ternary
