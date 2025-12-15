@@ -67,6 +67,10 @@ public:
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
         mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
 
+        // Mark as ESM module
+        v8::Local<v8::Private> strIsModule = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("isModule"));
+        mod->SetPrivate(_context, strIsModule, v8::True(m_isolate->m_isolate)).IsJust();
+
         result_t hr = evaluate(id, mod, root_module);
         if (hr < 0) {
             saveModule();
@@ -88,8 +92,9 @@ public:
         obj_ptr<Buffer_base> data;
         v8::Local<v8::Value> exports;
         v8::Local<v8::Value> pendding;
+        bool isCJS = false;
 
-        hr = resove_module(id, base, data, exports, pendding);
+        hr = resove_module(id, base, data, exports, pendding, isCJS);
         if (hr < 0) {
             ThrowResult(hr);
             return v8::MaybeLocal<v8::Promise>();
@@ -100,6 +105,7 @@ public:
             return pendding.As<v8::Promise>();
 
         if (!IsEmpty(exports)) {
+            // For cached modules, directly return the exports
             v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
             resolver->Resolve(_context, exports).IsJust();
 
@@ -122,6 +128,10 @@ public:
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
         mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
+
+        // Mark as ESM module
+        v8::Local<v8::Private> strIsModule = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("isModule"));
+        mod->SetPrivate(_context, strIsModule, v8::True(m_isolate->m_isolate)).IsJust();
 
         v8::Local<v8::Object> mods = m_sb->mods();
 
@@ -155,7 +165,7 @@ public:
 private:
     // For dynamic import: check pendding promise and return it if module is being loaded
     result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& exports, v8::Local<v8::Value>& pendding)
+        v8::Local<v8::Value>& exports, v8::Local<v8::Value>& pendding, bool& isCJS)
     {
         result_t hr;
 
@@ -187,6 +197,13 @@ private:
         }
 
         if (!IsEmpty(mod)) {
+            // Check if module is ESM or CJS by looking at isModule private marker
+            v8::Local<v8::Context> _context = m_isolate->context();
+            v8::Local<v8::Private> strIsModule = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("isModule"));
+            JSValue isModuleVal = mod->GetPrivate(_context, strIsModule);
+            bool isESM = !isModuleVal->IsUndefined() && isModuleVal->IsTrue();
+            isCJS = !isESM;
+
             hr = m_sb->wait_module(mod, exports);
             if (hr < 0)
                 return hr;
@@ -198,7 +215,7 @@ private:
     }
 
     // For static imports in resolveModuleTree: no pendding check needed
-    result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& exports)
+    result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& exports, bool& isCJS)
     {
         result_t hr;
 
@@ -226,6 +243,13 @@ private:
         }
 
         if (!IsEmpty(mod)) {
+            // Check if module is ESM or CJS by looking at isModule private marker
+            v8::Local<v8::Context> _context = m_isolate->context();
+            v8::Local<v8::Private> strIsModule = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("isModule"));
+            JSValue isModuleVal = mod->GetPrivate(_context, strIsModule);
+            bool isESM = !isModuleVal->IsUndefined() && isModuleVal->IsTrue();
+            isCJS = !isESM;
+
             hr = m_sb->wait_module(mod, exports);
             if (hr < 0)
                 return hr;
@@ -287,7 +311,7 @@ private:
         return root_module;
     }
 
-    v8::Local<v8::Module> compile_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports)
+    v8::Local<v8::Module> compile_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports, bool isCJS = false)
     {
         v8::Local<v8::Context> _context = m_isolate->context();
         v8::Local<v8::Module> module;
@@ -306,7 +330,16 @@ private:
             int length = names->Length();
             std::vector<v8::Local<v8::String>> export_names;
 
-            export_names.push_back(m_isolate->NewString("default"));
+            v8::Local<v8::String> strDefault = m_isolate->NewString("default");
+            // For ESM (not CJS): exports is ModuleNamespace, need to get 'default' from it
+            // For CJS: exports itself is the default value
+            bool isESMNamespace = !isCJS && exports->IsModuleNamespaceObject();
+
+            // For CJS: always add default (exports itself is the default)
+            // For ESM: only add default if the module has it
+            bool hasDefault = isCJS || obj->Has(_context, strDefault).FromMaybe(false);
+            if (hasDefault)
+                export_names.push_back(strDefault);
             for (int i = 0; i < length; ++i) {
                 v8::Local<v8::String> name = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
                 v8::String::Utf8Value sname(m_isolate->m_isolate, name);
@@ -320,9 +353,22 @@ private:
             module->InstantiateModule(_context, resolveModuleCallback).IsJust();
             module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
 
-            module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
-            for (int i = 0; i < export_names.size() - 1; ++i) {
-                v8::Local<v8::String> name = export_names[i + 1];
+            // Set default export if present
+            if (hasDefault) {
+                // For ESM ModuleNamespace: get 'default' from namespace object
+                // For CJS: use exports object itself as default
+                if (isESMNamespace) {
+                    v8::Local<v8::Value> defaultValue = obj->Get(_context, strDefault).FromMaybe(v8::Local<v8::Value>());
+                    module->SetSyntheticModuleExport(m_isolate->m_isolate, strDefault, defaultValue).IsJust();
+                } else {
+                    module->SetSyntheticModuleExport(m_isolate->m_isolate, strDefault, exports).IsJust();
+                }
+            }
+
+            // Set named exports
+            size_t startIdx = hasDefault ? 1 : 0;
+            for (size_t i = startIdx; i < export_names.size(); ++i) {
+                v8::Local<v8::String> name = export_names[i];
                 v8::Local<v8::Value> value = obj->Get(_context, name).FromMaybe(v8::Local<v8::Value>());
                 if (value.IsEmpty())
                     return v8::Local<v8::Module>();
@@ -390,15 +436,16 @@ private:
             result_t hr;
             obj_ptr<Buffer_base> data;
             v8::Local<v8::Value> exports;
+            bool isCJS = false;
 
             exlib::string pname;
             path_base::dirname(base, pname);
 
-            hr = resove_module(id, pname, data, exports);
+            hr = resove_module(id, pname, data, exports, isCJS);
             if (hr < 0)
                 return hr;
 
-            v8::Local<v8::Module> dep_module = compile_module(id, data.As<Buffer>(), exports);
+            v8::Local<v8::Module> dep_module = compile_module(id, data.As<Buffer>(), exports, isCJS);
             if (dep_module.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -538,6 +585,10 @@ private:
                         mod->Set(_context, m_isolate->NewString("id"), strId).IsJust();
                         mod->Set(_context, m_isolate->NewString("exports"), module->GetModuleNamespace()).IsJust();
                         mod->Set(_context, m_isolate->NewString("filename"), strId).IsJust();
+
+                        // Mark as ESM module
+                        v8::Local<v8::Private> strIsModule = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("isModule"));
+                        mod->SetPrivate(_context, strIsModule, v8::True(m_isolate->m_isolate)).IsJust();
 
                         mods->Set(_context, strId, mod).IsJust();
                     }

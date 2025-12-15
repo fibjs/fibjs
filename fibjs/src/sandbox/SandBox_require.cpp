@@ -51,6 +51,10 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
     mod->SetPrivate(_context, strPendding, lock->wrap()).IsJust();
 
+    // Mark as CJS module (not ESM)
+    v8::Local<v8::Private> strIsModule = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("isModule"));
+    mod->SetPrivate(_context, strIsModule, v8::False(isolate->m_isolate)).IsJust();
+
     bool is_lock = false;
     lock->ac_acquire(true, is_lock);
 

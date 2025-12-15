@@ -90,6 +90,17 @@ describe('ECMAScript modules', () => {
             assert.equal(m.b_value, 'SHARED_VALUE');
             assert.equal(m.same_instance, true);
         });
+
+        it("cached module default export", async () => {
+            // Test that cached modules correctly resolve default exports
+            // When module A and B both import the same shared module,
+            // the second import should get the correct default export
+            var m = await import('./esm_files/esm21.mjs');
+
+            // Both A and B should get the correct default export value
+            assert.equal(m.a_result, 42);
+            assert.equal(m.b_result, 42);
+        });
     });
 
     describe('import from mjs', () => {
