@@ -191,6 +191,11 @@ public:
         return 0;
     };
 
+    virtual result_t stop()
+    {
+        return close();
+    };
+
     virtual result_t ref(obj_ptr<StatsWatcher_base>& retVal)
     {
         isolate_ref();

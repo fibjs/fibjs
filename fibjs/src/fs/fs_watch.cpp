@@ -60,7 +60,12 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive);
+    exlib::string encoding = "utf8";
+    hr = GetConfigValue(options, "encoding", encoding, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive, encoding);
     retVal = pFW;
 
     return pFW->start();

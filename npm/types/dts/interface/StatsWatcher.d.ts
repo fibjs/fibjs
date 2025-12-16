@@ -34,6 +34,12 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     close(): void;
 
     /**
+     * @description 停止对目标文件路径的观察, 清除引用计数(不再 hold 进程)，与 close() 等价
+     *   
+     */
+    stop(): void;
+
+    /**
      * @description 增加引用计数, 告知 fibjs 只要该 watcher 还在使用就不要退出进程,
      *   经由 `fs.watchFile()` 得到的 StatsWatcher 默认已调用了该方法, 即默认就会 hold 进程.
      * 

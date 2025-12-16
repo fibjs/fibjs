@@ -25,6 +25,7 @@ class StatsWatcher_base : public EventEmitter_base {
 public:
     // StatsWatcher_base
     virtual result_t close() = 0;
+    virtual result_t stop() = 0;
     virtual result_t ref(obj_ptr<StatsWatcher_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<StatsWatcher_base>& retVal) = 0;
 
@@ -43,6 +44,7 @@ public:
     static void s_get_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -53,6 +55,7 @@ inline ClassInfo& StatsWatcher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "close", s_close, false, ClassData::ASYNC_SYNC },
+        { "stop", s_stop, false, ClassData::ASYNC_SYNC },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
         { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
@@ -108,6 +111,18 @@ inline void StatsWatcher_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(0, 0);
 
     hr = pInst->close();
+
+    METHOD_VOID();
+}
+
+inline void StatsWatcher_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(StatsWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->stop();
 
     METHOD_VOID();
 }

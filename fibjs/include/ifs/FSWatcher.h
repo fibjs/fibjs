@@ -25,6 +25,8 @@ class FSWatcher_base : public EventEmitter_base {
 public:
     // FSWatcher_base
     virtual result_t close() = 0;
+    virtual result_t ref(obj_ptr<FSWatcher_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<FSWatcher_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -40,11 +42,17 @@ public:
 public:
     static void s_get_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onchangeonly(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onchangeonly(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onrenameonly(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onrenameonly(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -52,11 +60,15 @@ namespace fibjs {
 inline ClassInfo& FSWatcher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "close", s_close, false, ClassData::ASYNC_SYNC }
+        { "close", s_close, false, ClassData::ASYNC_SYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "onchange", s_get_onchange, s_set_onchange, false },
+        { "onchangeonly", s_get_onchangeonly, s_set_onchangeonly, false },
+        { "onrenameonly", s_get_onrenameonly, s_set_onrenameonly, false },
         { "onclose", s_get_onclose, s_set_onclose, false },
         { "onerror", s_get_onerror, s_set_onerror, false }
     };
@@ -96,6 +108,62 @@ inline void FSWatcher_base::s_set_onchange(const v8::FunctionCallbackInfo<v8::Va
     ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->setListener("change", v0);
+
+    METHOD_VOID();
+}
+
+inline void FSWatcher_base::s_get_onchangeonly(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("changeonly", vr);
+
+    METHOD_RETURN();
+}
+
+inline void FSWatcher_base::s_set_onchangeonly(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("changeonly", v0);
+
+    METHOD_VOID();
+}
+
+inline void FSWatcher_base::s_get_onrenameonly(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("renameonly", vr);
+
+    METHOD_RETURN();
+}
+
+inline void FSWatcher_base::s_set_onrenameonly(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("renameonly", v0);
 
     METHOD_VOID();
 }
@@ -166,5 +234,33 @@ inline void FSWatcher_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
     hr = pInst->close();
 
     METHOD_VOID();
+}
+
+inline void FSWatcher_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<FSWatcher_base> vr;
+
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void FSWatcher_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<FSWatcher_base> vr;
+
+    METHOD_INSTANCE(FSWatcher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 }
