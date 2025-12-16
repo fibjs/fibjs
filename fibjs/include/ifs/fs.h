@@ -43,6 +43,7 @@ public:
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
     static result_t rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
+    static result_t rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
@@ -110,6 +111,7 @@ public:
     static void s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -155,6 +157,7 @@ public:
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, rmdir, exlib::string, v8::Local<v8::Object>);
+    ASYNC_STATIC2(fs_base, rm, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
@@ -214,6 +217,7 @@ inline ClassInfo& fs_base::class_info()
         { "unlink", s_static_unlink, true, ClassData::ASYNC_ASYNC },
         { "mkdir", s_static_mkdir, true, ClassData::ASYNC_ASYNC },
         { "rmdir", s_static_rmdir, true, ClassData::ASYNC_ASYNC },
+        { "rm", s_static_rm, true, ClassData::ASYNC_ASYNC },
         { "rename", s_static_rename, true, ClassData::ASYNC_ASYNC },
         { "copyFile", s_static_copyFile, true, ClassData::ASYNC_ASYNC },
         { "chmod", s_static_chmod, true, ClassData::ASYNC_ASYNC },
@@ -381,6 +385,23 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = acb_rmdir(v0, v1, cb, args);
     else
         hr = ac_rmdir(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("fs.rm");
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_rm(v0, v1, cb, args);
+    else
+        hr = ac_rm(v0, v1);
 
     METHOD_VOID();
 }

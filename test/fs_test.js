@@ -275,17 +275,23 @@ describe('fs', () => {
         });
     });
 
-    it("rmdir recursive should work on single file", () => {
+    it("rmdir recursive should throw error on single file", () => {
         var test_file_path = path.join(homedir, 'test_file_for_rmdir' + vmid + '.txt');
 
         // Create a test file
         fs.writeFile(test_file_path, 'test content');
         assert.equal(fs.exists(test_file_path), true);
 
-        // Remove file using rmdir recursive (Node.js supports this)
-        fs.rmdir(test_file_path, { recursive: true });
+        // rmdir recursive should not delete files, use rm instead
+        assert.throws(() => {
+            fs.rmdir(test_file_path, { recursive: true });
+        });
 
-        // Verify file is removed
+        // File should still exist
+        assert.equal(fs.exists(test_file_path), true);
+
+        // Clean up using rm
+        fs.rm(test_file_path);
         assert.equal(fs.exists(test_file_path), false);
     });
 
@@ -478,6 +484,143 @@ describe('fs', () => {
 
         // Verify completely removed
         assert.equal(fs.exists(base_path), false);
+    });
+
+    it("rm removes single file", () => {
+        var test_file = path.join(homedir, 'rm_single_file_test' + vmid + '.txt');
+
+        // Create a test file
+        fs.writeFile(test_file, 'test content');
+        assert.equal(fs.exists(test_file), true);
+
+        // Remove file using rm
+        fs.rm(test_file);
+
+        // Verify file is removed
+        assert.equal(fs.exists(test_file), false);
+    });
+
+    it("rm removes empty directory", () => {
+        var test_dir = path.join(homedir, 'rm_empty_dir_test' + vmid);
+
+        // Create an empty directory
+        fs.mkdir(test_dir);
+        assert.equal(fs.exists(test_dir), true);
+
+        // Remove directory using rm
+        fs.rm(test_dir);
+
+        // Verify directory is removed
+        assert.equal(fs.exists(test_dir), false);
+    });
+
+    it("rm throws error for non-empty directory without recursive", () => {
+        var test_dir = path.join(homedir, 'rm_non_empty_test' + vmid);
+        var test_file = path.join(test_dir, 'file.txt');
+
+        // Create directory with file
+        fs.mkdir(test_dir);
+        fs.writeFile(test_file, 'content');
+        assert.equal(fs.exists(test_dir), true);
+        assert.equal(fs.exists(test_file), true);
+
+        // Should throw error when trying to remove non-empty directory without recursive
+        assert.throws(() => {
+            fs.rm(test_dir);
+        });
+
+        // Clean up
+        fs.rm(test_dir, { recursive: true });
+    });
+
+    it("rm recursive removes directory with contents", () => {
+        var base_path = path.join(homedir, 'rm_recursive_test' + vmid);
+        var nested_path = path.join(base_path, 'level1', 'level2');
+        var file_in_nested = path.join(nested_path, 'test.txt');
+        var file_in_root = path.join(base_path, 'root.txt');
+
+        // Create nested structure
+        fs.mkdir(nested_path, { recursive: true });
+        fs.writeFile(file_in_nested, 'nested content');
+        fs.writeFile(file_in_root, 'root content');
+
+        // Verify structure exists
+        assert.equal(fs.exists(base_path), true);
+        assert.equal(fs.exists(nested_path), true);
+        assert.equal(fs.exists(file_in_nested), true);
+        assert.equal(fs.exists(file_in_root), true);
+
+        // Remove recursively
+        fs.rm(base_path, { recursive: true });
+
+        // Verify everything is removed
+        assert.equal(fs.exists(base_path), false);
+    });
+
+    it("rm throws error for non-existent path", () => {
+        var non_existent = path.join(homedir, 'non_existent_rm_test' + vmid + Date.now());
+
+        assert.throws(() => {
+            fs.rm(non_existent);
+        });
+    });
+
+    it("rm recursive throws error for non-existent path", () => {
+        var non_existent = path.join(homedir, 'non_existent_rm_recursive_test' + vmid + Date.now());
+
+        assert.throws(() => {
+            fs.rm(non_existent, { recursive: true });
+        });
+    });
+
+    it("rm recursive with complex structure", () => {
+        var base_path = path.join(homedir, 'rm_complex_test' + vmid);
+
+        // Create complex structure
+        var dirs = [
+            path.join(base_path, 'dir1'),
+            path.join(base_path, 'dir2'),
+            path.join(base_path, 'dir1', 'subdir1'),
+            path.join(base_path, 'dir1', 'subdir2'),
+            path.join(base_path, 'dir2', 'subdir3')
+        ];
+
+        dirs.forEach(dir => fs.mkdir(dir, { recursive: true }));
+
+        // Create files
+        fs.writeFile(path.join(base_path, 'root.txt'), 'root');
+        fs.writeFile(path.join(base_path, 'dir1', 'file1.txt'), 'file1');
+        fs.writeFile(path.join(base_path, 'dir1', 'subdir1', 'deep.txt'), 'deep');
+        fs.writeFile(path.join(base_path, 'dir2', 'file2.txt'), 'file2');
+
+        // Verify structure
+        assert.equal(fs.exists(base_path), true);
+        dirs.forEach(dir => assert.equal(fs.exists(dir), true));
+
+        // Remove all
+        fs.rm(base_path, { recursive: true });
+
+        // Verify removed
+        assert.equal(fs.exists(base_path), false);
+    });
+
+    it("rmdir without recursive should not delete files", () => {
+        var test_file = path.join(homedir, 'rmdir_file_test' + vmid + '.txt');
+
+        // Create a test file
+        fs.writeFile(test_file, 'test content');
+        assert.equal(fs.exists(test_file), true);
+
+        // rmdir should fail on a file (without recursive)
+        assert.throws(() => {
+            fs.rmdir(test_file);
+        });
+
+        // File should still exist
+        assert.equal(fs.exists(test_file), true);
+
+        // Clean up
+        fs.rm(test_file);
     });
 
     it("mkdir recursive", () => {

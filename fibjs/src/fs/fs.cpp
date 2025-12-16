@@ -774,196 +774,201 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     });
 }
 
-result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
-{
-    class AsyncUVRMDir : public uv_fs_t {
-    public:
-        AsyncUVRMDir(exlib::string path, AsyncEvent* ac)
-            : m_ac(ac)
-            , m_path(path)
-            , m_state(STATE_STAT)
-        {
-        }
+class AsyncUVRM : public uv_fs_t {
+public:
+    AsyncUVRM(exlib::string path, bool rmFile, AsyncEvent* ac)
+        : m_ac(ac)
+        , m_path(path)
+        , m_rmFile(rmFile)
+    {
+    }
 
-        ~AsyncUVRMDir()
-        {
-            uv_fs_req_cleanup(this);
-        }
+    ~AsyncUVRM()
+    {
+        uv_fs_req_cleanup(this);
+    }
 
-        enum State {
-            STATE_STAT,
-            STATE_SCANDIR,
-            STATE_REMOVE_ENTRY,
-            STATE_RMDIR
-        };
+public:
+    static void cb_stat(uv_fs_t* req)
+    {
+        AsyncUVRM* pThis = (AsyncUVRM*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
 
-    public:
-        static void cb_stat(uv_fs_t* req)
-        {
-            AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-
-            if (ret < 0) {
-                // Path doesn't exist or other error
-                pThis->m_ac->apost(ret);
-                delete pThis;
-                return;
-            }
-
-            // Check if it's a regular file
-            if (S_ISREG(pThis->statbuf.st_mode)) {
-                // It's a file, remove it directly
-                uv_fs_req_cleanup(pThis);
-                ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
-                if (ret != 0) {
-                    pThis->m_ac->apost(ret);
-                    delete pThis;
-                }
-                return;
-            } else if (S_ISDIR(pThis->statbuf.st_mode)) {
-                // It's a directory, scan contents first
-                uv_fs_req_cleanup(pThis);
-                ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
-                if (ret != 0) {
-                    pThis->m_ac->apost(ret);
-                    delete pThis;
-                }
-                return;
-            } else {
-                // Other types (symlinks, etc.), try to unlink
-                uv_fs_req_cleanup(pThis);
-                ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
-                if (ret != 0) {
-                    pThis->m_ac->apost(ret);
-                    delete pThis;
-                }
-                return;
-            }
-        }
-
-        static void cb_scandir(uv_fs_t* req)
-        {
-            AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-
-            if (ret < 0) {
-                pThis->m_ac->apost(ret);
-                delete pThis;
-                return;
-            }
-
-            // Collect all entries that need to be removed
-            uv_dirent_t dirent;
-            while (uv_fs_scandir_next(req, &dirent) != UV_EOF) {
-                pThis->m_entries.push_back(std::make_pair(dirent.name, dirent.type));
-            }
-
-            // Start removing entries
-            pThis->remove_next_entry();
-        }
-
-        static void cb_entry_removed(uv_fs_t* req)
-        {
-            AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-
-            if (ret < 0) {
-                pThis->m_ac->apost(ret);
-                delete pThis;
-                return;
-            }
-
-            // Continue removing next entry
-            pThis->remove_next_entry();
-        }
-
-        static void cb_rmdir(uv_fs_t* req)
-        {
-            AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-
+        if (ret < 0) {
+            // Path doesn't exist or other error
             pThis->m_ac->apost(ret);
             delete pThis;
+            return;
         }
 
-        static void cb_unlink(uv_fs_t* req)
-        {
-            AsyncUVRMDir* pThis = (AsyncUVRMDir*)req;
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-
-            pThis->m_ac->apost(ret);
-            delete pThis;
-        }
-
-        void remove_next_entry()
-        {
-            if (m_entries.empty()) {
-                // All entries removed, now remove the directory itself
-                uv_fs_req_cleanup(this);
-                int32_t ret = uv_fs_rmdir(s_uv_loop, this, m_path.c_str(), cb_rmdir);
-                if (ret != 0) {
-                    m_ac->apost(ret);
-                    delete this;
-                }
+        // Check if it's a regular file
+        if (S_ISREG(pThis->statbuf.st_mode)) {
+            if (!pThis->m_rmFile) {
+                // rmdir does not delete files
+                pThis->m_ac->apost(UV_ENOTDIR);
+                delete pThis;
                 return;
             }
-
-            // Get next entry to remove
-            auto entry = m_entries.back();
-            m_entries.pop_back();
-
-            exlib::string entry_path = m_path + PATH_SLASH + entry.first;
-
-            uv_fs_req_cleanup(this);
-
-            if (entry.second == UV_DIRENT_DIR) {
-                // For directories, create a new AsyncUVRMDir instance
-                AsyncUVRMDir* subRemover = new AsyncUVRMDir(entry_path, new SubDirEvent(this));
-                int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
-                if (ret != 0) {
-                    m_ac->apost(ret);
-                    delete subRemover;
-                    delete this;
-                }
-            } else {
-                // For files, unlink directly
-                int32_t ret = uv_fs_unlink(s_uv_loop, this, entry_path.c_str(), cb_entry_removed);
-                if (ret != 0) {
-                    m_ac->apost(ret);
-                    delete this;
-                }
+            // It's a file, remove it directly
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
             }
+            return;
+        } else if (S_ISDIR(pThis->statbuf.st_mode)) {
+            // It's a directory, scan contents first
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
+            }
+            return;
+        } else {
+            if (!pThis->m_rmFile) {
+                // rmdir does not delete non-directory entries
+                pThis->m_ac->apost(UV_ENOTDIR);
+                delete pThis;
+                return;
+            }
+            // Other types (symlinks, etc.), try to unlink
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
+            }
+            return;
+        }
+    }
+
+    static void cb_scandir(uv_fs_t* req)
+    {
+        AsyncUVRM* pThis = (AsyncUVRM*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
         }
 
-        class SubDirEvent : public AsyncEvent {
-        public:
-            SubDirEvent(AsyncUVRMDir* parent)
-                : m_parent(parent)
-            {
-            }
+        // Collect all entries that need to be removed
+        uv_dirent_t dirent;
+        while (uv_fs_scandir_next(req, &dirent) != UV_EOF) {
+            pThis->m_entries.push_back(std::make_pair(dirent.name, dirent.type));
+        }
 
-            virtual void apost(int32_t hr) override
-            {
-                if (hr < 0) {
-                    m_parent->m_ac->apost(hr);
-                    delete m_parent;
-                } else {
-                    m_parent->remove_next_entry();
-                }
+        // Start removing entries
+        pThis->remove_next_entry();
+    }
+
+    static void cb_entry_removed(uv_fs_t* req)
+    {
+        AsyncUVRM* pThis = (AsyncUVRM*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
+        }
+
+        // Continue removing next entry
+        pThis->remove_next_entry();
+    }
+
+    static void cb_rmdir(uv_fs_t* req)
+    {
+        AsyncUVRM* pThis = (AsyncUVRM*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        pThis->m_ac->apost(ret);
+        delete pThis;
+    }
+
+    static void cb_unlink(uv_fs_t* req)
+    {
+        AsyncUVRM* pThis = (AsyncUVRM*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        pThis->m_ac->apost(ret);
+        delete pThis;
+    }
+
+    void remove_next_entry()
+    {
+        if (m_entries.empty()) {
+            // All entries removed, now remove the directory itself
+            uv_fs_req_cleanup(this);
+            int32_t ret = uv_fs_rmdir(s_uv_loop, this, m_path.c_str(), cb_rmdir);
+            if (ret != 0) {
+                m_ac->apost(ret);
                 delete this;
             }
+            return;
+        }
 
-        private:
-            AsyncUVRMDir* m_parent;
-        };
+        // Get next entry to remove
+        auto entry = m_entries.back();
+        m_entries.pop_back();
+
+        exlib::string entry_path = m_path + PATH_SLASH + entry.first;
+
+        uv_fs_req_cleanup(this);
+
+        if (entry.second == UV_DIRENT_DIR) {
+            // For directories, create a new AsyncUVRM instance
+            AsyncUVRM* subRemover = new AsyncUVRM(entry_path, m_rmFile, new SubDirEvent(this));
+            int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
+            if (ret != 0) {
+                m_ac->apost(ret);
+                delete subRemover;
+                delete this;
+            }
+        } else {
+            // For files, unlink directly
+            int32_t ret = uv_fs_unlink(s_uv_loop, this, entry_path.c_str(), cb_entry_removed);
+            if (ret != 0) {
+                m_ac->apost(ret);
+                delete this;
+            }
+        }
+    }
+
+    class SubDirEvent : public AsyncEvent {
+    public:
+        SubDirEvent(AsyncUVRM* parent)
+            : m_parent(parent)
+        {
+        }
+
+        virtual void apost(int32_t hr) override
+        {
+            if (hr < 0) {
+                m_parent->m_ac->apost(hr);
+                delete m_parent;
+            } else {
+                m_parent->remove_next_entry();
+            }
+            delete this;
+        }
 
     private:
-        AsyncEvent* m_ac;
-        exlib::string m_path;
-        State m_state;
-        std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
+        AsyncUVRM* m_parent;
     };
 
+private:
+    AsyncEvent* m_ac;
+    exlib::string m_path;
+    bool m_rmFile;
+    std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
+};
+
+result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
+{
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
 
@@ -984,7 +989,40 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_stat(s_uv_loop, new AsyncUVRMDir(path, ac), path.c_str(), AsyncUVRMDir::cb_stat);
+        return uv_fs_stat(s_uv_loop, new AsyncUVRM(path, false, ac), path.c_str(), AsyncUVRM::cb_stat);
+    });
+}
+
+result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        bool recursive = false;
+        GetConfigValue(opt, "recursive", recursive);
+        ac->m_ctx[0] = recursive;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    bool recursive = ac->m_ctx[0].boolVal();
+
+    if (!recursive) {
+        // Try to unlink first (for files)
+        AutoReq req;
+        int32_t ret = uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+        if (ret < 0) {
+            // If unlink fails, try rmdir (for directories)
+            uv_fs_req_cleanup(&req);
+            return uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
+        }
+        return ret;
+    }
+
+    os_resolve(path);
+
+    return uv_async([&] {
+        return uv_fs_stat(s_uv_loop, new AsyncUVRM(path, true, ac), path.c_str(), AsyncUVRM::cb_stat);
     });
 }
 

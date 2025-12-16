@@ -162,6 +162,23 @@ declare module 'fs' {
     function rmdir(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 删除一个文件或目录
+     * 
+     *      删除参数可以包含以下值：
+     *      ```JavaScript
+     *      {
+     *          recursive: false // specify whether all subdirectories and files should be removed. Default: false
+     *      }
+     *      ```
+     *      @param path 指定要删除的目录名
+     *      @param opt 指定删除参数
+     *      
+     */
+    function rm(path: string, opt?: FIBJS.GeneralObject): void;
+
+    function rm(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 重新命名一个文件
      *      @param from 指定更名的文件
      *      @param to 指定要修改的新文件名
