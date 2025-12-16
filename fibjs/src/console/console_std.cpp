@@ -6,7 +6,6 @@
  */
 
 #include <exlib/include/osconfig.h>
-#ifndef iPhone
 
 #include "console.h"
 #include "Buffer.h"
@@ -102,5 +101,3 @@ result_t std_logger::write(AsyncEvent* ac)
     return 0;
 }
 }
-
-#endif

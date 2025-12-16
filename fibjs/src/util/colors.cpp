@@ -49,12 +49,8 @@ class color_initer {
 public:
     color_initer()
     {
-#ifdef iPhone
-        hasColors = true;
-#else
         hasColors = false;
         tty_base::isatty(_fileno(stdout), hasColors);
-#endif
 
         char buf[4096];
         size_t sz = sizeof(buf);
