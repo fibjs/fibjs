@@ -20,39 +20,123 @@ module uuid
     /*! @brief Use name as X.500 DN when create uuid by md5 and sha1 */
     const Integer X509 = 3;
 
-    /*! @brief Generate uuid by given string
-     @param s String to describe uuid
-     @return Return uuidValue object
-     */
-    static uuidValue uuid(String s);
+    /*! @brief Return nil UUID string */
+    static readonly String NIL;
 
-    /*! @brief Generate uuid by given binary data
-     @param data Data to describe uuid
-     @return Return uuidValue object
-     */
-    static uuidValue uuid(Buffer data);
+    /*! @brief Return max UUID string */
+    static readonly String MAX;
 
-    /*! @brief Generate uuid by time and host name
-     @return Return uuidValue object
-     */
-    static uuidValue node();
+    /*! @brief DNS namespace UUID for v3 and v5 */
+    static readonly String DNS_NAMESPACE;
 
-    /*! @brief Generate uuid by given md5
-     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, and uuid.X509
-     @param name Name of uuid
-     @return Return uuidValue object
-     */
-    static uuidValue md5(Integer ns, String name);
+    /*! @brief URL namespace UUID for v3 and v5 */
+    static readonly String URL_NAMESPACE;
 
-    /*! @brief Generate uuid randomly
-     @return Return uuidValue object
+    /*! @brief Parse UUID string to binary
+     @param uuid UUID string to parse
+     @return Return parsed binary id
      */
-    static uuidValue random();
+    static Buffer parse(String uuid);
 
-    /*! @brief Generate uuid by given sha1
-     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, and uuid.X509
-     @param name Name of uuid
-     @return Return uuidValue object
+    /*! @brief Convert binary array to UUID string
+     @param arr Buffer containing UUID binary data, length must be at least 16 bytes
+     @param offset Optional, starting offset of UUID data in array, default is 0
+     @return Return converted UUID string
      */
-    static uuidValue sha1(Integer ns, String name);
+    static Buffer stringify(Buffer arr, Integer offset = 0);
+
+    /*! @brief Create UUID using timestamp
+     @param options Optional object with properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, timestamp in milliseconds), nsecs (Integer, timestamp in nanoseconds)
+     @return Return generated UUID string
+     */
+    static String v1(Object options = {});
+
+    /*! @brief Create UUID using MD5 namespace (string format)
+     @param name Name string
+     @param ns Namespace UUID string or predefined namespace
+     @return Return generated UUID string
+     */
+    static String v3(String name, String ns);
+
+    /*! @brief Create UUID using random number
+     @param options Optional object with properties: random (Buffer, random bytes), rng (Function, random number generator)
+     @return Return generated UUID string
+     */
+    static String v4(Object options = {});
+
+    /*! @brief Create UUID using SHA1 namespace (string format)
+     @param name Name string
+     @param ns Namespace UUID string or predefined namespace
+     @return Return generated UUID string
+     */
+    static String v5(String name, String ns);
+
+    /*! @brief Create UUID v6 using reordered timestamp
+     @param options Optional object with properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, timestamp in milliseconds), nsecs (Integer, timestamp in nanoseconds)
+     @return Return generated UUID string
+     */
+    static String v6(Object options = {});
+
+    /*! @brief Create UUID v7 using Unix Epoch timestamp
+     @param options Optional object with properties: msecs (Integer, timestamp in milliseconds)
+     @return Return generated UUID string
+     */
+    static String v7(Object options = {});
+
+    /*! @brief Convert UUID v1 to v6
+     @param uuid UUID v1 string
+     @return Return converted v6 UUID string
+     */
+    static String v1ToV6(String uuid);
+
+    /*! @brief Convert UUID v6 to v1
+     @param uuid UUID v6 string
+     @return Return converted v1 UUID string
+     */
+    static String v6ToV1(String uuid);
+
+    /*! @brief Validate UUID string format
+     @param uuid UUID string to validate
+     @return Return true if valid, false otherwise
+     */
+    static Boolean validate(String uuid);
+
+    /*! @brief Get UUID version number
+     @param uuid UUID string to check
+     @return Return version number (0-7), undefined if invalid
+     */
+    static Integer version(String uuid);
+
+    /*! @brief Create UUID using time and host name
+     @return Return generated binary id
+     */
+    static Buffer node();
+
+    /*! @brief Create UUID using MD5 namespace (binary format)
+     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     @param name Name string
+     @return Return generated binary id
+     */
+    static Buffer md5(Integer ns, String name);
+
+    /*! @brief Create UUID using random number (binary format)
+     @return Return generated binary id
+     */
+    static Buffer random();
+
+    /*! @brief Create UUID using SHA1 namespace (binary format)
+     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     @param name Name string
+     @return Return generated binary id
+     */
+    static Buffer sha1(Integer ns, String name);
+
+    /*! @brief Create UUID using Snowflake algorithm
+     @return Return generated binary id
+     */
+    static Buffer snowflake();
+
+    /*! @brief Get or set Snowflake algorithm host id */
+    static Integer hostID;
 };
+

@@ -25,6 +25,9 @@ namespace fibjs {
 
 DECLARE_MODULE(uuid);
 
+// UUID epoch offset: 100-nanosecond intervals from Oct 15, 1582 to Jan 1, 1970
+static const uint64_t GREGORIAN_OFFSET = 0x01B21DD213814000ULL;
+
 // UUID namespace strings for v3 and v5
 static const char* s_ns_str[4] = { "ns:DNS", "ns:URL", "ns:OID", "ns:X500" };
 static uint8_t s_ns_uuid[4][16];
@@ -80,7 +83,7 @@ static uint64_t get_uuid_timestamp()
     // Convert to 100-nanosecond intervals and add UUID epoch offset
     // UUID epoch starts at Oct 15, 1582, Unix epoch starts at Jan 1, 1970
     // Difference is 122192928000000000 100-nanosecond intervals
-    uint64_t uuid_time = (microseconds * 10) + 0x01B21DD213814000ULL;
+    uint64_t uuid_time = (microseconds * 10) + GREGORIAN_OFFSET;
 
 #ifdef _WIN32
     // Add high-resolution counter for better precision on Windows
@@ -317,6 +320,18 @@ result_t uuid_base::get_MAX(exlib::string& retVal)
     return 0;
 }
 
+result_t uuid_base::get_DNS_NAMESPACE(exlib::string& retVal)
+{
+    retVal = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
+    return 0;
+}
+
+result_t uuid_base::get_URL_NAMESPACE(exlib::string& retVal)
+{
+    retVal = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
+    return 0;
+}
+
 result_t uuid_base::parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal)
 {
     uint8_t uuid_bytes[16];
@@ -335,23 +350,23 @@ result_t uuid_base::validate(exlib::string uuid, bool& retVal)
     return 0;
 }
 
-result_t uuid_base::stringify(v8::Local<v8::Array> arr, int32_t offset, exlib::string& retVal)
+result_t uuid_base::stringify(Buffer_base* buf, int32_t offset, exlib::string& retVal)
 {
-    // For now, just generate a random UUID v4 as placeholder
-    // TODO: Extract bytes from array properly
-    uint8_t uuid[16];
-    get_random_bytes(uuid, 16);
-
-    // Set version (4) and variant bits
-    uuid[6] = (uuid[6] & 0x0F) | 0x40; // Version 4
-    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
-
+    exlib::string data;
+    buf->toString(data);
+    
+    if ((size_t)(offset + 16) > data.length())
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    
+    const uint8_t* uuid = (const uint8_t*)data.c_str() + offset;
     uuid_to_string(uuid, retVal);
     return 0;
 }
 
-result_t uuid_base::v1(exlib::string& retVal)
+result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
 {
+    Isolate* isolate = Isolate::current();
+    
     uint8_t uuid[16];
     static uint64_t last_timestamp = 0;
     static uint16_t clock_seq = 0;
@@ -370,14 +385,69 @@ result_t uuid_base::v1(exlib::string& retVal)
         initialized = true;
     }
 
-    uint64_t timestamp = get_uuid_timestamp();
-
-    // Ensure monotonic timestamp
-    if (timestamp <= last_timestamp) {
-        timestamp = last_timestamp + 1;
-        clock_seq = (clock_seq + 1) & 0x3FFF;
+    // Parse options if provided
+    bool has_node = false;
+    bool has_clockseq = false;
+    uint64_t custom_msecs = 0;
+    uint64_t custom_nsecs = 0;
+    bool has_custom_time = false;
+    
+    if (!options.IsEmpty() && options->IsObject()) {
+        v8::Local<v8::Context> context = isolate->context();
+        
+        // Get node option
+        v8::Local<v8::Value> node_val;
+        if (options->Get(context, isolate->NewString("node")).ToLocal(&node_val) && node_val->IsObject()) {
+            obj_ptr<Buffer_base> node_buf = Buffer_base::getInstance(node_val);
+            if (node_buf) {
+                Buffer* p = (Buffer*)node_buf.get();
+                if (p->length() >= 6) {
+                    memcpy(node_id, p->data(), 6);
+                    has_node = true;
+                }
+            }
+        }
+        
+        // Get clockseq option
+        v8::Local<v8::Value> clockseq_val;
+        if (options->Get(context, isolate->NewString("clockseq")).ToLocal(&clockseq_val) && clockseq_val->IsNumber()) {
+            clock_seq = clockseq_val->Int32Value(context).FromMaybe(0) & 0x3FFF;
+            has_clockseq = true;
+        }
+        
+        // Get msecs option
+        v8::Local<v8::Value> msecs_val;
+        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
+            custom_msecs = msecs_val->IntegerValue(context).FromMaybe(0);
+            has_custom_time = true;
+        }
+        
+        // Get nsecs option
+        v8::Local<v8::Value> nsecs_val;
+        if (options->Get(context, isolate->NewString("nsecs")).ToLocal(&nsecs_val) && nsecs_val->IsNumber()) {
+            custom_nsecs = nsecs_val->IntegerValue(context).FromMaybe(0);
+        }
     }
-    last_timestamp = timestamp;
+
+    uint64_t timestamp;
+    if (has_custom_time) {
+        // Convert msecs to UUID timestamp (100-nanosecond intervals since Oct 15, 1582)
+        timestamp = (custom_msecs * 10000ULL) + GREGORIAN_OFFSET;
+        if (custom_nsecs > 0) {
+            timestamp += custom_nsecs / 100;
+        }
+    } else {
+        timestamp = get_uuid_timestamp();
+    }
+
+    // Ensure monotonic timestamp if not using custom values
+    if (!has_custom_time && !has_clockseq) {
+        if (timestamp <= last_timestamp) {
+            timestamp = last_timestamp + 1;
+            clock_seq = (clock_seq + 1) & 0x3FFF;
+        }
+        last_timestamp = timestamp;
+    }
 
     // Pack UUID v1 format
     // Time low (32 bits)
@@ -405,18 +475,330 @@ result_t uuid_base::v1(exlib::string& retVal)
     return 0;
 }
 
-result_t uuid_base::v4(exlib::string& retVal)
+result_t uuid_base::v4(v8::Local<v8::Object> options, exlib::string& retVal)
 {
+    Isolate* isolate = Isolate::current();
     uint8_t uuid[16];
 
-    // Generate random bytes
-    get_random_bytes(uuid, 16);
+    // Check if custom random bytes provided
+    bool has_random = false;
+    if (!options.IsEmpty() && options->IsObject()) {
+        v8::Local<v8::Context> context = isolate->context();
+        
+        // Get random option
+        v8::Local<v8::Value> random_val;
+        if (options->Get(context, isolate->NewString("random")).ToLocal(&random_val) && random_val->IsObject()) {
+            obj_ptr<Buffer_base> random_buf = Buffer_base::getInstance(random_val);
+            if (random_buf) {
+                Buffer* p = (Buffer*)random_buf.get();
+                if (p->length() >= 16) {
+                    memcpy(uuid, p->data(), 16);
+                    has_random = true;
+                }
+            }
+        }
+    }
+    
+    if (!has_random) {
+        // Generate random bytes
+        get_random_bytes(uuid, 16);
+    }
 
     // Set version (4) and variant bits according to RFC 4122
     uuid[6] = (uuid[6] & 0x0F) | 0x40; // Version 4
     uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
 
     uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::v3(exlib::string name, exlib::string ns, exlib::string& retVal)
+{
+    init_namespaces();
+    
+    uint8_t ns_bytes[16];
+    if (!uuid_from_string(ns.c_str(), ns_bytes)) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Create MD5 hash of namespace UUID + name
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, ns_bytes, 16);
+    MD5_Update(&ctx, name.c_str(), name.length());
+
+    uint8_t hash[MD5_DIGEST_LENGTH];
+    MD5_Final(hash, &ctx);
+
+    // Convert hash to UUID v3 format
+    uint8_t uuid[16];
+    memcpy(uuid, hash, 16);
+
+    // Set version (3) and variant bits according to RFC 4122
+    uuid[6] = (uuid[6] & 0x0F) | 0x30; // Version 3
+    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::v5(exlib::string name, exlib::string ns, exlib::string& retVal)
+{
+    init_namespaces();
+    
+    uint8_t ns_bytes[16];
+    if (!uuid_from_string(ns.c_str(), ns_bytes)) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Create SHA1 hash of namespace UUID + name
+    SHA_CTX ctx;
+    SHA1_Init(&ctx);
+    SHA1_Update(&ctx, ns_bytes, 16);
+    SHA1_Update(&ctx, name.c_str(), name.length());
+
+    uint8_t hash[SHA_DIGEST_LENGTH];
+    SHA1_Final(hash, &ctx);
+
+    // Convert hash to UUID v5 format (use first 16 bytes of 20-byte SHA1)
+    uint8_t uuid[16];
+    memcpy(uuid, hash, 16);
+
+    // Set version (5) and variant bits according to RFC 4122
+    uuid[6] = (uuid[6] & 0x0F) | 0x50; // Version 5
+    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::version(exlib::string uuid, int32_t& retVal)
+{
+    uint8_t uuid_bytes[16];
+    if (!uuid_from_string(uuid.c_str(), uuid_bytes)) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+    
+    retVal = (uuid_bytes[6] >> 4) & 0x0F;
+    return 0;
+}
+
+result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    
+    uint8_t uuid[16];
+    static uint64_t last_timestamp = 0;
+    static uint16_t clock_seq = 0;
+    static bool initialized = false;
+    static uint8_t node_id[6];
+
+    if (!initialized) {
+        get_random_bytes(node_id, 6);
+        node_id[0] |= 0x01;
+        get_random_bytes((uint8_t*)&clock_seq, sizeof(clock_seq));
+        clock_seq &= 0x3FFF;
+        initialized = true;
+    }
+
+    // Parse options if provided
+    bool has_node = false;
+    bool has_clockseq = false;
+    uint64_t custom_msecs = 0;
+    uint64_t custom_nsecs = 0;
+    bool has_custom_time = false;
+    
+    if (!options.IsEmpty() && options->IsObject()) {
+        v8::Local<v8::Context> context = isolate->context();
+        
+        // Get node option
+        v8::Local<v8::Value> node_val;
+        if (options->Get(context, isolate->NewString("node")).ToLocal(&node_val) && node_val->IsObject()) {
+            obj_ptr<Buffer_base> node_buf = Buffer_base::getInstance(node_val);
+            if (node_buf) {
+                Buffer* p = (Buffer*)node_buf.get();
+                if (p->length() >= 6) {
+                    memcpy(node_id, p->data(), 6);
+                    has_node = true;
+                }
+            }
+        }
+        
+        // Get clockseq option
+        v8::Local<v8::Value> clockseq_val;
+        if (options->Get(context, isolate->NewString("clockseq")).ToLocal(&clockseq_val) && clockseq_val->IsNumber()) {
+            clock_seq = clockseq_val->Int32Value(context).FromMaybe(0) & 0x3FFF;
+            has_clockseq = true;
+        }
+        
+        // Get msecs option
+        v8::Local<v8::Value> msecs_val;
+        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
+            custom_msecs = msecs_val->IntegerValue(context).FromMaybe(0);
+            has_custom_time = true;
+        }
+        
+        // Get nsecs option
+        v8::Local<v8::Value> nsecs_val;
+        if (options->Get(context, isolate->NewString("nsecs")).ToLocal(&nsecs_val) && nsecs_val->IsNumber()) {
+            custom_nsecs = nsecs_val->IntegerValue(context).FromMaybe(0);
+        }
+    }
+
+    uint64_t timestamp;
+    if (has_custom_time) {
+        timestamp = (custom_msecs * 10000ULL) + GREGORIAN_OFFSET;
+        if (custom_nsecs > 0) {
+            timestamp += custom_nsecs / 100;
+        }
+    } else {
+        timestamp = get_uuid_timestamp();
+    }
+
+    if (!has_custom_time && !has_clockseq) {
+        if (timestamp <= last_timestamp) {
+            timestamp = last_timestamp + 1;
+            clock_seq = (clock_seq + 1) & 0x3FFF;
+        }
+        last_timestamp = timestamp;
+    }
+
+    // UUID v6 format - reordered timestamp for better sorting
+    // High 32 bits of timestamp
+    uuid[0] = (timestamp >> 52) & 0xFF;
+    uuid[1] = (timestamp >> 44) & 0xFF;
+    uuid[2] = (timestamp >> 36) & 0xFF;
+    uuid[3] = (timestamp >> 28) & 0xFF;
+
+    // Mid 16 bits of timestamp
+    uuid[4] = (timestamp >> 20) & 0xFF;
+    uuid[5] = (timestamp >> 12) & 0xFF;
+
+    // Version and low 12 bits of timestamp
+    uuid[6] = ((timestamp >> 8) & 0x0F) | 0x60; // Version 6
+    uuid[7] = timestamp & 0xFF;
+
+    // Clock sequence and variant
+    uuid[8] = ((clock_seq >> 8) & 0x3F) | 0x80;
+    uuid[9] = clock_seq & 0xFF;
+
+    // Node
+    memcpy(&uuid[10], node_id, 6);
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::v7(v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    uint8_t uuid[16];
+    
+    // Get Unix timestamp in milliseconds
+    uint64_t timestamp_ms;
+    
+    if (!options.IsEmpty() && options->IsObject()) {
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Value> msecs_val;
+        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
+            timestamp_ms = msecs_val->IntegerValue(context).FromMaybe(0);
+        } else {
+            auto now = std::chrono::system_clock::now();
+            timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                now.time_since_epoch()).count();
+        }
+    } else {
+        auto now = std::chrono::system_clock::now();
+        timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now.time_since_epoch()).count();
+    }
+
+    // 48-bit timestamp
+    uuid[0] = (timestamp_ms >> 40) & 0xFF;
+    uuid[1] = (timestamp_ms >> 32) & 0xFF;
+    uuid[2] = (timestamp_ms >> 24) & 0xFF;
+    uuid[3] = (timestamp_ms >> 16) & 0xFF;
+    uuid[4] = (timestamp_ms >> 8) & 0xFF;
+    uuid[5] = timestamp_ms & 0xFF;
+
+    // Generate random data for the rest
+    get_random_bytes(&uuid[6], 10);
+
+    // Set version and variant
+    uuid[6] = (uuid[6] & 0x0F) | 0x70; // Version 7
+    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::v1ToV6(exlib::string uuid_v1, exlib::string& retVal)
+{
+    uint8_t v1_bytes[16];
+    if (!uuid_from_string(uuid_v1.c_str(), v1_bytes)) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Check if it's actually a v1 UUID
+    if (((v1_bytes[6] >> 4) & 0x0F) != 1) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    uint8_t v6_bytes[16];
+    
+    // Reorder timestamp fields from v1 to v6
+    // v1: time_low(4) + time_mid(2) + time_hi_version(2)
+    // v6: time_high(4) + time_mid(2) + time_low_version(2)
+    
+    v6_bytes[0] = v1_bytes[6] & 0x0F; // time_hi (low 4 bits)
+    v6_bytes[0] |= (v1_bytes[7] & 0x0F) << 4;
+    v6_bytes[1] = v1_bytes[4];
+    v6_bytes[2] = v1_bytes[5];
+    v6_bytes[3] = v1_bytes[0];
+    
+    v6_bytes[4] = v1_bytes[1];
+    v6_bytes[5] = v1_bytes[2];
+    
+    v6_bytes[6] = (v1_bytes[3] & 0x0F) | 0x60; // Version 6
+    v6_bytes[7] = (v1_bytes[6] & 0xF0) | (v1_bytes[7] >> 4);
+    
+    // Copy clock_seq and node unchanged
+    memcpy(&v6_bytes[8], &v1_bytes[8], 8);
+    
+    uuid_to_string(v6_bytes, retVal);
+    return 0;
+}
+
+result_t uuid_base::v6ToV1(exlib::string uuid_v6, exlib::string& retVal)
+{
+    uint8_t v6_bytes[16];
+    if (!uuid_from_string(uuid_v6.c_str(), v6_bytes)) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Check if it's actually a v6 UUID
+    if (((v6_bytes[6] >> 4) & 0x0F) != 6) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    uint8_t v1_bytes[16];
+    
+    // Reorder timestamp fields from v6 to v1
+    v1_bytes[0] = v6_bytes[3];
+    v1_bytes[1] = v6_bytes[4];
+    v1_bytes[2] = v6_bytes[5];
+    v1_bytes[3] = (v6_bytes[6] & 0x0F) | ((v6_bytes[7] & 0x0F) << 4);
+    
+    v1_bytes[4] = v6_bytes[1];
+    v1_bytes[5] = v6_bytes[2];
+    
+    v1_bytes[6] = ((v6_bytes[0] & 0x0F) | 0x10); // Version 1
+    v1_bytes[7] = (v6_bytes[0] & 0xF0) | (v6_bytes[7] >> 4);
+    
+    // Copy clock_seq and node unchanged
+    memcpy(&v1_bytes[8], &v6_bytes[8], 8);
+    
+    uuid_to_string(v1_bytes, retVal);
     return 0;
 }
 

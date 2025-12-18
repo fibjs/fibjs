@@ -72,7 +72,7 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
 result_t crypto_base::randomUUID(v8::Local<v8::Object> options, exlib::string& retVal)
 {
     // Generate UUID v4 using uuid module
-    return uuid_base::v4(retVal);
+    return uuid_base::v4(options, retVal);
 }
 
 }

@@ -37,6 +37,12 @@ module uuid
     /*! @brief 返回一个最大 UUID 字符串 */
     static readonly String MAX;
 
+    /*! @brief v3 和 v5 的 DNS 命名空间 UUID */
+    static readonly String DNS_NAMESPACE;
+
+    /*! @brief v3 和 v5 的 URL 命名空间 UUID */
+    static readonly String URL_NAMESPACE;
+
     /*! @brief 解析 uuid 字符串
      @param uuid 要解析的 uuid 字符串
      @return 返回解析后的二进制 id
@@ -48,17 +54,63 @@ module uuid
      @param offset 可选，指定 uuid 数据在数组中的起始偏移，默认为 0
      @return 返回转换后的 uuid 字符串
      */
-    static String stringify(Array arr, Integer offset = 0);
+    static String stringify(Buffer arr, Integer offset = 0);
 
     /*! @brief 使用时间戳创建 uuid
+     @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
      @return 返回一个生成的 uuid 字符串
      */
-    static String v1();
+    static String v1(Object options = {});
+
+    /*! @brief 使用 MD5 命名空间创建 uuid（字符串格式）
+     @param name 指定名称
+     @param ns 命名空间 UUID 字符串，或使用预定义命名空间
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v3(String name, String ns);
 
     /*! @brief 使用随机数创建 uuid
+     @param options 可选参数对象，支持以下属性：random（Buffer，随机数）、rng（Function，随机数生成器）
      @return 返回一个生成的 uuid 字符串
      */
-    static String v4();
+    static String v4(Object options = {});
+
+    /*! @brief 使用 SHA1 命名空间创建 uuid（字符串格式）
+     @param name 指定名称
+     @param ns 命名空间 UUID 字符串，或使用预定义命名空间
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v5(String name, String ns);
+
+    /*! @brief 获取 uuid 的版本号
+     @param uuid 要检查的 uuid 字符串
+     @return 返回 uuid 的版本号（0-7），如果格式无效则返回 undefined
+     */
+    static Integer version(String uuid);
+
+    /*! @brief 使用重排序时间戳创建 uuid v6
+     @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v6(Object options = {});
+
+    /*! @brief 使用 Unix Epoch 时间戳创建 uuid v7
+     @param options 可选参数对象，支持以下属性：msecs（Integer，毫秒时间戳）
+     @return 返回一个生成的 uuid 字符串
+     */
+    static String v7(Object options = {});
+
+    /*! @brief 将 uuid v1 转换为 v6
+     @param uuid v1 格式的 uuid 字符串
+     @return 返回转换后的 v6 uuid 字符串
+     */
+    static String v1ToV6(String uuid);
+
+    /*! @brief 将 uuid v6 转换为 v1
+     @param uuid v6 格式的 uuid 字符串
+     @return 返回转换后的 v1 uuid 字符串
+     */
+    static String v6ToV1(String uuid);
 
     /*! @brief 验证 uuid 字符串是否符合规范
      @param uuid 要验证的 uuid 字符串

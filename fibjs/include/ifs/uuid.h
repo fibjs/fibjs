@@ -32,10 +32,19 @@ public:
     // uuid_base
     static result_t get_NIL(exlib::string& retVal);
     static result_t get_MAX(exlib::string& retVal);
+    static result_t get_DNS_NAMESPACE(exlib::string& retVal);
+    static result_t get_URL_NAMESPACE(exlib::string& retVal);
     static result_t parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal);
-    static result_t stringify(v8::Local<v8::Array> arr, int32_t offset, exlib::string& retVal);
-    static result_t v1(exlib::string& retVal);
-    static result_t v4(exlib::string& retVal);
+    static result_t stringify(Buffer_base* arr, int32_t offset, exlib::string& retVal);
+    static result_t v1(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v3(exlib::string name, exlib::string ns, exlib::string& retVal);
+    static result_t v4(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v5(exlib::string name, exlib::string ns, exlib::string& retVal);
+    static result_t version(exlib::string uuid, int32_t& retVal);
+    static result_t v6(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v7(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v1ToV6(exlib::string uuid, exlib::string& retVal);
+    static result_t v6ToV1(exlib::string uuid, exlib::string& retVal);
     static result_t validate(exlib::string uuid, bool& retVal);
     static result_t node(obj_ptr<Buffer_base>& retVal);
     static result_t md5(int32_t ns, exlib::string name, obj_ptr<Buffer_base>& retVal);
@@ -59,10 +68,19 @@ public:
 public:
     static void s_static_get_NIL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_DNS_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_URL_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v3(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v5(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_version(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v6(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v7(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v1ToV6(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_v6ToV1(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_validate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_node(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,7 +101,14 @@ inline ClassInfo& uuid_base::class_info()
         { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
         { "stringify", s_static_stringify, true, ClassData::ASYNC_SYNC },
         { "v1", s_static_v1, true, ClassData::ASYNC_SYNC },
+        { "v3", s_static_v3, true, ClassData::ASYNC_SYNC },
         { "v4", s_static_v4, true, ClassData::ASYNC_SYNC },
+        { "v5", s_static_v5, true, ClassData::ASYNC_SYNC },
+        { "version", s_static_version, true, ClassData::ASYNC_SYNC },
+        { "v6", s_static_v6, true, ClassData::ASYNC_SYNC },
+        { "v7", s_static_v7, true, ClassData::ASYNC_SYNC },
+        { "v1ToV6", s_static_v1ToV6, true, ClassData::ASYNC_SYNC },
+        { "v6ToV1", s_static_v6ToV1, true, ClassData::ASYNC_SYNC },
         { "validate", s_static_validate, true, ClassData::ASYNC_SYNC },
         { "node", s_static_node, true, ClassData::ASYNC_SYNC },
         { "md5", s_static_md5, true, ClassData::ASYNC_SYNC },
@@ -95,6 +120,8 @@ inline ClassInfo& uuid_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "NIL", s_static_get_NIL, block_set, true },
         { "MAX", s_static_get_MAX, block_set, true },
+        { "DNS_NAMESPACE", s_static_get_DNS_NAMESPACE, block_set, true },
+        { "URL_NAMESPACE", s_static_get_URL_NAMESPACE, block_set, true },
         { "hostID", s_static_get_hostID, s_static_set_hostID, true }
     };
 
@@ -142,6 +169,32 @@ inline void uuid_base::s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
+inline void uuid_base::s_static_get_DNS_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_DNS_NAMESPACE(vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_get_URL_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_URL_NAMESPACE(vr);
+
+    METHOD_RETURN();
+}
+
 inline void uuid_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
@@ -165,10 +218,10 @@ inline void uuid_base::s_static_stringify(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    hr = stringify(v0, v1, vr);
+    hr = stringify(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }
@@ -179,9 +232,27 @@ inline void uuid_base::s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = v1(vr);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = v1(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v3(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = v3(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -192,9 +263,102 @@ inline void uuid_base::s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = v4(vr);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = v4(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v5(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = v5(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_version(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = version(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v6(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = v6(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v7(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = v7(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v1ToV6(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = v1ToV6(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void uuid_base::s_static_v6ToV1(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = v6ToV1(v0, vr);
 
     METHOD_RETURN();
 }

@@ -53,6 +53,16 @@ declare module 'uuid' {
     const MAX: string;
 
     /**
+     * @description v3 和 v5 的 DNS 命名空间 UUID 
+     */
+    const DNS_NAMESPACE: string;
+
+    /**
+     * @description v3 和 v5 的 URL 命名空间 UUID 
+     */
+    const URL_NAMESPACE: string;
+
+    /**
      * @description 解析 uuid 字符串
      *      @param uuid 要解析的 uuid 字符串
      *      @return 返回解析后的二进制 id
@@ -67,21 +77,81 @@ declare module 'uuid' {
      *      @return 返回转换后的 uuid 字符串
      *      
      */
-    function stringify(arr: any[], offset?: number): string;
+    function stringify(arr: Class_Buffer, offset?: number): string;
 
     /**
      * @description 使用时间戳创建 uuid
+     *      @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
      *      @return 返回一个生成的 uuid 字符串
      *      
      */
-    function v1(): string;
+    function v1(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 使用 MD5 命名空间创建 uuid（字符串格式）
+     *      @param name 指定名称
+     *      @param ns 命名空间 UUID 字符串，或使用预定义命名空间
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v3(name: string, ns: string): string;
 
     /**
      * @description 使用随机数创建 uuid
+     *      @param options 可选参数对象，支持以下属性：random（Buffer，随机数）、rng（Function，随机数生成器）
      *      @return 返回一个生成的 uuid 字符串
      *      
      */
-    function v4(): string;
+    function v4(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 使用 SHA1 命名空间创建 uuid（字符串格式）
+     *      @param name 指定名称
+     *      @param ns 命名空间 UUID 字符串，或使用预定义命名空间
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v5(name: string, ns: string): string;
+
+    /**
+     * @description 获取 uuid 的版本号
+     *      @param uuid 要检查的 uuid 字符串
+     *      @return 返回 uuid 的版本号（0-7），如果格式无效则返回 undefined
+     *      
+     */
+    function version(uuid: string): number;
+
+    /**
+     * @description 使用重排序时间戳创建 uuid v6
+     *      @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v6(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 使用 Unix Epoch 时间戳创建 uuid v7
+     *      @param options 可选参数对象，支持以下属性：msecs（Integer，毫秒时间戳）
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v7(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 将 uuid v1 转换为 v6
+     *      @param uuid v1 格式的 uuid 字符串
+     *      @return 返回转换后的 v6 uuid 字符串
+     *      
+     */
+    function v1ToV6(uuid: string): string;
+
+    /**
+     * @description 将 uuid v6 转换为 v1
+     *      @param uuid v6 格式的 uuid 字符串
+     *      @return 返回转换后的 v1 uuid 字符串
+     *      
+     */
+    function v6ToV1(uuid: string): string;
 
     /**
      * @description 验证 uuid 字符串是否符合规范
