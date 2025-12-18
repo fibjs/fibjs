@@ -9,26 +9,9 @@
 namespace fibjs {
 namespace ts {
 
-// Transparent hash for string_view lookup in unordered_map
-struct StringViewHash {
-    using is_transparent = void;
-    
-    size_t operator()(std::string_view sv) const noexcept {
-        return std::hash<std::string_view>{}(sv);
-    }
-};
-
-struct StringViewEqual {
-    using is_transparent = void;
-    
-    bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
-        return lhs == rhs;
-    }
-};
-
-// Keyword map with transparent lookup (UTF-8)
-static const std::unordered_map<std::string, SyntaxKind, StringViewHash, StringViewEqual>& getKeywordMap() {
-    static std::unordered_map<std::string, SyntaxKind, StringViewHash, StringViewEqual> map = {
+// Keyword map using string_view as key for zero-copy lookup
+static const std::unordered_map<std::string_view, SyntaxKind>& getKeywordMap() {
+    static std::unordered_map<std::string_view, SyntaxKind> map = {
         {"abstract", SyntaxKind::AbstractKeyword},
         {"any", SyntaxKind::AnyKeyword},
         {"as", SyntaxKind::AsKeyword},
