@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "Buffer.h"
 #include "loaders.h"
 
 namespace fibjs {
@@ -17,17 +18,26 @@ result_t cjs_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::String> soname = isolate->NewString(name);
 
-    exlib::string strScript;
-    src->toString(strScript);
-    const char* c_str = strScript.c_str();
+    Buffer* buf = Buffer::Cast(src);
+    const char* data = (const char*)buf->data();
+    size_t length = buf->length();
 
-    if (strScript.length() > 2 && c_str[0] == '#' && c_str[1] == '!') {
-        char* _strScript = strScript.data();
-        _strScript[0] = '/';
-        _strScript[1] = '/';
+    // Construct script: arg_names + "\n" + source + "\n});" 
+    exlib::string src1;
+    src1.reserve(arg_names.length() + 1 + length + 4); // pre-allocate
+    src1.append(arg_names);
+    src1.append("\n", 1);
+    
+    size_t code_start = src1.length();
+    src1.append(data, length);
+    
+    // Handle shebang (#!) by replacing with // comment in src1
+    if (length > 2 && src1[code_start] == '#' && src1[code_start + 1] == '!') {
+        src1[code_start] = '/';
+        src1[code_start + 1] = '/';
     }
-
-    exlib::string src1 = arg_names + "\n" + strScript + "\n});";
+    
+    src1.append("\n});", 4);
 
     TryCatch try_catch;
 
