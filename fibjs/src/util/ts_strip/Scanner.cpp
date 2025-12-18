@@ -1,6 +1,6 @@
 /**
  * @file scanner.cpp
- * @brief TypeScript lexical scanner implementation
+ * @brief TypeScript lexical scanner implementation (UTF-8 version)
  */
 
 #include "Scanner.h"
@@ -13,111 +13,112 @@ namespace ts {
 struct StringViewHash {
     using is_transparent = void;
     
-    size_t operator()(std::u16string_view sv) const noexcept {
-        return std::hash<std::u16string_view>{}(sv);
+    size_t operator()(std::string_view sv) const noexcept {
+        return std::hash<std::string_view>{}(sv);
     }
 };
 
 struct StringViewEqual {
     using is_transparent = void;
     
-    bool operator()(std::u16string_view lhs, std::u16string_view rhs) const noexcept {
+    bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
         return lhs == rhs;
     }
 };
 
-// Keyword map with transparent lookup
-static const std::unordered_map<exlib::wstring, SyntaxKind, StringViewHash, StringViewEqual>& getKeywordMap() {
-    static std::unordered_map<exlib::wstring, SyntaxKind, StringViewHash, StringViewEqual> map = {
-        {u"abstract", SyntaxKind::AbstractKeyword},
-        {u"any", SyntaxKind::AnyKeyword},
-        {u"as", SyntaxKind::AsKeyword},
-        {u"asserts", SyntaxKind::AssertsKeyword},
-        {u"assert", SyntaxKind::AssertKeyword},
-        {u"async", SyntaxKind::AsyncKeyword},
-        {u"await", SyntaxKind::AwaitKeyword},
-        {u"bigint", SyntaxKind::BigIntKeyword},
-        {u"boolean", SyntaxKind::BooleanKeyword},
-        {u"break", SyntaxKind::BreakKeyword},
-        {u"case", SyntaxKind::CaseKeyword},
-        {u"catch", SyntaxKind::CatchKeyword},
-        {u"class", SyntaxKind::ClassKeyword},
-        {u"const", SyntaxKind::ConstKeyword},
-        {u"constructor", SyntaxKind::ConstructorKeyword},
-        {u"continue", SyntaxKind::ContinueKeyword},
-        {u"debugger", SyntaxKind::DebuggerKeyword},
-        {u"declare", SyntaxKind::DeclareKeyword},
-        {u"default", SyntaxKind::DefaultKeyword},
-        {u"delete", SyntaxKind::DeleteKeyword},
-        {u"do", SyntaxKind::DoKeyword},
-        {u"else", SyntaxKind::ElseKeyword},
-        {u"enum", SyntaxKind::EnumKeyword},
-        {u"export", SyntaxKind::ExportKeyword},
-        {u"extends", SyntaxKind::ExtendsKeyword},
-        {u"false", SyntaxKind::FalseKeyword},
-        {u"finally", SyntaxKind::FinallyKeyword},
-        {u"for", SyntaxKind::ForKeyword},
-        {u"from", SyntaxKind::FromKeyword},
-        {u"function", SyntaxKind::FunctionKeyword},
-        {u"get", SyntaxKind::GetKeyword},
-        {u"global", SyntaxKind::GlobalKeyword},
-        {u"if", SyntaxKind::IfKeyword},
-        {u"implements", SyntaxKind::ImplementsKeyword},
-        {u"import", SyntaxKind::ImportKeyword},
-        {u"in", SyntaxKind::InKeyword},
-        {u"infer", SyntaxKind::InferKeyword},
-        {u"instanceof", SyntaxKind::InstanceOfKeyword},
-        {u"interface", SyntaxKind::InterfaceKeyword},
-        {u"intrinsic", SyntaxKind::IntrinsicKeyword},
-        {u"is", SyntaxKind::IsKeyword},
-        {u"keyof", SyntaxKind::KeyOfKeyword},
-        {u"let", SyntaxKind::LetKeyword},
-        {u"module", SyntaxKind::ModuleKeyword},
-        {u"namespace", SyntaxKind::NamespaceKeyword},
-        {u"never", SyntaxKind::NeverKeyword},
-        {u"new", SyntaxKind::NewKeyword},
-        {u"null", SyntaxKind::NullKeyword},
-        {u"number", SyntaxKind::NumberKeyword},
-        {u"object", SyntaxKind::ObjectKeyword},
-        {u"of", SyntaxKind::OfKeyword},
-        {u"out", SyntaxKind::OutKeyword},
-        {u"override", SyntaxKind::OverrideKeyword},
-        {u"package", SyntaxKind::PackageKeyword},
-        {u"private", SyntaxKind::PrivateKeyword},
-        {u"protected", SyntaxKind::ProtectedKeyword},
-        {u"public", SyntaxKind::PublicKeyword},
-        {u"readonly", SyntaxKind::ReadonlyKeyword},
-        {u"require", SyntaxKind::RequireKeyword},
-        {u"return", SyntaxKind::ReturnKeyword},
-        {u"satisfies", SyntaxKind::SatisfiesKeyword},
-        {u"set", SyntaxKind::SetKeyword},
-        {u"static", SyntaxKind::StaticKeyword},
-        {u"string", SyntaxKind::StringKeyword},
-        {u"super", SyntaxKind::SuperKeyword},
-        {u"switch", SyntaxKind::SwitchKeyword},
-        {u"symbol", SyntaxKind::SymbolKeyword},
-        {u"this", SyntaxKind::ThisKeyword},
-        {u"throw", SyntaxKind::ThrowKeyword},
-        {u"true", SyntaxKind::TrueKeyword},
-        {u"try", SyntaxKind::TryKeyword},
-        {u"type", SyntaxKind::TypeKeyword},
-        {u"typeof", SyntaxKind::TypeOfKeyword},
-        {u"undefined", SyntaxKind::UndefinedKeyword},
-        {u"unique", SyntaxKind::UniqueKeyword},
-        {u"unknown", SyntaxKind::UnknownKeyword},
-        {u"using", SyntaxKind::UsingKeyword},
-        {u"var", SyntaxKind::VarKeyword},
-        {u"void", SyntaxKind::VoidKeyword},
-        {u"while", SyntaxKind::WhileKeyword},
-        {u"with", SyntaxKind::WithKeyword},
-        {u"yield", SyntaxKind::YieldKeyword},
-        {u"accessor", SyntaxKind::AccessorKeyword},
+// Keyword map with transparent lookup (UTF-8)
+static const std::unordered_map<std::string, SyntaxKind, StringViewHash, StringViewEqual>& getKeywordMap() {
+    static std::unordered_map<std::string, SyntaxKind, StringViewHash, StringViewEqual> map = {
+        {"abstract", SyntaxKind::AbstractKeyword},
+        {"any", SyntaxKind::AnyKeyword},
+        {"as", SyntaxKind::AsKeyword},
+        {"asserts", SyntaxKind::AssertsKeyword},
+        {"assert", SyntaxKind::AssertKeyword},
+        {"async", SyntaxKind::AsyncKeyword},
+        {"await", SyntaxKind::AwaitKeyword},
+        {"bigint", SyntaxKind::BigIntKeyword},
+        {"boolean", SyntaxKind::BooleanKeyword},
+        {"break", SyntaxKind::BreakKeyword},
+        {"case", SyntaxKind::CaseKeyword},
+        {"catch", SyntaxKind::CatchKeyword},
+        {"class", SyntaxKind::ClassKeyword},
+        {"const", SyntaxKind::ConstKeyword},
+        {"constructor", SyntaxKind::ConstructorKeyword},
+        {"continue", SyntaxKind::ContinueKeyword},
+        {"debugger", SyntaxKind::DebuggerKeyword},
+        {"declare", SyntaxKind::DeclareKeyword},
+        {"default", SyntaxKind::DefaultKeyword},
+        {"delete", SyntaxKind::DeleteKeyword},
+        {"do", SyntaxKind::DoKeyword},
+        {"else", SyntaxKind::ElseKeyword},
+        {"enum", SyntaxKind::EnumKeyword},
+        {"export", SyntaxKind::ExportKeyword},
+        {"extends", SyntaxKind::ExtendsKeyword},
+        {"false", SyntaxKind::FalseKeyword},
+        {"finally", SyntaxKind::FinallyKeyword},
+        {"for", SyntaxKind::ForKeyword},
+        {"from", SyntaxKind::FromKeyword},
+        {"function", SyntaxKind::FunctionKeyword},
+        {"get", SyntaxKind::GetKeyword},
+        {"global", SyntaxKind::GlobalKeyword},
+        {"if", SyntaxKind::IfKeyword},
+        {"implements", SyntaxKind::ImplementsKeyword},
+        {"import", SyntaxKind::ImportKeyword},
+        {"in", SyntaxKind::InKeyword},
+        {"infer", SyntaxKind::InferKeyword},
+        {"instanceof", SyntaxKind::InstanceOfKeyword},
+        {"interface", SyntaxKind::InterfaceKeyword},
+        {"intrinsic", SyntaxKind::IntrinsicKeyword},
+        {"is", SyntaxKind::IsKeyword},
+        {"keyof", SyntaxKind::KeyOfKeyword},
+        {"let", SyntaxKind::LetKeyword},
+        {"module", SyntaxKind::ModuleKeyword},
+        {"namespace", SyntaxKind::NamespaceKeyword},
+        {"never", SyntaxKind::NeverKeyword},
+        {"new", SyntaxKind::NewKeyword},
+        {"null", SyntaxKind::NullKeyword},
+        {"number", SyntaxKind::NumberKeyword},
+        {"object", SyntaxKind::ObjectKeyword},
+        {"of", SyntaxKind::OfKeyword},
+        {"out", SyntaxKind::OutKeyword},
+        {"override", SyntaxKind::OverrideKeyword},
+        {"package", SyntaxKind::PackageKeyword},
+        {"private", SyntaxKind::PrivateKeyword},
+        {"protected", SyntaxKind::ProtectedKeyword},
+        {"public", SyntaxKind::PublicKeyword},
+        {"readonly", SyntaxKind::ReadonlyKeyword},
+        {"require", SyntaxKind::RequireKeyword},
+        {"return", SyntaxKind::ReturnKeyword},
+        {"satisfies", SyntaxKind::SatisfiesKeyword},
+        {"set", SyntaxKind::SetKeyword},
+        {"static", SyntaxKind::StaticKeyword},
+        {"string", SyntaxKind::StringKeyword},
+        {"super", SyntaxKind::SuperKeyword},
+        {"switch", SyntaxKind::SwitchKeyword},
+        {"symbol", SyntaxKind::SymbolKeyword},
+        {"this", SyntaxKind::ThisKeyword},
+        {"throw", SyntaxKind::ThrowKeyword},
+        {"true", SyntaxKind::TrueKeyword},
+        {"try", SyntaxKind::TryKeyword},
+        {"type", SyntaxKind::TypeKeyword},
+        {"typeof", SyntaxKind::TypeOfKeyword},
+        {"undefined", SyntaxKind::UndefinedKeyword},
+        {"unique", SyntaxKind::UniqueKeyword},
+        {"unknown", SyntaxKind::UnknownKeyword},
+        {"using", SyntaxKind::UsingKeyword},
+        {"var", SyntaxKind::VarKeyword},
+        {"void", SyntaxKind::VoidKeyword},
+        {"while", SyntaxKind::WhileKeyword},
+        {"with", SyntaxKind::WithKeyword},
+        {"yield", SyntaxKind::YieldKeyword},
+        {"accessor", SyntaxKind::AccessorKeyword},
     };
     return map;
 }
 
-Scanner::Scanner(const exlib::wstring& text)
+Scanner::Scanner(uint8_t* text, size_t length)
     : m_text(text)
+    , m_length(length)
     , m_pos(0)
     , m_startPos(0)
     , m_tokenStart(0)
@@ -126,82 +127,87 @@ Scanner::Scanner(const exlib::wstring& text)
 {
 }
 
-char16_t Scanner::charCodeAt(int pos) const {
-    if (pos < 0 || pos >= (int)m_text.length()) {
-        return 0;
-    }
+// Inline for performance - no bounds check needed when caller ensures pos < m_length
+inline uint8_t Scanner::charCodeAt(int pos) const {
     return m_text[pos];
 }
 
-bool Scanner::isDigit(char16_t ch) const {
-    return ch >= CharCode::_0 && ch <= CharCode::_9;
+inline bool Scanner::isDigit(uint8_t ch) const {
+    return ch >= '0' && ch <= '9';
 }
 
-bool Scanner::isIdentifierStart(char16_t ch) const {
-    return (ch >= CharCode::a && ch <= CharCode::z) ||
-           (ch >= CharCode::A && ch <= CharCode::Z) ||
-           ch == CharCode::_ || ch == CharCode::$ ||
-           ch > 127; // Unicode
+inline bool Scanner::isIdentifierStart(uint8_t ch) const {
+    return (ch >= 'a' && ch <= 'z') ||
+           (ch >= 'A' && ch <= 'Z') ||
+           ch == '_' || ch == '$' ||
+           ch > 127;
 }
 
-bool Scanner::isIdentifierPart(char16_t ch) const {
-    return isIdentifierStart(ch) || isDigit(ch);
+inline bool Scanner::isIdentifierPart(uint8_t ch) const {
+    return (ch >= 'a' && ch <= 'z') ||
+           (ch >= 'A' && ch <= 'Z') ||
+           (ch >= '0' && ch <= '9') ||
+           ch == '_' || ch == '$' ||
+           ch > 127;
 }
 
-bool Scanner::isLineBreak(char16_t ch) const {
-    return ch == CharCode::lineFeed || 
-           ch == CharCode::carriageReturn ||
-           ch == 0x2028 || ch == 0x2029;
+inline bool Scanner::isLineBreak(uint8_t ch) const {
+    return ch == '\n' || ch == '\r';
 }
 
-bool Scanner::isWhiteSpace(char16_t ch) const {
-    return ch == CharCode::space || 
-           ch == CharCode::tab ||
-           ch == CharCode::verticalTab ||
-           ch == CharCode::formFeed ||
-           ch == 0xA0 ||  // NBSP
-           ch == 0xFEFF;  // BOM
+inline bool Scanner::isWhiteSpace(uint8_t ch) const {
+    return ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f';
 }
 
 void Scanner::skipTrivia() {
-    while (m_pos < (int)m_text.length()) {
-        char16_t ch = charCodeAt(m_pos);
+    uint8_t* p = m_text + m_pos;
+    uint8_t* end = m_text + m_length;
+    
+    while (p < end) {
+        uint8_t ch = *p;
         
-        if (isWhiteSpace(ch)) {
-            m_pos++;
-        } else if (isLineBreak(ch)) {
+        if (ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f') {
+            p++;
+        } else if (ch == '\n') {
             m_hasLineBreak = true;
-            if (ch == CharCode::carriageReturn && charCodeAt(m_pos + 1) == CharCode::lineFeed) {
-                m_pos += 2;
-            } else {
-                m_pos++;
-            }
-        } else if (ch == CharCode::slash) {
-            char16_t next = charCodeAt(m_pos + 1);
-            if (next == CharCode::slash) {
+            p++;
+        } else if (ch == '\r') {
+            m_hasLineBreak = true;
+            p += (p + 1 < end && p[1] == '\n') ? 2 : 1;
+        } else if (ch == '/') {
+            if (p + 1 < end && p[1] == '/') {
                 // Single line comment - erase to spaces
-                int commentStart = m_pos;
-                m_pos += 2;
-                while (m_pos < (int)m_text.length() && !isLineBreak(charCodeAt(m_pos))) {
-                    m_pos++;
+                uint8_t* commentStart = p;
+                p += 2;
+                while (p < end && *p != '\n' && *p != '\r') {
+                    p++;
                 }
-                eraseToSpaces(commentStart, m_pos);
-            } else if (next == CharCode::asterisk) {
+                // Erase comment
+                while (commentStart < p) {
+                    if (*commentStart != '\n' && *commentStart != '\r')
+                        *commentStart = ' ';
+                    commentStart++;
+                }
+            } else if (p + 1 < end && p[1] == '*') {
                 // Multi-line comment - erase to spaces
-                int commentStart = m_pos;
-                m_pos += 2;
-                while (m_pos < (int)m_text.length()) {
-                    if (charCodeAt(m_pos) == CharCode::asterisk && 
-                        charCodeAt(m_pos + 1) == CharCode::slash) {
-                        m_pos += 2;
+                uint8_t* commentStart = p;
+                p += 2;
+                while (p < end) {
+                    if (*p == '*' && p + 1 < end && p[1] == '/') {
+                        p += 2;
                         break;
                     }
-                    if (isLineBreak(charCodeAt(m_pos))) {
+                    if (*p == '\n' || *p == '\r') {
                         m_hasLineBreak = true;
                     }
-                    m_pos++;
+                    p++;
                 }
-                eraseToSpaces(commentStart, m_pos);
+                // Erase comment
+                while (commentStart < p) {
+                    if (*commentStart != '\n' && *commentStart != '\r')
+                        *commentStart = ' ';
+                    commentStart++;
+                }
             } else {
                 break;
             }
@@ -209,20 +215,21 @@ void Scanner::skipTrivia() {
             break;
         }
     }
+    m_pos = p - m_text;
 }
 
 void Scanner::eraseToSpaces(int start, int end) {
-    for (int i = start; i < end && i < (int)m_text.length(); i++) {
-        char16_t ch = m_text[i];
+    for (int i = start; i < end && i < (int)m_length; i++) {
+        uint8_t ch = m_text[i];
         // Preserve newlines for line number tracking
-        if (ch != L'\n' && ch != L'\r') {
-            m_text[i] = L' ';
+        if (ch != '\n' && ch != '\r') {
+            m_text[i] = ' ';
         }
     }
 }
 
-std::u16string_view Scanner::getTokenText() const {
-    return std::u16string_view(m_text.c_str() + m_tokenStart, m_pos - m_tokenStart);
+std::string_view Scanner::getTokenText() const {
+    return std::string_view((const char*)m_text + m_tokenStart, m_pos - m_tokenStart);
 }
 
 void Scanner::setTextPos(int pos) {
@@ -233,7 +240,7 @@ void Scanner::setTextPos(int pos) {
     m_hasLineBreak = false;
 }
 
-SyntaxKind Scanner::getIdentifierToken(std::u16string_view text) const {
+SyntaxKind Scanner::getIdentifierToken(std::string_view text) const {
     auto& map = getKeywordMap();
     auto it = map.find(text);
     if (it != map.end()) {
@@ -244,10 +251,21 @@ SyntaxKind Scanner::getIdentifierToken(std::u16string_view text) const {
 
 SyntaxKind Scanner::scanIdentifierOrKeyword() {
     int start = m_pos;
-    while (m_pos < (int)m_text.length() && isIdentifierPart(charCodeAt(m_pos))) {
-        m_pos++;
+    uint8_t* p = m_text + m_pos;
+    uint8_t* end = m_text + m_length;
+    while (p < end) {
+        uint8_t ch = *p;
+        if ((ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            (ch >= '0' && ch <= '9') ||
+            ch == '_' || ch == '$' || ch > 127) {
+            p++;
+        } else {
+            break;
+        }
     }
-    m_tokenValue = std::u16string_view(m_text.c_str() + start, m_pos - start);
+    m_pos = p - m_text;
+    m_tokenValue = std::string_view((const char*)m_text + start, m_pos - start);
     return getIdentifierToken(m_tokenValue);
 }
 
@@ -256,32 +274,32 @@ SyntaxKind Scanner::scanNumber() {
     
     // Check for hex, binary, octal
     if (charCodeAt(m_pos) == CharCode::_0) {
-        char16_t next = charCodeAt(m_pos + 1);
-        if (next == L'x' || next == L'X') {
+        uint8_t next = charCodeAt(m_pos + 1);
+        if (next == 'x' || next == 'X') {
             m_pos += 2;
-            while (m_pos < (int)m_text.length()) {
-                char16_t ch = charCodeAt(m_pos);
-                if (isDigit(ch) || (ch >= L'a' && ch <= L'f') || (ch >= L'A' && ch <= L'F')) {
+            while (m_pos < (int)m_length) {
+                uint8_t ch = charCodeAt(m_pos);
+                if (isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
                     m_pos++;
                 } else {
                     break;
                 }
             }
-        } else if (next == L'b' || next == L'B') {
+        } else if (next == 'b' || next == 'B') {
             m_pos += 2;
-            while (m_pos < (int)m_text.length()) {
-                char16_t ch = charCodeAt(m_pos);
-                if (ch == L'0' || ch == L'1') {
+            while (m_pos < (int)m_length) {
+                uint8_t ch = charCodeAt(m_pos);
+                if (ch == '0' || ch == '1') {
                     m_pos++;
                 } else {
                     break;
                 }
             }
-        } else if (next == L'o' || next == L'O') {
+        } else if (next == 'o' || next == 'O') {
             m_pos += 2;
-            while (m_pos < (int)m_text.length()) {
-                char16_t ch = charCodeAt(m_pos);
-                if (ch >= L'0' && ch <= L'7') {
+            while (m_pos < (int)m_length) {
+                uint8_t ch = charCodeAt(m_pos);
+                if (ch >= '0' && ch <= '7') {
                     m_pos++;
                 } else {
                     break;
@@ -291,33 +309,33 @@ SyntaxKind Scanner::scanNumber() {
     }
     
     // Decimal part
-    while (m_pos < (int)m_text.length() && isDigit(charCodeAt(m_pos))) {
+    while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
         m_pos++;
     }
     
     // Fractional part
     if (charCodeAt(m_pos) == CharCode::dot) {
         m_pos++;
-        while (m_pos < (int)m_text.length() && isDigit(charCodeAt(m_pos))) {
+        while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
             m_pos++;
         }
     }
     
     // Exponent part
-    char16_t ch = charCodeAt(m_pos);
-    if (ch == L'e' || ch == L'E') {
+    uint8_t ch = charCodeAt(m_pos);
+    if (ch == 'e' || ch == 'E') {
         m_pos++;
         ch = charCodeAt(m_pos);
         if (ch == CharCode::plus || ch == CharCode::minus) {
             m_pos++;
         }
-        while (m_pos < (int)m_text.length() && isDigit(charCodeAt(m_pos))) {
+        while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
             m_pos++;
         }
     }
     
     // BigInt suffix
-    if (charCodeAt(m_pos) == L'n') {
+    if (charCodeAt(m_pos) == 'n') {
         m_pos++;
         return SyntaxKind::BigIntLiteral;
     }
@@ -325,22 +343,22 @@ SyntaxKind Scanner::scanNumber() {
     return SyntaxKind::NumericLiteral;
 }
 
-SyntaxKind Scanner::scanString(char16_t quote) {
+SyntaxKind Scanner::scanString(uint8_t quote) {
     m_pos++; // skip opening quote
     
-    while (m_pos < (int)m_text.length()) {
-        char16_t ch = charCodeAt(m_pos);
+    while (m_pos < (int)m_length) {
+        uint8_t ch = charCodeAt(m_pos);
         if (ch == quote) {
             m_pos++; // skip closing quote
             return SyntaxKind::StringLiteral;
         }
         if (ch == CharCode::backslash) {
             m_pos++;
-            if (m_pos < (int)m_text.length()) {
-                char16_t next = charCodeAt(m_pos);
+            if (m_pos < (int)m_length) {
+                uint8_t next = charCodeAt(m_pos);
                 m_pos++;
                 // Handle \r\n as a single line continuation
-                if (next == CharCode::carriageReturn && m_pos < (int)m_text.length() 
+                if (next == CharCode::carriageReturn && m_pos < (int)m_length 
                     && charCodeAt(m_pos) == CharCode::lineFeed) {
                     m_pos++;
                 }
@@ -361,8 +379,8 @@ SyntaxKind Scanner::scanTemplateOrTemplateTail() {
     m_pos++; // skip ` or }
     bool isHead = (charCodeAt(m_tokenStart) == CharCode::backtick);
     
-    while (m_pos < (int)m_text.length()) {
-        char16_t ch = charCodeAt(m_pos);
+    while (m_pos < (int)m_length) {
+        uint8_t ch = charCodeAt(m_pos);
         if (ch == CharCode::backtick) {
             m_pos++;
             return isHead ? SyntaxKind::NoSubstitutionTemplateLiteral : SyntaxKind::TemplateTail;
@@ -386,8 +404,8 @@ SyntaxKind Scanner::reScanTemplateToken() {
     // Position should be right after the }
     m_tokenStart = m_pos - 1; // Set token start to the } position
     
-    while (m_pos < (int)m_text.length()) {
-        char16_t ch = charCodeAt(m_pos);
+    while (m_pos < (int)m_length) {
+        uint8_t ch = charCodeAt(m_pos);
         if (ch == CharCode::backtick) {
             m_pos++;
             m_token = SyntaxKind::TemplateTail;
@@ -418,12 +436,12 @@ rescan:
     skipTrivia();
     m_tokenStart = m_pos;
     
-    if (m_pos >= (int)m_text.length()) {
+    if (m_pos >= (int)m_length) {
         m_token = SyntaxKind::EndOfFileToken;
         return m_token;
     }
     
-    char16_t ch = charCodeAt(m_pos);
+    uint8_t ch = charCodeAt(m_pos);
     
     // Identifier or keyword
     if (isIdentifierStart(ch)) {
@@ -664,7 +682,7 @@ rescan:
             if (charCodeAt(m_pos + 1) == CharCode::slash || charCodeAt(m_pos + 1) == CharCode::asterisk) {
                 skipTrivia();
                 m_tokenStart = m_pos;
-                if (m_pos >= (int)m_text.length()) {
+                if (m_pos >= (int)m_length) {
                     m_token = SyntaxKind::EndOfFileToken;
                     return m_token;
                 }
@@ -763,8 +781,8 @@ SyntaxKind Scanner::reScanSlashToken() {
     bool inEscape = false;
     bool inCharacterClass = false;
     
-    while (p < (int)m_text.length()) {
-        char16_t ch = m_text[p];
+    while (p < (int)m_length) {
+        uint8_t ch = m_text[p];
         
         // Newline terminates regex (unterminated)
         if (ch == CharCode::lineFeed || ch == CharCode::carriageReturn) {
@@ -777,11 +795,11 @@ SyntaxKind Scanner::reScanSlashToken() {
             // Found closing slash
             p++;
             break;
-        } else if (ch == L'[') {
+        } else if (ch == '[') {
             inCharacterClass = true;
         } else if (ch == CharCode::backslash) {
             inEscape = true;
-        } else if (ch == L']') {
+        } else if (ch == ']') {
             inCharacterClass = false;
         }
         p++;
@@ -793,9 +811,9 @@ SyntaxKind Scanner::reScanSlashToken() {
     }
     
     // Scan optional flags (a-z, A-Z)
-    while (p < (int)m_text.length()) {
-        char16_t ch = m_text[p];
-        if ((ch >= L'a' && ch <= L'z') || (ch >= L'A' && ch <= L'Z')) {
+    while (p < (int)m_length) {
+        uint8_t ch = m_text[p];
+        if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
             p++;
         } else {
             break;

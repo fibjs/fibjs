@@ -10,13 +10,8 @@
 #include "SandBox.h"
 #include "Buffer.h"
 #include "loaders.h"
-#include "ifs/util.h"
+#include "../../util/ts_strip/ts_strip.h"
 #include "ifs/url.h"
-#include "v8/src/api/api-inl.h"
-#include "v8/src/snapshot/code-serializer.h"
-#include "v8/src/snapshot/snapshot-utils.h"
-#include "v8/src/snapshot/snapshot.h"
-#include "v8/src/base/vector.h"
 
 namespace fibjs {
 class esm_importer : public object_base {
@@ -385,82 +380,31 @@ private:
             {
                 TryCatch try_catch;
 
-                v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
-                pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
-                v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
-                    -1, v8::Local<v8::Value>(), false, false, true, pargs);
-
                 if (is_typescript(id)) {
-                    // For TypeScript: compile JS code but use TS source for error messages
-                    exlib::string ts_source((const char*)data_->data(), data_->length());
-                    exlib::string js_source;
-                    result_t hr = util_base::stripTypeScript(ts_source, js_source);
-                    if (hr < 0)
+                    // For TypeScript: strip types in-place on the buffer
+                    try {
+                        ts_strip::stripInPlace(data_->data(), data_->length());
+                    } catch (const std::exception& e) {
+                        ThrowError(e.what());
                         return v8::Local<v8::Module>();
-
-                    // Compile JS to get code cache
-                    v8::Local<v8::String> v8_js_source = m_isolate->NewString(js_source);
-                    v8::ScriptCompiler::Source js_script_source(v8_js_source, so_origin);
-
-                    v8::Local<v8::Module> js_module = v8::ScriptCompiler::CompileModule(
-                        m_isolate->m_isolate, &js_script_source, v8::ScriptCompiler::kEagerCompile)
-                                                          .FromMaybe(v8::Local<v8::Module>());
-
-                    if (js_module.IsEmpty()) {
-                        exception = GetException(try_catch, 0, false, false);
-                    } else {
-                        // Create code cache from compiled JS module
-                        v8::Local<v8::UnboundModuleScript> unbound = js_module->GetUnboundModuleScript();
-                        const v8::ScriptCompiler::CachedData* cache = v8::ScriptCompiler::CreateCodeCache(unbound);
-
-                        // Calculate correct source hash for TS source
-                        v8::Local<v8::String> v8_ts_source = m_isolate->NewString(ts_source);
-                        v8::internal::Isolate* i_isolate = reinterpret_cast<v8::internal::Isolate*>(m_isolate->m_isolate);
-                        v8::internal::DirectHandle<v8::internal::String> i_source = v8::Utils::OpenDirectHandle(*v8_ts_source);
-                        v8::internal::DirectHandle<v8::internal::FixedArray> i_wrapped_args;
-                        v8::ScriptOriginOptions origin_options(false, false, false, true);  // is_module = true
-                        uint32_t ts_hash = v8::internal::SerializedCodeData::SourceHash(
-                            i_source, i_wrapped_args, origin_options);
-
-                        // Make a writable copy of the cache data and fix the source hash
-                        exlib::string cache_data_copy((const char*)cache->data, cache->length);
-                        uint8_t* writable_cache = (uint8_t*)cache_data_copy.data();
-
-                        const uint32_t kSourceHashOffset = 8;
-                        const uint32_t kReadOnlySnapshotChecksumOffset = 16;
-                        const uint32_t kChecksumOffset = 24;
-                        const uint32_t kHeaderSize = 32;
-
-                        // Update the source hash in the cache data
-                        *(uint32_t*)(writable_cache + kSourceHashOffset) = ts_hash;
-
-                        // Update the ReadOnly snapshot checksum to match current isolate's snapshot
-                        uint32_t expected_ro_checksum = v8::internal::Snapshot::ExtractReadOnlySnapshotChecksum(
-                            i_isolate->snapshot_blob());
-                        *(uint32_t*)(writable_cache + kReadOnlySnapshotChecksumOffset) = expected_ro_checksum;
-
-                        // Recalculate checksum over the payload
-                        uint32_t new_checksum = v8::internal::Checksum(
-                            v8::base::Vector<const uint8_t>(writable_cache + kHeaderSize, cache->length - kHeaderSize));
-                        *(uint32_t*)(writable_cache + kChecksumOffset) = new_checksum;
-
-                        // Load with TS source and modified code cache
-                        v8::ScriptCompiler::CachedData* ts_cache = new v8::ScriptCompiler::CachedData(
-                            writable_cache, cache->length);
-                        v8::ScriptCompiler::Source ts_script_source(v8_ts_source, so_origin, ts_cache);
-
-                        module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &ts_script_source,
-                            v8::ScriptCompiler::kConsumeCodeCache)
-                                     .FromMaybe(v8::Local<v8::Module>());
-
-                        delete cache;
-
-                        // If code cache was rejected, V8 will try to compile TS source directly
-                        // which will fail. Fall back to using the already compiled JS module.
-                        if (ts_cache->rejected || module.IsEmpty())
-                            module = js_module;
                     }
+
+                    v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
+                    pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
+                    v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
+                        -1, v8::Local<v8::Value>(), false, false, true, pargs);
+
+                    v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
+                    module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
+                                 .FromMaybe(v8::Local<v8::Module>());
+                    if (module.IsEmpty())
+                        exception = GetException(try_catch, 0, false, false);
                 } else {
+                    v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
+                    pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
+                    v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
+                        -1, v8::Local<v8::Value>(), false, false, true, pargs);
+
                     v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
                     module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source).FromMaybe(v8::Local<v8::Module>());
                     if (module.IsEmpty())

@@ -1,6 +1,10 @@
 /**
  * @file scanner.h
  * @brief TypeScript lexical scanner (inspired by TypeRunner)
+ * 
+ * This scanner works directly on UTF-8 data for better performance.
+ * Since TypeScript syntax (keywords, operators) is ASCII-only,
+ * we can safely process UTF-8 byte by byte.
  */
 
 #pragma once
@@ -14,61 +18,61 @@
 namespace fibjs {
 namespace ts {
 
-// Character codes for fast lookup
+// Character codes for fast lookup (ASCII values)
 namespace CharCode {
-    constexpr char16_t nullChar = 0;
-    constexpr char16_t lineFeed = 0x0A;       // \n
-    constexpr char16_t carriageReturn = 0x0D; // \r
-    constexpr char16_t space = 0x20;
-    constexpr char16_t tab = 0x09;
-    constexpr char16_t verticalTab = 0x0B;
-    constexpr char16_t formFeed = 0x0C;
+    constexpr uint8_t nullChar = 0;
+    constexpr uint8_t lineFeed = 0x0A;       // \n
+    constexpr uint8_t carriageReturn = 0x0D; // \r
+    constexpr uint8_t space = 0x20;
+    constexpr uint8_t tab = 0x09;
+    constexpr uint8_t verticalTab = 0x0B;
+    constexpr uint8_t formFeed = 0x0C;
     
-    constexpr char16_t _0 = 0x30;
-    constexpr char16_t _9 = 0x39;
-    constexpr char16_t a = 0x61;
-    constexpr char16_t z = 0x7A;
-    constexpr char16_t A = 0x41;
-    constexpr char16_t Z = 0x5A;
-    constexpr char16_t _ = 0x5F;
-    constexpr char16_t $ = 0x24;
+    constexpr uint8_t _0 = 0x30;
+    constexpr uint8_t _9 = 0x39;
+    constexpr uint8_t a = 0x61;
+    constexpr uint8_t z = 0x7A;
+    constexpr uint8_t A = 0x41;
+    constexpr uint8_t Z = 0x5A;
+    constexpr uint8_t _ = 0x5F;
+    constexpr uint8_t $ = 0x24;
     
-    constexpr char16_t openBrace = 0x7B;      // {
-    constexpr char16_t closeBrace = 0x7D;     // }
-    constexpr char16_t openParen = 0x28;      // (
-    constexpr char16_t closeParen = 0x29;     // )
-    constexpr char16_t openBracket = 0x5B;    // [
-    constexpr char16_t closeBracket = 0x5D;   // ]
-    constexpr char16_t dot = 0x2E;            // .
-    constexpr char16_t semicolon = 0x3B;      // ;
-    constexpr char16_t comma = 0x2C;          // ,
-    constexpr char16_t lessThan = 0x3C;       // <
-    constexpr char16_t greaterThan = 0x3E;    // >
-    constexpr char16_t equals = 0x3D;         // =
-    constexpr char16_t plus = 0x2B;           // +
-    constexpr char16_t minus = 0x2D;          // -
-    constexpr char16_t asterisk = 0x2A;       // *
-    constexpr char16_t slash = 0x2F;          // /
-    constexpr char16_t percent = 0x25;        // %
-    constexpr char16_t ampersand = 0x26;      // &
-    constexpr char16_t bar = 0x7C;            // |
-    constexpr char16_t caret = 0x5E;          // ^
-    constexpr char16_t exclamation = 0x21;    // !
-    constexpr char16_t tilde = 0x7E;          // ~
-    constexpr char16_t question = 0x3F;       // ?
-    constexpr char16_t colon = 0x3A;          // :
-    constexpr char16_t at = 0x40;             // @
-    constexpr char16_t hash = 0x23;           // #
-    constexpr char16_t backtick = 0x60;       // `
-    constexpr char16_t backslash = 0x5C;      // 
-    constexpr char16_t doubleQuote = 0x22;    // "
-    constexpr char16_t singleQuote = 0x27;    // '
+    constexpr uint8_t openBrace = 0x7B;      // {
+    constexpr uint8_t closeBrace = 0x7D;     // }
+    constexpr uint8_t openParen = 0x28;      // (
+    constexpr uint8_t closeParen = 0x29;     // )
+    constexpr uint8_t openBracket = 0x5B;    // [
+    constexpr uint8_t closeBracket = 0x5D;   // ]
+    constexpr uint8_t dot = 0x2E;            // .
+    constexpr uint8_t semicolon = 0x3B;      // ;
+    constexpr uint8_t comma = 0x2C;          // ,
+    constexpr uint8_t lessThan = 0x3C;       // <
+    constexpr uint8_t greaterThan = 0x3E;    // >
+    constexpr uint8_t equals = 0x3D;         // =
+    constexpr uint8_t plus = 0x2B;           // +
+    constexpr uint8_t minus = 0x2D;          // -
+    constexpr uint8_t asterisk = 0x2A;       // *
+    constexpr uint8_t slash = 0x2F;          // /
+    constexpr uint8_t percent = 0x25;        // %
+    constexpr uint8_t ampersand = 0x26;      // &
+    constexpr uint8_t bar = 0x7C;            // |
+    constexpr uint8_t caret = 0x5E;          // ^
+    constexpr uint8_t exclamation = 0x21;    // !
+    constexpr uint8_t tilde = 0x7E;          // ~
+    constexpr uint8_t question = 0x3F;       // ?
+    constexpr uint8_t colon = 0x3A;          // :
+    constexpr uint8_t at = 0x40;             // @
+    constexpr uint8_t hash = 0x23;           // #
+    constexpr uint8_t backtick = 0x60;       // \`
+    constexpr uint8_t backslash = 0x5C;      // backslash
+    constexpr uint8_t doubleQuote = 0x22;    // "
+    constexpr uint8_t singleQuote = 0x27;    // '
 }
 
 struct Token {
     SyntaxKind kind;
-    int pos;           // start position (0-based)
-    int end;           // end position (exclusive)
+    int pos;           // start position (0-based byte offset)
+    int end;           // end position (exclusive byte offset)
     bool hadLineBreak; // was there a line break before this token?
     
     Token() : kind(SyntaxKind::Unknown), pos(0), end(0), hadLineBreak(false) {}
@@ -78,7 +82,8 @@ struct Token {
 
 class Scanner {
 public:
-    Scanner(const exlib::wstring& text);
+    // Constructor takes pointer and length to avoid copy
+    Scanner(uint8_t* text, size_t length);
     
     // Scan next token
     SyntaxKind scan();
@@ -87,13 +92,13 @@ public:
     SyntaxKind getToken() const { return m_token; }
     int getTokenStart() const { return m_tokenStart; }
     int getTokenEnd() const { return m_pos; }
-    std::u16string_view getTokenText() const;
-    std::u16string_view getTokenValue() const { return m_tokenValue; }
+    std::string_view getTokenText() const;
+    std::string_view getTokenValue() const { return m_tokenValue; }
     bool hasPrecedingLineBreak() const { return m_hasLineBreak; }
     
     // Position
     int getPos() const { return m_pos; }
-    int getTextLength() const { return (int)m_text.length(); }
+    int getTextLength() const { return (int)m_length; }
     
     // Lookahead support
     int getStartPos() const { return m_startPos; }
@@ -102,9 +107,6 @@ public:
     // Get all tokens (for strip mode)
     std::vector<Token> scanAllTokens();
     
-    // Get processed text (comments erased to spaces)
-    const exlib::wstring& getProcessedText() const { return m_text; }
-    
     // Rescan template token after closing brace
     SyntaxKind reScanTemplateToken();
     
@@ -112,29 +114,30 @@ public:
     SyntaxKind reScanSlashToken();
     
 private:
-    char16_t charCodeAt(int pos) const;
-    bool isDigit(char16_t ch) const;
-    bool isIdentifierStart(char16_t ch) const;
-    bool isIdentifierPart(char16_t ch) const;
-    bool isLineBreak(char16_t ch) const;
-    bool isWhiteSpace(char16_t ch) const;
+    uint8_t charCodeAt(int pos) const;
+    bool isDigit(uint8_t ch) const;
+    bool isIdentifierStart(uint8_t ch) const;
+    bool isIdentifierPart(uint8_t ch) const;
+    bool isLineBreak(uint8_t ch) const;
+    bool isWhiteSpace(uint8_t ch) const;
     
     void skipTrivia();
     SyntaxKind scanIdentifierOrKeyword();
     SyntaxKind scanNumber();
-    SyntaxKind scanString(char16_t quote);
+    SyntaxKind scanString(uint8_t quote);
     SyntaxKind scanTemplateOrTemplateTail();
     void scanRegExpFlags();
     
-    SyntaxKind getIdentifierToken(std::u16string_view text) const;
+    SyntaxKind getIdentifierToken(std::string_view text) const;
     
 private:
-    exlib::wstring m_text;  // mutable copy, comments will be erased to spaces
+    uint8_t* m_text;    // direct pointer to buffer data
+    size_t m_length;
     int m_pos;
     int m_startPos;
     int m_tokenStart;
     SyntaxKind m_token;
-    std::u16string_view m_tokenValue;
+    std::string_view m_tokenValue;
     bool m_hasLineBreak;
     
     // Erase range to spaces (preserving newlines)

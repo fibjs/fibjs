@@ -10,6 +10,7 @@
 #pragma once
 
 #include "qstring.h"
+#include <cstdint>
 
 namespace fibjs {
 namespace ts_strip {
@@ -25,6 +26,18 @@ namespace ts_strip {
      * @throws Error for unsupported syntax (enum, namespace with values, etc.)
      */
     exlib::string strip(const exlib::string& source);
+
+    /**
+     * Strip TypeScript type annotations in-place on UTF-8 buffer
+     * 
+     * This function modifies the buffer data directly, avoiding extra memory copies.
+     * The buffer length remains unchanged (types are replaced with spaces).
+     * 
+     * @param data Pointer to UTF-8 encoded TypeScript source
+     * @param length Length of the data in bytes
+     * @throws Error for unsupported syntax (enum, namespace with values, etc.)
+     */
+    void stripInPlace(uint8_t* data, size_t length);
 
 } // namespace ts_strip
 } // namespace fibjs

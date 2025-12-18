@@ -793,13 +793,14 @@ function f(x: string) { return x; }`;
     });
 
     describe('Unicode Identifiers in Types', () => {
-        // Both fibjs and amaro now use character length (proper Unicode handling)
+        // fibjs uses UTF-8 byte count, amaro uses character count
 
         it('should handle unicode type alias', () => {
             const input = 'type 任意 = any;';
             const output = strip(input);
-            // Both should use character count now
-            assert.strictEqual(output.length, 14); // character count
+            // fibjs: UTF-8 byte count (任意 = 6 bytes), amaro: character count
+            const expectedLen = USE_AMARO ? 14 : 18; // 18 bytes for UTF-8
+            assert.strictEqual(output.length, expectedLen);
             // Content should be only whitespace
             assert.ok(/^\s*$/.test(output), 'Expected only whitespace');
         });
@@ -1371,7 +1372,7 @@ console.log("Done");`;
 
         itDiff('should handle Chinese comment after interface',
             'interface A { x: number }\n\n// 中文注释',
-            '                         \n\n       ',  // fibjs: comments erased (7 chars: // + 4 chinese chars)
+            '                         \n\n               ',  // fibjs: comments erased (15 bytes: // + 4 chinese chars * 3)
             '                         \n\n// 中文注释'   // amaro: comments preserved
         );
 

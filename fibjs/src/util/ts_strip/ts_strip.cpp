@@ -1,6 +1,6 @@
 /**
  * @file ts_strip.cpp
- * @brief TypeScript type stripping implementation
+ * @brief TypeScript type stripping implementation (UTF-8 version)
  * 
  * This implementation strictly follows TypeRunner's parser logic.
  * Key functions are ported from TypeRunner/src/parser2.h
@@ -8,7 +8,6 @@
 
 #include "ts_strip.h"
 #include "Scanner.h"
-#include "utf8.h"
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
@@ -99,19 +98,26 @@ struct Replacement {
 // Single byte overwrite
 struct Overwrite {
     int pos;
-    char16_t value;
-    Overwrite(int p, char16_t v) : pos(p), value(v) {}
+    uint8_t value;
+    Overwrite(int p, uint8_t v) : pos(p), value(v) {}
+};
+
+// Result containing all replacements and overwrites
+struct StripResult {
+    std::vector<Replacement> replacements;
+    std::vector<Overwrite> overwrites;
 };
 
 /**
- * TypeScript stripper - follows TypeRunner's parser logic
+ * TypeScript stripper - follows TypeRunner's parser logic (UTF-8 version)
  */
 class TsStrip {
 public:
     static constexpr int MAX_RECURSION_DEPTH = 500;
 
-    TsStrip(const exlib::wstring& src, std::vector<Token> tokens)
+    TsStrip(uint8_t* src, size_t length, std::vector<Token> tokens)
         : m_src(src)
+        , m_length(length)
         , m_tokens(std::move(tokens))
         , m_tokenIndex(0)
         , m_disallowInContext(false)
@@ -119,10 +125,14 @@ public:
     {
     }
     
-    exlib::wstring strip();
+    void strip();
+
+    // Parse and return replacements/overwrites without applying them
+    StripResult parse();
     
 private:
-    const exlib::wstring& m_src;
+    uint8_t* m_src;
+    size_t m_length;
     std::vector<Token> m_tokens;
     size_t m_tokenIndex;
     bool m_disallowInContext;
@@ -171,27 +181,27 @@ private:
         bool inEscape = false;
         bool inCharacterClass = false;
 
-        const int end = (int)m_src.size();
+        const int end = (int)m_length;
         while (true) {
             if (p >= end) {
                 return false;
             }
 
-            const char16_t ch = m_src[p];
-            if (ch == L'\n' || ch == L'\r') {
+            const uint8_t ch = m_src[p];
+            if (ch == '\n' || ch == '\r') {
                 return false;
             }
 
             if (inEscape) {
                 inEscape = false;
-            } else if (ch == L'/' && !inCharacterClass) {
+            } else if (ch == '/' && !inCharacterClass) {
                 p++;
                 break;
-            } else if (ch == L'[') {
+            } else if (ch == '[') {
                 inCharacterClass = true;
-            } else if (ch == L'\\') {
+            } else if (ch == '\\') {
                 inEscape = true;
-            } else if (ch == L']') {
+            } else if (ch == ']') {
                 inCharacterClass = false;
             }
 
@@ -200,8 +210,8 @@ private:
 
         // Scan flags (ASCII identifier parts are enough for regexp flags)
         while (p < end) {
-            const char16_t ch = m_src[p];
-            if ((ch >= L'a' && ch <= L'z') || (ch >= L'A' && ch <= L'Z')) {
+            const uint8_t ch = m_src[p];
+            if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
                 p++;
                 continue;
             }
@@ -242,7 +252,7 @@ private:
 #endif
     }
     
-    void addOverwrite(int pos, char16_t value) {
+    void addOverwrite(int pos, uint8_t value) {
 #if !TS_STRIP_DEBUG_PARSE
         m_overwrites.push_back(Overwrite(pos, value));
 #endif
@@ -383,7 +393,7 @@ private:
     void fixASI(int start, int end, bool isStatement = true);
     
     // Apply
-    exlib::wstring applyReplacements();
+    void applyReplacements();
 };
 
 // ========================================================================
@@ -3474,17 +3484,17 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
         //     interface X { }
         // We detect this by checking if the previous non-whitespace char is ')'
         int checkPos = start - 1;
-        while (checkPos >= 0 && (m_src[checkPos] == L' ' || m_src[checkPos] == L'\t' || 
-                                 m_src[checkPos] == L'\n' || m_src[checkPos] == L'\r')) {
+        while (checkPos >= 0 && (m_src[checkPos] == ' ' || m_src[checkPos] == '\t' || 
+                                 m_src[checkPos] == '\n' || m_src[checkPos] == '\r')) {
             checkPos--;
         }
-        if (checkPos >= 0 && m_src[checkPos] == L')') {
+        if (checkPos >= 0 && m_src[checkPos] == ')') {
             needsSemicolon = true;
         }
     }
     
-    if (needsSemicolon && start < (int)m_src.length()) {
-        addOverwrite(start, L';');
+    if (needsSemicolon && start < (int)m_length) {
+        addOverwrite(start, ';');
     }
 }
 
@@ -3510,51 +3520,56 @@ void TsStrip::parseSourceFile() {
     }
 }
 
-exlib::wstring TsStrip::applyReplacements() {
-    exlib::wstring result = m_src;
-    
+void TsStrip::applyReplacements() {
     // Apply replacements FIRST (replace with spaces, preserve newlines)
     // This must be done before overwrites so that overwrites can override
     for (const auto& r : m_replacements) {
-        for (int i = r.start; i < r.end && i < (int)result.length(); i++) {
-            char16_t ch = result[i];
-            if (ch != L'\n' && ch != L'\r') {
-                result[i] = L' ';
+        for (int i = r.start; i < r.end && i < (int)m_length; i++) {
+            uint8_t ch = m_src[i];
+            if (ch != '\n' && ch != '\r') {
+                m_src[i] = ' ';
             }
         }
     }
     
     // Apply overwrites AFTER replacements (so semicolons aren't erased)
     for (const auto& ow : m_overwrites) {
-        if (ow.pos >= 0 && ow.pos < (int)result.length()) {
-            result[ow.pos] = ow.value;
+        if (ow.pos >= 0 && ow.pos < (int)m_length) {
+            m_src[ow.pos] = ow.value;
         }
     }
-    
-    return result;
 }
 
-exlib::wstring TsStrip::strip() {
+void TsStrip::strip() {
     parseSourceFile();
-    return applyReplacements();
+    applyReplacements();
+}
+
+StripResult TsStrip::parse() {
+    parseSourceFile();
+    return StripResult { std::move(m_replacements), std::move(m_overwrites) };
 }
 
 // Public API
 exlib::string strip(const exlib::string& source) {
-    // Convert UTF-8 to UTF-16 for internal processing
-    exlib::wstring source16 = utf8to16String(source);
+    // Make a mutable copy
+    exlib::string result = source;
     
-    Scanner scanner(source16);
+    Scanner scanner((uint8_t*)result.data(), result.length());
     std::vector<Token> tokens = scanner.scanAllTokens();
     
-    // Get processed text from scanner (comments already erased to spaces)
-    const exlib::wstring& processedText = scanner.getProcessedText();
+    TsStrip stripper((uint8_t*)result.data(), result.length(), std::move(tokens));
+    stripper.strip();
     
-    TsStrip stripper(processedText, std::move(tokens));
-    exlib::wstring result16 = stripper.strip();
+    return result;
+}
+
+void stripInPlace(uint8_t* data, size_t length) {
+    Scanner scanner(data, length);
+    std::vector<Token> tokens = scanner.scanAllTokens();
     
-    // Convert back to UTF-8
-    return utf16to8String(result16);
+    TsStrip stripper(data, length, std::move(tokens));
+    stripper.strip();
 }
 
 } // namespace ts_strip

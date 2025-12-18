@@ -985,8 +985,7 @@ result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
 result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
 {
     try {
-        std::string result = ts_strip::strip(code.c_str());
-        retVal = result.c_str();
+        retVal = ts_strip::strip(code);
         return 0;
     } catch (const std::exception& e) {
         return CHECK_ERROR(Runtime::setError(e.what()));
