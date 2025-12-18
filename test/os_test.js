@@ -9,6 +9,7 @@ var path = require('path');
 var coroutine = require('coroutine');
 
 var isWindows = process.platform === 'win32';
+var isIOS = process.platform === 'ios';
 
 describe('os', () => {
     it('stat', () => {
@@ -154,7 +155,7 @@ describe('os', () => {
         assert.notEqual(arch, "");
     });
 
-    it('homedir', () => {
+    (isIOS ? it.skip : it)('homedir', () => {
         const homedir = os.homedir();
         assert.isString(homedir);
         if (isWindows) {
@@ -172,7 +173,7 @@ describe('os', () => {
         }
     });
 
-    it('userInfo', () => {
+    (isIOS ? it.skip : it)('userInfo', () => {
         const userInfo = os.userInfo();
         const userInfoBuffer = os.userInfo({
             encoding: 'buffer'

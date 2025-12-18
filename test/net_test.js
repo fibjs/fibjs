@@ -41,7 +41,8 @@ var backend = {
     "darwin": "KQueue",
     "freebsd": "KQueue",
     "linux": "EPoll",
-    "android": "EPoll"
+    "android": "EPoll",
+    "ios": "KQueue"
 }[process.platform];
 
 
@@ -51,8 +52,13 @@ function del(f) {
     } catch (e) { }
 }
 
+// Use /tmp on iOS to avoid path truncation (Unix socket sun_path limit is 104 bytes)
+function unixSocketDir() {
+    return process.platform === 'ios' ? '/tmp' : os.tmpdir();
+}
+
 function test_net(eng, use_uv) {
-    var now_port = 8080;
+    var now_port = use_uv ? 9080 : 8080;
 
     function getPort() {
         return now_port++ + base_port;
@@ -843,8 +849,17 @@ function test_net(eng, use_uv) {
             });
 
             it("abort read", () => {
+                // Create a temporary server to connect to
+                var svr = new net.Socket(net_config.family);
+                var svrPort = getPort();
+                svr.bind(svrPort, '127.0.0.1');
+                svr.listen();
+                test_util.push(svr);
+
                 var c1 = new net.Socket();
-                c1.connect(8080 + base_port, '127.0.0.1');
+                c1.connect(svrPort, '127.0.0.1');
+                console.log(c1.remoteAddress, c1.remotePort, "->",
+                    c1.localAddress, c1.localPort);
                 coroutine.start(close_it, c1);
                 assert.throws(() => {
                     c1.read();
@@ -986,11 +1001,13 @@ function test_net(eng, use_uv) {
                 test_util.push(s);
 
                 var _port = getPort();
-                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : unixSocketDir() + '/port_' + _port;
 
+                del(_path);
                 s.bind(_path);
                 s.listen();
-                if (process.platform !== 'win32')
+                // Skip localAddress check if path is too long (Unix socket sun_path limit is 104 bytes)
+                if (process.platform !== 'win32' && _path.length < 104)
                     assert.equal(s.localAddress, _path);
                 coroutine.start(accept, s);
 
@@ -1004,7 +1021,8 @@ function test_net(eng, use_uv) {
 
                 function conn() {
                     var s1 = net.connect('unix:' + _path);
-                    if (process.platform !== 'win32')
+                    // Skip remoteAddress check if path is too long (Unix socket sun_path limit is 104 bytes)
+                    if (process.platform !== 'win32' && _path.length < 104)
                         assert.equal(s1.remoteAddress, _path);
                     s1.send(new Buffer("GET / HTTP/1.0"));
                     assert.equal("GET / HTTP/1.0", s1.recv());
@@ -1024,8 +1042,9 @@ function test_net(eng, use_uv) {
                 var svr;
 
                 var _port = getPort();
-                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : unixSocketDir() + '/port_' + _port;
 
+                del(_path);
                 svr = new net.TcpServer(_path, (c) => {
                     try {
                         var b;
@@ -1040,7 +1059,8 @@ function test_net(eng, use_uv) {
                 svr.start();
 
                 var s1 = net.connect('unix:' + _path);
-                if (process.platform !== 'win32')
+                // Skip remoteAddress check if path is too long (Unix socket sun_path limit is 104 bytes)
+                if (process.platform !== 'win32' && _path.length < 104)
                     assert.equal(s1.remoteAddress, _path);
                 s1.send(new Buffer("GET / HTTP/1.0"));
                 assert.equal("GET / HTTP/1.0", s1.recv());
@@ -1049,11 +1069,12 @@ function test_net(eng, use_uv) {
 
             it("FIX: multi bind", () => {
                 var _port = getPort();
-                var _path = process.platform === 'win32' ? "//./pipe/port1_" + _port : os.homedir() + '/port1_' + _port;
+                var _path = process.platform === 'win32' ? "//./pipe/port1_" + _port : unixSocketDir() + '/port1_' + _port;
 
                 var s = new net.Socket(net.AF_UNIX);
                 test_util.push(s);
 
+                del(_path);
                 s.bind(_path);
 
                 var s1 = new net.Socket(net.AF_UNIX);

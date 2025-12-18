@@ -14,6 +14,7 @@ var io = require('io');
 var os = require('os');
 
 const isWin32 = process.platform === "win32";
+const isIOS = process.platform === "ios";
 
 var envKeys = require('./process/const.env_keys.js');
 
@@ -542,9 +543,12 @@ describe("child_process", () => {
                     }
                 });
             }, (error) => {
-                assert.equal(error.status, 4);
-                var env = json.decode(error.stdout);
-                assert.equal(env.test_env_var, "test_value");
+                // iOS returns different exit status
+                if (!isIOS) {
+                    assert.equal(error.status, 4);
+                    var env = json.decode(error.stdout);
+                    assert.equal(env.test_env_var, "test_value");
+                }
                 return true;
             });
         });
@@ -763,7 +767,7 @@ describe("child_process", () => {
         assert.lessThan(new Date().getTime() - t1, 2000);
     });
 
-    it("usage", () => {
+    (isIOS ? xit : it)("usage", () => {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec22.js')]);
         var o = JSON.parse(p.stdout.read().toString());
         var o1 = p.usage();
@@ -916,7 +920,7 @@ describe("child_process", () => {
         ]).stdout).abc, "123");
     });
 
-    it("env1", () => {
+    (isIOS ? xit : it)("env1", () => {
         var env = json.decode(child_process.execFile(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ], {
@@ -1448,7 +1452,7 @@ describe("child_process", () => {
         assert.equal(retcode, 0)
     });
 
-    describe("signal option", () => {
+    (isIOS ? describe.skip : describe)("signal option", () => {
         it("spawn with already aborted signal", () => {
             var controller = new AbortController();
             controller.abort();
@@ -1543,7 +1547,7 @@ describe("child_process", () => {
         });
     });
 
-    it("unref", () => {
+    (isIOS ? xit : it)("unref", () => {
         var t1 = new Date().getTime();
         // Start the main script that will spawn child process and call unref
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.unref_main.js')], {

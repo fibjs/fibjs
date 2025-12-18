@@ -53,6 +53,8 @@ const ensureDirectoryExisted = (dirpath) => {
 };
 
 const support_watch_recursive = ['win32', 'darwin'].includes(process.platform);
+// iOS simulator FSEvents doesn't return the filename when watching directories
+const support_watch_directory_filename = process.platform !== 'ios';
 
 describe('fs.watch', () => {
     const basedir = path.resolve(__dirname);
@@ -141,7 +143,7 @@ describe('fs.watch', () => {
             assert.strictEqual(typeof capturedEventType, 'string');
         });
 
-        it('should watch directory for file creation', async (t) => {
+        (support_watch_directory_filename ? it : it.skip)('should watch directory for file creation', async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -168,7 +170,7 @@ describe('fs.watch', () => {
             assert.strictEqual(typeof capturedEventType, 'string');
         });
 
-        it('should watch directory for file deletion', async (t) => {
+        (support_watch_directory_filename ? it : it.skip)('should watch directory for file deletion', async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -388,7 +390,7 @@ describe('fs.watch', () => {
     }
 
     describe('encoding option', () => {
-        it('should support buffer encoding', async (t) => {
+        (support_watch_directory_filename ? it : it.skip)('should support buffer encoding', async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -418,7 +420,7 @@ describe('fs.watch', () => {
             // On some platforms, filename might be null or we might not receive the event
         });
 
-        it('should support utf8 encoding (default)', async (t) => {
+        (support_watch_directory_filename ? it : it.skip)('should support utf8 encoding (default)', async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 

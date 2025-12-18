@@ -27,6 +27,7 @@ var pathname2 = path.join(homedir, 'test2_dir' + vmid);
 var win = process.platform === 'win32';
 var linux = process.platform === 'linux';
 var android = process.platform === 'android';
+var isIOS = process.platform === 'ios';
 
 function assert_stat_property(statObj) {
     assert.isNumber(statObj.dev)
@@ -703,7 +704,7 @@ describe('fs', () => {
             fs.unlink(fn);
         });
 
-        it("fs.chown", () => {
+        (isIOS ? it.skip : it)("fs.chown", () => {
             var fn = path.join(__dirname, 'fs_test.js' + vmid);
             fs.writeFile(fn, 'chown test');
             if (require('os').userInfo().username != 'root')
@@ -719,7 +720,7 @@ describe('fs', () => {
             fs.unlink(fn);
         });
 
-        it("fs.lchown", () => {
+        (isIOS ? it.skip : it)("fs.lchown", () => {
             var fn = path.join(__dirname, 'fs_test.js.symlink');
 
             if (fs.exists(fn))

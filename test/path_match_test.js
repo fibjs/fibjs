@@ -4,7 +4,7 @@ const path = require("path");
 const os = require("os");
 
 // Platform-specific behavior detection - case insensitive on Mac and Windows
-const isCaseInsensitive = os.platform() === 'darwin' || os.platform() === 'win32';
+const isCaseInsensitive = os.platform() === 'darwin' || os.platform() === 'win32' || os.platform() === 'ios';
 
 describe("path.matchesGlob", () => {
 
