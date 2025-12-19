@@ -136,7 +136,7 @@ method
       params: params
     };
   }
-  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:type _* isarray:("[" _* "]")? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
@@ -146,6 +146,7 @@ method
       symbol: symbol ? '@' : '',
       name: name,
       type: type,
+      isarray: isarray,
       params: params
     };
   }

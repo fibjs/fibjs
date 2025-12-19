@@ -43,7 +43,7 @@ const _formatMethodReturnType = (member) => {
             .join(', ')
             }) `
     }
-    return member.type ? `${member.type} ` : ''
+    return member.type ? `${member.type}${member.isarray ? "[]" : ""} ` : ''
 }
 
 const _formatParamTypeName = (param) => {

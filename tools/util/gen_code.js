@@ -204,7 +204,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         });
 
                     if (ov.type)
-                        ps.push(get_rtype(ov.type) + "& retVal");
+                        ps.push(get_rtype(ov.type, ov.isarray) + "& retVal");
 
                     if (is_new) {
                         if (!ov.type) ps.push(get_rtype(cls) + "& retVal");
@@ -352,11 +352,11 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 fncallee_ovs.slice(0, 1).forEach(ov => {
                     if (ov.static) {
                         txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_function', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
-                        if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                        if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
                     } else {
                         txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                        if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                        if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
 
                         if (ov.async)
                             txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
@@ -408,7 +408,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                    if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                    if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
 
                     if (ov.async) {
                         if (hasLastParamFunction(static_ovs))
@@ -431,7 +431,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                    if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                    if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
 
                     if (ov.async) {
                         txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
@@ -714,10 +714,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
         return t;
     }
 
-    function get_rtype(t) {
+    function get_rtype(t, isarray) {
         if (Array.isArray(t))
             return `obj_ptr<${t.name}>`;
-        return typeMap[t] || (`obj_ptr<${t}_base>`);
+        var baseType = typeMap[t] || (`obj_ptr<${t}_base>`);
+        if (isarray)
+            return `std::vector<${baseType}>`;
+        return baseType;
     }
 
     function is_func_Function(fn, def) {
@@ -1056,7 +1059,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                             if (ov.type) {
                                 pn++;
-                                ps.push(get_rtype(ov.type));
+                                ps.push(get_rtype(ov.type, ov.isarray));
                                 fns += "VALUE";
                             }
 
