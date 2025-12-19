@@ -11,11 +11,6 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
-#include <iostream>
-
-// Debug mode: disable all replacements, just parse
-#define TS_STRIP_DEBUG_PARSE 0
-
 namespace fibjs {
 namespace ts_strip {
 
@@ -245,17 +240,13 @@ private:
     
     // ========== Replacement recording ==========
     void addReplacement(int start, int end) {
-#if !TS_STRIP_DEBUG_PARSE
         if (start < end) {
             m_replacements.push_back(Replacement(start, end));
         }
-#endif
     }
     
     void addOverwrite(int pos, uint8_t value) {
-#if !TS_STRIP_DEBUG_PARSE
         m_overwrites.push_back(Overwrite(pos, value));
-#endif
     }
 
     // ========== Core parsing helpers (from TypeRunner) ==========
@@ -1685,16 +1676,10 @@ void TsStrip::parseExpressionOrLabeledStatement() {
  */
 void TsStrip::parseBlock() {
     parseExpected(SyntaxKind::OpenBraceToken);
-    int loopCount = 0;
     while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
-        if (++loopCount > 10000) {
-            std::cerr << "LOOP in parseBlock: token=" << (int)token() << " pos=" << getNodePos() << std::endl;
-            throw std::runtime_error("Infinite loop in parseBlock");
-        }
         size_t beforeIndex = m_tokenIndex;
         parseStatement();
         if (m_tokenIndex == beforeIndex) {
-            std::cerr << "WARNING: parseStatement didn't advance in block at token=" << (int)token() << std::endl;
             nextToken();
         }
     }
@@ -1882,11 +1867,12 @@ void TsStrip::parseObjectBindingPattern() {
         if (token() == SyntaxKind::DotDotDotToken) {
             nextToken();
         }
-        if (token() == SyntaxKind::Identifier) {
+        // Use isBindingIdentifier() to support contextual keywords like 'get', 'set', 'type' as property names
+        if (isBindingIdentifier()) {
             nextToken();
             if (parseOptional(SyntaxKind::ColonToken)) {
                 // propertyName: bindingName
-                if (token() == SyntaxKind::Identifier) {
+                if (isBindingIdentifier()) {
                     nextToken();
                 } else if (token() == SyntaxKind::OpenBraceToken) {
                     parseObjectBindingPattern();
@@ -1900,7 +1886,7 @@ void TsStrip::parseObjectBindingPattern() {
             parseExpression();
             parseExpected(SyntaxKind::CloseBracketToken);
             parseExpected(SyntaxKind::ColonToken);
-            if (token() == SyntaxKind::Identifier) {
+            if (isBindingIdentifier()) {
                 nextToken();
             } else if (token() == SyntaxKind::OpenBraceToken) {
                 parseObjectBindingPattern();
@@ -1931,7 +1917,8 @@ void TsStrip::parseArrayBindingPattern() {
         if (token() == SyntaxKind::DotDotDotToken) {
             nextToken();
         }
-        if (token() == SyntaxKind::Identifier) {
+        // Use isBindingIdentifier() to support contextual keywords
+        if (isBindingIdentifier()) {
             nextToken();
         } else if (token() == SyntaxKind::OpenBraceToken) {
             parseObjectBindingPattern();
@@ -1968,8 +1955,8 @@ void TsStrip::parseFunctionDeclaration(int outerStart) {
     // Generator *
     parseOptional(SyntaxKind::AsteriskToken);
     
-    // Name
-    if (token() == SyntaxKind::Identifier) {
+    // Name (can be identifier or contextual keyword like 'satisfies')
+    if (isBindingIdentifier()) {
         nextToken();
     }
     
@@ -3503,18 +3490,11 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
 // ========================================================================
 
 void TsStrip::parseSourceFile() {
-    int loopCount = 0;
-    size_t lastIndex = m_tokenIndex;
     while (!isEOF()) {
-        if (++loopCount > 100000) {
-            std::cerr << "LOOP in parseSourceFile: token=" << (int)token() << " pos=" << getNodePos() << std::endl;
-            throw std::runtime_error("Infinite loop in parseSourceFile");
-        }
         size_t beforeIndex = m_tokenIndex;
         parseStatement();
         // If we didn't advance, force advance to prevent infinite loop
         if (m_tokenIndex == beforeIndex) {
-            std::cerr << "WARNING: parseStatement didn't advance at token=" << (int)token() << " pos=" << getNodePos() << std::endl;
             nextToken();
         }
     }

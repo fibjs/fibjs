@@ -1801,6 +1801,57 @@ console.log("Done");`;
 
         });
 
+        describe('Contextual Keywords as Function Names', () => {
+
+            it('should preserve satisfies as function name', () => {
+                // 'satisfies' is a contextual keyword but can be used as function name
+                const input = 'function satisfies(a, b) { return a === b; }';
+                const expected = 'function satisfies(a, b) { return a === b; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve satisfies as function name with types', () => {
+                const input = 'function satisfies(a: number, b: number): boolean { return a === b; }';
+                const expected = 'function satisfies(a        , b        )          { return a === b; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Contextual Keywords in Object Binding Pattern', () => {
+
+            it('should preserve get in object destructuring parameter', () => {
+                const input = 'function f({ get }) {}';
+                const expected = 'function f({ get }) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve set in object destructuring parameter', () => {
+                const input = 'function f({ set }) {}';
+                const expected = 'function f({ set }) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve multiple contextual keywords in destructuring', () => {
+                const input = 'function f({ get, set }) {}';
+                const expected = 'function f({ get, set }) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve mixed identifiers and contextual keywords', () => {
+                const input = 'function f({ a, get, b }) {}';
+                const expected = 'function f({ a, get, b }) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve contextual keywords with type annotation', () => {
+                const input = 'function f({ get, set }: { get: number, set: number }) {}';
+                const expected = 'function f({ get, set }                              ) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
         describe('Export Interface and Type Complete Erasure', () => {
 
             it('should completely erase export interface', () => {
