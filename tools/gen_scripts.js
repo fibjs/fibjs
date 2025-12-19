@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path').posix;
 var encoding = require('encoding');
 var zlib = require('zlib');
+var util = require('util');
 
 var datas = [];
 var txts = [];
@@ -22,12 +23,22 @@ function enc_folder(dir) {
             return
         }
 
-        if (f.indexOf('.js') === -1) {
+        var isTypeScript = f.indexOf('.ts') !== -1;
+        var isJavaScript = f.indexOf('.js') !== -1;
+        
+        if (!isJavaScript && !isTypeScript) {
             return
         }
 
-        console.log("encoding", path.join(dir, f));
         var code = fs.readTextFile(path.join(base, dir, f));
+
+        // Convert TypeScript to JavaScript if needed
+        if (isTypeScript) {
+            console.log("encoding", path.join(dir, f), "(converting TypeScript to JavaScript)");
+            code = util.stripTypeScript(code);
+        } else {
+            console.log("encoding", path.join(dir, f));
+        }
 
         var pos = 0;
         var sz = 20;
@@ -47,7 +58,10 @@ function enc_folder(dir) {
 
         var idx = datas.length;
         datas.push(`static const unsigned char dat_${idx}[] = ` + hex + ';');
-        txts.push('{"' + path.join(dir, path.basename(f, ".js")) + '", ' + bin.length + `, (const char*)dat_${idx}},`);
+        
+        // Remove extension (.js or .ts) for the internal name
+        var baseName = isTypeScript ? path.basename(f, ".ts") : path.basename(f, ".js");
+        txts.push('{"' + path.join(dir, baseName) + '", ' + bin.length + `, (const char*)dat_${idx}},`);
     });
 }
 
