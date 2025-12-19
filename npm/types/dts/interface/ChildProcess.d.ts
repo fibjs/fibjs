@@ -35,6 +35,20 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     join(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
+     * @description 等待当前对象指向的进程结束，并返回进程结束代码
+     *       @return 进程的结束代码
+     *      
+     */
+    joinSync(): number;
+
+    /**
+     * @description 等待当前对象指向的进程结束，并返回进程结束代码
+     *       @return 进程的结束代码
+     *      
+     */
+    joinAsync(): Promise<number>;
+
+    /**
      * @description 查询与子进程的管道是否正常连接 
      */
     readonly connected: boolean;

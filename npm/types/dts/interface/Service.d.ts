@@ -21,6 +21,16 @@ declare class Class_Service extends Class_EventEmitter {
     run(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 开始运行服务实体 
+     */
+    runSync(): void;
+
+    /**
+     * @description 开始运行服务实体 
+     */
+    runAsync(): Promise<void>;
+
+    /**
      * @description 查询和设置服务名称 
      */
     name: string;

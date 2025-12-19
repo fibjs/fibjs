@@ -65,5 +65,15 @@ declare class Class_Event extends Class_Lock {
 
     wait(callback: (err: Error | undefined | null)=>any): void;
 
+    /**
+     * @description 等待一个事件 
+     */
+    waitSync(): void;
+
+    /**
+     * @description 等待一个事件 
+     */
+    waitAsync(): Promise<void>;
+
 }
 

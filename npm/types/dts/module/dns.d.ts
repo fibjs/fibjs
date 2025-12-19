@@ -22,6 +22,22 @@ declare module 'dns' {
     /**
      * @description 查询给定的主机名的地址
      *      @param name 指定主机名
+     *      @return 返回查询的 ip 字符串数组
+     *      
+     */
+    function resolveSync(name: string): any[];
+
+    /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
+     *      @return 返回查询的 ip 字符串数组
+     *      
+     */
+    function resolveAsync(name: string): Promise<any[]>;
+
+    /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
      *      @param options 查询选项
      *      @return 返回查询的 ip 字符串
      *      
@@ -29,6 +45,24 @@ declare module 'dns' {
     function lookup(name: string, options?: FIBJS.GeneralObject): any;
 
     function lookup(name: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
+     *      @param options 查询选项
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function lookupSync(name: string, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
+     *      @param options 查询选项
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function lookupAsync(name: string, options?: FIBJS.GeneralObject): Promise<any>;
 
 }
 

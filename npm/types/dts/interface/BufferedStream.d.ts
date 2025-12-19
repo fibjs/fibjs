@@ -59,6 +59,22 @@ declare class Class_BufferedStream extends Class_Stream {
     readText(size: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 读取指定字符的文本
+     *      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readTextSync(size: number): string;
+
+    /**
+     * @description 读取指定字符的文本
+     *      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readTextAsync(size: number): Promise<string>;
+
+    /**
      * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
      *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
@@ -67,6 +83,22 @@ declare class Class_BufferedStream extends Class_Stream {
     readLine(maxlen?: number): string;
 
     readLine(maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
+     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readLineSync(maxlen?: number): string;
+
+    /**
+     * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
+     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readLineAsync(maxlen?: number): Promise<string>;
 
     /**
      * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -88,6 +120,24 @@ declare class Class_BufferedStream extends Class_Stream {
     readUntil(mk: string, maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 读取一个文本字符串，以指定的字节为结尾
+     *      @param mk 指定结尾的字符串
+     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readUntilSync(mk: string, maxlen?: number): string;
+
+    /**
+     * @description 读取一个文本字符串，以指定的字节为结尾
+     *      @param mk 指定结尾的字符串
+     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readUntilAsync(mk: string, maxlen?: number): Promise<string>;
+
+    /**
      * @description 写入一个字符串
      *      @param txt 指定写入的字符串
      *      @return 实际写入的字节数
@@ -98,6 +148,22 @@ declare class Class_BufferedStream extends Class_Stream {
     writeText(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
+     * @description 写入一个字符串
+     *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
+     *      
+     */
+    writeTextSync(txt: string): number;
+
+    /**
+     * @description 写入一个字符串
+     *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
+     *      
+     */
+    writeTextAsync(txt: string): Promise<number>;
+
+    /**
      * @description 写入一个字符串，并写入换行符
      *      @param txt 指定写入的字符串
      *      @return 实际写入的字节数
@@ -106,6 +172,22 @@ declare class Class_BufferedStream extends Class_Stream {
     writeLine(txt: string): number;
 
     writeLine(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 写入一个字符串，并写入换行符
+     *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
+     *      
+     */
+    writeLineSync(txt: string): number;
+
+    /**
+     * @description 写入一个字符串，并写入换行符
+     *      @param txt 指定写入的字符串
+     *      @return 实际写入的字节数
+     *      
+     */
+    writeLineAsync(txt: string): Promise<number>;
 
     /**
      * @description 查询创建缓存对象时的流对象 

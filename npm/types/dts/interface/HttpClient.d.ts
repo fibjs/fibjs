@@ -172,6 +172,24 @@ declare class Class_HttpClient extends Class_object {
      * @description 发送 http 请求到指定的流对象，并返回结果
      *      @param conn 指定处理请求的流对象
      *      @param req 要发送的 HttpRequest 对象
+     *      @return 返回服务器响应
+     *      
+     */
+    requestSync(conn: Class_Stream, req: Class_HttpRequest): Class_HttpResponse;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
+     *      @return 返回服务器响应
+     *      
+     */
+    requestAsync(conn: Class_Stream, req: Class_HttpRequest): Promise<Class_HttpResponse>;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
      *      @param response_body 指定 response.body 的流
      *      @return 返回服务器响应
      *      
@@ -179,6 +197,26 @@ declare class Class_HttpClient extends Class_object {
     request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
 
     request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
+     *      @param response_body 指定 response.body 的流
+     *      @return 返回服务器响应
+     *      
+     */
+    requestSync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
+     *      @param response_body 指定 response.body 的流
+     *      @return 返回服务器响应
+     *      
+     */
+    requestAsync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Promise<Class_HttpResponse>;
 
     /**
      * @description 请求指定的 url，并返回结果
@@ -214,6 +252,68 @@ declare class Class_HttpClient extends Class_object {
     request(method: string, url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 请求指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "response_body": SeekableStream // specify the response.body stream
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param method 指定 http 请求方法：GET, POST 等
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 请求指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "response_body": SeekableStream // specify the response.body stream
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param method 指定 http 请求方法：GET, POST 等
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -245,6 +345,64 @@ declare class Class_HttpClient extends Class_object {
     request(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
      * @description 请求 opts 指定的 url，并返回结果
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -273,6 +431,62 @@ declare class Class_HttpClient extends Class_object {
     request(opts: FIBJS.GeneralObject): Class_HttpResponse;
 
     request(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 请求 opts 指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestSync(opts: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 请求 opts 指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    requestAsync(opts: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
@@ -306,6 +520,64 @@ declare class Class_HttpClient extends Class_object {
     get(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    getSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    getAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
      * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -335,6 +607,64 @@ declare class Class_HttpClient extends Class_object {
     post(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     post(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    postSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    postAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
@@ -368,6 +698,64 @@ declare class Class_HttpClient extends Class_object {
     del(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    delSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    delAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
      * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -397,6 +785,64 @@ declare class Class_HttpClient extends Class_object {
     put(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     put(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    putSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    putAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
@@ -430,6 +876,64 @@ declare class Class_HttpClient extends Class_object {
     patch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    patchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    patchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
      * @description 用 HEAD 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -459,6 +963,64 @@ declare class Class_HttpClient extends Class_object {
     head(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     head(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 用 HEAD 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    headSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 用 HEAD 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    headAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
 }
 

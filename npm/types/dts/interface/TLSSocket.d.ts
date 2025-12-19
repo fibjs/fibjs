@@ -43,6 +43,22 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
+     *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
+     *     
+     */
+    connectSync(socket: Class_Stream, server_name?: string): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
+     *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
+     *     
+     */
+    connectAsync(socket: Class_Stream, server_name?: string): Promise<void>;
+
+    /**
      * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
      *      @param socket 给定的底层连接
      *      @param connectListener 指定 once 的 connect 事件监听器
@@ -51,6 +67,22 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, connectListener: (...args: any[])=>any): void;
 
     connect(socket: Class_Stream, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connectSync(socket: Class_Stream, connectListener: (...args: any[])=>any): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connectAsync(socket: Class_Stream, connectListener: (...args: any[])=>any): Promise<void>;
 
     /**
      * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
@@ -64,6 +96,24 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connectSync(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
+     *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *     
+     */
+    connectAsync(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any): Promise<void>;
+
+    /**
      * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
      *      @param socket 给定的底层连接
      *     
@@ -71,6 +121,20 @@ declare class Class_TLSSocket extends Class_Stream {
     accept(socket: Class_Stream): void;
 
     accept(socket: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
+     *      @param socket 给定的底层连接
+     *     
+     */
+    acceptSync(socket: Class_Stream): void;
+
+    /**
+     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
+     *      @param socket 给定的底层连接
+     *     
+     */
+    acceptAsync(socket: Class_Stream): Promise<void>;
 
     /**
      * @description 查询消息 tls/ssl 建立时的下层流对象 

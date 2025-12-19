@@ -197,6 +197,20 @@ declare module 'gui' {
 
     /**
      * @description 弹出一个消息框
+     *      @param message 消息内容
+     *     
+     */
+    function alertSync(message: string): void;
+
+    /**
+     * @description 弹出一个消息框
+     *      @param message 消息内容
+     *     
+     */
+    function alertAsync(message: string): Promise<void>;
+
+    /**
+     * @description 弹出一个消息框
      *      @param title 消息标题
      *      @param message 消息内容
      *     
@@ -204,6 +218,22 @@ declare module 'gui' {
     function alert(title: string, message: string): void;
 
     function alert(title: string, message: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 弹出一个消息框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *     
+     */
+    function alertSync(title: string, message: string): void;
+
+    /**
+     * @description 弹出一个消息框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *     
+     */
+    function alertAsync(title: string, message: string): Promise<void>;
 
     /**
      * @description 弹出一个确认框
@@ -217,6 +247,22 @@ declare module 'gui' {
 
     /**
      * @description 弹出一个确认框
+     *      @param message 消息内容
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirmSync(message: string): boolean;
+
+    /**
+     * @description 弹出一个确认框
+     *      @param message 消息内容
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirmAsync(message: string): Promise<boolean>;
+
+    /**
+     * @description 弹出一个确认框
      *      @param title 消息标题
      *      @param message 消息内容
      *      @return 返回用户的选择结果
@@ -225,6 +271,24 @@ declare module 'gui' {
     function confirm(title: string, message: string): boolean;
 
     function confirm(title: string, message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 弹出一个确认框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirmSync(title: string, message: string): boolean;
+
+    /**
+     * @description 弹出一个确认框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirmAsync(title: string, message: string): Promise<boolean>;
 
     /**
      * @description 弹出一个输入框
@@ -239,6 +303,24 @@ declare module 'gui' {
 
     /**
      * @description 弹出一个输入框
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function inputSync(message: string, password?: boolean): string;
+
+    /**
+     * @description 弹出一个输入框
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function inputAsync(message: string, password?: boolean): Promise<string>;
+
+    /**
+     * @description 弹出一个输入框
      *      @param title 消息标题
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
@@ -248,6 +330,26 @@ declare module 'gui' {
     function input(title: string, message: string, password?: boolean): string;
 
     function input(title: string, message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 弹出一个输入框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function inputSync(title: string, message: string, password?: boolean): string;
+
+    /**
+     * @description 弹出一个输入框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @param password 是否为密码输入，默认为 false
+     *      @return 返回用户输入的内容
+     *     
+     */
+    function inputAsync(title: string, message: string, password?: boolean): Promise<string>;
 
     /**
      * @description 弹出一个选择文件对话框
@@ -266,6 +368,38 @@ declare module 'gui' {
     function chooseFile(options: FIBJS.GeneralObject): any[];
 
     function chooseFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 弹出一个选择文件对话框
+     * 
+     *      options 支持以下参数:
+     *       - title: 对话框标题
+     *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
+     *       - defaultPath: 默认打开的路径
+     *       - multiple: 是否允许多选，默认为 false
+     *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
+     * 
+     *      @param options 选择文件对话框参数
+     *      @return 返回用户选择的文件数组
+     *     
+     */
+    function chooseFileSync(options: FIBJS.GeneralObject): any[];
+
+    /**
+     * @description 弹出一个选择文件对话框
+     * 
+     *      options 支持以下参数:
+     *       - title: 对话框标题
+     *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
+     *       - defaultPath: 默认打开的路径
+     *       - multiple: 是否允许多选，默认为 false
+     *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
+     * 
+     *      @param options 选择文件对话框参数
+     *      @return 返回用户选择的文件数组
+     *     
+     */
+    function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
 
 }
 

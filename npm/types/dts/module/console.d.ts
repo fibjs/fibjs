@@ -572,6 +572,22 @@ declare module 'console' {
     function readLine(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 从控制台读取用户输入
+     *      @param msg 提示信息
+     *      @return 返回用户输入的信息
+     *      
+     */
+    function readLineSync(msg?: string): string;
+
+    /**
+     * @description 从控制台读取用户输入
+     *      @param msg 提示信息
+     *      @return 返回用户输入的信息
+     *      
+     */
+    function readLineAsync(msg?: string): Promise<string>;
+
+    /**
      * @description 从控制台读取用户输入的密码
      *      @param msg 提示信息
      *      @return 返回用户输入的密码
@@ -580,6 +596,22 @@ declare module 'console' {
     function getpass(msg?: string): string;
 
     function getpass(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 从控制台读取用户输入的密码
+     *      @param msg 提示信息
+     *      @return 返回用户输入的密码
+     *      
+     */
+    function getpassSync(msg?: string): string;
+
+    /**
+     * @description 从控制台读取用户输入的密码
+     *      @param msg 提示信息
+     *      @return 返回用户输入的密码
+     *      
+     */
+    function getpassAsync(msg?: string): Promise<string>;
 
     /**
      * @description 启动一个计时器

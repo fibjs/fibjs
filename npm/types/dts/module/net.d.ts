@@ -58,6 +58,24 @@ declare module 'net' {
     function resolve(name: string, family: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
+     *      @param family 指定查询返回类型，缺省为 AF_INET
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function resolveSync(name: string, family: number): string;
+
+    /**
+     * @description 查询给定的主机名的地址
+     *      @param name 指定主机名
+     *      @param family 指定查询返回类型，缺省为 AF_INET
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function resolveAsync(name: string, family: number): Promise<string>;
+
+    /**
      * @description 快速查询的主机地址，等效与 resolve(name)
      *      @param name 指定主机名
      *      @return 返回查询的 ip 字符串
@@ -68,6 +86,22 @@ declare module 'net' {
     function ip(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 快速查询的主机地址，等效与 resolve(name)
+     *      @param name 指定主机名
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function ipSync(name: string): string;
+
+    /**
+     * @description 快速查询的主机地址，等效与 resolve(name)
+     *      @param name 指定主机名
+     *      @return 返回查询的 ip 字符串
+     *      
+     */
+    function ipAsync(name: string): Promise<string>;
+
+    /**
      * @description 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
      *      @param name 指定主机名
      *      @return 返回查询的 ipv6 字符串
@@ -76,6 +110,22 @@ declare module 'net' {
     function ipv6(name: string): string;
 
     function ipv6(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
+     *      @param name 指定主机名
+     *      @return 返回查询的 ipv6 字符串
+     *      
+     */
+    function ipv6Sync(name: string): string;
+
+    /**
+     * @description 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
+     *      @param name 指定主机名
+     *      @return 返回查询的 ipv6 字符串
+     *      
+     */
+    function ipv6Async(name: string): Promise<string>;
 
     /**
      * @description 创建一个 Socket 对象，参见 Socket 
@@ -94,6 +144,24 @@ declare module 'net' {
     function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
+     * @description 创建一个 Socket 或 SslSocket 对象并建立连接
+     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Socket 或者 SslSocket 对象
+     *      
+     */
+    function connectSync(url: string, timeout?: number): Class_Stream;
+
+    /**
+     * @description 创建一个 Socket 或 SslSocket 对象并建立连接
+     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Socket 或者 SslSocket 对象
+     *      
+     */
+    function connectAsync(url: string, timeout?: number): Promise<Class_Stream>;
+
+    /**
      * @description 创建一个 Socket 对象并建立连接
      *      @param port 指定对方端口
      *      @param host 指定对方地址或主机名，缺省为 localhost
@@ -104,6 +172,26 @@ declare module 'net' {
     function connect(port: number, host?: string, timeout?: number): Class_Stream;
 
     function connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectSync(port: number, host?: string, timeout?: number): Class_Stream;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectAsync(port: number, host?: string, timeout?: number): Promise<Class_Stream>;
 
     /**
      * @description 创建一个 Socket 对象并建立连接
@@ -122,6 +210,34 @@ declare module 'net' {
     function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
+
+    /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param port 指定对方端口
      *      @param connectListener 指定 once 的 connect 事件监听器
@@ -131,6 +247,24 @@ declare module 'net' {
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     function connect(port: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
@@ -148,6 +282,26 @@ declare module 'net' {
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param port 指定对方端口
      *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
      *      @param timeout 指定超时时间，单位是毫秒，默认为 0
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
@@ -156,6 +310,28 @@ declare module 'net' {
     function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param port 指定对方端口
+     *      @param host 指定对方地址或主机名，缺省为 localhost
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
@@ -171,6 +347,24 @@ declare module 'net' {
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(path: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(path: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
      *      @param timeout 指定超时时间，单位是毫秒，默认为 0
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
@@ -182,6 +376,26 @@ declare module 'net' {
 
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param path 指定 unix socket 或 Windows pipe 路径
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param options 指定连接选项对象，可以包含以下属性：
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
@@ -190,6 +404,24 @@ declare module 'net' {
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 创建一个 Smtp 对象，参见 Smtp 
@@ -206,6 +438,24 @@ declare module 'net' {
     function openSmtp(url: string, timeout?: number): Class_Smtp;
 
     function openSmtp(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+
+    /**
+     * @description 创建一个 Smtp 对象并建立连接，参见 Smtp
+     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Smtp 对象
+     *      
+     */
+    function openSmtpSync(url: string, timeout?: number): Class_Smtp;
+
+    /**
+     * @description 创建一个 Smtp 对象并建立连接，参见 Smtp
+     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
+     *      @return 返回连接成功的 Smtp 对象
+     *      
+     */
+    function openSmtpAsync(url: string, timeout?: number): Promise<Class_Smtp>;
 
     /**
      * @description 创建一个 TcpServer 对象，参见 TcpServer 

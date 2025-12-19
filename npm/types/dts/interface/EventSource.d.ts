@@ -50,6 +50,16 @@ declare class Class_EventSource extends Class_EventEmitter {
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 关闭连接 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭连接 
+     */
+    closeAsync(): Promise<void>;
+
+    /**
      * @description 发送事件到客户端
      * 
      *      options 包含请求的附加选项，支持的内容如下：
@@ -69,6 +79,44 @@ declare class Class_EventSource extends Class_EventEmitter {
     send(data: string, options?: FIBJS.GeneralObject): number;
 
     send(data: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 发送事件到客户端
+     * 
+     *      options 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "event": "message", // 指定事件类型，默认为 message
+     *          "id": "", // 事件 ID
+     *          "retry": 0 // 重试时间间隔，单位为毫秒
+     *      }
+     *      ```
+     * 
+     *      @param data 事件数据
+     *      @param options 选项
+     *      @return 返回发送的字节数
+     *     
+     */
+    sendSync(data: string, options?: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 发送事件到客户端
+     * 
+     *      options 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "event": "message", // 指定事件类型，默认为 message
+     *          "id": "", // 事件 ID
+     *          "retry": 0 // 重试时间间隔，单位为毫秒
+     *      }
+     *      ```
+     * 
+     *      @param data 事件数据
+     *      @param options 选项
+     *      @return 返回发送的字节数
+     *     
+     */
+    sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
 
     /**
      * @description 事件源状态，取值为 CONNECTING、OPEN、CLOSED 

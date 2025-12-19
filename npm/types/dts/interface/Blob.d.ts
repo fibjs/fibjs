@@ -87,6 +87,24 @@ declare class Class_Blob extends Class_object {
     text(): Promise<string>;
 
     /**
+     * @description 以文本形式读取 Blob 内容
+     *         
+     *      异步读取 Blob 数据为字符串，返回 Promise。
+     *      @return 返回包含文本内容的 Promise
+     *     
+     */
+    textSync(): string;
+
+    /**
+     * @description 以文本形式读取 Blob 内容
+     *         
+     *      异步读取 Blob 数据为字符串，返回 Promise。
+     *      @return 返回包含文本内容的 Promise
+     *     
+     */
+    textAsync(): Promise<string>;
+
+    /**
      * @description 以 ArrayBuffer 形式读取 Blob 内容
      *         
      *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
@@ -94,6 +112,24 @@ declare class Class_Blob extends Class_object {
      *     
      */
     arrayBuffer(): Promise<ArrayBuffer>;
+
+    /**
+     * @description 以 ArrayBuffer 形式读取 Blob 内容
+     *         
+     *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
+     *      @return 返回包含二进制数据的 Promise
+     *     
+     */
+    arrayBufferSync(): ArrayBuffer;
+
+    /**
+     * @description 以 ArrayBuffer 形式读取 Blob 内容
+     *         
+     *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
+     *      @return 返回包含二进制数据的 Promise
+     *     
+     */
+    arrayBufferAsync(): Promise<ArrayBuffer>;
 
 }
 

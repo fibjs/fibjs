@@ -93,6 +93,20 @@ declare class Class_WebView extends Class_EventEmitter {
     loadUrl(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 加载指定 url 的页面
+     * 	 @param url 指定的 url
+     * 	 
+     */
+    loadUrlSync(url: string): void;
+
+    /**
+     * @description 加载指定 url 的页面
+     * 	 @param url 指定的 url
+     * 	 
+     */
+    loadUrlAsync(url: string): Promise<void>;
+
+    /**
      * @description 加载指定文件的页面
      *      @param file 指定的文件
      *      
@@ -100,6 +114,20 @@ declare class Class_WebView extends Class_EventEmitter {
     loadFile(file: string): void;
 
     loadFile(file: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 加载指定文件的页面
+     *      @param file 指定的文件
+     *      
+     */
+    loadFileSync(file: string): void;
+
+    /**
+     * @description 加载指定文件的页面
+     *      @param file 指定的文件
+     *      
+     */
+    loadFileAsync(file: string): Promise<void>;
 
     /**
      * @description 查询当前页面的 url
@@ -111,6 +139,20 @@ declare class Class_WebView extends Class_EventEmitter {
     getUrl(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 查询当前页面的 url
+     * 	 @return 返回当前页面的 url
+     * 	 
+     */
+    getUrlSync(): string;
+
+    /**
+     * @description 查询当前页面的 url
+     * 	 @return 返回当前页面的 url
+     * 	 
+     */
+    getUrlAsync(): Promise<string>;
+
+    /**
      * @description 设置 webview 的页面 html
      * 	 @param html 设置的 html
      * 	 
@@ -118,6 +160,20 @@ declare class Class_WebView extends Class_EventEmitter {
     setHtml(html: string): void;
 
     setHtml(html: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 设置 webview 的页面 html
+     * 	 @param html 设置的 html
+     * 	 
+     */
+    setHtmlSync(html: string): void;
+
+    /**
+     * @description 设置 webview 的页面 html
+     * 	 @param html 设置的 html
+     * 	 
+     */
+    setHtmlAsync(html: string): Promise<void>;
 
     /**
      * @description 获取 webview 的页面 html
@@ -129,6 +185,20 @@ declare class Class_WebView extends Class_EventEmitter {
     getHtml(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 获取 webview 的页面 html
+     *      @return 返回 webview 的页面 html
+     *     
+     */
+    getHtmlSync(): string;
+
+    /**
+     * @description 获取 webview 的页面 html
+     *      @return 返回 webview 的页面 html
+     *     
+     */
+    getHtmlAsync(): Promise<string>;
+
+    /**
      * @description 查询当前页面是否加载完成
      *      @return 返回当前页面是否加载完成
      *     
@@ -136,6 +206,20 @@ declare class Class_WebView extends Class_EventEmitter {
     isReady(): boolean;
 
     isReady(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 查询当前页面是否加载完成
+     *      @return 返回当前页面是否加载完成
+     *     
+     */
+    isReadySync(): boolean;
+
+    /**
+     * @description 查询当前页面是否加载完成
+     *      @return 返回当前页面是否加载完成
+     *     
+     */
+    isReadyAsync(): Promise<boolean>;
 
     /**
      * @description 等待当前页面加载完成
@@ -147,11 +231,35 @@ declare class Class_WebView extends Class_EventEmitter {
     waitFor(url?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 等待当前页面加载完成
+     *      @param url 指定等待的 url，为空表示等待当前页面
+     *     
+     */
+    waitForSync(url?: string): void;
+
+    /**
+     * @description 等待当前页面加载完成
+     *      @param url 指定等待的 url，为空表示等待当前页面
+     *     
+     */
+    waitForAsync(url?: string): Promise<void>;
+
+    /**
      * @description 刷新当前页面 
      */
     reload(): void;
 
     reload(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 刷新当前页面 
+     */
+    reloadSync(): void;
+
+    /**
+     * @description 刷新当前页面 
+     */
+    reloadAsync(): Promise<void>;
 
     /**
      * @description 退回到上一个页面 
@@ -161,11 +269,31 @@ declare class Class_WebView extends Class_EventEmitter {
     goBack(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 退回到上一个页面 
+     */
+    goBackSync(): void;
+
+    /**
+     * @description 退回到上一个页面 
+     */
+    goBackAsync(): Promise<void>;
+
+    /**
      * @description 前进到下一个页面 
      */
     goForward(): void;
 
     goForward(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 前进到下一个页面 
+     */
+    goForwardSync(): void;
+
+    /**
+     * @description 前进到下一个页面 
+     */
+    goForwardAsync(): Promise<void>;
 
     /**
      * @description 在当前窗口运行一段 JavaScript 代码
@@ -178,6 +306,22 @@ declare class Class_WebView extends Class_EventEmitter {
     eval(code: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
+     * @description 在当前窗口运行一段 JavaScript 代码
+     * 	 @param code 指定要执行的 JavaScript 代码
+     *      @return 返回执行结果
+     * 	 
+     */
+    evalSync(code: string): any;
+
+    /**
+     * @description 在当前窗口运行一段 JavaScript 代码
+     * 	 @param code 指定要执行的 JavaScript 代码
+     *      @return 返回执行结果
+     * 	 
+     */
+    evalAsync(code: string): Promise<any>;
+
+    /**
      * @description 设置窗口的标题
      *      @param title 指定窗口的标题
      *     
@@ -185,6 +329,20 @@ declare class Class_WebView extends Class_EventEmitter {
     setTitle(title: string): void;
 
     setTitle(title: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 设置窗口的标题
+     *      @param title 指定窗口的标题
+     *     
+     */
+    setTitleSync(title: string): void;
+
+    /**
+     * @description 设置窗口的标题
+     *      @param title 指定窗口的标题
+     *     
+     */
+    setTitleAsync(title: string): Promise<void>;
 
     /**
      * @description 查询窗口的标题
@@ -196,6 +354,20 @@ declare class Class_WebView extends Class_EventEmitter {
     getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 查询窗口的标题
+     *      @return 返回窗口的标题
+     *     
+     */
+    getTitleSync(): string;
+
+    /**
+     * @description 查询窗口的标题
+     *      @return 返回窗口的标题
+     *     
+     */
+    getTitleAsync(): Promise<string>;
+
+    /**
      * @description 设置窗口是否可见
      *      @return 返回窗口是否可见
      *     
@@ -205,6 +377,20 @@ declare class Class_WebView extends Class_EventEmitter {
     isVisible(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 设置窗口是否可见
+     *      @return 返回窗口是否可见
+     *     
+     */
+    isVisibleSync(): boolean;
+
+    /**
+     * @description 设置窗口是否可见
+     *      @return 返回窗口是否可见
+     *     
+     */
+    isVisibleAsync(): Promise<boolean>;
+
+    /**
      * @description 显示窗口 
      */
     show(): void;
@@ -212,11 +398,31 @@ declare class Class_WebView extends Class_EventEmitter {
     show(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 显示窗口 
+     */
+    showSync(): void;
+
+    /**
+     * @description 显示窗口 
+     */
+    showAsync(): Promise<void>;
+
+    /**
      * @description 隐藏窗口 
      */
     hide(): void;
 
     hide(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 隐藏窗口 
+     */
+    hideSync(): void;
+
+    /**
+     * @description 隐藏窗口 
+     */
+    hideAsync(): Promise<void>;
 
     /**
      * @description 设置窗口的尺寸
@@ -229,6 +435,22 @@ declare class Class_WebView extends Class_EventEmitter {
     setSize(width: number, height: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 设置窗口的尺寸
+     *      @param width 指定窗口的宽度
+     *      @param height 指定窗口的高度
+     *     
+     */
+    setSizeSync(width: number, height: number): void;
+
+    /**
+     * @description 设置窗口的尺寸
+     *      @param width 指定窗口的宽度
+     *      @param height 指定窗口的高度
+     *     
+     */
+    setSizeAsync(width: number, height: number): Promise<void>;
+
+    /**
      * @description 查询窗口的尺寸
      *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
      *     
@@ -236,6 +458,20 @@ declare class Class_WebView extends Class_EventEmitter {
     getSize(): any[];
 
     getSize(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 查询窗口的尺寸
+     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     *     
+     */
+    getSizeSync(): any[];
+
+    /**
+     * @description 查询窗口的尺寸
+     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     *     
+     */
+    getSizeAsync(): Promise<any[]>;
 
     /**
      * @description 设置窗口的位置
@@ -248,6 +484,22 @@ declare class Class_WebView extends Class_EventEmitter {
     setPosition(left: number, top: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 设置窗口的位置
+     *      @param left 指定窗口的左上角 x 坐标
+     *      @param top 指定窗口的左上角 y 坐标
+     *     
+     */
+    setPositionSync(left: number, top: number): void;
+
+    /**
+     * @description 设置窗口的位置
+     *      @param left 指定窗口的左上角 x 坐标
+     *      @param top 指定窗口的左上角 y 坐标
+     *     
+     */
+    setPositionAsync(left: number, top: number): Promise<void>;
+
+    /**
      * @description 查询窗口的位置
      *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
      *     
@@ -255,6 +507,20 @@ declare class Class_WebView extends Class_EventEmitter {
     getPosition(): any[];
 
     getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 查询窗口的位置
+     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     *     
+     */
+    getPositionSync(): any[];
+
+    /**
+     * @description 查询窗口的位置
+     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     *     
+     */
+    getPositionAsync(): Promise<any[]>;
 
     /**
      * @description 查询窗口是否是激活窗口
@@ -266,11 +532,35 @@ declare class Class_WebView extends Class_EventEmitter {
     isActived(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 查询窗口是否是激活窗口
+     *      @return 返回窗口是否是激活窗口
+     *     
+     */
+    isActivedSync(): boolean;
+
+    /**
+     * @description 查询窗口是否是激活窗口
+     *      @return 返回窗口是否是激活窗口
+     *     
+     */
+    isActivedAsync(): Promise<boolean>;
+
+    /**
      * @description 激活窗口 
      */
     active(): void;
 
     active(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 激活窗口 
+     */
+    activeSync(): void;
+
+    /**
+     * @description 激活窗口 
+     */
+    activeAsync(): Promise<void>;
 
     /**
      * @description 查询窗口的菜单
@@ -292,11 +582,41 @@ declare class Class_WebView extends Class_EventEmitter {
     takeScreenshot(fullPage?: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     * @description 截取当前窗口的图像
+     * 
+     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
+     *      @param fullPage 指定是否截取整个页面，默认为 false，表示只截取可见区域
+     *      @return 返回截取的图像
+     *     
+     */
+    takeScreenshotSync(fullPage?: boolean): Class_Buffer;
+
+    /**
+     * @description 截取当前窗口的图像
+     * 
+     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
+     *      @param fullPage 指定是否截取整个页面，默认为 false，表示只截取可见区域
+     *      @return 返回截取的图像
+     *     
+     */
+    takeScreenshotAsync(fullPage?: boolean): Promise<Class_Buffer>;
+
+    /**
      * @description 关闭当前窗口 
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 关闭当前窗口 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭当前窗口 
+     */
+    closeAsync(): Promise<void>;
 
     /**
      * @description 向 webview 内发送消息
@@ -307,6 +627,22 @@ declare class Class_WebView extends Class_EventEmitter {
     postMessage(msg: string): void;
 
     postMessage(msg: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 向 webview 内发送消息
+     *      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
+     * 	 @param msg 要发送的消息
+     * 	
+     */
+    postMessageSync(msg: string): void;
+
+    /**
+     * @description 向 webview 内发送消息
+     *      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
+     * 	 @param msg 要发送的消息
+     * 	
+     */
+    postMessageAsync(msg: string): Promise<void>;
 
     /**
      * @description 查询和绑定窗口开始加载事件，相当于 on("loading", func); 

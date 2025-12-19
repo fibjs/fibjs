@@ -71,11 +71,47 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description 更改与连接关联的本地描述
      *     
      *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *     
+     */
+    setLocalDescriptionSync(): void;
+
+    /**
+     * @description 更改与连接关联的本地描述
+     *     
+     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *     
+     */
+    setLocalDescriptionAsync(): Promise<void>;
+
+    /**
+     * @description 更改与连接关联的本地描述
+     *     
+     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
      * 
      *      @param description 会话描述
      *     
      */
     setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
+
+    /**
+     * @description 更改与连接关联的本地描述
+     *     
+     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param description 会话描述
+     *     
+     */
+    setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
+
+    /**
+     * @description 更改与连接关联的本地描述
+     *     
+     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param description 会话描述
+     *     
+     */
+    setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
      * @description 更改与连接关联的远程描述
@@ -88,6 +124,26 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
+     * @description 更改与连接关联的远程描述
+     *     
+     *      此方法指定连接远程端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param description 会话描述
+     *     
+     */
+    setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
+
+    /**
+     * @description 更改与连接关联的远程描述
+     *     
+     *      此方法指定连接远程端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param description 会话描述
+     *     
+     */
+    setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+
+    /**
      * @description 添加 ICE 候选项
      *     
      *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
@@ -96,6 +152,26 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *     
      */
     addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
+
+    /**
+     * @description 添加 ICE 候选项
+     *     
+     *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
+     * 
+     *      @param candidate ICE 候选项
+     *     
+     */
+    addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
+
+    /**
+     * @description 添加 ICE 候选项
+     *     
+     *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
+     * 
+     *      @param candidate ICE 候选项
+     *     
+     */
+    addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
 
     /**
      * @description 创建一个 Offer 描述
@@ -109,6 +185,28 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createOffer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
+     * @description 创建一个 Offer 描述
+     *     
+     *      此方法创建一个 Offer 描述，用于发起连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param options 选项对象，目前暂未支持，仅用于兼容
+     *      @return 返回描述对象
+     *     
+     */
+    createOfferSync(options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 创建一个 Offer 描述
+     *     
+     *      此方法创建一个 Offer 描述，用于发起连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param options 选项对象，目前暂未支持，仅用于兼容
+     *      @return 返回描述对象
+     *     
+     */
+    createOfferAsync(options?: FIBJS.GeneralObject): Promise<any>;
+
+    /**
      * @description 创建一个 Answer 描述
      *     
      *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
@@ -120,6 +218,28 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createAnswer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
+     * @description 创建一个 Answer 描述
+     *     
+     *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param options 选项对象，目前暂未支持，仅用于兼容
+     *      @return 返回描述对象
+     *     
+     */
+    createAnswerSync(options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 创建一个 Answer 描述
+     *     
+     *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     * 
+     *      @param options 选项对象，目前暂未支持，仅用于兼容
+     *      @return 返回描述对象
+     *     
+     */
+    createAnswerAsync(options?: FIBJS.GeneralObject): Promise<any>;
+
+    /**
      * @description 获取连接的统计信息
      *     
      *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
@@ -128,6 +248,26 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *     
      */
     getStats(): Promise<FIBJS.GeneralObject>;
+
+    /**
+     * @description 获取连接的统计信息
+     *     
+     *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
+     * 
+     *      @return 返回统计信息
+     *     
+     */
+    getStatsSync(): FIBJS.GeneralObject;
+
+    /**
+     * @description 获取连接的统计信息
+     *     
+     *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
+     * 
+     *      @return 返回统计信息
+     *     
+     */
+    getStatsAsync(): Promise<FIBJS.GeneralObject>;
 
     /**
      * @description 关闭连接，此方法关闭连接，释放所有资源 

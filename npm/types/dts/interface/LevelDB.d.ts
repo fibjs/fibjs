@@ -59,6 +59,22 @@ declare class Class_LevelDB extends Class_object {
     has(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 检查数据库内是否存在指定键值的数据
+     *      @param key 指定要检查的键值
+     *      @return 返回键值是否存在
+     *      
+     */
+    hasSync(key: Class_Buffer): boolean;
+
+    /**
+     * @description 检查数据库内是否存在指定键值的数据
+     *      @param key 指定要检查的键值
+     *      @return 返回键值是否存在
+     *      
+     */
+    hasAsync(key: Class_Buffer): Promise<boolean>;
+
+    /**
      * @description 查询指定键值的值
      *      @param key 指定要查询的键值
      *      @return 返回键值所对应的值，若不存在，则返回 null
@@ -67,6 +83,22 @@ declare class Class_LevelDB extends Class_object {
     get(key: Class_Buffer): Class_Buffer;
 
     get(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 查询指定键值的值
+     *      @param key 指定要查询的键值
+     *      @return 返回键值所对应的值，若不存在，则返回 null
+     *      
+     */
+    getSync(key: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 查询指定键值的值
+     *      @param key 指定要查询的键值
+     *      @return 返回键值所对应的值，若不存在，则返回 null
+     *      
+     */
+    getAsync(key: Class_Buffer): Promise<Class_Buffer>;
 
     /**
      * @description 查询一组指定键值的值
@@ -85,6 +117,22 @@ declare class Class_LevelDB extends Class_object {
     set(key: Class_Buffer, value: Class_Buffer): void;
 
     set(key: Class_Buffer, value: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 设定一个键值数据，键值不存在则插入新数据
+     *      @param key 指定要设定的键值
+     *      @param value 指定要设定的数据
+     *      
+     */
+    setSync(key: Class_Buffer, value: Class_Buffer): void;
+
+    /**
+     * @description 设定一个键值数据，键值不存在则插入新数据
+     *      @param key 指定要设定的键值
+     *      @param value 指定要设定的数据
+     *      
+     */
+    setAsync(key: Class_Buffer, value: Class_Buffer): Promise<void>;
 
     /**
      * @description 设定一组键值数据，键值不存在则插入新数据
@@ -110,6 +158,20 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 删除指定键值的全部值
+     *      @param key 指定要删除的键值
+     *      
+     */
+    removeSync(key: Class_Buffer): void;
+
+    /**
+     * @description 删除指定键值的全部值
+     *      @param key 指定要删除的键值
+     *      
+     */
+    removeAsync(key: Class_Buffer): Promise<void>;
+
+    /**
      *  @description 查询最小的 key
      *       @return 返回最小的 key
      *      
@@ -119,12 +181,38 @@ declare class Class_LevelDB extends Class_object {
     firstKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     *  @description 查询最小的 key
+     *       @return 返回最小的 key
+     *      
+     */
+    firstKeySync(): Class_Buffer;
+
+    /**
+     *  @description 查询最小的 key
+     *       @return 返回最小的 key
+     *      
+     */
+    firstKeyAsync(): Promise<Class_Buffer>;
+
+    /**
      *  @description 查询最大的 key
      *     @return 返回最大的 key 
      */
     lastKey(): Class_Buffer;
 
     lastKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     *  @description 查询最大的 key
+     *     @return 返回最大的 key 
+     */
+    lastKeySync(): Class_Buffer;
+
+    /**
+     *  @description 查询最大的 key
+     *     @return 返回最大的 key 
+     */
+    lastKeyAsync(): Promise<Class_Buffer>;
 
     /**
      * @description 枚举数据库中所有的键值对
@@ -260,6 +348,16 @@ declare class Class_LevelDB extends Class_object {
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 关闭当前数据库连接或事务 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭当前数据库连接或事务 
+     */
+    closeAsync(): Promise<void>;
 
 }
 

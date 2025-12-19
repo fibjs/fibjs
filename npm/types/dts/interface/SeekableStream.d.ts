@@ -43,6 +43,20 @@ declare class Class_SeekableStream extends Class_Stream {
     readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     * @description 从流内读取剩余的全部数据
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllSync(): Class_Buffer;
+
+    /**
+     * @description 从流内读取剩余的全部数据
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllAsync(): Promise<Class_Buffer>;
+
+    /**
      * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
      *       @param bytes 新的文件尺寸
      *      
@@ -50,6 +64,20 @@ declare class Class_SeekableStream extends Class_Stream {
     truncate(bytes: number): void;
 
     truncate(bytes: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
+     *       @param bytes 新的文件尺寸
+     *      
+     */
+    truncateSync(bytes: number): void;
+
+    /**
+     * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
+     *       @param bytes 新的文件尺寸
+     *      
+     */
+    truncateAsync(bytes: number): Promise<void>;
 
     /**
      * @description 查询文件是否到结尾
@@ -66,6 +94,20 @@ declare class Class_SeekableStream extends Class_Stream {
     stat(): Class_Stat;
 
     stat(callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+
+    /**
+     * @description 查询当前文件的基础信息
+     *      @return 返回 Stat 对象描述文件信息
+     *      
+     */
+    statSync(): Class_Stat;
+
+    /**
+     * @description 查询当前文件的基础信息
+     *      @return 返回 Stat 对象描述文件信息
+     *      
+     */
+    statAsync(): Promise<Class_Stat>;
 
 }
 

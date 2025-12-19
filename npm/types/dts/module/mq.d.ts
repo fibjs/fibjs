@@ -75,5 +75,25 @@ declare module 'mq' {
 
     function invoke(hdlr: Class_Handler, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
+    /**
+     * @description 使用给定的处理器处理一个消息或对象
+     * 
+     *     不同于处理器的 invoke 方法，此方法将循环调用每个处理器的返回处理器，直到处理器返回 null 为止。
+     *      @param hdlr 指定使用的处理器
+     *      @param v 指定要处理的消息或对象
+     *      
+     */
+    function invokeSync(hdlr: Class_Handler, v: Class_object): void;
+
+    /**
+     * @description 使用给定的处理器处理一个消息或对象
+     * 
+     *     不同于处理器的 invoke 方法，此方法将循环调用每个处理器的返回处理器，直到处理器返回 null 为止。
+     *      @param hdlr 指定使用的处理器
+     *      @param v 指定要处理的消息或对象
+     *      
+     */
+    function invokeAsync(hdlr: Class_Handler, v: Class_object): Promise<void>;
+
 }
 

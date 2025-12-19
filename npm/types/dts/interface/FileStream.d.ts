@@ -24,5 +24,19 @@ declare class Class_FileStream extends Class_SeekableStream {
 
     chmod(mode: number, callback: (err: Error | undefined | null)=>any): void;
 
+    /**
+     * @description 查询当前文件的访问权限，Windows 不支持此方法
+     *      @param mode 指定设定的访问权限
+     *      
+     */
+    chmodSync(mode: number): void;
+
+    /**
+     * @description 查询当前文件的访问权限，Windows 不支持此方法
+     *      @param mode 指定设定的访问权限
+     *      
+     */
+    chmodAsync(mode: number): Promise<void>;
+
 }
 

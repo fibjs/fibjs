@@ -27,6 +27,16 @@ declare class Class_DbConnection extends Class_object {
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 关闭当前数据库连接 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭当前数据库连接 
+     */
+    closeAsync(): Promise<void>;
+
+    /**
      * @description 选择当前数据库连接的缺省数据库
      * 	 @param dbName 指定数据库名
      * 	 
@@ -34,6 +44,20 @@ declare class Class_DbConnection extends Class_object {
     use(dbName: string): void;
 
     use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 选择当前数据库连接的缺省数据库
+     * 	 @param dbName 指定数据库名
+     * 	 
+     */
+    useSync(dbName: string): void;
+
+    /**
+     * @description 选择当前数据库连接的缺省数据库
+     * 	 @param dbName 指定数据库名
+     * 	 
+     */
+    useAsync(dbName: string): Promise<void>;
 
     /**
      * @description 获取当前数据库中所有表的信息
@@ -44,6 +68,22 @@ declare class Class_DbConnection extends Class_object {
     getTables(): any[];
 
     getTables(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 获取当前数据库中所有表的信息
+     * 
+     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      
+     */
+    getTablesSync(): any[];
+
+    /**
+     * @description 获取当前数据库中所有表的信息
+     * 
+     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      
+     */
+    getTablesAsync(): Promise<any[]>;
 
     /**
      * @description 获取指定表的详细信息
@@ -57,6 +97,24 @@ declare class Class_DbConnection extends Class_object {
     getTableInfo(tableName: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
+     * @description 获取指定表的详细信息
+     * 
+     *      @param tableName 指定要查询的表名
+     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      
+     */
+    getTableInfoSync(tableName: string): any[];
+
+    /**
+     * @description 获取指定表的详细信息
+     * 
+     *      @param tableName 指定要查询的表名
+     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      
+     */
+    getTableInfoAsync(tableName: string): Promise<any[]>;
+
+    /**
      * @description 在当前数据库连接上启动一个事务
      *     
      *      @param point 指定事务的名称，缺省不指定
@@ -65,6 +123,22 @@ declare class Class_DbConnection extends Class_object {
     begin(point?: string): void;
 
     begin(point?: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 在当前数据库连接上启动一个事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    beginSync(point?: string): void;
+
+    /**
+     * @description 在当前数据库连接上启动一个事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    beginAsync(point?: string): Promise<void>;
 
     /**
      * @description 提交当前数据库连接上的事务
@@ -77,6 +151,22 @@ declare class Class_DbConnection extends Class_object {
     commit(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 提交当前数据库连接上的事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    commitSync(point?: string): void;
+
+    /**
+     * @description 提交当前数据库连接上的事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    commitAsync(point?: string): Promise<void>;
+
+    /**
      * @description 回滚当前数据库连接上的事务
      *     
      *      @param point 指定事务的名称，缺省不指定
@@ -85,6 +175,22 @@ declare class Class_DbConnection extends Class_object {
     rollback(point?: string): void;
 
     rollback(point?: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 回滚当前数据库连接上的事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    rollbackSync(point?: string): void;
+
+    /**
+     * @description 回滚当前数据库连接上的事务
+     *     
+     *      @param point 指定事务的名称，缺省不指定
+     *     
+     */
+    rollbackAsync(point?: string): Promise<void>;
 
     /**
      * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
@@ -123,6 +229,24 @@ declare class Class_DbConnection extends Class_object {
     execute(sql: string): any[];
 
     execute(sql: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 执行一个 sql 命令，并返回执行结果
+     * 
+     *      @param sql 字符串
+     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      
+     */
+    executeSync(sql: string): any[];
+
+    /**
+     * @description 执行一个 sql 命令，并返回执行结果
+     * 
+     *      @param sql 字符串
+     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      
+     */
+    executeAsync(sql: string): Promise<any[]>;
 
     /**
      * @description 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串

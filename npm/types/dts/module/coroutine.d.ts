@@ -121,6 +121,20 @@ declare module 'coroutine' {
     function sleep(ms?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 暂停当前纤程指定的时间
+     *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+     *      
+     */
+    function sleepSync(ms?: number): void;
+
+    /**
+     * @description 暂停当前纤程指定的时间
+     *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+     *      
+     */
+    function sleepAsync(ms?: number): Promise<void>;
+
+    /**
      * @description 返回当前正在运行的全部 fiber 数组 
      */
     const fibers: any[];

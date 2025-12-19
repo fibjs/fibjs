@@ -83,5 +83,17 @@ declare class Class_SQLite extends Class_DbConnection {
 
     backup(fileName: string, callback: (err: Error | undefined | null)=>any): void;
 
+    /**
+     * @description 备份当前数据库到新文件
+     * 	 @param fileName 指定备份的数据库文件名 
+     */
+    backupSync(fileName: string): void;
+
+    /**
+     * @description 备份当前数据库到新文件
+     * 	 @param fileName 指定备份的数据库文件名 
+     */
+    backupAsync(fileName: string): Promise<void>;
+
 }
 

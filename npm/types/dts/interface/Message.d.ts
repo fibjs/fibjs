@@ -62,6 +62,22 @@ declare class Class_Message extends Class_object {
     read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readSync(bytes?: number): Class_Buffer;
+
+    /**
+     * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAsync(bytes?: number): Promise<Class_Buffer>;
+
+    /**
      * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
      *      
@@ -69,6 +85,20 @@ declare class Class_Message extends Class_object {
     readAll(): Class_Buffer;
 
     readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllSync(): Class_Buffer;
+
+    /**
+     * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllAsync(): Promise<Class_Buffer>;
 
     /**
      * @description 写入给定的数据，此方法为 body 相应方法的别名
@@ -79,6 +109,22 @@ declare class Class_Message extends Class_object {
     write(data: Class_Buffer): number;
 
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 写入给定的数据，此方法为 body 相应方法的别名
+     *      @param data 给定要写入的数据
+     *      @return 返回实际写入的字节数
+     *      
+     */
+    writeSync(data: Class_Buffer): number;
+
+    /**
+     * @description 写入给定的数据，此方法为 body 相应方法的别名
+     *      @param data 给定要写入的数据
+     *      @return 返回实际写入的字节数
+     *      
+     */
+    writeAsync(data: Class_Buffer): Promise<number>;
 
     /**
      * @description 写入给定的文本数据
@@ -165,6 +211,22 @@ declare class Class_Message extends Class_object {
     sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 发送格式化消息到给定的流对象
+     *      @param stm 指定接收格式化消息的流对象
+     *      @param options 指定发送选项
+     *      
+     */
+    sendToSync(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 发送格式化消息到给定的流对象
+     *      @param stm 指定接收格式化消息的流对象
+     *      @param options 指定发送选项
+     *      
+     */
+    sendToAsync(stm: Class_Stream, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
      * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
      *      @param stm 指定读取格式化消息的流对象
      *      @param options 指定读取选项
@@ -173,6 +235,22 @@ declare class Class_Message extends Class_object {
     readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
     readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
+     *      @param stm 指定读取格式化消息的流对象
+     *      @param options 指定读取选项
+     *      
+     */
+    readFromSync(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
+     *      @param stm 指定读取格式化消息的流对象
+     *      @param options 指定读取选项
+     *      
+     */
+    readFromAsync(stm: Class_Stream, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description 查询消息 readFrom 时的流对象 

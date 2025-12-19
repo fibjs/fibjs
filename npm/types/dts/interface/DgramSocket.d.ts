@@ -25,6 +25,22 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bind(port?: number, addr?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 该方法会令 dgram.Socket 在指定的 `port` 和 `addr` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
+     *      @param port 指定绑定端口，若 `port` 未指定或为 0，操作系统会尝试绑定一个随机的端口
+     *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
+     *     
+     */
+    bindSync(port?: number, addr?: string): void;
+
+    /**
+     * @description 该方法会令 dgram.Socket 在指定的 `port` 和 `addr` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
+     *      @param port 指定绑定端口，若 `port` 未指定或为 0，操作系统会尝试绑定一个随机的端口
+     *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
+     *     
+     */
+    bindAsync(port?: number, addr?: string): Promise<void>;
+
+    /**
      * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
      *      @param opts 指定绑定参数
      *     
@@ -32,6 +48,20 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bind(opts: FIBJS.GeneralObject): void;
 
     bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
+     *      @param opts 指定绑定参数
+     *     
+     */
+    bindSync(opts: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
+     *      @param opts 指定绑定参数
+     *     
+     */
+    bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description 在 socket 上发送一个数据包
@@ -48,6 +78,26 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     /**
      * @description 在 socket 上发送一个数据包
      *      @param msg 指定发送的数据
+     *      @param port 指定发送的目的端口
+     *      @param address 指定发送的目的地址
+     *      @return 返回发送尺寸
+     *     
+     */
+    sendSync(msg: Class_Buffer, port: number, address?: string): number;
+
+    /**
+     * @description 在 socket 上发送一个数据包
+     *      @param msg 指定发送的数据
+     *      @param port 指定发送的目的端口
+     *      @param address 指定发送的目的地址
+     *      @return 返回发送尺寸
+     *     
+     */
+    sendAsync(msg: Class_Buffer, port: number, address?: string): Promise<number>;
+
+    /**
+     * @description 在 socket 上发送一个数据包
+     *      @param msg 指定发送的数据
      *      @param offset 从指定偏移开始发送
      *      @param length 之发送指定长度
      *      @param port 指定发送的目的端口
@@ -58,6 +108,30 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
 
     send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 在 socket 上发送一个数据包
+     *      @param msg 指定发送的数据
+     *      @param offset 从指定偏移开始发送
+     *      @param length 之发送指定长度
+     *      @param port 指定发送的目的端口
+     *      @param address 指定发送的目的地址
+     *      @return 返回发送尺寸
+     *     
+     */
+    sendSync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
+
+    /**
+     * @description 在 socket 上发送一个数据包
+     *      @param msg 指定发送的数据
+     *      @param offset 从指定偏移开始发送
+     *      @param length 之发送指定长度
+     *      @param port 指定发送的目的端口
+     *      @param address 指定发送的目的地址
+     *      @return 返回发送尺寸
+     *     
+     */
+    sendAsync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。 

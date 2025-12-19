@@ -341,6 +341,8 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
 } = {}) {
     let syncFunc;
     let asyncFunc;
+    let syncVariant;
+    let asyncVariant;
 
     const params = Array.from(normalParams);
 
@@ -358,6 +360,22 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
             const promiseType = dom.create.namedTypeReference('Promise');
             promiseType.typeArguments = [returnType];
             syncFunc.returnType = promiseType;
+            
+            // Generate xxxSync variant (synchronous version)
+            syncVariant = dom.create.function(
+                functionHost.name + 'Sync',
+                Array.from(params),
+                returnType,
+                funcFlags
+            );
+            
+            // Generate xxxAsync variant (same as default for promise functions)
+            asyncVariant = dom.create.function(
+                functionHost.name + 'Async',
+                Array.from(params),
+                promiseType,
+                funcFlags
+            );
         } else {
             // Callback-based async function: generate callback version
             const errorParam = dom.create.parameter('err', dom.create.union([
@@ -371,8 +389,8 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
                 !isVoidDomType(returnType) && dom.create.parameter('retVal', returnType)
             ].filter(Boolean), dom.type.any);
 
-            const params = Array.from(normalParams);
-            params.push(
+            const callbackParams = Array.from(normalParams);
+            callbackParams.push(
                 dom.create.parameter(
                     'callback', callbackType,
                     withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
@@ -381,16 +399,36 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
 
             asyncFunc = dom.create.function(
                 functionHost.name,
-                params,
+                callbackParams,
                 dom.type.void,
                 funcFlags
             )
+            
+            // Generate xxxSync variant (explicit synchronous version)
+            syncVariant = dom.create.function(
+                functionHost.name + 'Sync',
+                Array.from(params),
+                returnType,
+                funcFlags
+            );
+            
+            // Generate xxxAsync variant (Promise version)
+            const promiseType = dom.create.namedTypeReference('Promise');
+            promiseType.typeArguments = [returnType];
+            asyncVariant = dom.create.function(
+                functionHost.name + 'Async',
+                Array.from(params),
+                promiseType,
+                funcFlags
+            );
         }
     }
 
     return {
         syncFunc,
-        asyncFunc
+        asyncFunc,
+        syncVariant,
+        asyncVariant
     }
 }
 
@@ -406,6 +444,8 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
 } = {}) {
     let syncMethod;
     let asyncMethod;
+    let syncVariant;
+    let asyncVariant;
 
     const params = Array.from(normalParams);
 
@@ -423,6 +463,22 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
             const promiseType = dom.create.namedTypeReference('Promise');
             promiseType.typeArguments = [returnType];
             syncMethod.returnType = promiseType;
+            
+            // Generate xxxSync variant (synchronous version)
+            syncVariant = dom.create.method(
+                methodHost.name + 'Sync',
+                Array.from(params),
+                returnType,
+                memFlags
+            );
+            
+            // Generate xxxAsync variant (same as default for promise methods)
+            asyncVariant = dom.create.method(
+                methodHost.name + 'Async',
+                Array.from(params),
+                promiseType,
+                memFlags
+            );
         } else {
             // Callback-based async method: generate callback version
             const errorParam = dom.create.parameter('err', dom.create.union([
@@ -436,8 +492,8 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
                 !isVoidDomType(returnType) && dom.create.parameter('retVal', returnType)
             ].filter(Boolean), dom.type.any);
 
-            const params = Array.from(normalParams);
-            params.push(
+            const callbackParams = Array.from(normalParams);
+            callbackParams.push(
                 dom.create.parameter(
                     'callback', callbackType,
                     withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
@@ -446,16 +502,36 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
 
             asyncMethod = dom.create.method(
                 methodHost.name,
-                params,
+                callbackParams,
                 dom.type.void,
                 memFlags
             )
+            
+            // Generate xxxSync variant (explicit synchronous version)
+            syncVariant = dom.create.method(
+                methodHost.name + 'Sync',
+                Array.from(params),
+                returnType,
+                memFlags
+            );
+            
+            // Generate xxxAsync variant (Promise version)
+            const promiseType = dom.create.namedTypeReference('Promise');
+            promiseType.typeArguments = [returnType];
+            asyncVariant = dom.create.method(
+                methodHost.name + 'Async',
+                Array.from(params),
+                promiseType,
+                memFlags
+            );
         }
     }
 
     return {
         syncMethod,
-        asyncMethod
+        asyncMethod,
+        syncVariant,
+        asyncVariant
     }
 }
 
@@ -577,7 +653,7 @@ function processDeclareInterface(def, {
                     if (mem.overs && mem.overs.length > 1) {
                         memberIsOver = true;
                         mem.overs.forEach(over => {
-                            const { syncMethod, asyncMethod } = generateDtsMethod(
+                            const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
                                 over,
                                 getMethodParam(over),
                                 mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
@@ -590,9 +666,19 @@ function processDeclareInterface(def, {
                             if (asyncMethod) {
                                 dtsUnit.members.push(asyncMethod);
                             }
+                            
+                            if (syncVariant) {
+                                syncVariant.jsDocComment = convertIDLCommentToJSDocComment(over.comments);
+                                dtsUnit.members.push(syncVariant);
+                            }
+                            
+                            if (asyncVariant) {
+                                asyncVariant.jsDocComment = convertIDLCommentToJSDocComment(over.comments);
+                                dtsUnit.members.push(asyncVariant);
+                            }
                         });
                     } else {
-                        const { syncMethod, asyncMethod } = generateDtsMethod(
+                        const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
                             mem, getMethodParam(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                             { memFlags, withOptionalParam, withRestArgs }
                         )
@@ -603,6 +689,16 @@ function processDeclareInterface(def, {
 
                         if (asyncMethod) {
                             dtsUnit.members.push(asyncMethod)
+                        }
+                        
+                        if (syncVariant) {
+                            syncVariant.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+                            dtsUnit.members.push(syncVariant);
+                        }
+                        
+                        if (asyncVariant) {
+                            asyncVariant.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+                            dtsUnit.members.push(asyncVariant);
                         }
                     }
                 }
@@ -761,7 +857,7 @@ function processDeclareModule(def, {
                 if (mem.overs && mem.overs.length > 1) {
                     memberIsOver = true;
                     mem.overs.forEach(over => {
-                        const { syncFunc, asyncFunc } = generateDtsFunction(
+                        const { syncFunc, asyncFunc, syncVariant, asyncVariant } = generateDtsFunction(
                             over,
                             getFunctionParams(over),
                             mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
@@ -774,9 +870,19 @@ function processDeclareModule(def, {
                         if (asyncFunc) {
                             dtsUnit.members.push(asyncFunc);
                         }
+                        
+                        if (syncVariant) {
+                            syncVariant.jsDocComment = convertIDLCommentToJSDocComment(over.comments);
+                            dtsUnit.members.push(syncVariant);
+                        }
+                        
+                        if (asyncVariant) {
+                            asyncVariant.jsDocComment = convertIDLCommentToJSDocComment(over.comments);
+                            dtsUnit.members.push(asyncVariant);
+                        }
                     });
                 } else {
-                    const { asyncFunc, syncFunc } = generateDtsFunction(
+                    const { asyncFunc, syncFunc, syncVariant, asyncVariant } = generateDtsFunction(
                         mem,
                         getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                         { withOptionalParam, withRestArgs }
@@ -786,6 +892,16 @@ function processDeclareModule(def, {
 
                     if (asyncFunc) {
                         dtsUnit.members.push(asyncFunc);
+                    }
+                    
+                    if (syncVariant) {
+                        syncVariant.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+                        dtsUnit.members.push(syncVariant);
+                    }
+                    
+                    if (asyncVariant) {
+                        asyncVariant.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+                        dtsUnit.members.push(asyncVariant);
                     }
                 }
 
@@ -922,7 +1038,6 @@ function gen_fibjs_import_dts({
     const topDeclarition = dom.create.namespace('FIBJS');
 
     const typedArrayType = dom.create.union([
-        dom.create.namedTypeReference('Promise'),
         dom.create.namedTypeReference('Int8Array'),
         dom.create.namedTypeReference('Uint8Array'),
         dom.create.namedTypeReference('Int16Array'),
@@ -932,6 +1047,8 @@ function gen_fibjs_import_dts({
         dom.create.namedTypeReference('Uint8ClampedArray'),
         dom.create.namedTypeReference('Float32Array'),
         dom.create.namedTypeReference('Float64Array'),
+        dom.create.namedTypeReference('BigInt64Array'),
+        dom.create.namedTypeReference('BigUint64Array'),
     ]);
     const typeAlias = dom.create.alias('TypedArray', typedArrayType);
     topDeclarition.members.push(typeAlias);

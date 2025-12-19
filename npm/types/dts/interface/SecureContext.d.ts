@@ -98,6 +98,24 @@ declare class Class_SecureContext extends Class_object {
     getSNIContext(servername: string, auto_resolve?: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
 
     /**
+     * @description 查询 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     @param auto_resolve 是否自动创建上下文
+     *     @return 返回指定的安全上下文
+     *     
+     */
+    getSNIContextSync(servername: string, auto_resolve?: boolean): Class_SecureContext;
+
+    /**
+     * @description 查询 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     @param auto_resolve 是否自动创建上下文
+     *     @return 返回指定的安全上下文
+     *     
+     */
+    getSNIContextAsync(servername: string, auto_resolve?: boolean): Promise<Class_SecureContext>;
+
+    /**
      * @description 删除 SNI 上下文
      *     @param servername 指定的服务器名
      *     

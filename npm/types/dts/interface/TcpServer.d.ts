@@ -69,6 +69,16 @@ declare class Class_TcpServer extends Class_object {
     stop(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 关闭 socket中止正在运行的服务器 
+     */
+    stopSync(): void;
+
+    /**
+     * @description 关闭 socket中止正在运行的服务器 
+     */
+    stopAsync(): Promise<void>;
+
+    /**
      * @description 服务器当前侦听的 Socket 对象  
      */
     readonly socket: Class_Socket;

@@ -19,5 +19,15 @@ declare class Class_Tray extends Class_object {
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
+    /**
+     * @description 关闭状态图标 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭状态图标 
+     */
+    closeAsync(): Promise<void>;
+
 }
 

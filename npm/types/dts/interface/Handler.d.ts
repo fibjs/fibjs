@@ -49,5 +49,21 @@ declare class Class_Handler extends Class_object {
 
     invoke(v: Class_object, callback: (err: Error | undefined | null, retVal: Class_Handler)=>any): void;
 
+    /**
+     * @description 处理一个消息或对象
+     *      @param v 指定处理的消息或对象
+     *      @return 返回下一步的处理器
+     *      
+     */
+    invokeSync(v: Class_object): Class_Handler;
+
+    /**
+     * @description 处理一个消息或对象
+     *      @param v 指定处理的消息或对象
+     *      @return 返回下一步的处理器
+     *      
+     */
+    invokeAsync(v: Class_object): Promise<Class_Handler>;
+
 }
 

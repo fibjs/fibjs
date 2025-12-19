@@ -83,6 +83,22 @@ declare class Class_TTYOutputStream extends Class_Stream {
     cursorTo(x: number, y?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 将光标移动到指定位置
+     *      @param x 指定的列数
+     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     *      
+     */
+    cursorToSync(x: number, y?: number): void;
+
+    /**
+     * @description 将光标移动到指定位置
+     *      @param x 指定的列数
+     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     *      
+     */
+    cursorToAsync(x: number, y?: number): Promise<void>;
+
+    /**
      * @description 将光标移动指定的偏移量
      *      @param dx 指定的列偏移量
      *      @param dy 指定的行偏移量
@@ -91,6 +107,22 @@ declare class Class_TTYOutputStream extends Class_Stream {
     moveCursor(dx: number, dy: number): void;
 
     moveCursor(dx: number, dy: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 将光标移动指定的偏移量
+     *      @param dx 指定的列偏移量
+     *      @param dy 指定的行偏移量
+     *      
+     */
+    moveCursorSync(dx: number, dy: number): void;
+
+    /**
+     * @description 将光标移动指定的偏移量
+     *      @param dx 指定的列偏移量
+     *      @param dy 指定的行偏移量
+     *      
+     */
+    moveCursorAsync(dx: number, dy: number): Promise<void>;
 
     /**
      * @description 返回此 TTYOutputStream 对应的终端的尺寸

@@ -45,6 +45,22 @@ declare class Class_Semaphore extends Class_Lock {
     wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 等待一个信号量
+     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
+     *      @return 获取成功则返回 true，超时返回 false
+     *     
+     */
+    waitSync(timeout?: number): boolean;
+
+    /**
+     * @description 等待一个信号量
+     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
+     *      @return 获取成功则返回 true，超时返回 false
+     *     
+     */
+    waitAsync(timeout?: number): Promise<boolean>;
+
+    /**
      * @description 释放一个信号量，等同于 release() 
      */
     post(): void;

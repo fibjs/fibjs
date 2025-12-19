@@ -31,6 +31,20 @@ declare class Class_HeapSnapshot extends Class_object {
     save(fname: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 根据指定名称保存HeapSnapshot
+     *      @param fname 快照名称
+     *     
+     */
+    saveSync(fname: string): void;
+
+    /**
+     * @description 根据指定名称保存HeapSnapshot
+     *      @param fname 快照名称
+     *     
+     */
+    saveAsync(fname: string): Promise<void>;
+
+    /**
      * @description 时间信息 
      */
     readonly time: typeof Date;
