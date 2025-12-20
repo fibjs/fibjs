@@ -1153,6 +1153,41 @@ function f(x: string) { return x; }`;
 
     });
 
+    describe('Invalid Unicode Escape Sequences', () => {
+        // Invalid unicode escapes should not cause infinite loops
+
+        it('should handle invalid unicode escape with incomplete hex digits', () => {
+            const input = 'var arg\\u003%';
+            const output = strip(input);
+            assert.strictEqual(output, input);
+        });
+
+        it('should handle invalid unicode escape at end of file', () => {
+            const input = 'var x\\u';
+            const output = strip(input);
+            assert.strictEqual(output, input);
+        });
+
+        it('should handle invalid unicode escape with only 2 hex digits', () => {
+            const input = 'var x\\u00;';
+            const output = strip(input);
+            assert.strictEqual(output, input);
+        });
+
+        it('should handle valid unicode escape in identifier', () => {
+            const input = 'var \\u0061bc: number = 1;';
+            const output = strip(input);
+            assert.strictEqual(output, 'var \\u0061bc         = 1;');
+        });
+
+        it('should handle unicode escape with braces', () => {
+            const input = 'var \\u{61}bc: string = "a";';
+            const output = strip(input);
+            assert.strictEqual(output, 'var \\u{61}bc         = "a";');
+        });
+
+    });
+
     describe('Type-only Statements in Control Flow', () => {
         // Type declarations in control flow should be replaced with semicolon to prevent ASI issues
 

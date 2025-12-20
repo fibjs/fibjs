@@ -252,33 +252,6 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     uint8_t* p = m_text + m_pos;
     uint8_t* end = m_text + m_length;
     
-    // Handle unicode escape at the start: \uXXXX or \u{XXXX}
-    if (p < end && *p == '\\' && p + 1 < end && *(p + 1) == 'u') {
-        if (p + 2 < end && *(p + 2) == '{') {
-            // \u{XXXX...} - variable length
-            uint8_t* q = p + 3;
-            while (q < end && *q != '}') {
-                q++;
-            }
-            if (q < end && *q == '}') {
-                p = q + 1;
-            } else {
-                // Invalid escape, just consume backslash and return unknown
-                m_pos = start + 1;
-                m_token = SyntaxKind::Unknown;
-                return m_token;
-            }
-        } else if (p + 5 < end) {
-            // \uXXXX - exactly 4 hex digits
-            p += 6;
-        } else {
-            // Invalid escape
-            m_pos = start + 1;
-            m_token = SyntaxKind::Unknown;
-            return m_token;
-        }
-    }
-    
     while (p < end) {
         uint8_t ch = *p;
         if ((ch >= 'a' && ch <= 'z') ||
@@ -288,20 +261,33 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
             p++;
         } else if (ch == '\\') {
             // Handle unicode escape sequences: \uXXXX or \u{XXXX}
+            // Use lenient parsing - consume whatever looks like unicode escape
             if (p + 1 < end && *(p + 1) == 'u') {
                 if (p + 2 < end && *(p + 2) == '{') {
-                    // \u{XXXX...} - variable length
+                    // \u{XXXX...} - variable length, find closing }
                     uint8_t* q = p + 3;
-                    while (q < end && *q != '}') {
+                    while (q < end && *q != '}' && *q != '\n' && *q != '\r') {
                         q++;
                     }
                     if (q < end && *q == '}') {
                         p = q + 1;
                         continue;
                     }
-                } else if (p + 5 < end) {
-                    // \uXXXX - exactly 4 hex digits
-                    p += 6;
+                    // No closing } found - treat as invalid, break
+                    break;
+                } else {
+                    // \uXXXX - consume \u and up to 4 hex digits (lenient)
+                    p += 2; // consume \u
+                    int hexCount = 0;
+                    while (p < end && hexCount < 4) {
+                        uint8_t c = *p;
+                        if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                            p++;
+                            hexCount++;
+                        } else {
+                            break;
+                        }
+                    }
                     continue;
                 }
             }
