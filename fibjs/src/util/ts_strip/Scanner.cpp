@@ -146,6 +146,21 @@ void Scanner::skipTrivia() {
     uint8_t* p = m_text + m_pos;
     uint8_t* end = m_text + m_length;
     
+    // Handle shebang at the beginning of the file
+    if (m_pos == 0 && p + 1 < end && p[0] == '#' && p[1] == '!') {
+        // Skip shebang line (preserve it as-is)
+        p += 2;
+        while (p < end && *p != '\n' && *p != '\r') {
+            p++;
+        }
+        // Don't erase shebang - just skip over it
+        m_pos = p - m_text;
+        if (p < end && (*p == '\n' || *p == '\r')) {
+            m_hasLineBreak = true;
+        }
+        p = m_text + m_pos;
+    }
+    
     while (p < end) {
         uint8_t ch = *p;
         
@@ -236,6 +251,34 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     int start = m_pos;
     uint8_t* p = m_text + m_pos;
     uint8_t* end = m_text + m_length;
+    
+    // Handle unicode escape at the start: \uXXXX or \u{XXXX}
+    if (p < end && *p == '\\' && p + 1 < end && *(p + 1) == 'u') {
+        if (p + 2 < end && *(p + 2) == '{') {
+            // \u{XXXX...} - variable length
+            uint8_t* q = p + 3;
+            while (q < end && *q != '}') {
+                q++;
+            }
+            if (q < end && *q == '}') {
+                p = q + 1;
+            } else {
+                // Invalid escape, just consume backslash and return unknown
+                m_pos = start + 1;
+                m_token = SyntaxKind::Unknown;
+                return m_token;
+            }
+        } else if (p + 5 < end) {
+            // \uXXXX - exactly 4 hex digits
+            p += 6;
+        } else {
+            // Invalid escape
+            m_pos = start + 1;
+            m_token = SyntaxKind::Unknown;
+            return m_token;
+        }
+    }
+    
     while (p < end) {
         uint8_t ch = *p;
         if ((ch >= 'a' && ch <= 'z') ||
@@ -243,6 +286,26 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
             (ch >= '0' && ch <= '9') ||
             ch == '_' || ch == '$' || ch > 127) {
             p++;
+        } else if (ch == '\\') {
+            // Handle unicode escape sequences: \uXXXX or \u{XXXX}
+            if (p + 1 < end && *(p + 1) == 'u') {
+                if (p + 2 < end && *(p + 2) == '{') {
+                    // \u{XXXX...} - variable length
+                    uint8_t* q = p + 3;
+                    while (q < end && *q != '}') {
+                        q++;
+                    }
+                    if (q < end && *q == '}') {
+                        p = q + 1;
+                        continue;
+                    }
+                } else if (p + 5 < end) {
+                    // \uXXXX - exactly 4 hex digits
+                    p += 6;
+                    continue;
+                }
+            }
+            break;
         } else {
             break;
         }
@@ -432,6 +495,12 @@ rescan:
         return m_token;
     }
     
+    // Unicode escape at start of identifier: \uXXXX or \u{XXXX}
+    if (ch == CharCode::backslash && charCodeAt(m_pos + 1) == 'u') {
+        m_token = scanIdentifierOrKeyword();
+        return m_token;
+    }
+    
     // Number
     if (isDigit(ch)) {
         m_token = scanNumber();
@@ -588,9 +657,15 @@ rescan:
                 return m_token;
             }
             if (charCodeAt(m_pos + 1) == CharCode::slash) {
-                m_pos += 2;
-                m_token = SyntaxKind::LessThanSlashToken;
-                return m_token;
+                // `</` is only a special token in JSX contexts.
+                // In `.ts`, sequences like `</**doc*/ T>` appear in type parameter lists
+                // when a comment immediately follows `<`. Treat `</*` as `<` and let
+                // the comment scanner consume `/* ... */`.
+                if (charCodeAt(m_pos + 2) != CharCode::asterisk) {
+                    m_pos += 2;
+                    m_token = SyntaxKind::LessThanSlashToken;
+                    return m_token;
+                }
             }
             m_pos++;
             m_token = SyntaxKind::LessThanToken;
@@ -820,12 +895,24 @@ std::vector<Token> Scanner::scanAllTokens() {
     while (true) {
         SyntaxKind kind = scan();
         
-        // Inside template expression, try to rescan slash as regex
-        // This prevents " inside regex from being mistakenly scanned as string start
-        if ((kind == SyntaxKind::SlashToken || kind == SyntaxKind::SlashEqualsToken) 
-            && !templateDepthStack.empty()) {
+        // Try to rescan slash as regex to prevent contents from being treated as comments
+        // This is important for regexes like /\/\*...\*\// or /\/\/.../ which contain
+        // patterns that look like comments. If we successfully scan as regex, the scanner's
+        // position advances past the entire regex, preventing skipTrivia() from corrupting
+        // the regex contents in subsequent scans.
+        if (kind == SyntaxKind::SlashToken || kind == SyntaxKind::SlashEqualsToken) {
+            SyntaxKind beforeRescan = m_token;
+            int beforePos = m_pos;
             reScanSlashToken();
-            kind = m_token;
+            // If rescan succeeded (token changed to RegularExpressionLiteral), use it
+            // Otherwise, restore original token (it's a real division operator)
+            if (m_token == SyntaxKind::RegularExpressionLiteral) {
+                kind = m_token;
+            } else {
+                m_token = beforeRescan;
+                m_pos = beforePos;
+                kind = beforeRescan;
+            }
         }
         
         // Track template literal state

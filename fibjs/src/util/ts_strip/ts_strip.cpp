@@ -116,6 +116,7 @@ public:
         , m_tokens(std::move(tokens))
         , m_tokenIndex(0)
         , m_disallowInContext(false)
+        , m_allowReturnTypeInArrowFunction(true)
         , m_recursionDepth(0)
     {
     }
@@ -131,6 +132,7 @@ private:
     std::vector<Token> m_tokens;
     size_t m_tokenIndex;
     bool m_disallowInContext;
+    bool m_allowReturnTypeInArrowFunction;  // Like TypeScript's allowReturnTypeInArrowFunction parameter
     int m_recursionDepth;
     
     std::vector<Replacement> m_replacements;
@@ -308,12 +310,22 @@ private:
     
     // Check if token can be used as binding identifier (identifier or contextual keyword)
     bool isBindingIdentifier() const {
-        if (token() == SyntaxKind::Identifier) {
+        return isBindingIdentifier(token());
+    }
+    
+    // Check if a specific token kind can be used as binding identifier
+    bool isBindingIdentifier(SyntaxKind t) const {
+        if (t == SyntaxKind::Identifier) {
+            return true;
+        }
+        // `global` is tokenized as GlobalKeyword but is valid as an identifier
+        // in many JS/TS contexts (e.g., `class global {}` or `function f(global) {}`).
+        if (t == SyntaxKind::GlobalKeyword) {
             return true;
         }
         // Contextual keywords (after LastReservedWord) can be used as identifiers
         // LastReservedWord is WithKeyword
-        return token() > SyntaxKind::WithKeyword && isKeyword(token());
+        return t > SyntaxKind::WithKeyword && isKeyword(t);
     }
     
     bool inDisallowInContext() const {
@@ -340,6 +352,7 @@ private:
     void skipType();
     void skipTypeArguments();
     void skipBalanced(SyntaxKind open, SyntaxKind close);
+    bool skipBalancedEx(SyntaxKind open, SyntaxKind close);
     void skipBlock() { skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken); }
     void skipJsxElement();
     
@@ -358,6 +371,9 @@ private:
     void parseImportDeclaration();
     void parseExportDeclaration();
     void parseDeclaration();
+    
+    // Decorator
+    void parseDecorator();
     
     // Class
     void parseClassBody();
@@ -396,13 +412,26 @@ private:
  * Expression[in]:
  *     AssignmentExpression[in]
  *     Expression[in] , AssignmentExpression[in]
+ * 
+ * TypeScript always calls parseAssignmentExpressionOrHigher(true) inside parseExpression.
+ * This is important for parenthesized expressions: even if we're in the true branch of
+ * a ternary (where allowReturnTypeInArrowFunction=false), entering a parenthesized
+ * expression resets it to true.
  */
 void TsStrip::parseExpression() {
+    // Reset allowReturnTypeInArrowFunction to true when entering a new expression context
+    // This matches TypeScript's behavior: parseExpression always calls
+    // parseAssignmentExpressionOrHigher(/*allowReturnTypeInArrowFunction*/ true)
+    bool savedAllowReturnType = m_allowReturnTypeInArrowFunction;
+    m_allowReturnTypeInArrowFunction = true;
+    
     parseAssignmentExpressionOrHigher();
     while (token() == SyntaxKind::CommaToken) {
         nextToken();
         parseAssignmentExpressionOrHigher();
     }
+    
+    m_allowReturnTypeInArrowFunction = savedAllowReturnType;
 }
 
 /**
@@ -417,9 +446,15 @@ void TsStrip::parseAssignmentExpressionOrHigher() {
     parseBinaryExpressionOrHigher((int)OperatorPrecedence::Lowest);
 
     // Handle conditional expression (a ? b : c)
+    // TypeScript parser.ts line 5588: In true branch, allowReturnTypeInArrowFunction = false
     if (token() == SyntaxKind::QuestionToken) {
         nextToken();
+        // In the true branch, disallow return type in arrow function to distinguish
+        // `cond ? (a) : v => v` (ternary colon) from `cond ? (a): T => a : b` (return type)
+        bool savedAllowReturnType = m_allowReturnTypeInArrowFunction;
+        m_allowReturnTypeInArrowFunction = false;
         parseAssignmentExpressionOrHigher();
+        m_allowReturnTypeInArrowFunction = savedAllowReturnType;
         parseExpected(SyntaxKind::ColonToken);
         parseAssignmentExpressionOrHigher();
     }
@@ -550,6 +585,7 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
  * parseUnaryExpressionOrHigher - from TypeRunner
  * 
  * Handles unary operators and <Type>expr type assertions.
+ * Also handles generic arrow functions like <T>(x) => x
  * Note: JSX is NOT handled here - we're in strip-only mode for .ts files.
  */
 void TsStrip::parseUnaryExpressionOrHigher() {
@@ -568,14 +604,14 @@ void TsStrip::parseUnaryExpressionOrHigher() {
             parseUnaryExpressionOrHigher();
             return;
         case SyntaxKind::LessThanToken:
-            // Could be <Type>expr type assertion - try to parse it
-            // This is the old-style type assertion syntax
-            // Note: we don't try to parse JSX here since we can't reliably
-            // distinguish it from comparison operators in strip-only mode
+            // Could be:
+            // 1. <Type>expr - type assertion
+            // 2. <T>(x) => expr - generic arrow function
+            // 3. <T = D>(x) => expr - generic arrow function with default
             {
-                // Look ahead to see if this could be a type assertion
+                // Look ahead to see if this could be a type assertion or generic arrow
                 SyntaxKind next = peekToken().kind;
-                // Type assertions typically start with: <TypeName>, <typeof ...>, etc.
+                // Type assertions/generics typically start with: <TypeName>, <typeof ...>, etc.
                 // But NOT: <123 (number), <= (operator), << (shift)
                 if (next == SyntaxKind::Identifier || isKeyword(next) ||
                     next == SyntaxKind::OpenParenToken || next == SyntaxKind::OpenBraceToken ||
@@ -585,21 +621,61 @@ void TsStrip::parseUnaryExpressionOrHigher() {
                     size_t startIndex = m_tokenIndex;
                     int start = getNodePos();
                     
-                    nextToken(); // consume <
-                    skipType();
+                    // Skip the type parameter/argument list using skipTypeArguments
+                    // which handles <T = Default, U extends V> correctly
+                    skipTypeArguments();
                     
-                    if (token() == SyntaxKind::GreaterThanToken) {
-                        // Successfully parsed <Type> - this is a type assertion
-                        nextToken(); // consume >
+                    if (token() == SyntaxKind::OpenParenToken) {
+                        // <T>(x) => expr - generic arrow function
+                        // Strip the type parameters
                         addReplacement(start, getNodePos());
-                        parseUnaryExpressionOrHigher();
+                        // Now parse the rest as arrow function
+                        // parsePrimaryExpression will handle (x) => expr
+                        parsePrimaryExpression();
+                        parseCallExpressionRest();
                         return;
                     } else {
-                        // Not a valid type assertion - rollback
-                        // This happens when we have something like:
-                        // `i < n` where `n` looks like it could start a type
+                        // Rollback and try as type assertion
                         m_tokenIndex = startIndex;
-                        // Fall through to parseUpdateExpression
+                        nextToken(); // consume <
+                        
+                        // Check if this is a const assertion <const>
+                        // Const assertions like <const> should be preserved, not erased
+                        if (token() == SyntaxKind::ConstKeyword) {
+                            SyntaxKind nextAfterConst = peekToken().kind;
+                            if (nextAfterConst == SyntaxKind::GreaterThanToken) {
+                                // This is <const> - keep it, don't erase
+                                // Rollback and treat as binary operator
+                                m_tokenIndex = startIndex;
+                                // Fall through to parseUpdateExpression
+                            } else {
+                                // <const Type> - treat as type assertion
+                                skipType();
+                                if (token() == SyntaxKind::GreaterThanToken) {
+                                    nextToken(); // consume >
+                                    addReplacement(start, getNodePos());
+                                    parseUnaryExpressionOrHigher();
+                                    return;
+                                } else {
+                                    m_tokenIndex = startIndex;
+                                }
+                            }
+                        } else {
+                            // Regular type assertion <Type>
+                            skipType();
+                            
+                            if (token() == SyntaxKind::GreaterThanToken) {
+                                // Successfully parsed <Type> - this is a type assertion
+                                nextToken(); // consume >
+                                addReplacement(start, getNodePos());
+                                parseUnaryExpressionOrHigher();
+                                return;
+                            } else {
+                                // Not a valid type assertion - rollback
+                                m_tokenIndex = startIndex;
+                                // Fall through to parseUpdateExpression
+                            }
+                        }
                     }
                 }
             }
@@ -660,7 +736,7 @@ void TsStrip::parseMemberExpressionOrHigher() {
         switch (token()) {
             case SyntaxKind::DotToken:
                 nextToken();
-                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                if (token() == SyntaxKind::Identifier || token() == SyntaxKind::PrivateIdentifier || isKeyword(token())) {
                     nextToken();
                 }
                 continue;
@@ -675,7 +751,7 @@ void TsStrip::parseMemberExpressionOrHigher() {
                 return;
             case SyntaxKind::QuestionDotToken:
                 nextToken();
-                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                if (token() == SyntaxKind::Identifier || token() == SyntaxKind::PrivateIdentifier || isKeyword(token())) {
                     nextToken();
                 }
                 continue;
@@ -704,13 +780,16 @@ void TsStrip::parseMemberExpressionOrHigher() {
  * IMMEDIATELY followed by ( (function call).
  */
 bool TsStrip::trySkipTypeArgumentsAndCall() {
-    if (token() != SyntaxKind::LessThanToken) {
+    if (token() != SyntaxKind::LessThanToken && token() != SyntaxKind::LessThanLessThanToken) {
         return false;
     }
     
     // Save position for potential rollback
     size_t startIndex = m_tokenIndex;
     int start = getNodePos();
+    
+    // Check if this is << (LessThanLessThanToken) - handle as depth=2
+    int depth = (token() == SyntaxKind::LessThanLessThanToken) ? 2 : 1;
     
     // Quick check: next token should look like start of a type
     SyntaxKind next = peekToken().kind;
@@ -724,13 +803,28 @@ bool TsStrip::trySkipTypeArgumentsAndCall() {
         next != SyntaxKind::ReadonlyKeyword &&
         next != SyntaxKind::UniqueKeyword &&
         next != SyntaxKind::InferKeyword &&
+        next != SyntaxKind::StringLiteral &&
+        next != SyntaxKind::NumericLiteral &&
+        next != SyntaxKind::BigIntLiteral &&
+        next != SyntaxKind::TrueKeyword &&
+        next != SyntaxKind::FalseKeyword &&
+        next != SyntaxKind::NullKeyword &&
+        next != SyntaxKind::UndefinedKeyword &&
+        next != SyntaxKind::VoidKeyword &&
+        next != SyntaxKind::NeverKeyword &&
+        next != SyntaxKind::UnknownKeyword &&
+        next != SyntaxKind::AnyKeyword &&
+        next != SyntaxKind::MinusToken &&
+        next != SyntaxKind::NoSubstitutionTemplateLiteral &&
+        next != SyntaxKind::TemplateHead &&
+        next != SyntaxKind::BarToken &&  // Union type can start with |
+        next != SyntaxKind::AmpersandToken &&  // Intersection type can start with &
         !isKeyword(next)) {
         return false;
     }
     
     // Try to skip the type argument list
-    int depth = 1;
-    nextToken(); // consume <
+    nextToken(); // consume < or <<
     
     while (!isEOF() && depth > 0) {
         SyntaxKind t = token();
@@ -738,7 +832,11 @@ bool TsStrip::trySkipTypeArgumentsAndCall() {
         // Check for tokens that can't appear in type arguments
         // These indicate we've gone past a valid type argument list
         if (t == SyntaxKind::SemicolonToken ||
-            t == SyntaxKind::EndOfFileToken) {
+            t == SyntaxKind::EndOfFileToken ||
+            // Binary logical operators can't appear in type arguments
+            t == SyntaxKind::BarBarToken ||        // ||
+            t == SyntaxKind::AmpersandAmpersandToken ||  // &&
+            t == SyntaxKind::QuestionQuestionToken) {   // ??
             // Definitely not type arguments - rollback
             m_tokenIndex = startIndex;
             return false;
@@ -791,6 +889,7 @@ bool TsStrip::trySkipTypeArgumentsAndCall() {
     // 1. ( - function call: func<T>()
     // 2. Template literal - tagged template: func<T>`str`
     // 3. Expression terminators - instantiation expression: func<T>; func<T>, etc.
+    // 4. Assignment operators - instantiation expression: func<T> = x
     if (token() == SyntaxKind::OpenParenToken) {
         // func<T>() - this is definitely type arguments for function call
         addReplacement(start, getNodePos());
@@ -800,14 +899,33 @@ bool TsStrip::trySkipTypeArgumentsAndCall() {
         // func<T>`template` - tagged template with type args
         addReplacement(start, getNodePos());
         return true;
+    } else if (token() == SyntaxKind::QuestionDotToken) {
+        // func<T>?.() - instantiation expression with optional call
+        addReplacement(start, getNodePos());
+        return true;
     } else if (token() == SyntaxKind::SemicolonToken ||
                token() == SyntaxKind::CommaToken ||
                token() == SyntaxKind::CloseParenToken ||
                token() == SyntaxKind::CloseBraceToken ||
                token() == SyntaxKind::CloseBracketToken ||
                token() == SyntaxKind::EndOfFileToken ||
+               token() == SyntaxKind::EqualsToken ||
+               token() == SyntaxKind::PlusEqualsToken ||
+               token() == SyntaxKind::MinusEqualsToken ||
+               token() == SyntaxKind::AsteriskEqualsToken ||
+               token() == SyntaxKind::SlashEqualsToken ||
+               token() == SyntaxKind::PercentEqualsToken ||
+               token() == SyntaxKind::AmpersandEqualsToken ||
+               token() == SyntaxKind::BarEqualsToken ||
+               token() == SyntaxKind::CaretEqualsToken ||
+               token() == SyntaxKind::BarBarEqualsToken ||
+               token() == SyntaxKind::AmpersandAmpersandEqualsToken ||
+               token() == SyntaxKind::QuestionQuestionEqualsToken ||
+               token() == SyntaxKind::InstanceOfKeyword ||
+               token() == SyntaxKind::InKeyword ||
                currentToken().hadLineBreak) {
-        // Instantiation expression: func<T>; or func<T>, or func<T>) etc.
+        // Instantiation expression: func<T>; or func<T>, or func<T>) or func<T> = x etc.
+        // Also handles: func<T> instanceof x, func<T> in x
         // These are valid TypeScript 4.7+ instantiation expressions
         addReplacement(start, getNodePos());
         return true;
@@ -834,11 +952,14 @@ void TsStrip::parseCallExpressionRest() {
         
         switch (token()) {
             case SyntaxKind::LessThanToken:
+            case SyntaxKind::LessThanLessThanToken:
                 // Could be type arguments like func<T>() or comparison operator x < y
+                // Also handle << which scanner tokenizes as LessThanLessThanToken
                 // Use conservative approach: only treat as type args if followed by (
                 if (trySkipTypeArgumentsAndCall()) {
-                    // Successfully parsed <TypeArgs>( - continue to parse call arguments
+                    // Successfully parsed <TypeArgs> - type args have been replaced
                     if (token() == SyntaxKind::OpenParenToken) {
+                        // func<T>() - parse call arguments
                         nextToken();
                         while (!isEOF() && token() != SyntaxKind::CloseParenToken) {
                             parseAssignmentExpressionOrHigher();
@@ -852,10 +973,13 @@ void TsStrip::parseCallExpressionRest() {
                         continue;
                     } else if (token() == SyntaxKind::NoSubstitutionTemplateLiteral ||
                                token() == SyntaxKind::TemplateHead) {
-                        // Tagged template
+                        // Tagged template: func<T>`str`
                         parseTemplateLiteral();
                         continue;
                     }
+                    // Instantiation expression: func<T> followed by other tokens
+                    // Type args already replaced, just return to let binary parsing handle rest
+                    return;
                 }
                 // Not type arguments - this is comparison operator, exit
                 return;
@@ -874,7 +998,7 @@ void TsStrip::parseCallExpressionRest() {
                 continue;
             case SyntaxKind::DotToken:
                 nextToken();
-                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                if (token() == SyntaxKind::Identifier || token() == SyntaxKind::PrivateIdentifier || isKeyword(token())) {
                     nextToken();
                 }
                 continue;
@@ -895,7 +1019,7 @@ void TsStrip::parseCallExpressionRest() {
                         }
                     }
                     parseExpected(SyntaxKind::CloseParenToken);
-                } else if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                } else if (token() == SyntaxKind::Identifier || token() == SyntaxKind::PrivateIdentifier || isKeyword(token())) {
                     nextToken();
                 }
                 continue;
@@ -1091,8 +1215,9 @@ void TsStrip::parsePrimaryExpression() {
                     } else {
                         // Some other expression (e.g., nested parentheses with arrow function)
                         // This means the parentheses contain an expression, not a parameter list
+                        // Use parseExpression() to reset allowReturnTypeInArrowFunction like TypeScript does
                         reparsedAsExpression = true;
-                        parseAssignmentExpressionOrHigher();
+                        parseExpression();
                     }
                     // Check for comma or close paren
                     if (token() != SyntaxKind::CommaToken && token() != SyntaxKind::CloseParenToken) {
@@ -1112,28 +1237,67 @@ void TsStrip::parsePrimaryExpression() {
                 }
                 parseExpected(SyntaxKind::CloseParenToken);
 
-                // Check for arrow function return type annotation
-                // Only check for return type if we're actually going to see =>
-                // This distinguishes (a, b): T => ... from (a, b) : c in ternary
+                // Check for arrow function return type annotation: (params): ReturnType => body
+                // This follows TypeScript's logic in parseParenthesizedArrowFunctionExpression
+                //
+                // Key insight from TypeScript (parser.ts line 5517-5528):
+                // In ternary's true branch (allowReturnTypeInArrowFunction=false), if we see 
+                // `: Type =>` pattern but no following `:` for the false branch, then the colon
+                // was the ternary separator, not a return type annotation.
+                //
+                // Examples:
+                //   `cond ? (a) : v => v`     - `:` is ternary separator, `v => v` is false branch
+                //   `cond ? (a): T => a : b`  - `: T` is return type, `: b` is false branch
                 if (token() == SyntaxKind::ColonToken) {
-                    // Look ahead to see if there's => after the type
-                    // If not, this colon is part of a ternary expression
-                    SyntaxKind afterColon = peekToken().kind;
-                    // Return types usually start with identifier/keyword/brace/paren/etc.
-                    // If it looks like a type and we'll see => after, strip it
-                    // But we can't easily look past the type, so we use a different approach:
-                    // Only strip the colon+type if we're sure there's no => (meaning it IS a return type)
-                    // Actually, the problem is: (a, b): T => ... vs x ? (a, b) : c
-                    // In the latter, after ), we see : and then c, not a type followed by =>
-                    
-                    // Simple heuristic: check if there's => on this line or next few tokens
-                    // Better approach: save position, try to parse type, check for =>
+                    // Save position for potential rollback
                     size_t savedIndex = m_tokenIndex;
                     int start = getNodePos();
                     nextToken(); // consume ':'
                     skipType();
+                    
                     if (token() == SyntaxKind::EqualsGreaterThanToken) {
-                        // Yes, this is arrow function with return type - keep the replacement
+                        // We have `: Type =>` pattern
+                        if (!m_allowReturnTypeInArrowFunction) {
+                            // We're in a context where return types are disallowed
+                            // (e.g., true branch of a ternary at the top level).
+                            // Need to check if there's a following `:` for the false branch.
+                            // TypeScript parses the arrow body first, then checks.
+                            int typeEnd = getNodePos();
+                            nextToken(); // consume '=>'
+                            if (token() == SyntaxKind::OpenBraceToken) {
+                                parseBlock();
+                            } else {
+                                parseAssignmentExpressionOrHigher();
+                            }
+                            // After parsing arrow body, check if followed by `:` (false branch)
+                            // In practice the conditional `:` may appear after one or more
+                            // closing parens/brackets when the arrow is nested inside a call
+                            // or parenthesized expression.
+                            size_t lookaheadIndex = m_tokenIndex;
+                            while (lookaheadIndex < m_tokens.size()) {
+                                SyntaxKind lk = m_tokens[lookaheadIndex].kind;
+                                if (lk == SyntaxKind::CloseParenToken || lk == SyntaxKind::CloseBracketToken) {
+                                    lookaheadIndex++;
+                                    continue;
+                                }
+                                break;
+                            }
+
+                            if (lookaheadIndex < m_tokens.size() && m_tokens[lookaheadIndex].kind == SyntaxKind::ColonToken) {
+                                // Yes, there's a following `:` for the false branch
+                                // So `: Type` was a return type annotation - add replacement
+                                addReplacement(start, typeEnd);
+                            }
+                            // If no `:`, this means we parsed `cond ? (a) : v => v` incorrectly.
+                            // The `:` was the ternary separator. But we can't rollback now since
+                            // we've already parsed the arrow body. This is okay because:
+                            // - For `cond ? (a) : v => v`, we parsed `v` as type, `v` as body
+                            // - The original was: ternary's false branch is `v => v` 
+                            // - We're not stripping anything (no addReplacement if no following `:`)
+                            // - The parsed structure is equivalent for stripping purposes
+                            return;  // Already parsed body above
+                        }
+                        // allowReturnTypeInArrowFunction is true - this is definitely a return type
                         addReplacement(start, getNodePos());
                     } else {
                         // No =>, this was a ternary colon, not a return type annotation
@@ -1180,6 +1344,85 @@ void TsStrip::parsePrimaryExpression() {
                 if (token() == SyntaxKind::DotDotDotToken) {
                     nextToken();
                     parseAssignmentExpressionOrHigher();
+                } else if (token() == SyntaxKind::GetKeyword || token() == SyntaxKind::SetKeyword ||
+                           token() == SyntaxKind::AsyncKeyword) {
+                    // get/set/async could be:
+                    // 1. Accessor/async method: get foo() {}, async bar() {}
+                    // 2. Property with get/set/async as name: { get: value, set: value }
+                    nextToken();
+                    
+                    // If followed by ':', it's a simple property like { get: value }
+                    if (token() == SyntaxKind::ColonToken) {
+                        nextToken();
+                        parseAssignmentExpressionOrHigher();
+                        if (!parseOptional(SyntaxKind::CommaToken)) {
+                            break;
+                        }
+                        continue;
+                    }
+                    
+                    if (token() == SyntaxKind::AsteriskToken) {
+                        nextToken(); // async generator
+                    }
+                    // Property name (identifier, keyword, string, number, or computed)
+                    if (token() == SyntaxKind::OpenBracketToken) {
+                        nextToken();
+                        parseExpression();
+                        parseExpected(SyntaxKind::CloseBracketToken);
+                    } else if (token() == SyntaxKind::Identifier || isKeyword(token()) 
+                               || token() == SyntaxKind::StringLiteral 
+                               || token() == SyntaxKind::NumericLiteral) {
+                        nextToken();
+                    }
+                    // Type parameters for get/set/async method
+                    if (token() == SyntaxKind::LessThanToken) {
+                        int start = getNodePos();
+                        skipTypeArguments();
+                        addReplacement(start, getNodePos());
+                    }
+                    if (token() == SyntaxKind::OpenParenToken) {
+                        parseParameters();
+                        if (token() == SyntaxKind::ColonToken) {
+                            int start = getNodePos();
+                            nextToken();
+                            skipType();
+                            addReplacement(start, getNodePos());
+                        }
+                        if (token() == SyntaxKind::OpenBraceToken) {
+                            parseBlock();
+                        }
+                    }
+                } else if (token() == SyntaxKind::AsteriskToken) {
+                    // Generator method
+                    nextToken();
+                    // Property name (identifier, keyword, string, number, or computed)
+                    if (token() == SyntaxKind::OpenBracketToken) {
+                        nextToken();
+                        parseExpression();
+                        parseExpected(SyntaxKind::CloseBracketToken);
+                    } else if (token() == SyntaxKind::Identifier || isKeyword(token()) 
+                               || token() == SyntaxKind::StringLiteral 
+                               || token() == SyntaxKind::NumericLiteral) {
+                        nextToken();
+                    }
+                    // Type parameters for generator method
+                    if (token() == SyntaxKind::LessThanToken) {
+                        int start = getNodePos();
+                        skipTypeArguments();
+                        addReplacement(start, getNodePos());
+                    }
+                    if (token() == SyntaxKind::OpenParenToken) {
+                        parseParameters();
+                        if (token() == SyntaxKind::ColonToken) {
+                            int start = getNodePos();
+                            nextToken();
+                            skipType();
+                            addReplacement(start, getNodePos());
+                        }
+                        if (token() == SyntaxKind::OpenBraceToken) {
+                            parseBlock();
+                        }
+                    }
                 } else if (token() == SyntaxKind::OpenBracketToken) {
                     // Computed property
                     nextToken();
@@ -1188,6 +1431,35 @@ void TsStrip::parsePrimaryExpression() {
                     if (token() == SyntaxKind::ColonToken) {
                         nextToken();
                         parseAssignmentExpressionOrHigher();
+                    } else if (token() == SyntaxKind::LessThanToken) {
+                        // Computed property method with type params: { [key]<T>(params) { } }
+                        int start = getNodePos();
+                        skipTypeArguments();
+                        addReplacement(start, getNodePos());
+                        if (token() == SyntaxKind::OpenParenToken) {
+                            parseParameters();
+                            if (token() == SyntaxKind::ColonToken) {
+                                int retStart = getNodePos();
+                                nextToken();
+                                skipType();
+                                addReplacement(retStart, getNodePos());
+                            }
+                            if (token() == SyntaxKind::OpenBraceToken) {
+                                parseBlock();
+                            }
+                        }
+                    } else if (token() == SyntaxKind::OpenParenToken) {
+                        // Computed property method: { [key](params) { } }
+                        parseParameters();
+                        if (token() == SyntaxKind::ColonToken) {
+                            int start = getNodePos();
+                            nextToken();
+                            skipType();
+                            addReplacement(start, getNodePos());
+                        }
+                        if (token() == SyntaxKind::OpenBraceToken) {
+                            parseBlock();
+                        }
                     }
                 } else if (token() == SyntaxKind::Identifier || isKeyword(token()) 
                            || token() == SyntaxKind::StringLiteral 
@@ -1196,6 +1468,23 @@ void TsStrip::parsePrimaryExpression() {
                     if (token() == SyntaxKind::ColonToken) {
                         nextToken();
                         parseAssignmentExpressionOrHigher();
+                    } else if (token() == SyntaxKind::LessThanToken) {
+                        // Method shorthand with type params: { method<T>(params) { } }
+                        int start = getNodePos();
+                        skipTypeArguments();
+                        addReplacement(start, getNodePos());
+                        if (token() == SyntaxKind::OpenParenToken) {
+                            parseParameters();
+                            if (token() == SyntaxKind::ColonToken) {
+                                int retStart = getNodePos();
+                                nextToken();
+                                skipType();
+                                addReplacement(retStart, getNodePos());
+                            }
+                            if (token() == SyntaxKind::OpenBraceToken) {
+                                parseBlock();
+                            }
+                        }
                     } else if (token() == SyntaxKind::OpenParenToken) {
                         // Method shorthand
                         parseParameters();
@@ -1389,6 +1678,17 @@ void TsStrip::parsePrimaryExpression() {
                 parseExpected(SyntaxKind::CloseParenToken);
             }
             return;
+        case SyntaxKind::AtToken:
+            // Decorated class expression: @decorator class { }
+            // Parse all decorators first
+            while (token() == SyntaxKind::AtToken) {
+                parseDecorator();
+            }
+            // Now parse the class expression
+            if (token() == SyntaxKind::ClassKeyword) {
+                parseClassDeclaration();
+            }
+            return;
         default:
             // Check for contextual keywords used as identifiers
             if (isKeyword(token())) {
@@ -1578,19 +1878,27 @@ void TsStrip::parseStatement() {
             return;
         // TypeScript declarations
         case SyntaxKind::InterfaceKeyword: {
-            int start = getNodePos();
-            nextToken();
-            parseInterfaceDeclaration(start);
-            return;
+            // If there's a line break after 'interface', it should be treated as identifier (ASI)
+            if (!peekToken().hadLineBreak) {
+                int start = getNodePos();
+                nextToken();
+                parseInterfaceDeclaration(start);
+                return;
+            }
+            break;
         }
-        case SyntaxKind::TypeKeyword:
-            if (peekToken().kind == SyntaxKind::Identifier) {
+        case SyntaxKind::TypeKeyword: {
+            // Type alias name can be identifier or any keyword (like 'default', 'type', 'class', etc.)
+            // If there's a line break after 'type', it should be treated as identifier (ASI)
+            SyntaxKind next = peekToken().kind;
+            if (!peekToken().hadLineBreak && (next == SyntaxKind::Identifier || isKeyword(next))) {
                 int start = getNodePos();
                 nextToken();
                 parseTypeAliasDeclaration(start);
                 return;
             }
             break;
+        }
         case SyntaxKind::EnumKeyword: {
             int start = getNodePos();
             nextToken();
@@ -1601,9 +1909,13 @@ void TsStrip::parseStatement() {
         case SyntaxKind::ModuleKeyword: {
             // module X { } or module "x" { } is a module declaration
             // module.x or module[0] is using module as a variable name
+            // module in {} is using 'in' operator, not module declaration
+            // If there's a line break after 'module', it should be treated as identifier (ASI)
             SyntaxKind next = peekToken().kind;
-            if (next == SyntaxKind::Identifier || next == SyntaxKind::StringLiteral ||
-                next == SyntaxKind::OpenBraceToken) {
+            if (!peekToken().hadLineBreak &&
+                next != SyntaxKind::InKeyword &&  // 'module in {}' is 'in' operator, not module decl
+                (next == SyntaxKind::Identifier || next == SyntaxKind::StringLiteral ||
+                next == SyntaxKind::OpenBraceToken || next == SyntaxKind::GlobalKeyword || isKeyword(next))) {
                 int start = getNodePos();
                 nextToken();
                 parseModuleDeclaration(start);
@@ -1613,12 +1925,27 @@ void TsStrip::parseStatement() {
             break;
         }
         case SyntaxKind::DeclareKeyword: {
-            int start = getNodePos();
-            nextToken();
-            parseDeclaration();
-            // Use getPrevTokenEnd() to avoid erasing comments after the declaration
-            addReplacement(start, getPrevTokenEnd());
-            return;
+            // Check if this is a declare declaration or just 'declare' as identifier
+            // If there's a line break after 'declare', it should be treated as identifier (ASI)
+            SyntaxKind next = peekToken().kind;
+            if (!peekToken().hadLineBreak &&
+                (next == SyntaxKind::VarKeyword || next == SyntaxKind::LetKeyword ||
+                next == SyntaxKind::ConstKeyword || next == SyntaxKind::FunctionKeyword ||
+                next == SyntaxKind::ClassKeyword || next == SyntaxKind::EnumKeyword ||
+                next == SyntaxKind::InterfaceKeyword || next == SyntaxKind::TypeKeyword ||
+                next == SyntaxKind::ModuleKeyword || next == SyntaxKind::NamespaceKeyword ||
+                next == SyntaxKind::GlobalKeyword || next == SyntaxKind::AbstractKeyword ||
+                next == SyntaxKind::AsyncKeyword)) {
+                int start = getNodePos();
+                nextToken();
+                parseDeclaration();
+                // Use getPrevTokenEnd() to avoid erasing comments after the declaration
+                addReplacement(start, getPrevTokenEnd());
+                fixASI(start, getPrevTokenEnd());
+                return;
+            }
+            // Otherwise, 'declare' is being used as an identifier
+            break;
         }
         case SyntaxKind::ImportKeyword:
             parseImportDeclaration();
@@ -1627,7 +1954,9 @@ void TsStrip::parseStatement() {
             parseExportDeclaration();
             return;
         case SyntaxKind::AbstractKeyword:
-            if (peekToken().kind == SyntaxKind::ClassKeyword) {
+            // Only treat as class modifier if class keyword is on the same line
+            // If there's a line break, 'abstract' is a standalone identifier (ASI)
+            if (peekToken().kind == SyntaxKind::ClassKeyword && !peekToken().hadLineBreak) {
                 int start = getNodePos();
                 nextToken();
                 addReplacement(start, getNodePos());
@@ -1635,6 +1964,21 @@ void TsStrip::parseStatement() {
                 return;
             }
             break;
+        case SyntaxKind::GlobalKeyword: {
+            // global { } - global scope augmentation, should be erased
+            // e.g., global { interface Array<T> { x } }
+            SyntaxKind next = peekToken().kind;
+            if (next == SyntaxKind::OpenBraceToken) {
+                int start = getNodePos();
+                nextToken(); // consume 'global'
+                skipBlock(); // skip the block
+                addReplacement(start, getPrevTokenEnd());
+                fixASI(start, getPrevTokenEnd());
+                return;
+            }
+            // Otherwise, 'global' is being used as an identifier
+            break;
+        }
         case SyntaxKind::AsyncKeyword:
             if (peekToken().kind == SyntaxKind::FunctionKeyword && !peekToken().hadLineBreak) {
                 parseFunctionDeclaration();
@@ -1851,8 +2195,8 @@ void TsStrip::parseVariableDeclaration() {
         int start = getNodePos();
         nextToken();
         skipType();
-        // Use getPrevTokenEnd() to avoid erasing comments after type annotation
-        addReplacement(start, getPrevTokenEnd());
+        // Use getNodePos() to include any rescanned partial token (like > from >=)
+        addReplacement(start, getNodePos());
     }
     
     // Initializer
@@ -1867,8 +2211,10 @@ void TsStrip::parseObjectBindingPattern() {
         if (token() == SyntaxKind::DotDotDotToken) {
             nextToken();
         }
-        // Use isBindingIdentifier() to support contextual keywords like 'get', 'set', 'type' as property names
-        if (isBindingIdentifier()) {
+        // Property name can be any identifier OR keyword (including reserved words)
+        // e.g., { enum: x, function: fn, class: c } is valid JavaScript
+        // This is different from binding identifier which has restrictions
+        if (token() == SyntaxKind::Identifier || isKeyword(token())) {
             nextToken();
             if (parseOptional(SyntaxKind::ColonToken)) {
                 // propertyName: bindingName
@@ -1885,6 +2231,17 @@ void TsStrip::parseObjectBindingPattern() {
             nextToken();
             parseExpression();
             parseExpected(SyntaxKind::CloseBracketToken);
+            parseExpected(SyntaxKind::ColonToken);
+            if (isBindingIdentifier()) {
+                nextToken();
+            } else if (token() == SyntaxKind::OpenBraceToken) {
+                parseObjectBindingPattern();
+            } else if (token() == SyntaxKind::OpenBracketToken) {
+                parseArrayBindingPattern();
+            }
+        } else if (token() == SyntaxKind::StringLiteral || token() == SyntaxKind::NumericLiteral) {
+            // String or number property name: { "prop": x } or { 123: x }
+            nextToken();
             parseExpected(SyntaxKind::ColonToken);
             if (isBindingIdentifier()) {
                 nextToken();
@@ -2000,25 +2357,14 @@ void TsStrip::parseFunctionDeclaration(int outerStart) {
 void TsStrip::parseParameters() {
     parseExpected(SyntaxKind::OpenParenToken);
     
-    // Check for `this` parameter
-    if (token() == SyntaxKind::ThisKeyword) {
-        int thisStart = getNodePos();
-        nextToken();
-        parseOptional(SyntaxKind::QuestionToken);
-        if (token() == SyntaxKind::ColonToken) {
-            nextToken();
-            skipType();
-        }
-        // Remove this param including comma
-        if (parseOptional(SyntaxKind::CommaToken)) {
-            addReplacement(thisStart, getNodePos());
-        } else {
-            addReplacement(thisStart, getNodePos());
-        }
-    }
+    bool isFirstParameter = true;
     
     while (!isEOF() && token() != SyntaxKind::CloseParenToken) {
-        // Decorators
+        // Mark the start of this parameter (including any decorators)
+        int paramStart = getNodePos();
+        
+        // Decorators (skip but don't erase - amaro also preserves parameter decorators)
+        // Exception: decorators on 'this' parameter should be removed with the parameter
         while (token() == SyntaxKind::AtToken) {
             nextToken();
             if (token() == SyntaxKind::Identifier) {
@@ -2030,19 +2376,66 @@ void TsStrip::parseParameters() {
                     nextToken();
                 }
             }
+            // Parse decorator arguments as expressions to strip type annotations
+            // inside them (e.g., @dec((x: T) => x))
             if (token() == SyntaxKind::OpenParenToken) {
-                skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
+                nextToken();
+                while (!isEOF() && token() != SyntaxKind::CloseParenToken) {
+                    parseAssignmentExpressionOrHigher();
+                    if (token() == SyntaxKind::CommaToken) {
+                        nextToken();
+                    } else {
+                        break;
+                    }
+                }
+                parseExpected(SyntaxKind::CloseParenToken);
             }
         }
         
+        // Check for `this` parameter (TypeScript only)
+        // In TypeScript, `this` parameter can only be the first parameter
+        // JavaScript does not allow `this` as a parameter name, so any first parameter
+        // that is `this` must be a TypeScript this-parameter and should always be erased.
+        if (isFirstParameter && token() == SyntaxKind::ThisKeyword) {
+            nextToken();
+            parseOptional(SyntaxKind::QuestionToken);
+            if (token() == SyntaxKind::ColonToken) {
+                nextToken();
+                skipType();
+            }
+            // Remove this param including comma and any preceding decorators
+            parseOptional(SyntaxKind::CommaToken);
+            addReplacement(paramStart, getNodePos());
+            // isFirstParameter remains true since this param was removed
+            continue; // Skip to next parameter
+        }
+        
         // Modifiers (parameter properties in constructor)
+        // Only treat as modifiers if followed by a parameter name (identifier or binding pattern)
         int modStart = getNodePos();
         bool hasModifier = false;
         while (token() == SyntaxKind::PublicKeyword || token() == SyntaxKind::PrivateKeyword ||
              token() == SyntaxKind::ProtectedKeyword || token() == SyntaxKind::ReadonlyKeyword ||
              token() == SyntaxKind::OverrideKeyword) {
-            hasModifier = true;
-            nextToken();
+            // Check if this is a modifier or a parameter name
+            // It's a modifier only if followed by:
+            // - another modifier keyword
+            // - identifier (parameter name)
+            // - binding pattern { or [
+            // - ... (rest parameter)
+            SyntaxKind next = peekToken().kind;
+            if (next == SyntaxKind::PublicKeyword || next == SyntaxKind::PrivateKeyword ||
+                next == SyntaxKind::ProtectedKeyword || next == SyntaxKind::ReadonlyKeyword ||
+                next == SyntaxKind::OverrideKeyword || next == SyntaxKind::DotDotDotToken ||
+                next == SyntaxKind::OpenBraceToken || next == SyntaxKind::OpenBracketToken ||
+                isBindingIdentifier(next)) {
+                // This is a modifier
+                hasModifier = true;
+                nextToken();
+            } else {
+                // This keyword is being used as a parameter name, not a modifier
+                break;
+            }
         }
         if (hasModifier) {
             addReplacement(modStart, getNodePos());
@@ -2052,7 +2445,8 @@ void TsStrip::parseParameters() {
         parseOptional(SyntaxKind::DotDotDotToken);
         
         // Parameter name or binding pattern
-        if (isBindingIdentifier()) {
+        // Note: `this` can be used as parameter name in non-first position (unusual but valid)
+        if (isBindingIdentifier() || token() == SyntaxKind::ThisKeyword) {
             nextToken();
         } else if (token() == SyntaxKind::OpenBraceToken) {
             parseObjectBindingPattern();
@@ -2080,6 +2474,9 @@ void TsStrip::parseParameters() {
             parseAssignmentExpressionOrHigher();
         }
         
+        // Mark that we've processed a parameter, so next one is not the first
+        isFirstParameter = false;
+        
         if (!parseOptional(SyntaxKind::CommaToken)) {
             break;
         }
@@ -2099,7 +2496,9 @@ void TsStrip::parseClassDeclaration() {
     parseExpected(SyntaxKind::ClassKeyword);
     
     // Name
-    if (token() == SyntaxKind::Identifier) {
+    // Keep this narrow: treating contextual keywords as class names breaks
+    // `class implements I {}` class expressions where `implements` starts a clause.
+    if (token() == SyntaxKind::Identifier || token() == SyntaxKind::GlobalKeyword) {
         nextToken();
     }
     
@@ -2126,7 +2525,18 @@ void TsStrip::parseClassDeclaration() {
     if (token() == SyntaxKind::ImplementsKeyword) {
         int start = getNodePos();
         nextToken();
-        while (!isEOF() && token() != SyntaxKind::OpenBraceToken) {
+        // Skip types until we reach class body {
+        // Need to handle balanced < > and nested { } in type expressions
+        int depth = 0;
+        while (!isEOF()) {
+            if (token() == SyntaxKind::OpenBraceToken && depth == 0) {
+                break;
+            }
+            if (token() == SyntaxKind::LessThanToken) {
+                depth++;
+            } else if (token() == SyntaxKind::GreaterThanToken) {
+                if (depth > 0) depth--;
+            }
             nextToken();
         }
         addReplacement(start, getNodePos());
@@ -2135,6 +2545,64 @@ void TsStrip::parseClassDeclaration() {
     // Body
     if (token() == SyntaxKind::OpenBraceToken) {
         parseClassBody();
+    }
+}
+
+/**
+ * parseDecorator - parse a single decorator and its arguments
+ * Properly handles type assertions in decorator arguments like @deco(x as T)
+ */
+void TsStrip::parseDecorator() {
+    nextToken(); // consume @
+    
+    // Decorator name (possibly dotted: @namespace.decorator)
+    // with optional non-null assertions between parts: @x!.y
+    if (token() == SyntaxKind::Identifier) {
+        nextToken();
+    }
+    
+    // Loop to handle interleaved dots, non-null assertions, and type arguments
+    while (true) {
+        if (token() == SyntaxKind::DotToken) {
+            nextToken();
+            if (token() == SyntaxKind::Identifier) {
+                nextToken();
+            }
+            continue;
+        }
+        
+        // Remove non-null assertions (!) - can appear after any member access
+        if (token() == SyntaxKind::ExclamationToken) {
+            int start = getNodePos();
+            nextToken();
+            addReplacement(start, getPrevTokenEnd());
+            continue;
+        }
+        
+        // Remove type arguments: @decorator<T>()
+        if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
+            int start = getNodePos();
+            skipTypeArguments();
+            addReplacement(start, getPrevTokenEnd());
+            continue;
+        }
+        
+        break;
+    }
+    
+    // Decorator arguments
+    if (token() == SyntaxKind::OpenParenToken) {
+        nextToken();
+        // Parse argument list as expressions to handle 'as' type assertions
+        while (!isEOF() && token() != SyntaxKind::CloseParenToken) {
+            parseAssignmentExpressionOrHigher();
+            if (token() == SyntaxKind::CommaToken) {
+                nextToken();
+            } else {
+                break;
+            }
+        }
+        parseExpected(SyntaxKind::CloseParenToken);
     }
 }
 
@@ -2157,19 +2625,7 @@ void TsStrip::parseClassMember() {
     
     // Decorators
     while (token() == SyntaxKind::AtToken) {
-        nextToken();
-        if (token() == SyntaxKind::Identifier) {
-            nextToken();
-        }
-        while (token() == SyntaxKind::DotToken) {
-            nextToken();
-            if (token() == SyntaxKind::Identifier) {
-                nextToken();
-            }
-        }
-        if (token() == SyntaxKind::OpenParenToken) {
-            skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
-        }
+        parseDecorator();
     }
     
     int modifierStart = getNodePos();
@@ -2184,22 +2640,90 @@ void TsStrip::parseClassMember() {
     bool isStatic = false;
     bool hasDecorators = (modifierStart != memberStart);
     
+    // Track TS-only modifiers to detect duplicates used as property names
+    bool hasPublic = false;
+    bool hasPrivate = false;
+    bool hasProtected = false;
+    bool hasReadonly = false;
+    bool hasOverride = false;
+    
+    // For ASI safety: track if a JS modifier keyword (static/get/set) is used as property name
+    bool jsModifierAsPropertyName = false;
+    
     while (true) {
         int modStart = getNodePos();
         switch (token()) {
             case SyntaxKind::PublicKeyword:
-            case SyntaxKind::PrivateKeyword:
-            case SyntaxKind::ProtectedKeyword:
-            case SyntaxKind::ReadonlyKeyword:
-            case SyntaxKind::OverrideKeyword:
+                // If already has public, this second 'public' is a property name
+                if (hasPublic) {
+                    // Don't set jsModifierAsPropertyName - the first modifier provides spacing
+                    break; // Exit modifier loop
+                }
+                hasPublic = true;
                 hasTsModifiers = true;
                 nextToken();
                 tsModifierRanges.push_back({modStart, getNodePos()});
                 continue;
+            case SyntaxKind::PrivateKeyword:
+                // If already has private, this second 'private' is a property name
+                if (hasPrivate) {
+                    break; // Exit modifier loop
+                }
+                hasPrivate = true;
+                hasTsModifiers = true;
+                nextToken();
+                tsModifierRanges.push_back({modStart, getNodePos()});
+                continue;
+            case SyntaxKind::ProtectedKeyword:
+                // If already has protected, this second 'protected' is a property name
+                if (hasProtected) {
+                    break; // Exit modifier loop
+                }
+                hasProtected = true;
+                hasTsModifiers = true;
+                nextToken();
+                tsModifierRanges.push_back({modStart, getNodePos()});
+                continue;
+            case SyntaxKind::ReadonlyKeyword:
+                // If already has readonly, this second 'readonly' is a property name
+                if (hasReadonly) {
+                    break; // Exit modifier loop
+                }
+                hasReadonly = true;
+                hasTsModifiers = true;
+                nextToken();
+                tsModifierRanges.push_back({modStart, getNodePos()});
+                continue;
+            case SyntaxKind::OverrideKeyword:
+                // If already has override, this second 'override' is a property name
+                if (hasOverride) {
+                    break; // Exit modifier loop
+                }
+                nextToken();
+                // Check if override is used as property name (followed by : ? ! = ; } or EOF)
+                if (token() == SyntaxKind::ColonToken || token() == SyntaxKind::QuestionToken ||
+                    token() == SyntaxKind::ExclamationToken || token() == SyntaxKind::EqualsToken ||
+                    token() == SyntaxKind::SemicolonToken || token() == SyntaxKind::CloseBraceToken ||
+                    isEOF()) {
+                    // override is the property name, not a modifier
+                    break; // Exit modifier loop
+                }
+                hasOverride = true;
+                hasTsModifiers = true;
+                tsModifierRanges.push_back({modStart, getNodePos()});
+                continue;
             case SyntaxKind::AbstractKeyword:
+                nextToken();
+                // Check if abstract is used as property name (followed by : ? ! = ; } or EOF)
+                if (token() == SyntaxKind::ColonToken || token() == SyntaxKind::QuestionToken ||
+                    token() == SyntaxKind::ExclamationToken || token() == SyntaxKind::EqualsToken ||
+                    token() == SyntaxKind::SemicolonToken || token() == SyntaxKind::CloseBraceToken ||
+                    isEOF()) {
+                    // abstract is the property name, not a modifier
+                    break; // Exit modifier loop
+                }
                 hasTsModifiers = true;
                 isAbstract = true;
-                nextToken();
                 tsModifierRanges.push_back({modStart, getNodePos()});
                 continue;
             case SyntaxKind::DeclareKeyword:
@@ -2209,8 +2733,21 @@ void TsStrip::parseClassMember() {
                 tsModifierRanges.push_back({modStart, getNodePos()});
                 continue;
             case SyntaxKind::StaticKeyword:
+                // If already static, this second 'static' is a property name, not a modifier
+                if (isStatic) {
+                    jsModifierAsPropertyName = true;
+                    break; // Exit modifier loop - static is the property name
+                }
                 isStatic = true;
                 nextToken();
+                // Check if static is used as property name (followed by : ? ! = ; } or EOF)
+                if (token() == SyntaxKind::ColonToken || token() == SyntaxKind::QuestionToken ||
+                    token() == SyntaxKind::ExclamationToken || token() == SyntaxKind::EqualsToken ||
+                    token() == SyntaxKind::SemicolonToken || token() == SyntaxKind::CloseBraceToken ||
+                    isEOF()) {
+                    jsModifierAsPropertyName = true;
+                    break; // Exit modifier loop - static is the property name
+                }
                 // static is JS valid, don't add to tsModifierRanges
                 continue;
             case SyntaxKind::AsyncKeyword:
@@ -2235,27 +2772,11 @@ void TsStrip::parseClassMember() {
         return;
     }
     
-    // Danger check for stripping modifiers (SWC logic)
-    bool isDangerous = false;
-    if (hasTsModifiers && !isStatic && !hasDecorators) {
-        if (token() == SyntaxKind::OpenBracketToken || 
-            token() == SyntaxKind::AsteriskToken ||
-            token() == SyntaxKind::InKeyword || 
-            token() == SyntaxKind::InstanceOfKeyword) {
-            isDangerous = true;
-        }
-    }
-    
-    // Strip TS-only modifiers (preserve static, async, accessor)
-    for (const auto& range : tsModifierRanges) {
-        addReplacement(range.first, range.second);
-    }
-    if (isDangerous && !tsModifierRanges.empty()) {
-        addOverwrite(tsModifierRanges[0].first, ';');
-    }
-    
     // Index signature [key: type]: type
+    // Check BEFORE applying modifier replacements, because if it's an index signature,
+    // we remove the entire member including modifiers without any ASI semicolon
     if (token() == SyntaxKind::OpenBracketToken) {
+        size_t savedIndex = m_tokenIndex;
         int bracketStart = getNodePos();
         nextToken();
         
@@ -2263,7 +2784,7 @@ void TsStrip::parseClassMember() {
         if (token() == SyntaxKind::Identifier) {
             nextToken();
             if (token() == SyntaxKind::ColonToken) {
-                // Index signature - skip and remove
+                // Index signature - skip and remove entirely (including modifiers)
                 while (!isEOF() && token() != SyntaxKind::CloseBracketToken) {
                     nextToken();
                 }
@@ -2273,11 +2794,51 @@ void TsStrip::parseClassMember() {
                     skipType();
                 }
                 tryParseSemicolon();
+                // Remove from memberStart to include any modifiers like 'readonly'
                 addReplacement(memberStart, getNodePos());
                 return;
             }
         }
-        // Computed property - continue
+        // Not an index signature - restore position and continue
+        m_tokenIndex = savedIndex;
+    }
+    
+    // Danger check for stripping modifiers (SWC logic)
+    // Check if removing TS modifiers would cause ASI issues
+    bool isDangerous = false;
+    if (hasTsModifiers && !isStatic && !hasDecorators) {
+        SyntaxKind firstKeyToken = token();
+        // Direct dangerous tokens
+        if (firstKeyToken == SyntaxKind::OpenBracketToken || 
+            firstKeyToken == SyntaxKind::AsteriskToken ||
+            firstKeyToken == SyntaxKind::InKeyword || 
+            firstKeyToken == SyntaxKind::InstanceOfKeyword) {
+            isDangerous = true;
+        }
+        // Check for get/set followed by computed property
+        // e.g., `public get [Symbol.toStringTag]()` -> `; get [Symbol.toStringTag]()`
+        else if (firstKeyToken == SyntaxKind::GetKeyword || firstKeyToken == SyntaxKind::SetKeyword) {
+            // Peek next token to see if it's a computed property
+            SyntaxKind nextTok = peekToken().kind;
+            if (nextTok == SyntaxKind::OpenBracketToken) {
+                isDangerous = true;
+            }
+        }
+    }
+    
+    // Strip TS-only modifiers (preserve static, async, accessor)
+    for (const auto& range : tsModifierRanges) {
+        addReplacement(range.first, range.second);
+    }
+    // Only insert dangerous semicolon if the member will NOT be entirely removed
+    // (If member is abstract/declare, it will be fully erased at the end, so no semicolon needed)
+    if (isDangerous && !tsModifierRanges.empty() && !isAbstract && !isDeclare) {
+        addOverwrite(tsModifierRanges[0].first, ';');
+    }
+    
+    // Computed property [expr]
+    if (token() == SyntaxKind::OpenBracketToken) {
+        nextToken();
         while (!isEOF() && token() != SyntaxKind::CloseBracketToken) {
             parseExpression();
         }
@@ -2326,8 +2887,11 @@ void TsStrip::parseClassMember() {
             token() == SyntaxKind::PrivateIdentifier) {
             isGetter = (accessor == SyntaxKind::GetKeyword);
             isSetter = (accessor == SyntaxKind::SetKeyword);
+        } else {
+            // get/set is the property name, already consumed
+            // Need semicolon for ASI safety
+            jsModifierAsPropertyName = true;
         }
-        // else get/set is the property name, already consumed
     }
     
     // Member name
@@ -2426,15 +2990,15 @@ void TsStrip::parseClassMember() {
         hadInitializer = true;
     }
     
-    // Check if we need a semicolon for ASI safety
-    // If we erased a type annotation but have no initializer and no explicit semicolon,
-    // and the next line could be a method, we need a semicolon.
-    // e.g., static: any\n    foo() { } should become static;\n    foo() { }
-    if (hadTypeAnnotation && !hadInitializer && token() != SyntaxKind::SemicolonToken) {
-        if (currentToken().hadLineBreak) {
-            // Next line could be a method - insert semicolon
-            addOverwrite(typeAnnotationStart, ';');
-        }
+    // For ASI safety: if property name is static/get/set and type was erased,
+    // we need a semicolon to prevent the property name from being parsed as a modifier
+    // for the next member (e.g., "static: any\nfoo() {}" would become "static\nfoo() {}"
+    // which parses as "static foo() {}" instead of property "static" + method "foo")
+    // Note: We insert semicolon regardless of whether original code has one,
+    // because the type annotation position needs the semicolon for correct ASI.
+    // Example: "set: boolean;" -> "set;       ;" (semicolon at colon position)
+    if (jsModifierAsPropertyName && hadTypeAnnotation && !hadInitializer) {
+        addOverwrite(typeAnnotationStart, ';');
     }
     
     tryParseSemicolon();
@@ -2454,16 +3018,18 @@ void TsStrip::parseClassMember() {
  */
 void TsStrip::parseInterfaceDeclaration(int start) {
     // interface Name<T> extends ... { ... }
-    if (token() == SyntaxKind::Identifier) {
+    // Interface name can be an identifier or contextual keyword (like 'abstract', 'type', etc.)
+    if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
     }
     if (token() == SyntaxKind::LessThanToken) {
         skipTypeArguments();
     }
     if (parseOptional(SyntaxKind::ExtendsKeyword)) {
-        while (!isEOF() && token() != SyntaxKind::OpenBraceToken) {
-            nextToken();
-        }
+        // Parse heritage clauses: extends Type1, Type2, ...
+        do {
+            skipType();
+        } while (parseOptional(SyntaxKind::CommaToken));
     }
     if (token() == SyntaxKind::OpenBraceToken) {
         skipBlock();
@@ -2479,7 +3045,8 @@ void TsStrip::parseInterfaceDeclaration(int start) {
  */
 void TsStrip::parseTypeAliasDeclaration(int start) {
     // type Name<T> = Type;
-    if (token() == SyntaxKind::Identifier) {
+    // Type alias name can be an identifier or contextual keyword
+    if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
     }
     if (token() == SyntaxKind::LessThanToken) {
@@ -2523,23 +3090,48 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare) {
  */
 void TsStrip::parseModuleDeclaration(int start, bool isDeclare) {
     // namespace/module Name { ... } or declare module "foo" { ... }
-    if (token() == SyntaxKind::Identifier || token() == SyntaxKind::StringLiteral) {
+    // Name can be dotted: namespace Foo.Bar.Baz { ... }
+    // "global" is a keyword but can be used as namespace name: namespace global { }
+    if (token() == SyntaxKind::Identifier || token() == SyntaxKind::GlobalKeyword || isKeyword(token())) {
+        nextToken();
+        // Handle dotted names like Foo.Bar.Baz
+        while (token() == SyntaxKind::DotToken) {
+            nextToken(); // consume .
+            if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                nextToken();
+            }
+        }
+    } else if (token() == SyntaxKind::StringLiteral) {
         nextToken();
     }
     
     if (token() == SyntaxKind::OpenBraceToken) {
-        if (isDeclare) {
+        // Check if the body is empty (uninstantiated)
+        // If empty, just erase it; if non-empty and not declare, throw error
+        if (peekToken().kind == SyntaxKind::CloseBraceToken) {
+            // Empty body - uninstantiated namespace, just erase
+            skipBlock();
+        } else if (isDeclare) {
             // declare module/namespace - just skip the body and erase everything
             skipBlock();
         } else {
             // Runtime namespace/module with body - not supported
             throw std::runtime_error("TypeScript namespace/module with body is not supported in strip-only mode.");
         }
+    } else {
+        // No body - consume optional semicolon (e.g., "declare module 'foo';")
+        tryParseSemicolon();
     }
     
-    // Use getPrevTokenEnd() to avoid erasing comments after the declaration
-    addReplacement(start, getPrevTokenEnd());
-    fixASI(start, getPrevTokenEnd());
+    // When called from parseStatement directly (for standalone namespace/module),
+    // apply replacement and fixASI.
+    // When called from parseDeclaration (for declare namespace/module),
+    // the caller will handle replacement and fixASI.
+    if (!isDeclare) {
+        // Use getPrevTokenEnd() to avoid erasing comments after the declaration
+        addReplacement(start, getPrevTokenEnd());
+        fixASI(start, getPrevTokenEnd());
+    }
 }
 
 /**
@@ -2548,22 +3140,13 @@ void TsStrip::parseModuleDeclaration(int start, bool isDeclare) {
 void TsStrip::parseDeclaration() {
     // Skip decorators first
     while (token() == SyntaxKind::AtToken) {
-        nextToken();
-        if (token() == SyntaxKind::Identifier) {
-            nextToken();
-        }
-        while (token() == SyntaxKind::DotToken) {
-            nextToken();
-            if (token() == SyntaxKind::Identifier) {
-                nextToken();
-            }
-        }
-        if (token() == SyntaxKind::OpenParenToken) {
-            skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
-        }
+        parseDecorator();
     }
     
     switch (token()) {
+        case SyntaxKind::ExportKeyword:
+            parseExportDeclaration();
+            break;
         case SyntaxKind::VarKeyword:
         case SyntaxKind::LetKeyword:
             parseVariableStatement();
@@ -2648,51 +3231,99 @@ void TsStrip::parseImportDeclaration() {
     int start = getNodePos();
     nextToken(); // 'import'
     
-    // import type - remove entire statement
+    // import type - check if 'type' is a modifier or a default import name
     if (token() == SyntaxKind::TypeKeyword) {
-        nextToken(); // consume 'type'
-        // Handle: import type X from "..."
-        // Handle: import type { A, B } from "..."
-        // Handle: import type * as X from "..."
-        if (token() == SyntaxKind::OpenBraceToken) {
-            // import type { ... } - skip to matching brace
-            skipBlock();
-        } else if (token() == SyntaxKind::AsteriskToken) {
-            // import type * as X
-            nextToken(); // *
-            parseOptional(SyntaxKind::AsKeyword);
-            if (token() == SyntaxKind::Identifier) {
-                nextToken();
+        // Check what follows 'type'
+        // - import type from './type.js' - 'type' is the default import name (JS)
+        // - import type from from '...' - 'type' is a modifier, 'from' is the import name (TS)
+        // - import type X from '...' - 'type' is a modifier (TS)
+        // - import type { A } from '...' - 'type' is a modifier (TS)
+        // - import type * as X from '...' - 'type' is a modifier (TS)
+        SyntaxKind next = peekToken().kind;
+        if (next == SyntaxKind::CommaToken) {
+            // import type, { ... } or import type, * as ...
+            // 'type' is a default import name - treat as regular import
+            nextToken(); // consume 'type' as identifier
+            parseOptional(SyntaxKind::CommaToken);
+            // Continue to parse named imports below
+        } else if (next == SyntaxKind::FromKeyword) {
+            // Could be:
+            // - import type from '...' - 'type' is default import, 'from' is keyword
+            // - import type from from '...' - 'type' is modifier, first 'from' is import name
+            // - import type from = require('..') - 'type' is modifier, 'from' is import alias
+            // Need to look two tokens ahead
+            nextToken(); // consume 'type'
+            nextToken(); // consume first 'from'
+            if (token() == SyntaxKind::FromKeyword || token() == SyntaxKind::EqualsToken) {
+                // import type from from '...' or import type from = require('..')
+                // 'type' is modifier - This is a type-only import, erase entire statement
+                // Skip to end of statement
+                while (!isEOF() && token() != SyntaxKind::SemicolonToken && !currentToken().hadLineBreak) {
+                    nextToken();
+                }
+                tryParseSemicolon();
+                addReplacement(start, getNodePos());
+                fixASI(start, getNodePos());
+                return;
+            } else {
+                // import type from '...' - 'type' is default import name
+                // 'from' already consumed, just need module specifier
+                goto parse_from_clause;
             }
-        } else if (token() == SyntaxKind::Identifier) {
-            // import type X
-            nextToken();
-        }
-        // from clause
-        if (parseOptional(SyntaxKind::FromKeyword)) {
-            if (token() == SyntaxKind::StringLiteral) {
-                nextToken();
-            }
-        }
-        // assert/with clause
-        if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
-            nextToken();
+        } else {
+            // 'type' is a modifier - remove entire statement
+            nextToken(); // consume 'type'
+            // Handle: import type X from "..."
+            // Handle: import type { A, B } from "..."
+            // Handle: import type * as X from "..."
+            // Handle: import type defer * as X from "..." (with defer modifier)
             if (token() == SyntaxKind::OpenBraceToken) {
+                // import type { ... } - skip to matching brace
                 skipBlock();
+            } else if (token() == SyntaxKind::AsteriskToken) {
+                // import type * as X
+                nextToken(); // *
+                parseOptional(SyntaxKind::AsKeyword);
+                if (token() == SyntaxKind::Identifier) {
+                    nextToken();
+                }
+            } else if (token() == SyntaxKind::Identifier) {
+                // import type X or import type defer ...
+                nextToken();
+                // Check if there's more after (import type defer * as X)
+                if (token() == SyntaxKind::CommaToken) {
+                    nextToken();
+                }
+                if (token() == SyntaxKind::AsteriskToken) {
+                    nextToken(); // *
+                    parseOptional(SyntaxKind::AsKeyword);
+                    if (token() == SyntaxKind::Identifier) {
+                        nextToken();
+                    }
+                } else if (token() == SyntaxKind::OpenBraceToken) {
+                    skipBlock();
+                }
             }
+            // from clause
+            if (parseOptional(SyntaxKind::FromKeyword)) {
+                if (token() == SyntaxKind::StringLiteral) {
+                    nextToken();
+                }
+            }
+            // assert/with clause
+            if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
+                nextToken();
+                if (token() == SyntaxKind::OpenBraceToken) {
+                    skipBlock();
+                }
+            }
+            tryParseSemicolon();
+            addReplacement(start, getNodePos());
+            fixASI(start, getNodePos());
+            return;
         }
-        tryParseSemicolon();
-        addReplacement(start, getNodePos());
-        fixASI(start, getNodePos());
-        return;
-    }
-    
-    // Regular import - parse but check for type specifiers
-    // import { type X, Y } from ...
-    // import X, { type Y } from ...
-    
-    // Default import or namespace import or named imports
-    if (token() == SyntaxKind::Identifier) {
+    } else if (token() == SyntaxKind::Identifier) {
+        // Default import
         nextToken();
         if (parseOptional(SyntaxKind::CommaToken)) {
             // import default, { ... } or import default, * as ...
@@ -2711,18 +3342,33 @@ void TsStrip::parseImportDeclaration() {
         nextToken();
         while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
             if (token() == SyntaxKind::TypeKeyword) {
-                // type specifier - remove
-                int typeStart = getNodePos();
-                nextToken();
-                while (!isEOF() && token() != SyntaxKind::CommaToken && token() != SyntaxKind::CloseBraceToken) {
+                // Check if 'type' is a modifier or an identifier
+                // If followed by ',', '}', or 'as', it's an identifier (JS variable named 'type')
+                // If followed by another identifier, it's a type modifier (TypeScript)
+                SyntaxKind next = peekToken().kind;
+                if (next == SyntaxKind::CommaToken || next == SyntaxKind::CloseBraceToken || next == SyntaxKind::AsKeyword) {
+                    // 'type' is an identifier, treat as regular import
                     nextToken();
-                }
-                int typeEnd = getNodePos();
-                if (token() == SyntaxKind::CommaToken) {
+                    if (parseOptional(SyntaxKind::AsKeyword)) {
+                        if (token() == SyntaxKind::Identifier) {
+                            nextToken();
+                        }
+                    }
+                    parseOptional(SyntaxKind::CommaToken);
+                } else {
+                    // type specifier - remove
+                    int typeStart = getNodePos();
                     nextToken();
-                    typeEnd = getNodePos();
+                    while (!isEOF() && token() != SyntaxKind::CommaToken && token() != SyntaxKind::CloseBraceToken) {
+                        nextToken();
+                    }
+                    int typeEnd = getNodePos();
+                    if (token() == SyntaxKind::CommaToken) {
+                        nextToken();
+                        typeEnd = getNodePos();
+                    }
+                    addReplacement(typeStart, typeEnd);
                 }
-                addReplacement(typeStart, typeEnd);
             } else {
                 // Regular import specifier
                 if (token() == SyntaxKind::Identifier) {
@@ -2744,6 +3390,7 @@ void TsStrip::parseImportDeclaration() {
         parseExpected(SyntaxKind::CloseBraceToken);
     }
     
+parse_from_clause:
     // from clause
     if (parseOptional(SyntaxKind::FromKeyword)) {
         if (token() == SyntaxKind::StringLiteral) {
@@ -2771,6 +3418,20 @@ void TsStrip::parseImportDeclaration() {
 void TsStrip::parseExportDeclaration() {
     int start = getNodePos();
     nextToken(); // 'export'
+    
+    // export as namespace X; - UMD global namespace declaration, preserve it
+    if (token() == SyntaxKind::AsKeyword) {
+        // This is `export as namespace X;` syntax for UMD modules
+        // It's a runtime declaration, not a type-only construct, so preserve it
+        nextToken(); // consume 'as'
+        if (parseOptional(SyntaxKind::NamespaceKeyword)) {
+            if (token() == SyntaxKind::Identifier) {
+                nextToken();
+            }
+        }
+        tryParseSemicolon();
+        return;
+    }
     
     // export type ...
     // NOTE: do NOT scan until the next semicolon. Type literals can contain
@@ -2810,6 +3471,13 @@ void TsStrip::parseExportDeclaration() {
                     nextToken();
                 }
             }
+            // Handle assert/with clause
+            if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
+                nextToken();
+                if (token() == SyntaxKind::OpenBraceToken) {
+                    skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken);
+                }
+            }
             tryParseSemicolon();
 
             addReplacement(start, getPrevTokenEnd());
@@ -2834,16 +3502,21 @@ void TsStrip::parseExportDeclaration() {
             parseClassDeclaration();
         } else if (token() == SyntaxKind::FunctionKeyword || 
                    (token() == SyntaxKind::AsyncKeyword && peekToken().kind == SyntaxKind::FunctionKeyword)) {
-            parseFunctionDeclaration();
+            parseFunctionDeclaration(start);  // Pass export start for overload erasure
         } else if (token() == SyntaxKind::AbstractKeyword && peekToken().kind == SyntaxKind::ClassKeyword) {
             int absStart = getNodePos();
             nextToken();
             addReplacement(absStart, getNodePos());
             parseClassDeclaration();
         } else if (token() == SyntaxKind::InterfaceKeyword) {
-            int ifStart = getNodePos();
+            // export default interface X { } - erase entirely including "export default"
             nextToken();
-            parseInterfaceDeclaration(ifStart);
+            parseInterfaceDeclaration(start);  // Use export start to erase everything
+        } else if (token() == SyntaxKind::TypeKeyword && 
+                   (peekToken().kind == SyntaxKind::Identifier || isKeyword(peekToken().kind))) {
+            // export default type X = ... - erase entirely including "export default"
+            nextToken();
+            parseTypeAliasDeclaration(start);  // Use export start to erase everything
         } else {
             parseAssignmentExpressionOrHigher();
             tryParseSemicolon();
@@ -2928,6 +3601,13 @@ void TsStrip::parseExportDeclaration() {
             if (token() == SyntaxKind::StringLiteral) {
                 nextToken();
             }
+            // Handle assert/with clause
+            if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
+                nextToken();
+                if (token() == SyntaxKind::OpenBraceToken) {
+                    skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken);
+                }
+            }
             tryParseSemicolon();
             break;
         case SyntaxKind::OpenBraceToken:
@@ -2936,18 +3616,33 @@ void TsStrip::parseExportDeclaration() {
             nextToken();
             while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
                 if (token() == SyntaxKind::TypeKeyword) {
-                    // type specifier
-                    int typeStart = getNodePos();
-                    nextToken();
-                    while (!isEOF() && token() != SyntaxKind::CommaToken && token() != SyntaxKind::CloseBraceToken) {
+                    // Check if 'type' is a modifier or an identifier
+                    // If followed by ',', '}', or 'as', it's an identifier (JS variable named 'type')
+                    // If followed by another identifier, it's a type modifier (TypeScript)
+                    SyntaxKind next = peekToken().kind;
+                    if (next == SyntaxKind::CommaToken || next == SyntaxKind::CloseBraceToken || next == SyntaxKind::AsKeyword) {
+                        // 'type' is an identifier, treat as regular export
                         nextToken();
-                    }
-                    int typeEnd = getNodePos();
-                    if (token() == SyntaxKind::CommaToken) {
+                        if (parseOptional(SyntaxKind::AsKeyword)) {
+                            if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                                nextToken();
+                            }
+                        }
+                        parseOptional(SyntaxKind::CommaToken);
+                    } else {
+                        // type specifier - remove
+                        int typeStart = getNodePos();
                         nextToken();
-                        typeEnd = getNodePos();
+                        while (!isEOF() && token() != SyntaxKind::CommaToken && token() != SyntaxKind::CloseBraceToken) {
+                            nextToken();
+                        }
+                        int typeEnd = getNodePos();
+                        if (token() == SyntaxKind::CommaToken) {
+                            nextToken();
+                            typeEnd = getNodePos();
+                        }
+                        addReplacement(typeStart, typeEnd);
                     }
-                    addReplacement(typeStart, typeEnd);
                 } else {
                     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
                         nextToken();
@@ -2969,6 +3664,13 @@ void TsStrip::parseExportDeclaration() {
             if (parseOptional(SyntaxKind::FromKeyword)) {
                 if (token() == SyntaxKind::StringLiteral) {
                     nextToken();
+                }
+            }
+            // Handle assert/with clause
+            if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
+                nextToken();
+                if (token() == SyntaxKind::OpenBraceToken) {
+                    skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken);
                 }
             }
             tryParseSemicolon();
@@ -2998,13 +3700,56 @@ void TsStrip::skipType() {
         nextToken();
     }
     
-    // Handle leading modifiers
+    // Handle leading modifiers (but typeof needs special handling for member access)
     while (token() == SyntaxKind::ReadonlyKeyword || 
            token() == SyntaxKind::UniqueKeyword ||
            token() == SyntaxKind::KeyOfKeyword ||
-           token() == SyntaxKind::TypeOfKeyword ||
-           token() == SyntaxKind::InferKeyword) {
+           token() == SyntaxKind::InferKeyword ||
+           token() == SyntaxKind::AbstractKeyword) {
         nextToken();
+    }
+    
+    // Handle typeof specially - it can be followed by qualified names like typeof this.foo
+    if (token() == SyntaxKind::TypeOfKeyword) {
+        nextToken(); // consume 'typeof'
+        // typeof can be followed by: identifier, this, or import(...)
+        // Check for import(...) first since 'import' is also a keyword
+        if (token() == SyntaxKind::ImportKeyword) {
+            // typeof import("module")
+            nextToken();
+            if (token() == SyntaxKind::OpenParenToken) {
+                skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
+            }
+            while (token() == SyntaxKind::DotToken) {
+                nextToken();
+                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                    nextToken();
+                } else {
+                    break;
+                }
+            }
+            // Handle type arguments for instantiation expressions
+            if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
+                skipTypeArguments();
+            }
+        } else if (token() == SyntaxKind::Identifier || token() == SyntaxKind::ThisKeyword || isKeyword(token())) {
+            nextToken();
+            // Handle member access: typeof this.foo.bar or typeof x.y.z
+            while (token() == SyntaxKind::DotToken) {
+                nextToken();
+                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                    nextToken();
+                } else {
+                    break;
+                }
+            }
+            // Handle type arguments
+            if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
+                skipTypeArguments();
+            }
+        }
+        // Go to postfix handling below (skip the switch)
+        goto handlePostfix;
     }
     
     // Primary type
@@ -3028,21 +3773,77 @@ void TsStrip::skipType() {
             nextToken();
             while (token() == SyntaxKind::DotToken) {
                 nextToken();
-                if (token() == SyntaxKind::Identifier) {
+                // After dot, can be identifier or any keyword as property name
+                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
                     nextToken();
                 }
             }
-            if (token() == SyntaxKind::LessThanToken) {
+            // Check for type arguments - can be < or << (when followed by another <)
+            if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
                 skipTypeArguments();
             }
             break;
-        case SyntaxKind::OpenParenToken:
-            skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
+        case SyntaxKind::OpenParenToken: {
+            // Parse parenthesized type
+            // Two cases:
+            // 1. (Type) - parenthesized type grouping, e.g., (() => T)
+            // 2. (param: Type) => ReturnType - function type parameters
+            // 
+            // To distinguish: if parentheses contain "identifier :" pattern at the start,
+            // it's function parameters, and outer => is part of this function type.
+            // Otherwise, it's a grouping, and we should not parse outer =>.
+            
+            // Save position to peek at content
+            size_t savedIndex = m_tokenIndex;
+            nextToken(); // consume '('
+            
+            bool isFunctionParams = false;
+            bool contentStartsWithParen = false;
+            
+            // Check if this looks like function parameters: starts with identifier (or keyword) followed by :
+            // or is empty () or has rest parameter ...
+            if (token() == SyntaxKind::CloseParenToken) {
+                // Empty () - if followed by =>, it's a function type () => T
+                isFunctionParams = true;
+            } else if (token() == SyntaxKind::DotDotDotToken) {
+                // Rest parameter like (...args: T[])
+                isFunctionParams = true;
+            } else if (token() == SyntaxKind::OpenParenToken) {
+                // Content starts with ( - likely a grouped type like (() => T)
+                contentStartsWithParen = true;
+                isFunctionParams = false;
+            } else if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                // Check if followed by : or ? or , (parameter with type annotation or separator)
+                SyntaxKind next = peekToken().kind;
+                if (next == SyntaxKind::ColonToken || next == SyntaxKind::QuestionToken ||
+                    next == SyntaxKind::CommaToken) {
+                    // identifier: or identifier? or identifier, - likely function params
+                    isFunctionParams = true;
+                }
+            }
+            
+            // Restore and skip the balanced parens
+            m_tokenIndex = savedIndex;
+            bool hasArrowInside = skipBalancedEx(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
+            
+            // Now check for =>
             if (token() == SyntaxKind::EqualsGreaterThanToken) {
-                nextToken();
-                skipType();
+                if (isFunctionParams) {
+                    // This is definitely function type: (params) => ReturnType
+                    nextToken();
+                    skipType();
+                } else if (contentStartsWithParen && hasArrowInside) {
+                    // Content starts with ( and has arrow inside - likely (() => T)
+                    // The outer => is not part of this type
+                    // Don't consume the outer =>
+                } else {
+                    // For other cases like (T) => ..., treat as function type
+                    nextToken();
+                    skipType();
+                }
             }
             break;
+        }
         case SyntaxKind::OpenBraceToken:
             skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken);
             break;
@@ -3051,12 +3852,15 @@ void TsStrip::skipType() {
             break;
         case SyntaxKind::TypeOfKeyword:
             nextToken();
-            if (token() == SyntaxKind::Identifier) {
+            // typeof expr.member.access or typeof this.member
+            if (token() == SyntaxKind::Identifier || token() == SyntaxKind::ThisKeyword) {
                 nextToken();
                 while (token() == SyntaxKind::DotToken) {
                     nextToken();
                     if (token() == SyntaxKind::Identifier) {
                         nextToken();
+                    } else {
+                        break;
                     }
                 }
             }
@@ -3066,6 +3870,10 @@ void TsStrip::skipType() {
             break;
         case SyntaxKind::NewKeyword:
             nextToken();
+            // Handle type parameters: new <T>() => type
+            if (token() == SyntaxKind::LessThanToken) {
+                skipTypeArguments();
+            }
             if (token() == SyntaxKind::OpenParenToken) {
                 skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
             }
@@ -3102,13 +3910,17 @@ void TsStrip::skipType() {
             if (token() == SyntaxKind::OpenParenToken) {
                 skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
             }
-            if (token() == SyntaxKind::DotToken) {
+            // Handle dotted access: import("foo").bar.baz (bar can be keyword like 'default')
+            while (token() == SyntaxKind::DotToken) {
                 nextToken();
-                if (token() == SyntaxKind::Identifier) {
+                if (token() == SyntaxKind::Identifier || isKeyword(token())) {
                     nextToken();
+                } else {
+                    break;
                 }
             }
-            if (token() == SyntaxKind::LessThanToken) {
+            // Handle type arguments: import("foo").Bar<T> or import("foo").Bar<<T>...>
+            if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
                 skipTypeArguments();
             }
             break;
@@ -3169,9 +3981,16 @@ void TsStrip::skipType() {
             break;
     }
     
+handlePostfix:
     // Postfix type operators
     while (!isEOF()) {
         if (token() == SyntaxKind::OpenBracketToken) {
+            // Array type suffix like T[] or indexed access type T[K]
+            // But if [ is on a new line, it's likely the start of a new statement
+            // e.g., declare const x: any\n[].push(...) - the [] is array literal, not type suffix
+            if (currentToken().hadLineBreak) {
+                break;
+            }
             nextToken();
             if (token() != SyntaxKind::CloseBracketToken) {
                 skipType();
@@ -3202,12 +4021,20 @@ void TsStrip::skipType() {
  * skipTypeArguments - skip <T, U, V>
  */
 void TsStrip::skipTypeArguments() {
-    if (token() != SyntaxKind::LessThanToken) {
+    if (token() != SyntaxKind::LessThanToken && token() != SyntaxKind::LessThanLessThanToken) {
         return;
     }
     
     int depth = 1;
-    nextToken();
+    
+    // Handle << token - it's two < tokens merged by the scanner
+    // We need to increase depth by 2 and stay on current token (will be handled as second <)
+    if (token() == SyntaxKind::LessThanLessThanToken) {
+        depth = 2;
+        nextToken();
+    } else {
+        nextToken();
+    }
     
     while (!isEOF() && depth > 0) {
         switch (token()) {
@@ -3229,6 +4056,57 @@ void TsStrip::skipTypeArguments() {
                 if (depth < 0) depth = 0;
                 nextToken();
                 break;
+            // Handle >= >>= >>>= tokens by "rescanning" them
+            // When we need to consume just the > part, we modify the token to keep the = part
+            case SyntaxKind::GreaterThanEqualsToken:
+                // >= is > followed by =. Consume one > (depth--), leave = for next token.
+                depth--;
+                if (depth <= 0) {
+                    // Rescan: change >= to = by adjusting token pos
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::EqualsToken;
+                    m_tokens[m_tokenIndex].pos += 1; // Skip the '>'
+                    depth = 0;
+                } else {
+                    nextToken();
+                }
+                break;
+            case SyntaxKind::GreaterThanGreaterThanEqualsToken:
+                // >>= is >> followed by =. Consume two > (depth-=2).
+                depth -= 2;
+                if (depth < 0) {
+                    // Only needed one >, rescan to keep >= 
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::GreaterThanEqualsToken;
+                    m_tokens[m_tokenIndex].pos += 1; // Skip one '>'
+                    depth = 0;
+                } else if (depth == 0) {
+                    // Needed exactly two >, rescan to keep =
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::EqualsToken;
+                    m_tokens[m_tokenIndex].pos += 2; // Skip '>>'
+                } else {
+                    nextToken();
+                }
+                break;
+            case SyntaxKind::GreaterThanGreaterThanGreaterThanEqualsToken:
+                // >>>= is >>> followed by =. Consume three > (depth-=3).
+                depth -= 3;
+                if (depth == -2) {
+                    // Only needed one >, rescan to keep >>=
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::GreaterThanGreaterThanEqualsToken;
+                    m_tokens[m_tokenIndex].pos += 1; // Skip one '>'
+                    depth = 0;
+                } else if (depth == -1) {
+                    // Needed two >, rescan to keep >=
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::GreaterThanEqualsToken;
+                    m_tokens[m_tokenIndex].pos += 2; // Skip '>>'
+                    depth = 0;
+                } else if (depth == 0) {
+                    // Needed exactly three >, rescan to keep =
+                    m_tokens[m_tokenIndex].kind = SyntaxKind::EqualsToken;
+                    m_tokens[m_tokenIndex].pos += 3; // Skip '>>>'
+                } else {
+                    nextToken();
+                }
+                break;
             case SyntaxKind::OpenParenToken:
                 skipBalanced(SyntaxKind::OpenParenToken, SyntaxKind::CloseParenToken);
                 break;
@@ -3237,6 +4115,32 @@ void TsStrip::skipTypeArguments() {
                 break;
             case SyntaxKind::OpenBracketToken:
                 skipBalanced(SyntaxKind::OpenBracketToken, SyntaxKind::CloseBracketToken);
+                break;
+            // Handle template strings (both `...` and `...${...}...`)
+            case SyntaxKind::NoSubstitutionTemplateLiteral:
+                // Simple template string without ${}, just skip it
+                nextToken();
+                break;
+            case SyntaxKind::TemplateHead:
+                // Template string with ${}, need to recursively process expressions inside
+                nextToken(); // consume template head
+                while (!isEOF()) {
+                    // Recursively parse expression inside ${}, which will handle types
+                    parseExpression();
+                    
+                    // After expression, we should be at TemplateMiddle or TemplateTail
+                    if (token() == SyntaxKind::TemplateMiddle) {
+                        // More template parts, continue
+                        nextToken();
+                    } else if (token() == SyntaxKind::TemplateTail) {
+                        // End of template string
+                        nextToken();
+                        break;
+                    } else {
+                        // Unexpected token, bail out
+                        break;
+                    }
+                }
                 break;
             default:
                 nextToken();
@@ -3380,11 +4284,23 @@ void TsStrip::skipJsxElement() {
  * skipBalanced - skip balanced tokens like { }, [ ], ( )
  */
 void TsStrip::skipBalanced(SyntaxKind open, SyntaxKind close) {
+    skipBalancedEx(open, close);
+}
+
+/**
+ * skipBalancedEx - skip balanced tokens and return whether arrow was found inside
+ * @return true if '=>' was found at the top level (depth = 1) inside the balanced region
+ *         This is used to detect if a parenthesized type contains a function type
+ *         e.g., in `(() => T)`, the arrow is at depth 2 (inside inner parens)
+ *         while in `(T) =>` the arrow would be at depth 1 (direct child)
+ */
+bool TsStrip::skipBalancedEx(SyntaxKind open, SyntaxKind close) {
     if (token() != open) {
-        return;
+        return false;
     }
     
     int depth = 1;
+    bool hasArrowAtTopLevel = false;
     nextToken();
     
     while (!isEOF() && depth > 0) {
@@ -3392,9 +4308,14 @@ void TsStrip::skipBalanced(SyntaxKind open, SyntaxKind close) {
             depth++;
         } else if (token() == close) {
             depth--;
+        } else if (token() == SyntaxKind::EqualsGreaterThanToken && depth == 1) {
+            // Arrow found at the top level (depth 1) means this is a function type
+            // e.g., (x) => T where the arrow is directly inside the parens
+            hasArrowAtTopLevel = true;
         }
         nextToken();
     }
+    return hasArrowAtTopLevel;
 }
 
 // ========================================================================
@@ -3418,69 +4339,167 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
     //   console.log("Hello");
     // Without the semicolon, console.log would become the body of if.
     
-    // Check if the next token could cause ASI problems
-    SyntaxKind nextTok = token();
-    
-    // ASI hazard tokens for expressions: tokens that could change semantics
-    // For as/satisfies, only certain tokens are problematic
     bool needsSemicolon = false;
     
-    if (!isStatement) {
-        // Expression-level erasure (as/satisfies)
-        // Only insert semicolon for truly hazardous tokens
-        switch (nextTok) {
-            case SyntaxKind::OpenParenToken:    // Could be function call
-            case SyntaxKind::OpenBracketToken:  // Could be array subscript
-            case SyntaxKind::NoSubstitutionTemplateLiteral:
-            case SyntaxKind::TemplateHead:      // Could be tagged template
-                needsSemicolon = true;
+    // For statement-level: check if we're the body of a control flow statement
+    // (like if/while/for without braces)
+    // In these cases, we ALWAYS need a semicolon to provide an empty statement
+    // Example: while (false) interface X { } -> while (false) ;
+    // This check is done BEFORE hadLineBreak because control flow body needs semicolon
+    // regardless of line breaks
+    if (isStatement && start > 0) {
+        // Find the token before 'start'
+        size_t idx = 0;
+        for (size_t i = 0; i < m_tokens.size(); i++) {
+            if (m_tokens[i].pos >= start) {
+                idx = i;
                 break;
-            default:
-                // +, -, / are safe because they just continue the expression
-                needsSemicolon = false;
-                break;
+            }
+            idx = i + 1;
         }
-    } else {
-        // Statement-level erasure (type/interface declarations)
-        // More tokens are problematic here
-        switch (nextTok) {
-            case SyntaxKind::OpenParenToken:    // Could be function call
-            case SyntaxKind::OpenBracketToken:  // Could be array subscript
-            case SyntaxKind::SlashToken:        // Could be division (or regex)
-            case SyntaxKind::PlusToken:         // Could be unary +
-            case SyntaxKind::MinusToken:        // Could be unary -
-            case SyntaxKind::NoSubstitutionTemplateLiteral:
-            case SyntaxKind::TemplateHead:      // Could be tagged template
-                needsSemicolon = true;
-                break;
-            default:
-                needsSemicolon = false;
-                break;
+        
+        if (idx > 0) {
+            const Token& prevTok = m_tokens[idx - 1];
+            if (prevTok.kind == SyntaxKind::CloseParenToken) {
+                // Check if this ')' belongs to a control flow statement
+                // by looking for matching '(' and then the keyword before it
+                int parenDepth = 1;
+                size_t openParenIdx = idx - 1;
+                while (openParenIdx > 0) {
+                    openParenIdx--;
+                    if (m_tokens[openParenIdx].kind == SyntaxKind::CloseParenToken) {
+                        parenDepth++;
+                    } else if (m_tokens[openParenIdx].kind == SyntaxKind::OpenParenToken) {
+                        parenDepth--;
+                        if (parenDepth == 0) {
+                            break;
+                        }
+                    }
+                }
+                
+                if (parenDepth == 0 && openParenIdx > 0) {
+                    // Check the token before the open paren
+                    const Token& beforeParen = m_tokens[openParenIdx - 1];
+                    if (beforeParen.kind == SyntaxKind::IfKeyword ||
+                        beforeParen.kind == SyntaxKind::WhileKeyword ||
+                        beforeParen.kind == SyntaxKind::ForKeyword ||
+                        beforeParen.kind == SyntaxKind::WithKeyword) {
+                        needsSemicolon = true;
+                    }
+                }
+            }
         }
     }
     
-    // For statement-level: also check if we're after a control flow statement
-    // (like after if/while/for without braces)
-    // In these cases, we ALWAYS need a semicolon to provide an empty statement
-    if (isStatement && !needsSemicolon && start > 0) {
-        // Check if there's no explicit statement after control flow
-        // This is a simplified check - look for patterns like:
-        // if (...) type Foo = ...
-        // or:
-        // while (false)
-        //     interface X { }
-        // We detect this by checking if the previous non-whitespace char is ')'
-        int checkPos = start - 1;
-        while (checkPos >= 0 && (m_src[checkPos] == ' ' || m_src[checkPos] == '\t' || 
-                                 m_src[checkPos] == '\n' || m_src[checkPos] == '\r')) {
-            checkPos--;
+    // If not a control flow body, check hadLineBreak for regular ASI
+    if (!needsSemicolon) {
+        // Only need semicolon if next token has line break (SWC logic)
+        if (!currentToken().hadLineBreak) {
+            return;
         }
-        if (checkPos >= 0 && m_src[checkPos] == ')') {
-            needsSemicolon = true;
+        
+        // Check if the next token could cause ASI problems
+        SyntaxKind nextTok = token();
+        
+        // ASI hazard tokens for expressions: tokens that could change semantics
+        // For as/satisfies, only certain tokens are problematic
+        
+        if (!isStatement) {
+            // Expression-level erasure (as/satisfies)
+            // Only insert semicolon for truly hazardous tokens
+            switch (nextTok) {
+                case SyntaxKind::OpenParenToken:    // Could be function call
+                case SyntaxKind::OpenBracketToken:  // Could be array subscript
+                case SyntaxKind::NoSubstitutionTemplateLiteral:
+                case SyntaxKind::TemplateHead:      // Could be tagged template
+                    needsSemicolon = true;
+                    break;
+                default:
+                    // +, -, / are safe because they just continue the expression
+                    needsSemicolon = false;
+                    break;
+            }
+        } else {
+            // Statement-level erasure (type/interface declarations)
+            // More tokens are problematic here
+            switch (nextTok) {
+                case SyntaxKind::OpenParenToken:    // Could be function call
+                case SyntaxKind::OpenBracketToken:  // Could be array subscript
+                case SyntaxKind::SlashToken:        // Could be division (or regex)
+                case SyntaxKind::PlusToken:         // Could be unary +
+                case SyntaxKind::MinusToken:        // Could be unary -
+                case SyntaxKind::NoSubstitutionTemplateLiteral:
+                case SyntaxKind::TemplateHead:      // Could be tagged template
+                    needsSemicolon = true;
+                    break;
+                default:
+                    needsSemicolon = false;
+                    break;
+            }
         }
     }
     
     if (needsSemicolon && start < (int)m_length) {
+        // SWC logic: check the token before 'start'
+        // 1. If there's no token before (first statement), don't insert semicolon
+        // 2. If the token before is a semicolon, overwrite it with ';' (to preserve it after replacement)
+        // 3. Otherwise, insert semicolon at start
+        
+        // Find the token that is at or starts before 'start'
+        size_t idx = 0;
+        for (size_t i = 0; i < m_tokens.size(); i++) {
+            if (m_tokens[i].pos >= start) {
+                idx = i;
+                break;
+            }
+            idx = i + 1;
+        }
+        
+        // If this is the first token (no token before), skip
+        if (idx == 0) {
+            return;
+        }
+        
+        // Check if the token before is a semicolon
+        // If so, we need to overwrite it with ';' to preserve it after replacement
+        // (because the semicolon might be within the replaced range)
+        // HOWEVER, if the semicolon is at the END of the erased range (the statement's own semicolon),
+        // and there's NO code before the erased range, we should NOT preserve it
+        // because it would leave a dangling semicolon at the start of the file.
+        if (m_tokens[idx - 1].kind == SyntaxKind::SemicolonToken) {
+            int semicolonPos = m_tokens[idx - 1].pos;
+            // Only preserve the semicolon if it's NOT the trailing semicolon of an erased statement
+            // at the start of the file or after other erased statements
+            if (semicolonPos >= start && semicolonPos < end) {
+                // Semicolon is within erased range
+                // Check if there's any actual code BEFORE the erased range
+                bool hasCodeBefore = false;
+                for (size_t i = 0; i < idx - 1; i++) {
+                    int tokPos = m_tokens[i].pos;
+                    int tokEnd = (i + 1 < m_tokens.size()) ? m_tokens[i + 1].pos : m_length;
+                    // Only consider tokens that end BEFORE the erased range starts
+                    if (tokEnd <= start) {
+                        // Check if this token is actual code (not comment/whitespace)
+                        SyntaxKind k = m_tokens[i].kind;
+                        if (k != SyntaxKind::SingleLineCommentTrivia &&
+                            k != SyntaxKind::MultiLineCommentTrivia) {
+                            hasCodeBefore = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasCodeBefore) {
+                    addOverwrite(semicolonPos, ';');
+                }
+                // If no code before, don't preserve the semicolon
+                return;
+            } else {
+                // Semicolon is outside erased range, always preserve
+                addOverwrite(semicolonPos, ';');
+                return;
+            }
+        }
+        
         addOverwrite(start, ';');
     }
 }

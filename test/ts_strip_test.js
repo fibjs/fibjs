@@ -385,6 +385,14 @@ describe('TypeScript Type Erasure Tests', () => {
             assert.strictEqual(strip('class Dog implements Animal { speak() {} }'), 'class Dog                   { speak() {} }');
         });
 
+        it('should strip implements clause with generic type parameters', () => {
+            assert.strictEqual(strip('class testClass8 implements IFoo<{ x: V }> { }'), 'class testClass8                           { }');
+        });
+
+        it('should strip implements clause with multiple interfaces', () => {
+            assert.strictEqual(strip('class Test implements Foo, Bar<T> {}'), 'class Test                        {}');
+        });
+
         it('should strip constructor overload signature without body', () => {
             const input = `class A {
     constructor(x: string);
@@ -394,6 +402,16 @@ describe('TypeScript Type Erasure Tests', () => {
             // No constructor signature should remain.
             assert.ok(!/constructor\([^)]*\)\s*;/.test(out), out);
             assert.doesNotThrow(() => new Function(out), out);
+        });
+
+        it('should strip class property type with decorated export class', () => {
+            const input = `@deco
+export class ClassA {
+    array: SomeClass[];
+}`;
+            const out = strip(input);
+            assert.ok(!out.includes('SomeClass'), 'should not contain SomeClass type');
+            assert.ok(out.includes('array'), 'should contain property name');
         });
 
     });
@@ -440,6 +458,14 @@ describe('TypeScript Type Erasure Tests', () => {
             assert.strictEqual(strip(input), expected);
         });
 
+        it('should preserve export as namespace (UMD declaration)', () => {
+            // export as namespace X is a UMD global namespace declaration
+            // It's a runtime declaration, not type-only, so preserve it
+            const input = 'export as namespace MyLib;';
+            const expected = 'export as namespace MyLib;';
+            assert.strictEqual(strip(input), expected);
+        });
+
         // Both fibjs and amaro completely remove type-only imports including the identifier
         it('should handle inline type import', () => {
             assert.strictEqual(strip('import { type User, getData } from "./module";'), 'import {            getData } from "./module";');
@@ -460,6 +486,218 @@ describe('TypeScript Type Erasure Tests', () => {
             assert.doesNotThrow(() => new Function(out), out);
         });
 
+        it('should remove import type with dotted access', () => {
+            // import("module").Foo.Bar should be fully stripped
+            const input = 'let x: import("mocha").reporters.XUnit | undefined;';
+            const expected = 'let x                                             ;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve JSX-style const assertion <const>', () => {
+            // <const> is a const assertion that should be preserved, not a type assertion to erase
+            const input = 'let q1 = <const> 10;';
+            const expected = 'let q1 = <const> 10;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve various forms of const assertions', () => {
+            const input = `let q1 = <const> 10;
+let q2 = <const> 'abc';
+let q3 = <const> true;
+let q4 = <const> [1, 2, 3];`;
+            const out = strip(input);
+            assert.ok(out.includes('<const>'), 'Should preserve <const> assertions');
+            // Each line should still have <const>
+            const lines = out.split('\n');
+            assert.strictEqual(lines.length, 4);
+            lines.forEach(line => {
+                assert.ok(line.includes('<const>'), `Line should contain <const>: ${line}`);
+            });
+        });
+
+        it('should remove type assertion but keep const assertion', () => {
+            const input = `let v1 = <string>'abc';
+let v2 = <const> 'abc';`;
+            const out = strip(input);
+            assert.ok(!out.includes('<string>'), 'Should remove <string> type assertion');
+            assert.ok(out.includes('<const>'), 'Should preserve <const> assertion');
+        });
+
+        it('should remove import type with deeply nested dotted access', () => {
+            const input = 'let x: import("foo").a.b.c.d;';
+            const expected = 'let x                       ;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove decorator and this parameter from function', () => {
+            // Decorator on this parameter should be removed along with the this parameter
+            const input = 'function direct(@dec this: C) { return this.n; }';
+            const expected = 'function direct(            ) { return this.n; }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove this parameter with type from function', () => {
+            const input = 'function foo(this: C, x: number) { return x; }';
+            const expected = 'function foo(         x        ) { return x; }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve parameter decorators', () => {
+            // Parameter decorators are preserved (matches amaro behavior)
+            const input = 'function foo(@dec x: number) { return x; }';
+            const out = strip(input);
+            assert.ok(out.includes('@dec'), 'Should preserve parameter decorator');
+            assert.ok(!out.includes(': number'), 'Should remove type annotation');
+        });
+
+        it('should handle static as property name', () => {
+            // Second 'static' is a property name, not a modifier
+            const input = 'class C { static static m() {} }';
+            const expected = 'class C { static static m() {} }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle static static with type annotation', () => {
+            const input = 'class C { static static [x: string]: string; }';
+            const out = strip(input);
+            assert.ok(out.includes('static static'), 'Should preserve static static');
+            assert.ok(!out.includes('[x: string]'), 'Should remove type annotation');
+        });
+
+        it('should remove decorator from this parameter in class method', () => {
+            const input = 'class C { method(@dec this: C) {} }';
+            const expected = 'class C { method(            ) {} }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove decorator from this parameter with other parameters', () => {
+            // When 'this' is not the first parameter, it's treated as a regular identifier
+            const input = 'class C { method(@dec allowed: C, @dec this: C) {} }';
+            const out = strip(input);
+            assert.ok(out.includes('@dec allowed'), 'Should preserve decorator on regular param');
+            assert.ok(out.includes('@dec this'), 'Should preserve this as regular param name in non-first position');
+            assert.ok(!out.includes(': C'), 'Should remove type annotations');
+        });
+
+        it('should handle static override static', () => {
+            const input = 'class C { static override static }';
+            const out = strip(input);
+            assert.ok(out.includes('static'), 'Should preserve static keyword');
+            assert.ok(!out.includes('override'), 'Should remove override modifier');
+        });
+
+        it('should remove abstract on same line', () => {
+            const input = 'abstract class A {}';
+            const out = strip(input);
+            assert.ok(!out.includes('abstract'), 'Should remove abstract modifier');
+            assert.ok(out.includes('class A'), 'Should keep class');
+        });
+
+        it('should preserve abstract with line break (ASI)', () => {
+            const input = 'abstract\nclass B {}';
+            const out = strip(input);
+            assert.ok(out.includes('abstract'), 'Should preserve abstract as identifier due to ASI');
+            assert.ok(out.includes('class B'), 'Should keep class');
+        });
+
+        it('should handle type alias with double less-than', () => {
+            // ReturnType<<T> where << is tokenized as LessThanLessThanToken
+            const input = 'type Bar = ReturnType<<T>(x: T) => number>;';
+            const out = strip(input);
+            assert.ok(!out.includes('type'), 'Should remove type alias');
+            assert.ok(!out.includes('ReturnType'), 'Should remove everything');
+            assert.ok(!out.includes('<<T>'), 'Should not leave << behind');
+        });
+
+        it('should handle call expression with double less-than type args', () => {
+            // foo<<T>(x: T) => number>() where << is tokenized as LessThanLessThanToken
+            const input = 'function foo<T>(_x: T) {}\nconst b = foo<<T>(x: T) => number>(() => 1);';
+            const out = strip(input);
+            assert.ok(out.includes('function foo'), 'Should keep function');
+            assert.ok(out.includes('const b = foo'), 'Should keep const');
+            assert.ok(!out.includes('<T>'), 'Should remove all type arguments');
+            assert.ok(!out.includes('<<T>'), 'Should remove double less-than type arguments');
+            assert.ok(out.includes('_x'), 'Should keep parameter name');
+            assert.ok(out.includes('() => 1'), 'Should keep callback');
+        });
+
+        it('should remove type annotations in parameter decorator arguments', () => {
+            // Arrow function with type annotation inside parameter decorator
+            const input = 'class C { m(@dec((x: T) => x) p) {} }';
+            const out = strip(input);
+            assert.ok(out.includes('class C'), 'Should keep class');
+            assert.ok(out.includes('@dec'), 'Should keep decorator');
+            assert.ok(!out.includes(': T'), 'Should remove type annotation');
+            assert.ok(out.includes('(x   ) => x'), 'Should keep arrow function with type removed');
+        });
+
+        it('should remove instantiation expression before optional chain', () => {
+            // a<b>?.() where <b> is an instantiation expression
+            const input = 'a<b>?.();';
+            const out = strip(input);
+            assert.ok(!out.includes('<b>'), 'Should remove type arguments');
+            assert.ok(out.includes('a'), 'Should keep identifier');
+            assert.ok(out.includes('?.()'), 'Should keep optional chain call');
+        });
+
+        it('should remove interface with complex extends clause', () => {
+            // interface B extends A<{}, { x: {} }> {}
+            const input = 'interface B extends A<{}, { x: {} }> {}';
+            const out = strip(input);
+            assert.ok(!out.includes('interface'), 'Should remove interface');
+            assert.ok(!out.includes('extends'), 'Should remove extends');
+            assert.ok(!out.includes('{'), 'Should remove everything');
+        });
+
+        it('should handle duplicate modifier keywords as property names', () => {
+            // protected protected: any - first is modifier, second is property name
+            const input = 'class A { protected protected: any; }';
+            const out = strip(input);
+            assert.ok(out.includes('protected'), 'Should keep second protected as property name');
+            assert.ok(!out.includes('any'), 'Should remove type annotation');
+            const protectedCount = (out.match(/protected/g) || []).length;
+            assert.strictEqual(protectedCount, 1, 'Should have exactly one protected (as property name)');
+        });
+
+        it('should remove export type with assert clause', () => {
+            // export type {} from './0' assert { type: "json" }
+            const input = 'export type {} from "./0" assert { type: "json" }';
+            const out = strip(input);
+            assert.ok(!out.includes('export'), 'Should remove export');
+            assert.ok(!out.includes('assert'), 'Should remove assert clause');
+            assert.ok(!out.includes('type'), 'Should remove type keyword');
+        });
+
+        it('should remove import type with assert clause', () => {
+            // import type { I } from './0' assert { type: "json" }
+            const input = 'import type { I } from "./0" assert { type: "json" }';
+            const out = strip(input);
+            assert.ok(!out.includes('import'), 'Should remove import');
+            assert.ok(!out.includes('assert'), 'Should remove assert clause');
+            assert.ok(!out.includes('type'), 'Should remove type keyword');
+        });
+
+        it('should remove abstract modifier in type', () => {
+            // type Foo = abstract new(...args: any) => any
+            const input = 'type Foo = abstract new(...args: any) => any;';
+            const out = strip(input);
+            assert.ok(!out.includes('abstract'), 'Should remove abstract modifier');
+            assert.ok(!out.includes('new'), 'Should remove constructor signature');
+            assert.ok(!out.includes('Foo'), 'Should remove type alias');
+        });
+
+        it('should remove typeof this.member type', () => {
+            const input = 'class Foo { foo: number; bar: typeof this.foo }';
+            const expected = 'class Foo { foo        ; bar                  }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove typeof with nested member access', () => {
+            const input = 'let x: typeof this.foo.bar.baz;';
+            const expected = 'let x                         ;';
+            assert.strictEqual(strip(input), expected);
+        });
+
     });
 
     describe('Declare and Ambient', () => {
@@ -474,6 +712,69 @@ describe('TypeScript Type Erasure Tests', () => {
 
         it('should remove declare module', () => {
             assert.strictEqual(strip('declare module "lodash" { export function get(obj: any, path: string): any; }'), '                                                                             ');
+        });
+
+        it('should remove declare module without body', () => {
+            const input = 'declare module "foo";\n\nexport default Array;';
+            const expected = '                     \n\nexport default Array;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove declare module without body at file start', () => {
+            const input = 'declare module "path";\nimport path from "path";';
+            const expected = '                      \nimport path from "path";';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove declare namespace with dotted name', () => {
+            const input = 'declare namespace Foo.Bar { export var foo; };\nFoo.Bar.foo = 5;';
+            const expected = '                                             ;\nFoo.Bar.foo = 5;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove declare namespace with deeply nested dotted name', () => {
+            const input = 'declare namespace A.B.C.D { }';
+            const expected = '                             ';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve declare as identifier', () => {
+            // 'declare' can be a variable name
+            const input = 'var declare; declare instanceof C;';
+            const expected = 'var declare; declare instanceof C;';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove declare class field with computed property', () => {
+            const input = `export class IterableWeakMap {
+    declare readonly [Symbol.toStringTag]: "IterableWeakMap";
+
+    #weakMap = new WeakMap();
+}`;
+            const expected = `export class IterableWeakMap {
+                                                             
+
+    #weakMap = new WeakMap();
+}`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove declare field without extra semicolon', () => {
+            const input = 'class A { declare foo: string; bar = 1; }';
+            const expected = 'class A {                      bar = 1; }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should remove abstract method without extra semicolon', () => {
+            const input = 'abstract class A { abstract foo(): void; bar() {} }';
+            const expected = '         class A {                       bar() {} }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve private method call in class field initializer', () => {
+            const input = 'class C { static s = C.#method(); static #method() { return 42; } }';
+            const expected = 'class C { static s = C.#method(); static #method() { return 42; } }';
+            assert.strictEqual(strip(input), expected);
         });
 
     });
@@ -584,6 +885,25 @@ setup(cfg);
             assert.strictEqual(strip('const obj = { method(this: MyClass, x: number) { return x; } };'), 'const obj = { method(               x        ) { return x; } };');
         });
 
+        it('should strip this parameter with optional type annotation', () => {
+            assert.strictEqual(strip('function foo(this?: MyClass) {}'), 'function foo(              ) {}');
+        });
+
+        it('should erase this parameter even without type annotation', () => {
+            // TypeScript this parameter as first parameter should always be erased
+            // because JavaScript does not allow 'this' as a parameter name
+            const input = '({ method(this) {} })';
+            const output = strip(input);
+            // 'this' should be erased
+            assert.strictEqual(output, '({ method(    ) {} })');
+        });
+
+        it('should erase this parameter with following parameters', () => {
+            const input = 'function f(this, a, b) {}';
+            const output = strip(input);
+            assert.strictEqual(output, 'function f(      a, b) {}');
+        });
+
     });
 
     describe('Instantiation Expression', () => {
@@ -595,6 +915,14 @@ setup(cfg);
 
         it('should strip instantiation expression with semicolon', () => {
             assert.strictEqual(strip('const fn = genericFn<string, number>;'), 'const fn = genericFn                ;');
+        });
+
+        it('should strip instantiation expression followed by instanceof', () => {
+            assert.strictEqual(strip('Box<number> instanceof Object;'), 'Box         instanceof Object;');
+        });
+
+        it('should strip instantiation expression followed by in', () => {
+            assert.strictEqual(strip('x = f<number> in obj;'), 'x = f         in obj;');
         });
 
     });
@@ -790,6 +1118,24 @@ function f(x: string) { return x; }`;
             'function foo(id/** Why? */         ) {}'   // amaro: comments preserved
         );
 
+        it('should strip class type parameters when comment follows <', () => {
+            const input = 'class C</**doc*/ T> { }';
+            const expected = 'class C             { }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should strip method type parameters when comment follows <', () => {
+            const input = 'class C { method</**doc*/ U extends T>(a: U) { } }';
+            const expected = 'class C { method                      (a   ) { } }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should strip function type parameters when comment follows <', () => {
+            const input = 'function compare</**type*/T>(a: T, b: T) { return a === b; }';
+            const expected = 'function compare            (a   , b   ) { return a === b; }';
+            assert.strictEqual(strip(input), expected);
+        });
+
     });
 
     describe('Unicode Identifiers in Types', () => {
@@ -849,6 +1195,119 @@ console.log("Done");`;
             assert.strictEqual(strip(input), expected);
         });
 
+        it('should not insert semicolon when next line has no line break', () => {
+            // Same line - no ASI needed
+            const input = `const x = 1 as any; (2)`;
+            const expected = `const x = 1       ; (2)`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon when previous token is already semicolon', () => {
+            const input = `f();
+declare const x: number;`;
+            const expected = `f();
+                        `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle as expression followed by bracket', () => {
+            const input = `const arr = foo as any
+[0]`;
+            const expected = `const arr = foo ;     
+[0]`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle as expression followed by slash', () => {
+            // Slash could be regex start - no semicolon needed for expression level
+            const input = `const x = 1 as any
+/regex/`;
+            const expected = `const x = 1       
+/regex/`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle as expression followed by plus', () => {
+            // Plus is safe - continues the expression
+            const input = `const x = 1 as number
++1`;
+            const expected = `const x = 1          
++1`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle as expression followed by minus', () => {
+            // Minus is safe - continues the expression
+            const input = `const x = 1 as number
+-1`;
+            const expected = `const x = 1          
+-1`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+    });
+
+    describe('Control Flow Statement Body ASI', () => {
+        // When a control flow statement body is a TypeScript declaration, insert semicolon
+
+        it('should insert semicolon for while with interface body', () => {
+            const input = `while (false) interface X {}`;
+            const expected = `while (false) ;             `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for if with type body', () => {
+            const input = `if (false) type T = number;`;
+            const expected = `if (false) ;               `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for while with type body', () => {
+            const input = `while (false) type T = number;`;
+            const expected = `while (false) ;               `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for for with interface body', () => {
+            const input = `for (;;) interface X {}`;
+            const expected = `for (;;) ;             `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for with with type body', () => {
+            const input = `with (obj) type T = number;`;
+            const expected = `with (obj) ;               `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon for function call before declare', () => {
+            // Function call f() should not trigger control flow ASI
+            const input = `f()
+declare const x: number;`;
+            const expected = `f()
+                        `;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should preserve semicolon from previous declare when followed by array', () => {
+            // When consecutive declares are removed and followed by [, preserve the ; from first declare
+            const input = `foo();
+declare const props: any[];
+declare const stat: any;
+[].push(1);`;
+            const expected = `foo();
+                          ;
+                        
+[].push(1);`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon for normal while loop', () => {
+            const input = `while (true) { break; }`;
+            const expected = `while (true) { break; }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
     });
 
     describe('Class Computed Properties with Modifiers', () => {
@@ -863,6 +1322,26 @@ console.log("Done");`;
     foo = 1
     ;       ["bar"] = 2;
 }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for public getter with computed property', () => {
+            // public get [Symbol.toStringTag]() -> ; get [Symbol.toStringTag]()
+            const input = 'class A { public get [Symbol.toStringTag]() { return "A"; } }';
+            const expected = 'class A { ;      get [Symbol.toStringTag]() { return "A"; } }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon for public setter with computed property', () => {
+            const input = 'class A { public set [key](v) { } }';
+            const expected = 'class A { ;      set [key](v) { } }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon for static getter with computed property', () => {
+            // static is JS valid, no semicolon needed
+            const input = 'class A { public static get [key]() { return 1; } }';
+            const expected = 'class A {        static get [key]() { return 1; } }';
             assert.strictEqual(strip(input), expected);
         });
 
@@ -881,7 +1360,7 @@ console.log("Done");`;
     });
 
     describe('Static Keyword Context', () => {
-        // Semicolon is needed after property named "static" to prevent ASI issues
+        // Semicolon is needed after property named "static/get/set" to prevent ASI issues
 
         it('should handle static as property name', () => {
             const input = `class foo {
@@ -892,6 +1371,38 @@ console.log("Done");`;
     static;    
     foo() { }
 }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle get as property name', () => {
+            const input = `class A { get: any }`;
+            const expected = `class A { get;     }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should handle set as property name', () => {
+            const input = `class A { set: any }`;
+            const expected = `class A { set;     }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon for regular property names', () => {
+            const input = `class A { bar: T\n}`;
+            const expected = `class A { bar   \n}`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should insert semicolon at type position even when property already has one', () => {
+            // When property name is static/get/set, semicolon is inserted at type position
+            // Original semicolon is preserved, resulting in two semicolons
+            const input = `class A { static: any; }`;
+            const expected = `class A { static;    ; }`;
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should not insert semicolon when property has initializer', () => {
+            const input = `class A { static: any = 1 }`;
+            const expected = `class A { static      = 1 }`;
             assert.strictEqual(strip(input), expected);
         });
 
@@ -974,6 +1485,19 @@ console.log("Done");`;
 
         it('should strip index signature in class', () => {
             assert.strictEqual(strip('class Test { [key: string]: any; }'), 'class Test {                     }');
+        });
+
+        it('should strip readonly index signature in class', () => {
+            // readonly [x: string]: Object should be entirely removed without extra semicolon
+            const input = 'class C { readonly [x: string]: Object; }';
+            const expected = 'class C {                               }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should strip index signature with multiple modifiers', () => {
+            const input = 'class C { public readonly [x: string]: any; }';
+            const expected = 'class C {                                   }';
+            assert.strictEqual(strip(input), expected);
         });
 
     });
@@ -1086,6 +1610,24 @@ console.log("Done");`;
         it('should handle decorators (preserved)', () => {
             const input = '@decorator class Foo { @prop value: number = 0; }';
             const expected = '@decorator class Foo { @prop value         = 0; }';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should strip type assertions in decorator arguments', () => {
+            const input = '@y(1 as T, () => C) class C<T> {}';
+            const expected = '@y(1     , () => C) class C    {}';
+            assert.strictEqual(strip(input), expected);
+        });
+
+        it('should strip type assertions in method decorator arguments', () => {
+            const input = `class C {
+    @y(null as T)
+    method() {}
+}`;
+            const expected = `class C {
+    @y(null     )
+    method() {}
+}`;
             assert.strictEqual(strip(input), expected);
         });
 
@@ -1852,6 +2394,126 @@ console.log("Done");`;
 
         });
 
+        describe('Type as Identifier in Import/Export', () => {
+
+            it('should preserve type as identifier in export', () => {
+                // In JS, 'type' can be a variable name
+                const input = 'export { pool, exec_pool, type };';
+                const expected = 'export { pool, exec_pool, type };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve type as identifier in import', () => {
+                const input = 'import { exec_pool, type } from "./db.js";';
+                const expected = 'import { exec_pool, type } from "./db.js";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve type with as clause in export', () => {
+                const input = 'export { type as myType };';
+                const expected = 'export { type as myType };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve type with as clause in import', () => {
+                const input = 'import { type as myType } from "./mod.js";';
+                const expected = 'import { type as myType } from "./mod.js";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip TypeScript type modifier in export', () => {
+                // TypeScript: export { type X } means type-only export
+                const input = 'export { type User, getData };';
+                const expected = 'export {            getData };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip TypeScript type modifier in import', () => {
+                const input = 'import { type User, getData } from "./mod";';
+                const expected = 'import {            getData } from "./mod";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle mixed type identifiers and type modifiers', () => {
+                // 'type' alone is identifier, 'type X' is modifier
+                const input = 'export { type, type User };';
+                const expected = 'export { type,           };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve type as default import name', () => {
+                // import type from './type.js' - 'type' is the default import name
+                const input = "import type from './type.js';";
+                const expected = "import type from './type.js';";
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve type as default import with named imports', () => {
+                // import type, { foo } from './mod.js'
+                const input = "import type, { foo } from './mod.js';";
+                const expected = "import type, { foo } from './mod.js';";
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip TypeScript import type (not default import)', () => {
+                // import type X from '...' - TS type import
+                const input = "import type X from './types';";
+                const expected = "                             ";
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Shebang Preservation', () => {
+
+            it('should preserve shebang at start of file', () => {
+                const input = "#!/usr/bin/env node\nconsole.log(1);";
+                const expected = "#!/usr/bin/env node\nconsole.log(1);";
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve shebang with TypeScript code', () => {
+                const input = "#!/usr/bin/env ts-node\nconst x: number = 1;";
+                const expected = "#!/usr/bin/env ts-node\nconst x         = 1;";
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Contextual Keywords as Parameter Names', () => {
+
+            it('should preserve override as parameter name', () => {
+                const input = 'function simple(node, visitors, baseVisitor, state, override) {}';
+                const expected = 'function simple(node, visitors, baseVisitor, state, override) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve readonly as parameter name', () => {
+                const input = 'function test(readonly) { return readonly; }';
+                const expected = 'function test(readonly) { return readonly; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve public as parameter name', () => {
+                const input = 'const fn = (public) => public + 1;';
+                const expected = 'const fn = (public) => public + 1;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip public as constructor parameter modifier', () => {
+                const input = 'class A { constructor(public name: string) {} }';
+                const expected = 'class A { constructor(       name        ) {} }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip override as constructor parameter modifier', () => {
+                const input = 'class A { constructor(override name: string) {} }';
+                const expected = 'class A { constructor(         name        ) {} }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
         describe('Export Interface and Type Complete Erasure', () => {
 
             it('should completely erase export interface', () => {
@@ -2073,6 +2735,19 @@ console.log("Done");`;
                 assert.strictEqual(strip(input), expected);
             });
 
+            it('should strip literal type arguments in function call', () => {
+                // Type arguments can be literal types like numbers
+                const input = 'f11<1>();';
+                const expected = 'f11   ();';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip complex literal type arguments', () => {
+                const input = 'f<1, 2, 3, 4>();';
+                const expected = 'f            ();';
+                assert.strictEqual(strip(input), expected);
+            });
+
         });
 
         describe('Non-null Assertion Position', () => {
@@ -2272,6 +2947,157 @@ console.log("Done");`;
                 assert.strictEqual(strip(input), expected);
             });
 
+            // Tests for ternary operator vs arrow function return type ambiguity
+            // Key insight: `cond ? (a) : v => v` - the `:` is ternary separator, NOT return type
+            // But `cond ? (a): T => a : b` - the first `:` is return type, second is ternary separator
+
+            it('should preserve ternary with arrow in false branch (space before colon)', () => {
+                // `cond ? (a) : v => v` - `:` is ternary separator, `v => v` is false branch
+                const input = 'cond ? (a) : v => v';
+                const expected = 'cond ? (a) : v => v';
+                assert.strictEqual(strip(input), expected);
+
+            it('should strip arrow return type inside ternary true branch when nested in call', () => {
+                const input = 'const r = cond ? foo((x: any): x is number => x > 0) : 0;';
+                const expected = 'const r = cond ? foo((x     )              => x > 0) : 0;';
+                assert.strictEqual(strip(input), expected);
+            });
+            });
+
+            it('should preserve ternary with arrow in false branch (no space before colon)', () => {
+                // `cond ? (a): v => v` - same as above, just no space
+                const input = 'cond ? (a): v => v';
+                const expected = 'cond ? (a): v => v';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip return type in standalone arrow function', () => {
+                // `(a): v => a` - this is arrow function with return type, should strip `: v`
+                const input = '(a): v => a';
+                const expected = '(a)    => a';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve simple ternary without arrow', () => {
+                const input = 'x ? (y) : z';
+                const expected = 'x ? (y) : z';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve complex ternary with arrow in false branch', () => {
+                // `x ? (a, b) : (c, d) => c + d` - `:` is ternary, `(c, d) => c + d` is false branch
+                const input = 'x ? (a, b) : (c, d) => c + d';
+                const expected = 'x ? (a, b) : (c, d) => c + d';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip return type in arrow when followed by ternary false branch', () => {
+                // `foo ? (bar): baz => qux : other` - `: baz` is return type, `: other` is ternary false
+                const input = 'foo ? (bar): baz => qux : other';
+                const expected = 'foo ? (bar)      => qux : other';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip return type in nested parens arrow when followed by ternary false branch', () => {
+                // `foo ? ((bar): baz => qux) : other` - inner `(bar): baz => qux` is arrow function
+                const input = 'foo ? ((bar): baz => qux) : other';
+                const expected = 'foo ? ((bar)      => qux) : other';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip return type in arrow with explicit type annotation', () => {
+                // `foo ? (a): T => a : b` - `: T` is return type, `: b` is ternary false
+                const input = 'foo ? (a): T => a : b';
+                const expected = 'foo ? (a)    => a : b';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle deeply nested parentheses in ternary', () => {
+                const input = 'foo ? (((bar): baz => qux)) : other';
+                const expected = 'foo ? (((bar)      => qux)) : other';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle nested ternary expressions', () => {
+                const input = 'a ? b ? c : d : e';
+                const expected = 'a ? b ? c : d : e';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle nested ternary in false branch', () => {
+                const input = 'a ? b : c ? d : e';
+                const expected = 'a ? b : c ? d : e';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle nested ternary with parentheses', () => {
+                const input = 'a ? (b ? c : d) : e';
+                const expected = 'a ? (b ? c : d) : e';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip return type in nested ternary arrow', () => {
+                // Inner ternary `b ? (c): T => c : d` has arrow with return type
+                const input = 'a ? b ? (c): T => c : d : e';
+                const expected = 'a ? b ? (c)    => c : d : e';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle arrow returning ternary with return type', () => {
+                // `(a): T => a ? b : c` is arrow function returning a ternary
+                const input = 'x ? (a): T => a ? b : c : d';
+                const expected = 'x ? (a)    => a ? b : c : d';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle arrow returning parenthesized ternary', () => {
+                const input = 'x ? (a): T => (a ? b : c) : d';
+                const expected = 'x ? (a)    => (a ? b : c) : d';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle multi-param arrow in ternary', () => {
+                const input = 'cond ? (a, b): T => a + b : fallback';
+                const expected = 'cond ? (a, b)    => a + b : fallback';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle typed multi-param arrow in ternary', () => {
+                const input = 'cond ? (a: string, b: number): T => a : fallback';
+                const expected = 'cond ? (a        , b        )    => a : fallback';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve comma expression in ternary', () => {
+                const input = 'x ? (a = 1, b) : c';
+                const expected = 'x ? (a = 1, b) : c';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle arrow with comma expression in false branch', () => {
+                const input = 'x ? (a, b): T => a : (c, d)';
+                const expected = 'x ? (a, b)    => a : (c, d)';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle generic arrow function in ternary', () => {
+                const input = 'x ? <T>(a: T): T => a : fallback';
+                const expected = 'x ?    (a   )    => a : fallback';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle method call condition with typed arrow', () => {
+                const input = 'obj.method() ? (x): T => x : y';
+                const expected = 'obj.method() ? (x)    => x : y';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle array access condition with typed arrow', () => {
+                const input = 'arr[0] ? (x): number => x : 0';
+                const expected = 'arr[0] ? (x)         => x : 0';
+                assert.strictEqual(strip(input), expected);
+            });
+
         });
 
         describe('Module Keyword as Variable Name', () => {
@@ -2368,7 +3194,10 @@ console.log("Done");`;
 
             it('should handle unrecognized token in class body', () => {
                 const input = 'class A {\n  x: number\n  ~~\n}';
-                const expected = 'class A {\n  x;       \n  ~~\n}';
+                // Note: For non-modifier property names (like 'x'), no semicolon is inserted
+                // after type erasure, which matches amaro's behavior for valid syntax.
+                // amaro would throw an error for this invalid syntax.
+                const expected = 'class A {\n  x        \n  ~~\n}';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -2418,6 +3247,347 @@ console.log("Done");`;
 
         });
 
+        describe('Keyword as Type/Interface Name', () => {
+            // In TypeScript, reserved keywords can be used as type alias or interface names
+            // This tests that the type stripper correctly handles these cases
+
+            it('should strip type alias with default as name', () => {
+                const input = 'type default = string;';
+                const expected = '                      ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type alias with class as name', () => {
+                const input = 'type class = number;';
+                const expected = '                    ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type alias with function as name', () => {
+                const input = 'type function = boolean;';
+                const expected = '                        ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type alias with abstract as name', () => {
+                const input = 'type abstract = string;';
+                const expected = '                       ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip interface with default as name', () => {
+                const input = 'interface default { x: number }';
+                const expected = '                               ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip interface with class as name', () => {
+                const input = 'interface class { value: string }';
+                const expected = '                                 ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip interface with function as name', () => {
+                const input = 'interface function { call(): void }';
+                const expected = '                                   ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip interface with abstract as name', () => {
+                const input = 'interface abstract { x: number }';
+                const expected = '                                ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Constructor Type with Type Parameters', () => {
+            // Constructor types like `new <T>() => T` should be fully stripped
+
+            it('should strip constructor type with type parameters', () => {
+                const input = 'var anotherVar: new <T>() => number;';
+                const expected = 'var anotherVar                     ;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip constructor type without type parameters', () => {
+                const input = 'var x: new () => number;';
+                const expected = 'var x                  ;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip constructor type with multiple type parameters', () => {
+                const input = 'type Ctor = new <T, U extends T>() => U;';
+                const expected = '                                        ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Array Type Suffix vs Array Literal on New Line', () => {
+            // When [ is on a new line after a type, it should NOT be treated as array type suffix
+            // It should be treated as the start of a new statement (array literal)
+
+            it('should not treat array literal on new line as type suffix', () => {
+                const input = 'declare const stat: any\n[].push.apply(props);';
+                const expected = '                       \n[].push.apply(props);';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should still strip array type suffix on same line', () => {
+                const input = 'declare const arr: number[];';
+                const expected = '                            ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle declare with semicolon followed by array on new line', () => {
+                const input = 'declare const props: any[];\n[].push(1);';
+                const expected = '                           \n[].push(1);';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Object Literal Computed Property Methods', () => {
+            // Computed property methods like { [key](params) { } } should have their types stripped
+
+            it('should strip type from computed property method parameter', () => {
+                const input = 'const x = { [k](a: number) { } }';
+                const expected = 'const x = { [k](a        ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type from generator computed property method', () => {
+                const input = 'const x = { *[k](a: number) { } }';
+                const expected = 'const x = { *[k](a        ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type from async computed property method', () => {
+                const input = 'const x = { async [k](a: number) { } }';
+                const expected = 'const x = { async [k](a        ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type from async generator computed property method', () => {
+                const input = 'const x = { async *[k](a: number) { } }';
+                const expected = 'const x = { async *[k](a        ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type from Symbol.asyncIterator method', () => {
+                const input = 'const iter = { async *[Symbol.asyncIterator](_: number) { yield 0; } }';
+                const expected = 'const iter = { async *[Symbol.asyncIterator](_        ) { yield 0; } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Object Method Type Parameters', () => {
+            // Object literal method shorthand can have type parameters like { method<T>(param) { } }
+
+            it('should strip type parameters from method shorthand', () => {
+                const input = 'const x = { method<T>(param) { } }';
+                const expected = 'const x = { method   (param) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type parameters from async method', () => {
+                const input = 'const x = { async method<T>(param) { } }';
+                const expected = 'const x = { async method   (param) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type parameters from generator method', () => {
+                const input = 'const x = { *gen<T>(param) { } }';
+                const expected = 'const x = { *gen   (param) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type parameters from computed property method', () => {
+                const input = 'const x = { [key]<T>(param) { } }';
+                const expected = 'const x = { [key]   (param) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type parameters from thenable', () => {
+                const input = 'const thenable = { then<V>(onFulfilled) { } }';
+                const expected = 'const thenable = { then   (onFulfilled) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type parameters with constraints', () => {
+                const input = 'const x = { method<T extends string>(param: T) { } }';
+                const expected = 'const x = { method                  (param   ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip multiple type parameters', () => {
+                const input = 'const x = { method<T, U>(a: T, b: U) { } }';
+                const expected = 'const x = { method      (a   , b   ) { } }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Export Default Interface/Type', () => {
+            // export default interface/type should be completely erased
+
+            it('should strip export default interface entirely', () => {
+                const input = 'export default interface zzz { x: string; }';
+                const expected = '                                           ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip export default type entirely', () => {
+                const input = 'export default type Foo = string;';
+                const expected = '                                 ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Keyword as Property Name in Destructuring', () => {
+            // In JavaScript, reserved keywords can be used as property names in object destructuring
+            // e.g., `function f({ enum: x }) { return x; }` is valid JS
+            // The `enum` here is NOT an enum declaration, it's just a property name
+
+            it('should preserve enum as property name in arrow destructuring', () => {
+                const input = '({ enum: x }) => x';
+                const expected = '({ enum: x }) => x';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve enum as property name in function parameter', () => {
+                const input = 'function f({ enum: _enum, ...rest }) { return rest; }';
+                const expected = 'function f({ enum: _enum, ...rest }) { return rest; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve function as property name in destructuring', () => {
+                const input = 'function f({ function: x }) { return x; }';
+                const expected = 'function f({ function: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve class as property name in destructuring', () => {
+                const input = 'function f({ class: x }) { return x; }';
+                const expected = 'function f({ class: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve const as property name in destructuring', () => {
+                const input = 'function f({ const: x }) { return x; }';
+                const expected = 'function f({ const: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve var as property name in destructuring', () => {
+                const input = 'function f({ var: x }) { return x; }';
+                const expected = 'function f({ var: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve if as property name in destructuring', () => {
+                const input = 'function f({ if: x }) { return x; }';
+                const expected = 'function f({ if: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve return as property name in destructuring', () => {
+                const input = 'function f({ return: x }) { return x; }';
+                const expected = 'function f({ return: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve import as property name in destructuring', () => {
+                const input = 'function f({ import: x }) { return x; }';
+                const expected = 'function f({ import: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve export as property name in destructuring', () => {
+                const input = 'function f({ export: x }) { return x; }';
+                const expected = 'function f({ export: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve default as property name in destructuring', () => {
+                const input = 'function f({ default: x }) { return x; }';
+                const expected = 'function f({ default: x }) { return x; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle multiple keyword property names', () => {
+                const input = 'function f({ enum: e, function: fn, class: c }) { return [e, fn, c]; }';
+                const expected = 'function f({ enum: e, function: fn, class: c }) { return [e, fn, c]; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle keyword property with type annotation', () => {
+                const input = 'function f({ enum: e }: { enum: boolean }) { return e; }';
+                const expected = 'function f({ enum: e }                   ) { return e; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle keyword property with default value', () => {
+                const input = 'function f({ enum: e = true }) { return e; }';
+                const expected = 'function f({ enum: e = true }) { return e; }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Generic Arrow Function Edge Cases', () => {
+
+            it('should strip generic with default type parameter', () => {
+                const input = '<T = undefined>(value: T): T => value';
+                const expected = '               (value   )    => value';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip generic arrow in object literal property', () => {
+                const input = '({ test: <T>(v: T) => v })';
+                const expected = '({ test:    (v   ) => v })';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip generic with default in object literal', () => {
+                const input = '({ test: <T = undefined>(value: T): T => value })';
+                const expected = '({ test:                (value   )    => value })';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip generic arrow in nested object return', () => {
+                const input = 'const fn = () => ({ test: <T = undefined>(value: T): T => value })';
+                const expected = 'const fn = () => ({ test:                (value   )    => value })';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Instantiation Expression with Assignment', () => {
+
+            it('should strip type args when instantiation is assigned', () => {
+                const input = 'fn<number> = () => 1';
+                const expected = 'fn         = () => 1';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type args on member expression assignment', () => {
+                const input = 'obj.fn<T> = x';
+                const expected = 'obj.fn    = x';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip type args in complex assignment', () => {
+                const input = 'getValue<number> = () => 123';
+                const expected = 'getValue         = () => 123';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
         describe('Recursion Depth Limit', () => {
 
             it('should handle normal nesting depth', () => {
@@ -2431,6 +3601,458 @@ console.log("Done");`;
                 const depth = 600;
                 const input = '('.repeat(depth) + '1' + ')'.repeat(depth);
                 assert.throws(() => strip(input), /Maximum recursion depth exceeded/);
+            });
+
+        });
+
+        describe('Namespace Global', () => {
+
+            it('should strip empty namespace global', () => {
+                const input = 'namespace global { }';
+                const expected = '                    ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should throw error for non-empty namespace global', () => {
+                const input = 'namespace global { const x = 1; }';
+                assert.throws(() => strip(input), /namespace\/module with body is not supported/);
+            });
+
+            it('should strip empty namespace Foo', () => {
+                const input = 'namespace Foo { }';
+                const expected = '                 ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip empty module Bar', () => {
+                const input = 'module Bar { }';
+                const expected = '              ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip global scope augmentation', () => {
+                const input = 'global { interface Array<T> { x } }';
+                const expected = '                                   ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip empty namespace with keyword name', () => {
+                const input = 'namespace string { }';
+                const expected = ' '.repeat(input.length);
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Keyword Identifier Edge Cases', () => {
+
+            it('should strip export type with typeof default', () => {
+                const input = 'export type X = typeof default;';
+                const expected = ' '.repeat(input.length);
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should preserve class named global', () => {
+                const input = 'function b() { class global {} }';
+                assert.strictEqual(strip(input), input);
+            });
+
+        });
+
+        describe('Export Default Function Overloads', () => {
+
+            it('should strip export default function overload signatures', () => {
+                const input = 'export default function foo(value: number): number\nexport default function foo(value: string): string\nexport default function foo(value: string | number): string | number {\n    return 1\n}';
+                const expected = '                                                  \n                                                  \nexport default function foo(value                 )                  {\n    return 1\n}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip export default interface after function', () => {
+                const input = 'export default function foo() { }\nexport default interface Foo { }';
+                const expected = 'export default function foo() { }\n                                ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+        });
+
+        describe('Arrow Function with Function Type Return', () => {
+
+            it('should strip arrow function with function type as return type', () => {
+                const input = 'const fn = <T>(): (() => T) => null as any;';
+                const expected = 'const fn =    ()            => null       ;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip arrow function with complex function type return', () => {
+                const input = 'const fn = (): ((a: number) => void) => null;';
+                const expected = 'const fn = ()                        => null;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should still strip simple function types correctly', () => {
+                const input = 'type F = (x: number) => string;';
+                const expected = '                               ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip declare function with complex return type', () => {
+                const input = 'declare function fn2(): (cb: () => any) => void;';
+                const expected = '                                                ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip empty parameter function type in variable', () => {
+                const input = 'let x: () => T;';
+                const expected = 'let x         ;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle keywords as property names in type references', () => {
+                // Keywords like 'default' can be used as property names in type references
+                const input = 'declare const x: Q4.default.A;';
+                const expected = '                              ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle import type with member access and type arguments', () => {
+                // import("module").Member<...> with << token
+                const input = 'export declare const x: import("m").Modifier<<T>(x: T) => T>;';
+                const expected = '                                                             ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should remove non-null assertions in decorators', () => {
+                // Non-null assertions (!) are type-level and should be removed from decorators
+                const input1 = '{ @x! class C {} }';
+                const expected1 = '{ @x  class C {} }';
+                assert.strictEqual(strip(input1), expected1);
+                
+                const input2 = '{ @x.y! class C {} }';
+                const expected2 = '{ @x.y  class C {} }';
+                assert.strictEqual(strip(input2), expected2);
+                
+                const input3 = '{ @x!.y class C {} }';
+                const expected3 = '{ @x .y class C {} }';
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle interleaved non-null and member access in decorators', () => {
+                // Test that @x!.y followed by @g<number> works correctly
+                const input = '{ @x!.y class C {} }\n\n{ @g<number>() class C {} }';
+                const expected = '{ @x .y class C {} }\n\n{ @g        () class C {} }';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should remove type arguments in decorators', () => {
+                // Type arguments in decorators should be removed
+                const input1 = '{ @g<number>() class C {} }';
+                const expected1 = '{ @g        () class C {} }';
+                assert.strictEqual(strip(input1), expected1);
+                
+                // Also in parenthesized decorator expressions
+                const input2 = '{ @(g<number>) class C {} }';
+                const expected2 = '{ @(g        ) class C {} }';
+                assert.strictEqual(strip(input2), expected2);
+            });
+
+            it('should handle typeof import type correctly', () => {
+                // typeof import(...) should be completely erased in type positions
+                const input1 = "let x: typeof import('./a');";
+                const expected1 = "let x                      ;";
+                assert.strictEqual(strip(input1), expected1);
+                
+                // With member access
+                const input2 = "type T1 = typeof import('./input.js').myFunction;";
+                const expected2 = "                                                 ";
+                assert.strictEqual(strip(input2), expected2);
+                
+                // With type arguments (instantiation expression)
+                const input3 = "type T2 = typeof import('./input.js').myFunction<any>;";
+                const expected3 = "                                                      ";
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle import type with from as import name', () => {
+                // import type from from '...' - 'type' is modifier, first 'from' is import name
+                const input1 = "import type from from './a';";
+                const expected1 = "                            ";
+                assert.strictEqual(strip(input1), expected1);
+                
+                // import type from = require('..') - 'type' is modifier, 'from' is alias
+                const input2 = "import type from = require('./a');";
+                const expected2 = "                                  ";
+                assert.strictEqual(strip(input2), expected2);
+                
+                // import type from '...' - 'type' is default import name (not erased)
+                const input3 = "import type from './a';";
+                const expected3 = "import type from './a';";
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle import type with defer modifier', () => {
+                // import type defer * as ns from '...' - should be completely erased
+                const input1 = 'import type defer * as ns from "./a";';
+                const expected1 = '                                     ';
+                assert.strictEqual(strip(input1), expected1);
+            });
+
+            it('should handle decorated class expression in function parameter', () => {
+                // Decorated class expression as default parameter value
+                const input = 'function f(C = @dec class {}) {}';
+                const expected = 'function f(C = @dec class {}) {}';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should not treat binary operators as type arguments', () => {
+                // a < b || b > should not be parsed as generic type arguments
+                const input1 = 'if (a < b || b > (c + 1)) { }';
+                const expected1 = 'if (a < b || b > (c + 1)) { }';
+                assert.strictEqual(strip(input1), expected1);
+
+                // a < b && b > should not be parsed as generic type arguments  
+                const input2 = 'if (a < b && b > (c + 1)) { }';
+                const expected2 = 'if (a < b && b > (c + 1)) { }';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Mixed with actual generics
+                const input3 = 'const x = a < b || foo<T>();';
+                const expected3 = 'const x = a < b || foo   ();';
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle module keyword as variable with in operator', () => {
+                // 'module in {}' is valid JS expression, not TypeScript module declaration
+                const input1 = 'let module = 10;\nmodule in {}';
+                const expected1 = 'let module = 10;\nmodule in {}';
+                assert.strictEqual(strip(input1), expected1);
+
+                // 'module in' should not be confused with module declaration
+                const input2 = 'if (module in obj) { }';
+                const expected2 = 'if (module in obj) { }';
+                assert.strictEqual(strip(input2), expected2);
+
+                // 'namespace in' should also work
+                const input3 = 'let namespace = {};\nnamespace in obj';
+                const expected3 = 'let namespace = {};\nnamespace in obj';
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle >= token after type arguments in variable declaration', () => {
+                // When there's no space between > and =, the lexer produces >= token
+                // The parser must rescan >= as > followed by = to correctly parse type annotation
+                const input1 = 'var v : Foo<T>= 1;';
+                const expected1 = 'var v         = 1;';
+                assert.strictEqual(strip(input1), expected1);
+
+                // With space - normal case for comparison
+                const input2 = 'var v : Foo<T> = 1;';
+                const expected2 = 'var v          = 1;';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Multiple type parameters
+                const input3 = 'let x: Map<string, number>= new Map();';
+                const expected3 = 'let x                     = new Map();';
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should handle unicode escape sequences in property names with type annotations', () => {
+                // \\uXXXX format
+                const input1 = 'class C { \\u0078: number; }';
+                const expected1 = 'class C { \\u0078        ; }';
+                assert.strictEqual(strip(input1), expected1);
+
+                // \\u{XXXX} format (extended unicode escape)
+                const input2 = 'class C { \\u{78}: number; }';
+                const expected2 = 'class C { \\u{78}        ; }';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Mixed with regular identifier
+                const input3 = 'class C { x\\u{78}y: string; }';
+                const expected3 = 'class C { x\\u{78}y        ; }';
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should preserve regex patterns that look like comments', () => {
+                // Regex with /* */ pattern
+                const input1 = 'const ML_COMMENT = /\\/\\*[\\s\\S]*?\\*\\//;';
+                const expected1 = 'const ML_COMMENT = /\\/\\*[\\s\\S]*?\\*\\//;';
+                assert.strictEqual(strip(input1), expected1);
+
+                // Regex with // pattern
+                const input2 = 'const SL_COMMENT = /\\/\\//;';
+                const expected2 = 'const SL_COMMENT = /\\/\\//;';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Combined in object
+                const input3 = `const obj = {
+    ML_COMMENT: /\\/\\*[\\s\\S]*?\\*\\//,
+    SL_COMMENT: /\\/\\/[^\\n\\r]*/,
+};`;
+                const expected3 = `const obj = {
+    ML_COMMENT: /\\/\\*[\\s\\S]*?\\*\\//,
+    SL_COMMENT: /\\/\\/[^\\n\\r]*/,
+};`;
+                assert.strictEqual(strip(input3), expected3);
+            });
+
+            it('should preserve abstract and override as property names', () => {
+                // abstract as property name
+                const input1 = 'class C { abstract = false; }';
+                const expected1 = 'class C { abstract = false; }';
+                assert.strictEqual(strip(input1), expected1);
+
+                // override as property name with type
+                const input2 = 'class C { override: string; }';
+                const expected2 = 'class C { override        ; }';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Both as modifiers (should be removed)
+                const input3 = 'class C { override foo(): void {} abstract bar(): void; }';
+                const expected3 = 'class C {          foo()       {}                       }';
+                assert.strictEqual(strip(input3), expected3);
+
+                // Mixed usage
+                const input4 = 'class C { abstract = false; override foo() {} }';
+                const expected4 = 'class C { abstract = false;          foo() {} }';
+                assert.strictEqual(strip(input4), expected4);
+            });
+
+            it('should strip template literal types in type arguments', () => {
+                // Simple template literal type
+                const input1 = 'test<`hello`>();';
+                const expected1 = 'test         ();';
+                assert.strictEqual(strip(input1), expected1);
+
+                // Empty template literal type
+                const input2 = 'test<``>();';
+                const expected2 = 'test    ();';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Template literal type with expression
+                const input3 = 'test<`hello ${x as number} world`>();';
+                const expected3 = 'test                              ();';
+                assert.strictEqual(strip(input3), expected3);
+
+                // Nested type arguments with template literal
+                const input4 = 'expectTypeOf<z.infer<typeof empty>>().toEqualTypeOf<``>();';
+                const expected4 = 'expectTypeOf                       ().toEqualTypeOf    ();';
+                assert.strictEqual(strip(input4), expected4);
+
+                // Union type with template literals (leading |)
+                const input5 = 'test< | `${number}` | `${number}px`>();';
+                const expected5 = 'test                                ();';
+                assert.strictEqual(strip(input5), expected5);
+
+                // Intersection type (leading &)
+                const input6 = 'test< & { a: string } & { b: number }>();';
+                const expected6 = 'test                                  ();';
+                assert.strictEqual(strip(input6), expected6);
+            });
+
+            it('should strip complex nested template literal types', () => {
+                // Nested template strings
+                const input1 = 'test<`outer ${`inner ${x as number}`} end`>();';
+                const expected1 = 'test                                       ();';
+                assert.strictEqual(strip(input1), expected1);
+
+                // Multiple embedded expressions
+                const input2 = 'test<`a ${x as string} b ${y as number} c`>();';
+                const expected2 = 'test                                       ();';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Embedded object literals
+                const input3 = 'test<`value: ${obj as { a: number }}`>();';
+                const expected3 = 'test                                  ();';
+                assert.strictEqual(strip(input3), expected3);
+
+                // Embedded function calls with type arguments
+                const input4 = 'test<`result: ${fn<T>() as string}`>();';
+                const expected4 = 'test                                ();';
+                assert.strictEqual(strip(input4), expected4);
+
+                // Embedded ternary expressions
+                const input5 = 'test<`${x ? (a as string) : (b as number)}`>();';
+                const expected5 = 'test                                        ();';
+                assert.strictEqual(strip(input5), expected5);
+
+                // Embedded arrays with generics
+                const input6 = 'test<`items: ${arr as Array<string>}`>();';
+                const expected6 = 'test                                  ();';
+                assert.strictEqual(strip(input6), expected6);
+            });
+
+            it('should preserve template string values while stripping embedded types', () => {
+                // Pure template string with embedded type arguments
+                const input1 = 'console.log(`result: ${fn<T>() as string}`);';
+                const expected1 = 'console.log(`result: ${fn   ()          }`);';
+                assert.strictEqual(strip(input1), expected1);
+
+                // Multiple expressions with types
+                const input2 = 'const msg = `a: ${x as number}, b: ${y as string}`;';
+                const expected2 = 'const msg = `a: ${x          }, b: ${y          }`;';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Nested template strings with types
+                const input3 = 'const nested = `outer ${`inner ${getValue<T>()}`}`;';
+                const expected3 = 'const nested = `outer ${`inner ${getValue   ()}`}`;';
+                assert.strictEqual(strip(input3), expected3);
+
+                // Template with conditional and types
+                const input4 = 'const cond = `value: ${x ? (a as string) : (b as number)}`;';
+                const expected4 = 'const cond = `value: ${x ? (a          ) : (b          )}`;';
+                assert.strictEqual(strip(input4), expected4);
+
+                // Template with object literal types
+                const input5 = 'const obj = `data: ${o as { x: number }}`;';
+                const expected5 = 'const obj = `data: ${o                 }`;';
+                assert.strictEqual(strip(input5), expected5);
+
+                // Template with array types
+                const input6 = 'const arr = `items: ${list as Array<string>}`;';
+                const expected6 = 'const arr = `items: ${list                 }`;';
+                assert.strictEqual(strip(input6), expected6);
+
+                // Complex expression with multiple type operations
+                const input7 = 'const complex = `result: ${fn<T, U>(x as T) + (y as U)}`;';
+                const expected7 = 'const complex = `result: ${fn      (x     ) + (y     )}`;';
+                assert.strictEqual(strip(input7), expected7);
+            });
+
+            it('should handle deeply nested template strings with types', () => {
+                // Multiple template strings in one expression (no types)
+                const input1 = 'console.log(`result: ${`string1 ${exp1}` + `string2 ${exp2}`}`);';
+                const expected1 = 'console.log(`result: ${`string1 ${exp1}` + `string2 ${exp2}`}`);';
+                assert.strictEqual(strip(input1), expected1);
+
+                // Multiple templates with type annotations
+                const input2 = 'console.log(`result: ${`string1 ${exp1 as number}` + `string2 ${exp2 as string}`}`);';
+                const expected2 = 'console.log(`result: ${`string1 ${exp1          }` + `string2 ${exp2          }`}`);';
+                assert.strictEqual(strip(input2), expected2);
+
+                // Triple nesting with types
+                const input3 = 'const msg = `outer: ${`mid1: ${`inner1: ${x as number}`}` + `mid2: ${`inner2: ${y as string}`}`}`);';
+                const expected3 = 'const msg = `outer: ${`mid1: ${`inner1: ${x          }`}` + `mid2: ${`inner2: ${y          }`}`}`);';
+                assert.strictEqual(strip(input3), expected3);
+
+                // Multiple operations with templates and generic types
+                const input4 = 'const complex = `value: ${`a ${x as T}` + `b ${y as U}` + `c ${z as V}`}`;';
+                const expected4 = 'const complex = `value: ${`a ${x     }` + `b ${y     }` + `c ${z     }`}`;';
+                assert.strictEqual(strip(input4), expected4);
+
+                // Function calls with template arguments
+                const input5 = 'const fn = `result: ${foo(`arg1 ${a as number}`) + bar(`arg2 ${b as string}`)}`);';
+                const expected5 = 'const fn = `result: ${foo(`arg1 ${a          }`) + bar(`arg2 ${b          }`)}`);';
+                assert.strictEqual(strip(input5), expected5);
+
+                // Nested ternary with templates
+                const input6 = 'const tern = `outer: ${x ? `true: ${a as string}` : `false: ${b as number}`}`;';
+                const expected6 = 'const tern = `outer: ${x ? `true: ${a          }` : `false: ${b          }`}`;';
+                assert.strictEqual(strip(input6), expected6);
+
+                // Array of templates with types
+                const input7 = 'const arr = `items: ${[`first ${x as number}`, `second ${y as string}`].join(\', \')}`;';
+                const expected7 = 'const arr = `items: ${[`first ${x          }`, `second ${y          }`].join(\', \')}`;';
+                assert.strictEqual(strip(input7), expected7);
             });
 
         });
