@@ -13,6 +13,7 @@ run("./abortcontroller_test.js");
 run("./async_local_storage_test.js");
 run("./headers_test.js");
 run("./structuredClone_test.js");
+run("./webstream_test.js");
 
 run("./perf_test.js");
 run("./console_test.js");

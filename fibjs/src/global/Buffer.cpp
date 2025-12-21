@@ -231,9 +231,14 @@ v8::Local<v8::Value> Buffer::load_module()
     obj_ptr<SandBox> sbox = new SandBox(false);
 
     sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
-    sbox->require("internal/buffer", "/builtin", _buffer);
 
-    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
+    TryCatch try_catch;
+    sbox->require("internal/buffer", "/builtin", _buffer);
+    if (try_catch.HasCaught()) {
+        ReportException(try_catch, 0, false);
+        return v8::Undefined(isolate->m_isolate);
+    }
+
     v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
     v8::Local<v8::Object> js_buffer_proto = js_buffer->GetPrototype().As<v8::Object>();
 
