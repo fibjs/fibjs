@@ -1324,6 +1324,5 @@ Buffer.compare = function (buf1, buf2) {
     return buf1.byteLength - buf2.byteLength;
 };
 
-globalThis.Buffer = Buffer;
 Buffer.Buffer = Buffer;
 module.exports = Buffer;

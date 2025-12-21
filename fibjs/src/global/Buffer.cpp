@@ -239,6 +239,7 @@ v8::Local<v8::Value> Buffer::load_module()
         return v8::Undefined(isolate->m_isolate);
     }
 
+    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
     v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
     v8::Local<v8::Object> js_buffer_proto = js_buffer->GetPrototype().As<v8::Object>();
 
