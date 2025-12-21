@@ -58,6 +58,23 @@ public:
         return o;
     }
 
+    v8::Local<v8::Object> resolve_cache()
+    {
+        Isolate* isolate = holder();
+
+        v8::Local<v8::Value> v = GetPrivate("_resolve_cache");
+        v8::Local<v8::Object> o;
+
+        if (!v->IsUndefined())
+            o = v8::Local<v8::Object>::Cast(v);
+        else {
+            o = v8::Object::New(isolate->m_isolate);
+            SetPrivate("_resolve_cache", o);
+        }
+
+        return o;
+    }
+
     v8::Local<v8::Object> InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
     {
         Isolate* isolate = holder();
