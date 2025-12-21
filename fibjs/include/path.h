@@ -13,6 +13,7 @@
 #include "utf8.h"
 #include "vector"
 #include "SimpleObject.h"
+#include <string_view>
 
 namespace fibjs {
 
@@ -215,6 +216,66 @@ inline const char* split_path_win32(const char* p, int32_t len, bool share = fal
     return p1;
 }
 
+inline void _normalize_array(std::vector<std::string_view>& a, bool removeSlash)
+{
+    int32_t i;
+    static const std::string_view dot = ".";
+    static const std::string_view dotdot = "..";
+    static const std::string_view empty_sv = "";
+
+    if ((int32_t)a.size() == 1 && (a[0].empty() || a[0] == dot)) {
+        a[0] = dot;
+        return;
+    }
+
+    i = 1;
+    while (i < (int32_t)a.size() - 1)
+        if (a[i].empty())
+            a.erase(a.begin() + i);
+        else
+            i++;
+
+    i = 0;
+    while (i < (int32_t)a.size()) {
+        std::string_view n = a[i];
+
+        if (n == dot) {
+            if ((int32_t)a.size() == 1)
+                return;
+
+            if (i == 0 && (int32_t)a.size() == 2 && a[1].empty())
+                return;
+
+            if (i == 1 && (int32_t)a.size() == 2 && a[0].empty()) {
+                a[1] = empty_sv;
+                return;
+            }
+
+            a.erase(a.begin() + i);
+        } else if (n == dotdot) {
+            if (i == 1 && a[0].empty()) {
+                if ((int32_t)a.size() == 2) {
+                    a[1] = empty_sv;
+                    return;
+                }
+
+                a.erase(a.begin() + i);
+            } else if (i > 0 && !a[i - 1].empty() && a[i - 1] != dotdot) {
+                a.erase(a.begin() + i - 1, a.begin() + i + 1);
+                i--;
+            } else
+                i++;
+        } else
+            i++;
+    }
+
+    if (removeSlash && a.size() > 1) {
+        i = (int32_t)a.size();
+        if (i > 1 && a[i - 1].empty() && !a[i - 2].empty())
+            a.erase(a.begin() + i - 1);
+    }
+}
+
 inline void _normalize_array(std::vector<exlib::string>& a, bool removeSlash)
 {
     int32_t i;
@@ -272,7 +333,7 @@ inline void _normalize_array(std::vector<exlib::string>& a, bool removeSlash)
     }
 }
 
-inline void _path_array(exlib::string path, std::vector<exlib::string>& a)
+inline void _path_array(const exlib::string& path, std::vector<std::string_view>& a)
 {
     const char* p = path.c_str();
     int32_t len = (int32_t)path.length();
@@ -282,17 +343,17 @@ inline void _path_array(exlib::string path, std::vector<exlib::string>& a)
     p1 = 0;
     for (i = 0; i < len; i++)
         if (isPosixPathSlash(p[i])) {
-            a.push_back(exlib::string(p + p1, i - p1));
+            a.push_back(std::string_view(p + p1, i - p1));
             p1 = i + 1;
         }
-    a.push_back(exlib::string(p + p1, i - p1));
+    a.push_back(std::string_view(p + p1, i - p1));
 }
 
-inline result_t _normalize(exlib::string path, exlib::string& retVal, bool removeSlash = false, bool root = false)
+inline result_t _normalize(const exlib::string& path, exlib::string& retVal, bool removeSlash = false, bool root = false)
 {
     int32_t i;
 
-    std::vector<exlib::string> a;
+    std::vector<std::string_view> a;
 
     _path_array(path, a);
     _normalize_array(a, removeSlash);
@@ -302,7 +363,7 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal, bool remov
     for (i = 0; i < (int32_t)a.size(); i++) {
         if (i > 0)
             retVal.append(1, PATH_SLASH_POSIX);
-        retVal.append(a[i]);
+        retVal.append(a[i].data(), a[i].size());
     }
 
     if (root && a.size() == 1 && a[0].empty())
@@ -311,8 +372,8 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal, bool remov
     return 0;
 }
 
-inline void _path_array_win32(exlib::string path, std::vector<exlib::string>& a, char& drv_no,
-    exlib::string& domain, exlib::string& share)
+inline void _path_array_win32(const exlib::string& path, std::vector<std::string_view>& a, char& drv_no,
+    std::string_view& domain, std::string_view& share)
 {
     const char* p = path.c_str();
     int32_t len = (int32_t)path.length();
@@ -327,10 +388,10 @@ inline void _path_array_win32(exlib::string path, std::vector<exlib::string>& a,
     p1 = 0;
     for (i = 0; i < len; i++)
         if (isWin32PathSlash(p[i])) {
-            a.push_back(exlib::string(p + p1, i - p1));
+            a.push_back(std::string_view(p + p1, i - p1));
             p1 = i + 1;
         }
-    a.push_back(exlib::string(p + p1, i - p1));
+    a.push_back(std::string_view(p + p1, i - p1));
 
     if (drv_no == 0 && (int32_t)a.size() > 2 && a[0].empty() && a[1].empty()) {
         domain = a[2];
@@ -354,14 +415,14 @@ inline void _path_array_win32(exlib::string path, std::vector<exlib::string>& a,
     }
 }
 
-inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool removeSlash = false, bool root = false)
+inline result_t _normalize_win32(const exlib::string& path, exlib::string& retVal, bool removeSlash = false, bool root = false)
 {
     int32_t i;
 
-    std::vector<exlib::string> a;
+    std::vector<std::string_view> a;
     char drv_no = 0;
-    exlib::string domain;
-    exlib::string share;
+    std::string_view domain;
+    std::string_view share;
 
     // Check if original path has trailing backslash
     bool hasTrailingSlash = !path.empty() && isWin32PathSlash(path[path.length() - 1]);
@@ -377,7 +438,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
         // Don't let _normalize_array remove the . or ? characters
 
         // Create a modified array for normalization that excludes the device namespace prefix
-        std::vector<exlib::string> normalizeArray;
+        std::vector<std::string_view> normalizeArray;
         // Skip the first three elements: ['', '', '.'] or ['', '', '?']
         for (size_t idx = 3; idx < a.size(); idx++) {
             normalizeArray.push_back(a[idx]);
@@ -387,7 +448,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
 #ifdef _WIN32
         // On Windows, device namespace paths treat ".." as literal removal without navigation
 
-        std::vector<exlib::string> result;
+        std::vector<std::string_view> result;
         for (size_t idx = 0; idx < normalizeArray.size(); idx++) {
             const auto& segment = normalizeArray[idx];
             if (segment == "." || segment == "..") {
@@ -401,7 +462,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
 #else
         // On non-Windows platforms, apply normal navigation rules
 
-        std::vector<exlib::string> result;
+        std::vector<std::string_view> result;
         for (size_t idx = 0; idx < normalizeArray.size(); idx++) {
             const auto& segment = normalizeArray[idx];
 
@@ -424,9 +485,10 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
         normalizeArray = result;
 
         // Reconstruct the full array with device namespace prefix
+        static const std::string_view empty_sv = "";
         a.clear();
-        a.push_back(""); // First empty
-        a.push_back(""); // Second empty
+        a.push_back(empty_sv); // First empty
+        a.push_back(empty_sv); // Second empty
         a.push_back(domain); // . or ?
         for (const auto& segment : normalizeArray) {
             // Only add non-empty segments to avoid double slashes
@@ -446,14 +508,14 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
     } else if (!share.empty()) {
         retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(domain);
+        retVal.append(domain.data(), domain.size());
         retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(share);
+        retVal.append(share.data(), share.size());
     } else if (isDeviceNamespace) {
         // Handle device namespace paths
         retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(domain);
+        retVal.append(domain.data(), domain.size());
         retVal.append(1, PATH_SLASH_WIN32);
     }
 
@@ -462,7 +524,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
     for (i = startIdx; i < (int32_t)a.size(); i++) {
         if (i > startIdx)
             retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(a[i]);
+        retVal.append(a[i].data(), a[i].size());
     }
 
     if (root && a.size() == 1 && a[0].empty())
