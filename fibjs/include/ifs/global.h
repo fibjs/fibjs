@@ -54,6 +54,7 @@ public:
     static result_t clearImmediate(v8::Local<v8::Value> t);
     static result_t btoa(exlib::string data, exlib::string& retVal);
     static result_t atob(exlib::string data, exlib::string& retVal);
+    static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
     static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
@@ -82,6 +83,7 @@ public:
     static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_structuredClone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -125,6 +127,7 @@ inline ClassInfo& global_base::class_info()
         { "clearImmediate", s_static_clearImmediate, true, ClassData::ASYNC_SYNC },
         { "btoa", s_static_btoa, true, ClassData::ASYNC_SYNC },
         { "atob", s_static_atob, true, ClassData::ASYNC_SYNC },
+        { "structuredClone", s_static_structuredClone, true, ClassData::ASYNC_SYNC },
         { "fetch", s_static_fetch, true, ClassData::ASYNC_PROMISE }
     };
 
@@ -364,6 +367,22 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
 
     hr = atob(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void global_base::s_static_structuredClone(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = structuredClone(v0, v1, vr);
 
     METHOD_RETURN();
 }

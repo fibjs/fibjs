@@ -205,6 +205,17 @@ module global
 	 */
     static String atob(String data);
 
+    /*! @brief 创建一个值的深拷贝
+     使用结构化克隆算法创建给定值的深拷贝。支持循环引用。
+
+     transfer 参数用于指定需要转移而非克隆的可转移对象列表（如 ArrayBuffer）。转移后，原对象将不可用。
+
+     @param value 要克隆的值
+     @param options 可选参数对象，包含 transfer 数组
+     @return 返回克隆后的值
+     */
+    static Value structuredClone(Value value, Object options = {});
+
     /*! @brief 请求指定的 url，并返回结果，等同于 http.request(url, ...)
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
