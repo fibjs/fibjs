@@ -705,11 +705,15 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         v8::Local<v8::String> v8_cache_key = isolate->NewString(cache_key);
         v8::Local<v8::Value> cached = _resolve_cache->Get(_context, v8_cache_key).FromMaybe(v8::Local<v8::Value>());
         if (!cached.IsEmpty() && cached->IsString()) {
-            exlib::string cached_id = isolate->toString(cached);
+            // Path cache hit - use cached path directly (like Node.js _pathCache)
+            id = isolate->toString(cached);
+            
+            // Try to get module from mods if already loaded
             v8::Local<v8::Object> _mods = mods();
-            retVal = get_module(_mods, cached_id);
+            retVal = get_module(_mods, id);
+            
+            // If module is loaded, return immediately
             if (!IsEmpty(retVal)) {
-                id = cached_id;
                 // Check for pendding promise if module is being loaded
                 if (pendding) {
                     v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
@@ -719,6 +723,10 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
                 }
                 return 0;
             }
+            
+            // Module not loaded yet, need to load file content for run_module()
+            // But path is already resolved, so just load the file
+            return loadFile(id, data);
         }
 
         hr = resolveId(id, retVal);
