@@ -12,11 +12,44 @@
 #include "ifs/util.h"
 #include "Event.h"
 #include "path.h"
+#include "Stat.h"
 #include "Buffer.h"
 #include "options.h"
 #include "loaders/loaders.h"
 
 namespace fibjs {
+
+// Lightweight file type check without creating Stat object
+// Returns: 0 = regular file, 1 = directory, -1 = not found/error
+static inline int32_t file_type_uncached(const char* path)
+{
+    // Zip virtual paths (containing '$') are always treated as files
+    // since zip doesn't support directory checks
+    if (strchr(path, '$') != nullptr)
+        return 0;
+
+    struct stat st;
+    if (::stat(path, &st) < 0)
+        return -1;
+    if (S_ISDIR(st.st_mode))
+        return 1;
+    return 0;
+}
+
+// Cached version of file_type for SandBox
+int32_t SandBox::file_type(exlib::string fname)
+{
+    Isolate* isolate = holder();
+    int32_t result;
+
+    isolate->m_stat_cache.lookup(fname, result, 
+        (LruCache<int32_t>::Resolver)[](exlib::string& fname, int32_t& result) -> bool {
+            result = file_type_uncached(fname.c_str());
+            return true;
+        });
+
+    return result;
+}
 
 result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal)
 {
@@ -117,27 +150,38 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     result_t hr;
     exlib::string fname1;
 
-    hr = realpath(fname, fname1);
-    if (hr < 0)
-        fname1 = fname;
+    // Fast path: check if file exists before expensive realpath call
+    int32_t ftype = file_type(fname);
+    if (ftype == 0) {
+        // File exists, now do realpath
+        hr = realpath(fname, fname1);
+        if (hr < 0)
+            fname1 = fname;
 
-    if (retVal) {
-        *retVal = get_module(mods, fname1);
-        if (!IsEmpty(*retVal)) {
+        if (retVal) {
+            *retVal = get_module(mods, fname1);
+            if (!IsEmpty(*retVal)) {
+                fname = fname1;
+                return 0;
+            }
+        }
+
+        hr = loadFile(fname1, data);
+        if (hr >= 0) {
             fname = fname1;
             return 0;
         }
     }
 
-    hr = loadFile(fname1, data);
-    if (hr >= 0) {
-        fname = fname1;
-        return 0;
-    }
-
+    // Try with extensions
     for (size_t i = 0; i < cnt; i++) {
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
+
+        // Fast path: check if file with extension exists
+        ftype = file_type(fname2);
+        if (ftype != 0)
+            continue; // Not a file, skip
 
         hr = realpath(fname2, fname1);
         if (hr < 0)
@@ -601,10 +645,23 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             while (true) {
                 base = fname;
 
-                if (fname.length())
-                    resolvePath(fname, "node_modules");
-                else
-                    fname = "node_modules";
+                exlib::string node_modules_path;
+                if (fname.length()) {
+                    node_modules_path = fname;
+                    resolvePath(node_modules_path, "node_modules");
+                } else {
+                    node_modules_path = "node_modules";
+                }
+
+                // Fast path: skip if node_modules directory doesn't exist
+                if (file_type(node_modules_path) != 1) {
+                    path_base::dirname(base, fname);
+                    if (base.length() == fname.length())
+                        break;
+                    continue;
+                }
+
+                fname = node_modules_path;
                 resolvePath(fname, module_name);
 
                 hr = resolveFile(fname, script_name, data, type, id, &retVal);

@@ -334,6 +334,7 @@ public:
 
     LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;
     LruCache<std::pair<int, exlib::string>> m_realpath_cache;
+    LruCache<int32_t> m_stat_cache; // 0 = file, 1 = directory, -1 = not found
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);

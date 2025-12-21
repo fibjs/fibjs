@@ -192,6 +192,7 @@ public:
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
     result_t realpath(exlib::string fname, exlib::string& retVal);
+    int32_t file_type(exlib::string fname);
     result_t resolveModuleType(exlib::string fname, ModuleType& retVal);
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
