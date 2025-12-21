@@ -542,6 +542,34 @@ result_t uuid_base::v3(exlib::string name, exlib::string ns, exlib::string& retV
     return 0;
 }
 
+result_t uuid_base::v3(exlib::string name, Buffer_base* ns, exlib::string& retVal)
+{
+    Buffer* p = (Buffer*)ns;
+    if (p->length() < 16) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Create MD5 hash of namespace UUID + name
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, p->data(), 16);
+    MD5_Update(&ctx, name.c_str(), name.length());
+
+    uint8_t hash[MD5_DIGEST_LENGTH];
+    MD5_Final(hash, &ctx);
+
+    // Convert hash to UUID v3 format
+    uint8_t uuid[16];
+    memcpy(uuid, hash, 16);
+
+    // Set version (3) and variant bits according to RFC 4122
+    uuid[6] = (uuid[6] & 0x0F) | 0x30; // Version 3
+    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
 result_t uuid_base::v5(exlib::string name, exlib::string ns, exlib::string& retVal)
 {
     init_namespaces();
@@ -555,6 +583,34 @@ result_t uuid_base::v5(exlib::string name, exlib::string ns, exlib::string& retV
     SHA_CTX ctx;
     SHA1_Init(&ctx);
     SHA1_Update(&ctx, ns_bytes, 16);
+    SHA1_Update(&ctx, name.c_str(), name.length());
+
+    uint8_t hash[SHA_DIGEST_LENGTH];
+    SHA1_Final(hash, &ctx);
+
+    // Convert hash to UUID v5 format (use first 16 bytes of 20-byte SHA1)
+    uint8_t uuid[16];
+    memcpy(uuid, hash, 16);
+
+    // Set version (5) and variant bits according to RFC 4122
+    uuid[6] = (uuid[6] & 0x0F) | 0x50; // Version 5
+    uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
+
+    uuid_to_string(uuid, retVal);
+    return 0;
+}
+
+result_t uuid_base::v5(exlib::string name, Buffer_base* ns, exlib::string& retVal)
+{
+    Buffer* p = (Buffer*)ns;
+    if (p->length() < 16) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    // Create SHA1 hash of namespace UUID + name
+    SHA_CTX ctx;
+    SHA1_Init(&ctx);
+    SHA1_Update(&ctx, p->data(), 16);
     SHA1_Update(&ctx, name.c_str(), name.length());
 
     uint8_t hash[SHA_DIGEST_LENGTH];

@@ -58,6 +58,13 @@ module uuid
      */
     static String v3(String name, String ns);
 
+    /*! @brief Create UUID using MD5 namespace (binary namespace format)
+     @param name Name string
+     @param ns Namespace UUID binary representation, length must be 16 bytes
+     @return Return generated UUID string
+     */
+    static String v3(String name, Buffer ns);
+
     /*! @brief Create UUID using random number
      @param options Optional object with properties: random (Buffer, random bytes), rng (Function, random number generator)
      @return Return generated UUID string
@@ -70,6 +77,13 @@ module uuid
      @return Return generated UUID string
      */
     static String v5(String name, String ns);
+
+    /*! @brief Create UUID using SHA1 namespace (binary namespace format)
+     @param name Name string
+     @param ns Namespace UUID binary representation, length must be 16 bytes
+     @return Return generated UUID string
+     */
+    static String v5(String name, Buffer ns);
 
     /*! @brief Create UUID v6 using reordered timestamp
      @param options Optional object with properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, timestamp in milliseconds), nsecs (Integer, timestamp in nanoseconds)

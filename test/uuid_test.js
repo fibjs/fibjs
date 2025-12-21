@@ -92,6 +92,40 @@ describe("uuid", () => {
         }
     });
 
+    it("v3 with Buffer namespace", () => {
+        var name = "example.com";
+        
+        // DNS namespace UUID: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        var dnsNamespaceBytes = new Uint8Array([
+            0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1,
+            0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8
+        ]);
+        
+        // Test v3 with Buffer namespace
+        var v3_buffer = uuid.v3(name, dnsNamespaceBytes);
+        assert.strictEqual(typeof v3_buffer, 'string');
+        assert.strictEqual(v3_buffer.length, 36);
+        assert.match(v3_buffer, /^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+        
+        // Should produce same result as string namespace
+        var v3_string = uuid.v3(name, isFibjs ? uuid.DNS_NAMESPACE : uuid.v3.DNS);
+        assert.strictEqual(v3_buffer, v3_string);
+        
+        // Test with custom namespace bytes
+        var customNs = new Uint8Array([
+            0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+            0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0
+        ]);
+        var v3_custom = uuid.v3(name, customNs);
+        assert.strictEqual(typeof v3_custom, 'string');
+        assert.strictEqual(v3_custom.length, 36);
+        
+        // Test error with too short buffer
+        assert.throws(() => {
+            uuid.v3(name, new Uint8Array(10));
+        });
+    });
+
     it("v4 (random) UUID generation", () => {
         // Test v4 (random) UUID string generation
         var v4_uuid = uuid.v4();
@@ -139,6 +173,40 @@ describe("uuid", () => {
             var v3_uuid = uuid.v3(name, uuid.v3.DNS);
             assert.notStrictEqual(v3_uuid, v5_uuid);
         }
+    });
+
+    it("v5 with Buffer namespace", () => {
+        var name = "example.com";
+        
+        // DNS namespace UUID: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        var dnsNamespaceBytes = new Uint8Array([
+            0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1,
+            0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8
+        ]);
+        
+        // Test v5 with Buffer namespace
+        var v5_buffer = uuid.v5(name, dnsNamespaceBytes);
+        assert.strictEqual(typeof v5_buffer, 'string');
+        assert.strictEqual(v5_buffer.length, 36);
+        assert.match(v5_buffer, /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+        
+        // Should produce same result as string namespace
+        var v5_string = uuid.v5(name, isFibjs ? uuid.DNS_NAMESPACE : uuid.v5.DNS);
+        assert.strictEqual(v5_buffer, v5_string);
+        
+        // Test with custom namespace bytes
+        var customNs = new Uint8Array([
+            0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+            0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0
+        ]);
+        var v5_custom = uuid.v5(name, customNs);
+        assert.strictEqual(typeof v5_custom, 'string');
+        assert.strictEqual(v5_custom.length, 36);
+        
+        // Test error with too short buffer
+        assert.throws(() => {
+            uuid.v5(name, new Uint8Array(10));
+        });
     });
 
     it("v6 (reordered time-based) UUID generation", () => {

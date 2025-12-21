@@ -88,6 +88,15 @@ declare module 'uuid' {
     function v1(options?: FIBJS.GeneralObject): string;
 
     /**
+     * @description 使用 MD5 命名空间创建 uuid（二进制命名空间格式）
+     *      @param name 指定名称
+     *      @param ns 命名空间 UUID 的二进制表示，长度需为 16 字节
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v3(name: string, ns: Class_Buffer): string;
+
+    /**
      * @description 使用 MD5 命名空间创建 uuid（字符串格式）
      *      @param name 指定名称
      *      @param ns 命名空间 UUID 字符串，或使用预定义命名空间
@@ -103,6 +112,15 @@ declare module 'uuid' {
      *      
      */
     function v4(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 使用 SHA1 命名空间创建 uuid（二进制命名空间格式）
+     *      @param name 指定名称
+     *      @param ns 命名空间 UUID 的二进制表示，长度需为 16 字节
+     *      @return 返回一个生成的 uuid 字符串
+     *      
+     */
+    function v5(name: string, ns: Class_Buffer): string;
 
     /**
      * @description 使用 SHA1 命名空间创建 uuid（字符串格式）

@@ -37,8 +37,10 @@ public:
     static result_t parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal);
     static result_t stringify(Buffer_base* arr, int32_t offset, exlib::string& retVal);
     static result_t v1(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v3(exlib::string name, Buffer_base* ns, exlib::string& retVal);
     static result_t v3(exlib::string name, exlib::string ns, exlib::string& retVal);
     static result_t v4(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v5(exlib::string name, Buffer_base* ns, exlib::string& retVal);
     static result_t v5(exlib::string name, exlib::string ns, exlib::string& retVal);
     static result_t version(exlib::string uuid, int32_t& retVal);
     static result_t v6(v8::Local<v8::Object> options, exlib::string& retVal);
@@ -250,6 +252,13 @@ inline void uuid_base::s_static_v3(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = v3(v0, v1.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
     hr = v3(v0, v1, vr);
@@ -277,6 +286,13 @@ inline void uuid_base::s_static_v5(const v8::FunctionCallbackInfo<v8::Value>& ar
     exlib::string vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = v5(v0, v1.get(), vr);
 
     METHOD_OVER(2, 2);
 
