@@ -89,9 +89,12 @@ static HANDLE CreateUniqueDumpFile()
     char fname[MAX_PATH];
     int32_t l, i;
     HANDLE hFile;
+    exlib::string cwd;
 
     puts("core dump....");
-    l = GetCurrentDirectoryA(MAX_PATH, fname);
+    process_base::cwd(cwd);
+    l = (int32_t)cwd.length();
+    memcpy(fname, cwd.c_str(), l);
     memcpy(fname + l, "\\core.", 6);
     l += 6;
 

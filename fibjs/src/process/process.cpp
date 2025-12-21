@@ -420,15 +420,25 @@ result_t process_base::uptime(double& retVal)
     return 0;
 }
 
+static exlib::string s_cwd;
+static exlib::spinlock s_cwd_lock;
+
 result_t process_base::cwd(exlib::string& retVal)
 {
-    char buf[1024] = "";
-    size_t size = sizeof(buf);
+    s_cwd_lock.lock();
+    if (s_cwd.empty()) {
+        char buf[1024] = "";
+        size_t size = sizeof(buf);
 
-    if (uv_cwd(buf, &size))
-        return CHECK_ERROR(LastError());
+        if (uv_cwd(buf, &size)) {
+            s_cwd_lock.unlock();
+            return CHECK_ERROR(LastError());
+        }
 
-    retVal = buf;
+        s_cwd = buf;
+    }
+    retVal = s_cwd;
+    s_cwd_lock.unlock();
     return 0;
 }
 
@@ -436,6 +446,10 @@ result_t process_base::chdir(exlib::string directory)
 {
     if (uv_chdir(directory.c_str()))
         return CHECK_ERROR(LastError());
+
+    s_cwd_lock.lock();
+    s_cwd.clear();
+    s_cwd_lock.unlock();
 
     return 0;
 }
