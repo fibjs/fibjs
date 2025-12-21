@@ -17,6 +17,7 @@ namespace fibjs {
 
 class HeapSnapshot_base;
 class Timer_base;
+class Buffer_base;
 
 class v8_base : public object_base {
     DECLARE_CLASS(v8_base);
@@ -56,6 +57,8 @@ public:
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
     static result_t start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal);
+    static result_t serialize(v8::Local<v8::Value> value, obj_ptr<Buffer_base>& retVal);
+    static result_t deserialize(Buffer_base* data, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -77,11 +80,14 @@ public:
     static void s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deserialize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "ifs/HeapSnapshot.h"
 #include "ifs/Timer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& v8_base::class_info()
@@ -94,7 +100,9 @@ inline ClassInfo& v8_base::class_info()
         { "loadSnapshot", s_static_loadSnapshot, true, ClassData::ASYNC_SYNC },
         { "takeSnapshot", s_static_takeSnapshot, true, ClassData::ASYNC_SYNC },
         { "diff", s_static_diff, true, ClassData::ASYNC_SYNC },
-        { "start", s_static_start, true, ClassData::ASYNC_SYNC }
+        { "start", s_static_start, true, ClassData::ASYNC_SYNC },
+        { "serialize", s_static_serialize, true, ClassData::ASYNC_SYNC },
+        { "deserialize", s_static_deserialize, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -240,6 +248,36 @@ inline void v8_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(int32_t, 2, 100);
 
     hr = start(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void v8_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = serialize(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void v8_base::s_static_deserialize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = deserialize(v0.get(), vr);
 
     METHOD_RETURN();
 }

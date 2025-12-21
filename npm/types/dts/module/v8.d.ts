@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HeapSnapshot.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description 内存 v8 模块
  * 
@@ -228,6 +229,27 @@ declare module 'v8' {
      * 	 
      */
     function start(fname: string, time?: number, interval?: number): Class_Timer;
+
+    /**
+     * @description 将值序列化为 Buffer
+     *      
+     *      使用 V8 的序列化格式将任意 JavaScript 值转换为二进制数据。支持循环引用、TypedArray、Map、Set、Date、RegExp、Error 等类型。
+     *      不支持函数、Symbol、WeakMap、WeakSet 等类型。
+     *      @param value 要序列化的值
+     *      @return 返回序列化后的 Buffer
+     *      
+     */
+    function serialize(value: any): Class_Buffer;
+
+    /**
+     * @description 将 Buffer 反序列化为值
+     *      
+     *      将之前通过 serialize 序列化的二进制数据还原为 JavaScript 值。
+     *      @param data 要反序列化的 Buffer
+     *      @return 返回反序列化后的值
+     *      
+     */
+    function deserialize(data: Class_Buffer): any;
 
 }
 
