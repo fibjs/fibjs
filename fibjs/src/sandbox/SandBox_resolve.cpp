@@ -697,19 +697,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     if (!isAbs) {
         result_t hr;
 
-        hr = resolveId(id, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
-            // Check for pendding promise if module is being loaded
-            if (pendding && !IsEmpty(retVal)) {
-                v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-                JSValue p = retVal->GetPrivate(_context, strPendding);
-                if (p->IsPromise())
-                    *pendding = p;
-            }
-            return hr;
-        }
-
-        // Fast path: check resolve cache for module specifier
+        // Optimization: Check resolve cache FIRST before any module lookup
         // Cache key includes module type (CJS/ESM) since the same specifier may resolve to different files
         v8::Local<v8::Object> _resolve_cache = resolve_cache();
         char type_char = (type == kESModule) ? 'E' : 'C';
@@ -731,6 +719,18 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
                 }
                 return 0;
             }
+        }
+
+        hr = resolveId(id, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
+            // Check for pendding promise if module is being loaded
+            if (pendding && !IsEmpty(retVal)) {
+                v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+                JSValue p = retVal->GetPrivate(_context, strPendding);
+                if (p->IsPromise())
+                    *pendding = p;
+            }
+            return hr;
         }
 
         hr = resolveModule(base, id, data, type, retVal);
