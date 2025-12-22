@@ -84,6 +84,67 @@ public:
         return 0;
     }
 
+    result_t eval(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal)
+    {
+        v8::Local<v8::Context> _context = m_isolate->context();
+
+        v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
+        pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
+
+        v8::ScriptOrigin so_origin(m_isolate->NewString(fname), 0, 0, false,
+            -1, v8::Local<v8::Value>(), false, false, true, pargs);
+        v8::ScriptCompiler::Source source(m_isolate->NewString(code), so_origin);
+
+        v8::Local<v8::Module> root_module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
+                                                .FromMaybe(v8::Local<v8::Module>());
+        if (root_module.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        // Set up module loading scope
+        Runtime* rt = Runtime::current();
+        m_sb->m_module_pendings++;
+        SandBox* prev_sb = rt->m_module_pending;
+        rt->m_module_pending = m_sb;
+
+        // Resolve all static imports
+        result_t hr = resolveModuleTree(fname, root_module);
+        if (hr >= 0) {
+            v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
+            if (!result.FromMaybe(false))
+                hr = CALL_E_JAVASCRIPT;
+        }
+
+        rt->m_module_pending = prev_sb;
+        if (--m_sb->m_module_pendings == 0)
+            m_sb->module_deps_map.clear();
+
+        if (hr < 0) {
+            saveModule();
+            return hr;
+        }
+
+        // Evaluate the module
+        v8::Local<v8::Value> result = root_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
+        if (result.IsEmpty()) {
+            saveModule();
+            return CALL_E_JAVASCRIPT;
+        }
+
+        // Wait for the promise to resolve
+        if (result->IsPromise()) {
+            v8::Local<v8::Promise> promise = result.As<v8::Promise>();
+            result = m_isolate->await(promise);
+            if (result.IsEmpty()) {
+                saveModule();
+                return CALL_E_JAVASCRIPT;
+            }
+        }
+
+        saveModule();
+        retVal = result;
+        return 0;
+    }
+
     v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base)
     {
         result_t hr;
@@ -675,5 +736,11 @@ result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
 
     obj_ptr<esm_importer> importer = new esm_importer(ctx->m_sb);
     return importer->require(name, src, args[2].As<v8::Object>());
+}
+
+result_t SandBox::evalModule(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal)
+{
+    obj_ptr<esm_importer> importer = new esm_importer(this);
+    return importer->eval(code, fname, retVal);
 }
 }

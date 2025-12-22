@@ -31,47 +31,61 @@ void output(int32_t priority, exlib::string msg)
 result_t SandBox::repl(exlib::string src)
 {
     Context context(this, src.empty() ? "[repl]" : "[eval]");
-    return context.repl(src);
+
+    // For -e mode, use ESM evaluation to support import syntax
+    if (!src.empty()) {
+        v8::Local<v8::Value> v;
+
+        result_t hr = context.m_sb->evalModule(src, context.m_id, v);
+
+        if (!v.IsEmpty() && !v->IsUndefined())
+            console_base::dir(v, v8::Local<v8::Object>());
+
+        return hr;
+    }
+
+    return context.repl();
 }
 
 extern std_logger* s_std;
 exlib::string appname("fibjs");
 
-result_t SandBox::Context::repl(exlib::string src)
+result_t SandBox::Context::repl()
 {
     result_t hr = 0;
-    exlib::string buf(src);
+    exlib::string buf;
     v8::Local<v8::Value> v;
     Isolate* isolate = Isolate::current();
     v8::Local<v8::String> strFname;
     obj_ptr<BufferedStream_base> bs;
 
     strFname = isolate->NewString(m_id);
-    if (src.empty()) {
-        exlib::string str_ver("Welcome to " + appname + " ");
 
-        str_ver += fibjs_version;
-        str_ver += '.';
-        output(console_base::C_INFO, str_ver);
-        output(console_base::C_INFO, "Type \".help\" for more information.");
-    }
+    exlib::string str_ver("Welcome to " + appname + " ");
+    str_ver += fibjs_version;
+    str_ver += '.';
+    output(console_base::C_INFO, str_ver);
+    output(console_base::C_INFO, "Type \".help\" for more information.");
 
     while (true) {
         if (!buf.empty()) {
             TryCatch try_catch;
 
-            v8::ScriptOrigin origin(strFname);
-            v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
-            v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin).FromMaybe(v8::Local<v8::Script>());
+            v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(isolate->m_isolate, 1);
+            pargs->Set(isolate->m_isolate, 0, v8::Number::New(isolate->m_isolate, m_sb->m_id));
+
+            v8::ScriptOrigin origin(strFname, 0, 0, false, -1, v8::Local<v8::Value>(), false, false, false, pargs);
+            v8::Local<v8::Context> context = isolate->context();
+            v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin)
+                                               .FromMaybe(v8::Local<v8::Script>());
 
             if (script.IsEmpty()) {
-                if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input" || !src.empty()) {
+                if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input") {
                     buf.clear();
                     ReportException(try_catch, 0, true);
                 }
             } else {
                 buf.clear();
-
                 v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
                 if (v.IsEmpty())
                     ReportException(try_catch, 0, true);
@@ -81,9 +95,6 @@ result_t SandBox::Context::repl(exlib::string src)
         if (!v.IsEmpty() && !v->IsUndefined())
             console_base::dir(v, v8::Local<v8::Object>());
         v.Clear();
-
-        if (!src.empty())
-            break;
 
         exlib::string line;
         hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);

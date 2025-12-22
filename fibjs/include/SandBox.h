@@ -101,7 +101,7 @@ public:
     class Context {
     public:
         Context(SandBox* sb, exlib::string id);
-        result_t repl(exlib::string src);
+        result_t repl();
 
     public:
         obj_ptr<SandBox> m_sb;
@@ -211,6 +211,7 @@ public:
         v8::Local<v8::Object>& retVal);
 
     result_t repl(exlib::string src);
+    result_t evalModule(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal);
 
     result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);

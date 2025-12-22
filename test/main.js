@@ -50,6 +50,7 @@ run("./io_test.js");
 run("./os_test.js");
 run("./process_test.js");
 run("./child_process_test.js");
+run("./eval_test.js");
 run("./json_test.js");
 run("./module_test.js");
 run("./esm_test.js");
