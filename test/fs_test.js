@@ -1358,6 +1358,47 @@ describe('fs', () => {
         });
     });
 
+    it("readdir with withFileTypes using relative path", () => {
+        // Save current directory and switch to test directory
+        var cwd = process.cwd();
+        process.chdir(__dirname);
+
+        try {
+            // Test relative path with withFileTypes option
+            var entries = fs.readdir('./dir_test', { withFileTypes: true });
+            assert.equal(entries.length, 3);
+
+            // Check entries are DirEntry objects
+            entries.forEach(entry => {
+                assert.ok(entry.name);
+                assert.ok(entry.parentPath);
+                assert.equal(typeof entry.isDirectory, 'function');
+                assert.equal(typeof entry.isFile, 'function');
+            });
+
+            // Sort entries by name for consistent testing
+            entries.sort((a, b) => a.name.localeCompare(b.name));
+
+            // Check first entry (dir1)
+            assert.equal(entries[0].name, "dir1");
+            assert.ok(entries[0].isDirectory());
+            assert.ok(!entries[0].isFile());
+
+            // Check second entry (file1)
+            assert.equal(entries[1].name, "file1");
+            assert.ok(!entries[1].isDirectory());
+            assert.ok(entries[1].isFile());
+
+            // Check third entry (file2)
+            assert.equal(entries[2].name, "file2");
+            assert.ok(!entries[2].isDirectory());
+            assert.ok(entries[2].isFile());
+        } finally {
+            // Restore original directory
+            process.chdir(cwd);
+        }
+    });
+
     it("writeFile & appendFile", () => {
         var fn = path.join(__dirname, 'fs_test.js' + vmid);
 

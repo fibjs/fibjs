@@ -358,16 +358,20 @@ inline result_t _normalize(const exlib::string& path, exlib::string& retVal, boo
     _path_array(path, a);
     _normalize_array(a, removeSlash);
 
-    retVal.clear();
+    // Build result in a local variable first to avoid use-after-free
+    // when path and retVal reference the same string
+    exlib::string result;
 
     for (i = 0; i < (int32_t)a.size(); i++) {
         if (i > 0)
-            retVal.append(1, PATH_SLASH_POSIX);
-        retVal.append(a[i].data(), a[i].size());
+            result.append(1, PATH_SLASH_POSIX);
+        result.append(a[i].data(), a[i].size());
     }
 
     if (root && a.size() == 1 && a[0].empty())
-        retVal.append(1, PATH_SLASH_POSIX);
+        result.append(1, PATH_SLASH_POSIX);
+
+    retVal = std::move(result);
 
     return 0;
 }
@@ -426,6 +430,10 @@ inline result_t _normalize_win32(const exlib::string& path, exlib::string& retVa
 
     // Check if original path has trailing backslash
     bool hasTrailingSlash = !path.empty() && isWin32PathSlash(path[path.length() - 1]);
+
+    // Build result in a local variable first to avoid use-after-free
+    // when path and retVal reference the same string
+    exlib::string result;
 
     _path_array_win32(path, a, drv_no, domain, share);
 
@@ -500,35 +508,33 @@ inline result_t _normalize_win32(const exlib::string& path, exlib::string& retVa
         _normalize_array(a, removeSlash);
     }
 
-    retVal.clear();
-
     if (drv_no) {
-        retVal.append(1, drv_no);
-        retVal.append(1, ':');
+        result.append(1, drv_no);
+        result.append(1, ':');
     } else if (!share.empty()) {
-        retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(domain.data(), domain.size());
-        retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(share.data(), share.size());
+        result.append(1, PATH_SLASH_WIN32);
+        result.append(1, PATH_SLASH_WIN32);
+        result.append(domain.data(), domain.size());
+        result.append(1, PATH_SLASH_WIN32);
+        result.append(share.data(), share.size());
     } else if (isDeviceNamespace) {
         // Handle device namespace paths
-        retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(domain.data(), domain.size());
-        retVal.append(1, PATH_SLASH_WIN32);
+        result.append(1, PATH_SLASH_WIN32);
+        result.append(1, PATH_SLASH_WIN32);
+        result.append(domain.data(), domain.size());
+        result.append(1, PATH_SLASH_WIN32);
     }
 
     // Add the rest of the path segments (skip first 3 for device namespace paths)
     int startIdx = isDeviceNamespace ? 3 : 0;
     for (i = startIdx; i < (int32_t)a.size(); i++) {
         if (i > startIdx)
-            retVal.append(1, PATH_SLASH_WIN32);
-        retVal.append(a[i].data(), a[i].size());
+            result.append(1, PATH_SLASH_WIN32);
+        result.append(a[i].data(), a[i].size());
     }
 
     if (root && a.size() == 1 && a[0].empty())
-        retVal.append(1, PATH_SLASH_WIN32);
+        result.append(1, PATH_SLASH_WIN32);
 
     // Handle trailing backslash for device namespace paths
     if (isDeviceNamespace) {
@@ -536,17 +542,19 @@ inline result_t _normalize_win32(const exlib::string& path, exlib::string& retVa
         // On Windows, device namespace paths generally don't need trailing backslashes
         // unless they are bare device paths like \\.\CON or \\.\folder with no subpaths
         bool hasSubPaths = a.size() > 4; // More than ['', '', '.', 'folder']
-        if (!hasSubPaths && a.size() == 4 && !retVal.empty() && retVal[retVal.length() - 1] != PATH_SLASH_WIN32) {
+        if (!hasSubPaths && a.size() == 4 && !result.empty() && result[result.length() - 1] != PATH_SLASH_WIN32) {
             // Only add trailing backslash for bare device folder paths like \\.\folder
-            retVal.append(1, PATH_SLASH_WIN32);
+            result.append(1, PATH_SLASH_WIN32);
         }
 #else
         // On non-Windows platforms, preserve the trailing backslash only if it existed in the original path
-        if (hasTrailingSlash && !retVal.empty() && retVal[retVal.length() - 1] != PATH_SLASH_WIN32) {
-            retVal.append(1, PATH_SLASH_WIN32);
+        if (hasTrailingSlash && !result.empty() && result[result.length() - 1] != PATH_SLASH_WIN32) {
+            result.append(1, PATH_SLASH_WIN32);
         }
 #endif
     }
+
+    retVal = std::move(result);
 
     return 0;
 }
