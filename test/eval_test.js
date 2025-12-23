@@ -39,7 +39,7 @@ describe('eval (-e)', () => {
 
         it('require path module', () => {
             var result = runEval("const path = require('path'); console.log(path.join('a', 'b'))");
-            assert.equal(result, 'a/b');
+            assert.equal(result, path.join('a', 'b'));
         });
     });
 
@@ -51,7 +51,7 @@ describe('eval (-e)', () => {
 
         it('import path module', () => {
             var result = runEval("import('path').then(path => console.log(path.join('a', 'b')))");
-            assert.equal(result, 'a/b');
+            assert.equal(result, path.join('a', 'b'));
         });
     });
 
@@ -63,7 +63,7 @@ describe('eval (-e)', () => {
 
         it('import named', () => {
             var result = runEval("import { join } from 'path'; console.log(join('a', 'b'))");
-            assert.equal(result, 'a/b');
+            assert.equal(result, path.join('a', 'b'));
         });
 
         it('import namespace', () => {
