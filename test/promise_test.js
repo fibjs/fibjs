@@ -43,7 +43,7 @@ describe('promise', () => {
     });
 
     it("error in async function", () => {
-        t('async1.js', 'Error: /promise/async1.js:5:1\nawait t();\n^^^^^\nSyntaxError: await is only valid in async functions and the top level bodies of modules {} {\n  \"number\": 20023\n}\n');
+        t('async1.js', 'Error: /promise/async1.js:5:1\nawait t();\n^^^^^\nSyntaxError: await is only valid in async functions and the top level bodies of modules {} {\n  \"number\": 20024\n}\n');
     });
 
     it("error in async function with sync", () => {

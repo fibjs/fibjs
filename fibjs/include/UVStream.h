@@ -50,7 +50,13 @@ public:
         static void on_timeout(uv_timer_t* handle)
         {
             UVTimeout* pThis = (UVTimeout*)handle;
-            pThis->m_this->close(NULL);
+            pThis->on_timeout_handler();
+        }
+
+        // Default timeout handler: close the stream
+        virtual void on_timeout_handler()
+        {
+            m_this->close(NULL);
         }
 
         static void on_timer_closed(uv_handle_t* handle)
@@ -115,6 +121,20 @@ public:
             , m_ac(ac)
             , m_pos(0)
         {
+        }
+
+        // Override timeout handler: remove self from queue and post timeout error
+        virtual void on_timeout_handler() override
+        {
+            // Remove self from read queue
+            m_this->queue_read.remove(this);
+
+            // If queue is empty, stop reading
+            if (m_this->queue_read.count() == 0)
+                uv_read_stop(&m_this->m_stream);
+
+            // Post timeout error
+            post_result(CALL_E_TIMEOUT);
         }
 
     public:
@@ -194,7 +214,6 @@ public:
                 } else
                     m_ac->apost(CALL_RETURN_NULL);
             }
-
             UVTimeout::cancel_timer();
         }
 
@@ -211,8 +230,8 @@ public:
     class AsyncWrite : public AsyncEvent,
                        public UVTimeout {
     public:
-        AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac)
-            : UVTimeout(pThis)
+        AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac, int32_t timeout)
+            : UVTimeout(pThis, timeout)
             , m_this(pThis)
             , m_ac(ac)
         {
@@ -224,6 +243,17 @@ public:
             if (g_pipedump && pThis->m_handle.type == UV_NAMED_PIPE) {
                 outLog(console_base::C_WARN, clean_string((char*)m_data->data(), m_data->length()));
             }
+        }
+
+        // Override timeout handler: remove self from queue and post timeout error
+        virtual void on_timeout_handler() override
+        {
+            // Remove self from write queue
+            m_this->queue_write.remove(this);
+
+            // Post timeout error
+            m_ac->apost(CALL_E_TIMEOUT);
+            UVTimeout::cancel_timer();
         }
 
     public:
@@ -309,7 +339,7 @@ public:
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         retVal = Buffer::Cast(data)->length();
-        uv_post(new AsyncWrite(this, data, ac));
+        uv_post(new AsyncWrite(this, data, ac, m_timeout));
         return CALL_E_PENDDING;
     }
 
@@ -363,6 +393,22 @@ public:
     virtual result_t set_timeout(int32_t newVal)
     {
         m_timeout = newVal;
+        return 0;
+    }
+
+    virtual result_t abort()
+    {
+        uv_post([this] {
+            if (queue_read.count() > 0) {
+                uv_read_stop(&m_stream);
+                AsyncRead::post_all_result(this, CALL_E_ABORT);
+            }
+
+            if (queue_write.count() > 0) {
+                AsyncWrite::post_all_result(this, CALL_E_ABORT);
+            }
+        });
+
         return 0;
     }
 

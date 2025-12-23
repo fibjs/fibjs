@@ -63,6 +63,11 @@ result_t UVSocket::get_family(int32_t& retVal)
     return 0;
 }
 
+result_t UVSocket::abort()
+{
+    return UVStream_tmpl<Socket_base>::abort();
+}
+
 result_t UVSocket::get_remoteAddress(exlib::string& retVal)
 {
     inetAddr addr_info;

@@ -51,16 +51,57 @@ void setOption(SOCKET s)
 
 HANDLE s_hIocp;
 
+class asyncProc;
+
+// Event to post timeout cancellation to IOCP thread
+class CancelEvent : public OVERLAPPED,
+                    public exlib::Task_base {
+public:
+    CancelEvent(obj_ptr<AsyncIOTimer> timer, SOCKET s, OVERLAPPED* pOverlapped)
+        : m_timer(timer)
+        , m_s(s)
+        , m_pOverlapped(pOverlapped)
+    {
+        memset((OVERLAPPED*)this, 0, sizeof(OVERLAPPED));
+    }
+
+    virtual void resume()
+    {
+        PostQueuedCompletionStatus(s_hIocp, -2, -2, (LPOVERLAPPED)this);
+    }
+
+    void proc();
+
+private:
+    obj_ptr<AsyncIOTimer> m_timer;
+    SOCKET m_s;
+    OVERLAPPED* m_pOverlapped;
+};
+
 class asyncProc : public OVERLAPPED,
                   public exlib::Task_base {
 public:
-    asyncProc(SOCKET s, AsyncEvent* ac, exlib::Locker& locker)
+    asyncProc(SOCKET s, AsyncEvent* ac, exlib::Locker& locker, int32_t timeout = 0, AsyncIO* pThis = NULL)
         : m_s(s)
         , m_ac(ac)
         , m_locker(locker)
         , m_next(NULL)
+        , m_timeout_cancelled(false)
+        , m_pThis(pThis)
+        , m_abort_version(pThis ? pThis->get_abort_version() : 0)
     {
         memset((OVERLAPPED*)this, 0, sizeof(OVERLAPPED));
+        
+        // Create timer if timeout specified
+        if (timeout > 0) {
+            SOCKET socket_handle = m_s;
+            OVERLAPPED* pOverlapped = this;
+            m_timer = new AsyncIOTimer(timeout, this, [socket_handle, pOverlapped](AsyncIOTimer* timer) {
+                // Post to IOCP thread for safe cancellation check
+                (new CancelEvent(timer, socket_handle, pOverlapped))->resume();
+            });
+            m_timer->start();
+        }
     }
 
     virtual ~asyncProc()
@@ -82,6 +123,15 @@ public:
 
     void proc()
     {
+        // Check if aborted while waiting in queue
+        if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
+            cleanup_timer();
+            m_locker.unlock(this);
+            m_ac->apost(CALL_E_ABORT);
+            delete this;
+            return;
+        }
+
         result_t hr = process();
         if (hr != CALL_E_PENDDING)
             asyncProc::ready(0, hr);
@@ -94,9 +144,31 @@ public:
 
     virtual void ready(DWORD dwBytes, int32_t nError)
     {
+        cleanup_timer();
         m_locker.unlock(this);
         m_ac->apost(nError);
         delete this;
+    }
+    
+    void cleanup_timer()
+    {
+        if (m_timer) {
+            m_timer->cancel();
+            m_timer.Release();
+        }
+    }
+    
+    // Check if operation was aborted or timed out
+    // Returns adjusted error code
+    int32_t check_abort_timeout(int32_t nError)
+    {
+        if (nError == -ERROR_OPERATION_ABORTED) {
+            if (m_timeout_cancelled)
+                return CALL_E_TIMEOUT;
+            else if (m_pThis && m_pThis->get_abort_version() != m_abort_version)
+                return CALL_E_ABORT;
+        }
+        return nError;
     }
 
 public:
@@ -104,7 +176,25 @@ public:
     AsyncEvent* m_ac;
     exlib::Locker& m_locker;
     asyncProc* m_next;
+    obj_ptr<AsyncIOTimer> m_timer;
+    bool m_timeout_cancelled;
+    AsyncIO* m_pThis;
+    intptr_t m_abort_version;
 };
+
+// CancelEvent::proc() implementation - must be after asyncProc definition
+inline void CancelEvent::proc()
+{
+    // Check if timer was cancelled during message delivery
+    asyncProc* pProc = m_timer->get_data<asyncProc>();
+    if (!m_timer->is_cancelled()) {
+        // Set flag so ready() knows this was a timeout
+        pProc->m_timeout_cancelled = true;
+        // Cancel the I/O operation - IOCP will return ERROR_OPERATION_ABORTED
+        CancelIoEx((HANDLE)m_s, m_pOverlapped);
+    }
+    delete this;
+}
 
 class _acIO : public exlib::OSThread {
 public:
@@ -143,7 +233,9 @@ public:
             else
                 dwError = 0;
 
-            if (dwBytes == -1 && v == -1 && bRet)
+            if (dwBytes == -2 && v == -2 && bRet)
+                ((CancelEvent*)pOverlap)->proc();
+            else if (dwBytes == -1 && v == -1 && bRet)
                 ((asyncProc*)pOverlap)->proc();
             else if (bRet || (dwError != WAIT_TIMEOUT))
                 ((asyncProc*)pOverlap)->ready(dwBytes, -(int32_t)dwError);
@@ -163,14 +255,13 @@ result_t net_base::backend(exlib::string& retVal)
     return 0;
 }
 
-result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer)
+result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, int32_t timeout)
 {
     class asyncConnect : public asyncProc {
     public:
-        asyncConnect(SOCKET s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, Timer_base* timer)
-            : asyncProc(s, ac, locker)
+        asyncConnect(SOCKET s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, int32_t timeout, AsyncIO* pThis)
+            : asyncProc(s, ac, locker, timeout, pThis)
             , m_ai(ai)
-            , m_timer(timer)
         {
         }
 
@@ -188,10 +279,6 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
                         &guidConnectEx, sizeof(guidConnectEx),
                         &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
                         NULL)) {
-                    if (m_timer) {
-                        m_timer->clear();
-                        m_timer.Release();
-                    }
                     return CHECK_ERROR(SocketError());
                 }
             }
@@ -204,20 +291,13 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
             if (nError == WSA_IO_PENDING)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
-            }
             return CHECK_ERROR(-nError);
         }
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
-            }
-
+            nError = check_abort_timeout(nError);
+            
             if (!nError) {
                 setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
                 setOption(m_s);
@@ -227,14 +307,10 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
     public:
         inetAddr m_ai;
-        obj_ptr<Timer_base> m_timer;
     };
 
-    if (m_fd == INVALID_SOCKET) {
-        if (timer)
-            timer->clear();
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -246,20 +322,14 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
     if (addr_info.addr(host.c_str()) < 0) {
         exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0) {
-            if (timer)
-                timer->clear();
+        if (hr < 0)
             return hr;
-        }
 
-        if (addr_info.addr(strAddr.c_str()) < 0) {
-            if (timer)
-                timer->clear();
+        if (addr_info.addr(strAddr.c_str()) < 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
-        }
     }
 
-    (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, timer))->post();
+    (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, timeout, this))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -336,17 +406,16 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 }
 
 result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac, bool bRead, Timer_base* timer)
+    AsyncEvent* ac, bool bRead, int32_t timeout)
 {
     class asyncRecv : public asyncProc {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
-            AsyncEvent* ac, bool bRead, exlib::Locker& locker, Timer_base* timer)
-            : asyncProc(s, ac, locker)
+            AsyncEvent* ac, bool bRead, exlib::Locker& locker, int32_t timeout, AsyncIO* pThis)
+            : asyncProc(s, ac, locker, timeout, pThis)
             , m_retVal(retVal)
             , m_pos(0)
             , m_bRead(bRead)
-            , m_timer(timer)
         {
             m_read_buf = new Buffer(NULL, bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
@@ -361,30 +430,21 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             nError = GetLastError();
 
-            if (nError == ERROR_BROKEN_PIPE) {
-                if (m_timer) {
-                    m_timer->clear();
-                    m_timer.Release();
-                }
-
+            if (nError == ERROR_BROKEN_PIPE)
                 return CALL_RETURN_NULL;
-            }
 
             if (nError == ERROR_IO_PENDING)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
-            }
             return CHECK_ERROR(-nError);
         }
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
+            nError = check_abort_timeout(nError);
+            if (nError == CALL_E_TIMEOUT || nError == CALL_E_ABORT) {
+                asyncProc::ready(dwBytes, nError);
+                return;
             }
 
             if (nError == -ERROR_BROKEN_PIPE || nError == -ERROR_NETNAME_DELETED) {
@@ -421,28 +481,24 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         int32_t m_pos;
         bool m_bRead;
         obj_ptr<Buffer> m_read_buf;
-        obj_ptr<Timer_base> m_timer;
     };
 
-    if (m_fd == INVALID_SOCKET) {
-        if (timer)
-            timer->clear();
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_lockRecv, timer))->post();
+    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_lockRecv, timeout, this))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t timeout)
 {
     class asyncSend : public asyncProc {
     public:
-        asyncSend(SOCKET s, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, exlib::Locker& locker)
-            : asyncProc(s, ac, locker)
+        asyncSend(SOCKET s, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, exlib::Locker& locker, int32_t timeout, AsyncIO* pThis)
+            : asyncProc(s, ac, locker, timeout, pThis)
             , m_retVal(retVal)
         {
             m_buf = Buffer::Cast(data);
@@ -468,6 +524,12 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
+            nError = check_abort_timeout(nError);
+            if (nError == CALL_E_TIMEOUT || nError == CALL_E_ABORT) {
+                asyncProc::ready(dwBytes, nError);
+                return;
+            }
+
             if (!nError) {
                 m_p += dwBytes;
                 m_sz -= dwBytes;
@@ -494,8 +556,22 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    (new asyncSend(m_fd, data, retVal, ac, m_lockSend))->post();
+    (new asyncSend(m_fd, data, retVal, ac, m_lockSend, timeout, this))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
+}
+
+void AsyncIO::abort()
+{
+    // Increment abort version to invalidate all pending operations
+    m_abort_version.inc();
+    
+    // For IOCP backend, cancel all pending I/O operations
+    if (m_fd != INVALID_SOCKET)
+        CancelIoEx((HANDLE)m_fd, NULL);
+    
+    // Note: We don't clear the flag immediately because IOCP operations
+    // complete asynchronously. The flag serves as a generation counter.
+    // Operations remember the generation when they started and compare.
 }
 }
 

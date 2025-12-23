@@ -159,16 +159,18 @@ typedef int32_t result_t;
 #define CALL_E_INTERNAL (CALL_E_MAX - 20)
 // The maximum amount of time for a script to execute was exceeded.
 #define CALL_E_TIMEOUT (CALL_E_MAX - 21)
+// Operation was aborted.
+#define CALL_E_ABORT (CALL_E_MAX - 22)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE (CALL_E_MAX - 22)
+#define CALL_E_RETURN_TYPE (CALL_E_MAX - 23)
 // Exception occurred.
-#define CALL_E_EXCEPTION (CALL_E_MAX - 23)
+#define CALL_E_EXCEPTION (CALL_E_MAX - 24)
 // JavaScript error.
-#define CALL_E_JAVASCRIPT (CALL_E_MAX - 24)
+#define CALL_E_JAVASCRIPT (CALL_E_MAX - 25)
 // Permission denied.
-#define CALL_E_PERMIT (CALL_E_MAX - 25)
+#define CALL_E_PERMIT (CALL_E_MAX - 26)
 // Object closed.
-#define CALL_E_CLOSED (CALL_E_MAX - 26)
+#define CALL_E_CLOSED (CALL_E_MAX - 27)
 
 #define CALL_E_MIN (CALL_E_MAX - 100)
 

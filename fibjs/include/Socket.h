@@ -13,6 +13,7 @@
 #include "Timer.h"
 #include "AsyncStream.h"
 #include <boost/preprocessor.hpp>
+#include <functional>
 
 namespace fibjs {
 
@@ -91,30 +92,13 @@ public:
     virtual result_t setNoDelay(bool noDelay);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t abort();
 
 public:
     static result_t create(int32_t family, obj_ptr<Socket_base>& retVal);
 
 private:
     result_t create(int32_t family);
-
-    class IOTimer : public Timer {
-    public:
-        IOTimer(int32_t timeout, Socket_base* sock)
-            : Timer(timeout)
-            , m_sock(sock)
-        {
-        }
-
-    public:
-        virtual void on_timer()
-        {
-            m_sock->cc_close();
-        }
-
-    private:
-        obj_ptr<Socket_base> m_sock;
-    };
 
 private:
     AsyncIO m_aio;

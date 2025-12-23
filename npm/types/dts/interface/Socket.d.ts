@@ -453,5 +453,14 @@ declare class Class_Socket extends Class_Stream {
      */
     sendAsync(data: Class_Buffer): Promise<number>;
 
+    /**
+     * @description 中止当前 socket 上所有正在进行的操作
+     *      
+     *      此方法会取消所有正在等待的异步操作（connect, recv, send 等），
+     *      被取消的操作会返回错误。socket 本身不会被关闭，可以继续使用。
+     *      
+     */
+    abort(): void;
+
 }
 

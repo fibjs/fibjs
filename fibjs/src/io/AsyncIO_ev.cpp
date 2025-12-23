@@ -113,19 +113,62 @@ public:
 
 class AsyncSockProc : public evAsyncEvent {
 public:
-    AsyncSockProc(intptr_t& sockfd, int32_t ev_op_t, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
+    AsyncSockProc(intptr_t& sockfd, int32_t ev_op_t, AsyncEvent* ac, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
         : m_sockfd(sockfd)
         , m_ev_op_t(ev_op_t)
         , m_ac(ac)
         , m_locker(locker)
         , m_opt(opt)
+        , m_pThis(pThis)
+        , m_abort_version(pThis ? pThis->get_abort_version() : 0)
     {
+        // Create timer if timeout specified
+        if (timeout > 0) {
+            m_timer = new AsyncIOTimer(timeout, this, [](AsyncIOTimer* timer) {
+                // Post to ev loop for safe cancellation
+                class CancelEvent : public evAsyncEvent {
+                public:
+                    CancelEvent(obj_ptr<AsyncIOTimer> timer)
+                        : m_timer(timer)
+                    {
+                    }
+
+                    virtual void start()
+                    {
+                        // Check if timer was cancelled during message delivery
+                        AsyncSockProc* pProc = m_timer->get_data<AsyncSockProc>();
+                        // Short-circuit: if cancelled, pProc->m_opt won't be accessed
+                        if (!m_timer->is_cancelled() && pProc->m_opt != NULL) {
+                            ev_io_stop(s_loop, &pProc->m_io_watcher);
+                            pProc->ready(CALL_E_TIMEOUT);
+                        }
+                        delete this;
+                    }
+
+                private:
+                    obj_ptr<AsyncIOTimer> m_timer;
+                };
+
+                (new CancelEvent(timer))->post();
+            });
+            m_timer->start();
+        }
     }
 
     virtual void start()
     {
         if (m_sockfd == SOCKET_ERROR) {
             m_ac->apost(SOCKET_ERROR);
+            cleanup_timer();
+            delete this;
+            return;
+        }
+
+        // Check if aborted while waiting in queue
+        if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
+            m_locker.unlock(this);
+            m_ac->apost(CALL_E_ABORT);
+            cleanup_timer();
             delete this;
             return;
         }
@@ -142,6 +185,7 @@ public:
         if (m_locker.lock(this)) {
             result_t hr = process();
             if (hr != CALL_E_PENDDING) {
+                cleanup_timer();
                 m_locker.unlock(this);
                 delete this;
 
@@ -161,12 +205,18 @@ public:
 
     virtual void after_unwatch()
     {
-        ready(process());
+        result_t hr = process();
+
+        if (hr == CALL_E_PENDDING)
+            post();
+        else
+            ready(hr);
     }
 
     void ready(int32_t v)
     {
         m_opt = NULL;
+        cleanup_timer();
         m_locker.unlock(this);
         m_ac->apost(v);
         delete this;
@@ -175,7 +225,22 @@ public:
     void on_watched()
     {
         ev_io_stop(s_loop, &m_io_watcher);
+
+        // Check if aborted
+        if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
+            ready(CALL_E_ABORT);
+            return;
+        }
+
         after_unwatch();
+    }
+
+    void cleanup_timer()
+    {
+        if (m_timer) {
+            m_timer->cancel();
+            m_timer.Release();
+        }
     }
 
 public:
@@ -184,7 +249,10 @@ public:
     AsyncEvent* m_ac;
     exlib::Locker& m_locker;
     void*& m_opt;
+    AsyncIO* m_pThis;
     ev_io m_io_watcher;
+    obj_ptr<AsyncIOTimer> m_timer;
+    intptr_t m_abort_version;
 
 private:
     static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)
@@ -278,14 +346,13 @@ result_t AsyncIO::close(AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
-result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer)
+result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, int32_t timeout)
 {
     class asyncConnect : public AsyncSockProc {
     public:
-        asyncConnect(intptr_t& sockfd, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt, Timer_base* timer)
-            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt)
+        asyncConnect(intptr_t& sockfd, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
+            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt, timeout, pThis)
             , m_ai(ai)
-            , m_timer(timer)
         {
         }
 
@@ -297,17 +364,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
                 if (nError == EINPROGRESS)
                     return CHECK_ERROR(CALL_E_PENDDING);
 
-                if (m_timer) {
-                    m_timer->clear();
-                    m_timer.Release();
-                }
                 return CHECK_ERROR(-nError);
             }
 
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
-            }
             return 0;
         }
 
@@ -315,11 +374,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
         {
             inetAddr addr_info;
             socklen_t sz1 = sizeof(addr_info);
-
-            if (m_timer) {
-                m_timer->clear();
-                m_timer.Release();
-            }
+            
             if (::getpeername(m_sockfd, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR)
                 ready(-ECONNREFUSED);
             else {
@@ -330,14 +385,10 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
     public:
         inetAddr m_ai;
-        obj_ptr<Timer_base> m_timer;
     };
 
-    if (m_fd == INVALID_SOCKET) {
-        if (timer)
-            timer->clear();
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -349,20 +400,14 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
     if (addr_info.addr(host) < 0) {
         exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0) {
-            if (timer)
-                timer->clear();
+        if (hr < 0)
             return hr;
-        }
 
-        if (addr_info.addr(strAddr) < 0) {
-            if (timer)
-                timer->clear();
+        if (addr_info.addr(strAddr) < 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
-        }
     }
 
-    return (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, m_RecvOpt, timer))->request();
+    return (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, m_RecvOpt, timeout, this))->request();
 }
 
 result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
@@ -371,7 +416,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     public:
         asyncAccept(intptr_t& sockfd, obj_ptr<Socket_base>& retVal,
             AsyncEvent* ac, exlib::Locker& locker, void*& opt)
-            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt)
+            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt, 0, nullptr)
             , m_retVal(retVal)
         {
         }
@@ -417,19 +462,18 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 }
 
 result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac, bool bRead, Timer_base* timer)
+    AsyncEvent* ac, bool bRead, int32_t timeout)
 {
     class asyncRecv : public AsyncSockProc {
     public:
         asyncRecv(intptr_t& sockfd, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac,
-            int32_t family, bool bRead, exlib::Locker& locker, void*& opt, Timer_base* timer)
-            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt)
+            int32_t family, bool bRead, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
+            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt, timeout, pThis)
             , m_retVal(retVal)
             , m_pos(0)
             , m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE)
             , m_family(family)
             , m_bRead(bRead)
-            , m_timer(timer)
         {
         }
 
@@ -458,10 +502,6 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                         if (nError == EWOULDBLOCK)
                             return CHECK_ERROR(CALL_E_PENDDING);
 
-                        if (m_timer) {
-                            m_timer->clear();
-                            m_timer.Release();
-                        }
                         return CHECK_ERROR(-nError);
                     }
                 }
@@ -471,10 +511,6 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
                 m_pos += n;
                 if (m_pos == 0) {
-                    if (m_timer) {
-                        m_timer->clear();
-                        m_timer.Release();
-                    }
                     return CALL_RETURN_NULL;
                 }
             } while (m_bRead && m_pos < (int32_t)m_read_buf->length());
@@ -487,21 +523,6 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             return 0;
         }
 
-        virtual void after_unwatch()
-        {
-            result_t hr = process();
-
-            if (hr == CALL_E_PENDDING)
-                post();
-            else {
-                if (m_timer) {
-                    m_timer->clear();
-                    m_timer.Release();
-                }
-                ready(hr);
-            }
-        }
-
     public:
         obj_ptr<Buffer_base>& m_retVal;
         int32_t m_pos;
@@ -509,27 +530,23 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         int32_t m_family;
         bool m_bRead;
         obj_ptr<Buffer> m_read_buf;
-        obj_ptr<Timer_base> m_timer;
     };
 
-    if (m_fd == INVALID_SOCKET) {
-        if (timer)
-            timer->clear();
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_lockRecv, m_RecvOpt, timer))->request();
+    return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_lockRecv, m_RecvOpt, timeout, this))->request();
 }
 
-result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t timeout)
 {
     class asyncSend : public AsyncSockProc {
     public:
-        asyncSend(intptr_t& sockfd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt)
-            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt)
+        asyncSend(intptr_t& sockfd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
+            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt, timeout, pThis)
             , m_family(family)
             , m_retVal(retVal)
         {
@@ -553,7 +570,9 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
                     n = (int32_t)::write(m_sockfd, m_p, m_sz);
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
-                    return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
+                    if (nError == EWOULDBLOCK)
+                        return CHECK_ERROR(CALL_E_PENDDING);
+                    return CHECK_ERROR(-nError);
                 }
 
                 m_sz -= n;
@@ -561,16 +580,6 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
             }
 
             return 0;
-        }
-
-        virtual void after_unwatch()
-        {
-            result_t hr = process();
-
-            if (hr == CALL_E_PENDDING)
-                post();
-            else
-                ready(hr);
         }
 
     public:
@@ -587,7 +596,7 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSend(m_fd, data, retVal, ac, m_family, m_lockSend, m_SendOpt))->request();
+    return (new asyncSend(m_fd, data, retVal, ac, m_family, m_lockSend, m_SendOpt, timeout, this))->request();
 }
 
 void AsyncIO::run(void (*watchProc)(void*))
@@ -610,6 +619,43 @@ void AsyncIO::run(void (*watchProc)(void*))
     };
 
     (new asyncRun(watchProc))->post();
+}
+
+void AsyncIO::abort()
+{
+    class asyncAbort : public evAsyncEvent {
+    public:
+        asyncAbort(void*& recvProc, void*& sendProc)
+            : m_pRecvProc(recvProc)
+            , m_pSendProc(sendProc)
+        {
+        }
+
+        virtual void start()
+        {
+            if (m_pRecvProc) {
+                AsyncSockProc* pProc = (AsyncSockProc*)m_pRecvProc;
+                ev_io_stop(s_loop, &pProc->m_io_watcher);
+                pProc->ready(CALL_E_ABORT);
+            }
+
+            if (m_pSendProc) {
+                AsyncSockProc* pProc = (AsyncSockProc*)m_pSendProc;
+                ev_io_stop(s_loop, &pProc->m_io_watcher);
+                pProc->ready(CALL_E_ABORT);
+            }
+
+            delete this;
+        }
+
+    public:
+        void*& m_pRecvProc;
+        void*& m_pSendProc;
+    };
+
+    // Increment abort version to invalidate all pending operations
+    m_abort_version.inc();
+    (new asyncAbort(m_RecvOpt, m_SendOpt))->post();
 }
 }
 

@@ -75,4 +75,11 @@ interface Socket : Stream
     send(Buffer data) async;
 
     sendto(Buffer data, String host, Integer port);
+
+    /*! @brief Abort all pending operations on this socket
+     
+     This method cancels all pending asynchronous operations (connect, recv, send, etc.).
+     Canceled operations will return an error. The socket itself will not be closed and can continue to be used.
+     */
+    abort();
 };

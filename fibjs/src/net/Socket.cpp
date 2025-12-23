@@ -99,18 +99,12 @@ result_t Socket::get_fd(int32_t& retVal)
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<Timer> timer;
-    if (ac->isAsync() && m_timeout > 0) {
-        timer = new IOTimer(m_timeout, this);
-        timer->sleep();
-    }
-
-    return m_aio.read(bytes, retVal, ac, bytes > 0, timer);
+    return m_aio.read(bytes, retVal, ac, bytes > 0, m_timeout);
 }
 
 result_t Socket::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_aio.write(data, retVal, ac);
+    return m_aio.write(data, retVal, ac, m_timeout);
 }
 
 result_t Socket::flush(AsyncEvent* ac)
@@ -211,6 +205,12 @@ result_t Socket::get_timeout(int32_t& retVal)
 result_t Socket::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
+    return 0;
+}
+
+result_t Socket::abort()
+{
+    m_aio.abort();
     return 0;
 }
 
@@ -329,17 +329,11 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     }
 #endif
 
-    obj_ptr<Timer> timer;
-    if (timeout > 0) {
-        timer = new IOTimer(timeout, this);
-        timer->sleep();
-    }
-
     retVal = this;
     if (!m_connect_event)
-        return m_aio.connect(host, port, new connectWrapper(this, ac), timer);
+        return m_aio.connect(host, port, new connectWrapper(this, ac), timeout);
 
-    m_aio.connect(host, port, new connectWrapper(holder(), this), timer);
+    m_aio.connect(host, port, new connectWrapper(holder(), this), timeout);
     return 0;
 }
 
@@ -414,19 +408,13 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
 result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_aio.write(data, retVal, ac);
+    return m_aio.write(data, retVal, ac, m_timeout);
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<Timer> timer;
-    if (ac->isAsync() && m_timeout > 0) {
-        timer = new IOTimer(m_timeout, this);
-        timer->sleep();
-    }
-
-    return m_aio.read(bytes, retVal, ac, false, timer);
+    return m_aio.read(bytes, retVal, ac, false, m_timeout);
 }
 
 result_t Socket::unbind(obj_ptr<object_base>& retVal)

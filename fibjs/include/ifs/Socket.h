@@ -50,6 +50,7 @@ public:
     virtual result_t setNoDelay(bool noDelay) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t abort() = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +73,7 @@ public:
     static void s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE4(Socket_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
@@ -103,7 +105,8 @@ inline ClassInfo& Socket_base::class_info()
         { "setKeepAlive", s_setKeepAlive, false, ClassData::ASYNC_SYNC },
         { "setNoDelay", s_setNoDelay, false, ClassData::ASYNC_SYNC },
         { "recv", s_recv, false, ClassData::ASYNC_ASYNC },
-        { "send", s_send, false, ClassData::ASYNC_ASYNC }
+        { "send", s_send, false, ClassData::ASYNC_ASYNC },
+        { "abort", s_abort, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -483,5 +486,17 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = pInst->ac_send(v0.get(), vr);
 
     METHOD_RETURN();
+}
+
+inline void Socket_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Socket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->abort();
+
+    METHOD_VOID();
 }
 }
