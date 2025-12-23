@@ -36,6 +36,24 @@ result_t SandBox::repl(exlib::string src)
     if (!src.empty()) {
         v8::Local<v8::Value> v;
 
+        // Inject __dirname and __filename to global for -e mode
+        // to provide compatibility with CommonJS-style scripts
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Object> global = _context->Global();
+        
+        exlib::string cwd;
+        process_base::cwd(cwd);
+        
+        // __filename should be an absolute path, use cwd + '/[eval]'
+        exlib::string filename = cwd;
+        if (!filename.empty() && filename[filename.length() - 1] != PATH_SLASH)
+            filename += PATH_SLASH;
+        filename += context.m_id;
+        
+        global->Set(_context, isolate->NewString("__dirname"), isolate->NewString(cwd)).IsJust();
+        global->Set(_context, isolate->NewString("__filename"), isolate->NewString(filename)).IsJust();
+
         result_t hr = context.m_sb->evalModule(src, context.m_id, v);
 
         if (!v.IsEmpty() && !v->IsUndefined())

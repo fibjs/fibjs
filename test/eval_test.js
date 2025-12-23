@@ -163,4 +163,48 @@ describe('eval (-e)', () => {
             assert.equal(result, 'arg1,arg2');
         });
     });
+
+    describe('CommonJS-style variables', () => {
+        it('__dirname is defined', () => {
+            var result = runEval('console.log(typeof __dirname)');
+            assert.equal(result, 'string');
+        });
+
+        it('__filename is defined', () => {
+            var result = runEval('console.log(typeof __filename)');
+            assert.equal(result, 'string');
+        });
+
+        it('__dirname equals current working directory', () => {
+            var result = runEval('console.log(__dirname)');
+            var cwd = process.cwd();
+            assert.equal(result, cwd);
+        });
+
+        it('__filename equals [eval]', () => {
+            var result = runEval('console.log(__filename)');
+            var expected = path.join(process.cwd(), '[eval]');
+            assert.equal(result, expected);
+        });
+
+        it('__filename is absolute path', () => {
+            var result = runEval("const path = require('path'); console.log(path.isAbsolute(__filename))");
+            assert.equal(result, 'true');
+        });
+
+        it('can use __dirname in path operations', () => {
+            var result = runEval("const path = require('path'); console.log(path.join(__dirname, 'test.js').endsWith('test.js'))");
+            assert.equal(result, 'true');
+        });
+
+        it('can override __dirname with let', () => {
+            var result = runEval("let __dirname = '/custom'; console.log(__dirname)");
+            assert.equal(result, '/custom');
+        });
+
+        it('can override __filename with const', () => {
+            var result = runEval("const __filename = 'custom.js'; console.log(__filename)");
+            assert.equal(result, 'custom.js');
+        });
+    });
 });
