@@ -1,112 +1,166 @@
+/*! @brief XmlDocument is an object of the xml module, representing the entire XML document, providing access to the entire document
 
-/*! @brief XmlDocument object represents an XML document
+XmlDocument is the root of a document tree, containing all nodes in the entire XML document. The XmlDocument object also provides the following functions:
 
-XmlDocument object is the root of a document tree, providing the initial (or top-level) access to document data entry for us.
-For element nodes, text nodes, comments, processing instructions etc. can not exist outside the XmlDocument, XmlDocument object also provides methods to create these objects. OwnerDocument XmlNode object provides a property that can put them to create their XmlDocument be associated with in them.
+1. Create element nodes, text nodes, comments, and processing instructions, etc.
+2. Access and modify document properties and related information (such as DTD comments and document declarations)
+3. Parse XML documents
+
+Below is example code for using the XmlDocument object to parse an XML document:
+
+```JavaScript
+var xml = require('xml');
+var fs = require('fs');
+
+var xmlStr = fs.readFile('test.xml');
+var xmlDoc = xml.parse(xmlStr);
+
+// get document root node name
+var rootName = xmlDoc.documentElement.nodeName;
+console.log(`The document root node name is ${rootName}`);
+```
+
+In the above code, we first use the `readFile()` method of the `fs` module to read an XML file, and assign the file stream to the variable `xmlStr`. Then we use the `parse()` method of the `xml` module to parse the XML file, and assign the parsed `XmlDocument` object to the variable `xmlDoc`. Finally, we use the `documentElement` property of `xmlDoc` to get the document root node, get its node name, and output it to the console.
+
+Since XmlDocument is the entry point for the entire XML document, we can get and modify related information of the document through it. For example, we can get and modify the XML version and standalone attributes of the document through `xmlDoc.xmlVersion` and `xmlDoc.xmlStandalone` respectively. We can also create new processing instruction nodes through the `xmlDoc.createProcessingInstruction()` method.
+
+The XmlDocument object is a very powerful type, providing great convenience for us to handle parsing XML files.
 */
 interface XmlDocument : XmlNode
 {
     /*! @brief Construct an XmlDocument object
-     @param type Indicate document tupe, default is "text/xml", and should be "text/html" when handle HTML
+     @param type Specify the type of the document object, default is "text/xml", if you need to process html, specify "text/html"
     */
     XmlDocument(String type = "text/xml");
 
-    /*! @brief Parse XML/HTML string create a document, does not support multiple languages
-     @param source XML/HTML text to parse, based on document type
+    /*! @brief Compose the document by parsing an XML/HTML string, does not support multiple languages
+     @param source The XML/HTML text to be parsed, depending on the type when the document was created
     */
     load(String source);
 
-    /*! @brief Parse XML/HTML binary data to create a document, convert by corresponding language
-     @param source XML/HTML text to parse, based on document type
+    /*! @brief Compose the document by parsing a binary XML/HTML string, and automatically convert according to the language
+     @param source The XML/HTML text to be parsed, depending on the type when the document was created
     */
     load(Buffer source);
 
-    /*! @brief Get document encoding in parsing
+    /*! @brief Return the encoding used for the document (when parsing)
     */
     readonly String inputEncoding;
 
-    /*! @brief Get or set standalone property
+    /*! @brief Set or return whether the document is standalone
     */
     Boolean xmlStandalone;
 
-    /*! @brief Get or set XML version
+    /*! @brief Set or return the XML version of the document
     */
     String xmlVersion;
 
-    /*! @brief Get Document Type Declaration
+    /*! @brief Return the document type declaration (Document Type Declaration) associated with the document
 
-    For XML document that does not have DTD, it returns NULL. It provides direct access to XmlDocumentType(XmlDocument's child node).
+    For XML documents without DTD, return null. This property provides direct access to the XmlDocumentType object (a child node of XmlDocument).
     */
     readonly XmlDocumentType doctype;
 
-    /*! @brief Get root element
+    /*! @brief Return the root node of the document
     */
     readonly XmlElement documentElement;
 
-    /*! @brief Get head node of HTML document, only valid in HTML mode
+    /*! @brief Return the head node of the HTML document, only valid in html mode
     */
     readonly XmlElement head;
 
-    /*! @brief Get title node of HTML document, only valid in HTML mode
+    /*! @brief Return the content of the title node of the HTML document, only valid in html mode
     */
     readonly String title;
 
-    /*! @brief Get body node of HTML document, only valid in HTML mode
+    /*! @brief Return the body node of the HTML document, only valid in html mode
     */
     readonly XmlElement body;
 
-    /*! @brief Get list of nodes with given name
+    /*! @brief Return a node list of all elements with the specified name
 
-     This method returns an XmlNodeList object (as a read-only array processing), which stores all XmlElement nodes in the document with the specified tag name, the order is the order in which they appear is stored in the source document. XmlNodeList object is "live", that is, if you add or delete the specified tag name of the element in the document, its contents will be automatically updated as necessary.
-     @param tagName Tag name to match, "*" matches all tags
-     @return Return collection of XmlNodeList with given tag name, order is same in the document
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document with the specified tag name, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements with the specified tag name are added or removed in the document, its content will be automatically updated as necessary.
+     @param tagName The tag name to be retrieved. The value "*" matches all tags
+     @return An XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order they appear in the source document.
     */
     XmlNodeList getElementsByTagName(String tagName);
 
-    /*! @brief Get list of nodes with given namespace and tag name
+    /*! @brief Return a node list of all elements with the specified namespace and name
 
-     This method is similar to getElementsByTagName() but based on namespace.
-     @param namespaceURI URI of namespace, "*" matches all namespaces
-     @param localName Tag name to match, "*" matches all tags
-     @return Return collection of XmlNodeList with given tag name, order is same in the document
+     This method is similar to getElementsByTagName(), but it retrieves elements based on namespace and name.
+     @param namespaceURI Specify the namespace URI to be retrieved. The value "*" can match all tags
+     @param localName The tag name to be retrieved. The value "*" matches all tags
+     @return An XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order they appear in the source document.
     */
     XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
 
-    /*! @brief Create a node with given tag name
-     @param tagName Tag name
-     @return Return created XmlElement node with given tag name
+    /*! @brief Return the element with the specified id attribute
+
+     This method will traverse the descendant nodes of the document, returning an XmlElement node object, representing the first document element with the specified id attribute.
+     @param id The id to be retrieved
+     @return The XmlElement node with the specified id attribute in the node tree
+    */
+    XmlElement getElementById(String id);
+
+    /*! @brief Return a node list of all elements with the specified class name
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document with the specified class name, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements with the specified tag name are added or removed in the document, its content will be automatically updated as necessary.
+     @param className The class name to be retrieved
+     @return An XmlNodeList collection of XmlElement nodes with the specified class name in the document tree. The order of the returned element nodes is the order they appear in the source document.
+    */
+    XmlNodeList getElementsByClassName(String className);
+
+    /*! @brief Create an element node
+     @param tagName Specify the prescribed name of the element node
+     @return Return the newly created XmlElement node with the specified tag name
     */
     XmlElement createElement(String tagName);
 
-    /*! @brief Create a node with given namespace and tag name
-     @param namespaceURI URI of namespace
-     @param qualifiedName Tag name
-     @return Return created XmlElement node with given tag name
+    /*! @brief Create an element node with the specified namespace
+     @param namespaceURI Specify the namespace URI of the element node
+     @param qualifiedName Specify the prescribed name of the element node
+     @return Return the newly created XmlElement node with the specified tag name
     */
     XmlElement createElementNS(String namespaceURI, String qualifiedName);
 
-    /*! @brief Create text node
-     @param data Content of node
-     @return Return created XmlText node contains given content
+    /*! @brief Create a text node
+     @param data Specify the text of this node
+     @return Return the newly created XmlText node representing the specified data string
     */
     XmlText createTextNode(String data);
 
-    /*! @brief Create comment node
-     @param data Content of node
-     @return Return created XmlComment node contains given content
+    /*! @brief Create a comment node
+     @param data Specify the comment text of this node
+     @return Return the newly created XmlComment node with comment text as the specified data
     */
     XmlComment createComment(String data);
 
-    /*! @brief Create XmlCDATASection node
-     @param data CDATA data of node
-     @return Return created XmlCDATASection node contains given content
+    /*! @brief Create an XmlCDATASection node
+     @param data Specify the CDATA data prescribed for this node
+     @return Return the newly created XmlCDATASection node with content as the specified data
     */
     XmlCDATASection createCDATASection(String data);
 
-    /*! @brief Create XmlProcessingInstruction node
-     @param target Target to process instructions
-     @param data Content of node
-     @return Return created ProcessingInstruction node
+    /*! @brief Create an XmlProcessingInstruction node
+     @param target Specify the target of the processing instruction
+     @param data Specify the content text of the processing instruction
+     @return The newly created ProcessingInstruction node
     */
     XmlProcessingInstruction createProcessingInstruction(String target, String data);
+
+    /*! @brief Return an XmlNodeList of elements that match the specified CSS selector
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document that match the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements that match the specified selector are added or removed in the document, its content will be automatically updated as necessary.
+     @param selectors Specify the CSS selector
+     @return XmlElement nodes that match the specified CSS selector
+    */
+    XmlElement querySelector(String selectors);
+
+    /*! @brief Return an XmlNodeList of all elements that match the specified CSS selector
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document that match the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements that match the specified selector are added or removed in the document, its content will be automatically updated as necessary.
+     @param selectors Specify the CSS selector
+     @return An XmlNodeList collection of XmlElement nodes that match the specified CSS selector. The order of the returned element nodes is the order they appear in the source document.
+    */
+    XmlNodeList querySelectorAll(String selectors);
 };

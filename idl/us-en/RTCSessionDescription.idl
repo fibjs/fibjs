@@ -1,0 +1,19 @@
+/*! @brief WebRTC session description object */
+interface RTCSessionDescription : object
+{
+    /*! @brief Constructor
+
+     description initialization parameters, supports the following fields:
+        - type: description type
+        - sdp: description string
+
+      @param description Initialization parameters
+    */
+    RTCSessionDescription(Object description = {});
+
+    /*! @brief Return description type */
+    readonly String type;
+
+    /*! @brief Return description string */
+    readonly String sdp;
+};

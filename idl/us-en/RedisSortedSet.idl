@@ -1,77 +1,76 @@
+/*! @brief Redis database client SortedSet object, this object contains the client with the specified key, only when calling its methods will operate the database
 
-/*! @brief Redis database SortedSet object, it contains client of given key and has to operate it with database
-
- Used for Redis SortedSet object, to use it:
- @code
+ Used to operate Redis SortedSet objects, creation method:
+ ```JavaScript
  var db = require("db");
  var rdb = new db.openRedis("redis-server");
  var set = rdb.getSortedSet("test");
- @endcode
+ ```
  */
 interface RedisSortedSet : object
 {
-    /*! @brief Add one or more element to ordered collection
-     @param sms Member/score to add
-     @return Return number of newly added elements, exclusive updated elements */
+    /*! @brief Add one or more member elements and their score values to the sorted set
+     @param sms Specify the member/score object to add
+     @return The number of new members successfully added, not including those updated, already existing members */
     Integer add(Object sms);
 
-    /*! @brief Add one or more elements to ordered collection
-     @param ... Member/scores to add
-     @return Return number of newly added elements, exclusive updated elements */
-    Integer add(...);
+    /*! @brief Add one or more member elements and their score values to the sorted set
+     @param sms Specify the member/score list to add
+     @return The number of new members successfully added, not including those updated, already existing members */
+    Integer add(...sms);
 
-    /*! @brief Query score of member
-     @param member Member to query
-     @return Return score of member in string format */
+    /*! @brief Return the score value of the member in the sorted set
+     @param member Specify the member to query
+     @return The score value of the member, expressed as a string */
     Buffer score(Buffer member);
 
-    /*! @brief Increase number to score of member
-     @param member Member to change
-     @param num Number to increase
-     @return Return new score value in string format */
+    /*! @brief Add the increment num to the score value of the member in the sorted set
+     @param member Specify the member to modify
+     @param num Specify the number to add
+     @return The new score value of the member, expressed as a string */
     Buffer incr(Buffer member, Long num = 1);
 
-    /*! @brief Remove one or more members
-     @param members Array of elements
-     @return Return removed elements, exlusive ignored elements */
+    /*! @brief Remove one or more member elements from the sorted set
+     @param members Specify the element array to remove
+     @return The number of elements successfully removed, not including ignored elements */
     Integer remove(Array members);
 
-    /*! @brief Remove one or more members
-     @param ... List of elements
-     @return Return removed elements, exlusive ignored elements */
-    Integer remove(...);
+    /*! @brief Remove one or more member elements from the sorted set
+     @param members Specify the element list to remove
+     @return The number of elements successfully removed, not including ignored elements  */
+    Integer remove(...members);
 
-    /*! @brief Return number of elements
-     @return Return length of collection */
+    /*! @brief Return the number of elements in the sorted set
+     @return Return the length of the sorted set */
     Integer len();
 
-    /*! @brief Count number of elements whose score between min and max inclusively
-     @param min Minimum value of score
-     @param max Maximum value of score
-     @return Return number of elements */
+    /*! @brief Return the number of members in the sorted set with score values between min and max (by default including score values equal to min or max)
+     @param min Specify the minimum score for statistics
+     @param max Specify the maximum score for statistics
+     @return The number of members with score values between min and max */
     Integer count(Integer min, Integer max);
 
-    /*! @brief Returs elements in given range and ordered increasingly
-     @param start Start index, 0 is the first one, -1 is the last one
-     @param stop End index, 0 is the first one, -1 is the last one
-     @param withScores Indicates whether inclusive or not
-     @return Return range of elements */
-    List range(Integer start, Integer stop, Boolean withScores = false);
+    /*! @brief Return the members in the specified interval in the sorted set, the members are sorted by score value in ascending order (from small to large)
+     @param start Specify the starting index for query, 0 means the first element, -1 means the last element
+     @param stop Specify the ending index for query, 0 means the first element, -1 means the last element
+     @param withScores Specify whether to include score in the result
+     @return List of sorted set members with score values (optional) in the specified interval */
+    NArray range(Integer start, Integer stop, Boolean withScores = false);
 
-    /*! @brief Returs elements in given range and ordered decreasingly
-     @param start Start index, 0 is the first one, -1 is the last one
-     @param stop End index, 0 is the first one, -1 is the last one
-     @param withScores Indicates whether inclusive or not
-     @return Return range of elements */
-    List rangeRev(Integer start, Integer stop, Boolean withScores = false);
+    /*! @brief Return the members in the specified interval in the sorted set, the members are sorted by score value in descending order (from large to small)
+     @param start Specify the starting index for query, 0 means the first element, -1 means the last element
+     @param stop Specify the ending index for query, 0 means the first element, -1 means the last element
+     @param withScores Specify whether to include score in the result
+     @return List of sorted set members with score values (optional) in the specified interval */
+    NArray rangeRev(Integer start, Integer stop, Boolean withScores = false);
 
-    /*! @brief Rank for member by score and ordered increasingly
-     @param member Member to query
-     @return Return ranked member, return nil if memeber is in ordered collection */
+    /*! @brief The ranking of the member in the sorted set. The sorted set members are arranged in ascending order of score value (from small to large)
+     @param member Specify the member to query
+     @return If member is a member of the sorted set key, return the ranking of member. If member is not a member of the sorted set key, return nil */
     Integer rank(Buffer member);
 
-    /*! @brief Rank for member by score and ordered decreasingly
-     @param member Member to query
-     @return Return ranked member, return nil if memeber is in ordered collection */
+    /*! @brief The ranking of the member in the sorted set. The sorted set members are arranged in descending order of score value (from large to small)
+     @param member Specify the member to query
+     @return If member is a member of the sorted set key, return the ranking of member. If member is not a member of the sorted set key, return nil */
     Integer rankRev(Buffer member);
 };

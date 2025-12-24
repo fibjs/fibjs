@@ -1,0 +1,185 @@
+/*! @brief V8 memory module
+
+The v8 module is a tool for analyzing and monitoring memory usage in JavaScript applications. It provides a series of methods to help developers understand the memory allocation and garbage collection behavior of applications, thereby optimizing performance and memory usage.
+
+In JavaScript, memory management is handled automatically by the garbage collection mechanism. However, for complex applications, especially those processing large amounts of data or running for long periods, memory leaks and unnecessary memory usage can become performance bottlenecks. By using the v8 module, developers can obtain detailed memory usage information and identify and resolve potential memory issues.
+
+The v8 module provides the following main features:
+
+1. **Get heap memory statistics**: Including overall heap memory usage, detailed usage of each heap space, and statistics of code in the heap.
+2. **Heap snapshots**: Can save and load heap snapshots, recording the heap memory state at specific points in time.
+3. **Heap snapshot comparison**: Execute a given function and compare heap memory changes before and after execution, helping to identify differences in memory allocation and reclamation.
+4. **Runtime state sampling**: Start a runtime state sampling log, recording memory usage over a specified period.
+
+The following are some example codes using the v8 module, showing how to get heap memory statistics, save and load heap snapshots, and start runtime state sampling.
+
+```javascript
+// Import v8 module
+var v8 = require('v8');
+
+// Get heap memory statistics
+var heapStats = v8.getHeapStatistics();
+console.log('Heap Statistics:', heapStats);
+
+// Get heap space statistics
+var heapSpaceStats = v8.getHeapSpaceStatistics();
+console.log('Heap Space Statistics:', heapSpaceStats);
+
+// Save heap snapshot
+v8.saveSnapshot('snapshot1');
+
+// Load heap snapshot
+var snapshot = v8.loadSnapshot('snapshot1');
+console.log('Loaded Snapshot:', snapshot);
+
+// Get heap snapshot of current time node
+var currentSnapshot = v8.takeSnapshot();
+console.log('Current Snapshot:', currentSnapshot);
+
+// Compare heap memory changes before and after execution
+function testFunction() {
+    // Simulate some memory allocation operations
+    var arr = [];
+    for (var i = 0; i < 10000; i++) {
+        arr.push({index: i});
+    }
+}
+var diffResult = v8.diff(testFunction);
+console.log('Heap Diff Result:', diffResult);
+
+// Start runtime state sampling log
+var timer = v8.start('samplingLog', 60000, 100);
+console.log('Sampling started, timer:', timer);
+
+// Stop sampling
+// timer.clear();
+```
+
+Through these features and methods, developers can better monitor and optimize memory usage in JavaScript applications, improving application performance and stability.
+ */
+module v8
+{
+    /*! @brief Hidden node, can be filtered out when displayed to users */
+    const Node_Hidden = 0;
+
+    /*! @brief Array */
+    const Node_Array = 1;
+
+    /*! @brief String */
+    const Node_String = 2;
+
+    /*! @brief JS object (excluding strings and arrays) */
+    const Node_Object = 3;
+
+    /*! @brief Compiled code */
+    const Node_Code = 4;
+
+    /*! @brief Function closure */
+    const Node_Closure = 5;
+
+    /*! @brief Regular expression */
+    const Node_RegExp = 6;
+
+    /*! @brief Sorted number in heap */
+    const Node_HeapNumber = 7;
+
+    /*! @brief Native object (not on v8 heap) */
+    const Node_Native = 8;
+
+    /*! @brief Synthetic object */
+    const Node_Synthetic = 9;
+
+    /*! @brief Concatenated string */
+    const Node_ConsString = 10;
+
+    /*! @brief Sliced string */
+    const Node_SlicedString = 11;
+
+    /*! @brief Symbol (ES6) */
+    const Node_Symbol = 12;
+
+    /*! @brief Sorted SIMD value in heap (ES7) */
+    const Node_SimdValue = 13;
+
+    /*! @brief Variable in function */
+    const Edge_ContextVariable = 0;
+
+    /*! @brief Element in array */
+    const Edge_Element = 1;
+
+    /*! @brief Property of named object */
+    const Edge_Property = 2;
+
+    /*! @brief Link that JS cannot enter */
+    const Edge_Internal = 3;
+
+    /*! @brief Point to node that needs space size calculated in advance */
+    const Edge_Hidden = 4;
+
+    /*! @brief Point to node that cannot have space size calculated in advance */
+    const Edge_Shortcut = 5;
+
+    /*! @brief A weak reference (ignored by GC) */
+    const Edge_Weak = 6;
+
+    /*! @brief Get statistics of code and metadata in v8 heap
+     @return Returns statistics of metadata
+     */
+    static Object getHeapCodeStatistics();
+
+    /*! @brief Get detailed usage of v8 heap memory
+     @return Returns detailed usage of heap memory
+     */
+    static Array getHeapSpaceStatistics();
+
+    /*! @brief Get statistics of v8 heap memory usage
+     @return Returns statistics of heap memory usage
+     */
+    static Object getHeapStatistics();
+
+    /*! @brief Save a heap snapshot with specified name
+	 @param fname Heap snapshot name
+	 */
+    static saveSnapshot(String fname);
+
+    /*! @brief Load a heap snapshot with specified name
+	 @param fname Heap snapshot name
+	 @return Returns the loaded heap snapshot
+	 */
+    static HeapSnapshot loadSnapshot(String fname);
+
+    /*! @brief Get heap snapshot of current time node, heap snapshot records the state of JS heap at current moment
+	 @return Returns the obtained heap information snapshot
+	 */
+    static HeapSnapshot takeSnapshot();
+
+    /*! @brief Execute the given function and compare v8 heap changes before and after execution
+	 @param test Given function to test
+	 @return Returns the comparison result
+	 */
+    static Object diff(Function test);
+
+    /*! @brief Start a runtime state sampling log
+	 @param fname Given log storage filename
+	 @param time Specified sampling time, default 1 minute
+	 @param interval Specified interval time, default 100 milliseconds
+     @return Returns sampling timer, can stop sampling early via clear method
+	 */
+    static Timer start(String fname, Integer time = 60000, Integer interval = 100);
+
+    /*! @brief Serialize value to Buffer
+     
+     Convert any JavaScript value to binary data using V8's serialization format. Supports circular references, TypedArray, Map, Set, Date, RegExp, Error, etc. Does not support functions, Symbol, WeakMap, WeakSet, etc.
+     @param value Value to serialize
+     @return Returns the serialized Buffer
+     */
+    static Buffer serialize(Value value);
+
+    /*! @brief Deserialize Buffer to value
+     
+     Restore binary data previously serialized via serialize back to JavaScript value.
+     @param data Buffer to deserialize
+     @return Returns the deserialized value
+     */
+    static Value deserialize(Buffer data);
+};

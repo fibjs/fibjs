@@ -1,136 +1,263 @@
+/*! @brief zlib is a built-in compression module that supports multiple compression formats and modes such as gzip, deflate, zlib
 
-/*! @brief zlib compression and decompression module
+zlib mainly consists of the following 3 functions:
 
- To use it:
- @code
- var zlib = require('zlib');
- @endcode
+- deflate: compress data;
+- inflate: decompress data;
+- gzip: gzip compression format.
+
+Before using zlib, you need to choose one according to the compression algorithm you want to use. You can refer to zlib's constants to choose the corresponding compression algorithm. For example, we use the deflate compression algorithm for module description:
+
+```JavaScript
+const zlib = require('zlib');
+const { NO_COMPRESSION, BEST_SPEED, BEST_COMPRESSION, DEFAULT_COMPRESSION } = require('zlib');
+
+// compress data
+const deflated = zlib.deflate('hello, world', BEST_SPEED);
+console.log(deflated.toString());
+
+// decompress data
+const inflated = zlib.inflate(deflated);
+console.log(inflated.toString());
+```
+
+The above code shows how to compress and decompress data, first compress the string `hello, world` using the `zlib.deflate` method and pass `BEST_SPEED` as the compression level option, then decompress the data using the `zlib.inflate` method, the output result should be the same as the original string.
+
+Both `zlib.deflate` and `zlib.inflate` support defining compression levels, the compression level is a number, the value range is `[NO_COMPRESSION, BEST_SPEED, DEFAULT_COMPRESSION, BEST_COMPRESSION]`, the default value is `DEFAULT_COMPRESSION`. For the meaning of these 4 compression levels, you can refer to the table below:
+
+| Compression Level | Meaning                                                                      |
+| ----------------- | ---------------------------------------------------------------------------- |
+| zlib.NO_COMPRESSION | Do not compress data (with compression header support)                                    |
+| zlib.BEST_SPEED     | Fastest compression speed; but compression ratio is correspondingly worse                           |
+| zlib.DEFAULT_COMPRESSION | According to the default value of the compression algorithm, usually slower than BEST_SPEED but higher compression ratio |
+| zlib.BEST_COMPRESSION   | Highest compression ratio, but compression speed is correspondingly slower.                                   |
+
+When using the `zlib` module, note that if you want to compress and decompress data at the same time, it is recommended to use `deflate` to compress the data first and then use `inflate` to decompress the data to avoid errors. For different compression formats and algorithms, there are other classes and methods for compression and decompression, you can refer to the following documentation for use.
  */
 module zlib
 {
-    /*! @brief deflate compression level, no compression */
-    const Integer NO_COMPRESSION = 0;
+    /*! @brief deflate compression level, set no compression */
+    const NO_COMPRESSION = 0;
 
-    /*! @brief deflate compression level, fastest */
-    const Integer BEST_SPEED = 1;
+    /*! @brief deflate compression level, set fastest compression */
+    const BEST_SPEED = 1;
 
-    /*! @brief deflate compression level, smallest */
-    const Integer BEST_COMPRESSION = 9;
+    /*! @brief deflate compression level, set highest compression */
+    const BEST_COMPRESSION = 9;
 
-    /*! @brief deflate compression level, default */
-    const Integer DEFAULT_COMPRESSION = -1;
+    /*! @brief deflate compression level, set default setting */
+    const DEFAULT_COMPRESSION = -1;
 
-    /*! @brief Use deflate to compress data (zlib format)
-     @param data Raw data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
-     @return Return compressed binary
+    /*! Constants object of zlib module, see zlib_constants */
+    static zlib_constants new constants();
+
+    /*! @brief Create a deflate stream object 
+     @param to Stream to store processing results
+     @return Returns the encapsulated stream object*/
+    static Stream createDeflate(Stream to);
+
+    /*! @brief Create a deflateRaw stream object 
+     @param to Stream to store processing results
+     @return Returns the encapsulated stream object*/
+    static Stream createDeflateRaw(Stream to);
+
+    /*! @brief Create a gunzip stream object 
+     @param to Stream to store processing results
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns the encapsulated stream object*/
+    static Stream createGunzip(Stream to, Integer maxSize = -1);
+
+    /*! @brief Create a gzip stream object 
+     @param to Stream to store processing results
+     @return Returns the encapsulated stream object*/
+    static Stream createGzip(Stream to);
+
+    /*! @brief Create an inflate stream object 
+     @param to Stream to store processing results
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns the encapsulated stream object*/
+    static Stream createInflate(Stream to, Integer maxSize = -1);
+
+    /*! @brief Create an inflateRaw stream object 
+     @param to Stream to store processing results
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns the encapsulated stream object*/
+    static Stream createInflateRaw(Stream to, Integer maxSize = -1);
+
+    /*! @brief Compress data using deflate algorithm (zlib format)
+     @param data Given data to compress
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
      */
     static Buffer deflate(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to compress data to stream (zlib format)
-     @param data Raw data
-     @param stm Stream to write compressed data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
+    /*! @brief Compress data to stream object using deflate algorithm (zlib format)
+     @param data Given data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
      */
     static deflateTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to compress a stream data to another (zlib format)
-     @param src Original stream
-     @param stm Target stream to write compressed data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
+    /*! @brief Compress data from source stream to stream object using deflate algorithm (zlib format)
+     @param src Given stream containing data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
      */
     static deflateTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to decompress data (zlib format)
-     @param data Compressed data
-     @return Return decompressed binary
+    /*! @brief Decompress data compressed by deflate algorithm (zlib format)
+     @param data Given compressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
      */
-    static Buffer inflate(Buffer data) async;
+    static Buffer inflate(Buffer data, Integer maxSize = -1) async;
 
-    /*! @brief Use deflate to decompress data to stream (zlib format)
-     @param data Compressed data
-     @param stm Stream to write decompressed data
+    /*! @brief Decompress data compressed by deflate algorithm to stream object (zlib format)
+     @param data Given data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static inflateTo(Buffer data, Stream stm) async;
+    static inflateTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Use deflate to decompress a stream data to another (zlib format)
-     @param src Original stream
-     @param stm Target stream to write decompressed data
+    /*! @brief Decompress data from source stream compressed by deflate algorithm to stream object (zlib format)
+     @param src Given stream containing data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static inflateTo(Stream src, Stream stm) async;
+    static inflateTo(Stream src, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Use gzip to compress data
-     @param data Raw data
-     @return Return compressed binary
+    /*! @brief Compress data using gzip algorithm
+     @param data Given data to compress
+     @return Returns compressed binary data
      */
     static Buffer gzip(Buffer data) async;
 
-    /*! @brief Use gzip to compress data to stream
-     @param data Raw data
-     @param stm Stream to write compressed data
+    /*! @brief Compress data to stream object using gzip algorithm
+     @param data Given data to compress
+     @param stm Specify stream to store compressed data
      */
     static gzipTo(Buffer data, Stream stm) async;
 
-    /*! @brief Use gzip to compress a stream data to another
-     @param src Original stream
-     @param stm Target stream to write compressed data
+    /*! @brief Compress data from source stream to stream object using gzip algorithm
+     @param src Given stream containing data to compress
+     @param stm Specify stream to store compressed data
      */
     static gzipTo(Stream src, Stream stm) async;
 
-    /*! @brief Use gzip to decompress data
-     @param data Compressed data
-     @return Return decompressed binary
+    /*! @brief Decompress data compressed by gzip algorithm
+     @param data Given compressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
      */
-    static Buffer gunzip(Buffer data) async;
+    static Buffer gunzip(Buffer data, Integer maxSize = -1) async;
 
-    /*! @brief Use gzip to decompress data to stream
-     @param data Compressed data
-     @param stm Stream to write decompressed data
+    /*! @brief Decompress data compressed by gzip algorithm to stream object
+     @param data Given data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static gunzipTo(Buffer data, Stream stm) async;
+    static gunzipTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Use gzip to decompress a stream data to another
-     @param src Original stream
-     @param stm Target stream to write decompressed data
+    /*! @brief Decompress data from source stream compressed by gzip algorithm to stream object
+     @param src Given stream containing data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static gunzipTo(Stream src, Stream stm) async;
+    static gunzipTo(Stream src, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Use deflate to compress data (deflateRaw)
-     @param data Raw data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
-     @return Return compressed binary
+    /*! @brief Compress data using deflate algorithm (deflateRaw)
+     @param data Given data to compress
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
      */
     static Buffer deflateRaw(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to compress data to stream (deflateRaw)
-     @param data Raw data
-     @param stm Stream to write compressed data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
+    /*! @brief Compress data to stream object using deflate algorithm (deflateRaw)
+     @param data Given data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
      */
     static deflateRawTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to compress a stream data to another (deflateRaw)
-     @param src Original stream
-     @param stm Target stream to write compressed data
-     @param level Indicate compression level, default is DEFAULT_COMPRESSION
+    /*! @brief Compress data from source stream to stream object using deflate algorithm (deflateRaw)
+     @param src Given stream containing data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
      */
     static deflateRawTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Use deflate to decompress data (deflateRaw)
-     @param data Compressed data
-     @return Return decompressed binary
+    /*! @brief Decompress data compressed by deflate algorithm (inflateRaw)
+     @param data Given compressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
      */
-    static Buffer inflateRaw(Buffer data) async;
+    static Buffer inflateRaw(Buffer data, Integer maxSize = -1) async;
 
-    /*! @brief Use deflate to decompress data to stream (deflateRaw)
-     @param data Compressed data
-     @param stm Stream to write decompressed data
+    /*! @brief Decompress data compressed by deflate algorithm to stream object (inflateRaw)
+     @param data Given data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static inflateRawTo(Buffer data, Stream stm) async;
+    static inflateRawTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Use deflate to decompress a stream data to another (deflateRaw)
-     @param src Original stream
-     @param stm Target stream to write decompressed data
+    /*! @brief Decompress data from source stream compressed by deflate algorithm to stream object (inflateRaw)
+     @param src Given stream containing data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
      */
-    static inflateRawTo(Stream src, Stream stm) async;
+    static inflateRawTo(Stream src, Stream stm, Integer maxSize = -1) async;
+
+    /*! @brief Create a zip stream object 
+     @param to Stream to store processing results
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns the encapsulated stream object*/
+    static Stream createZip(Stream to, Integer level = DEFAULT_COMPRESSION);
+
+    /*! @brief Create an unzip stream object 
+     @param to Stream to store processing results
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns the encapsulated stream object*/
+    static Stream createUnzip(Stream to, Integer maxSize = -1);
+
+    /*! @brief Compress data using zip algorithm
+     @param data Given data to compress
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
+     */
+    static Buffer zip(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief Compress data to stream object using zip algorithm
+     @param data Given data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     */
+    static zipTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief Compress data from source stream to stream object using zip algorithm
+     @param src Given stream containing data to compress
+     @param stm Specify stream to store compressed data
+     @param level Specify compression level, default DEFAULT_COMPRESSION
+     */
+    static zipTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief Decompress data compressed by zip algorithm
+     @param data Given compressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
+     */
+    static Buffer unzip(Buffer data, Integer maxSize = -1) async;
+
+    /*! @brief Decompress data compressed by zip algorithm to stream object
+     @param data Given data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     */
+    static unzipTo(Buffer data, Stream stm, Integer maxSize = -1) async;
+
+    /*! @brief Decompress data from source stream compressed by zip algorithm to stream object
+     @param src Given stream containing data to decompress
+     @param stm Specify stream to store decompressed data
+     @param maxSize Specify decompression size limit, default -1, no limit
+     */
+    static unzipTo(Stream src, Stream stm, Integer maxSize = -1) async;
 };

@@ -1,22 +1,83 @@
+/*! @brief Sandbox module for isolating runtime environments of different security levels
 
-/*! @brief Safe SandBox module, to isolate runtime based on safety level.
+By establishing isolated sandboxes, you can limit the resources that scripts can access during runtime, isolate different script execution environments, and customize basic modules for different environments to ensure the security of the overall runtime environment.
 
- By establishing a safe SandBox, you can limit the accessible resources when the script runs, and isolate different script execution environment, also can be customized for different environments base module to ensure the safety of the overall operating environment.
+The following example creates a sandbox that only allows access to the assert module from the global basic modules, and adds two custom modules a and b:
+```JavaScript
+var vm = require('vm');
+var sbox = new vm.SandBox({
+  a: 100,
+  b: 200,
+  assert: require('assert')
+});
 
- Following example demonstrates a sandbox which is only allowed for accessing assert module, and add a and b as customized modules.
- @code
- var vm = require('vm');
- var sbox = new vm.SandBox({
-   a: 100,
-   b: 200,
-   assert: require('assert')
- });
-
- var mod_in_sbox = sbox.require('./path/to/mod');
- @endcode
+var mod_in_sbox = sbox.require('./path/to/mod');
+```
  */
 module vm
 {
     /*! @brief Create a SandBox object, see SandBox */
-    static SandBox new SandBox();
+    static SandBox;
+
+    /*! @brief Create a Script object, see Script */
+    static Script;
+
+    /*! @brief Create a context object
+     @param contextObject Specify the object to be contextified
+     @param opts Specify context options
+     @return Returns the context object
+    */
+    static Object createContext(Object contextObject = {}, Object opts = {});
+
+    /*! @brief If the given object has been contextified using vm.createContext(), returns true
+     @param contextObject Specify the object to check
+     @return If the given object has been contextified using vm.createContext(), returns true
+    */
+    static Boolean isContext(Object contextObject);
+
+    /*! @brief Run the code specified by code in the given contextifiedObject and return the result
+     @param code Specify the script code to compile and run
+     @param contextifiedObject Specify the context object at runtime
+     @param opts Specify run options
+     @return Returns the run result
+    */
+    static Value runInContext(String code, Object contextifiedObject, Object opts = {});
+
+    /*! @brief Run the code specified by code in the given contextifiedObject and return the result
+     @param code Specify the script code to compile and run
+     @param contextifiedObject Specify the context object at runtime
+     @param filename Specify the script filename
+     @return Returns the run result
+    */
+    static Value runInContext(String code, Object contextifiedObject, String filename);
+
+    /*! @brief Using the given contextObject in the created context, run the code specified by code in it and return the result
+     @param code Specify the script code to compile and run
+     @param contextObject Specify the object to be contextified
+     @param opts Specify run options
+     @return Returns the run result
+    */
+    static Value runInNewContext(String code, Object contextObject = {}, Object opts = {});
+
+    /*! @brief Using the given contextObject in the created context, run the code specified by code in it and return the result
+     @param code Specify the script code to compile and run
+     @param contextObject Specify the object to be contextified
+     @param filename Specify the script filename
+     @return Returns the run result
+    */
+    static Value runInNewContext(String code, Object contextObject = {}, String filename);
+
+    /*! @brief Run the code specified by code in the current context and return the result
+     @param code Specify the script code to compile and run
+     @param opts Specify run options
+     @return Returns the run result
+    */
+    static Value runInThisContext(String code, Object opts = {});
+
+    /*! @brief Run the code specified by code in the current context and return the result
+     @param code Specify the script code to compile and run
+     @param filename Specify the script filename
+     @return Returns the run result
+    */
+    static Value runInThisContext(String code, String filename);
 };

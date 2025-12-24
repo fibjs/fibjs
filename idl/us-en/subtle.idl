@@ -1,0 +1,131 @@
+/*! @brief Provide access to SubtleCrypto API
+
+The SubtleCrypto API module provides a set of functions for encryption and decryption. It can be obtained through global.webcrypto.subtle property or require("crypto").webcrypto.subtle.
+*/
+module subtle
+{
+    /*! @brief Calculate the hash value of the given data
+
+    The name property of algorithm specifies the hash algorithm, for example:
+    ```
+    {
+        name: "SHA-256"
+    }
+    ```
+
+    @param algorithm Specify hash algorithm
+    @param data Specify the data to calculate hash value
+    @return Return the calculated hash value
+    */
+    static ArrayBuffer digest(Object algorithm, Buffer data) promise;
+
+    /*! @brief Calculate the hash value of the given data
+
+    @param algorithm Specify hash algorithm
+    @param data Specify the data to calculate hash value
+    @return Return the calculated hash value
+    */
+    static ArrayBuffer digest(String algorithm, Buffer data) promise;
+
+    /*! @brief Export key information, if the key is not exportable, return an error
+
+    @param format Export format, can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+    @param key The key to export
+    @return Return the exported key information
+    */
+    static Variant exportKey(String format, CryptoKey key) promise;
+
+    /*! @brief Generate a new key
+
+    @param algorithm Specify the algorithm to generate the key
+    @param extractable Specify whether the key can be exported externally
+    @param usages Specify the purpose of the key
+    @return Return the generated key
+    */
+    static Variant generateKey(Object algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief Generate a new key
+
+    @param algorithm Specify the algorithm to generate the key
+    @param extractable Specify whether the key can be exported externally
+    @param usages Specify the purpose of the key
+    @return Return the generated key
+    */
+    static Variant generateKey(String algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief Import key
+
+    @param format Import format, can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+    @param keyData Object containing key data
+    @param algorithm Specify the algorithm of the key
+    @param extractable Specify whether the key can be exported externally
+    @param usages Specify the purpose of the key
+    @return Return the imported key
+    */
+    static CryptoKey importKey(String format, Value keyData, String algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief Import key
+
+    @param format Import format, can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+    @param keyData Object containing key data
+    @param algorithm Specify the algorithm of the key
+    @param extractable Specify whether the key can be exported externally
+    @param usages Specify the purpose of the key
+    @return Return the imported key
+    */
+    static CryptoKey importKey(String format, Value keyData, Object algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief Use key to sign data
+
+    @param algorithm Specify signature algorithm
+    @param key Specify the key used for signing
+    @param data Specify the data to sign
+    @return Return the signed data
+    */
+    static ArrayBuffer sign(Object algorithm, CryptoKey key, Buffer data) promise;
+
+    /*! @brief Use key to sign data
+
+    @param algorithm Specify signature algorithm
+    @param key Specify the key used for signing
+    @param data Specify the data to sign
+    @return Return the signed data
+    */
+    static ArrayBuffer sign(String algorithm, CryptoKey key, Buffer data) promise;
+
+    /*! @brief Use key to verify signature on data
+
+    @param algorithm Specify signature algorithm
+    @param key Specify the key used for verification
+    @param signature Specify signature data
+    @param data Specify the data to verify
+    @return Return verification result
+    */
+    static Boolean verify(Object algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
+
+    /*! @brief Use key to verify signature on data
+
+    @param algorithm Specify signature algorithm
+    @param key Specify the key used for verification
+    @param signature Specify signature data
+    @param data Specify the data to verify
+    @return Return verification result
+    */
+    static Boolean verify(String algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
+
+    /*! @brief Derive a bit array from the base key
+    @param algorithm Specify derivation algorithm
+    @param baseKey Specify the base key used for derivation
+    @param length Specify the number of bits to derive
+    @return Return the derived bit array
+    */
+    static ArrayBuffer deriveBits(Object algorithm, CryptoKey baseKey, Integer length = -1) promise;
+
+    /*! @brief Derive a bit array from the base key
+    @param algorithm Specify derivation algorithm
+    @param baseKey Specify the base key used for derivation
+    @param length Specify the number of bits to derive
+    @return Return the derived bit array
+    */
+    static ArrayBuffer deriveBits(String algorithm, CryptoKey baseKey, Integer length = -1) promise;
+};

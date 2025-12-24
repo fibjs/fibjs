@@ -1,28 +1,51 @@
+/*! @brief HttpRequest is a class for handling HTTP requests, it allows you to create HTTP requests and interact with servers. You can use it to send GET, POST and other types of HTTP requests to web servers.
 
-/*! @brief http request message object */
+Assume we have a query parameter with key 'name', we return different results based on this parameter: if the parameter is empty, return "Hello world!"; if the parameter is "fibjs", return "Hello fibjs!"; otherwise return "Hello some body!".
+
+The code implementation is as follows:
+```JavaScript
+const http = require('http');
+
+var svr = new http.Server(8080, (req) => {
+  var name = req.query.get('name');
+  var msg = name ? `Hello ${name}!` : 'Hello world!';
+  
+  req.response.write(msg);
+});
+
+svr.start();
+```
+
+Here we used `req.query` this Collection type, which represents the query parameters in the HTTP request URL.
+
+We access the service program through the browser at http://127.0.0.1:8080/?name=fibjs and get the server response content `Hello fibjs!`.
+ */
 interface HttpRequest : HttpMessage
 {
-    /*! @brief HttpRequest constructor, creating a new HttpRequest object */
+    /*! @brief HttpRequest constructor, creates a new HttpRequest object */
     HttpRequest();
 
-    /*! @brief method of querying and setting the request */
+    /*! @brief Get the response message object*/
+    readonly HttpResponse response;
+
+    /*! @brief Query and set the request method */
     String method;
 
-    /*! @brief querying and setting the address of the request */
+    /*! @brief Query and set the request address */
     String address;
 
-    /*! @brief get the full URL of the request, including protocol, host, path and query string */
+    /*! @brief Get the complete URL of the request, including protocol, host, path and query string */
     readonly String url;
 
-    /*! @brief querying and setting the query string of the request */
+    /*! @brief Query and set the request query string */
     String queryString;
 
-    /*! @brief get the container of the message's cookies */
+    /*! @brief Get the container containing the message cookies*/
     readonly HttpCollection cookies;
 
-    /*! @brief get the container of the message's form */
-    readonly HttpCollection form;
+    /*! @brief Get the container containing the message form*/
+    readonly FormData form;
 
-    /*! @brief get the container of the message's query */
-    readonly HttpCollection query;
+    /*! @brief Get the container containing the message query*/
+    readonly URLSearchParams query;
 };

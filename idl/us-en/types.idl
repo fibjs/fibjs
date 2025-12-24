@@ -1,0 +1,288 @@
+/*! @brief The types module provides utility functions for data type judgment
+
+Here is the specific introduction and example:
+
+```JavaScript
+var util = require('util');
+console.log(util.types.isDate(new Date()));
+console.log(util.types.isRegExp(/some regexp/));
+```
+*/
+module types
+{
+    /*! @brief Detect whether the given variable contains no value (no enumerable properties)
+     @param v The given variable to detect
+     @return Return True if empty
+     */
+    static Boolean isEmpty(Value v);
+
+    /*! @brief Detect whether the given variable is an array
+     @param v The given variable to detect
+     @return Return True if it is an array
+     */
+    static Boolean isArray(Value v);
+
+    /*! @brief Detect whether the given variable is Boolean
+     @param v The given variable to detect
+     @return Return True if it is Boolean
+     */
+    static Boolean isBoolean(Value v);
+
+    /*! @brief Detect whether the given variable is Null
+     @param v The given variable to detect
+     @return Return True if it is Null
+     */
+    static Boolean isNull(Value v);
+
+    /*! @brief Detect whether the given variable is Null or Undefined
+     @param v The given variable to detect
+     @return Return True if it is Null or Undefined
+     */
+    static Boolean isNullOrUndefined(Value v);
+
+    /*! @brief Detect whether the given variable is a number
+     @param v The given variable to detect
+     @return Return True if it is a number
+     */
+    static Boolean isNumber(Value v);
+
+    /*! @brief Detect whether the given variable is BigInt
+     @param v The given variable to detect
+     @return Return True if it is a number
+     */
+    static Boolean isBigInt(Value v);
+
+    /*! @brief Detect whether the given variable is a string
+     @param v The given variable to detect
+     @return Return True if it is a string
+     */
+    static Boolean isString(Value v);
+
+    /*! @brief Detect whether the given variable is Undefined
+     @param v The given variable to detect
+     @return Return True if it is Undefined
+     */
+    static Boolean isUndefined(Value v);
+
+    /*! @brief Detect whether the given variable is a regular expression object
+     @param v The given variable to detect
+     @return Return True if it is a regular expression object
+     */
+    static Boolean isRegExp(Value v);
+
+    /*! @brief Detect whether the given variable is an object
+     @param v The given variable to detect
+     @return Return True if it is an object
+     */
+    static Boolean isObject(Value v);
+
+    /*! @brief Detect whether the given variable is a date object
+     @param v The given variable to detect
+     @return Return True if it is a date object
+     */
+    static Boolean isDate(Value v);
+
+    /*! @brief Detect whether the given variable is an error object
+     @param v The given variable to detect
+     @return Return True if it is an error object
+     */
+    static Boolean isNativeError(Value v);
+
+    /*! @brief Detect whether the given variable is a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a primitive type
+     */
+    static Boolean isPrimitive(Value v);
+
+    /*! @brief Detect whether the given variable is Symbol type
+     @param v The given variable to detect
+     @return Return True if it is Symbol type
+     */
+    static Boolean isSymbol(Value v);
+
+    /*! @brief Detect whether the given variable is DataView type
+     @param v The given variable to detect
+     @return Return True if it is DataView type
+     */
+    static Boolean isDataView(Value v);
+
+    /*! @brief Detect whether the given variable is External type
+     @param v The given variable to detect
+     @return Return True if it is External type
+     */
+    static Boolean isExternal(Value v);
+
+    /*! @brief Detect whether the given variable is Map type
+     @param v The given variable to detect
+     @return Return True if it is Map type
+     */
+    static Boolean isMap(Value v);
+
+    /*! @brief Detect whether the given variable is MapIterator type
+     @param v The given variable to detect
+     @return Return True if it is MapIterator type
+     */
+    static Boolean isMapIterator(Value v);
+
+    /*! @brief Detect whether the given variable is Promise type
+     @param v The given variable to detect
+     @return Return True if it is Promise type
+     */
+    static Boolean isPromise(Value v);
+
+    /*! @brief Detect whether the given variable is AsyncFunction type
+     @param v The given variable to detect
+     @return Return True if it is AsyncFunction type
+     */
+    static Boolean isAsyncFunction(Value v);
+
+    /*! @brief Detect whether the given variable is Set type
+     @param v The given variable to detect
+     @return Return True if it is Set type
+     */
+    static Boolean isSet(Value v);
+
+    /*! @brief Detect whether the given variable is SetIterator type
+     @param v The given variable to detect
+     @return Return True if it is SetIterator type
+     */
+    static Boolean isSetIterator(Value v);
+
+    /*! @brief Detect whether the given variable is TypedArray type
+     @param v The given variable to detect
+     @return Return True if it is TypedArray type
+     */
+    static Boolean isTypedArray(Value v);
+
+    /*! @brief Detect whether the given variable is Float32Array type
+     @param v The given variable to detect
+     @return Return True if it is Float32Array type
+     */
+    static Boolean isFloat32Array(Value v);
+
+    /*! @brief Detect whether the given variable is Float64Array type
+     @param v The given variable to detect
+     @return Return True if it is Float64Array type
+     */
+    static Boolean isFloat64Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int8Array type
+     @param v The given variable to detect
+     @return Return True if it is Int8Array type
+     */
+    static Boolean isInt8Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int16Array type
+     @param v The given variable to detect
+     @return Return True if it is Int16Array type
+     */
+    static Boolean isInt16Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int32Array type
+     @param v The given variable to detect
+     @return Return True if it is Int32Array type
+     */
+    static Boolean isInt32Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint8Array type
+     @param v The given variable to detect
+     @return Return True if it is Uint8Array type
+     */
+    static Boolean isUint8Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint8ClampedArray type
+     @param v The given variable to detect
+     @return Return True if it is Uint8ClampedArray type
+     */
+    static Boolean isUint8ClampedArray(Value v);
+
+    /*! @brief Detect whether the given variable is Uint16Array type
+     @param v The given variable to detect
+     @return Return True if it is Uint16Array type
+     */
+    static Boolean isUint16Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint32Array type
+     @param v The given variable to detect
+     @return Return True if it is Uint32Array type
+     */
+    static Boolean isUint32Array(Value v);
+
+    /*! @brief Detect whether the given variable is a function object
+     @param v The given variable to detect
+     @return Return True if it is a function object
+     */
+    static Boolean isFunction(Value v);
+
+    /*! @brief Detect whether the given variable is a Buffer object
+     @param v The given variable to detect
+     @return Return True if it is a Buffer object
+     */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief Detect whether the given variable is a BigInt object, not a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a BigInt object
+     */
+    static Boolean isBigIntObject(Value v);
+
+    /*! @brief Detect whether the given variable is a Boolean object, not a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a Boolean object
+     */
+    static Boolean isBooleanObject(Value v);
+
+    /*! @brief Detect whether the given variable is a Number object, not a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a Number object
+     */
+    static Boolean isNumberObject(Value v);
+
+    /*! @brief Detect whether the given variable is a String object, not a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a String object
+     */
+    static Boolean isStringObject(Value v);
+
+    /*! @brief Detect whether the given variable is a Symbol object, not a primitive type
+     @param v The given variable to detect
+     @return Return True if it is a Symbol object
+     */
+    static Boolean isSymbolObject(Value v);
+
+    /*! @brief Detect whether the given variable is WeakMap type
+     @param v The given variable to detect
+     @return Return True if it is WeakMap type
+     */
+    static Boolean isWeakMap(Value v);
+
+    /*! @brief Detect whether the given variable is WeakSet type
+     @param v The given variable to detect
+     @return Return True if it is WeakSet type
+     */
+    static Boolean isWeakSet(Value v);
+
+    /*! @brief Detect whether the given variable is ArrayBuffer type
+     @param v The given variable to detect
+     @return Return True if it is ArrayBuffer type
+     */
+    static Boolean isArrayBuffer(Value v);
+
+    /*! @brief Detect whether the given variable is ArrayBufferView type
+     @param v The given variable to detect
+     @return Return True if it is ArrayBufferView type
+     */
+    static Boolean isArrayBufferView(Value v);
+
+    /*! @brief Detect whether the given variable is BigInt64Array type
+     @param v The given variable to detect
+     @return Return True if it is BigInt64Array type
+     */
+    static Boolean isBigInt64Array(Value v);
+
+    /*! @brief Detect whether the given variable is BigUint64Array type
+     @param v The given variable to detect
+     @return Return True if it is BigUint64Array type
+     */
+    static Boolean isBigUint64Array(Value v);
+};

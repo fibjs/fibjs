@@ -1,0 +1,49 @@
+/*! @brief HttpRepeater is an HTTP request forwarder that can forward HTTP requests to specified backend servers and obtain responses. It is often used in complex systems that require interaction between the frontend and multiple backend servers, or for load balancing.
+
+Using HttpRepeater is very simple, just provide the backend server URL or an array of load balancing URLs when creating the instance.
+
+Here is an example using a single backend:
+```JavaScript
+var http = require('http');
+var serverUrl = 'http://localhost:' + actualPort + '/example'
+var repeater = new http.Repeater(serverUrl)
+
+var server = new http.Server(8081, repeater);
+server.start();
+```
+Here is an example using an array of URLs for load balancing:
+```JavaScript
+var serverURLs = [
+  'http://server1.example.com',
+  'http://server2.example.com',
+  'http://server3.example.com'
+]
+var repeater = new http.Repeater(serverURLs)
+
+var server = new http.Server(8081, repeater);
+server.start();
+```
+ */
+interface HttpRepeater : Handler
+{
+    /*! @brief HttpRepeater constructor, creates a new HttpRepeater object 
+     @param url specifies a backend server url
+    */
+    HttpRepeater(String url);
+
+    /*! @brief HttpRepeater constructor, creates a new HttpRepeater object
+     @param urls specifies a set of backend server urls
+    */
+    HttpRepeater(String urls[]);
+
+    /*! @brief Load a new set of backend urls
+     @param urls specifies a set of backend server urls
+    */
+    load(String urls[]);
+
+    /*! @brief Query the current backend server url list*/
+    readonly NArray urls;
+
+    /*! @brief HttpClient object used internally by the request forwarding handler*/
+    readonly HttpClient client;
+};

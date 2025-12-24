@@ -1,0 +1,32 @@
+/*! @brief Range query stream read object
+
+ RangeStream object is used to truncate data from SeekableStream objects. Creation method:
+ ```JavaScript
+ var stm = new io.RangeStream(stream, '0-10');
+ stm.end // 11
+
+ var stm = new io.RangeStream(stream, 0, 10);
+ stm.end // 10
+ ```
+ */
+interface RangeStream : SeekableStream
+{
+    /*! @brief RangeStream constructor
+      @param stm RangeStream's binary base stream object, must be SeekableStream
+      @param range String describing range, format 'begin-[end]', '[begin]-end'
+     */
+    RangeStream(SeekableStream stm, String range);
+
+    /*! @brief RangeStream constructor
+      @param stm RangeStream's binary base stream object, must be SeekableStream
+      @param begin Starting position to read content from stm
+      @param end Ending position to read content from stm
+     */
+    RangeStream(SeekableStream stm, Long begin, Long end);
+
+    /*! @brief Query range start value */
+    readonly Long begin;
+
+    /*! @brief Query range end value */
+    readonly Long end;
+};

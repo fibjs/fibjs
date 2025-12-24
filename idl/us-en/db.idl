@@ -1,69 +1,83 @@
-
 /*! @brief Database access module
 
- Basic module for create database and database operation, The way to use::
- \code
+ Basic module. Can be used to create and operate database resources, reference method:
+ ```JavaScript
  var db = require('db');
- \endcode
+ var conn = db.open('rng://user:pass@host:port/dbname');
+ ```
+ By specifying the database engine, different database connections can be established. fibjs has two built-in sql engines: sqlite and mysql, and also supports connecting to more databases through ODBC/unixODBC, based on ODBC/unixODBC, fibjs has built drivers for mssql and PostgreSQL.
+ To use ODBC/unixODBC, you need to install the corresponding drivers, on posix using mssql requires installing freetds, using PostgreSQL requires installing psqlodbc.
+ Normally, once the driver is installed successfully, it can be used directly without further configuration.
  */
 module db
 {
-    /*! @brief This method offer a general entrance to open a database, call different engines according to the providing connString.
-     @param connString Database Description, For example: mysql://user:pass\@host/db
-     @return Returns the database connection object.
+    /*! @brief Open a database, this method is a general entry, calls different engines according to the provided connString
+     @param connString Database description, such as: mysql://user:pass@host/db
+     @return Return database connection object
      */
     static object open(String connString) async;
 
-    /*! @brief Open a mysql database.
-     @param connString Database Description, For example: mysql://user:pass\@host/db
-     @return Returns the database connection object.
+    /*! @brief Open a mysql database
+     @param connString Database description, such as: mysql://user:pass@host/db
+     @return Return database connection object
      */
     static MySQL openMySQL(String connString) async;
 
-    /*! @brief Open a sqlite database.
-     @param connString Database Description, For example: sqlite:test.db or test.db
-     @return Returns the database connection object.
+    /*! @brief Open a sqlite database
+     @param connString Database description, such as: sqlite:test.db or test.db
+     @return Return database connection object
      */
     static SQLite openSQLite(String connString) async;
 
-    /*! @brief Open a mongodb database.
-     @param connString Database Description
-     @return Returns the database connection object.
+    /*! @brief Open a sqlite database
+     @param connString Database description, such as: odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     @return Return database connection object
      */
-    static MongoDB openMongoDB(String connString) async;
+    static DbConnection openOdbc(String connString) async;
 
-    /*! @brief Open a leveldb database.
-     @param connString Database Description, For example: level:test.db or test.db
-     @return Returns the database connection object.
+    /*! @brief Open a mssql database
+
+     To establish a connection with mssql, on posix you must install the freetds odbc driver, you can also use Microsoft's mssql driver by specifying the driver, the way to specify the driver is to add ?driver=msodbcsql17[.so/.dylib] option after the url.
+     @param connString Database description, such as: mssql://user:pass@host/db
+     @return Return database connection object
+     */
+    static DbConnection openMSSQL(String connString) async;
+
+    /*! @brief Open a PostgresSQL database
+
+     To establish a connection with PostgresSQL, you must install the PostgresSQL odbc driver.
+     On ubuntu, use the following command to install the PostgresSQL odbc driver:
+     ```bash
+     apt install unixodbc unixodbc-dev odbc-postgresql
+     ```
+     On mac, use the following command to install the PostgresSQL odbc driver:
+     ```bash
+     brew install unixodbc psqlodbc
+     ```
+     At the same time, you need to add the path of the odbc driver installed by brew to the environment variables. Usually /usr/local/lib or /opt/homebrew/lib. You can use find to find the path where libodbc.dylib is located:
+    ```bash
+    find /usr/local/ -name libodbc.dylib
+    find /opt/homebrew/ -name libodbc.dylib
+    ```
+     Edit ~/.zshrc, add the following content:
+     ```bash
+     export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
+     ```
+
+     @param connString Database description, such as: psql://user:pass@host/db
+     @return Return database connection object
+     */
+    static DbConnection openPSQL(String connString) async;
+
+    /*! @brief Open a leveldb database
+     @param connString Database description, such as: level:test.db or test.db
+     @return Return database object
      */
     static LevelDB openLevelDB(String connString) async;
 
-    /*! @brief Open a Redis database.
-     @param connString Database Description, For example: redis://server:port or "server"
-     @return Returns the database connection object.
+    /*! @brief Open a Redis database
+     @param connString Database description, such as: redis://server:port or "server"
+     @return Return database connection object
      */
     static Redis openRedis(String connString) async;
-
-    /*! @brief Formatting a sql command, and returns the formatted results
-
-     @param sql Format string, optional parameters can be specified as '?', for example: 'SELECT FROM TEST WHERE [id]=?'
-     @param ... Optional parameter list
-     @return Return the formatted sql command.
-     */
-    static String format(String sql, ...);
-
-    /*! @brief Formatting a sql command, and returns the formatted results
-
-     @param sql Format string, optional parameters can be specified as '?', for example: 'SELECT FROM TEST WHERE [id]=?'
-     @param ... Optional parameter list
-     @return Return the formatted sql command.
-     */
-    static String formatMySQL(String sql, ...);
-
-    /*! @brief String encoded as security coded SQL strings
-     @param str The string that need to be encoded
-     @param mysql Specify the Mysql encoding, the default value is false
-     @return Returns the encoded string
-     */
-    static String escape(String str, Boolean mysql = false);
 };

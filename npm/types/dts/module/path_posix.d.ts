@@ -43,11 +43,11 @@ declare module 'path_posix' {
      *      pathObject 支持的字段如下：
      *      ```JavaScript
      *      {
-     *          "dir": "", // specify the directory of the path
-     *          "root": "", // specify the root of the path
-     *          "base": "", // specify the base of the path, it's the combination of name and ext
-     *          "name": "", // specify the name of the path
-     *          "ext": "", // specify the ext of the path
+     *          "dir": "", // Specify the directory of the path
+     *          "root": "", // Specify the root of the path
+     *          "base": "", // Specify the base name of the path, which is the combination of name and ext
+     *          "name": "", // Specify the name of the path
+     *          "ext": "", // Specify the extension of the path
      *      }
      *      ```
      *      @param pathObject 指定参数

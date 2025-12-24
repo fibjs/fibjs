@@ -1,0 +1,50 @@
+/*! @brief Server-Sent Events (SSE) module, implements server push functionality based on HTTP
+ 
+  The SSE module provides a standard EventSource interface implementation, supporting real-time data stream push from server to client.
+  This module follows the W3C Server-Sent Events specification, providing complete client and server implementations:
+  
+  Client functionality:
+  - EventSource interface: Create a persistent connection with the server, receive real-time event streams
+  - Event parsing: Support standard fields such as data, event, id, retry, etc.
+  
+  Server functionality:
+  - Protocol upgrade handling: Upgrade HTTP requests to SSE connections
+  - Event sending: Push formatted event data to clients
+  - Connection management: Maintain the lifecycle of multiple client connections
+  
+  Connection status:
+  - CONNECTING (0): Establishing connection
+  - OPEN (1): Connection established, can send and receive data
+  - CLOSED (2): Connection closed
+  - SENDER (3): Send mode, used for server-side push
+  
+  Event types:
+  - open: Connection established successfully
+  - message: Received server message
+  - error: Connection error or data parsing error
+  - close: Connection closed
+*/
+module sse
+{
+    /*! @brief Event source status: Connecting */
+    const CONNECTING = 0;
+
+    /*! @brief Event source status: Connected */
+    const OPEN = 1;
+
+    /*! @brief Event source status: Closed */
+    const CLOSED = 2;
+
+    /*! @brief Event source status: Send mode */
+    const SENDER = 3;
+
+    /*! @brief Create an event source interface for server push events, see EventSource */
+    static EventSource;
+
+    /*! @brief Create an sse protocol handler, receive upgrade requests from http and handshake, generate EventSource object
+     ```
+     @param accept Connection success handler function, callback will pass two parameters, the first parameter is the received EventSource object, the second parameter is the HttpRequest object during handshake
+     @return Return the protocol handler, can be docked with HttpServer, Chain, Routing, etc.
+     */
+    static Handler upgrade(Function accept);
+};

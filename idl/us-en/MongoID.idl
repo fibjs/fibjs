@@ -1,4 +1,0 @@
-/*! @brief mongodb unique object for save and pass oid */
-interface MongoID : object
-{
-};

@@ -13,7 +13,7 @@
  *  als.run({ requestId: 'req-123' }, () => {
  *      setTimeout(() => {
  *          const store = als.getStore();
- *          console.log(store.requestId);  // 输出: req-123
+ *          console.log(store.requestId);  // Output: req-123
  *      }, 100);
  *  });
  *  ```
@@ -48,10 +48,10 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      示例：
      *      ```javascript
      *      const runInContext = als.run({ id: 1 }, () => AsyncLocalStorage.snapshot());
-     *      // 稍后在不同的上下文中
+     *      // Later in a different context
      *      als.run({ id: 2 }, () => {
      *          runInContext(() => {
-     *              console.log(als.getStore().id);  // 输出: 1
+     *              console.log(als.getStore().id);  // Output: 1
      *          });
      *      });
      *      ```
@@ -73,7 +73,7 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *          return AsyncLocalStorage.bind(() => als.getStore());
      *      });
      *      als.run({ id: 2 }, () => {
-     *          console.log(bound().id);  // 输出: 1
+     *          console.log(bound().id);  // Output: 1
      *      });
      *      ```
      * 
@@ -113,7 +113,7 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      setImmediate(() => {
      *          als.enterWith({ id: 1 });
      *          setTimeout(() => {
-     *              console.log(als.getStore().id);  // 输出: 1
+     *              console.log(als.getStore().id);  // Output: 1
      *          }, 100);
      *      });
      *      ```
@@ -133,10 +133,10 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      示例：
      *      ```javascript
      *      const result = als.run({ userId: 'user-1' }, (a, b) => {
-     *          console.log(als.getStore().userId);  // 输出: user-1
+     *          console.log(als.getStore().userId);  // Output: user-1
      *          return a + b;
      *      }, 10, 20);
-     *      console.log(result);  // 输出: 30
+     *      console.log(result);  // Output: 30
      *      ```
      * 
      *      @param store 要存储的数据
@@ -156,11 +156,11 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      示例：
      *      ```javascript
      *      als.run({ id: 1 }, () => {
-     *          console.log(als.getStore().id);  // 输出: 1
+     *          console.log(als.getStore().id);  // Output: 1
      *          als.exit(() => {
-     *              console.log(als.getStore());  // 输出: undefined
+     *              console.log(als.getStore());  // Output: undefined
      *          });
-     *          console.log(als.getStore().id);  // 输出: 1
+     *          console.log(als.getStore().id);  // Output: 1
      *      });
      *      ```
      * 

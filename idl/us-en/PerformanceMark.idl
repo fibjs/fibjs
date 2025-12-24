@@ -1,0 +1,6 @@
+/*! @brief PerformanceMark interface provides detailed information for performance mark records.*/
+interface PerformanceMark : PerformanceEntry
+{
+    /*! @brief Detailed information of the performance mark record. */
+    readonly Value detail;
+};

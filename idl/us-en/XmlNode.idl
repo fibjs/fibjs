@@ -1,11 +1,10 @@
-
-/*! @brief XmlNode object is fundamental data type of entire DOM
+/*! @brief XmlNode object is the basic data type of the entire DOM
  */
 interface XmlNode : object
 {
-    /*! @brief Get node type
+    /*! @brief Return the node type of the node
 
-     Different nodeType returns different values:
+     Different objects' nodeType will return different values:
      - XmlElement: ELEMENT_NODE(1)
      - XmlAttr: ATTRIBUTE_NODE(2)
      - XmlText: TEXT_NODE(3)
@@ -17,131 +16,162 @@ interface XmlNode : object
     */
     readonly Integer nodeType;
 
-    /*! @brief Get node name based on its type
+    /*! @brief Return the name of the node, according to its type
 
-     Different nodeName returns different values:
+     Different objects' nodeName will return different values:
      - XmlElement: element name
-     - XmlAttr: Attribute name
-     - XmlText: \#text
-     - XmlCDATASection: \#cdata-section
-     - XmlProcessingInstruction: Get specified target
-     - XmlComment: \#comment
-     - XmlDocument: \#document
+     - XmlAttr: attribute name
+     - XmlText: #text
+     - XmlCDATASection: #cdata-section
+     - XmlProcessingInstruction: return the specified target
+     - XmlComment: #comment
+     - XmlDocument: #document
      - XmlDocumentType: doctype name
     */
     readonly String nodeName;
 
-    /*! @brief Get node name based on its type
+    /*! @brief Return the name of the node, according to its type
 
-     Different nodeName returns different values:
+     Different objects' nodeName will return different values:
      - XmlElement: null
-     - XmlAttr: Attribute value
-     - XmlText: Node content
-     - XmlCDATASection: Node content
-     - XmlProcessingInstruction: Get specified data
-     - XmlComment: Comment
+     - XmlAttr: the value of the attribute
+     - XmlText: the content of the node
+     - XmlCDATASection: the content of the node
+     - XmlProcessingInstruction: return the specified data
+     - XmlComment: comment text
      - XmlDocument: null
      - XmlDocumentType: null
     */
     String nodeValue;
 
-    /*! @brief Get root element(XmlDocument)
+    /*! @brief Return the root element of the node (XmlDocument object)
     */
     readonly XmlDocument ownerDocument;
 
-    /*! @brief Get parent node
+    /*! @brief Can return the parent node of a node
     */
     readonly XmlNode parentNode;
 
-    /*! @brief Check if node has child nodes
-     @return Return true if there are child nodes, false otherwise
+    /*! @brief Query whether there are child nodes
+     @return Return true if there are any child nodes, otherwise return false
     */
     Boolean hasChildNodes();
 
-    /*! @brief Get child node list
+    /*! @brief Return the node list of child nodes of the specified node
     */
     readonly XmlNodeList childNodes;
 
-    /*! @brief Get first child node
+    /*! @brief Return the node list of child element nodes of the specified node
+    */
+    readonly XmlNodeList children;
+
+    /*! @brief Return the first child node of the node
     */
     readonly XmlNode firstChild;
 
-    /*! @brief Get last child node
+    /*! @brief Return the last child node of the node
     */
     readonly XmlNode lastChild;
 
-    /*! @brief Get previous sibling node, null if not exists
+    /*! @brief Return the node immediately before a node (at the same tree level), if there is no such node, this property returns null
     */
     readonly XmlNode previousSibling;
 
-    /*! @brief Get next sibling node, null if not exists
+    /*! @brief Return the node immediately after an element (at the same tree level), if there is no such node, the property returns null
     */
     readonly XmlNode nextSibling;
 
-    /*! @brief Normalize adjacent node text and delete nodes with empty text
+    /*! @brief Return the first child element node of the node
+    */
+    readonly XmlNode firstElementChild;
 
-    This method iterates all child nodes of current node, and deletes all empty text nodes. It's very good for simplify document tree.
+    /*! @brief Return the last child element node of the node
+    */
+    readonly XmlNode lastElementChild;
+
+    /*! @brief Return the element node immediately before a node (at the same tree level), if there is no such node, this property returns null
+    */
+    readonly XmlNode previousElementSibling;
+
+    /*! @brief Return the element node immediately after an element (at the same tree level), if there is no such node, the property returns null
+    */
+    readonly XmlNode nextElementSibling;
+
+    /*! Query and set the text of the selected element. When querying, return the value of all text nodes within the element node; when setting, delete all child nodes and replace them with a single text node.
+    */
+    String textContent;
+
+    /*! @brief Merge adjacent Text nodes and delete empty Text nodes
+
+    This method will traverse all descendant nodes of the current node, by deleting empty Text nodes, and merge all adjacent Text nodes to normalize the document. This method is useful for simplifying the structure of the document tree after inserting or deleting nodes.
     */
     normalize();
 
-    /*! @brief Create clone of node
+    /*! @brief Create an exact copy of the specified node
 
-     This method clone if calling node, it clones all child nodes if pass with true. Otherwise, it only clones current node. Returned node does not belong to any document tree, which means its parentNode is NULL. When cloned node is an Element, all of it attributes will be cloned as well.
-     @param deep Indicates whether to clone all child nodes or not
-     @return Return cloned node
+     This method will copy and return a copy of the node that called it. If the parameter passed to it is true, it will also recursively copy all descendant nodes of the current node. Otherwise, it only copies the current node. The returned node does not belong to the document tree, its parentNode property is null. When copying an Element node, all its attributes will be copied.
+     @param deep Whether to deep copy, when true, the cloned node will clone all child nodes of the original node
+     @return Return the copied node
     */
     XmlNode cloneNode(Boolean deep = true);
 
-    /*! @brief Lookup prefix of given namespace URI
-     @param namespaceURI Namespace URI
-     @return Return prefix, NULL when not found
+    /*! @brief Return the prefix that matches the specified namespace URI on the current node
+     @param namespaceURI Specify the namespace URI to match
+     @return Return the matched prefix, return null if not matched
     */
     String lookupPrefix(String namespaceURI);
 
-    /*! @brief Lookup namespace URI of given prefix
-     @param prefix Prefix to lookup
-     @return Return namespace URI, NULL when not found
+    /*! @brief Return the namespace URI that matches the specified prefix on the current node
+     @param prefix Specify the prefix to match
+     @return Return the matched namespace URI, return null if not matched
     */
     String lookupNamespaceURI(String prefix);
 
-    /*! @brief Insert a child node before current ones
+    /*! @brief Insert a new child node before an existing child node
 
-     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
-     @param newChild New child node
-     @param refChild Reference child node
-     @return Return new child node
+     If newChild already exists in the document tree, it will be removed from the document tree, then reinserted into its new position. Nodes from one document (or created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     @param newChild Insert the new node
+     @param refChild Insert the new node before this node
+     @return Return the new child node
     */
     XmlNode insertBefore(XmlNode newChild, XmlNode refChild);
 
-    /*! @brief Insert a child node after current ones
+    /*! @brief Insert a new child node after an existing child node
 
-     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
-     @param newChild New child node
-     @param refChild Reference child node
-     @return Return new child node
+     If newChild already exists in the document tree, it will be removed from the document tree, then reinserted into its new position. Nodes from one document (or created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     @param newChild Insert the new node
+     @param refChild Insert the new node after this node
+     @return Return the new child node
     */
     XmlNode insertAfter(XmlNode newChild, XmlNode refChild);
 
-    /*! @brief Append a child node
+    /*! @brief Add a new child node to the end of the child node list of the node
 
-     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
-     @param newChild New child node
-     @return Return new child node
+     If newChild already exists in the document tree, it will be removed from the document tree, then reinserted into its new position. Nodes from one document (or created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     @param newChild Specify the node to add
+     @return Return this new child node
     */
     XmlNode appendChild(XmlNode newChild);
 
-    /*! @brief Replace a child node to another
+    /*! @brief Replace one child node with another
 
-     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
-     @param newChild New child node
-     @param oldChild Old child node
-     @return Return new child node when succeed, NULL otherwise
+     If newChild already exists in the document tree, it will be removed from the document tree, then reinserted into its new position. Nodes from one document (or created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     @param newChild Specify the new node
+     @param oldChild Specify the node to be replaced
+     @return If the replacement is successful, this method can return the replaced node, if the replacement fails, return null
     */
     XmlNode replaceChild(XmlNode newChild, XmlNode oldChild);
 
-    /*! @brief Remove a child node
-     @param oldChild Child node to remove
-     @return Return removed child node when succeed, NULL otherwise
+    /*! @brief Remove a node from the child node list
+     @param oldChild Specify the node to be removed
+     @return If the deletion is successful, this method can return the deleted node, if it fails, return null
     */
     XmlNode removeChild(XmlNode oldChild);
+
+    /*! @brief Remove itself from the current node
+
+     This method will remove the current node from its parent node and return the current node. Note: If the current node has no parent node, this method does nothing.
+     @return Return the deleted node
+    */
+    XmlNode remove();
 };

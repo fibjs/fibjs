@@ -1,0 +1,15 @@
+/*! @brief perf_hooks basic module
+
+ Reference method:
+ ```JavaScript
+ var perf_hooks = require('perf_hooks');
+ ```
+ */
+module perf_hooks
+{
+    /*! @brief PerformanceEntry interface for representing performance record interface */
+    static PerformanceObserver;
+
+    /*! @brief performance basic performance monitoring module */
+    static performance;
+};

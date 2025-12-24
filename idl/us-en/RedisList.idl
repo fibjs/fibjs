@@ -1,82 +1,82 @@
-/*! @brief Redis database List objectm, it contains client with given key, and has to call its methods to operate database
+/*! @brief Redis database client List object, this object contains the client with the specified key, only when calling its methods will operate the database
 
- Used for Redis List object, to create it:
- @code
+ Used to operate Redis List objects, creation method:
+ ```JavaScript
  var db = require("db");
  var rdb = new db.openRedis("redis-server");
  var list = rdb.getList("test");
- @endcode
+ ```
  */
 interface RedisList : object
 {
-    /*! @brief Insert one or more value to head of list
-     @param values Values to insert
-     @return Return length of list after insertion */
+    /*! @brief Insert one or more values value to the head of the list
+     @param values Specify the data to insert
+     @return The length of the list after insertion */
     Integer push(Array values);
 
-    /*! @brief Insert one or more value to head of list
-     @param ... Values to insert
-     @return Return length of list after insertion */
-    Integer push(...);
+    /*! @brief Insert one or more values value to the head of the list
+     @param values Specify the data to insert
+     @return The length of the list after insertion */
+    Integer push(...values);
 
-    /*! @brief Remove and return head element
-     @return Return head element, null if list is empty */
+    /*! @brief Remove and return the head element of the list key
+     @return The head element of the list, return null if the list is empty */
     Buffer pop();
 
-    /*! @brief Insert one or more value to rear of list
-     @param values Values to insert
-     @return Return length of list after insertion */
+    /*! @brief Insert one or more values value to the tail (rightmost) of the list
+     @param values Specify the data to insert
+     @return The length of the list after insertion */
     Integer rpush(Array values);
 
-    /*! @brief Insert one or more value to rear of list
-     @param ... Data to insert
-     @return Return length of list after insertion */
-    Integer rpush(...);
+    /*! @brief Insert one or more values value to the tail (rightmost) of the list
+     @param values Specify the data to insert
+     @return The length of the list after insertion */
+    Integer rpush(...values);
 
-    /*! @brief Remove and return rear element
-     @return Return rear element, null if list is empty */
+    /*! @brief Remove and return the tail (rightmost) element of the list key
+     @return The head element of the list, return null if the list is empty */
     Buffer rpop();
 
-    /*! @brief Set element value by index
-     @param index Index to set
-     @param value Data to set*/
+    /*! @brief Set the value of the element at index in the list to value
+     @param index Specify the index to modify
+     @param value Specify the data to modify*/
     set(Integer index, Buffer value);
 
-    /*! @brief Get element value by index
-     @param index Index to get
-     @return Return element*/
+    /*! @brief Return the element at index in the list
+     @param index Specify the index to query
+     @return The element at index in the list*/
     Buffer get(Integer index);
 
-    /*! @brief Insert value before pivot
-     @param pivot Pivot element
-     @param value Value to insert
-     @return Return length of list after insertion */
+    /*! @brief Insert value into the list, before the value pivot
+     @param pivot Specify the data to find when inserting
+     @param value Specify the data to insert
+     @return The length of the list after insertion */
     Integer insertBefore(Buffer pivot, Buffer value);
 
-    /*! @brief Insert value after pivot
-     @param pivot Pivot element
-     @param value Value to insert
-     @return Return length of list after insertion */
+    /*! @brief Insert value into the list, after the value pivot
+     @param pivot Specify the data to find when inserting
+     @param value Specify the data to insert
+     @return The length of the list after insertion */
     Integer insertAfter(Buffer pivot, Buffer value);
 
-    /*! @brief Remove number of count elements by value
-     @param count Number to remove
-     @param value Value to remove
-     @return Return number of elements removed */
+    /*! @brief Remove elements from the list that equal to value according to the value of count
+     @param count Specify the number of elements to delete
+     @param value Specify the value to delete
+     @return The number of removed elements */
     Integer remove(Integer count, Buffer value);
 
-    /*! @brief Trim list and keeps elements in the range
-     @param start Start index, 0 is first element, -1 is last element
-     @param stop Stop index, 0 is first element, -1 is last element */
+    /*! @brief Trim a list, that is, make the list retain only the elements within the specified interval, and delete all elements outside the specified interval
+     @param start Specify the starting index for trimming, 0 means the first element, -1 means the last element
+     @param stop Specify the ending index for trimming, 0 means the first element, -1 means the last element */
     trim(Integer start, Integer stop);
 
-    /*! @brief Get length of list
-     @return Return length of list */
+    /*! @brief Return the length of the list
+     @return Return the length of the list */
     Integer len();
 
-    /*! @brief Get elements in given range inclusively
-     @param start Start index, 0 is first element, -1 is last element
-     @param stop Stop index, 0 is first element, -1 is last element
-     @return Return array of elements */
-    List range(Integer start, Integer stop);
+    /*! @brief Return the elements in the specified interval in the list, the interval is specified by the offsets start and stop, including the elements at start and stop
+     @param start Specify the starting index for query, 0 means the first element, -1 means the last element
+     @param stop Specify the ending index for query, 0 means the first element, -1 means the last element
+     @return Array containing the elements in the specified interval */
+    NArray range(Integer start, Integer stop);
 };

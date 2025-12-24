@@ -1,0 +1,9 @@
+/*! @brief Basic module management */
+module module
+{
+    /*!@brief Create a module reference function
+     @param base Base path of the module
+     @return Return a module reference function
+    */
+    static Function createRequire(String base);
+};

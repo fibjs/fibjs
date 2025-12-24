@@ -26,16 +26,16 @@
  * ```JavaScript
  * var registry = require('registry');
  * 
- * // 指定键名
+ * // Specify key name
  * var key = "Software\\Fibjs\\Test\\KeyName";
  * 
- * // 检查注册表项是否存在
+ * // Check if registry key exists
  * if (!registry.get(registry.CLASSES_ROOT, key)) {
- *     // 如果不存在，则写入注册表
+ *     // If not exists, write to registry
  *     registry.set(registry.CLASSES_ROOT, key, "test_value");
  * }
  * 
- * // 读取注册表项的值
+ * // Read registry key value
  * var value = registry.get(registry.CLASSES_ROOT, key);
  * console.log(value);
  * ```

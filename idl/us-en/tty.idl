@@ -1,15 +1,27 @@
 /*! @brief tty module
 
- example：
+ Usage:
  ```JavaScript
  const tty = require('tty');
  ```
  */
 module tty
 {
-    /*! @brief the terminal util
-    @param fd A numeric file descriptor 
-     @return true if the given fd is associated with a TTY and false if is not.
+    /*! @brief TTY input stream object, see TTYInputStream */
+    static TTYInputStream new ReadStream();
+
+    /*! @brief TTY output stream object, see TTYOutputStream */
+    static TTYOutputStream new WriteStream();
+
+    /*! @brief Query if it is a command interactive window
+    @param fd file descriptor
+     @return Return true if the file descriptor is associated with a terminal window, otherwise return false
     */
     static Boolean isatty(Integer fd);
+
+    /*! @brief Query if it is a command interactive window
+    @param fd file handle object
+     @return Return true if the file handle is associated with a terminal window, otherwise return false
+    */
+    static Boolean isatty(FileHandle fd);
 };

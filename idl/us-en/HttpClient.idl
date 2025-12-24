@@ -1,0 +1,374 @@
+/*! @brief HttpClient is a class library designed for HTTP client functionality, providing basic HTTP/HTTPS requests, proxy access, cookie management, etc.
+
+Using HttpClient, you can easily access and manipulate web pages. Here is a simple example - printing the source code of a web page:
+
+```JavaScript
+const http = require('http');
+
+const res = http.get('http://www.example.com/');
+
+console.log(res.body.readAll().toString());
+```
+
+In this example, the http module is introduced via require, then http.get is used to initiate a get request, where the url parameter specifies the requested URL. Since the http.get method returns an HttpResponse object, you can access the body content returned by the request through its body property and convert it to a string using the toString method.
+
+When the requested url is https type instead of http type, the code only needs to change http to https:
+
+```JavaScript
+const http = require('http');
+
+const res = http.get('https://www.example.com/');
+
+console.log(res.body.readAll().toString());
+```
+
+In addition, there is an example of initiating a POST request directly through HttpClient and setting the User-Agent:
+
+```JavaScript
+const http = require('http');
+
+const httpClient = new http.Client();
+httpClient.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36';
+const res = httpClient.post('http://www.example.com/post', {
+    json: { name: 'fibjs', version: '0.31.0' }
+});
+console.log(res.body.readAll().toString());
+```
+
+In this example, an HttpClient object httpClient is first created, and its userAgent is set to the browser's User-Agent. Then a post request is initiated through its post method, with parameters name and version specifying the body content of the request. Finally, the body content of the return value is output.
+ */
+interface HttpClient : object
+{
+    /*! @brief HttpClient constructor, create a new HttpClient object */
+    HttpClient();
+
+    /*! @brief HttpClient constructor, create a new HttpClient object
+     @param context specify the secure context used to create HttpClient
+     */
+    HttpClient(SecureContext context);
+
+    /*! @brief HttpClient constructor, create a new HttpClient object
+
+     options In addition to the properties used to create SecureContext, the following properties need to be provided:
+     - keepAlive: specify whether to keep connection
+     - timeout: specify timeout time
+     - enableCookie: specify whether to enable cookie function
+     - autoRedirect: specify whether to enable automatic redirect function
+     - enableEncoding: specify whether to enable automatic decompression function
+     - maxHeadersCount: specify maximum number of request headers
+     - maxHeaderSize: specify maximum request header length
+     - maxBodySize: specify maximum body size
+     - userAgent: specify browser identifier
+     - poolSize: specify maximum number of keep-alive cached connections
+     - poolTimeout: specify keep-alive cached connection timeout time
+     - http_proxy: specify http proxy address
+     - https_proxy: specify https proxy address
+
+     @param options options needed to create secure context using tls.createSecureContext
+     */
+    HttpClient(Object options);
+
+    /*! @brief Return the list of HttpCookie objects of the http client */
+    readonly NArray cookies;
+
+    /*! @brief Query and set whether to keep connection */
+    Boolean keepAlive;
+
+    /*! @brief Query and set timeout time in milliseconds */
+    Integer timeout;
+
+    /*! @brief cookie function switch, enabled by default */
+    Boolean enableCookie;
+
+    /*! @brief automatic redirect function switch, enabled by default */
+    Boolean autoRedirect;
+
+    /*! @brief automatic decompression function switch, enabled by default */
+    Boolean enableEncoding;
+
+    /*! @brief Query and set maximum number of request headers, default 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief Query and set maximum request header length, default 8192 */
+    Integer maxHeaderSize;
+
+    /*! @brief Query and set maximum chunk size, in MB, default 2 */
+    Integer maxChunkSize;
+
+    /*! @brief Query and set maximum body size, in MB, default -1, no size limit */
+    Integer maxBodySize;
+
+    /*! @brief Query and set browser identifier in http request */
+    String userAgent;
+
+    /*! @brief Query and set maximum number of keep-alive cached connections, default 128 */
+    Integer poolSize;
+
+    /*! @brief Query and set keep-alive cached connection timeout time, default 10000 ms */
+    Integer poolTimeout;
+
+    /*! @brief Query and set http request proxy, support http/https/socks5 proxy */
+    String http_proxy;
+
+    /*! @brief Query and set https request proxy, support http/https/socks5 proxy, if not set or set to empty, reuse http_proxy */
+    String https_proxy;
+
+    /*! @brief Send http request to the specified stream object and return result
+     @param conn specify the stream object that handles the request
+     @param req HttpRequest object to send
+     @return return server response
+     */
+    HttpResponse request(Stream conn, HttpRequest req) async;
+
+    /*! @brief Send http request to the specified stream object and return result
+     @param conn specify the stream object that handles the request
+     @param req HttpRequest object to send
+     @param response_body specify response.body stream
+     @return return server response
+     */
+    HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
+
+    /*! @brief Request the specified url and return result
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "response_body": SeekableStream // specify the response.body stream
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param method specify http request method: GET, POST, etc
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse request(String method, String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with GET method and return result, equivalent to request("GET", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse request(String url, Object opts = {}) async;
+
+    /*! @brief Request the url specified by opts and return result
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse request(Object opts) async;
+
+    /*! @brief Request the specified url with GET method and return result, equivalent to request("GET", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse get(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with POST method and return result, equivalent to request("POST", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse post(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with DELETE method and return result, equivalent to request("DELETE", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse del(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PUT method and return result, equivalent to request("PUT", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse put(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PATCH method and return result, equivalent to request("PATCH", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse patch(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with HEAD method and return result, equivalent to request("HEAD", ...)
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpResponse head(String url, Object opts = {}) async;
+};

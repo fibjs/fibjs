@@ -1,67 +1,97 @@
-
-/*! @brief http basic message objec */
-interface HttpMessage: Message
+/*! @brief http base message object */
+interface HttpMessage : Message
 {
-    /*! @brief protocol version information, the format is: HTTP/#.# */
+    /*! @brief Protocol version information, allowed format: HTTP/#.# */
     String protocol;
 
-    /*! @brief container that contains the http meassge header, readonly */
-    readonly HttpCollection headers;
+    /*! @brief Container containing http headers in the message, read-only property */
+    readonly Headers headers;
 
-    /*! @brief query and set whether the connection keeps alive */
+    /*! @brief Query and set whether to keep connection */
     Boolean keepAlive;
 
-    /*! @brief query and set whether to upgrade protocol */
+    /*! @brief Query and set whether it is an upgrade protocol */
     Boolean upgrade;
 
-    /*! @brief query and set the max number of request headers, defaults to 128 */
+    /*! @brief Query and set the maximum number of request headers, default 128 */
     Integer maxHeadersCount;
 
-    /*! @brief query and set the max size of the uploading file in bytes, defaults to 67108864(64M) */
-    Integer maxUploadSize;
+    /*! @brief Query and set the maximum request header length, default 8192 */
+    Integer maxHeaderSize;
 
-    /*! @brief detect whether there is a message header that has the given key
-     @param name specify the key to be detected
-     @return whether the key exists
+    /*! @brief Query and set the maximum chunk size in MB, default 2 */
+    Integer maxChunkSize;
+
+    /*! @brief Query and set the maximum body size in MB, default 64 */
+    Integer maxBodySize;
+
+    /*! @brief Query the source socket of the current object */
+    readonly Stream socket;
+
+    /*! @brief Check if the specified key-value message header exists
+     @param name Specify the key-value to check
+     @return Return whether the key-value exists
      */
     Boolean hasHeader(String name);
 
-    /*! @brief querying the first message header of the given key
-     @param name specify the key to be queried
-     @return return the value of the key, if the key doesn't exist, return undefined
+    /*! @brief Query the first message header of the specified key-value
+     @param name Specify the key-value to query
+     @return Return the value corresponding to the key-value, if it does not exist, return undefined
      */
-    Variant firstHeader(String name);
+    String firstHeader(String name);
 
-    /*! @brief querying all message headers of the specified key
-     @param name specify the key to be queried
-     @return return an array of all values of the key, if data doesn't exists, return null
+    /*! @brief Query all message headers of the specified key-value
+     @param name Specify the key-value to query, passing an empty string returns the results of all key-values
+     @return Return the array of all values corresponding to the key-value, if the data does not exist, return null
      */
-    List allHeader(String name);
+    NObject allHeader(String name = "");
 
-    /*! @brief add a message header, add data without modifying headers of the existing keys
-     @param map specify the data dictionary of the key and value that need to be added
+    /*! @brief Add a message header, adding data does not modify existing key-value message headers
+     @param map Specify the key-value data dictionary to add
      */
-    addHeader(Map map);
+    appendHeader(Object map);
 
-    /*! @brief add a message header, add data without modifying headers of the existing keys
-     @param name specify the key need to be added
-     @param value specify the data need to be added
+    /*! @brief Add message headers, adding data does not modify existing key-value message headers
+     @param headers Specify the Headers object to add
      */
-    addHeader(String name, Variant value);
+    appendHeader(Headers headers);
 
-    /*! @brief set a message header, modify the first value of the key as the spcified data and remove other message headers of the same key
-     @param map specify the data dictionary of the key and value that need to be modified
+    /*! @brief Add a group of message headers of the specified name, adding data does not modify existing key-value message headers
+     @param name Specify the key-value to add
+     @param values Specify the group of data to add
      */
-    setHeader(Map map);
+    appendHeader(String name, Array values);
 
-    /*! @brief set a message header, modify the first value of the key as the spcified data and remove other message headers of the same key
-     @param name specify the key need to be added
-     @param value spcify the data need to be added
+    /*! @brief Add a message header, adding data does not modify existing key-value message headers
+     @param name Specify the key-value to add
+     @param value Specify the data to add
      */
-    setHeader(String name, Variant value);
+    appendHeader(String name, String value);
 
-    /*! @brief remove all meassage headers of the specified key
-     @param name specify the key to be removed
+    /*! @brief Set a message header, setting data will modify the first value corresponding to the key-value and clear the remaining message headers of the same key-value
+     @param map Specify the key-value data dictionary to set
+     */
+    setHeader(Object map);
+
+    /*! @brief Set message headers, setting data will modify the values corresponding to the key-values and clear the remaining message headers of the same key-values
+     @param headers Specify the Headers object to set
+     */
+    setHeader(Headers headers);
+
+    /*! @brief Set a group of message headers of the specified name, setting data will modify the values corresponding to the key-values and clear the remaining message headers of the same key-values
+     @param name Specify the key-value to set
+     @param values Specify the group of data to set
+     */
+    setHeader(String name, Array values);
+
+    /*! @brief Set a message header, setting data will modify the first value corresponding to the key-value and clear the remaining message headers of the same key-value
+     @param name Specify the key-value to set
+     @param value Specify the data to set
+     */
+    setHeader(String name, String value);
+
+    /*! @brief Delete all message headers of the specified key-value
+     @param name Specify the key-value to delete
      */
     removeHeader(String name);
 };

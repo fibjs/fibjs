@@ -1,0 +1,144 @@
+/*! @brief Encapsulates X509 certificate and provides information reading
+
+```JavaScript
+const crypto = require('crypto');
+const cert = new crypto.X509Certificate(Buffer.from('...'));
+```
+*/
+interface X509Certificate : object
+{
+    /*! @brief Create X509Certificate object from certificate
+
+    If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
+
+    @param cert binary data of PEM format certificate
+    @return returns an X509Certificate object
+    */
+    X509Certificate(Buffer cert);
+
+    /*! @brief Create X509Certificate object from a set of certificates
+
+    If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
+
+    @param certs array of PEM format certificates
+    @return returns an X509Certificate object
+    */
+    X509Certificate(Buffer certs[]);
+
+    /*! @brief certificate subject */
+    readonly String subject;
+
+    /*! @brief certificate serial number */
+    readonly String serialNumber;
+
+    /*! @brief certificate authenticated public key */
+    readonly KeyObject publicKey;
+
+    /*! @brief certificate subject alternative name */
+    readonly String subjectAltName;
+
+    /*! @brief certificate information access extension, returns a newline-separated list of access descriptions. Each line starts with the access method and access location type, followed by a colon and the value associated with the access location */
+    readonly String infoAccess;
+
+    /*! @brief certificate issuer */
+    readonly String issuer;
+
+    /*! @brief whether the certificate is a CA certificate */
+    readonly Boolean ca;
+
+    /*! @brief certificate path length constraint */
+    readonly Integer pathlen;
+
+    /*! @brief certificate key usage */
+    readonly Array keyUsage;
+
+    /*! @brief certificate Netscape type */
+    readonly Array type;
+
+    /*! @brief certificate validity start time */
+    readonly String validFrom;
+
+    /*! @brief certificate validity end time */
+    readonly String validTo;
+
+    /*! @brief certificate raw binary data */
+    readonly Buffer raw;
+
+    /*! @brief certificate PEM encoding */
+    readonly String pem;
+
+    /*! @brief certificate SHA-1 fingerprint */
+    readonly String fingerprint;
+
+    /*! @brief certificate SHA-256 fingerprint */
+    readonly String fingerprint256;
+
+    /*! @brief certificate SHA-512 fingerprint */
+    readonly String fingerprint512;
+
+    /*! @brief next certificate in the certificate chain
+     @return returns the next certificate
+    */
+    X509Certificate next();
+
+    /*! @brief check if the certificate matches the given email address
+
+    If the options.subject option is not defined or set to 'default', the certificate subject is only considered when the subject alternative name extension does not exist or does not contain any email addresses.
+
+    If the options.subject option is set to 'always' and the subject alternative name extension does not exist or does not contain a matching email address, the certificate subject is considered.
+
+    If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate does not contain a subject alternative name.
+
+    @param email email address
+    @param options options
+    @return returns email if the certificate matches, undefined if not matching
+    */
+    String checkEmail(String email, Object options = {});
+
+    /*! @brief check if the certificate matches the given hostname
+
+    If the certificate matches the given hostname, returns the matching subject name. The returned name may be a full match (foo.example.com) or contain a wildcard (*.example.com). Since hostname comparison is case-insensitive, the case of the returned subject name may also differ from the given name.
+
+    options supports the following properties:
+     - subject: 'default', 'always' or 'never'. Default: 'default'.
+     - wildcards: default true.
+     - partialWildcards: default true.
+     - multiLabelWildcards: default false.
+     - singleLabelSubdomains: default false.
+
+    If the options.subject option is not defined or set to 'default', the certificate subject is only considered when the subject alternative name extension does not exist or does not contain any DNS names.
+
+    If the options.subject option is set to 'always' and the subject alternative name extension does not exist or does not contain a matching DNS name, the certificate subject will be considered.
+
+    If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate does not contain a subject alternative name.
+
+     @param name hostname
+     @param options options
+     @return returns the subject name that matches name, undefined if no subject name matches name
+    */
+    String checkHost(String name, Object options = {});
+
+    /*! @brief check if the certificate matches the given IP address (IPv4 or IPv6)
+    @param ip IP address
+    @return returns ip if the certificate matches, undefined if not matching
+    */
+    String checkIP(String ip);
+
+    /*! @brief check if this certificate is issued by the given issuer
+    @param issuer issuer certificate
+    @return returns true if the certificate is issued by issuer, false otherwise
+    */
+    Boolean checkIssued(X509Certificate issuer);
+
+    /*! @brief check if the certificate's public key matches the signature of the given private key
+    @param privateKey private key
+    @return returns true if matches, false otherwise
+    */
+    Boolean checkPrivateKey(KeyObject privateKey);
+
+    /*! @brief verify if this certificate is signed by the given public key. Does not perform any other validation checks on the certificate
+    @param publicKey public key
+    @return returns true if verification succeeds, false otherwise
+    */
+    Boolean verify(KeyObject publicKey);
+};

@@ -1,30 +1,80 @@
-/*! @brief file operands, used to operate the reading and writing of binary files.
+/*! @brief File object is used to represent files in the file system, compatible with Web standard File API.
 
- The file operand is used to do operations on binary files. Files can be opened and created by the fs module.
- @code
- var f = fs.open('test.txt');
- @endcode
- */
-interface File: SeekableStream
+File inherits from Blob, in addition to having all Blob's binary data capabilities, it also adds properties such as filename (name) and last modified time (lastModified), commonly used in scenarios such as file upload, download, Web API interaction, etc.
+
+Main features:
+1. Inherits from Blob, supports all binary data operations, slicing, asynchronous reading, etc.
+2. Read-only property name: represents the filename, usually used for display, upload or saving files.
+3. Read-only property lastModified: represents the file's last modified time (milliseconds since 1970-01-01 00:00:00 UTC).
+4. Constructor requires filename parameter to be passed, otherwise throws TypeError.
+5. Can specify type, endings, lastModified and other options during construction, behavior is consistent with Web File API.
+
+Common usage example:
+```JavaScript
+// Create File object
+const file = new File(["hello"], "greeting.txt", { type: "text/plain" });
+
+// Read filename and type
+console.log(file.name); // "greeting.txt"
+console.log(file.type); // "text/plain"
+
+// Get last modified time
+console.log(file.lastModified);
+
+// Slice
+const part = file.slice(0, 2);
+
+// Asynchronous read content
+file.text().then(txt => console.log(txt));
+```
+*/
+interface File : Blob
 {
-    /*! @brief querying the name of the current file */
+    /*!@brief File constructor, creates a new File instance. File inherits from Blob, supports all Blob data types.
+
+    options supports the following properties:
+       - type: specifies MIME type (such as "text/plain"), defaults to empty string.
+       - lastModified: specifies last modified time (timestamp in milliseconds), defaults to current time.
+    
+     @param blobParts Initialization data array, can contain strings, ArrayBuffer, TypedArray, Blob, etc.
+     @param name Filename, must be a string, represents the name of the file (such as "a.txt"), cannot be empty.
+     @param options Optional parameter object
+    */
+    File(Array blobParts, String name, Object options = {});
+
+    /*!@brief File constructor, creates a new File instance. File inherits from Blob, supports all Blob data types.
+
+    options supports the following properties:
+       - type: specifies MIME type (such as "text/plain"), defaults to empty string.
+       - lastModified: specifies last modified time (timestamp in milliseconds), defaults to current time.
+    
+     @param blobData Initialized binary data, can be Buffer or other binary data types.
+     @param name Filename, must be a string, represents the name of the file (such as "a.txt"), cannot be empty.
+     @param options Optional parameter object
+    */
+    File(Buffer blobData, String name, Object options = {});
+
+    /*!@brief File constructor, creates a new File instance. File inherits from Blob, supports all Blob data types.
+
+    options supports the following properties:
+       - data: initialized binary data, can be Buffer or other binary data types.
+       - name: filename, must be a string, represents the name of the file (such as "a.txt"), cannot be empty.
+       - type: specifies MIME type (such as "text/plain"), defaults to empty string.
+       - lastModified: specifies last modified time (timestamp in milliseconds), defaults to current time.
+    
+     @param options Optional parameter object
+    */
+    File(Object options = {});
+
+    /*!@brief Filename, read-only property, returns the name of the file.
+    
+     This property is used to identify the file, usually used for display, upload or saving files.
+     */
     readonly String name;
 
-    /*! @brief modify the file size. The file will be truncated if the new size is less than before.
-      @param bytes new size of the file
+    /*!@brief Last modified timestamp, read-only property, returns the last modified time of the file (milliseconds).
+    
+     This property represents the last modified time of the file, in milliseconds since 1970-01-01 00:00:00 UTC.
      */
-    truncate(Long bytes) async;
-
-    /*! @brief specifies if the query will get to the end of the file
-     @return query to the end of the file if true is returned
-     */
-    Boolean eof();
-
-    /*! @brief write file buffers to physical device */
-    flush() async;
-
-    /*! @brief query the access authority of the current file. This method is not supportes in Windows.
-     @param mode specify the access authority
-     */
-    chmod(Integer mode) async;
+    readonly Number lastModified;
 };

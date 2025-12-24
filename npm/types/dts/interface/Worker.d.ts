@@ -34,7 +34,7 @@
  * 
  * // create a worker thread
  * const fib = new Worker(__dirname + '/fib-worker.js');
- * // receive the result from the worker thread
+ * // Receive result from worker thread
  * fib.onmessage = (ev) => {
  *   console.log('result: ', ev.data);
  * };
@@ -51,7 +51,7 @@
  * Master.onmessage = (ev) => {
  *   const n = ev.data;
  *   const result = fib(n);
- *   // Once the calculation has been completed, the result is sent back to the main thread.
+ *   // After calculation, result is sent back to main thread.
  *   Master.postMessage(result);
  * };
  * function fib(n) {

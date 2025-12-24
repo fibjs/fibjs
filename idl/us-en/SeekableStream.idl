@@ -1,33 +1,42 @@
-
-/*! @brief Seekable stream interface */
+/*! @brief Stream object interface that can move the current pointer */
 interface SeekableStream : Stream
 {
-    /*! @brief Seek current position
-      @param offset New position
-      @param whence baseline, can be SEEK_SET, SEEK_CUR, SEEK_END
+    /*! @brief Move the current file operation position
+      @param offset Specify the new position
+      @param whence Specify the position base, allowed values are: SEEK_SET, SEEK_CUR, SEEK_END
      */
-    seek(Long offset, Integer whence);
+    seek(Long offset, Integer whence = fs.SEEK_SET);
 
-    /*! @brief Get current position
-     @return Return current position
+    /*! @brief Query the current position of the stream
+     @return Return the current position of the stream
      */
     Long tell();
 
-    /*! @brief Move position to start */
+    /*! @brief Move the current position to the beginning of the stream */
     rewind();
 
-    /*! @brief Get size of stream
-     @return Return size of stream
+    /*! @brief Query the stream size
+     @return Return the stream size
      */
     Long size();
 
-    /*! @brief Read all left data from stream
-     @return Return all left data, null when connection lost or no more data
+    /*! @brief Read all remaining data from the stream
+     @return Return the data read from the stream, return null if no data is readable or the connection is interrupted
      */
     Buffer readAll() async;
 
-    /*! @brief Get file info
-     @return Return file info
+    /*! @brief Modify the file size, if the new size is smaller than the original size, the file is truncated
+      @param bytes New file size
+     */
+    truncate(Long bytes) async;
+
+    /*! @brief Query if the file has reached the end
+     @return Return True for end
+     */
+    Boolean eof();
+
+    /*! @brief Query the basic information of the current file
+     @return Return Stat object describing file information
      */
     Stat stat() async;
 };

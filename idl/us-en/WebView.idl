@@ -1,0 +1,245 @@
+/*! @brief WebView object, embedded browser window component.
+
+ WebView is an embedded browser window component. Since the JavaScript program in WebView is not in the same engine as fibjs, communication needs to be done through messages.
+
+ In WebView, you can communicate with fibjs through window, supporting postMessage method and message event.
+
+ The following is a simple communication example code:
+ ```JavaScript 
+ // index.js
+ var gui = require('gui');
+ var webview = gui.open('https://fibjs.org/index.html');
+
+ webview.addEventListener("message", function (msg) { console.log(msg); });
+ 
+ webview.postMessage("hello from fibjs");
+ ```
+
+ The content of index.html is as follows:
+ ```html
+ <script>
+     window.addEventListener("message", function (msg) { 
+         window.postMessage("send back: " + msg);
+     });
+ </script>
+ ```
+
+ WebView also supports a more convenient app API interface. The object used for API calls in WebView is window.app, which can be specified through the app parameter when creating WebView, and the methods of the API interface can be called in WebView through await window.app....
+
+ The following is a simple call example code:
+ ```JavaScript 
+ const gui = require('gui');
+ const coroutine = require('coroutine');
+
+ const win = gui.open({
+     devtools: true,
+     app: {
+         test: async function (a, b, c, d) {
+             console.log('test', a, b, c, d);
+             await coroutine.sleepAsync(1000);
+             return a + b + c + d + 1000;
+         },
+         test1: {
+             test2: function (a, b, c, d) {
+                 console.log('test2', a, b, c, d);
+                 coroutine.sleep(1000);
+                 return a + b + c + d + 2000;
+             }
+         }
+     }
+ });
+
+ win.eval(`
+ (async function test() {
+     console.log("test(1,2,3,4): " + await window.app.test(1,2,3,4));
+     console.log("test1.test2(1,2,3,4): " + await window.app.test1.test2(1,2,3,4));
+     console.log('test');
+ })();`);
+ ```
+ 
+ If you need to close the window in WebView, you can call window.close. Note that full-screen windows on macOS will be blocked from closing due to macOS mechanism.
+ ```html
+ <script lang="JavaScript">
+    document.getElementById('close').addEventListener('click', function () {
+        window.close();
+    });
+ </script>
+ ```
+ In some applications, you need to implement window dragging in WebView, which can be achieved with the following code:
+ ```html
+ <script>
+    document.getElementById('dragRegion').addEventListener('mousedown', function (event) {
+        if (event.button === 0) { // Check if left button is pressed
+            window.drag();
+        }
+    });
+ </script>
+ ```
+*/
+interface WebView : EventEmitter
+{
+    /*! @brief Load the page of the specified url
+	 @param url the specified url
+	 */
+    loadUrl(String url) async;
+
+    /*! @brief Load the page of the specified file
+     @param file the specified file
+     */
+    loadFile(String file) async;
+
+    /*! @brief Query the url of the current page
+	 @return return the url of the current page
+	 */
+    String getUrl() async;
+
+    /*! @brief Set the page html of webview
+	 @param html the set html
+	 */
+    setHtml(String html) async;
+
+    /*! @brief Get the page html of webview
+     @return return the page html of webview
+    */
+    String getHtml() async;
+
+    /*! @brief Query whether the current page is loaded
+     @return return whether the current page is loaded
+    */
+    Boolean isReady() async;
+
+    /*! @brief Wait for the current page to load
+     @param url specify the url to wait for, empty means wait for current page
+    */
+    waitFor(String url = "") async;
+
+    /*! @brief Refresh the current page */
+    reload() async;
+
+    /*! @brief Go back to the previous page */
+    goBack() async;
+
+    /*! @brief Go forward to the next page */
+    goForward() async;
+
+    /*! @brief Run a piece of JavaScript code in the current window
+	 @param code specify the JavaScript code to execute
+     @return return the execution result
+	 */
+    Variant eval(String code) async;
+
+    /*! @brief Set the title of the window
+     @param title specify the title of the window
+    */
+    setTitle(String title) async;
+
+    /*! @brief Query the title of the window
+     @return return the title of the window
+    */
+    String getTitle() async;
+
+    /*! @brief Set whether the window is visible
+     @return return whether the window is visible
+    */
+    Boolean isVisible() async;
+
+    /*! @brief Show the window */
+    show() async;
+
+    /*! @brief Hide the window */
+    hide() async;
+
+    /*! @brief Set the size of the window
+     @param width specify the width of the window
+     @param height specify the height of the window
+    */
+    setSize(Integer width, Integer height) async;
+
+    /*! @brief Query the size of the window
+     @return return the size of the window, return value is an array, first element is width, second is height
+    */
+    NArray getSize() async;
+
+    /*! @brief Set the position of the window
+     @param left specify the top-left x coordinate of the window
+     @param top specify the top-left y coordinate of the window
+    */
+    setPosition(Integer left, Integer top) async;
+
+    /*! @brief Query the position of the window
+     @return return the position of the window, return value is an array, first element is x coordinate, second is y coordinate
+    */
+    NArray getPosition() async;
+
+    /*! @brief Query whether the window is the active window
+     @return return whether the window is the active window
+    */
+    Boolean isActived() async;
+
+    /*! @brief Activate the window */
+    active() async;
+
+    /*! @brief Query the menu of the window
+     @return return the menu of the window
+    */
+    Menu getMenu();
+
+    /*! @brief Take a screenshot of the current window
+
+     Webpage screenshot works for most webpages, but for pages with delayed loading, may not capture all content. It is recommended to test the pages that need to be captured, and may need to actively adjust window size to trigger page loading when necessary.
+     @param fullPage specify whether to capture the entire page, default is false, meaning only capture visible area
+     @return return the captured image
+    */
+    Buffer takeScreenshot(Boolean fullPage = false) async;
+
+    /*! @brief Close the current window */
+    close() async;
+
+    /*! @brief Send message to webview
+     postMessage needs to send messages after the window is loaded, messages sent before will be lost. Therefore, it is recommended to call this method after the onload event is triggered.
+	 @param msg the message to send
+	*/
+    postMessage(String msg) async;
+
+    /*! @brief Query and bind window start loading event, equivalent to on("loading", func); */
+    event loading();
+
+    /*! @brief Query and bind window load complete event, equivalent to on("load", func); */
+    event load();
+
+    /*! @brief Query and bind window move event, equivalent to on("move", func); 
+
+	 The following example will output the top-left coordinates of the window when the window moves:
+	 ```JavaScript 
+	 var gui = require('gui');
+	 var webview = gui.open('fs://index.html');
+
+	 webview.onmove = evt => console.log(evt.left, evt.top);
+	 ```
+	*/
+    event move();
+
+    /*! @brief Query and bind window size change event, equivalent to on("size", func);
+
+     The following example will output the size of the window when the window changes size:
+     ```JavaScript
+     var gui = require('gui');
+     var webview = gui.open('fs://index.html');
+
+     webview.onresize = evt => console.log(evt.width, evt.height);
+     ```
+	*/
+    event resize();
+
+    /*! @brief Query and bind window focus event, equivalent to on("focus", func); */
+    event focus();
+
+    /*! @brief Query and bind window blur event, equivalent to on("blur", func); */
+    event blur();
+
+    /*! @brief Query and bind window close event, this event is triggered after WebView is closed, equivalent to on("closed", func); */
+    event close();
+
+    /*! @brief Query and bind receive postMessage message event from webview, equivalent to on("message", func); */
+    event message();
+};

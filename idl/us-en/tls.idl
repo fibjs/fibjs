@@ -1,0 +1,162 @@
+/*! @brief The tls module is a built-in encryption module in fibjs that can be used to establish tls/ssl hypertext transfer protocol for network connections. This module provides encryption verification, and clients and servers can ensure that the connection is secure
+ */
+module tls
+{
+    /*! @brief tls/ssl network socket object, see TLSSocket */
+    static TLSSocket;
+
+    /*! @brief tls/ssl protocol conversion handler, see TLSHandler */
+    static TLSHandler new Handler();
+
+    /*! @brief tls/ssl protocol conversion handler, see TLSServer */
+    static TLSServer new Server();
+
+    /*! @brief Create a SecureContext object for maintaining security context in the tls module
+
+     Options for creating security context support the following options:
+     - ca: Override trusted CA certificates. The default is to trust well-known CAs managed by Mozilla. When explicitly specifying CA using this option, Mozilla's CA will be completely replaced. The value can be a string or Buffer, or an Array of strings or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be linkable to a CA trusted by the server for connection authentication. When using certificates that are not linkable to well-known CAs, the certificate's CA must be explicitly specified as a trusted CA, otherwise the connection cannot be authenticated. If the peer uses a certificate that does not match or link to one of the default CAs, use the ca option to provide CA certificates that the peer certificate can match or link to. For self-signed certificates, the certificate is its own CA and must be provided. For PEM-encoded certificates, supported types are TRUSTED CERTIFICATE, X509 CERTIFICATE, and CERTIFICATE.
+     - cert: PEM-formatted certificate chain. Each private key should provide a certificate chain. Each certificate chain should contain the PEM-formatted certificate for the provided private key, followed by PEM-formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-generated). When providing multiple certificate chains, their order does not need to match the private keys in key. If intermediate certificates are not provided, the peer will not be able to validate the certificate and the handshake will fail.
+     - key: PEM-formatted private key. PEM allows encrypted private keys. Encrypted keys will be decrypted using options.passphrase.
+     - passphrase: Shared passphrase for a single private key and/or PFX.
+     - requestCert: If true, the server will request a client certificate for authentication. Default: true.
+     - rejectUnverified: If not false, the server will reject any connection whose certificate is not verified by the CA list. Default: true.
+     - rejectUnauthorized: If not false, the server will reject any connection that does not provide a CA list authorized certificate. Client mode default: true, server mode default: false.
+     - maxVersion: Set the maximum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1', or 'TLSv1'. Cannot be specified with the secureProtocol option.
+     - minVersion: Set the minimum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1', or 'TLSv1'. Cannot be specified with the secureProtocol option.
+     - secureProtocol: Legacy mechanism to select the TLS protocol version to use, does not support independent control of minimum and maximum versions, nor limiting the protocol to TLSv1.3. It is recommended to use minVersion and maxVersion instead.
+     - sessionTimeout: After how many seconds, TLS sessions created by the server will no longer be recoverable. Default: 300.
+     - SNIResolver: Used to resolve server names in SNI callbacks. Function signature is function(servername), where servername is the server name indicator sent by the client. Return value is a SecureContext object, or null if cannot resolve.
+     - SNICacheSize: Size of SNI context cache. Default: 1024.
+     - SNICacheTimeout: Timeout of SNI context cache in seconds. Default: 300. If set to 0 or negative, cache will not expire.
+     - SNICacheIdleTimeout: Timeout of SNI idle context cache in seconds. Default: 300. If set to 0 or negative, idle cache will not expire.
+
+     @param options Options for creating security context
+     @param isServer Whether it is server mode, default is false
+     @return Return the created security context
+     */
+    static SecureContext createSecureContext(Object options, Boolean isServer = false);
+
+    /*! @brief Create a SecureContext object for maintaining security context in the tls module
+     @param isServer Whether it is server mode, default is false
+     @return Return the created security context
+     */
+    static SecureContext createSecureContext(Boolean isServer = false);
+
+    /*! @brief Query default SecureContext */
+    static readonly SecureContext secureContext;
+
+    /*! @brief Create a tls/ssl connection based on url
+     @param url Specify the URL to connect
+     @param timeout Specify connection timeout time, default is 0
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(String url, Integer timeout = 0) async;
+
+    /*! @brief Create a tls/ssl connection based on url
+     @param url Specify the URL to connect
+     @param secureContext Specify security context
+     @param timeout Specify connection timeout time, default is 0
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(String url, SecureContext secureContext, Integer timeout = 0) async;
+
+    /*! @brief Create a tls/ssl connection based on url
+     @param url Specify the URL to connect
+     @param options Specify connection options
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(String url, Object options) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number
+     @param port Specify the port number to connect
+     @param host Specify the hostname to connect, default is "localhost"
+     @param options Specify connection options
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number
+     @param options Specify connection options
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
+     @param url Specify the URL to connect
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(String url, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
+     @param url Specify the URL to connect
+     @param timeout Specify connection timeout time, default is 0
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(String url, Integer timeout, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
+     @param url Specify the URL to connect
+     @param secureContext Specify security context
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(String url, SecureContext secureContext, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
+     @param url Specify the URL to connect
+     @param secureContext Specify security context
+     @param timeout Specify connection timeout time, default is 0
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(String url, SecureContext secureContext, Integer timeout, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
+     @param url Specify the URL to connect
+     @param options Specify connection options
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(String url, Object options, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param port Specify the port number to connect
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Integer port, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param port Specify the port number to connect
+     @param host Specify the hostname to connect
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param port Specify the port number to connect
+     @param options Specify connection options
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Integer port, Object options, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param port Specify the port number to connect
+     @param host Specify the hostname to connect
+     @param options Specify connection options
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Object options, Function connectListener) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param options Specify connection options
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Object options, Function connectListener) async;
+};

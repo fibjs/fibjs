@@ -1,98 +1,377 @@
+/*! @brief The http module encapsulates the processing of HTTP requests and responses, allowing us to easily create an http server, or simulate a client to initiate http requests. Using the http module, developers can easily write and handle HTTP protocol related code
 
-/*! @brief HTTP transfer protocol module, handels http protocol*/
+Below is a simple example, create a Web server, return a hello world response message:
+
+```JavaScript
+const http = require('http');
+
+const server = new http.Server(8080, function(request) {
+  request.response.write('Hello World!');
+});
+
+server.start();
+```
+
+In this example, we introduce the http module, then define an http server object, and bind it to the local port 8080. When a request is sent to this port number, the response will be set to the string "Hello World!".
+
+At the same time, the http module also contains client objects, http.Client simulates the browser environment to cache cookies, and carries the corresponding cookies when accessing urls. You can use http.Client to access http interface requests, perform http downloads, and a series of http related operations. Below is an application example of http.Client:
+
+```JavaScript
+var http = require('http');
+
+var httpClient = new http.Client();
+httpClient.get('http://fibjs.org');
+```
+
+In the above example, an http.Client object is created, and then the `get` method is called to initiate an http GET request to fibjs.org.
+
+In addition, http.Client has other properties and methods that can be called, such as `cookies`, etc.
+
+The https module is an alias for the http module, using `require('https')` can also get the http module.
+*/
 module http
 {
-    /*! @brief create a http request object，reference HttpRequest */
+    /*! @brief Create an http request object, see HttpRequest */
     static HttpRequest new Request();
 
-    /*! @brief create a http response object，reference HttpResponse */
+    /*! @brief Create an http response object, see HttpResponse */
     static HttpResponse new Response();
 
-    /*! @brief create a http cookie object，reference HttpCookie */
+    /*! @brief Create a Headers object, see Headers */
+    static Headers;
+
+    /*! @brief Create an http cookie object, see HttpCookie */
     static HttpCookie new Cookie();
 
-    /*! @brief create a http server，reference HttpServer */
+    /*! @brief Create an http server, see HttpServer */
     static HttpServer new Server();
 
-    /*! @brief create a https server, reference HttpsServer */
+    /*! @brief Create an http client, see HttpClient */
+    static HttpClient new Client();
+
+    /*! @brief Create an https server, see HttpsServer */
     static HttpsServer new HttpsServer();
 
-    /*! @brief create a http protocol handler，reference HttpHandler */
+    /*! @brief Create an http protocol handler object, see HttpHandler */
     static HttpHandler new Handler();
 
-    /*! @brief create a http static file processor, in case of using static file to respond http request
-     @param root file root folder
-     @param mimes extends mime settings
-     @param mimes extedns mime settings
-     @return return a static file processor to handle http request
+    /*! @brief Create an http request forwarding handler object, see HttpRepeater */
+    static HttpRepeater new Repeater();
 
-     fileHandler support gzip pre-compression，when accept gzip in content-typeand filename.ext.gz exists under same root，then return the file directly，
-     to avoid extra load on server.
+    /*! @brief Return the collection of standard HTTP response status codes, and their short descriptions. */
+    static readonly Object STATUS_CODES;
+
+    /*! @brief Return the HttpCookie object list of the http client */
+    static readonly NArray cookies;
+
+    /*! @brief Query and set whether to keep connection */
+    static Boolean keepAlive;
+
+    /*! @brief Query and set timeout time */
+    static Integer timeout;
+
+    /*! @brief Cookie function switch, enabled by default */
+    static Boolean enableCookie;
+
+    /*! @brief Auto redirect function switch, enabled by default */
+    static Boolean autoRedirect;
+
+    /*! @brief Auto decompression function switch, enabled by default */
+    static Boolean enableEncoding;
+
+    /*! @brief Query and set the maximum number of request headers, default is 128 */
+    static Integer maxHeadersCount;
+
+    /*! @brief Query and set the maximum request header length, default is 8192 */
+    static Integer maxHeaderSize;
+
+    /*! @brief Query and set the maximum chunk size in MB, default is 2 */
+    static Integer maxChunkSize;
+
+    /*! @brief Query and set the maximum body size in MB, default is -1, no size limit */
+    static Integer maxBodySize;
+
+    /*! @brief Query and set the browser identifier in http request */
+    static String userAgent;
+
+    /*! @brief Query and set the maximum number of keep-alive cached connections, default 128 */
+    static Integer poolSize;
+
+    /*! @brief Query and set the keep-alive cached connection timeout time, default 10000 ms */
+    static Integer poolTimeout;
+
+    /*! @brief Query and set the http request proxy, supports http/https/socks5 proxy */
+    static String http_proxy;
+
+    /*! @brief Query and set the https request proxy, supports http/https/socks5 proxy, if not set or set to empty, reuse http_proxy */
+    static String https_proxy;
+
+    /*! @brief Create an http static file handler to respond to http messages with static files
+
+     fileHandler supports gzip pre-compression, when the request accepts gzip encoding, and filename.ext.gz file exists in the same path, it will directly return this file,
+     thereby avoiding the server load caused by repeated compression.
+     @param root File root path
+     @param autoIndex Whether to support browsing directory files, default is false, not supported
+     @return Return a static file handler for processing http messages
      */
-    static Handler fileHandler(String root, Object mimes = {});
+    static Handler fileHandler(String root, Boolean autoIndex = false);
 
-    /*! @brief send http request to connection object，return response
-     @param conn assign requested connection object
-     @param req the HttpRequest obejct need to be sent
-     @return return server response
+    /*! @brief Send http request to the specified stream object and return the result
+     @param conn Specify the stream object that handles the request
+     @param req The HttpRequest object to send
+     @return Return server response
      */
     static HttpResponse request(Stream conn, HttpRequest req) async;
 
-    /*! @brief assign requested url, and return
-     @param method define http request method, such as: GET, POST
-     @param url assigned url，has to be full url with root path
-     @param headers  define http request header，default is None
-     @return reutrn server response
+    /*! @brief Send http request to the specified stream object and return the result
+     @param conn Specify the stream object that handles the request
+     @param req The HttpRequest object to send
+     @param response_body Specify the stream for response.body
+     @return Return server response
      */
-    static HttpResponse request(String method, String url, Object headers = {});
+    static HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
 
-    /*! @brief Request the specified url, and get the response
-     @param method define http method, such as: GET, POST
-     @param url assigned url，has to be full url with root path
-     @param body define http body content
-     @param headers  define http request header，default is None
-     @return reutrn server response
+    /*! @brief Request the specified url and return the result
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "response_body": SeekableStream // specify response.body stream
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param method Specify http request method: GET, POST, etc
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
+    static HttpResponse request(String method, String url, Object opts = {}) async;
 
-    /*! @brief Request the specified url, and get the response
-     @param method define http method, such as: GET, POST
-     @param url assigned url，has to be full url with root path
-     @param body define http body content
-     @param headers define http request header, default is None
-     @return reutrn server response
+    /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
+    static HttpResponse request(String url, Object opts = {}) async;
 
-    /*! @brief Request the specified url, and get the response
-     @param method define http method, such as: GET, POST
-     @param url assigned url，has to be full url with root path
-     @param body define http body content
-     @param headers  define http request header, default is None
-     @return reutrn server response
+    /*! @brief Request the url specified by opts and return the result
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse request(String method, String url, Buffer body, Object headers = {});
+    static HttpResponse request(Object opts) async;
 
-    /*! @brief reuqest url with GET method，and return response，same as request("GET", ...)
-     @param url assigned url，has to be full url with root path
-     @param headers  define http request header，default is None
-     @return reutrn server response
+    /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse get(String url, Object headers = {});
+    static HttpResponse get(String url, Object opts = {}) async;
 
-    /*! @brief reuqest url with POST method，and return response，same as request("POST", ...)
-     @param url assigned url，has to be full url with root path
-     @param body define http body content
-     @param headers  define http request header，default is None
-     @return reutrn server response
+    /*! @brief Request the specified url with POST method and return the result, equivalent to request("POST", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse post(String url, SeekableStream body, Object headers = {});
+    static HttpResponse post(String url, Object opts = {}) async;
 
-    /*! @brief reuqest url with POST method，and return response，same as request("POST", ...)
-     @param url assigned url，has to be full url with root path
-     @param body define http body content
-     @param headers  define http request header，default is None
-     @return reutrn server response
+    /*! @brief Request the specified url with DELETE method and return the result, equivalent to request("DELETE", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
      */
-    static HttpResponse post(String url, Buffer body, Object headers = {});
+    static HttpResponse del(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PUT method and return the result, equivalent to request("PUT", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
+     */
+    static HttpResponse put(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PATCH method and return the result, equivalent to request("PATCH", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
+     */
+    static HttpResponse patch(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with HEAD method and return the result, equivalent to request("HEAD", ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
+     */
+    static HttpResponse head(String url, Object opts = {}) async;
 };

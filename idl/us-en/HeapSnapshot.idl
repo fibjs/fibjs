@@ -1,30 +1,29 @@
-
-/*! @brief HeapSnapshot record the state of the JS heap at some moment. */
+/*! @brief HeapSnapshots record the state of the JS heap at a certain moment */
 interface HeapSnapshot : object
 {
-    /*! @brief Compare with the specified snapshot.
-     @param before The snapshot need to be compared.
-     @return Return the difference between two snapshot.
+    /*! @brief Compare with the specified heap snapshot
+     @param before heap snapshot to compare
+     @return Return the comparison result of heap snapshots
      */
     Object diff(HeapSnapshot before);
 
-    /*! @brief Get the HeapGraphNode with specified ID.
-     @param id Number, ID
-     @return Returns a HeapGraphNode by its id.
+    /*! @brief Get heap view node by ID
+     @param id node ID of number type
+     @return Return the obtained heap view node
      */
     HeapGraphNode getNodeById(Integer id);
 
-    /*! @brief Save HeapSnapshot by the specified name.
-     @param fname The name of HeapSnapshot.
+    /*! @brief Save HeapSnapshot with specified name
+     @param fname snapshot name
     */
     save(String fname) async;
 
-    /*! @brief Date information. */
+    /*! @brief time information */
     readonly Date time;
 
-    /*! @brief The root node of the HeapSnapshots. */
+    /*! @brief root node of heap view */
     readonly HeapGraphNode root;
 
-    /*! @brief HeapSnapshots's node list */
-    readonly List nodes;
+    /*! @brief list composed of heap view nodes */
+    readonly NArray nodes;
 };

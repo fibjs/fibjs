@@ -1,0 +1,225 @@
+/*! @brief EventEmitter is an event trigger object, it can be used to establish observer pattern, all objects that support event triggering inherit from this
+
+When an event is triggered, all listeners associated with that event will be called asynchronously. It also allows us to create code with high customizability and flexibility.
+
+Common functions include: addListener/on, once, removeListener/off, removeAllListeners and emit.
+
+Below is an example code:
+
+```javascript
+var fs = require('fs');
+var EventEmitter = require('events');
+var event = new EventEmitter();
+
+event.on('read_file', function(filename) {
+  fs.readFile(filename, 'utf8', function(err, data) {
+    if (err) {
+      event.emit('error', err);
+      return;
+    }
+    event.emit('show_content', data);
+  });
+});
+
+event.on('error', function(err) {
+  console.log(`Error ${err}`);
+});
+
+event.on('show_content', function(content) {
+  console.log(content);
+});
+
+event.emit('read_file', 'test.txt');
+```
+
+The above example code, when running, the event emitter instance event first listens to the 'read_file' event, then triggers the file reading operation when the event is triggered (`event.emit('read_file', 'test.txt')`). When the reading is successful, the 'show_content' event will be triggered, and the function listening to the 'show_content' event will be executed and display the file content. If an error occurs during the file reading process, the 'error' event will be triggered, and the failure situation is handled.
+
+This pattern has excellent advantages in business scenarios dealing with asynchronous operations.
+ */
+interface EventEmitter : object
+{
+    /*! @brief Constructor */
+    EventEmitter();
+
+    /*! @brief Event trigger object */
+    static EventEmitter;
+
+    /*! @brief Default global maximum number of listeners */
+    static Integer defaultMaxListeners;
+
+    /*! @brief Bind an event handler function to the object
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object on(String ev, Function func);
+
+    /*! @brief Bind an event handler function to the object
+    @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object on(Object map);
+
+    /*! @brief Bind an event handler function to the object
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object addListener(String ev, Function func);
+
+    /*! @brief Bind an event handler function to the object
+    @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object addListener(Object map);
+
+    /*! @brief Bind an event handler function to the object
+
+    options parameter is an object, it can contain the following properties:
+    - once: if true, the event handler function will only trigger once, and will be removed after triggering
+
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @param options Specifies the options for the event handler function
+    @return Returns the event object itself for chaining
+    */
+    Object addEventListener(String ev, Function func, Object options = {});
+
+    /*! @brief Bind an event handler function to the beginning of the object
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object prependListener(String ev, Function func);
+
+    /*! @brief Bind an event handler function to the beginning of the object
+    @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object prependListener(Object map);
+
+    /*! @brief Bind a one-time event handler function to the object, the one-time handler function will only trigger once
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object once(String ev, Function func);
+
+    /*! @brief Bind a one-time event handler function to the object, the one-time handler function will only trigger once
+    @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object once(Object map);
+
+    /*! @brief Bind an event handler function to the beginning of the object
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object prependOnceListener(String ev, Function func);
+
+    /*! @brief Bind an event handler function to the beginning of the object
+    @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object prependOnceListener(Object map);
+
+    /*! @brief Remove the specified function from the object's processing queue
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object off(String ev, Function func);
+
+    /*! @brief Remove all functions from the object's processing queue
+    @param ev Specifies the event name
+    @return Returns the event object itself for chaining
+   */
+    Object off(String ev);
+
+    /*! @brief Remove the specified function from the object's processing queue
+    @param map Specifies the event mapping relationship, object property names as event names, property values as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object off(Object map);
+
+    /*! @brief Remove the specified function from the object's processing queue
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @return Returns the event object itself for chaining
+   */
+    Object removeListener(String ev, Function func);
+
+    /*! @brief Remove all functions from the object's processing queue
+    @param ev Specifies the event name
+    @return Returns the event object itself for chaining
+   */
+    Object removeListener(String ev);
+
+    /*! @brief Remove the specified function from the object's processing queue
+    @param map Specifies the event mapping relationship, object property names as event names, property values as event handler functions
+    @return Returns the event object itself for chaining
+   */
+    Object removeListener(Object map);
+
+    /*! @brief Remove the specified function from the object's processing queue
+    @param ev Specifies the event name
+    @param func Specifies the event handler function
+    @param options Specifies the options for the event handler function
+    @return Returns the event object itself for chaining
+    */
+    Object removeEventListener(String ev, Function func, Object options = {});
+
+    /*! @brief Remove all listeners for all events from the object's processing queue, if an event is specified, remove all listeners for the specified event.
+    @param ev Specifies the event name
+    @return Returns the event object itself for chaining
+   */
+    Object removeAllListeners(String ev);
+
+    /*! @brief Remove all listeners for all events from the object's processing queue, if an event is specified, remove all listeners for the specified event.
+    @param evs Specifies the event names
+    @return Returns the event object itself for chaining
+   */
+    Object removeAllListeners(Array evs = []);
+
+    /* The default limit number of listeners, only for compatibility
+    @param n Specifies the number of events
+   */
+    setMaxListeners(Integer n);
+
+    /* Get the default limit number of listeners, only for compatibility
+    @return Returns the default limit number
+   */
+    Integer getMaxListeners();
+
+    /*! @brief Query the listener array for the specified event of the object
+    @param ev Specifies the event name
+    @return Returns the listener array for the specified event
+   */
+    Array listeners(String ev);
+
+    /*! @brief Query the number of listeners for the specified event of the object
+    @param ev Specifies the event name
+    @return Returns the number of listeners for the specified event
+   */
+    Integer listenerCount(String ev);
+
+    /*! @brief Query the number of listeners for the specified event of the object
+    @param o Specifies the object to query
+    @param ev Specifies the event name
+    @return Returns the number of listeners for the specified event
+   */
+    Integer listenerCount(Value o, String ev);
+
+    /*! @brief Query listener event names
+    @return Returns the array of event names
+   */
+    Array eventNames();
+
+    /*! @brief Actively trigger an event
+    @param ev Event name
+    @param args Event parameters, will be passed to the event handler function
+    @return Returns the event trigger status, returns true if there is a response event, otherwise returns false
+   */
+    Boolean emit(String ev, ...args);
+};

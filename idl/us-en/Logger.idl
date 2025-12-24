@@ -1,0 +1,268 @@
+/*! @brief Log object, used to record log information
+
+`Logger` object is used to record log information of various levels. It is a powerful tool that can help developers record and track the behavior of applications during development and debugging. By recording log information, developers can more easily discover and solve problems, improve the reliability and maintainability of the code.
+
+In the software development process, log recording is a very important part. By recording logs, developers can understand the running status of the application, capture exceptions and errors, analyze performance bottlenecks, etc. Log information is usually divided into different levels, such as debug information, general information, warning information, error information and critical error information, etc. Different levels of log information can help developers better classify and manage log data.
+
+`Logger` object provides various methods to record log information of different levels. Can be created through `util.debuglog` module
+
+`Logger` object. For example:
+
+```JavaScript
+var logger = util.debuglog('example');
+```
+
+`Logger` object provides the following main functions:
+
+- **Record general log information**: used to output non-error prompt information.
+- **Record debug log information**: used to output debug information, help developers track code execution during development.
+- **Record warning log information**: used to output suggestive debug information, usually indicates problems that may need attention.
+- **Record error log information**: used to output error information, indicating problems occurred during program running.
+- **Record critical error log information**: used to output critical error information, indicating serious problems occurred during program running.
+- **Record alert error log information**: used to output the highest level error information, indicating very serious problems occurred during program running.
+- **Output current call stack**: output the current call stack through log, help developers understand the execution path of the code.
+- **Output object in JSON format**: output object in JSON format, support multiple format control options.
+
+The following are some examples of using `Logger` object:
+
+```JavaScript
+// Create Logger object
+var logger = util.debuglog('example');
+
+// Record general log information
+logger('This is a log message');
+logger.log('This is a log message with format: %s', 'example');
+
+// Record debug log information
+logger.debug('This is a debug message');
+
+// Record warning log information
+logger.warn('This is a warning message');
+logger.warning('This is a warning message');
+
+// Record error log information
+logger.error('This is an error message');
+
+// Record critical error log information
+logger.crit('This is a critical message');
+logger.critical('This is a critical message');
+
+// Record alert error log information
+logger.alert('This is an alert message');
+
+// Output current call stack
+logger.trace('This is a trace message');
+
+// Output object in JSON format
+logger.dir({ key: 'value' }, { colors: true, depth: 1 });
+```
+
+Through these methods, you can conveniently record and manage log information in the application. Log recording not only helps developers discover and solve problems during development and debugging, but also provides important runtime information in the production environment of the application, helping operation and maintenance personnel monitor and maintain the stability and performance of the system.
+ */
+interface Logger : object
+{
+    /*! @brief Record general log information, same as info
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    Function(String fmt, ...args);
+
+    /*! @brief Record general log information, same as info
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param args optional parameter list
+     */
+    Function(...args);
+
+    /*! @brief Query the section name of the current log object */
+    readonly String section;
+
+    /*! @brief Query whether the current log object is enabled */
+    readonly Boolean enabled;
+
+    /*! @brief Record general log information, same as info
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    log(String fmt, ...args);
+
+    /*! @brief Record general log information, same as info
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param args optional parameter list
+     */
+    log(...args);
+
+    /*! @brief Record debug log information
+
+     Record debug log information. Usually used to output debug information. Not important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    debug(String fmt, ...args);
+
+    /*! @brief Record debug log information
+
+     Record debug log information. Usually used to output debug information. Not important.
+     @param args optional parameter list
+     */
+    debug(...args);
+
+    /*! @brief Record general log information, same as log
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    info(String fmt, ...args);
+
+    /*! @brief Record general log information, same as log
+
+     Record general level log information. Usually used to output non-error prompt information.
+     @param args optional parameter list
+     */
+    info(...args);
+
+    /*! @brief Record warning log information
+
+     Record warning log information. Usually used to output suggestive debug information. Generally important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    notice(String fmt, ...args);
+
+    /*! @brief Record warning log information
+
+     Record warning log information. Usually used to output suggestive debug information. Generally important.
+     @param args optional parameter list
+     */
+    notice(...args);
+
+    /*! @brief Record warning log information, same as warning
+
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    warn(String fmt, ...args);
+
+    /*! @brief Record warning log information, same as warning
+
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param args optional parameter list
+     */
+    warn(...args);
+
+    /*! @brief Record warning log information
+
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    warning(String fmt, ...args);
+
+    /*! @brief Record warning log information
+
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param args optional parameter list
+     */
+    warning(...args);
+
+    /*! @brief Record error log information
+
+     Record for error log information. Usually used to output error information. Very important. System error information will also be recorded at this level.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    error(String fmt, ...args);
+
+    /*! @brief Record error log information
+
+     Record for error log information. Usually used to output error information. Very important. System error information will also be recorded at this level.
+     @param args optional parameter list
+     */
+    error(...args);
+
+    /*! @brief Record critical error log information, same as critical
+
+     Record for critical error log information. Usually used to output critical error information. Very important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    crit(String fmt, ...args);
+
+    /*! @brief Record critical error log information, same as critical
+
+     Record for critical error log information. Usually used to output critical error information. Very important.
+     @param args optional parameter list
+     */
+    crit(...args);
+
+    /*! @brief Record critical error log information
+
+     Record for critical error log information. Usually used to output critical error information. Very important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    critical(String fmt, ...args);
+
+    /*! @brief Record critical error log information
+
+     Record for critical error log information. Usually used to output critical error information. Very important.
+     @param args optional parameter list
+     */
+    critical(...args);
+
+    /*! @brief Record alert error log information
+
+     Record for alert error log information. Usually used to output alert error information. Very important. Is the highest level information.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    alert(String fmt, ...args);
+
+    /*! @brief Record alert error log information
+
+     Record for alert error log information. Usually used to output alert error information. Very important. Is the highest level information.
+     @param args optional parameter list
+     */
+    alert(...args);
+
+    /*! @brief Output current call stack
+
+     Output the current call stack through log.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    trace(String fmt, ...args);
+
+    /*! @brief Output current call stack
+
+     Output the current call stack through log.
+     @param args optional parameter list
+     */
+    trace(...args);
+
+    /*! @brief Output object in JSON format
+
+     Support the following parameters:
+     ```JavaScript
+     {
+         "colors": false, // specify if output should be colorized, defaults to false
+         "depth": 2, // specify the max depth of the output, defaults to 2
+         "table": false, // specify if output should be a table, defaults to false
+         "encode_string": true, // specify if string should be encoded, defaults to true
+         "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
+         "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
+         "fields": [], // specify the fields to be displayed, defaults to all
+     }
+     ```
+     @param obj specifies the object to be processed
+     @param options specifies format control options
+     */
+    dir(Value obj, Object options = {});
+};

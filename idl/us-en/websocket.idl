@@ -1,40 +1,110 @@
+/*! @brief WebSocket is a full-duplex communication protocol based on TCP protocol, establishing an uninterrupted connection between browser and server, enabling real-time bidirectional data transmission, and supporting arbitrary format data transmission. In fibjs, the WebSocket support module provides corresponding API interfaces, enabling development of WebSocket server and client
 
-/*! @brief websocket support module
+The WebSocket support module is just an implementation of the WebSocket protocol, requiring HTTP protocol to work. On the server side, HTTP requests can be converted to WebSocket connections through the upgrade function, while on the client side, the server address to connect to needs to be specified through the WebSocket protocol URL.
 
- To use it:
- @code
- var websocket = require('websocket');
- @endcode
+Start WebSocket server example:
+```JavaScript
+var ws = require('ws');
+var http = require('http');
+
+var svr = new http.Server(80, {
+    '/ws': ws.upgrade(conn => {
+        conn.onmessage = e => {
+            conn.send('fibjs:' + e.data);
+        };
+    })
+});
+svr.start();
+```
+Example of establishing connection with the above server in client:
+```JavaScript
+var ws = require("ws");
+
+var conn = new ws.Socket("ws://127.0.0.1/ws");
+// emit open event
+conn.onopen = () => {
+    console.log("websocket connected");
+    conn.send("hi");
+};
+// emit close event
+conn.onmessage = evt => {
+    console.log("websocket receive: " + evt.data);
+};
+```
  */
-module websocket
+interface WebSocket : EventEmitter
 {
-    /*! @brief Specifies the message type 0 of websocket, which is a continue frame */
-    const Integer CONTINUE = 0;
+    /*! @brief WebSocket constructor
+     @param url specify the server to connect to
+     @param protocol specify the handshake protocol, default is ""
+     @param origin specify the simulated origin during handshake, default is ""
+    */
+    WebSocket(String url, String protocol = "", String origin = "");
 
-    /*! @brief Specifies the message type 1 of websocket, which is a text frame */
-    const Integer TEXT = 1;
+    /*! @brief WebSocket constructor
+     opts contains additional options for the request, supported content as follows:
+     ```JavaScript
+     {
+         "protocol": "", // specify the sub-protocol, default is ""
+         "origin": "", // specify the origin, default is ""
+         "perMessageDeflate": false, // specify whether to enable permessage-deflate, default is false
+         "maxPayload": 67108864, // specify the max payload size, default is 64MB
+         "httpClient": hc, // specify the http client, default is null, use the global http client
+         "headers": // specify the http headers, default is {}
+     }
+     ```
+     @param url specify the server to connect to
+     @param opts connection options, default is {}
+    */
+    WebSocket(String url, Object opts);
 
-    /*! @brief Specifies the message type 2 of websocket, which is a binary frame */
-    const Integer BINARY = 2;
+    /*! @brief Query the server currently connected by the object */
+    readonly String url;
 
-    /*! @brief Specifies the message type 8 of websocket, which means connection closed */
-    const Integer CLOSE = 8;
+    /*! @brief Query the protocol when the object is connected */
+    readonly String protocol;
 
-    /*! @brief Specifies the message type 9 of websocket, which is a ping frame */
-    const Integer PING = 9;
+    /*! @brief Query the origin of the object's connection */
+    readonly String origin;
 
-    /*! @brief Specifies the message type 10 of websocket, which is a pong frame */
-    const Integer PONG = 10;
+    /*! @brief Query the connection status of the current object, see ws */
+    readonly Integer readyState;
 
-    /*! @brief Create one websocket message object, refer WebSocketMessage */
-    static WebSocketMessage new Message();
+    /*! @brief Close the current connection, this operation sends CLOSE packet to the other party and waits for response
+     @param code specify the close code, allowed values are 3000-4999 or 1000, default is 1000
+     @param reason specify the close reason, default is ""
+    */
+    close(Integer code = 1000, String reason = "");
 
-    /*! @brief Create one websocket packet protocol conversion processor, refer WebSocketHandler */
-    static WebSocketHandler new Handler();
+    /*! @brief Send a piece of text to the other party
+     @param data specify the text to send
+    */
+    send(String data);
 
-    /*! @brief Create one websocket connection, and return a completed connection Stream object
-     @param url Specifies the connection url，support ws:// and wss:// protocol
-     @return Return a completed connection Stream object, which can be Socket or SslSocket
-     */
-    static Stream connect(String url) async;
+    /*! @brief Send a piece of binary data to the other party
+     @param data specify the binary data to send
+    */
+    send(Buffer data);
+
+    /*! @brief Query and bind connection success event, equivalent to on("open", func); */
+    event open();
+
+    /*! @brief Query and bind event of receiving message from the other party, equivalent to on("message", func); */
+    event message();
+
+    /*! @brief Query and bind connection close event, equivalent to on("close", func); */
+    event close();
+
+    /*! @brief Query and bind error occurrence event, equivalent to on("error", func); */
+    event error();
+
+    /*! @brief Keep fibjs process from exiting, prevent fibjs process from exiting during object binding
+     @return return current object
+    */
+    WebSocket ref();
+
+    /*! @brief Allow fibjs process to exit, allow fibjs process to exit during object binding
+     @return return current object
+    */
+    WebSocket unref();
 };

@@ -1,0 +1,12 @@
+/*! @brief Iterator object, used to traverse collection data */
+interface Iterator : object
+{
+    /*! @brief Query the iterator of the current object elements
+     @return returns the iterator of the current object elements
+    */
+    Iterator @iterator();
+
+    /*! @brief Iterate to the next element
+     @return returns the next element, or marks the end of iteration */
+    (Variant value, Boolean done) next() async;
+};

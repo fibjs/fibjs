@@ -1,27 +1,50 @@
-/*! @brief Event Object
+/*! @brief Event module provides an event object for coordinating shared data operations. It allows multiple fibers (coroutines) to perform synchronous operations to achieve cooperative multitasking. The event object has three methods: wait, pulse, and clear. The wait method blocks the current fiber until the event is triggered, the pulse method wakes up all fibers waiting for the event, and the clear method resets the event flag to false. By using the coroutine.Event module, developers can control the execution order and data sharing between fibers to implement complex business logic.
 
- Controll a group of fibers by use an event (the type of event object status is Boolean).
+For example, suppose we need data sharing between two fibers, but their execution order is uncertain. You can use an event object to control the execution order of fibers, ensuring that one fiber triggers the event of another fiber before execution.
+```JavaScript
+const coroutine = require('coroutine');
 
+var evt = new coroutine.Event();
+
+coroutine.start(function() {
+   console.log('[1] wait for event');
+   evt.wait();
+   console.log('[1] receive event');
+});
+
+coroutine.start(function() {
+   loop:for (var i = 0; i < 10; i++) {
+      console.log('[2] do some work');
+      if (i === 5) {
+         evt.pulse();
+      }
+      coroutine.sleep(1000);
+   }
+});
+```
+In the above example, we create an event object evt, use the wait method in fiber 1 to wait for the event to be triggered, and trigger the event through the pulse method in fiber 2. When i equals 5, fiber 2 triggers the event, fiber 1 is awakened through event listening and continues execution. In this process, the two fibers do not use any locks or other synchronization tools, but they ensure data synchronization at the fiber level.
  */
 interface Event : Lock
 {
     /*! @brief Event object constructor
-     @param value Specifies whether to wait, waiting if true, the default is false
+     @param value Specifies whether to wait, true to wait, default false
      */
     Event(Boolean value = false);
 
-    /*! @brief To determine whether the event object is true */
+    /*! @brief Determine if the event object is true
+     @return Returns true if the event is true
+     */
     Boolean isSet();
 
-    /*! @brief Activate event (set the event status as true), and call the pulse(). */
+    /*! @brief Activate the event (change event status to true), and call pulse() */
     set();
 
-    /*! @brief Activate all fiber which waiting for this event. */
+    /*! @brief Activate all fibers waiting for this event */
     pulse();
 
-    /*! @brief Reset event (set the event status as false) */
+    /*! @brief Reset the event (change event status to false) */
     clear();
 
-    /*! @brief Waiting for an event */
-    wait();
+    /*! @brief Wait for an event */
+    wait() async;
 };

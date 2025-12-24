@@ -14,17 +14,17 @@
  * 
  * 常见用法示例：
  * ```JavaScript
- * // 创建空表单数据
+ * // Create empty form data
  * const form = new FormData();
  * 
- * // 使用对象初始化
+ * // Initialize with object
  * const form = new FormData({ foo: 'bar', file: blob });
  * 
- * // 追加字段
+ * // Append fields
  * form.append('name', 'value');
  * form.append('file', blob, 'filename.txt');
  * 
- * // 覆盖字段
+ * // Overwrite fields
  * form.set('name', 'newValue');
  * form.set('file', blob2, 'file2.txt');
  * ```

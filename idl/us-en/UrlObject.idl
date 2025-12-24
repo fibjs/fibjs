@@ -1,0 +1,196 @@
+/*! @brief URL object, implements WHATWG URL standard, used for parsing, constructing, and manipulating URLs
+
+UrlObject provides complete URL processing functionality, compatible with modern Web standards and Node.js URL API. It supports URL parsing, construction, modification, and formatting, and provides rich properties and methods to manipulate various components of URLs.
+
+## Main Features
+
+- **Standard Compatible**: Implements WHATWG URL standard and Node.js URL API
+- **Unicode Support**: Full support for internationalized domain names (IDN) and Unicode characters
+- **Query Parameters**: Integrated URLSearchParams provides powerful query parameter operations
+- **Path Handling**: Automatic path normalization and relative path resolution
+
+## Creating URL Objects
+
+### 1. Create with string
+
+```JavaScript
+const url = require('url');
+
+// Use complete URL string
+const myURL = new URL('https://user:pass@example.com:8080/path?query=value#hash');
+
+// Use relative URL and base URL
+const relativeURL = new URL('/api/users', 'https://example.com');
+console.log(relativeURL.href); // 'https://example.com/api/users'
+```
+
+### 2. Construct with object
+
+```JavaScript
+const myURL = new URL({
+  protocol: 'https:',
+  hostname: 'example.com',
+  port: '8080',
+  pathname: '/api/data',
+  search: '?format=json'
+});
+```
+
+## URL Components
+
+A complete URL contains the following parts:
+```
+https://user:pass@example.com:8080/path/to/resource?query=value#fragment
+ \___/   \______/ \_________/ \__/\________________/\___________/ \______/
+   |        |         |        |          |             |          |
+protocol   auth      host     port     pathname        search      hash
+          \___________________/
+                   origin
+```
+
+## Common Methods
+
+```JavaScript
+const myURL = new URL('https://example.com/old-path');
+
+// Parse URL string
+const parsed = URL.parse('https://example.com/path');
+
+// Check if URL is valid
+const isValid = URL.canParse('https://example.com');
+
+// Redirect to new path
+const newURL = myURL.resolve('../new-path');
+```
+ */
+interface UrlObject : object
+{
+    /*! @brief Construct URL object with parameter object
+     @param args construction parameter object, supported fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
+     */
+    UrlObject(Object args = {});
+
+    /*! @brief Construct URL object with URL string
+     @param url URL string to parse, can be absolute URL or relative URL
+     @param base base URL string, used when url parameter is relative URL
+     */
+    UrlObject(String url, String base = "");
+
+    /*! @brief Parse URL string and return URL object, return null on parsing failure
+     @param url URL string to parse
+     @param base base URL string, used when url is relative URL
+     @return return UrlObject object on success, null on parsing failure
+     */
+    static UrlObject parse(String url, String base = "");
+
+    /*! @brief Check if URL string can be successfully parsed
+     @param url URL string to check
+     @param base base URL string, used when url is relative URL
+     @return return true if can parse, false otherwise
+     */
+    static Boolean canParse(String url, String base = "");
+
+    /*! @brief Resolve relative URL and return new absolute URL object
+     @param url relative or absolute URL string to resolve
+     @return return new UrlObject object after resolution
+     */
+    UrlObject resolve(String url);
+
+    /*! @brief Complete URL string
+     
+     Get or set the complete URL string. When setting this property, other properties are automatically parsed and updated.
+     */
+    String href;
+
+    /*! @brief URL protocol part (including colon)
+     
+     For example: 'http:', 'https:', 'ftp:', 'file:', etc.
+     */
+    String protocol;
+
+    /*! @brief Whether it contains double slashes
+     
+     Indicates whether the URL uses double slash format (like http://)
+     */
+    Boolean slashes;
+
+    /*! @brief Origin of the URL (protocol + host + port)
+     
+     Read-only property, returns format like: 'https://example.com:8080'
+     Returns 'null' for non-network protocols (like file:)
+     */
+    readonly String origin;
+
+    /*! @brief Authentication information (username:password)
+     
+     Read-only property, returns format like: 'username:password'
+     */
+    readonly String auth;
+
+    /*! @brief Username part
+     
+     Username in URL, used for HTTP basic authentication
+     */
+    String username;
+
+    /*! @brief Password part
+     
+     Password in URL, used for HTTP basic authentication
+     */
+    String password;
+
+    /*! @brief Host part (hostname + port)
+     
+     Contains hostname and port number, format like: 'example.com:8080'
+     */
+    String host;
+
+    /*! @brief Hostname part
+     
+     Hostname without port number, supports IPv4, IPv6, and domain names
+     */
+    String hostname;
+
+    /*! @brief Port number
+     
+     Port number as string, empty string means use default port
+     */
+    String port;
+
+    /*! @brief Complete path (path + query string)
+     
+     Read-only property, contains pathname and search, format like: '/path?query=value'
+     */
+    readonly String path;
+
+    /*! @brief URL path part
+     
+     Path part in URL, always starts with '/'
+     */
+    String pathname;
+
+    /*! @brief Query string (including question mark)
+     
+     Format like: '?key1=value1&key2=value2', empty string when no query
+     */
+    String search;
+
+    /*! @brief Query parameter value
+     
+     Can be string or object, when setting object, automatically serializes to query string
+     */
+    Value query;
+
+    /*! @brief URL fragment identifier (including hash)
+     
+     Format like: '#section', empty string when no fragment
+     */
+    String hash;
+
+    /*! @brief URL query parameter object
+     
+     Read-only property, returns URLSearchParams object for manipulating query parameters
+     Bidirectionally bound with URL object, modifications automatically update search and query properties
+     */
+    readonly URLSearchParams searchParams;
+};

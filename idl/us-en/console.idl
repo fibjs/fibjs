@@ -1,287 +1,491 @@
+/*! @brief Console access object
 
-/*! @brief console module
+ The console module is a core module that provides functionality similar to the console object in browsers, allowing information to be output to the console for debugging and information output.
 
- Global reference. Console can be used to log info, warnings and errors.
- Log can be trace on different device when initialized from config files for tracking. Console logs support formatted output, e.g.
- @code
- console.log("%d + %d = %d", 100, 200, 100 + 200);
- @endcode
- - %s - string
- - %d - number, including initeger and numbers
- - %j - output in JSON
- - %% - output '%' character
+ The most commonly used method in the console module is log(), which can print any JavaScript value to the console and automatically add a newline. In addition to the log() method, there are info(), warn(), error() methods for outputting information, warnings, and errors respectively. Their functions are basically the same as the log() method, only the styles displayed in the console are different.
+
+ The console module also provides the dir() method, which outputs an object's properties and methods in a more readable form to the console, facilitating debugging of complex objects. Additionally, there are time() and timeEnd() methods for timing code execution in the console and outputting the time difference.
+
+ In addition to the commonly used methods above, the console module provides some other methods such as assert(), notic(), trace(), etc., which can conveniently perform debugging and information output in different situations.
+
+ The console module is a very practical module that can improve debugging efficiency during development and conveniently output various information.
  */
 module console
 {
-    /*! @brief loglevel constant */
-    const Integer FATAL = 0;
+    /*! @brief loglevel level constant */
+    const FATAL = 0;
 
-    /*! @brief loglevel constant */
-    const Integer ALERT = 1;
+    /*! @brief loglevel level constant */
+    const ALERT = 1;
 
-    /*! @brief loglevel constant */
-    const Integer CRIT = 2;
+    /*! @brief loglevel level constant */
+    const CRIT = 2;
 
-    /*! @brief loglevel constant */
-    const Integer ERROR = 3;
+    /*! @brief loglevel level constant */
+    const ERROR = 3;
 
-    /*! @brief loglevel constant */
-    const Integer WARN = 4;
+    /*! @brief loglevel level constant */
+    const WARN = 4;
 
-    /*! @brief loglevel constant */
-    const Integer NOTICE = 5;
+    /*! @brief loglevel level constant */
+    const NOTICE = 5;
 
-    /*! @brief loglevel constant */
-    const Integer INFO = 6;
+    /*! @brief loglevel level constant */
+    const INFO = 6;
 
-    /*! @brief loglevel constant */
-    const Integer DEBUG = 7;
+    /*! @brief loglevel level constant */
+    const DEBUG = 7;
 
-    /*! @brief loglevel Only used when output which have no wrap, the file and syslog don't have this loglevel. */
-    const Integer PRINT = 9;
+    /*! @brief loglevel for output only, no newline after information output, file and syslog do not save this level information */
+    const PRINT = 9;
 
-    /*! @brief loglevel constant */
-    const Integer NOTSET = 10;
+    /*! @brief loglevel level constant */
+    const NOTSET = 10;
 
-    /*! @brief loglevel is used to filter the output logs, default is NOTSET, which will give logs for all levels. logs will be filter fisrt before sending to different devices added by "add"
+    /*! @brief Output level, used to filter output information, default is NOTSET, output all. Information is filtered before being output to each device set by add.
      */
     static Integer loglevel;
 
-    /*! @brief colors for console logs，reference TextColor */
-    static readonly TextColor colors;
+    /*! @brief Query the number of characters per line in the terminal */
+    static readonly Integer width;
 
-    /*! @brief Batch add console output, supportted devices are console, syslog and file, maximum output number is 10.
-     
-     Console can be configured to send program outputs and system errors to different devices, for collecting runtime information.
+    /*! @brief Query the number of lines in the terminal */
+    static readonly Integer height;
 
-     @code
+    /*! @brief Add console output system, supported devices are console, syslog, event, up to 10 outputs can be added
+
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
+
+     type is configuration, device name string:
+
+     ```JavaScript
+     console.add("console");
+     ```
+
+     syslog is only valid on posix platforms:
+     ```JavaScript
+     console.add("syslog");
+     ```
+
+     event is only valid on windows platforms:
+     ```JavaScript
+     console.add("event");
+     ```
+
+     @param type output device
+     */
+    static add(String type);
+
+    /*! @brief Add console output system, supported devices are console, syslog, event, nslog and file, up to 10 outputs can be added
+
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
+
+     cfg can be a device configuration object:
+     ```JavaScript
+     console.add({
+        type: "console",
+        levels: [console.INFO, console.ERROR]  // optional, default is all levels
+     });
+     ```
+
+     syslog is only valid on posix platforms:
+     ```JavaScript
+     console.add({
+        type: "syslog",
+        levels: [console.INFO, console.ERROR]
+     });
+     ```
+
+     event is only valid on windows platforms:
+     ```JavaScript
+     console.add({
+        type: "event",
+        levels: [console.INFO, console.ERROR]
+     });
+     ```
+
+     nslog is only valid on Darwin platforms:
+     ```JavaScript
+     console.add({
+         type: "nslog",
+         levels: [console.INFO, console.ERROR]
+     });
+     ```
+
+     file log:
+     ```JavaScript
+     console.add({
+        type: "file",
+        levels: [console.INFO, console.ERROR],
+        path: "path/to/file_%s.log", // Specify the log output file, %s can be used to specify the date insertion position, if not specified, add to the end
+        split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
+        count: 10 // option, selectable from 2 to 128, default is 128
+     });
+     ```
+
+     @param cfg output configuration
+     */
+    static add(Object cfg);
+
+    /*! @brief Batch add console output system, supported devices are console, syslog, event and file, up to 10 outputs can be added
+
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
+
+     ```JavaScript
      console.add(["console", {
         type: "syslog",
         levels: [console.INFO, console.ERROR]
      }]);
-     @endcode
+     ```
 
-     @param cfg An array of console log config
+     @param cfg output configuration array
      */
     static add(Array cfg);
 
-    /*! @brief Add console output, supportted devices are console, syslog and file, maximum output number is 10.
+    /*! @brief Add console output system, supported devices are console, syslog, event, up to 10 outputs can be added
 
-     Console can be configured to send program outputs and system errors to different devices, for collecting runtime information.
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
 
-     Cfg is config which can be set as the string of devices name.
+     type is configuration, device name string:
 
-     @code
-     console.add("console");
-     @endcode
+     ```JavaScript
+     console.use("console");
+     ```
 
-     You can also configure console levels for one device
+     syslog is only valid on posix platforms:
+     ```JavaScript
+     console.use("syslog");
+     ```
 
-     @code
-     console.add({
+     event is only valid on windows platforms:
+     ```JavaScript
+     console.use("event");
+     ```
+
+     @param type output device
+     */
+    static use(String type);
+
+    /*! @brief Add console output system, supported devices are console, syslog, event, nslog and file, up to 10 outputs can be added
+
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
+
+     cfg can be a device configuration object:
+     ```JavaScript
+     console.use({
         type: "console",
-        levels: [console.INFO, console.ERROR]  // options, output all level of log if skip this option.
+        levels: [console.INFO, console.ERROR]  // optional, default is all levels
      });
-     @endcode
+     ```
 
-     Syslog only works on posix platform:
-
-     @code
-     console.add({
+     syslog is only valid on posix platforms:
+     ```JavaScript
+     console.use({
         type: "syslog",
         levels: [console.INFO, console.ERROR]
      });
-     @endcode
+     ```
 
-     file log dose not support simple calls
+     event is only valid on windows platforms:
+     ```JavaScript
+     console.use({
+        type: "event",
+        levels: [console.INFO, console.ERROR]
+     });
+     ```
 
-     @code
-     console.add({
+     nslog is only valid on Darwin platforms:
+     ```JavaScript
+     console.use({
+         type: "nslog",
+         levels: [console.INFO, console.ERROR]
+     });
+     ```
+
+     file log:
+     ```JavaScript
+     console.use({
         type: "file",
         levels: [console.INFO, console.ERROR],
-        path: "path/to/file",  // required
-        split: "30m",  //optional, options can be "day", "hour", "minute", "###k", "###m", "###g"
-        count: 10 //optional, options can be any integer between 2-128, this option requires the split option
+        path: "path/to/file_%s.log", // Specify the log output file, %s can be used to specify the date insertion position, if not specified, add to the end
+        split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
+        count: 10 // option, selectable from 2 to 128, default is 128
      });
-     @endcode
+     ```
 
-     @param cfg Output configuration
+     @param cfg output configuration
      */
-    static add(Value cfg);
+    static use(Object cfg);
 
-    /*! @brief initialize with default configuration, only output in console */
+    /*! @brief Batch add console output system, supported devices are console, syslog, event and file, up to 10 outputs can be added
+
+     By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
+
+     ```JavaScript
+     console.use(["console", {
+        type: "syslog",
+        levels: [console.INFO, console.ERROR]
+     }]);
+     ```
+
+     @param cfg output configuration array
+     */
+    static use(Array cfg);
+
+    /*! @brief Initialize to default settings, only output information to console */
     static reset();
 
-    /*! @brief Record INFO log, Equivalent to the info function.
+    /*! @brief Record normal log information, same as info
 
-     Record the INFO level of log information. Typically used to output the non-erroneous message.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record general level log information. Usually used to output non-error prompt information.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static log(String fmt, ...);
+    static log(String fmt, ...args);
 
-    /*! @brief Record INFO log, Equivalent to the info function.
+    /*! @brief Record normal log information, same as info
 
-     Record the INFO level of log information. Typically used to output the non-erroneous message.
-     @param ... Optional parameter list
+     Record general level log information. Usually used to output non-error prompt information.
+     @param args optional parameter list
      */
-    static log(...);
+    static log(...args);
 
-    /*! @brief Record DEBUG log
+    /*! @brief Record debug log information
 
-     Record the DEBUG level of log information. Typically used to output the debug message.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record debug log information. Usually used to output debug information. Not important.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static debug(String fmt, ...);
+    static debug(String fmt, ...args);
 
-    /*! @brief Record DEBUG log
+    /*! @brief Record debug log information
 
-     Record the DEBUG level of log information. Typically used to output the debug message.
-     @param ... Optional parameter list
+     Record debug log information. Usually used to output debug information. Not important.
+     @param args optional parameter list
      */
-    static debug(...);
+    static debug(...args);
 
-    /*! @brief Record INFO log, Equivalent to the log function.
+    /*! @brief Record normal log information, same as log
 
-     Record the INFO level of log information. Typically used to output the non-erroneous message.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record general level log information. Usually used to output non-error prompt information.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static info(String fmt, ...);
+    static info(String fmt, ...args);
 
-    /*! @brief Record INFO log, Equivalent to the log function.
+    /*! @brief Record normal log information, same as log
 
-     Record the INFO level of log information. Typically used to output the non-erroneous message.
-     @param ... Optional parameter list
+     Record general level log information. Usually used to output non-error prompt information.
+     @param args optional parameter list
      */
-    static info(...);
+    static info(...args);
 
-    /*! @brief Record NOTICE log
+    /*! @brief Record warning log information
 
-     Record the NOTICE level of log information. Typically used to output the suggestive debug message.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output suggestive debug information. Generally important.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static notice(String fmt, ...);
+    static notice(String fmt, ...args);
 
-    /*! @brief Record NOTICE log
+    /*! @brief Record warning log information
 
-     Record the NOTICE level of log information. Typically used to output the suggestive debug message.
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output suggestive debug information. Generally important.
+     @param args optional parameter list
      */
-    static notice(...);
+    static notice(...args);
 
-    /*! @brief Record WARN log
+    /*! @brief Record warning log information, same as warning
 
-     Record the WARN level of log information. Typically used to output the warning debug message. Important.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static warn(String fmt, ...);
+    static warn(String fmt, ...args);
 
-    /*! @brief Record WARN log
+    /*! @brief Record warning log information, same as warning
 
-     Record the WARN level of log information. Typically used to output the warning debug message. Important.
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param args optional parameter list
      */
-    static warn(...);
+    static warn(...args);
 
-    /*! @brief Record ERROR log
+    /*! @brief Record warning log information
 
-     Record the ERROR level of log information. Typically used to output the error message. Very important. System error message is also record in this level.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static error(String fmt, ...);
+    static warning(String fmt, ...args);
 
-    /*! @brief Record ERROR log
+    /*! @brief Record warning log information
 
-     Record the ERROR level of log information. Typically used to output the error message. Very important. System error message is also record in this level.
-     @param ... Optional parameter list
+     Record warning log information. Usually used to output warning debug information. Important.
+     @param args optional parameter list
      */
-    static error(...);
+    static warning(...args);
 
-    /*! @brief Record CRIT log
+    /*! @brief Record error log information
 
-     Record the CRIT level of log information. Typically used to output the critical error message. Very important.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record error log information. Usually used to output error information. Very important. System error information is also recorded at this level.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static crit(String fmt, ...);
+    static error(String fmt, ...args);
 
-    /*! @brief Record CRIT log
+    /*! @brief Record error log information
 
-     Record the CRIT level of log information. Typically used to output the critical error message. Very important.
-     @param ... Optional parameter list
+     Record error log information. Usually used to output error information. Very important. System error information is also recorded at this level.
+     @param args optional parameter list
      */
-    static crit(...);
+    static error(...args);
 
-    /*! @brief Record ALERT log
+    /*! @brief Record critical error log information, same as critical
 
-     Record the ALERT level of log information. Typically used to output the alert error message. Very important. This level is the highest one.
-     @param fmt The format string
-     @param ... Optional parameter list
+     Record critical error log information. Usually used to output critical error information. Very important.
+     @param fmt format string
+     @param args optional parameter list
      */
-    static alert(String fmt, ...);
+    static crit(String fmt, ...args);
 
-    /*! @brief Record ALERT log
+    /*! @brief Record critical error log information, same as critical
 
-     Record the ALERT level of log information. Typically used to output the alert error message. Very important. This level is the highest one.
-     @param ... Optional parameter list
+     Record critical error log information. Usually used to output critical error information. Very important.
+     @param args optional parameter list
      */
-    static alert(...);
+    static crit(...args);
+
+    /*! @brief Record critical error log information
+
+     Record critical error log information. Usually used to output critical error information. Very important.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    static critical(String fmt, ...args);
+
+    /*! @brief Record critical error log information
+
+     Record critical error log information. Usually used to output critical error information. Very important.
+     @param args optional parameter list
+     */
+    static critical(...args);
+
+    /*! @brief Record alert error log information
+
+     Record alert error log information. Usually used to output alert error information. Very important. Highest level information.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    static alert(String fmt, ...args);
+
+    /*! @brief Record alert error log information
+
+     Record alert error log information. Usually used to output alert error information. Very important. Highest level information.
+     @param args optional parameter list
+     */
+    static alert(...args);
+
+    /*! @brief Output current call stack
+
+     Output current call stack through log.
+     @param fmt format string
+     @param args optional parameter list
+     */
+    static trace(String fmt, ...args);
+
+    /*! @brief Output current call stack
+
+     Output current call stack through log.
+     @param args optional parameter list
+     */
+    static trace(...args);
 
     /*! @brief Output object in JSON format
-     @param obj The object given to display
+
+     Supports the following parameters:
+     ```JavaScript
+     {
+         "colors": false, // Specify whether to color output, default is false
+         "depth": 2, // Specify the maximum output depth, default is 2
+         "table": false, // Specify whether to output in table form, default is false
+         "encode_string": true, // Specify whether to encode strings, default is true
+         "maxArrayLength": 100, // Specify the maximum number of array elements to display, set to 0 or negative to not display elements, default is 100
+         "maxStringLength": 10000, // Specify the maximum length of output string, set to 0 or negative to not display string, default is 10000
+         "fields": [], // Specify the fields to display, default is all
+     }
+     ```
+     @param obj specify the object to process
+     @param options specify format control options
      */
-    static dir(Value obj);
+    static dir(Value obj, Object options = {});
+
+    /*! @brief Output object in JSON format
+     @param obj given object to display
+     */
+    static table(Value obj);
+
+    /*! @brief Output object in JSON format
+     @param obj given object to display
+     @param fields given fields to display
+     */
+    static table(Value obj, Array fields);
+
+    /*! @brief Output formatted text to console, output content is not recorded in log system, no automatic newline after output text, can output continuously
+     @param fmt format string
+     @param args optional parameter list
+     */
+    static print(String fmt, ...args);
+
+    /*! @brief Output formatted text to console, output content is not recorded in log system, no automatic newline after output text, can output continuously
+     @param args optional parameter list
+     */
+    static print(...args);
+
+    /*! @brief Move console cursor to specified position
+     @param row specify new cursor row coordinate
+     @param column specify new cursor column coordinate
+     */
+    static moveTo(Integer row, Integer column);
+
+    /*! @brief Hide console cursor */
+    static hideCursor();
+
+    /*! @brief Show console cursor */
+    static showCursor();
+
+    /*! @brief Clear console */
+    static clear();
+
+    /*! @brief Read user input from console
+     @param msg prompt message
+     @return return user input information
+     */
+    static String readLine(String msg = "") async;
+
+    /*! @brief Read user input password from console
+     @param msg prompt message
+     @return return user input password
+     */
+    static String getpass(String msg = "") async;
 
     /*! @brief Start a timer
 
-     @param label Title, default is an empty string.
+     @param label title, default is empty string.
      */
     static time(String label = "time");
 
-    /*! @brief Print elapse of specified timer
+    /*! @brief Output current timing value of specified timer
 
-     @param label Title, default is an empty string.
+     @param label title, default is empty string.
      */
     static timeElapse(String label = "time");
 
-    /*! @brief Stop the specified timer, and print last value.
+    /*! @brief End specified timer and output final timing value
 
-     @param label Title, default is an empty string.
+     @param label title, default is empty string.
      */
     static timeEnd(String label = "time");
 
-    /*! @brief Output the current used stack
-
-     Output the current used stack by log.
-     @param label Title, default is an empty string.
-     */
-    static trace(String label = "trace");
-
-    /*! @brief Assertion test, which will throw error when testing result is false.
-     @param value The value for test
-     @param msg Error message
-     */
-    static assert(Value value, String msg = "");
-
-    /*! @brief Formatted text output to the console, the content will not be written to log system, and the output text does not wrap automatically, the output can output continuously. 
-     @param fmt The format string
-     @param ... Optional parameter list
-     */
-    static print(String fmt, ...);
-
-    /*! @brief Formatted text output to the console, the content will not be written to log system, and the output text does not wrap automatically, the output can output continuously. 
-     @param ... Optional parameter list
-     */
-    static print(...);
-
-    /*! @brief Read the user input from the console
-     @param msg Prompt information
-     @return Returns the user input information.
-     */
-    static String readLine(String msg = "") async;
+    /*! @brief Assertion test, if test value is false, report error */
+    static assert;
 };

@@ -1,95 +1,163 @@
+/*! @brief Network access module
 
-/*! @brief Network module
-
- Used for create and operate netwrok resource, to use it:
- \code
+ Basic module. Can be used to create and operate network resources, reference method:
+ ```JavaScript
  var net = require('net');
- \endcode
+ ```
  */
 module net
 {
-    /*! @brief ipv4 address constant */
-    const Integer AF_INET = 2;
+    /*! @brief Address family constant, specify unix socket */
+    const AF_UNIX = 1;
 
-    /*! @brief ipv6 address constant*/
-    const Integer AF_INET6 = 10;
+    /*! @brief Address family constant, specify Windows pipe */
+    const AF_PIPE = 1;
 
-    /*! @brief tcp protocol suite constant */
-    const Integer SOCK_STREAM = 1;
+    /*! @brief Address family constant, specify ipv4*/
+    const AF_INET = 2;
 
-    /*! @brief udp protocol suite constant*/
-    const Integer SOCK_DGRAM = 2;
+    /*! @brief Address family constant, specify ipv6*/
+    const AF_INET6 = 10;
 
-    /*! @brief Resolve address of given host
-     @param name Home name
-     @param family Return type, default is AF_INET
-     @return Return IP result string
+    /*! @brief Query and set whether socket backend uses uv, default is false */
+    static Boolean use_uv_socket;
+
+    /*! @brief Query current runtime environment network information
+     @return Return network card information
+    */
+    static Object info();
+
+    /*! @brief Query the address of the given hostname
+     @param name Specify hostname
+     @param family Specify query return type, default is AF_INET
+     @return Return queried ip string
      */
     static String resolve(String name, Integer family = AF_INET) async;
 
-    /*! @brief Quick query host address, same as resolve(name)
-     @param name Host name
-     @return Return IP result string
+    /*! @brief Fast query hostname address, equivalent to resolve(name)
+     @param name Specify hostname
+     @return Return queried ip string
      */
     static String ip(String name) async;
 
-    /*! @brief Quick query host ipv6 address, same as resolve(name, net.AF_INET6)
-     @param name Host name
-     @return Return IPv6 result string
+    /*! @brief Fast query hostname ipv6 address, equivalent to resolve(name, net.AF_INET6)
+     @param name Specify hostname
+     @return Return queried ipv6 string
      */
     static String ipv6(String name) async;
 
     /*! @brief Create a Socket object, see Socket */
     static Socket;
 
-    /*! @brief Create a Socket object and make connection, see Socket
-     @param host Target address or host name
-     @param port Target port number
-     @param family Addree type, default is AF_INE, ipv4
+    /*! @brief Create a Socket or SslSocket object and establish connection
+     @param url Specify connection protocol, can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1, when connecting pipe, need to replace \ with /
+     @param timeout Specify timeout time in milliseconds, default is 0
+     @return Return successfully connected Socket or SslSocket object
+     */
+    static Stream connect(String url, Integer timeout = 0) async;
+
+    /*! @brief Create a Socket object and establish connection
+     @param port Specify peer port
+     @param host Specify peer address or hostname, default is localhost
+     @param timeout Specify timeout time in milliseconds, default is 0
+     @return Return successfully connected Socket object
+     */
+    static Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
+
+    /*! @brief Create a Socket object and establish connection
+
+     options parameter can contain the following properties:
+      - port: Specify peer port
+      - host: Specify peer address or hostname
+      - timeout: Specify timeout time in milliseconds, default is 0
+
+     @param options Specify connection options object
+     @return Return successfully connected Socket object
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param port Specify peer port
+     @param connectListener Specify once connect event listener
      @return Return connected Socket object
      */
-    static Stream connect(String host, Integer port, Integer family = net.AF_INET) async;
+    static Stream connect(Integer port, Function connectListener) async;
 
-    /*! @brief Create a Socket or SslSocket and make connection
-     @param url URL with protocol, can be tcp://host:port or ssl://host:port
-     @return Return connected Socket or SslSocket object
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param port Specify peer port
+     @param host Specify peer address or hostname, default is localhost
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
      */
-    static Stream connect(String url) async;
+    static Stream connect(Integer port, String host, Function connectListener) async;
 
-    /*! @brief Create a Smtp object, see Smtp */
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param port Specify peer port
+     @param host Specify peer address or hostname, default is localhost
+     @param timeout Specify timeout time in milliseconds, default is 0
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
+     */
+    static Stream connect(Integer port, String host, Integer timeout, Function connectListener) async;
+
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param path Specify unix socket or Windows pipe path
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
+     */
+    static Stream connect(String path, Function connectListener) async;
+
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param path Specify unix socket or Windows pipe path
+     @param timeout Specify timeout time in milliseconds, default is 0
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
+     */
+    static Stream connect(String path, Integer timeout, Function connectListener) async;
+
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param options Specify connection options object, can contain the following properties:
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
+     */
+    static Stream connect(Object options, Function connectListener) async;
+
+    /*! @brief Create an Smtp object, see Smtp */
     static Smtp;
 
-    /*! @brief Create a Smtp object and make connection, see Smtp
-     @param host Target address or host name
-     @param port Target port number
-     @param family Addree type, default is AF_INE, ipv4
-     @return Return connected Smtp object
+    /*! @brief Create an Smtp object and establish connection, see Smtp
+     @param url Specify connection protocol, can be: tcp://host:port or ssl://host:port
+     @param timeout Specify timeout time in milliseconds, default is 0
+     @return Return successfully connected Smtp object
      */
-    static Smtp openSmtp(String host, Integer port, Integer family = net.AF_INET) async;
+    static Smtp openSmtp(String url, Integer timeout = 0) async;
 
     /*! @brief Create a TcpServer object, see TcpServer */
     static TcpServer;
 
-    /*! @brief Create a Url object, see Url */
-    static Url;
+    /*! @brief Create a UrlObject object, see UrlObject */
+    static UrlObject new Url();
 
-    /*! @brief Get system backend async network engine
+    /*! @brief Query current system asynchronous network engine
      @return Return network engine name
     */
     static String backend();
 
-    /*! @brief Tests if input is an IP address.
-     @return Returns 0 for invalid strings, returns 4 for IP version 4 addresses, and returns 6 for IP version 6 addresses.
+    /*! @brief Detect if input is IP address
+     @param ip Specify string to detect
+     @return Return 0 for invalid IP address, 4 for IPv4, 6 for IPv6
     */
     static Integer isIP(String ip = "");
 
-    /*! @brief Tests if input is an IPv4 address.
-     @return Returns true if input is a version 4 IP address, otherwise returns false.
+    /*! @brief Detect if input is IPv4 address
+     @param ip Specify string to detect
+     @return Return true if IPv4, otherwise false
     */
     static Boolean isIPv4(String ip = "");
 
-    /*! @brief Tests if input is an IPv6 address.
-     @return Returns true if input is a version 6 IP address, otherwise returns false.
+    /*! @brief Detect if input is IPv6 address
+     @param ip Specify string to detect
+     @return Return true if IPv6, otherwise false
     */
     static Boolean isIPv6(String ip = "");
 };

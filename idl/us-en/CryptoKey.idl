@@ -1,0 +1,24 @@
+/*! @brief CryptoKey class to represent symmetric or asymmetric keys, each key exposes different functions */
+interface CryptoKey : object
+{
+    /*! @brief The type of the key, for secret (symmetric) keys, this property is 'secret', for public (asymmetric) keys, this property is 'public' or 'private' */
+    readonly String type;
+
+    /*! @brief The algorithm information of the key */
+    readonly Object algorithm;
+
+    /*! @brief Whether the key can be exported externally */
+    readonly Boolean extractable;
+
+    /*! @brief The uses of the key, can be an array of the following values:
+        - 'encrypt'
+        - 'decrypt'
+        - 'sign'
+        - 'verify'
+        - 'deriveKey'
+        - 'deriveBits'
+        - 'wrapKey'
+        - 'unwrapKey'
+    */
+    readonly Array usages;
+};

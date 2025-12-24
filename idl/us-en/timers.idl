@@ -1,41 +1,131 @@
-/*! @brief timers module */
+/*! @brief The timers module is a built-in module that provides some time-related functions and objects, including setTimeout(), setInterval(), clearInterval(), clearTimeout(), etc.
+
+The setInterval() function calls the function after the specified time interval, returns the timer object.
+
+```JavaScript
+var timers = require('timers');
+function callback() {
+    console.log('Hello, World!');
+}
+var intervalId = timers.setInterval(callback, 1000);
+```
+
+The setTimeout() function calls the function after the specified time, returns the timer object.
+
+```JavaScript
+var timers = require('timers');
+function callback() {
+    console.log('Hello, World!');
+}
+var timeoutId = timers.setTimeout(callback, 1000);
+```
+
+The clearTimeout() function is used to cancel a timer set by the setTimeout() method. What needs to be provided is the timer identifier value returned in setTimeout().
+
+```JavaScript
+var timers = require('timers');
+function callback() {
+    console.log('Hello, World!');
+}
+var timeoutId = timers.setTimeout(callback, 1000);
+timers.clearTimeout(timeoutId);
+```
+
+The clearInterval() function is used to cancel a timer set by the setInterval() method. What needs to be provided is the timer identifier value returned in setInterval().
+
+```JavaScript
+var timers = require('timers');
+function callback() {
+    console.log('Hello, World!');
+}
+var intervalId = timers.setInterval(callback, 1000);
+timers.clearInterval(intervalId);
+```
+
+The setImmediate() function is used to call the function immediately at the next idle time, returns the timer object.
+
+```JavaScript
+var timers = require('timers');
+function callback() {
+    console.log('Hello, World!');
+}
+var immediateId = timers.setImmediate(callback);
+```
+
+The above are examples of commonly used functions and objects provided by the timers module. By using these functions and objects, it is convenient to implement delayed execution tasks or scheduled task execution in applications.
+ */
 module timers
 {
-    /*! @brief cancels a timed, repeating action which was previously established by a call to setInterval()
-        @param t The identifier of the repeated action you want to cancel. This ID was returned by the corresponding call to setInterval().
-    */
-    static clearInterval(Timer t);
-    
-    /*! @brief cancels a timeout previously established by calling setTimeout().
-        @param t The identifier of the timeout you want to cancel. This ID was returned by the corresponding call to setTimeout().
-    */
-    static clearTimeout(Timer t);
-
-    /*! @brief clears the action specified by setImmediate.
-        @param t immediateID is a ID returned by setImmediate.
-    */
-    static clearImmediate(Timer t);
-
-    /*! @brief repeatedly calls a function or executes a code snippet, with a fixed time delay between each call.
-        @param callback A function to be executed every delay milliseconds. The function is not passed any parameters, and no return value is expected.
-        @param timeout The time, in milliseconds (thousandths of a second), the timer should delay in between executions of the specified function or code.When greater than 2^31 , execute immediately
-        @param args Optional arguments to pass when the callback is called.
-        @return The returned timeoutID is a numeric, non-zero value which identifies the timer created by the call to setInterval(); this value can be passed to clearInterval() to cancel the timeout.
-    */
-    static Timer setInterval(Function callback, Number timeout, ...args);
-    
-    /*! @brief sets a timer which executes a function or specified piece of code once after the timer expires.
-        @param callback A function to be executed after the timer expires.
-        @param timeout The time, in milliseconds (thousandths of a second), the timer should wait before the specified function or code is executed.When greater than 2^31 , execute immediately
-        @param args Optional arguments to pass when the callback is called.
-        @return The returned timeoutID is a positive integer value which identifies the timer created by the call to setTimeout(); this value can be passed to clearTimeout() to cancel the timeout.
+    /*! @brief Call the function after the specified time
+    @param callback Specify callback function
+    @param timeout Specify the delay time in milliseconds. If it exceeds 2^31, execute immediately.
+    @param args Additional parameters, passed into the specified callback, optional.
+    @return Return timer object
     */
     static Timer setTimeout(Function callback, Number timeout = 1, ...args);
 
-    /*! @brief run a callback function immediately after the browser has completed other operations such as events and display updates.
-        @param callback the function you wish to call.
-        @param args Optional arguments to pass when the callback is called.
-        @return where immediateID is the ID of the immediate which can be used later with clearImmediate.
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearTimeout(Value t);
+
+    /*! @brief Call the function after each specified time interval
+     @param callback Specify callback function
+     @param timeout Specify the interval time in milliseconds. If it exceeds 2^31, execute immediately.
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return timer object
+    */
+    static Timer setInterval(Function callback, Number timeout, ...args);
+
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearInterval(Value t);
+
+    /*! @brief Call the function after each specified time interval, this is a high-precision timer that will actively interrupt the running JavaScript script to execute the timer
+     Since the setHrInterval timer will interrupt the running code to execute the callback, do not modify data that may affect other modules in the callback function, or call any api functions marked as async in the callback, otherwise unpredictable results will occur. For example:
+     ```JavaScript
+        var timers = require('timers');
+
+        var cnt = 0;
+        timers.setHrInterval(() => {
+            cnt++;
+        }, 100);
+
+        while (cnt < 10);
+
+        console.error("===============================> done");
+     ```
+     In this code, the loop in line 8 will not end because cnt changes, because JavaScript optimizes the code and determines that cnt will not change during this loop.
+     @param callback Specify callback function
+     @param timeout Specify the interval time in milliseconds. If it exceeds 2^31, execute immediately.
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return timer object
+    */
+    static Timer setHrInterval(Function callback, Number timeout, ...args);
+
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearHrInterval(Value t);
+
+    /*! @brief Execute the callback function immediately at the next idle time
+     @param callback Specify callback function
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return timer object
     */
     static Timer setImmediate(Function callback, ...args);
+
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearImmediate(Value t);
+
+    /*! @brief Call the given function and interrupt the function run when the timeout expires
+     @param func Specify the function to run
+     @param timeout Specify timeout time
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return the running result of func
+    */
+    static Value call(Function func, Number timeout, ...args);
 };

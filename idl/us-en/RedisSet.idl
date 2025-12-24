@@ -1,57 +1,57 @@
+/*! @brief Redis database client Set object, this object contains the client with the specified key, only when calling its methods will operate the database
 
-/*! @brief Redis database client Set object, it contains client of given key and has to operate it with database
-
- Used for Redis Set object, to create it:
- @code
+ Used to operate Redis Set objects, creation method:
+ ```JavaScript
  var db = require("db");
  var rdb = new db.openRedis("redis-server");
  var set = rdb.getSet("test");
- @endcode
+ ```
  */
 interface RedisSet : object
 {
-    /*! @brief Add one or more member to collection key, duplicates will be ignored
-     @param members Members to add
-     @return Return number of elements added, exclusive ignores */
+    /*! @brief Add one or more member elements to the set key, member elements that already exist in the set will be ignored
+     @param members Specify the element array to add
+     @return The number of new elements added to the set, not including ignored elements */
     Integer add(Array members);
 
-    /*! @brief Add multiple field-value to hash table, overwrite when exist
-     @param ... List of elements
-     @return Return number of elements added, exclusive ignores */
-    Integer add(...);
+    /*! @brief Simultaneously set multiple field-value pairs to the hash table, this command will overwrite existing fields in the hash table
+     @param members Specify the element list to add
+     @return The number of new elements added to the set, not including ignored elements  */
+    Integer add(...members);
 
-    /*! @brief Remove one or more elements
-     @param members Members to remove
-     @return Return number of elements removed, exclusive ignores */
+    /*! @brief Remove one or more member elements from the set
+     @param members Specify the element array to remove
+     @return The number of elements successfully removed, not including ignored elements */
     Integer remove(Array members);
 
-    /*! @brief Remove one or more elements
-     @param ... List of elements to remove
-     @return Return number of elements removed, exclusive ignores */
-    Integer remove(...);
+    /*! @brief Remove one or more member elements from the set
+     @param members Specify the element list to remove
+     @return The number of elements successfully removed, not including ignored elements  */
+    Integer remove(...members);
 
-    /*! @brief Get number of elements in collection
-     @return Return length of collection */
+    /*! @brief Return the number of elements in the set
+     @return Return the length of the set */
     Integer len();
 
-    /*! @brief Chekc if member is in collection
-     @return Return true when member is in collection */
+    /*! @brief Determine if the member element is a member of the set
+     @param member Specify the member to check
+     @return If the member element is a member of the set, return true */
     Boolean exists(Buffer member);
 
-    /*! @brief Return all elements
-     @return Return list of members */
-    List members();
+    /*! @brief Return all members in the set
+     @return List of all members in the set */
+    NArray members();
 
-    /*! @brief Remove and return a random element
-     @return Return removed element, null when collection is empty */
+    /*! @brief Remove and return a random element from the set
+     @return The removed random element. When the set is empty, return null */
     Buffer pop();
 
-    /*! @brief Return a random element
-     @return Return a element, null when collection is empty */
+    /*! @brief Get a random element from the set
+     @return Return an element; if the set is empty, return null */
     Value randMember();
 
-    /*! @brief Get number of random elements
-     @param count Number of elements to return. Positive, return a array with given elements; negative, may have duplicated elements and length is the absolute value of count
-     @return Return a list with elements or empty list */
+    /*! @brief Get several random elements from the set
+     @param count Specify the number of elements to return. Positive number, return an array containing count elements; negative number, return an array where elements may appear multiple times, and the length of the array is the absolute value of count
+     @return Return a list; if the set is empty, return empty list */
     Value randMember(Integer count);
 };

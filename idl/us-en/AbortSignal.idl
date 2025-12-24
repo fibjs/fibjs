@@ -1,0 +1,27 @@
+/* brief This object allows you to communicate with asynchronous operations (such as fetch requests) and abort them when needed via the AbortController object */
+interface AbortSignal : EventEmitter
+{
+    /*! @brief To abort one or more Web requests
+     @param reason An optional string describing the reason for aborting the request
+     @return Returns an AbortSignal object
+    */
+    AbortSignal abort(String reason = "AbortError");
+
+    /*! @brief To abort one or more Web requests
+     @param reason A value of any type describing the reason for aborting the request
+     @return Returns an AbortSignal object
+    */
+    AbortSignal abort(Value reason);
+
+    /*! @brief If the request has been aborted, throw an exception */
+    throwIfAborted();
+
+    /*! @brief For checking if abort has been requested */
+    readonly Boolean aborted;
+
+    /*! @brief Get the reason for the abort request */
+    readonly Value reason;
+
+    /*! @brief Event handler, triggered when abort is requested */
+    event abort();
+};

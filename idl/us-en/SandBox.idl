@@ -1,76 +1,153 @@
-/*! @brief Sandbox, to manage a separate running space
+/*! @brief Isolated sandbox object, used to manage an independent runtime space
 
-  All code is running inside sandbox, global require uses current sandbox to load modules.
-  Following example limits access to assert modules and add a and b two custom modules.
- @code
- var vm = require('vm');
- var sbox = new vm.SandBox({
+  All code runs in its own sandbox, the global require will call the current sandbox to load modules, the sandbox will be passed through require to the loaded sandbox. The following example creates a sandbox that restricts access to only the assert module in the global base modules, and adds two custom modules a and b:
+ ```JavaScript
+  var vm = require('vm');
+  var sbox = new vm.SandBox({
    a: 100,
    b: 200,
    assert: require('assert')
- });
+  });
 
- var mod_in_sbox = sbox.require('./path/to/mod');
- @endcode
+  var mod_in_sbox = sbox.require('./path/to/mod');
+  ```
+ Note that SandBox is not a security sandbox against attacks, SandBox is just an independent runtime space, which can be used to isolate different codes and avoid mutual interference, but cannot prevent malicious code.
+ If you want to load ECMAScript modules, you can use the following code:
+ ```JavaScript
+  import vm from 'vm';
+  var sbox = new vm.SandBox();
+  var mod = await sbox.import('./a.mjs', __dirname);
+  ```
  */
 interface SandBox : object
 {
-    /*! @brief Constructor, initializes basic modules
-     @param mods Dictionary of modules
-     @param name Name of sandbox, used for error logging
+    /*! @brief Construct a new isolated sandbox object and initialize base modules
+     @param mods Specify the module object dictionary to add
      */
-    SandBox(Object mods, String name = "");
+    SandBox(Object mods = {});
 
-    /*! @brief Constructor, initializes basic modules
-     @param mods Dictionary of modules
-     @param require Custom require function, call it first when no module exists
-     @param name Name of sandbox, used for error logging
+    /*! @brief Construct a new isolated sandbox object and initialize base modules
+     @param mods Specify the module object dictionary to add
+     @param require Custom require function, when the module does not exist, call the custom function first, if no return then load from file
      */
-    SandBox(Object mods, Function require, String name = "");
+    SandBox(Object mods, Function require);
 
-    /*! @brief Add a module to sandbox
-     @param id Module name
-     @param mod Module object
+    /*! @brief Construct a new isolated sandbox object with independent Global and initialize base modules
+     @param mods Specify the module object dictionary to add
+     @param global Specify the initialized Global properties
+     */
+    SandBox(Object mods, Object global);
+
+    /*! @brief Construct a new isolated sandbox object with independent Global and initialize base modules
+     @param mods Specify the module object dictionary to add
+     @param require Custom require function, when the module does not exist, call the custom function first, if no return then load from file
+     @param global Specify the initialized Global properties
+     */
+    SandBox(Object mods, Function require, Object global);
+
+    /*! @brief Add built-in base modules to the sandbox */
+    addBuiltinModules();
+
+    /*! @brief Add a base module to the sandbox
+     @param id Specify the module name to add, this path is independent of the currently running script, must be absolute path or module name
+     @param mod Specify the module object to add
      */
     add(String id, Value mod);
 
-    /*! @brief Add a list of modules
-     @param mods Dictionary of modules, will generate a copy of javascript modules to prevent conflicts
+    /*! @brief Add a group of base modules to the sandbox
+     @param mods Specify the module object dictionary to add, added javascript modules will generate a copy to avoid sandbox modifications causing mutual interference
      */
     add(Object mods);
 
-    /*! @brief Add a script to sandbox
-     @param srcname Script name, must include extension, such as json or js
-     @param script Content of script
-     @return Return loaded module
+    /*! @brief Add a script module to the sandbox
+     @param srcname Specify the script name to add, srcname must include extension, such as json or js, jsc
+     @param script Specify the binary code to add
+     @return Return the loaded module object
      */
-    Value addScript(String srcname, String script);
+    Value addScript(String srcname, Buffer script);
 
-    /*! @brief Remove a module from sandbox
-     @param id Module name
+    /*! @brief Remove the specified base module from the sandbox
+     @param id Specify the module name to delete, this path is independent of the currently running script, must be absolute path or module name
      */
     remove(String id);
 
-    /*! @brief Check a module in the sandbox exists
-     @param id Module name
-     @return bool
+    /*! @brief Check if the base module exists in the sandbox
+     @param id Specify the module name to check, this path is independent of the currently running script, must be absolute path or module name
+     @return Whether it exists
      */
     Boolean has(String id);
 
-    /*! @brief clone current sandbox, the cloned sandbox contains all current sandbox module, same name and same require function.
-     @return cloned sanbox
+    /*! @brief Clone the current sandbox, the new sandbox contains the modules of the current sandbox, as well as the same name and require function
+     @return Cloned new sandbox
      */
     SandBox clone();
 
-    /*! @brief Run a script
-     @param fname Script path, always relative to current work directory
-     @param argv Specify the run parameters, which can be caught in script by argv.
-     */
-    run(String fname, Array argv = []);
+    /*! @brief Freeze the current sandbox, modifications to global after freezing will be ignored */
+    freeze();
 
-    /*! @brief Load and return a modules, see @ref module for details
-     @param id Module name, always relative to current work directory
-     @return Return loaded module
+    /*! @brief Run a script
+     @param fname Specify the script path to run, this path is independent of the currently running script, must be absolute path
      */
-    Value require(String id);
+    run(String fname);
+
+    /*! @brief Query a module and return the complete file name of the module
+     @param id Specify the module name to load
+     @param base Specify the search path
+     @return Return the complete file name of the loaded module
+     */
+    String resolve(String id, String base);
+
+    /*! @brief Load a module and return the module object, require cannot load ECMAScript modules
+     @param id Specify the module name to load
+     @param base Specify the search path
+     @return Return the loaded module object
+     */
+    Value require(String id, String base);
+
+    /*! @brief Asynchronously load a module and return the module object, can load ECMAScript modules or CommonJS modules
+     @param id Specify the module name to load
+     @param base Specify the search path
+     @return Return the loaded module object
+     */
+    Promise import(String id, String base);
+
+    /*! @brief Add a compiler for the specified extname, extname cannot be system built-in extensions (including {'.js', '.json', '.jsc', '.wasm'}), compiler needs to return valid javascript script.
+
+      ```JavaScript
+      var vm = require('vm');
+      var sbox = new vm.SandBox({
+      });
+
+      // compile ts to js and load
+      sbox.setModuleCompiler('.ts', tsCompiler);
+      var mod_ts = sbox.require('./a.ts');
+
+      // compile coffee to js and load
+      sbox.setModuleCompiler('.coffee', cafeCompiler);
+      var mod_coffee = sbox.require('./a.coffee');
+
+      // compile jsx to js and load
+      sbox.setModuleCompiler('.jsx', reactCompiler);
+      var mod_react = sbox.require('./a.jsx');
+
+      // compile yaml to rest and load
+      sbox.setModuleCompiler('.yml', yaml2Rest)
+      sbox.setModuleCompiler('.yaml', yaml2Rest)
+
+      // compile markdown to html and load
+      sbox.setModuleCompiler('.md', mdCompiler)
+      sbox.setModuleCompiler('.markdown', mdCompiler)
+      ```
+
+     @param extname Specified extname, must start with '.', and be non-system built-in extension
+     @param compiler Compilation callback function, all files with extname will only be required once. The callback function format is `compiler(buf, requireInfo)`, buf is the read file Buffer, requireInfo structure is `{filename: string}`.
+     */
+    setModuleCompiler(String extname, Function compiler);
+
+    /*! @brief Query the global object of the sandbox */
+    readonly Object global;
+
+    /*! @brief Query the dictionary object of all existing modules in the sandbox
+     */
+    readonly Object modules;
 };

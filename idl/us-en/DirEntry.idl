@@ -1,0 +1,47 @@
+/*! @brief Information representing directory entry
+
+ DirEntry object is queried through fs.glob, fs.readdir, cannot be created independently
+ */
+interface DirEntry : object
+{
+    /*! @brief File name */
+    readonly String name;
+
+    /*! @brief Parent path of the file */
+    readonly String parentPath;
+
+    /*! @brief Query whether Stat describes a block device
+     @return true means describes a block device
+     */
+    Boolean isBlockDevice();
+
+    /*! @brief Query whether Stat describes a character device
+     @return true means describes a character device
+     */
+    Boolean isCharacterDevice();
+
+    /*! @brief Query whether the file is a directory
+     @return true means it is a directory
+     */
+    Boolean isDirectory();
+
+    /*! @brief Query whether Stat describes a FIFO pipe
+     @return true means describes a FIFO pipe
+     */
+    Boolean isFIFO();
+
+    /*! @brief Query whether the file is a file
+     @return true means it is a file
+     */
+    Boolean isFile();
+
+    /*! @brief Query whether the file is a symbolic link
+     @return true means it is a symbolic link
+     */
+    Boolean isSymbolicLink();
+
+    /*! @brief Query whether the file is a Socket
+     @return true means it is a Socket
+     */
+    Boolean isSocket();
+};

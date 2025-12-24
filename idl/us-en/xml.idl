@@ -1,60 +1,85 @@
+/*! @brief XML processing module, can use xml module to parse and process xml and html files
 
-/*! @brief xml module
+To parse xml file, you can use the following code:
+```JavaScript
+var xml = require('xml');
+var fs = require('fs');
+
+var xmlStr = fs.readFile('test.xml');
+var xmlDoc = xml.parse(xmlStr);
+
+console.log(xmlDoc.documentElement.nodeName);  // output root node name
+```
+In the above code, we used the readFile method of the fs module to read an xml file, then used the parse method of the xml module to parse the xml file and return an XmlDocument object xmlDoc. Then, we can access the root element of the xml document through xmlDoc.documentElement.
+
+To parse html file, you just need to modify the code slightly:
+```JavaScript
+var xml = require('xml');
+var fs = require('fs');
+
+var htmlStr = fs.readFile('test.html');
+var xmlDoc = xml.parse(htmlStr, 'text/html');
+
+console.log(xmlDoc.documentElement.nodeName);  // output root node name
+```
+Here, we also used the readFile method of the fs module to read an html file, but when calling the parse method of the xml module, we specified the second parameter as 'text/html', so the xml module will parse the file according to html syntax rules.
+
+The parsed Xml document objects are all of type XmlDocument, and their properties and methods can be operated according to the xml object model (DOM).
 */
 module xml
 {
-    /*! @brief XmlNode's nodeType property, represents XmlElement node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlElement object
     */
-    const Integer ELEMENT_NODE = 1;
+    const ELEMENT_NODE = 1;
 
-    /*! @brief XmlNode's nodeType property, represents XmlAttr node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlAttr object
     */
-    const Integer ATTRIBUTE_NODE = 2;
+    const ATTRIBUTE_NODE = 2;
 
-    /*! @brief XmlNode's nodeType property, represents XmlText node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlText object
     */
-    const Integer TEXT_NODE = 3;
+    const TEXT_NODE = 3;
 
-    /*! @brief XmlNode's nodeType property, represents XmlCDATASection node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlCDATASection object
     */
-    const Integer CDATA_SECTION_NODE = 4;
+    const CDATA_SECTION_NODE = 4;
 
-    /*! @brief XmlNode's nodeType property, represents XmlProcessingInstruction node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlProcessingInstruction object
     */
-    const Integer PROCESSING_INSTRUCTION_NODE = 7;
+    const PROCESSING_INSTRUCTION_NODE = 7;
 
-    /*! @brief XmlNode's nodeType property, represents XmlComment node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlComment object
     */
-    const Integer COMMENT_NODE = 8;
+    const COMMENT_NODE = 8;
 
-    /*! @brief XmlNode's nodeType property, represents XmlDocument node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlDocument object
     */
-    const Integer DOCUMENT_NODE = 9;
+    const DOCUMENT_NODE = 9;
 
-    /*! @brief XmlNode's nodeType property, represents XmlDocumentType node object
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlDocumentType object
     */
-    const Integer DOCUMENT_TYPE_NODE = 10;
+    const DOCUMENT_TYPE_NODE = 10;
 
-    /*! @brief xml document object, see XmlDocument object*/
+    /*! @brief XML document object, see XmlDocument object*/
     static XmlDocument new Document();
 
     /*! @brief Parse xml/html text and create XmlDocument object, does not support multiple languages
-     @param source xml/html text to parse
-     @param type Indicates text type, default is text/xml, and can be text/html as well
-     @return Return created XmlDocument object
+     @param source Specify the xml/html text to parse
+     @param type Specify text type, default is text/xml, can also be text/html
+     @return Returns the created XmlDocument object
     */
     static XmlDocument parse(String source, String type = "text/xml");
 
-    /*! @brief Parse xml/html and create XmlDocument object, convert by given language
-     @param source xml/html text to parse
-     @param type Indicates text type, default is text/xml, and can be text/html as well
-     @return Return created XmlDocument object
+    /*! @brief Parse xml/html and create XmlDocument object, will convert according to specified language during parsing
+     @param source Specify the xml/html binary data to parse
+     @param type Specify text type, default is text/xml, can also be text/html
+     @return Returns the created XmlDocument object
     */
     static XmlDocument parse(Buffer source, String type = "text/xml");
 
     /*! @brief Serialize XmlNode to string
-     @param node XmlNode to serialize
-     @return Return serialized string
+     @param node Specify the XmlNode to serialize
+     @return Returns the serialized string
     */
     static String serialize(XmlNode node);
 };

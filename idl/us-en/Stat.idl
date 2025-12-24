@@ -1,70 +1,123 @@
+/*! @brief Basic file information object
 
-/*! @brief File info object
-
-  Stat uses fs.stat, File.stat, fs.readdir to query and cannot be created
+  Stat object is queried through fs.stat, FileStream.stat, fs.readdir, cannot be created independently
  */
 interface Stat : object
 {
     /*! @brief File name */
     readonly String name;
 
-    /*! @brief File size */
-    readonly Long size;
+    /*! @brief Device ID containing the file */
+    readonly Integer dev;
 
-    /*! @brief File permission, Windows does not support this */
+    /*! @brief Number of Inodes in the file */
+    readonly Integer ino;
+
+    /*! @brief File permissions, not supported on Windows */
     readonly Integer mode;
 
-    /*! @brief File last modified time */
+    /*! @brief Number of hard links associated with the file */
+    readonly Integer nlink;
+
+    /*! @brief ID of the file owner */
+    readonly Integer uid;
+
+    /*! @brief ID of the group the file belongs to */
+    readonly Integer gid;
+
+    /*! @brief For special types of files, contains the device ID of the file */
+    readonly Integer rdev;
+
+    /*! @brief File size */
+    readonly Number size;
+
+    /*! @brief File system block size in I/O operations */
+    readonly Integer blksize;
+
+    /*! @brief Number of blocks allocated to the file */
+    readonly Integer blocks;
+
+    /*! @brief File last modification time */
     readonly Date mtime;
+
+    /*! @brief File last modification time (ms) */
+    readonly Number mtimeMs;
 
     /*! @brief File last access time */
     readonly Date atime;
 
-    /*! @brief File create time */
+    /*! @brief File last access time (ms) */
+    readonly Number atimeMs;
+
+    /*! @brief File creation time */
     readonly Date ctime;
 
-    /*! @brief Check if has write permission
-     @return Return true when has write permission to file
+    /*! @brief File creation time (ms) */
+    readonly Number ctimeMs;
+
+    /*! @brief File birth time */
+    readonly Date birthtime;
+
+    /*! @brief File birth time (ms) */
+    readonly Number birthtimeMs;
+
+    /*! @brief Query if the file has write permission
+     @return true if has write permission
      */
     Boolean isWritable();
 
-    /*! @brief Check if has read permission
-     @return Return true when has read permission to file
+    /*! @brief Query if the file has read permission
+     @return true if has read permission
      */
     Boolean isReadable();
 
-    /*! @brief Check if has execute permission
-     @return Return true when has execute permission to file
+    /*! @brief Query if the file has execute permission
+     @return true if has execute permission
      */
     Boolean isExecutable();
 
-    /*! @brief Check if file is hidden
-     @return Return true when file is hidden
+    /*! @brief Query if the file is hidden
+     @return true if hidden
      */
     Boolean isHidden();
 
-    /*! @brief Check if file is a directory
-     @return Return true when file is a directory
+    /*! @brief Query if Stat describes a block device
+     @return true if describes a block device
+     */
+    Boolean isBlockDevice();
+
+    /*! @brief Query if Stat describes a character device
+     @return true if describes a character device
+     */
+    Boolean isCharacterDevice();
+
+    /*! @brief Query if the file is a directory
+     @return true if directory
      */
     Boolean isDirectory();
 
-    /*! @brief Check if file is a file
-     @return Return true when file is a file
+    /*! @brief Query if Stat describes a FIFO pipe
+     @return true if describes a FIFO pipe
+     */
+    Boolean isFIFO();
+
+    /*! @brief Query if the file is a file
+     @return true if file
      */
     Boolean isFile();
 
-    /*! @brief Check if file is a symbolic link
-     @return Return true when file is a symbolic link
+    /*! @brief Query if the file is a symbolic link
+     @return true if symbolic link
      */
     Boolean isSymbolicLink();
 
-    /*! @brief Check if file is a memory file
-     @return Return true when file is a memory file
+    /*! @brief Query if the file is a memory file
+     @return true if memory file
      */
     Boolean isMemory();
 
-    /*! @brief Check if file is Socket
-     @return Return true when file is Socket
+    /*! @brief Query if the file is a Socket
+     @return true if Socket
      */
     Boolean isSocket();
 };

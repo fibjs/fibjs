@@ -1,148 +1,596 @@
-
-/*! @brief Encryption algorithm module
-
- The way to use:
- @code
- var crypto = require('crypto');
- @endcode
- */
+/*! @brief The `crypto` module is a built-in encryption algorithm module in `fibjs`. It provides symmetric encryption, asymmetric encryption, digest algorithms, cryptographic random number generators, and other functions. Before using it, you need to load the module via `require('crypto')` */
 module crypto
 {
-    /*! @brief Specifies the symmetric encryption algorithm as AES, which support 128, 192, 256 bit key, and block cipher mode support ECB, CBC, CFB128, CTR, GCM */
-    /*! @brief assign symmetric encryption algorithms, AES, support 128, 192, 256 keies. Block cipher mode of operation support ECB, CBC, CFB128, CTR, GCM */
-    const Integer AES = 1;
+    /*! crypto module's constants object, see crypto_constants */
+    static crypto_constants new constants();
 
-    /*! @brief Specifies the symmetric encryption algorithm as CAMELLIA, which support 128, 192, 256 bit key, and block cipher mode support ECB, CBC, CFB128, CTR, GCM */
-    /*! @brief assign symmetric encryption algorithms, AES, support 128, 192, 256 keies. Block cipher mode of operation support ECB, CBC, CFB128, CTR, GCM */
-    const Integer CAMELLIA = 2;
+    /*! @brief KeyObject object, see KeyObject */
+    static KeyObject;
 
-    /*! @brief Specifies the symmetric encryption algorithm as DES, which support 64 bit key, and block cipher mode support ECB, CBC */
-    /*! @brief assign symmetric encryption algorithms, AES, support 64 key. Block cipher mode of operation support ECB, CBC */
-    const Integer DES = 3;
+    /*! @brief X509Certificate constructor, see X509Certificate */
+    static X509Certificate;
 
-    /*! @brief Specifies the symmetric encryption algorithm as DES-EDE, which support 128 bit key, and block cipher mode support ECB, CBC */
-    /*! @brief assign symmetric encryption algorithms, DES-EDE, support 128 key. Block cipher mode of operation support ECB, CBC */
-    const Integer DES_EDE = 4;
-
-    /*! @brief Specifies the symmetric encryption algorithm as DES-EDE3, which support 192 bit key, and block cipher mode support ECB, CBC */
-    /*! @brief assign symmetric encryption algorithms, DES-EDE3, support 128 key. Block cipher mode of operation support ECB, CBC */
-    const Integer DES_EDE3 = 5;
-
-    /*! @brief Specifies the symmetric encryption algorithm as BLOWFISH, which support 192 bit key, and block cipher mode support ECB, CBC, CFB64, CTR */
-    /*! @brief assign symmetric encryption algorithms, BLOWFISH, support 128 key. Block cipher mode of operation support ECB, CBC CFB64, CTR*/
-    const Integer BLOWFISH = 6;
-
-    /*! @brief Specifies the symmetric encryption algorithm as ARC4, which support 40, 56, 64, 128 bit key */
-    /*! @brief assign Block cipher mode of operation, ARC4, support 40, 56, 64, 128 key.*/
-    const Integer ARC4 = 7;
-
-    /*! @brief Specify the block cipher mode that support ECB */
-    /*! @brief Block cipher mode of operation ECB */
-    const Integer ECB = 1;
-
-    /*! @brief Specify the block cipher mode that support CBC */
-    /*! @brief Block cipher mode of operation CBC */
-    const Integer CBC = 2;
-
-    /*! @brief Specify the block cipher mode that support CFB64 */
-    /*! @brief Block cipher mode of operation CFB64 */
-    const Integer CFB64 = 3;
-
-    /*! @brief Specify the block cipher mode that support CFB128 */
-    /*! @brief Block cipher mode of operation CFB128 */
-    const Integer CFB128 = 4;
-
-    /*! @brief Specify the block cipher mode that support OFB */
-    /*! @brief Block cipher mode of operation OFB */
-    const Integer OFB = 5;
-
-    /*! @brief Specify the block cipher mode that support CTR */
-    /*! @brief Block cipher mode of operation CTR */
-    const Integer CTR = 6;
-
-    /*! @brief Specify the block cipher mode that support GCM */
-    /*! @brief Block cipher mode of operation GCM */
-    const Integer GCM = 7;
-
-    /*! @brief Specifies the stream cipher mode. */
-    /*! @brief Stream cipher mode*/
-    const Integer STREAM = 8;
-
-    /*! @brief Specify the block cipher mode that support CCM */
-    /*! @brief Block cipher mode of operation CCM */
-    const Integer CCM = 9;
-
-    /*! @brief pecifies the fill mode as PKCS7 */
-    const Integer PKCS7 = 0;
-
-    /*! @brief Specifies the fill mode as ONE_AND_ZEROS */
-    const Integer ONE_AND_ZEROS = 1;
-
-    /*! @brief pecifies the fill mode as ZEROS_AND_LEN */
-    const Integer ZEROS_AND_LEN = 2;
-
-    /*! @brief pecifies the fill mode as ZEROS */
-    const Integer ZEROS = 3;
-
-    /*! @brief pecifies the fill mode as NOPADDING */
-    const Integer NOPADDING = 4;
-
-    /*! @brief Cipher Constructor, reference Cipher */
-    static Cipher;
-
-    /*! @brief PKey Constructor, reference PKey */
-    static PKey;
-
-    /*! @brief X509Cert Constructor, reference X509Cert */
-    static X509Cert;
-
-    /*! @brief X509Crl Constructor, reference X509Crl */
-    static X509Crl;
-
-    /*! @brief X509Req Constructor, reference X509Req */
-    static X509Req;
-
-    /*! @brief Load a PEM/DER format key file. 
-    @param filename Key file name.
-    @param password Decryption password.
-    */
-    static PKey loadPKey(String filename, String password = "");
-
-    /*! @brief Load a CRT/PEM/DER/TXT format certificate can be called multiple times.
-
-    LoadFile load mozilla certdata.txt, which can be download from http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
-
-    @param filename Certificate file name.
-    */
-    static X509Cert loadCert(String filename);  
-
-    /*! @brief Load a PEM/DER format revoked certificate can be called multiple times.
-    @param filename The cancellation certificate file name.
-    */
-    static X509Crl loadCrl(String filename);
-
-    /*! @brief Load a PEM/DER format requested certificate can be called multiple times.
-    @param filename The requested certificate file name.
-    */
-    static X509Req loadReq(String filename);
-
-    /*! @brief Generate the specified size of the random number, which use the havege generator.
-     @param size Specify the size of the generated random number.
-     @return Return the generated random number.
+    /*! @brief Get the hash (digest) algorithms supported by the crypto module
+     @return Return the array of supported hash algorithms
      */
-    static Buffer randomBytes(Integer size) async;
+    static Array getHashes();
 
-    /*! @brief Generate the specified size of the pseudo-random number, which use the entropy generator.
-     @param size Specify the size of the generated random number.
-     @return Return the generated random number.
-     */
-    static Buffer pseudoRandomBytes(Integer size) async;
+    /*! @brief Create an ECDH object based on the given ECC curve name
+     @param curve Specify the ECC curve name
+     @return Return the ECDH object
+    */
+    static ECDH createECDH(String curve);
 
-    /*! @brief Generate a visual character image by use given data.
-     @param data Specifies the data to display.
-     @param title The title of the specified character image, multibyte characters can cause width error.
-     @param size The character image size.
-     @return Return the generated visual string image.
+    /*! @brief Create a digest object based on the given algorithm name
+     @param algo Specify the algorithm for the digest object
+     @return Return the digest object
+    */
+    static Digest createHash(String algo);
+
+    /*! @brief Create an hmac digest object based on the given algorithm name
+     @param algo Specify the algorithm for the digest object
+     @param key Binary signature key
+     @return Return the digest object
+    */
+    static Digest createHmac(String algo, Buffer key);
+
+    /*! @brief Get the symmetric encryption algorithms supported by the crypto module
+     @return Return the array of supported symmetric encryption algorithms
      */
-    static String randomArt(Buffer data, String title, Integer size = 8);
+    static Array getCiphers();
+
+    /*! @brief Get algorithm information based on the encryption algorithm name
+     @param name Specify the algorithm name to query
+     @param options Optional parameters, can specify keyLength and ivLength for further filtering
+     @return Return an object containing algorithm information, or undefined if the algorithm does not exist or options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
+     */
+    static Object getCipherInfo(String name, Object options = {});
+
+    /*! @brief Get algorithm information based on the encryption algorithm NID
+     @param nid Specify the algorithm NID to query
+     @param options Optional parameters, can specify keyLength and ivLength for further filtering
+     @return Return an object containing algorithm information, or undefined if the algorithm does not exist or options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
+     */
+    static Object getCipherInfo(Integer nid, Object options = {});
+
+    /*! @brief Create a symmetric encryption cipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param options Specify encryption options
+     @return Return the symmetric encryption cipher object
+     */
+    static Cipher createCipher(String algorithm, Buffer key, Object options = {});
+
+    /*! @brief Create a symmetric encryption cipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param iv Specify the initial vector
+     @param options Specify encryption options
+     @return Return the symmetric encryption cipher object
+     */
+    static Cipher createCipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
+
+    /*! @brief Create a symmetric encryption cipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param iv Specify the initial vector
+     @param options Specify encryption options
+     @return Return the symmetric encryption cipher object
+     */
+    static Cipher createCipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
+
+    /*! @brief Create a symmetric encryption decipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param options Specify encryption options
+     @return Return the symmetric encryption decipher object
+     */
+    static Cipher createDecipher(String algorithm, Buffer key, Object options = {});
+
+    /*! @brief Create a symmetric encryption decipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param iv Specify the initial vector
+     @param options Specify encryption options
+     @return Return the symmetric encryption decipher object
+     */
+    static Cipher createDecipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
+
+    /*! @brief Create a symmetric encryption decipher object
+     @param algorithm Specify the encryption algorithm
+     @param key Specify the encryption/decryption password
+     @param iv Specify the initial vector
+     @param options Specify encryption options
+     @return Return the symmetric encryption decipher object
+     */
+    static Cipher createDecipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
+
+    /*! @brief Get the ecc curves supported by the crypto module
+     @return Return the supported ecc curves
+     */
+    static Array getCurves();
+
+    /*! @brief Create a new key object containing the private key for asymmetric encryption
+     @param key Specify the private key in pem format
+     @return Return the key object for the private key
+     */
+    static KeyObject createPrivateKey(Buffer key);
+
+    /*! @brief Create a new key object containing the private key for asymmetric encryption
+
+    The key parameter is used to specify the configuration properties for creating the private key, supporting the following properties: 
+    - key: PEM string, DER binary or JWK format object
+    - format: Must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'. Bls12381G1/Bls12381G2 only support 'raw'
+    - type: Must be 'pkcs1', 'pkcs8' or 'sec1'. Only required when format is 'der', otherwise ignored
+    - namedCurve: When format is 'raw', used to specify the curve name of the key, can be EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
+    - passphrase: Password string for decryption
+    - encoding: String encoding used when key is a string
+
+     @param key Configuration properties for creating the private key
+     @return Return the key object for the private key
+     */
+    static KeyObject createPrivateKey(Object key);
+
+    /*! @brief Create a new key object containing the public key for asymmetric encryption
+     @param key Specify the public key in pem format
+     @return Return the key object for the public key
+     */
+    static KeyObject createPublicKey(Buffer key);
+
+    /*! @brief Create a new key object containing the public key corresponding to the given private key based on the given private key
+     @param key Specify a private key for asymmetric encryption
+     @return Return the key object for the public key
+     */
+    static KeyObject createPublicKey(KeyObject key);
+
+    /*! @brief Create a new key object containing the public key for asymmetric encryption
+
+    The key parameter is used to specify the configuration properties for creating the public key, supporting the following properties: 
+    - key: PEM string, DER binary or JWK format object
+    - format: Must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'
+    - type: Must be 'pkcs1', or 'sec1'. Only required when format is 'der', otherwise ignored
+    - namedCurve: When format is 'raw', used to specify the curve name of the key, can be EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
+    - encoding: String encoding used when key is a string
+
+     @param key Configuration properties for creating the public key
+     @return Return the key object for the public key
+     */
+    static KeyObject createPublicKey(Object key);
+
+    /*! @brief Create a new sign object based on the algorithm specified by algorithm
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param options Specify sign options, not used
+     @return Return the sign object
+     */
+    static Sign createSign(String algorithm, Object options = {});
+
+    /*! @brief Create a new verify object based on the algorithm specified by algorithm
+     @param algorithm Specify the verify algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param options Specify verify options, not used
+     @return Return the verify object
+     */
+    static Verify createVerify(String algorithm, Object options = {});
+
+    /*! @brief Create a new key object containing the key for symmetric encryption or Hmac
+     @param key Specify the encryption/decryption password
+     @param encoding Specify the encoding of the password, default is "buffer"
+     @return Return the symmetric encryption decipher object
+     */
+    static KeyObject createSecretKey(Buffer key, String encoding = "buffer");
+
+    /*! @brief Create a new key object containing the key for symmetric encryption or Hmac
+     @param key Specify the encryption/decryption password
+     @param encoding Specify the encoding of the password, default is "buffer"
+     @return Return the symmetric encryption decipher object
+     */
+    static KeyObject createSecretKey(String key, String encoding);
+
+    /*! @brief Create a new certificate request object
+     @param csr Specify the certificate request data in PEM format
+     @return Return the certificate request object
+    */
+    static X509CertificateRequest createCertificateRequest(Buffer csr);
+
+    /*! @brief Create a new certificate request object
+
+     The parameters in options will be used to call crypto.createPrivateKey to create a private key object, and also support specifying subject and hashAlgorithm. Example as follows:
+
+     ```JavaScript
+        var pk = crypto.createPrivateKey(rsa4096_pem);
+        var req = crypto.createCertificateRequest({
+            key: pk,
+            hashAlgorithm: 'sha256', // default is 'sha256', if key is SM2 type, default is 'sm3'
+            subject: {
+                C: "CN",
+                O: "baoz.cn",
+                CN: "baoz.me"
+            }
+        });
+     ```
+
+     @param options Specify the options for creating the certificate request
+     @return Return the certificate request object
+    */
+    static X509CertificateRequest createCertificateRequest(Object options);
+
+    /*! @brief Compute Diffie-Hellman key based on privateKey and publicKey
+
+     options supports the following properties:
+      - privateKey: Private key used for computation
+      - publicKey: Public key used for computation
+
+     @param options Specify the options for Diffie-Hellman key computation
+     @return Return the Diffie-Hellman key
+    */
+    static Buffer diffieHellman(Object options);
+
+    /*! @brief Utility for creating a one-time hash digest of data. It is faster than the object-based crypto.createHash() when hashing small amounts of available data (<= 5MB). If the data is large or streamed, it is still recommended to use crypto.createHash()
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to sign
+     @param outputEncoding Specify the output encoding, default is "hex"
+     @return Return the hashed data
+    */
+    static Value hash(String algorithm, Buffer data, String outputEncoding = "hex");
+
+    /*! @brief Generate random numbers of specified size, using havege generator
+     @param size Specify the size of the generated random number
+     @return Return the generated random number
+     */
+    static Buffer randomBytes(Integer size = 16) async;
+
+    /*! @brief Fill the specified Buffer with random numbers, using havege generator
+     @param buffer Specify the Buffer to generate
+     @param offset Specify the starting offset, default is 0
+     @param size Specify the size of the generated random number, default is buffer.length - offset
+     @return Return the generated random number
+     */
+    static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
+
+    /*! @brief Generate a random RFC 4122 version 4 UUID
+     @param options Optional parameters, can specify disableEntropyCache to disable entropy cache (this option is ignored, kept only for compatibility)
+     @return Return a UUID v4 string
+     */
+    static String randomUUID(Object options = {});
+
+    /*! @brief Generate a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
+
+    options supports the following properties:
+    - modulusLength: Key size in bits (RSA, DSA).
+    - publicExponent: Public exponent (RSA). Default: 0x10001.
+    - hashAlgorithm: Name of the message digest (RSA-PSS).
+    - mgf1HashAlgorithm: Name of the message digest used by MGF1 (RSA-PSS).
+    - saltLength: Minimum salt length in bytes (RSA-PSS).
+    - divisorLength: Size of q in bits (DSA).
+    - namedCurve: Name of the curve to use (EC).
+    - prime: Prime parameter (DH).
+    - primeLength: Prime length in bits (DH).
+    - generator: Custom generator (DH). Default: 2.
+    - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
+    - paramEncoding: Must be 'named' or 'explicit' (EC). Default: 'named'.
+    - publicKeyEncoding: See keyObject.export.
+    - privateKeyEncoding: See keyObject.export.
+
+    @param type Specify the type of key to generate, must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
+    @param options Specify the options for generating the key
+    @return Return an object containing the generated key pair
+    */
+    static (Variant publicKey, Variant privateKey) generateKeyPair(String type, Object options = {}) async;
+
+    /*! @brief Generate the required binary key based on plaintext password according to rfc5869
+     @param algoName Specify the hash algorithm to use, see hash module for details
+     @param password Specify the password to use
+     @param salt Specify the salt used by khdf
+     @param info Specify the info used by khdf
+     @param size Specify the key size
+     @return Return the generated binary key
+     */
+    static Buffer hkdf(String algoName, Buffer password, Buffer salt, Buffer info, Integer size) async;
+
+    /*! @brief Generate the required binary key based on plaintext password using pbkdf2 algorithm
+     @param password Specify the password to use
+     @param salt Specify the salt used by hmac
+     @param iterations Specify the number of iterations
+     @param size Specify the key size
+     @param algoName Specify the hash algorithm to use, see hash module for details
+     @return Return the generated binary key
+     */
+    static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
+
+    /*! @brief Generate key using scrypt algorithm
+     @param password Specify the password to use
+     @param salt Specify the salt to use
+     @param keylen Specify the length of the key to generate
+     @param options Specify optional parameters, supports N, r, p, maxmem
+     @return Return the generated binary key
+     */
+    static Buffer scrypt(Buffer password, Buffer salt, Integer keylen, Object options = {}) async;
+
+    /*! @brief Decrypt buffer using privateKey. The buffer was previously encrypted using the corresponding public key
+     @param privateKey Specify the private key
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer privateDecrypt(Buffer privateKey, Buffer buffer);
+
+    /*! @brief Decrypt buffer using privateKey. The buffer was previously encrypted using the corresponding public key
+     @param privateKey Specify the private key
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer privateDecrypt(KeyObject privateKey, Buffer buffer);
+
+    /*! @brief Decrypt buffer using the private key and configuration specified by key. The buffer was previously encrypted using the corresponding public key
+     @param key Specify the private key and configuration
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer privateDecrypt(Object key, Value buffer);
+
+    /*! @brief Encrypt buffer using privateKey. The returned data can be decrypted using the corresponding public key
+     @param privateKey Specify the private key
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer privateEncrypt(Buffer privateKey, Buffer buffer);
+
+    /*! @brief Encrypt buffer using privateKey. The returned data can be decrypted using the corresponding public key
+     @param privateKey Specify the private key
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer privateEncrypt(KeyObject privateKey, Buffer buffer);
+
+    /*! @brief Encrypt buffer using the private key and configuration specified by key. The returned data can be decrypted using the corresponding public key
+     @param key Specify the private key and configuration
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer privateEncrypt(Object key, Value buffer);
+
+    /*! @brief Decrypt buffer using publicKey. The buffer was previously encrypted using the corresponding private key
+     @param publicKey Specify the public key
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer publicDecrypt(Buffer publicKey, Buffer buffer);
+
+    /*! @brief Decrypt buffer using publicKey. The buffer was previously encrypted using the corresponding private key
+     @param publicKey Specify the public key
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer publicDecrypt(KeyObject publicKey, Buffer buffer);
+
+    /*! @brief Decrypt buffer using the public key and configuration specified by key. The buffer was previously encrypted using the corresponding private key
+     @param key Specify the public key and configuration
+     @param buffer Specify the data to decrypt
+     @return Return the decrypted data
+     */
+    static Buffer publicDecrypt(Object key, Value buffer);
+
+    /*! @brief Encrypt buffer using publicKey. The returned data can be decrypted using the corresponding private key
+     @param publicKey Specify the private key
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer publicEncrypt(Buffer publicKey, Buffer buffer);
+
+    /*! @brief Encrypt buffer using publicKey. The returned data can be decrypted using the corresponding private key
+     @param publicKey Specify the private key
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer publicEncrypt(KeyObject publicKey, Buffer buffer);
+
+    /*! @brief Encrypt buffer using the private key and configuration specified by key. The returned data can be decrypted using the corresponding private key
+     @param key Specify the private key and configuration
+     @param buffer Specify the data to encrypt
+     @return Return the encrypted data
+     */
+    static Buffer publicEncrypt(Object key, Value buffer);
+
+    /*! @brief Calculate and return the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to sign
+     @param privateKey Specify the private key
+     @return Return the signed data
+    */
+    static Buffer sign(Value algorithm, Buffer data, Buffer privateKey) async;
+
+    /*! @brief Calculate and return the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to sign
+     @param privateKey Specify the private key
+     @return Return the signed data
+    */
+    static Buffer sign(Value algorithm, Buffer data, KeyObject privateKey) async;
+
+    /*! @brief Calculate and return the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+
+     The parameters in key will be used to call crypto.createPrivateKey to create a private key object, and also support the following sign parameters:
+     - dsaEncoding For DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
+      - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s) 
+      - 'ieee-p1363': Signature format r || s proposed in IEEE-P1363
+     - padding RSA's optional padding value, one of the following: 
+      - RSA_PKCS1_PADDING (default)
+      - RSA_PKCS1_PSS_PADDING, RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function used for signing the message as specified in RFC 4055 Section 3.1
+     - saltLength Salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to sign
+     @param key Specify the private key and sign parameters
+     @return Return the signed data
+    */
+    static Buffer sign(Value algorithm, Buffer data, Object key) async;
+
+    /*! @brief Verify the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to verify
+     @param publicKey Specify the public key
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean verify(Value algorithm, Buffer data, Buffer publicKey, Buffer signature) async;
+
+    /*! @brief Verify the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to verify
+     @param publicKey Specify the public key
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean verify(Value algorithm, Buffer data, KeyObject publicKey, Buffer signature) async;
+
+    /*! @brief Verify the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+
+     The parameters in key will be used to call crypto.createPublicKey to create a private key object, and also support the following sign parameters:
+     - dsaEncoding For DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
+      - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s) 
+      - 'ieee-p1363': Signature format r || s proposed in IEEE-P1363
+     - padding RSA's optional padding value, one of the following: 
+      - RSA_PKCS1_PADDING (default)
+      - RSA_PKCS1_PSS_PADDING, RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function used for signing the message as specified in RFC 4055 Section 3.1
+     - saltLength Salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+
+     @param algorithm Specify the sign algorithm, use crypto.getHashes to get the names of available digest algorithms
+     @param data Specify the data to verify
+     @param key Specify the private key and sign parameters
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean verify(Value algorithm, Buffer data, Object key, Buffer signature) async;
+
+    /*! @brief Compare whether the given two data are equal, using time constant comparison to prevent timing side-channel attacks
+     @param a Specify the data to compare
+     @param b Specify the data to compare
+     @return Return the comparison result
+     */
+    static Boolean timingSafeEqual(Buffer a, Buffer b);
+
+    /*! @brief Function for BBS signing using Bls12381G2
+     @param messages Specify the set of messages to sign
+     @param privateKey Specify the private key, must be Bls12381G2 private key
+     @return Return the signed data
+    */
+    static Buffer bbsSign(Buffer messages[], Buffer privateKey) async;
+
+    /*! @brief Function for BBS signing using Bls12381G2
+     @param messages Specify the set of messages to sign
+     @param privateKey Specify the private key, must be Bls12381G2 private key
+     @return Return the signed data
+    */
+    static Buffer bbsSign(Buffer messages[], KeyObject privateKey) async;
+
+    /*! @brief Function for BBS signing using Bls12381G2
+
+     The parameters in key will be used to call crypto.createPrivateKey to create a private key object, and also support the following sign parameters:
+      - suite: Must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+      - header: Additional data for signing
+
+     @param messages Specify the set of messages to sign
+     @param key Specify the private key and options
+     @return Return the signed data
+    */
+    static Buffer bbsSign(Buffer messages[], Object key) async;
+
+    /*! @brief Function for BBS verification using Bls12381G2
+     @param messages Specify the set of messages to verify
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean bbsVerify(Buffer messages[], Buffer publicKey, Buffer signature) async;
+
+    /*! @brief Function for BBS verification using Bls12381G2
+     @param messages Specify the set of messages to verify
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean bbsVerify(Buffer messages[], KeyObject publicKey, Buffer signature) async;
+
+    /*! @brief Function for BBS verification using Bls12381G2
+
+     The parameters in key will be used to call crypto.createPublicKey to create a public key object, and also support the following sign parameters:
+      - suite: Must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+      - header: Additional data for signing
+
+     @param messages Specify the set of messages to verify
+     @param key Specify the public key and options
+     @param signature Specify the signature data
+     @return Return the verification result
+    */
+    static Boolean bbsVerify(Buffer messages[], Object key, Buffer signature) async;
+
+    /*! @brief Function for generating BBS selective proof using Bls12381G2
+     @param signature Specify the BBS signature
+     @param messages Specify the set of messages to sign
+     @param index Specify the index of the proof to select
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @return Return the proof data
+    */
+    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], Buffer publicKey) async;
+
+    /*! @brief Function for generating BBS selective proof using Bls12381G2
+     @param signature Specify the BBS signature
+     @param messages Specify the set of messages to sign
+     @param index Specify the index of the proof to select
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @return Return the proof data
+    */
+    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], KeyObject publicKey) async;
+
+    /*! @brief Function for generating BBS selective proof using Bls12381G2
+
+     The parameters in key will be used to call crypto.createPublicKey to create a public key object, and also support the following sign parameters:
+      - suite: Must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+      - header: Additional data for signing
+      - proof_header: Additional data for proof
+
+     @param signature Specify the BBS signature
+     @param messages Specify the set of messages to sign
+     @param index Specify the index of the proof to select
+     @param key Specify the public key and options
+     @return Return the proof data
+    */
+    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], Object key) async;
+
+    /*! @brief Function for verifying BBS selective proof using Bls12381G2
+     @param messages Specify the set of messages to verify
+     @param index Specify the index of the proof to select
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @param proof Specify the proof data
+     @return Return the verification result
+    */
+    static Boolean proofVerify(Buffer messages[], Integer index[], Buffer publicKey, Buffer proof) async;
+
+    /*! @brief Function for verifying BBS selective proof using Bls12381G2
+     @param messages Specify the set of messages to verify
+     @param index Specify the index of the proof to select
+     @param publicKey Specify the public key, must be Bls12381G2 public key
+     @param proof Specify the proof data
+     @return Return the verification result
+    */
+    static Boolean proofVerify(Buffer messages[], Integer index[], KeyObject publicKey, Buffer proof) async;
+
+    /*! @brief Function for verifying BBS selective proof using Bls12381G2
+
+     The parameters in key will be used to call crypto.createPublicKey to create a public key object, and also support the following sign parameters:
+      - suite: Must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+      - header: Additional data for signing
+      - proof_header: Additional data for proof
+
+     @param messages Specify the set of messages to verify
+     @param index Specify the index of the proof to select
+     @param key Specify the public key and options
+     @param proof Specify the proof data
+     @return Return the verification result
+    */
+    static Boolean proofVerify(Buffer messages[], Integer index[], Object key, Buffer proof) async;
+
+    /*! @brief WebCrypto API module */
+    static webcrypto;
+
+    /*! @brief Provide access to the SubtleCrypto API */
+    static subtle;
 };

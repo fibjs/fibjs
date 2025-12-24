@@ -1,0 +1,21 @@
+/*! @brief Worker basic module
+
+Reference method:
+```JavaScript
+var worker_threads = require('worker_threads');
+```
+ */
+module worker_threads
+{
+    /*! @brief Independent thread worker object, see Worker */
+    static Worker;
+
+    /*! @brief Query if current Worker is main thread */
+    static readonly Boolean isMainThread;
+
+    /*! @brief Query the parent thread of current Worker */
+    static readonly Worker parentPort;
+
+    /*! @brief Query the clone of data passed to this thread by parent thread through Worker constructor */
+    static readonly Value workerData;
+};

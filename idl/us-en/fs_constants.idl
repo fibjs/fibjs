@@ -1,0 +1,183 @@
+/*! @brief fs module common constants definition module
+
+ Reference method:
+ ```JavaScript
+ var constants = require('fs').constants
+ ```
+ */
+module fs_constants
+{
+    /*! @brief seek method constant, move to absolute position */
+    const SEEK_SET = 0;
+
+    /*! @brief seek method constant, move to relative position of current position */
+    const SEEK_CUR = 1;
+
+    /*! @brief seek method constant, move to relative position of file end */
+    const SEEK_END = 2;
+
+    /*! @brief symbolic link to directory */
+    const UV_FS_SYMLINK_DIR = 1;
+
+    /*! @brief symbolic link to junction */
+    const UV_FS_SYMLINK_JUNCTION = 2;
+
+    /*! @brief open for reading only */
+    const O_RDONLY = 0;
+
+    /*! @brief open for writing only */
+    const O_WRONLY = 1;
+
+    /*! @brief open for reading and writing */
+    const O_RDWR = 2;
+
+    /*! @brief unknown directory entry type */
+    const UV_DIRENT_UNKNOWN = 0;
+
+    /*! @brief file directory entry type */
+    const UV_DIRENT_FILE = 1;
+
+    /*! @brief directory directory entry type */
+    const UV_DIRENT_DIR = 2;
+
+    /*! @brief symbolic link directory entry type */
+    const UV_DIRENT_LINK = 3;
+
+    /*! @brief FIFO directory entry type */
+    const UV_DIRENT_FIFO = 4;
+
+    /*! @brief socket directory entry type */
+    const UV_DIRENT_SOCKET = 5;
+
+    /*! @brief character device directory entry type */
+    const UV_DIRENT_CHAR = 6;
+
+    /*! @brief block device directory entry type */
+    const UV_DIRENT_BLOCK = 7;
+
+    /*! @brief bit mask for file type bit field */
+    const S_IFMT = 61440;
+
+    /*! @brief regular file */
+    const S_IFREG = 32768;
+
+    /*! @brief directory */
+    const S_IFDIR = 16384;
+
+    /*! @brief character device */
+    const S_IFCHR = 8192;
+
+    /*! @brief block device */
+    const S_IFBLK = 24576;
+
+    /*! @brief FIFO */
+    const S_IFIFO = 4096;
+
+    /*! @brief symbolic link */
+    const S_IFLNK = 40960;
+
+    /*! @brief socket */
+    const S_IFSOCK = 49152;
+
+    /*! @brief create file if it does not exist */
+    const O_CREAT = 512;
+
+    /*! @brief ensure exclusive creation of file */
+    const O_EXCL = 2048;
+
+    /*! @brief file mapping flag */
+    const UV_FS_O_FILEMAP = 0;
+
+    /*! @brief do not allocate controlling terminal */
+    const O_NOCTTY = 131072;
+
+    /*! @brief truncate file to zero length */
+    const O_TRUNC = 1024;
+
+    /*! @brief append to end of file */
+    const O_APPEND = 8;
+
+    /*! @brief open directory */
+    const O_DIRECTORY = 1048576;
+
+    /*! @brief do not follow symbolic links */
+    const O_NOFOLLOW = 256;
+
+    /*! @brief synchronous I/O */
+    const O_SYNC = 128;
+
+    /*! @brief synchronous I/O data integrity completion */
+    const O_DSYNC = 4194304;
+
+    /*! @brief allow opening symbolic links */
+    const O_SYMLINK = 2097152;
+
+    /*! @brief non-blocking mode */
+    const O_NONBLOCK = 4;
+
+    /*! @brief owner read write execute permissions */
+    const S_IRWXU = 448;
+
+    /*! @brief owner read permission */
+    const S_IRUSR = 256;
+
+    /*! @brief owner write permission */
+    const S_IWUSR = 128;
+
+    /*! @brief owner execute permission */
+    const S_IXUSR = 64;
+
+    /*! @brief group read write execute permissions */
+    const S_IRWXG = 56;
+
+    /*! @brief group read permission */
+    const S_IRGRP = 32;
+
+    /*! @brief group write permission */
+    const S_IWGRP = 16;
+
+    /*! @brief group execute permission */
+    const S_IXGRP = 8;
+
+    /*! @brief others read write execute permissions */
+    const S_IRWXO = 7;
+
+    /*! @brief others read permission */
+    const S_IROTH = 4;
+
+    /*! @brief others write permission */
+    const S_IWOTH = 2;
+
+    /*! @brief others execute permission */
+    const S_IXOTH = 1;
+
+    /*! @brief test file existence */
+    const F_OK = 0;
+
+    /*! @brief test read permission */
+    const R_OK = 4;
+
+    /*! @brief test write permission */
+    const W_OK = 2;
+
+    /*! @brief test execute permission */
+    const X_OK = 1;
+
+    /*! @brief exclusive copy file flag */
+    const UV_FS_COPYFILE_EXCL = 1;
+
+    /*! @brief exclusive copy file flag */
+    const COPYFILE_EXCL = 1;
+
+    /*! @brief file clone copy flag */
+    const UV_FS_COPYFILE_FICLONE = 2;
+
+    /*! @brief file clone copy flag */
+    const COPYFILE_FICLONE = 2;
+
+    /*! @brief file clone force copy flag */
+    const UV_FS_COPYFILE_FICLONE_FORCE = 4;
+
+    /*! @brief file clone force copy flag */
+    const COPYFILE_FICLONE_FORCE = 4;
+};

@@ -1,0 +1,80 @@
+/*! @brief TLS/SSL network socket object
+
+TLSSocket belongs to the tls module, creation method:
+ ```JavaScript
+ var s = new tls.TLSSocket();
+ ```
+*/
+interface TLSSocket : Stream
+{
+    /*! @brief Create a new TLSSocket object, using the current default SecureContext */
+    TLSSocket();
+
+    /*! @brief Create a new TLSSocket object based on context
+     @param context Specify the secure context used to create TLSSocket
+    */
+    TLSSocket(SecureContext context);
+
+    /*! @brief Create a new TLSSocket object based on options
+     @param options Options needed to create secure context using tls.createSecureContext
+     @param isServer Whether it is server mode
+    */
+    TLSSocket(Object options, Boolean isServer = false);
+
+    /*! @brief Connect TLS/SSL connection on the given connection, client mode
+     @param socket The given underlying connection
+     @param server_name Server name, used to verify server certificate
+    */
+    connect(Stream socket, String server_name = "") async;
+
+    /*! @brief Connect TLS/SSL connection on the given connection, client mode, and trigger connect event after connection is established
+     @param socket The given underlying connection
+     @param connectListener Specify the once connect event listener
+    */
+    connect(Stream socket, Function connectListener) async;
+
+    /*! @brief Connect TLS/SSL connection on the given connection, client mode, and trigger connect event after connection is established
+     @param socket The given underlying connection
+     @param server_name Server name, used to verify server certificate
+     @param connectListener Specify the once connect event listener
+    */
+    connect(Stream socket, String server_name, Function connectListener) async;
+
+    /*! @brief Connect TLS/SSL connection on the given connection, server mode
+     @param socket The given underlying connection
+    */
+    accept(Stream socket) async;
+
+    /*! @brief Query the underlying stream object when TLS/SSL is established */
+    readonly Stream stream;
+
+    /*! @brief The TLS/SSL protocol version negotiated by the current connection
+     @return Return the TLS/SSL protocol version
+    */
+    String getProtocol();
+
+    /*! @brief The local certificate negotiated by the current connection
+     @return Return the local certificate
+    */
+    X509Certificate getX509Certificate();
+
+    /*! @brief The peer certificate negotiated by the current connection
+     @return Return the peer certificate
+    */
+    X509Certificate getPeerX509Certificate();
+
+    /*! @brief Query the SecureContext used by the current TLSSocket */
+    readonly SecureContext secureContext;
+
+    /*! @brief Query the remote address of the current connection */
+    readonly String remoteAddress;
+
+    /*! @brief Query the remote port of the current connection */
+    readonly Integer remotePort;
+
+    /*! @brief Query the local address of the current connection */
+    readonly String localAddress;
+
+    /*! @brief Query the local port of the current connection */
+    readonly Integer localPort;
+};

@@ -1,33 +1,43 @@
-/*! @brief iconv Module with encode and decode operations between text and binary.
- to use:
- @code
- var encoding = require('encoding');
- var iconv = encoding.iconv;
- @endcode
- or:
- @code
- var iconv = require('iconv');
- @endcode
+/*! @brief `iconv` is a built-in conversion module for implementing data conversion between various different encodings
+
+iconv is implemented by calling the underlying system's encoding functions, and also supports some built-in encoding sets, such as "utf8", "utf-8", "ucs2", "ucs-2", "utf16", "utf-16", "ucs2le", "ucs-2le", "utf16le", "utf-16le", "ucs2be", "ucs-2be", "utf16be", "utf-16be", "ucs4", "ucs-4", "utf32", "utf-32", "ucs4le", "ucs-4le", "utf32le", "utf-32le", "ucs4be", "ucs-4be", "utf32be", "utf-32be"
+
+The `iconv` module provides two core methods:
+
+1. `iconv.encode(charset, data)`: Convert text data to binary data
+2. `iconv.decode(charset, data)`: Convert binary data to text data
+
+These two methods are very easy to use and understand, for example, for a "utf-8" encoded string "hello", we can convert it to "gbk" encoding through the following code:
+
+```
+const iconv = require('iconv');
+
+const utf8String = 'hello';
+const gbkString = iconv.decode('gbk', iconv.encode('utf-8', utf8String));
+console.log(gbkString);  // output "你好"
+```
+
+Note: The first parameter charset of `encode` and `decode` methods specifies the encoding to be used.
  */
 module iconv
 {
-	/*! @brief Convert text to binary with iconv.
-	 @param charset The charset to be use.
-	 @param data The text to be converted.
-	 @return The binary encoded result.
+    /*! @brief Convert text to binary data using iconv
+	 @param charset Specify character set
+	 @param data Text to convert
+	 @return Return the decoded binary data
 	 */
-	static Buffer encode(String charset, String data);
+    static Buffer encode(String charset, String data);
 
-	/*! @brief Convert binary to text with iconv.
-	 @param charset The charset to be use.
-	 @param data Binary to be converted.
-	 @return The text decoded result.
+    /*! @brief Convert Buffer content to text using iconv
+	 @param charset Specify character set
+	 @param data Binary data to convert
+	 @return Return the encoded string
 	 */
-	static String decode(String charset, Buffer data);
+    static String decode(String charset, Buffer data);
 
-	/*! @brief detect whether a charset is supported.
-	 @param charset The charset to be detect.
-	 @return whether to support charset.
+    /*! @brief Detect if character set is supported
+	 @param charset Specify character set
+	 @return Return whether the character set is supported
 	 */
     static Boolean isEncoding(String charset);
 };

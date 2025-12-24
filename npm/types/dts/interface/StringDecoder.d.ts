@@ -47,7 +47,7 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description 内部使用。.
-     *      @param buf A Buffer containing the bytes to decode.
+     *      @param buf 包含要解码字节的 Buffer。
      *      @return 解码后的字符串.
      *      
      */

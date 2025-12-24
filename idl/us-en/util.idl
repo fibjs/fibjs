@@ -1,323 +1,497 @@
+/*! @brief The util module provides utility functions for data type judgment, object property copying, template string parsing, event handling, etc.
 
-/*! @brief Common tools module */
+Here is the specific introduction and example:
+
+1. Judging data types - `util.is[type]`
+This module provides methods such as `isDate`, `isRegExp`, `isError` to judge the data type of the incoming parameters, for example:
+
+```JavaScript
+var util = require('util');
+console.log(util.isDate(new Date()));
+console.log(util.isRegExp(/some regexp/));
+```
+2. Object property copying - `util.inherits()`
+This method can choose to inherit one constructor from another, thus implementing prototype inheritance.
+
+```JavaScript
+var util = require('util');
+function Animal() {
+  this.name = 'Animal';
+  this.sleep = function () {
+    console.log(this.name + '正在睡觉！');
+  }
+}
+Animal.prototype.eat = function (food) {
+  console.log(this.name + '正在吃：' + food);
+};
+function Cat() {
+  this.name = 'cat';
+}
+util.inherits(Cat, Animal);
+```
+
+Using the `Cat` constructor inherited the instance properties and prototype properties of `Animal`, print the properties and methods of the instance of `Cat`
+
+```JavaScript
+var cat = new Cat();
+console.log(cat.name); 
+console.log(cat.eat('fish')); 
+console.log(cat.sleep());
+```
+
+3. util.format() formatted output template
+```JavaScript
+const util = require('util');
+const str1 = util.format('%s:%s', 'foo');
+const str2 = util.format('%s:%s', 'foo', 'bar', 'baz');
+console.log(str1) // => 'foo:%s'
+console.log(str2) // => 'foo:bar baz'
+```
+
+The above are some commonly used methods of the `util` module, which can often be used to simplify the actual development process.
+*/
 module util
 {
-    /*! @brief Format string with variables
+    /*! @brief TextDecoder decoding object, see TextDecoder object.*/
+    static TextDecoder;
+
+    /*! @brief TextEncoder encoding object, see TextEncoder object.*/
+    static TextEncoder;
+
+    /*! @brief types module provides utility functions for data type judgment.*/
+    static types;
+
+    /*! @brief colors module provides a set of color constants for setting console output colors.*/
+    static colors;
+
+    /*! @brief Format variables according to the specified format
 
      @param fmt Format string
-     @param ... Aeguments
-     @return Return formatted string
+     @param args Optional parameter list
+     @return Return the formatted string
      */
-    static String format(String fmt, ...);
+    static String format(String fmt, ...args);
 
     /*! @brief Format variables
 
-     @param ... Aeguments
-     @return Return formatted string
+     @param args Optional parameter list
+     @return Return the formatted string
      */
-    static String format(...);
+    static String format(...args);
 
-    /*! @brief Check if variable is empty(no enumerable property)
+    /*! @brief Inherit prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
 
-     @param v Variable to check
-     @return Return true when it's empty
+     @param constructor Initial constructor
+     @param superConstructor Inherited superclass
+     */
+    static inherits(Value constructor, Value superConstructor);
+
+    /*! @brief The function returns the string representation of obj, mainly used for debugging. Additional options can be used to change certain aspects of the formatted string.
+
+     Supports the following parameters:
+     ```JavaScript
+     {
+         "colors": false, // specify if output should be colorized, defaults to false
+         "depth": 2, // specify the max depth of the output, defaults to 2
+         "table": false, // specify if output should be a table, defaults to false
+         "encode_string": true, // specify if string should be encoded, defaults to true
+         "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
+         "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
+         "fields": [], // specify the fields to be displayed, defaults to all
+     }
+     ```
+     @param obj Specify the object to process
+     @param options Specify format control options
+     @return Return the formatted string
+     */
+    static String inspect(Value obj, Object options = {});
+
+    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable
+     
+     @param section Specified debug area
+     @return Return a Logger object
+     */
+    static Logger debuglog(String section);
+
+    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable
+
+     @param section Specified debug area
+     @param fn Callback called when the log function is called for the first time, its function parameter is a more optimized log function
+     @return Return a Logger object
+     */
+    static Logger debuglog(String section, Function fn);
+
+    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
+     
+     @param section Specified debug area
+     @return Return a Logger object
+     */
+    static Logger debug(String section);
+
+    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
+
+     @param section Specified debug area
+     @param fn Callback called when the log function is called for the first time, its function parameter is a more optimized log function
+     @return Return a Logger object
+     */
+    static Logger debug(String section, Function fn);
+
+    /*! @brief Wrap the given function, this function is only for compatibility and does not output warnings
+
+     @param fn Given function to wrap
+     @param msg Given warning message
+     @param code Given warning code
+     @return If wrapping result
+     */
+    static Function deprecate(Function fn, String msg, String code = "");
+
+    /*! @brief Detect whether the given variable contains no value (no enumerable properties)
+
+     @param v Given variable to detect
+     @return Return True if empty
      */
     static Boolean isEmpty(Value v);
 
-    /*! @brief Check if variable is an array
+    /*! @brief Detect whether the given variable is an array
 
-     @param v Variable to check
-     @return Return true when it's an array
+     @param v Given variable to detect
+     @return Return True if it is an array
      */
     static Boolean isArray(Value v);
 
-    /*! @brief Check if variable is Boolean
+    /*! @brief Detect whether the given variable is Boolean
 
-     @param v Variable to check
-     @return Return true when it's a Boolean
+     @param v Given variable to detect
+     @return Return True if it is Boolean
      */
     static Boolean isBoolean(Value v);
 
-    /*! @brief Check if variable is Null
+    /*! @brief Detect whether the given variable is Null
 
-     @param v Variable to check
-     @return Return true when it's Null
+     @param v Given variable to detect
+     @return Return True if it is Null
      */
     static Boolean isNull(Value v);
 
-    /*! @brief Check if variable is Null or Undefined
+    /*! @brief Detect whether the given variable is Null or Undefined
 
-     @param v Variable to check
-     @return Return true when it's Null or Undefined
+     @param v Given variable to detect
+     @return Return True if it is Null or Undefined
      */
     static Boolean isNullOrUndefined(Value v);
 
-    /*! @brief Check if variable is a number
+    /*! @brief Detect whether the given variable is a number
 
-     @param v Variable to check
-     @return Return true when it's a number
+     @param v Given variable to detect
+     @return Return True if it is a number
      */
     static Boolean isNumber(Value v);
 
-    /*! @brief Check if variable is a string
+    /*! @brief Detect whether the given variable is BigInt
 
-     @param v Variable to check
-     @return Return true when it's a string
+     @param v Given variable to detect
+     @return Return True if it is a number
+     */
+    static Boolean isBigInt(Value v);
+
+    /*! @brief Detect whether the given variable is a string
+
+     @param v Given variable to detect
+     @return Return True if it is a string
      */
     static Boolean isString(Value v);
 
-    /*! @brief Check if variable is Undefined
+    /*! @brief Detect whether the given variable is Undefined
 
-     @param v Variable to check
-     @return Return true when it's Undefined
+     @param v Given variable to detect
+     @return Return True if it is Undefined
      */
     static Boolean isUndefined(Value v);
 
-    /*! @brief Check if variable is a regexp object
+    /*! @brief Detect whether the given variable is a regular expression object
 
-     @param v Variable to check
-     @return Return true when it's a regexp object
+     @param v Given variable to detect
+     @return Return True if it is a regular expression object
      */
     static Boolean isRegExp(Value v);
 
-    /*! @brief Check if variable is an object
+    /*! @brief Detect whether the given variable is an object
 
-     @param v Variable to check
-     @return Return true when it's an object
+     @param v Given variable to detect
+     @return Return True if it is an object
      */
     static Boolean isObject(Value v);
 
-    /*! @brief Check if variable is date object
+    /*! @brief Detect whether the given variable is a date object
 
-     @param v Variable to check
-     @return Return true when it's date object
+     @param v Given variable to detect
+     @return Return True if it is a date object
      */
     static Boolean isDate(Value v);
 
-    /*! @brief Check if variable is a function
+    /*! @brief Detect whether the given variable is an error object
 
-     @param v Variable to check
-     @return Return true when it's a function
+     @param v Given variable to detect
+     @return Return True if it is an error object
+     */
+    static Boolean isNativeError(Value v);
+
+    /*! @brief Detect whether the given variable is a primitive type
+
+     @param v Given variable to detect
+     @return Return True if it is a primitive type
+     */
+    static Boolean isPrimitive(Value v);
+
+    /*! @brief Detect whether the given variable is Symbol type
+
+     @param v Given variable to detect
+     @return Return True if it is Symbol type
+     */
+    static Boolean isSymbol(Value v);
+
+    /*! @brief Detect whether the given variable is DataView type
+
+     @param v Given variable to detect
+     @return Return True if it is DataView type
+     */
+    static Boolean isDataView(Value v);
+
+    /*! @brief Detect whether the given variable is External type
+
+     @param v Given variable to detect
+     @return Return True if it is External type
+     */
+    static Boolean isExternal(Value v);
+
+    /*! @brief Detect whether the given variable is Map type
+
+     @param v Given variable to detect
+     @return Return True if it is Map type
+     */
+    static Boolean isMap(Value v);
+
+    /*! @brief Detect whether the given variable is MapIterator type
+
+     @param v Given variable to detect
+     @return Return True if it is MapIterator type
+     */
+    static Boolean isMapIterator(Value v);
+
+    /*! @brief Detect whether the given variable is Promise type
+
+     @param v Given variable to detect
+     @return Return True if it is Promise type
+     */
+    static Boolean isPromise(Value v);
+
+    /*! @brief Detect whether the given variable is AsyncFunction type
+
+     @param v Given variable to detect
+     @return Return True if it is AsyncFunction type
+     */
+    static Boolean isAsyncFunction(Value v);
+
+    /*! @brief Detect whether the given variable is Set type
+
+     @param v Given variable to detect
+     @return Return True if it is Set type
+     */
+    static Boolean isSet(Value v);
+
+    /*! @brief Detect whether the given variable is SetIterator type
+
+     @param v Given variable to detect
+     @return Return True if it is SetIterator type
+     */
+    static Boolean isSetIterator(Value v);
+
+    /*! @brief Detect whether the given variable is TypedArray type
+
+     @param v Given variable to detect
+     @return Return True if it is TypedArray type
+     */
+    static Boolean isTypedArray(Value v);
+
+    /*! @brief Detect whether the given variable is Float32Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Float32Array type
+     */
+    static Boolean isFloat32Array(Value v);
+
+    /*! @brief Detect whether the given variable is Float64Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Float64Array type
+     */
+    static Boolean isFloat64Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int8Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Int8Array type
+     */
+    static Boolean isInt8Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int16Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Int16Array type
+     */
+    static Boolean isInt16Array(Value v);
+
+    /*! @brief Detect whether the given variable is Int32Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Int32Array type
+     */
+    static Boolean isInt32Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint8Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Uint8Array type
+     */
+    static Boolean isUint8Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint8ClampedArray type
+
+     @param v Given variable to detect
+     @return Return True if it is Uint8ClampedArray type
+     */
+    static Boolean isUint8ClampedArray(Value v);
+
+    /*! @brief Detect whether the given variable is Uint16Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Uint16Array type
+     */
+    static Boolean isUint16Array(Value v);
+
+    /*! @brief Detect whether the given variable is Uint32Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Uint32Array type
+     */
+    static Boolean isUint32Array(Value v);
+
+    /*! @brief Detect whether the given variable is a function object
+
+     @param v Given variable to detect
+     @return Return True if it is a function object
      */
     static Boolean isFunction(Value v);
 
-    /*! @brief Check if variable is a Buffer object
+    /*! @brief Detect whether the given variable is a Buffer object
 
-     @param v Variable to check
-     @return Return true when it's a Buffer object
+     @param v Given variable to detect
+     @return Return True if it is a Buffer object
      */
     static Boolean isBuffer(Value v);
 
-    /*! @brief Check if object contains given key
+    /*! @brief Detect whether the given variable is a BigInt object, not a primitive type
 
-     @param v Object to check
-     @param key Key to query
-     @return Return true when it contains key
+     @param v Given variable to detect
+     @return Return True if it is a BigInt object
      */
-    static Boolean has(Value v, String key);
+    static Boolean isBigIntObject(Value v);
 
-    /*! @brief Get an array of all keys
+    /*! @brief Detect whether the given variable is a Boolean object, not a primitive type
 
-     @param v Object to check
-     @return Return an array of all keys
+     @param v Given variable to detect
+     @return Return True if it is a Boolean object
      */
-    static Array keys(Value v);
+    static Boolean isBooleanObject(Value v);
 
-    /*! @brief Get an array of all values
+    /*! @brief Detect whether the given variable is a Number object, not a primitive type
 
-     @param v Object to check
-     @return Return an array of all keys
+     @param v Given variable to detect
+     @return Return True if it is a Number object
      */
-    static Array values(Value v);
+    static Boolean isNumberObject(Value v);
 
-    /*! @brief Clone a variable, copy internal content if it's an object or array
+    /*! @brief Detect whether the given variable is a String object, not a primitive type
 
-     @param v Variable to clone
-     @return Return cloned result
+     @param v Given variable to detect
+     @return Return True if it is a String object
      */
-    static Value clone(Value v);
+    static Boolean isStringObject(Value v);
 
-    /*! @brief Extend one or more values of objects to given object
+    /*! @brief Detect whether the given variable is a Symbol object, not a primitive type
 
-     @param v Object to be extended
-     @param ... One or more objects to extend
-     @return Return extended object
+     @param v Given variable to detect
+     @return Return True if it is a Symbol object
      */
-    static Value extend(Value v, ...);
+    static Boolean isSymbolObject(Value v);
 
-    /*! @brief Return a copy of object with filtered attributes
+    /*! @brief Detect whether the given variable is WeakMap type
 
-     @param v Object to filter
-     @param ... One or more attributes
-     @return Return copy of object
+     @param v Given variable to detect
+     @return Return True if it is WeakMap type
      */
-    static Object pick(Value v, ...);
+    static Boolean isWeakMap(Value v);
 
-    /*! @brief Return a copy of object, exclude given attributes
+    /*! @brief Detect whether the given variable is WeakSet type
 
-     @param v Object to filter
-     @param ... One or more attributes to exclude
-     @return Return copy of object
+     @param v Given variable to detect
+     @return Return True if it is WeakSet type
      */
-    static Object omit(Value v, ...);
+    static Boolean isWeakSet(Value v);
 
-    /*! @brief Get first element in array
+    /*! @brief Detect whether the given variable is ArrayBuffer type
 
-     @param v Array to access
-     @return Return element
+     @param v Given variable to detect
+     @return Return True if it is ArrayBuffer type
      */
-    static Value first(Value v);
+    static Boolean isArrayBuffer(Value v);
 
-    /*! @brief Get first number of elements in array
+    /*! @brief Detect whether the given variable is ArrayBufferView type
 
-     @param v Array to access
-     @param n Number of elements to get
-     @return Return array of elements
+     @param v Given variable to detect
+     @return Return True if it is ArrayBufferView type
      */
-    static Value first(Value v, Integer n);
+    static Boolean isArrayBufferView(Value v);
 
-    /*! @brief Get last element in array
+    /*! @brief Detect whether the given variable is BigInt64Array type
 
-     @param v Array to access
-     @return Return element
+     @param v Given variable to detect
+     @return Return True if it is BigInt64Array type
      */
-    static Value last(Value v);
+    static Boolean isBigInt64Array(Value v);
 
-    /*! @brief Get number of element in the end of array
+    /*! @brief Detect whether the given variable is BigUint64Array type
 
-     @param v Array to access
-     @param n Number of elements to get
-     @return Return array of elements
+     @param v Given variable to detect
+     @return Return True if it is BigUint64Array type
      */
-    static Value last(Value v, Integer n);
+    static Boolean isBigUint64Array(Value v);
 
-    /*! @brief Get array without duplicates
+    /*! @brief Strip TypeScript type annotations from code
 
-     @param v Array to access
-     @param sorted Indicates whether to sort or not, will use quick sort
-     @return Return unique array
-     */
-    static Array unique(Value v, Boolean sorted = false);
+     This function removes TypeScript-specific syntax from the provided code string, converting it to plain JavaScript. It handles various TypeScript features including:
 
-    /*! @brief Union one or more arrays into one unique array
+     - Type annotations (e.g., `const x: string = "hello";` becomes `const x         = "hello";`)
+     - Interface declarations
+     - Class property type annotations
+     - Generic type parameters
+     - Enum declarations
+     - Namespace declarations (converted to IIFE)
+     - Constructor parameter properties (e.g., `constructor(public x: string)`)
+     - `import = require()` syntax
+     - `export =` syntax
+     - Angle bracket type assertions (e.g., `<T>expr`, use `as` syntax instead)
 
-     @param ... Arrays to union
-     @return Return unioned array
-     */
-    static Array union(...);
-
-    /*! @brief Return intersections of arrays
-
-     @param ... Arrays to check
-     @return Return intersections
-     */
-    static Array intersection(...);
-
-    /*! @brief Convert multi-dimension arrays into one-dimension, only reduce one dimension if you pass shallow argument
-
-     @param arr Array to convert
-     @param shallow Indicates whether to reduce only one dimension or not, default is false
-     @return Return converted array
-     */
-    static Array flatten(Value arr, Boolean shallow = false);
-
-    /*! @brief Return an array without given elements
-
-     @param arr Array to access
-     @param ... Elements to exclude
-     @return Return result array
-     */
-    static Array without(Value arr, ...);
-
-    /*! @brief Return differences of arrays
-
-     @param list Arrays to check
-     @return Return differences
-     */
-    static Array difference(Array list, ...);
-
-    /*! @brief Iterate list in order. If context is passed, then bind iterator to context. Each iteration will pass three arguments to context: element, index and list
-
-     @param list List or object to iterate
-     @param iterator Iterator callback
-     @param context Context object for binding
-     @return Return list itself
-     */
-    static Value each(Value list, Function iterator, Value context = undefined);
-
-    /*! @brief Use iterator to map values to new array. If context is passed, then bind iterator to context. Each iteration will pass three arguments to context: element, index and list
-
-     @param list List or object to iterate
-     @param iterator Iterator callback
-     @param context Context object for binding
-     @return Return result array
-     */
-    static Array map(Value list, Function iterator, Value context = undefined);
-
-    /*! @brief Reduce every element in list to a single number. If context is passed, then bind iterator to context. Each iteration will pass four arguments to context: memo, element, index and list
-
-     @param list List or object to iterate
-     @param iterator Iterator callback
-     @param memo Initial value
-     @param context Context object for binding
-     @return Return result array
-     */
-    static Value reduce(Value list, Function iterator, Value memo, Value context = undefined);
-
-    /*! @brief Data statistic object for app runtime data collection, see Stats object */
-    static Stats;
-
-    /*! @brief LRU(least recently used) cache object, see LruCache object */
-    static LruCache;
-
-    /*! @brief Get current engine and components information
-    
-      ```JavaScript
-      {
-        "fibjs": "0.25.0",
-        "clang": "9.1",
-        "date": "Jun 12 2018 07:22:40",
-        "vender": {
-          "ev": "4.24",
-          "expat": "2.2.5",
-          "gd": "2.2.4",
-          "jpeg": "8.3",
-          "leveldb": "1.17",
-          "mongo": "0.7",
-          "pcre": "8.21",
-          "png": "1.5.4",
-          "mbedtls": "2.6.1",
-          "snappy": "1.1.2",
-          "sqlite": "3.23.0",
-          "tiff": "3.9.5",
-          "uuid": "1.6.2",
-          "v8": "6.7.288.20",
-          "v8-snapshot": true,
-          "zlib": "1.2.7",
-          "zmq": "3.1"
-        }
-      }
-    ```
-     @return Struct info
-     */
-    static Object buildInfo();
-
-    /*! @brief Convert TypeScript code to JavaScript by removing all type annotations
-
-     This method uses strip-only mode, replacing TypeScript type syntax with spaces while preserving
-     the line and column positions of the source code. This is useful for debugging or generating source maps.
-
-     Note: strip-only mode does not support the following syntax:
-     - enum (requires transformation to IIFE)
-     - const enum (requires inlining)
-     - namespace (requires transformation to IIFE)  
-     - constructor parameter properties (e.g., constructor(public x: string))
-     - import = require() syntax
-     - export = syntax
-     - angle bracket type assertions (e.g., <T>expr, use 'as' syntax instead)
+     Example:
+     ```JavaScript
+     var util = require('util');
+     var ts = 'const x: string = "hello";';
+     var js = util.stripTypeScript(ts);
+     console.log(js); // 'const x         = "hello";'
+     ```
 
      @param code TypeScript source code
-     @return Converted JavaScript code
+     @return Return the converted JavaScript code
      */
     static String stripTypeScript(String code);
 };

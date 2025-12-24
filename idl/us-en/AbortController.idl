@@ -1,0 +1,25 @@
+/*! @brief Controller object for aborting one or more Web requests when needed
+
+The AbortController object is a global base class that can be created directly with new AbortController() at any time:
+ ```JavaScript
+ var buf = new AbortController();
+ ```
+ */
+interface AbortController : object
+{
+    /*! @brief The AbortSignal object used to abort one or more Web requests */
+    AbortController();
+
+    /*! @brief The AbortSignal object used to abort one or more Web requests */
+    readonly AbortSignal signal;
+
+    /*! @brief To abort one or more Web requests
+     @param reason An optional string describing the reason for aborting the request
+    */
+    abort(String reason = "AbortError");
+
+    /*! @brief To abort one or more Web requests
+     @param reason A value of any type describing the reason for aborting the request
+    */
+    abort(Value reason);
+};

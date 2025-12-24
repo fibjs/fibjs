@@ -65,9 +65,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
-     *          "event": "message", // 指定事件类型，默认为 message
-     *          "id": "", // 事件 ID
-     *          "retry": 0 // 重试时间间隔，单位为毫秒
+     *          "event": "message", // Specify the event type, default is message
+     *          "id": "", // Event ID
+     *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
      * 
@@ -86,9 +86,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
-     *          "event": "message", // 指定事件类型，默认为 message
-     *          "id": "", // 事件 ID
-     *          "retry": 0 // 重试时间间隔，单位为毫秒
+     *          "event": "message", // Specify the event type, default is message
+     *          "id": "", // Event ID
+     *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
      * 
@@ -105,9 +105,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
-     *          "event": "message", // 指定事件类型，默认为 message
-     *          "id": "", // 事件 ID
-     *          "retry": 0 // 重试时间间隔，单位为毫秒
+     *          "event": "message", // Specify the event type, default is message
+     *          "id": "", // Event ID
+     *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
      * 

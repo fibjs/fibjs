@@ -1,21 +1,31 @@
+/*! @brief MySQL object is a class for operating MySQL database,
 
-/*! @brief mysql database connection object
+Below is an example of using the MySQL object.
 
-Used for db.open or db.openMySQL, to create:
- @code
- var mysql = db.openMySQL("mysql://user:pass@host/db");
- @endcode
+```JavaScript
+var db = require('db');
+
+var conn = db.openMySQL('mysql://root:password@localhost/test');
+
+// call execute method to insert data
+var res = conn.execute("insert into user(username, password) values ('testuser', '123456')");
+console.log(res);
+
+// call execute method to query data
+res = conn.execute("select * from user where username = 'testuser'");
+console.log(res);
+
+conn.close();
+```
+In the above example, first we use the db.openMySQL method to create a MySQL connection object and specify the connection information.
+Then we use the execute method to add a new user to the user data table we prepared in advance, then we call the execute method again to query the user record we just created.
+Finally, we call the close method to close the connection object and complete our MySQL operation.
 */
 interface MySQL : DbConnection
 {
-    /*! @brief Choose default database for connection
-     @param dbName Database name
-     */
-    use(String dbName) async;
-
-    /*! @brief Connection buffer size */
+    /*! @brief Database connection receive buffer size */
     Integer rxBufferSize;
 
-    /*! @brief Connection send buffer size */
+    /*! @brief Database connection send buffer size */
     Integer txBufferSize;
 };

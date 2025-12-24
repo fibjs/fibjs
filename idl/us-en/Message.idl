@@ -1,64 +1,129 @@
-
 /*! @brief Basic message object
 
- Message object compatible with all mq modules, used for custom messaging system, to create:
- @code
+ Message object is compatible with various mq modules and can be used to build custom message processing systems, creation method:
+ ```JavaScript
  var mq = require("mq");
  var m = new mq.Message();
- @endcode
- *  */
+ ```
+*/
 interface Message : object
 {
-    /*! @brief Constructor */
+    /*! @brief Specify message type 1, representing a text type */
+    const TEXT = 1;
+
+    /*! @brief Specify message type 2, representing a binary type */
+    const BINARY = 2;
+
+    /*! @brief Message object constructor */
     Message();
 
-    /*! @brief Content */
+    /*! @brief Whether the current message has been sent */
+    readonly Boolean sent;
+
+    /*! @brief Basic content of the message */
     String value;
 
-    /*! @brief Basic paramenters */
-    List params;
+    /*! @brief Basic parameters of the message */
+    readonly NArray params;
 
-    /*! @brief Return value */
-    Variant result;
+    /*! @brief Message type */
+    Integer type;
 
-    /*! @brief Stream that contains partial data */
+    /*! @brief Query the data of the message, this property returns different data according to content-type, returns text when text, returns json when json, otherwise returns binary */
+    readonly Value data;
+
+    /*! @brief Stream object containing the message data part */
     SeekableStream body;
 
-    /*! @brief Read given size of data from stream, this is a alias to body method
-     @param bytes Size of data to read, default is random size which depends on your device
-     @return Return data from stream, null when nothing to read
+    /*! @brief Read data of specified size from the stream, this method is an alias for the corresponding method of body
+     @param bytes Specify the amount of data to read, default is to read a random size data block, the size of the read data depends on the device
+     @return Return the data read from the stream, return null if no data can be read or the connection is interrupted
      */
     Buffer read(Integer bytes = -1) async;
 
-    /*! @brief Read rest of data from stream, this is a alias to body method
-     @return Return data from stream, null when nothing to read
+    /*! @brief Read all remaining data from the stream, this method is an alias for the corresponding method of body
+     @return Return the data read from the stream, return null if no data can be read or the connection is interrupted
      */
     Buffer readAll() async;
 
-    /*! @brief Write data to stream, this is a alias to body method
-     @param data Data to write
+    /*! @brief Write the given data, this method is an alias for the corresponding method of body
+     @param data Given data to write
+     @return Return the actual number of bytes written
      */
-    write(Buffer data) async;
+    Integer write(Buffer data) async;
 
-    /*! @brief Length of message */
+    /*! @brief Write the given text data
+     @param data Given data to write
+     @return This method does not return data
+     */
+    String text(String data);
+
+    /*! @brief Parse the data in the message with text encoding
+     @return Return the parsing result
+     */
+    String text();
+
+    /*! @brief Return the data part of the message in binary form
+     @return Return the ArrayBuffer object containing the message data part
+     */
+    ArrayBuffer arrayBuffer();
+
+    /*! @brief Write the given data with JSON encoding
+     @param data Given data to write
+     @return This method does not return data
+     */
+    Value json(Value data);
+
+    /*! @brief Parse the data in the message with JSON encoding
+     @return Return the parsing result
+     */
+    Value json();
+
+    /*! @brief Write the given data with msgpack encoding
+     @param data Given data to write
+     @return This method does not return data
+     */
+    Value pack(Value data);
+
+    /*! @brief Parse the data in the message with msgpack encoding
+     @return Return the parsing result
+     */
+    Value pack();
+
+    /*! @brief Length of the message data part */
     readonly Long length;
 
-    /*! @brief Clear message content */
+    /*! @brief Set the current message processing to end, Chain processor no longer continues subsequent transactions */
+    end();
+
+    /*! @brief Query whether the current message is ended
+     @return Return true if ended
+     */
+    Boolean isEnded();
+
+    /*! @brief Clear the content of the message */
     clear();
 
-    /*! @brief Send formatted data to given stream
-     @param stm Stream to send data
+    /*! @brief Send formatted message to the given stream object
+     @param stm Specify the stream object to receive the formatted message
+     @param options Specify send options
      */
-    sendTo(Stream stm) async;
+    sendTo(Stream stm, Object options = {}) async;
 
-    /*! @brief Read formatted data from given stream, parse and assgin values to object
-     @param stm Stream to receive data
+    /*! @brief Read formatted message from the given buffered stream object and parse to fill the object
+     @param stm Specify the stream object to read the formatted message
+     @param options Specify read options
      */
-    readFrom(BufferedStream stm) async;
+    readFrom(Stream stm, Object options = {}) async;
 
-    /*! @brief Query stream object for readFrom */
+    /*! @brief Query the stream object when message readFrom */
     readonly Stream stream;
 
-    /*! @brief Get response body of message*/
-    readonly Message response;
+    /*! @brief Query and set the last error of message processing */
+    String lastError;
+
+    /*! @brief Copy the current message object
+     @return Return the copied message object
+    */
+    Message clone();
 };

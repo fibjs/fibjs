@@ -117,7 +117,7 @@ module console
      console.add({
         type: "file",
         levels: [console.INFO, console.ERROR],
-        path: "path/to/file_%s.log", // specifies the log output file, can use %s to specify the insertion date location, or add at the end if not specified
+        path: "path/to/file_%s.log", // Specify the log output file, you can use %s to specify the date insertion position, if not specified, it will be added to the end
         split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
         count: 10 // option, selectable from 2 to 128, default is 128
      });
@@ -207,7 +207,7 @@ module console
      console.use({
         type: "file",
         levels: [console.INFO, console.ERROR],
-        path: "path/to/file_%s.log", // specifies the log output file, can use %s to specify the insertion date location, or add at the end if not specified
+        path: "path/to/file_%s.log", // Specify the log output file, you can use %s to specify the date insertion position, if not specified, it will be added to the end
         split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
         count: 10 // option, selectable from 2 to 128, default is 128
      });
@@ -405,13 +405,13 @@ module console
      支持以下参数:
      ```JavaScript
      {
-         "colors": false, // specify if output should be colorized, defaults to false
-         "depth": 2, // specify the max depth of the output, defaults to 2
-         "table": false, // specify if output should be a table, defaults to false
-         "encode_string": true, // specify if string should be encoded, defaults to true
-         "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
-         "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
-         "fields": [], // specify the fields to be displayed, defaults to all
+         "colors": false, // Specify whether to color the output, default is false
+         "depth": 2, // Specify the maximum depth of output, default is 2
+         "table": false, // Specify whether to output in table format, default is false
+         "encode_string": true, // Specify whether to encode strings, default is true
+         "maxArrayLength": 100, // Specify the maximum number of array elements to display, set to 0 or negative to not display elements, default is 100
+         "maxStringLength": 10000, // Specify the maximum length of output strings, set to 0 or negative to not display strings, default is 10000
+         "fields": [], // Specify the fields to display, default is all
      }
      ```
      @param obj 指定需要处理的对象

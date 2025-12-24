@@ -1,38 +1,101 @@
-/*! @brief Database connection object which is used for creation and maintenance of the database connection session */
+/*! @brief DBConnection is the base class for database connections, used to establish and maintain a database connection session. It implements basic connection operations and serves as the basis for derived classes. It also supports operations such as starting transactions, committing transactions, and rolling back transactions.
+
+DBConnection's subclasses include: Odbc, MySQL, SQLite, by instantiating each subclass, we can easily access different types of databases.
+
+DBConnection cannot be created directly, only through methods like db.open, for example:
+
+```js
+var db = require("db");
+var conn = db.open("mysql://root:123456@localhost:3306/test");
+```
+*/
 interface DbConnection : object
 {
-    /*! @brief Close the database connection currenctly being used */
+    /*! @brief Query the current connection database type */
+    readonly String type;
+
+    /*! @brief Close the current database connection */
     close() async;
 
-    /*! @brief Begin a transaction on current database connection */
-    begin() async;
+    /*! @brief Select the default database for the current database connection
+	 @param dbName Specify the database name
+	 */
+    use(String dbName) async;
 
-    /*! @brief Commit the transaction on current database connection */
-    commit() async;
+    /*! @brief Get information about all tables in the current database
 
-    /*! @brief Rollback the transaction on current database connection */
-    rollback() async;
-
-    /*!	@brief Execute a SQL statement and return the results
-
-     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'  
-     @return The query results
+     @return Return an array containing table information, each element contains table name and related attributes
      */
-    DBResult execute(String sql) async;
+    NArray getTables() async;
 
-    /*!	@brief Execute a  SQL statement and return the results
+    /*! @brief Get detailed information about the specified table
 
-     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'
-     @param ... The optional variables 
-     @return The query results     
+     @param tableName Specify the table name to query
+     @return Return an array containing detailed table information, each element contains field name, type, length, whether NULL is allowed, etc.
      */
-    DBResult execute(String sql, ...);
+    NArray getTableInfo(String tableName) async;
 
-    /*!	@brief Format a SQL statement, and return the formatted statement
+    /*! @brief Start a transaction on the current database connection
+    
+     @param point Specify the name of the transaction, default not specified
+    */
+    begin(String point = "") async;
 
-     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'
-     @param ... The optional variables
-     @return The formatted SQL statement
+    /*! @brief Commit the transaction on the current database connection
+    
+     @param point Specify the name of the transaction, default not specified
+    */
+    commit(String point = "") async;
+
+    /*! @brief Rollback the transaction on the current database connection
+    
+     @param point Specify the name of the transaction, default not specified
+    */
+    rollback(String point = "") async;
+
+    /*! @brief Enter transaction to execute a function, and commit or rollback based on the function execution situation 
+     func execution has three results:
+     * Function returns normally, including end of run and active return, the transaction will be automatically committed
+     * Function returns false, the transaction will be rolled back
+     * Function runs error, transaction automatically rolled back
+
+     @param func The function to execute in transaction mode
+     @return Return whether the transaction is committed, return true when normal commit, false when rollback, throw error if transaction error
+    */
+    Boolean trans(Function func);
+
+    /*! @brief Enter transaction to execute a function, and commit or rollback based on the function execution situation 
+     func execution has three results:
+     * Function returns normally, including end of run and active return, the transaction will be automatically committed
+     * Function returns false, the transaction will be rolled back
+     * Function runs error, transaction automatically rolled back
+
+     @param point Specify the name of the transaction
+     @param func The function to execute in transaction mode
+     @return Return whether the transaction is committed, return true when normal commit, false when rollback, throw error if transaction error
+    */
+    Boolean trans(String point, Function func);
+
+    /*! @brief Execute a sql command and return the execution result
+
+     @param sql String
+     @return Return an array containing result records, if the request is UPDATE or INSERT, the result will also contain affected and insertId, mssql does not support insertId.
      */
-    String format(String sql, ...);
+    NArray execute(String sql) async;
+
+    /*! @brief Execute a sql command and return the execution result, can format string according to parameters
+
+     @param sql Formatted string, optional parameters specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     @param args Optional parameter list
+     @return Return an array containing result records, if the request is UPDATE or INSERT, the result will also contain affected and insertId, mssql does not support insertId.
+     */
+    NArray execute(String sql, ...args) async;
+
+    /*! @brief Format a sql command and return the formatted result
+
+     @param sql Formatted string, optional parameters specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     @param args Optional parameter list
+     @return Return the formatted sql command
+     */
+    String format(String sql, ...args);
 };

@@ -21,15 +21,15 @@
  * ```javascript
  * const rtc = require('rtc');
  * 
- * // 创建 RTCPeerConnection 对象
+ * // Create RTCPeerConnection object
  * var pc = new rtc.RTCPeerConnection({
  *     iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
  * });
  * 
- * // 创建数据通道
+ * // Create data channel
  * var dataChannel = pc.createDataChannel('myDataChannel');
  * 
- * // 设置本地描述
+ * // Set local description
  * pc.setLocalDescription(new rtc.RTCSessionDescription({
  *     type: 'offer',
  *     sdp: 'v=0...'
@@ -37,7 +37,7 @@
  *     console.log('Local description set');
  * });
  * 
- * // 设置远程描述
+ * // Set remote description
  * pc.setRemoteDescription(new rtc.RTCSessionDescription({
  *     type: 'answer',
  *     sdp: 'v=0...'
@@ -45,7 +45,7 @@
  *     console.log('Remote description set');
  * });
  * 
- * // 添加 ICE 候选项
+ * // Add ICE candidate
  * pc.addIceCandidate(new rtc.RTCIceCandidate({
  *     candidate: 'candidate:842163049 1 udp 1677729535 192.168.1.2 3478 typ srflx raddr 0.0.0.0 rport 0 generation 0 ufrag abc network-id 1',
  *     sdpMid: '0'
@@ -53,12 +53,12 @@
  *     console.log('ICE candidate added');
  * });
  * 
- * // 监听连接状态变化
+ * // Listen for connection state changes
  * pc.onconnectionstatechange = function(event) {
  *     console.log('Connection state change: ', pc.connectionState);
  * };
  * 
- * // 监听数据通道事件
+ * // Listen for data channel events
  * pc.ondatachannel = function(event) {
  *     var receiveChannel = event.channel;
  *     receiveChannel.onmessage = function(event) {
@@ -66,24 +66,24 @@
  *     };
  * };
  * 
- * // 监听 ICE 候选项事件
+ * // Listen for ICE candidate events
  * pc.onicecandidate = function(event) {
  *     if (event.candidate) {
  *         console.log('New ICE candidate: ', event.candidate);
  *     }
  * };
  * 
- * // 监听 ICE 连接状态变化
+ * // Listen for ICE connection state changes
  * pc.oniceconnectionstatechange = function(event) {
  *     console.log('ICE connection state change: ', pc.iceConnectionState);
  * };
  * 
- * // 监听信令状态变化
+ * // Listen for signaling state changes
  * pc.onsignalingstatechange = function(event) {
  *     console.log('Signaling state change: ', pc.signalingState);
  * };
  * 
- * // 监听媒体轨道事件
+ * // Listen for media track events
  * pc.ontrack = function(event) {
  *     console.log('New track: ', event.track);
  * };

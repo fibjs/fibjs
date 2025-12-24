@@ -1,15 +1,14 @@
+/*! @brief XmlCDATASection object represents a CDATA section in the document
 
-/*! @brief CDATA section for XmlCDATASection
+XmlCDATASection interface is a subinterface of XmlText interface, and does not define any properties or methods of its own. The text content of the CDATA Section can be accessed through the nodeValue property inherited from XmlNode interface, or through the data property inherited from XmlCharacterData interface.
 
-XmlCDATASection is a child-interface of XmlText who does not have any own properties and methods. Use XmlNode to inherit nodeValue property or use XmlCharacterData to inherit data property. Access CDATA Section to get text content.
+Although XmlCDATASection nodes can usually be treated as XmlText nodes, note that the normalize method of XmlNode does not merge adjacent CDATA sections.
 
-Generally you can use XmlCDATASection node as XmlText, but noted that XmlNode's normalize method does not belong to adjacent CDATA part.
+Use XmlDocument's createXmlCDATASection method to create an XmlCDATASection.
 
-Use XmlDocument's createXmlCDATASection method to create a XmlCDATASection.
+CDATA sections contain text that is not parsed by the parser. Tags within CDATA sections are not treated as markup, and entities are not expanded. The main purpose is to include materials such as XML fragments without having to escape all the delimiters.
 
-CDATA section contains raw content that will not be parsed. CDATA section of the label will not be regarded as markup and entities will not be expanded. The main purpose is to contain information such as XML fragments like material, without needing to escape all the delimiters.
-
-In a CDATA, the only identified separator is "]]>". It may mark the end of a CDATA section. CDATA sections can not be nested.
+The only delimiter recognized in a CDATA is "]]>", which marks the end of the CDATA section. CDATA sections cannot be nested.
 */
 interface XmlCDATASection : XmlText
 {

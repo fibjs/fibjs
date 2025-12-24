@@ -1,7 +1,6 @@
+/*! @brief Decode Buffer to string
 
-/*! @brief Decoding Buffer objects into strings in a manner that preserves encoded multi-byte UTF-8 and UTF-16 characters.
-
- Usage：
+ Usage:
  ```JavaScript
   const { StringDecoder } = require('string_decoder');
   const decoder = new StringDecoder('utf8');
@@ -15,6 +14,6 @@
  */
 module string_decoder
 {
-    /*! @brief create a Decoder instance，see StringDecoder */
-    static StringDecoder new StringDecoder();
+    /*! @brief Create a decoder object, see StringDecoder */
+    static StringDecoder;
 };

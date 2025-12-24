@@ -1,56 +1,174 @@
+/*! @brief HttpCollection is a general container for handling headers, query, form, cookie data in http messages
 
-/*! @brief http container object, used to store and organize data like http header, cookie, query, form and so on */
+Take headers as an example to illustrate the usage of HttpCollection.
+
+HttpCollection supports three forms of adding data:
+
+1. Add a key-value data, adding data does not modify existing key-value data. `add`
+
+```JavaScript
+headers.add({
+    'Content-Type': 'text/plain',
+    'User-Agent': 'fibjs'
+});
+```
+
+2. Add a set of data for a key-value, adding data does not modify existing key-value data. `add`
+
+```JavaScript
+headers.add('Set-Cookie', [
+    'a=10',
+    'b=20'
+]);
+```
+
+3. Add a key-value data, adding data does not modify existing key-value data. `add`
+
+```JavaScript
+headers.add('Accept-Encoding', 'gzip');
+```
+
+The form of HttpCollection setting data is the same as adding, using the method `set`.
+
+We can use `has` to check if the specified key-value data exists in the container
+
+```JavaScript
+const contentTypeExists = headers.has('Content-Type');
+```
+
+Use `first` to get the first value corresponding to a key in the container:
+
+```JavaScript
+const contentType = headers.first('Content-Type');
+```
+
+Use `all` to query all values of the specified key-value, return an array. If an empty string parameter is passed, return all values
+
+```JavaScript
+const cookieArray = headers.all('Set-Cookie');
+const alls = headers.all();
+```
+
+Use `delete` method to delete all data of the specified key-value, return `true` indicates */
 interface HttpCollection : object
 {
-    /*! @brief clear the data in the container
-    */
+    /*! @brief clear container data */
     clear();
 
-    /*! @brief detect whether there is the data that has the specified key value
-     @param name specify the key to be detected
-     @return return whether the key exists
+    /*! @brief check if the specified key-value data exists in the container
+     @param name specify the key-value to check
+     @return return whether the key-value exists
      */
     Boolean has(String name);
 
-    /*! @brief query the first value of the specified key
-     @param name specify the key to be queried
-     @return return the key's corresponding value, if the value doesn't exists, return undefined
+    /*! @brief query the first value of the specified key-value
+     @param name specify the key-value to query
+     @return return the value corresponding to the key-value, if not exist, return undefined
      */
     Variant first(String name);
 
-    /*! @brief query all value of the specified key
-     @param name specify the key to be queried
-     @return return an array that contains all value of the key corresponded. If the data doesn't exists, return null.
+    /*! @brief query the first value of the specified key-value, equivalent to first
+     @param name specify the key-value to query
+     @return return the value corresponding to the key-value, if not exist, return undefined
      */
-    List all(String name);
+    Variant get(String name);
 
-    /*! @brief add a key and data and it won't modify the key and it's value that already exist.
-     @param map specify the key and value to be added.
+    /*! @brief query all values of the specified key-value
+     @param name specify the key-value to query, pass empty string to return all key-value results
+     @return return the array of all values corresponding to the key-value, if data does not exist, return null
      */
-    add(Map map);
+    NObject all(String name = "");
 
-    /*! @brief add a key and data and it won't modify the key and it's value that already exist.
-     @param name specify the key to be added
-     @param value specify the value to be added
+    /*! @brief query all values of the specified key-value
+     @param name specify the key-value to query
+     @return return the array of all values corresponding to the key-value, if data does not exist, return null
      */
-    add(String name, Variant value);
+    NArray getAll(String name);
 
-    /*! @brief set a key's value, the first value of the key will be modified and other data of the same key will be cleared.
-     @param map specify the key-value to be modified.
+    /*! @brief add a key-value data, adding data does not modify existing key-value data
+     @param map specify the key-value data dictionary to add
      */
-    set(Map map);
+    append(Object map);
 
-    /*! @brief set a key's value, the first value of the key will be modified and other data of the same key will be cleared.
-     @param name specify the key to be modified
-     @param value spacify the value to be modified
+    /*! @brief add a set of data for a key-value, adding data does not modify existing key-value data
+     @param name specify the key-value to add
+     @param values specify the set of data to add
+     */
+    append(String name, Array values);
+
+    /*! @brief add a set of data, adding data does not modify existing key-value data
+     @param entries specify the set of data to add, format as [[<key>, <value>]]
+     */
+    append(Array entries);
+
+    /*! @brief add a key-value data, adding data does not modify existing key-value data
+     @param name specify the key-value to add
+     @param value specify the data to add
+     */
+    append(String name, Variant value);
+
+    /*! @brief set a key-value data, setting data will modify the first value corresponding to the key-value and clear the remaining data of the same key-value
+     @param map specify the key-value data dictionary to set
+     */
+    set(Object map);
+
+    /*! @brief set a set of data for a key-value, setting data will modify the value corresponding to the key-value and clear the remaining data of the same key-value
+     @param name specify the key-value to set
+     @param values specify the set of data to set
+     */
+    set(String name, Array values);
+
+    /*! @brief set a key-value data, setting data will modify the first value corresponding to the key-value and clear the remaining data of the same key-value
+     @param name specify the key-value to set
+     @param value specify the data to set
      */
     set(String name, Variant value);
 
-    /*! @brief delete all value of the specified key
-     @param name specify the key to be deleted
+    /*! @brief delete all values of the specified key-value
+     @param name specify the key-value to delete
      */
     remove(String name);
 
-    /*! @brief allowing access to data by key index */
+    /*! @brief delete all values of the specified key-value
+     @param name specify the key-value to delete
+     */
+    delete(String name);
+
+    /*! @brief sort the content in the container by key-value
+     */
+    sort();
+
+    /*! @brief traverse the content in the container
+     @param callback specify the function called during traversal, function parameters are (value, key, object)
+     */
+    forEach(Function callback);
+
+    /*! @brief traverse the content in the container
+     @param callback specify the function called during traversal, function parameters are (value, key, object)
+     @param thisArg specify the this object of the callback function
+     */
+    forEach(Function callback, Value thisArg);
+
+    /*! @brief query the key-values in the container
+     @return return the iterator containing all key-values
+     */
+    Iterator keys();
+
+    /*! @brief query the values in the container
+     @return return the iterator containing all values
+     */
+    Iterator values();
+
+    /*! @brief query the key-values and values in the container
+     @return return the iterator containing all key-values and values
+     */
+    Iterator entries();
+
+    /*! @brief allow direct access to values using key-value subscript */
     Variant operator[String];
+
+    /*! @brief query the iterator of current object elements
+     @return return the iterator of current object elements
+    */
+    Iterator @iterator();
 };

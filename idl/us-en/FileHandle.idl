@@ -1,0 +1,50 @@
+/*! @brief File handle object
+
+ ```JavaScript
+ var fd = fs.open('test.txt');
+ ```
+ */
+interface FileHandle : object
+{
+    /*! @brief Query current file descriptor */
+    readonly Integer fd;
+
+    /*! @brief Query current file's access permissions, Windows does not support this method
+     @param mode Specify the set access permissions
+     */
+    chmod(Integer mode) async;
+
+    /*! @brief Query basic information of current file
+     @return Return basic information of the file
+     */
+    Stat stat() async;
+
+    /*! @brief Read file content according to file descriptor
+     @param buffer Buffer object to write the read result
+     @param offset Buffer write offset, default 0
+     @param length Number of bytes to read from file, default 0
+     @param position File read position, default current file position
+     @return Actual number of bytes read
+     */
+    Integer read(Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
+
+    /*! @brief Write content to file according to file descriptor
+     @param buffer Buffer object to be written
+     @param offset Buffer data read offset, default 0
+     @param length Number of bytes to write to file, default -1
+     @param position File write position, default current file position
+     @return Actual number of bytes written
+     */
+    Integer write(Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = -1) async;
+
+    /*! @brief Write content to file according to file descriptor
+     @param string String to be written
+     @param position File write position, default current file position
+     @param encoding Specify decoding method, default utf8
+     @return Actual number of bytes written
+     */
+    Integer write(String string, Integer position = -1, String encoding = "utf8") async;
+
+    /*! @brief Close current file handle */
+    close() async;
+};

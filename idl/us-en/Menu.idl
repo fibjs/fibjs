@@ -1,0 +1,86 @@
+/*! @brief Menu management object for displaying menus in windows
+
+  Menu can be created in the following ways:
+  ```JavaScript
+    var menu = gui.createMenu([
+        { label: 'File', submenu: [
+            { label: 'New', onclick: function() { console.log('New clicked'); } },
+            { label: 'Open', onclick: function() { console.log('Open clicked'); } },
+            { label: 'Save', onclick: function() { console.log('Save clicked'); } },
+            { label: 'Save As', onclick: function() { console.log('Save As clicked'); } },
+            { label: 'Close', onclick: function() { console.log('Close clicked'); } }
+        ] },
+        { label: 'Edit', submenu: [
+            { label: 'Undo', onclick: function() { console.log('Undo clicked'); } },
+            { label: 'Redo', onclick: function() { console.log('Redo clicked'); } },
+            { type: 'separator' },
+            { label: 'Cut', onclick: function() { console.log('Cut clicked'); } },
+            { label: 'Copy', onclick: function() { console.log('Copy clicked'); } },
+            { label: 'Paste', onclick: function() { console.log('Paste clicked'); } }
+        ] },
+        { label: 'Help', submenu: [
+            { label: 'About', onclick: function() { console.log('About clicked'); } }
+        ] }
+    ]);
+   ```
+
+  Or create built-in when creating the window:
+  ```JavaScript
+    var win = gui.open({
+        url: 'http://fibjs.org',
+        menu: [
+            { label: 'File', submenu: [
+                { label: 'New', onclick: function() { console.log('New clicked'); } },
+                { label: 'Open', onclick: function() { console.log('Open clicked'); } },
+                { label: 'Save', onclick: function() { console.log('Save clicked'); } },
+                { label: 'Save As', onclick: function() { console.log('Save As clicked'); } },
+                { label: 'Close', onclick: function() { console.log('Close clicked'); } }
+            ] },
+            { label: 'Edit', submenu: [
+                { label: 'Undo', onclick: function() { console.log('Undo clicked'); } },
+                { label: 'Redo', onclick: function() { console.log('Redo clicked'); } },
+                { type: 'separator' },
+                { label: 'Cut', onclick: function() { console.log('Cut clicked'); } },
+                { label: 'Copy', onclick: function() { console.log('Copy clicked'); } },
+                { label: 'Paste', onclick: function() { console.log('Paste clicked'); } }
+            ] },
+            { label: 'Help', submenu: [
+                { label: 'About', onclick: function() { console.log('About clicked'); } }
+            ] }
+        ]
+    });         
+  ```
+ */
+interface Menu : object
+{
+    /*! @brief Add menu item, add a menu item to the menu.
+     @param item Menu item object
+     */
+    append(Object item);
+
+    /*! @brief Insert menu item, insert a menu item at the specified position.
+     @param pos Index of the insertion position
+     @param item Menu item object
+     */
+    insert(Integer pos, Object item);
+
+    /*! @brief Remove menu item, remove the menu item at the specified position from the menu.
+     @param pos Index of the menu item to remove
+     */
+    remove(Integer pos);
+
+    /*! @brief Get menu item count */
+    readonly Integer length;
+
+    /*! @brief Get menu item, get the menu item in the menu by id.
+     @param id Id of the menu item
+     @return Menu item object, return null if not found
+     */
+    MenuItem getMenuItemById(String id);
+
+    /*! @brief Get menu item, get the menu item in the menu by index.
+     @param index Index of the menu item
+     @return Menu item object
+     */
+    readonly MenuItem operator[];
+};

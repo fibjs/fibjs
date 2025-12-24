@@ -1,71 +1,121 @@
-/*! @brief Zip file object with read and write operations. */
+/*! @brief ZipFile object is an important object in the zip format file compression and decompression module, providing read and write access to zip files
+
+ZipFile object inherits from Stream object, so it can be operated in the same way as Stream object.
+
+Common static functions include:
+
+- zip.open: open a zip file or stream
+- zip.isZipFile: determine if the file is a zip file
+- fs.setZipFS: set zip file virtual file system
+- fs.clearZipFS: clear zip file virtual file system
+
+Common instance functions and methods of ZipFile object include:
+
+- NArray ZipFile.namelist(): get file name list
+- NObject ZipFile.getinfo(String member): get file information
+- Buffer ZipFile.read(String member, String password = ""): read specified file
+- NArray ZipFile.readAll(String password = ""): read all files
+- void ZipFile.extract(String member, String path, String password = ""): extract file to specified path
+- void ZipFile.extract(String member, SeekableStream strm, String password = ""): extract file to stream
+- void ZipFile.extractAll(String path, String password = ""): extract all files to specified path
+- void ZipFile.write(String filename, String inZipName, String password = ""): write specified file to compressed file
+- void ZipFile.write(Buffer data, String inZipName, String password = ""): write specified file to compressed file
+- void ZipFile.write(SeekableStream strm, String inZipName, String password = ""): write specified file to compressed file
+- void ZipFile.close(): close the opened zip file
+
+Code example as follows:
+
+```JavaScript
+var zip = require('zip');
+var path = require('path');
+var fs = require('fs');
+
+var zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' ), 'w');
+
+// write a file
+var buf = new Buffer('test data');
+zipfile.write(buf, 'test.txt');
+
+// read a file
+buf = zipfile.read("unzip_test.js");
+console.log(buf);
+
+zipfile.close();
+``` */
 interface ZipFile : object
 {
-	/*! @brief Get list of file name in zip file. */
-	List namelist() async;
+    /*! @brief Get file name list
+	 @return Return the list object containing file names
+	 */
+    NArray namelist() async;
 
-	/*! @brief Get list of file info in zip file. */
-	List infolist() async;
+    /*! @brief Get file information list 
+	 File information includes fields: filename, date, compress_type, compress_size, file_size, password, data
+	 @return Return the list object containing file information
+	 */
+    NArray infolist() async;
 
-	/*! @brief Get file info.
-	 @param member Name of file
+    /*! @brief Get file information
+	 File information includes fields: filename, date, compress_type, compress_size, file_size, password, data
+	 @param member Specify the file name to get information
+	 @return Return the file information object
 	*/
-	ZipInfo getinfo(String member) async;
+    NObject getinfo(String member) async;
 
-	/*! @brief Read file data in zip file.
-     @param member Name of the specific file.
-     @param password password of the zip file, default with null.
-     @return Data of file read from the zip file.
+    /*! @brief Return the data read from the compressed file
+	 @param member Specify the file name to read
+	 @param password Decompression password, default no password
+	 @return Return all data of the file
+	 */
+    Buffer read(String member, String password = "") async;
+
+    /*! @brief Extract all files
+	 @param password Decompression password, default no password
+	 @return List containing all file data and information
      */
-	Buffer read(String member, String password = "") async;
+    NArray readAll(String password = "") async;
 
-	/*! @brief Read data of all file in zip file.
-     @param password password of the zip file, default with null.
-     @return List of file data.
-     */
-	List readAll(String password = "") async;
+    /*! @brief Extract specified file
+	 @param member Specify the file name to extract
+	 @param path Specify the path to extract to
+	 @param password Decompression password, default no password
+	 */
+    extract(String member, String path, String password = "") async;
 
-	/*! @brief Extract a specific file in zip file.
-     @param member The specific file name.
-     @param path The file path to store the decompressed file.
-     @param password password of the zip file, default with null.
-     */
-	extract(String member, String path, String password = "") async;
+    /*! @brief Extract specified file to stream
+	 @param member Specify the file name to extract
+	 @param strm Specify the stream to extract to
+	 @param password Decompression password, default no password
+	 */
+    extract(String member, SeekableStream strm, String password = "") async;
 
-	/*! @brief Extract a specific file from zip file into stream.
-     @param member The specific file name.
-     @param strm The stream to store file data.
-     @param password password of the zip file, default with null.
-     */
-	extract(String member, SeekableStream strm, String password = "") async;
+    /*! @brief Extract all files to specified path
+	 @param path Specify the path to extract to
+	 @param password Decompression password, default no password
+	 */
+    extractAll(String path, String password = "") async;
 
-	/*! @brief Extract all files
-     @param path Path to store all files extracted from zip file.
-     @param password password of the zip file, default with null.
-     */
-	extractAll(String path, String password = "") async;
+    /*! @brief Write specified file to compressed file
+	 @param filename Specify the file to write
+	 @param inZipName The file name compressed in the zip file
+	 @param password Decompression password, default no password
+	 */
+    write(String filename, String inZipName, String password = "") async;
 
-	/*! @brief Write specific a file into zip file.
-     @param filename Name of the specific file.
-     @param inZipName File name in zip file.
-     @param password password of the zip file, default with null.
-     */
-	write(String filename, String inZipName, String password = "") async;
+    /*! @brief Write specified file to compressed file
+	 @param data Specify the file data to write
+	 @param inZipName The file name compressed in the zip file
+	 @param password Decompression password, default no password
+	 */
+    write(Buffer data, String inZipName, String password = "") async;
 
-	/*! @brief Write buffer data into zip file.
-     @param data Buffer data.
-     @param inZipName File name in zip file.
-     @param password password of the zip file, default with null.
-     */
-	write(Buffer data, String inZipName, String password = "") async;
+    /*! @brief Write specified file to compressed file
+	 @param strm Specify the file data stream to write
+	 @param inZipName The file name compressed in the zip file
+	 @param password Decompression password, default no password
+	 */
+    write(SeekableStream strm, String inZipName, String password = "") async;
 
-	/*! @brief Write stream data into zip file.
-     @param strm Stream data.
-     @param inZipName File name in zip file.
-     @param password password of the zip file, default with null.
-     */
-	write(SeekableStream strm, String inZipName, String password = "") async;
-
-	/*! @brief Close zip file */
-	close() async;
+    /*! @brief Close the opened zip file */
+    close() async;
 };

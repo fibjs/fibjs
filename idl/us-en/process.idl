@@ -1,178 +1,284 @@
-/*! @brief Process handle module, to manage current process resources
+/*! @brief Process handling module, used to manage resources of the current process
 
- To use it:
- @code
+ Reference method:
+ ```JavaScript
  var process = require('process');
- @endcode
+ ```
+
+ ## Process Events
+ The process module object is an instance of EventEmitter, and can respond to process-level events by registering event listeners.
+
+ ### beforeExit Event
+ **When fibjs's task queue is empty and no additional work is added, the `beforeExit` event will be triggered**
+ ```JavaScript
+ process.on('beforeExit', exitCode => {});
+ ```
+ Normally, if no additional work is added to the task queue, the fibjs process will end. But if the callback function of the listener bound to the `beforeExit` event starts a new task, such as starting a fiber, the fibjs process will continue running.
+
+ process.exitCode is passed as the only parameter value to the `beforeExit` event listener's callback function. If the process is about to terminate due to an explicit reason, such as directly calling process.exit or throwing an uncaught exception, the `beforeExit` event will not be triggered.
+
+ ### exit Event
+ **When fibjs exits, the `exit` event will be triggered, and once all listeners bound to the `exit` event are executed, the process will terminate**
+ ```JavaScript
+ process.on('exit', exitCode => {});
+ ```
+ The callback function of the `exit` event listener has only one parameter, and the value of this parameter can be the value of the process.exitCode property, or the `exitCode` value passed when calling the process.exit method.
+
+ ### Signal Events
+ **When the fibjs process receives a signal, a signal event will be triggered. Currently supported signals are SIGINT and SIGTERM. Each event name is represented in uppercase of the signal name (for example, event 'SIGINT' corresponds to signal SIGINT).**
+ 
+ Signal events are different from other process events, signal events are preemptive, and when a signal occurs, the corresponding event will be triggered as soon as possible, regardless of whether it is in io operation or JavaScript calculation. For example, you can use the following code to interrupt the current application and output the running status:
+ ```JavaScript
+ var coroutine = require('coroutine');
+
+ process.on('SIGINT', () => {
+    coroutine.fibers.forEach(f => console.error("Fiber %d:\n%s", f.id, f.stack));
+    process.exit();
+ });
+ ```
+ Signal names and their meanings are as follows:
+ * SIGINT: Supported on all platforms when running in terminal, usually triggered by CTRL+C.
+ * SIGTERM: Triggered when the process is killed. Not supported on Windows.
  */
-module process
+module process : EventEmitter
 {
-    /*! @brief Get commnad line arguments */
+    /*! @brief Return the command line arguments of the current process */
     static readonly Array argv;
 
-    /*! @brief Get full execution path */
-    static readonly String execPath;
+    /*! @brief Return the special command line arguments of the current process, these arguments are used by fibjs to set the runtime environment */
+    static readonly Array execArgv;
 
-    /*! @brief get the fibjs version string */
+    /*! @brief Return the fibjs version string */
     static readonly String version;
 
-    /*! @brief The full path of current executable file */
+    /*! @brief Return the version information of fibjs and components */
+    static readonly Object versions;
+
+    /*! @brief Query the full path of the current running executable file */
     static readonly String execPath;
 
-    /*! @brief The environment variable object of current executable file */
+    /*! @brief Query the environment variables of the current process */
     static readonly Object env;
 
-    /*! @brief query current cpu's architecture，possible value can be: 'amd64', 'arm', 'arm64', or 'ia32' */
+    /*! @brief Query the current cpu environment, possible results are 'amd64', 'arm', 'arm64', 'ia32' */
     static readonly String arch;
 
-    /*! @brief query current platform，possible value can be: 'darwin', 'freebsd', 'linux', or 'win32' */
+    /*! @brief Query the current platform name, possible results are 'darwin', 'freebsd', 'linux', or 'win32' */
     static readonly String platform;
 
-    /*! @brief read id of current process */
+    /*! @brief Read the id of the process pointed to by the current object */
     static readonly Integer pid;
 
-    /*! @brief read id of current process's parent process */
+    /*! @brief Read the id of the parent process of the current object */
     static readonly Integer ppid;
 
-    /*! @brief change the current umask，Windows does't support this.
-     @param mask the mask to set
-     @return the previous mask
+    /*! @brief Query the standard input object of the current process, TTYInputStream in tty, otherwise Stream */
+    static readonly Stream stdin;
+
+    /*! @brief Query the standard output object of the current process, TTYOutputStream in tty, otherwise Stream */
+    static readonly Stream stdout;
+
+    /*! @brief Query the standard error output object of the current process, TTYOutputStream in tty, otherwise Stream */
+    static readonly Stream stderr;
+
+    /*! @brief Query and set the exit code of the current process */
+    static Integer exitCode;
+
+    /*! @brief Change the current umask, not supported on Windows
+     @param mask Specify the new mask
+     @return Return the previous mask
     */
     static Integer umask(Integer mask);
 
-    /*! @brief change the current umask，Windows does't support this.
-     @param mask octonary string(e.g: "0664")
-     @return the previous mask
+    /*! @brief Change the current umask, not supported on Windows
+     @param mask Specify the new mask, string type octal (e.g: "0664")
+     @return Return the previous mask
     */
     static Integer umask(String mask);
 
-    /*! @brief return the current umask，Windows does't support this.
-     @return the current mask
+    /*! @brief Return the current umask, not supported on Windows
+     @return Return the current mask value
     */
     static Integer umask();
 
-    /*! @brief Exit current process, and return result.
-     @param The exit code.Defaults to 0.
-     */
-    static exit(Integer code = 0);
+    /*! @brief Return the system high-precision time, this time is not related to the current time, only used for high-precision timing
+     @param diff Initial time for comparison
+     @return Return the timing time, format [seconds, nanoseconds]
+    */
+    static Array hrtime(Array diff = []);
 
-    /*! @brief Return current work path of the operating system.
-     @return Work path.
+    /*! @brief Exit the current process and return exitCode as the process result     */
+    static exit();
+
+    /*! @brief Exit the current process and return the result
+     @param code Return the process result
+     */
+    static exit(Integer code);
+
+    /*! @brief Return the current working directory of the operating system
+     @return Return the current system path
      */
     static String cwd();
 
-    /*! @brief Change the current work path of operating system.
-     @param directory The new work path.
+    /*! @brief Dynamically load C++ Addons
+     @param module Specify the module to load
+     @param filename Specify the module filename to load
+     @param flags Specify the way to load the module, default is 1
+    */
+    static dlopen(Object module, String filename, Integer flags = 1);
+
+    /*! @brief Modify the current working directory of the operating system
+     @param directory Specify the new path to set
      */
     static chdir(String directory);
 
-    /*! @brief returns the system uptime in number of seconds.
-     @return seconds
+    /*! @brief Query the runtime of the runtime environment in seconds
+     @return Return the numerical value representing time
     */
     static Number uptime();
 
-    /*! @brief Get report of memory the current process consumpt.
-     @return Memory report object.
+    /*! @brief Query the time spent by the current process in user and system code, the value is in microseconds (one millionth of a second)
 
-     Memory report like this:
-     @code
+     The memory report generates results similar to the following:
+     ```JavaScript
+     {
+       "user": 132379,
+       "system": 50507
+     }
+     ```
+     Among them:
+     - user returns the time spent by the process in user code
+     - system returns the time spent by the process in system code
+     @param previousValue Specify the time of the last query
+     @return Return containing the time report
+     */
+    static Object cpuUsage(Object previousValue = {});
+
+    /*! @brief Query the memory usage report of the current process
+
+     The memory report generates results similar to the following:
+     ```JavaScript
      {
        "rss": 8622080,
        "heapTotal": 4083456,
        "heapUsed": 1621800
      }
-     @endcode
-     among the report：
-     - rss Occupation of physical memory.
-     - heapTotal Total heap memory of v8.
-     - heapUsed Heap memory occupied by v8.
+     ```
+     Among them:
+     - rss returns the current physical memory size occupied by the process
+     - heapTotal returns the v8 engine heap memory size
+     - heapUsed returns the heap memory size being used by the v8 engine
+     @return Return containing the memory report
      */
     static Object memoryUsage();
 
-    /*! @brief start a fiber
-     @param func function to be executed in the new fiber.
-     @param ... params which will be passed to the func.
-     */
-    static nextTick(Function func, ...);
+    /*! @brief Query the resource usage report of the current process
 
-    /*! @brief Create chlid process taking charge of stdin and stdout and run bash command.
-     @param command Bash command to be executed.
-     @param args Arguments for bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Enviroment variable of child process.
-        }
-     @endcode
-     @return Child process object containing result of command.
+     resourceUsage generates results similar to the following:
+     ```JavaScript
+     {
+       "userCPUTime": 132379,      // User CPU time (microseconds), same as process.cpuUsage().user
+       "systemCPUTime": 50507,     // System CPU time (microseconds), same as process.cpuUsage().system
+       "maxRSS": 8622080,          // Maximum physical memory usage (KB)
+       "sharedMemorySize": 0,      // Shared memory size (not supported)
+       "unsharedDataSize": 0,      // Unshared data size (not supported)
+       "unsharedStackSize": 0,     // Unshared stack size (not supported)
+       "minorPageFault": 2,        // Number of minor page faults
+       "majorPageFault": 0,        // Number of major page faults (not supported on Windows)
+       "swappedOut": 0,            // Number of times swapped to disk (not supported)
+       "fsRead": 100,              // Number of file system reads
+       "fsWrite": 50,              // Number of file system writes
+       "ipcSent": 0,               // Number of IPC messages sent (not supported)
+       "ipcReceived": 0,           // Number of IPC messages received (not supported)
+       "signalsCount": 0,          // Number of signals received (not supported)
+       "voluntaryContextSwitches": 1000,    // Number of voluntary context switches (not supported on Windows)
+       "involuntaryContextSwitches": 500    // Number of involuntary context switches (not supported on Windows)
+     }
+     ```
+     @return Return the object containing the resource usage report
      */
-    static SubProcess open(String command, Array args, Object opts = {});
+    static Object resourceUsage();
 
-    /*! @brief Create chlid process taking charge of stdin and stdout and run bash command.
-     @param command Bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Environment variable of child process.
-        }
-     @endcode
-     @return Child process object containing result of command.
+    /*! @brief Start a fiber
+     @param func Specify the function to execute in the fiber
+     @param args Variable parameter sequence, this sequence will be passed to the function within the fiber
      */
-    static SubProcess open(String command, Object opts = {});
+    static nextTick(Function func, ...args);
 
-    /*! @brief Create chlid process and run bash command.
-     @param command Bash command.
-     @param args Arguments of bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Environment variable of child process.
-        }
-     @endcode
-     @return Child process object containing result of the command.
+    /*! @brief Get the internal module of the specified name
+     @param name Specify the name of the internal module to query
+     @return Return the specified internal module
      */
-    static SubProcess start(String command, Array args, Object opts = {});
+    static Value binding(String name);
 
-    /*! @brief Create chlid process and run bash command.
-     @param command Bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Environment variable of child process.
-        }
-     @endcode
-     @return Child process object containing result of the command.
+    /*! @brief Query the group id of the current process
+     @return Return the group id of the current process
      */
-    static SubProcess start(String command, Object opts = {});
+    static Integer getgid();
 
-    /*! @brief Run bash command and return result code.
-     @param command Bash command.
-     @param args Arguments of bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Environment variable of child process.
-        }
-     @endcode
-     @return Result code of bash command.
+    /*! @brief Query the user id of the current process
+     @return Return the user id of the current process
      */
-    static Integer run(String command, Array args, Object opts = {});
+    static Integer getuid();
 
-    /*! @brief Run bash command and return result code.
-     @param command Bash command.
-     @param opts Option of child process, such as:
-     @code
-        {
-            "timeout": 100, // unit ms
-            "env": {} // Environment variable of child process.
-        }
-     @endcode
-     @return Result code of bash command.
+    /*! @brief Set the group id of the current process
+     @param id Specify the group id to set
      */
-    static Integer run(String command, Object opts = {});
+    static setgid(Integer id);
+
+    /*! @brief Set the user id of the current process
+     @param id Specify the user id to set
+     */
+    static setuid(Integer id);
+
+    /*! @brief Emit a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+
+      Options include the following:
+     ```JavaScript
+     {
+       "type": "Warning", // specifies the name of the type of warning issued. Default value: 'Warning'
+       "code": "", // specify the unique identifier of the warning instance issued
+       "detail": "" // specify additional text for warnings
+     }
+     ```
+     Usage is as follows:
+     ```JavaScript
+     const { emitWarning } = require('process');
+
+     // Emit a warning with a code and additional detail.
+     emitWarning('Something happened!', {
+       code: 'MY_WARNING',
+       detail: 'This is some additional information',
+     });
+
+     process.on('warning', (warning) => {
+       console.warn(warning.name);    // 'Warning'
+       console.warn(warning.message); // 'Something happened!'
+       console.warn(warning.code);    // 'MY_WARNING'
+       console.warn(warning.stack);   // Stack trace
+       console.warn(warning.detail);  // 'This is some additional information'
+     });
+     ```
+     @param warning Specify the warning to emit
+     @param options Specify the options for the warning
+    */
+    static emitWarning(Value warning, Object options);
+
+    /*! @brief Emit a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+     @param warning Specify the warning to emit
+     @param type Specify the name of the type of warning issued. Default value: 'Warning'
+     @param code Specify the unique identifier of the warning instance issued
+    */
+    static emitWarning(Value warning, String type = "Warning", String code = "");
+
+    /*! @brief Query whether the pipe with the parent process is normally connected */
+    static readonly Boolean connected;
+
+    /*! @brief Close the ipc pipe with the parent process */
+    static disconnect();
+
+    /*! @brief Send a message to the parent process
+     @param msg Specify the message to send
+    */
+    static send(Value msg);
 };

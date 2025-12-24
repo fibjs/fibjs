@@ -1,23 +1,84 @@
+/*! @brief HttpResponse is an HTTP response object, use HttpRequest.response object to complete Http server data response, or http.request request returns the server's response data.
 
-/*! @brief http response message object */
+The following example shows how to use in http.Server, the example code is as follows:
+```
+const http = require('http');
+
+const server = new http.Server(8080, (request) => {
+  // retreive the response object
+  const response = request.response;
+  // set the status code
+  response.statusCode = 200;
+  // set the content type to text/plain
+  response.setHeader('Content-Type', 'text/plain');
+  // write the response body
+  response.write('ok');
+});
+
+server.start();
+```
+*/
 interface HttpResponse : HttpMessage
 {
-    /*! @brief HttpResponse constructor, creating a new HttpResponse object */
+    /*! @brief HttpResponse constructor, creates a new HttpResponse object */
     HttpResponse();
 
-    /*! @brief querying and setting the status of the response message */
+    /*! @brief HttpResponse constructor, creates a new HttpResponse object (Web API compatible)
+     
+     Supports Web standard Response construction method, for example:
+     ```JavaScript
+     const response = new http.Response("Hello World", {
+         status: 200,
+         statusText: "OK",
+         headers: { "Content-Type": "text/plain" }
+     });
+     ```
+     @param body response body content, can be string, Buffer or null
+     @param options options object, supports status, statusText, headers properties
+    */
+    HttpResponse(Value body, Object options = {});
+
+    /*! @brief Query and set the response message return status */
+    Integer statusCode;
+
+    /*! @brief Query and set the response message return message */
+    String statusMessage;
+
+    /*! @brief Query and set the response message return status, same as statusCode */
     Integer status;
 
-    /*! @brief returning the HttpCookie object list of the current message */
-    readonly List cookies;
+    /*! @brief Query whether the current response is normal */
+    readonly Boolean ok;
 
-    /*! @brief add a HttpCookie object to cookies
-     @param cookie spcify the HttpCookie object to be added
+    /*! @brief Set the response message return status, return message, and add response headers
+     @param statusCode specifies the response message return status
+     @param statusMessage specifies the response message return message
+     @param headers specifies the response headers to add
+     */
+    writeHead(Integer statusCode, String statusMessage, Object headers = {});
+
+    /*! @brief Set the response message return status, return message, and add response headers
+     @param statusCode specifies the response message return status
+     @param headers specifies the response headers to add
+     */
+    writeHead(Integer statusCode, Object headers = {});
+
+    /*! @brief Return the HttpCookie object list of the current message */
+    readonly NArray cookies;
+
+    /*! @brief Add an HttpCookie object to cookies
+     @param cookie specifies the HttpCookie object to add
      */
     addCookie(HttpCookie cookie);
 
-    /*! @brief send a redirect url to the client
-     @param url url to the redirected address
+    /*! @brief Send redirect to client
+     @param url redirect address
      */
     redirect(String url);
+
+    /*! @brief Send redirect to client
+     @param statusCode specifies the response message return status, accepted statuses are: 301, 302, 307
+     @param url redirect address
+     */
+    redirect(Integer statusCode, String url);
 };

@@ -1,17 +1,16 @@
-
-/*! @brief XmlDocumentType object has access to XML actual body
+/*! @brief XmlDocumentType object is used to access entities defined in XML
 */
 interface XmlDocumentType : XmlNode
 {
-    /*! @brief Get DTD name
-    */
+    /*! @brief Return the name of the DTD
+	*/
     readonly String name;
 
-    /*! @brief Get public ID of DTD
-    */
+    /*! @brief Can return the public identifier of the external DTD
+	*/
     readonly String publicId;
 
-    /*! @brief Get system ID of DTD
-    */
+    /*! @brief Can return the system identifier of the external DTD
+	*/
     readonly String systemId;
 };

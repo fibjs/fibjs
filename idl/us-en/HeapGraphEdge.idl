@@ -1,28 +1,30 @@
-
-/*! @brief HeapGrapheEdge represents a directed connection between heap graph nodes: from retainers to retained nodes.*/
+/*! @brief HeapGraphEdge represents the association between two HeapGraphNode nodes, from upstream node to downstream node*/
 interface HeapGraphEdge : object
 {
-     /*! @brief connection type, the value can be:
-      - profiler.Edge_ContextVariable,  A variable from a function context.
-      - profiler.Edge_Element,          An element of an array.
-      - profiler.Edge_Property,         A named object property.
-      - profiler.Edge_Internal,         A link that can't be accessed from JS.
-      - profiler.Edge_Hidden,           A link that is needed for proper sizes calculation.
-      - profiler.Edge_Shortcut,         A link that must not be followed during sizes calculation.
-      - profiler.Edge_Weak,             A weak reference (ignored by the GC).
-     */
-     readonly Integer type;
+    /*! @brief The connection method of the downstream node, possible values:
+     - profiler.Edge_ContextVariable, variable in function
+     - profiler.Edge_Element, element in array
+     - profiler.Edge_Property, property of named object
+     - profiler.Edge_Internal, link that JS cannot enter
+     - profiler.Edge_Hidden, points to node that needs space size calculated in advance
+     - profiler.Edge_Shortcut, points to node that cannot calculate space size in advance
+     - profiler.Edge_Weak, a weak reference (ignored by GC)
+    */
+    readonly Integer type;
 
-     /*! @brief node name */
-     readonly String name;
+    /*! @brief link name */
+    readonly String name;
 
-     /*! @brief Returns origin node.
-     @return Returns origin node.
-     */
-     HeapGraphNode getFromNode();
+    /*! @brief description of the link */
+    readonly String description;
 
-     /*! @brief Returns destination node.
-     @return Returns destination node.
-     */
-     HeapGraphNode getToNode();
+    /*! @brief Get the upstream HeapGraphNode node of HeapGraphEdge
+     @return Return the source HeapGraphNode node
+    */
+    HeapGraphNode getFromNode();
+
+    /*! @brief Get the downstream HeapGraphNode node of HeapGraphEdge
+     @return Return the destination HeapGraphNode node
+    */
+    HeapGraphNode getToNode();
 };

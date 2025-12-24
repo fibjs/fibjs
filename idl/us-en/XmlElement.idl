@@ -1,121 +1,186 @@
-
-/*! @brief XmlElement object represents XML element in document
+/*! @brief XmlElement object represents an element in an XML document
 */
 interface XmlElement : XmlNode
 {
-    /*! @brief Get URI of namespace, returns NULL if no namespace for selected node
+    /*! @brief Query the URI of the element's namespace. If the selected node has no namespace, this property returns NULL
     */
     readonly String namespaceURI;
 
-    /*! @brief Get and set prefix of namespace, returns NULL no namespace for selected node
+    /*! @brief Query and set the namespace prefix of the element. If the selected node has no namespace, this property returns NULL
     */
     String prefix;
 
-    /*! @brief Get local name, returns nodeName if no namespace for selected node
+    /*! @brief Query the local name of the element. If the selected node has no namespace, this property is equivalent to nodeName
     */
     readonly String localName;
 
-    /*! @brief Get tag name
+    /*! @brief Return the tag name of the element
     */
     readonly String tagName;
 
-    /*! Get and set ID
+    /*! Query and set the id attribute of the element
     */
     String id;
 
-    /*! Get and set text content, it returns all nodes' content when get, and deletes all child nodes when set
-    */
-    String textContent;
-
-    /*! Get and set HTML content, only valid in HTML mode. it returns all nodes' content in HTML when get, and delete all child nodes when set
+    /*! Query and set the HTML text of the descendants of the selected element, valid only in html mode. When querying, return the HTML encoding of all child nodes within the element node; when setting, delete all child nodes and replace them with the specified HTML decoded.
     */
     String innerHTML;
 
-    /*! Get and set class, only valid in HTML mode
+    /*! Query the HTML text of the selected element and its descendants, valid only in html mode. When querying, return the HTML encoding of the element and all child nodes within the node.
+    */
+    readonly String outerHTML;
+
+    /*! Query and set the class attribute of the element, valid only in html mode
     */
     String className;
 
-    /*! @brief Get NamedNodeMap, returns NULL when selected node is not an element
+    /*! @brief Return a NamedNodeMap containing the attributes of the selected node. If the selected node is not an element, this property returns NULL.
     */
     readonly XmlNamedNodeMap attributes;
 
-    /*! @brief Get attribute value by name
-     @param name Attribute name
-     @return Return attribute value
+    /*! @brief Query the value of an attribute by name
+     @param name Specify the attribute name to query
+     @return Return the value of the attribute
     */
     String getAttribute(String name);
 
-    /*! @brief Get attribute value by namespace URI and name
-     @param namespaceURI Namespace URI
-     @param localName Local name
-     @return Return attribute value
+    /*! @brief Get the attribute value by namespace URI and name
+     @param namespaceURI Specify the namespace URI to query
+     @param localName Specify the attribute name to query
+     @return Return the value of the attribute
     */
     String getAttributeNS(String namespaceURI, String localName);
 
-    /*! @brief Create or change an attribute
+    /*! @brief Return the attribute node of the specified name
 
-     This method will create a new attribute when necessary
-     @param name Attribute name
-     @param value Attribute value
+     This method returns an XmlAttr object representing the attribute of the specified name of the current element. If there is no attribute with the specified name, return NULL.
+     @param name Specify the attribute name to query
+     @return Return the XmlAttr object of the specified name, if there is no attribute with the specified name, return NULL
+    */
+    XmlAttr getAttributeNode(String name);
+
+    /*! @brief Return the attribute node with namespace URI and name
+
+     This method returns an XmlAttr object representing the attribute of the specified namespace URI and name of the current element. If there is no attribute with the specified name, return NULL.
+     @param namespaceURI Specify the namespace URI to query
+     @param localName Specify the attribute name to query
+     @return Return the XmlAttr object of the specified name, if there is no attribute with the specified name, return NULL
+    */
+    XmlAttr getAttributeNodeNS(String namespaceURI, String localName);
+
+    /*! @brief Create or change a new attribute
+
+     This method sets the specified attribute to the specified value. If there is no attribute with the specified name, this method will create a new attribute
+     @param name Specify the attribute name to set
+     @param value Specify the attribute value to set
     */
     setAttribute(String name, String value);
 
-    /*! @brief Create or change namespace URI
+    /*! @brief Create or change an attribute with namespace
 
-     This method is similiar to setAttribute, but needs namespace URI and qualified name(prefix, colon and local name), it can change namespace value and prefix
-     @param namespaceURI Namespace URI
-     @param qualifiedName Qualified name
-     @param value Attribute value
+     This method is similar to the setAttribute method, except that the attribute to be created or set is specified by the namespace URI and qualified name (composed of namespace prefix, colon, and local name in the namespace). In addition to changing the value of an attribute, this method can also change the namespace prefix of the attribute
+     @param namespaceURI Specify the namespace URI to set
+     @param qualifiedName Specify the attribute name to set
+     @param value Specify the attribute value to set
     */
     setAttributeNS(String namespaceURI, String qualifiedName, String value);
 
-    /*! @brief Set attribute node
-     @param newAttr Attribute node to set
-     @return Return previous attribute node with same name, or null if none exists
-    */
-    XmlAttr setAttributeNode(XmlAttr newAttr);
+    /*! @brief Set the specified attribute object
 
-    /*! @brief Remove attribute by name
-     @param name Attribute name
+     This method sets the specified XmlAttr object as an attribute of the current element. If the current element already has an attribute with the same name, this method will replace it
+     @param attr Specify the XmlAttr object to set
+     @return Return the replaced XmlAttr object, if none was replaced return NULL
+    */
+    XmlAttr setAttributeNode(XmlAttr attr);
+
+    /*! @brief Delete the specified attribute by name
+     @param name Specify the attribute name to delete
     */
     removeAttribute(String name);
 
-    /*! @brief Remove attribute by namespace and name
-     @param namespaceURI Namespace URI
-     @param localName Attribute name
+    /*! @brief Delete the specified attribute by namespace and name
+     @param namespaceURI Specify the namespace URI to delete
+     @param localName Specify the attribute name to delete
     */
     removeAttributeNS(String namespaceURI, String localName);
 
-    /*! @brief Check if selected node has given attribute
-     @param name Attribute name
-     @return Return ture if it contains, false otherwise
+    /*! @brief Delete the specified attribute node
+
+     This method removes the specified XmlAttr object from the attribute list of the current element. If the current element does not have the specified attribute, this method does nothing
+     @param attr Specify the XmlAttr object to delete
+     @return Return the deleted XmlAttr object, if none was deleted return NULL
+    */
+    XmlAttr removeAttributeNode(XmlAttr attr);
+
+    /*! @brief Query whether the current node has an attribute with the specified name
+     @param name Specify the attribute name to query
+     @return If the current element node has the specified attribute, return true, otherwise return false
     */
     Boolean hasAttribute(String name);
 
-    /*! @brief Check if selected node has given namespace and attribute
-     @param namespaceURI Namespace URI
-     @param localName Attribute name
-     @return Return ture if it contains, false otherwise
+    /*! @brief Query whether the current node has an attribute with the specified namespace and name
+     @param namespaceURI Specify the namespace URI to query
+     @param localName Specify the attribute name to query
+     @return If the current element node has the specified attribute, return true, otherwise return false
     */
     Boolean hasAttributeNS(String namespaceURI, String localName);
 
-    /*! @brief Get all XmlNodeList with given tag name
+    /*! @brief Return an XmlNodeList of all elements with the specified name
 
-     This method iterates all child nodes of given element, and returns an XmlNodeList of XmlElement, which represents all document elements with given tag name.
-     They have same order as they appear in the document.
+     This method will traverse the descendant nodes of the specified element and return an XmlNodeList object of XmlElement nodes, representing all document elements with the specified tag name. The order of elements in the returned array is the order they appear in the document source code.
 
-     XmlDocument interface also defines getElementsByTagName method that iterates entire document
-     @param tagName Tag name to match, "*" matches all tag name
-     @return Return collection of XmlNodeList
+     The XmlDocument interface also defines the getElementsByTagName method, which is similar to this method, but traverses the entire document instead of traversing the descendant nodes of an element.
+     @param tagName The tag name to retrieve. The value "*" matches all tags
+     @return An XmlNodeList collection of XmlElement nodes with the specified tag in the node tree. The order of the returned element nodes is the order they appear in the source document.
     */
     XmlNodeList getElementsByTagName(String tagName);
 
-    /*! @brief Get all XmlNodeList with given namespace and tag name
+    /*! @brief Return an XmlNodeList of all elements with the specified namespace and name
 
-     This method is similiar to getElementsByTagName, but uses namespace URI and local name.
-     @param namespaceURI Namespace URI
-     @param localName Tag name to match, "*" matches all tag name
-     @return Return collection of XmlNodeList
+     This method is similar to the getElementsByTagName method, except that the tag name of the element to be obtained is specified as a combination of namespace URI and local name defined in the namespace.
+     @param namespaceURI Specify the namespace URI to query
+     @param localName The tag name to retrieve. The value "*" matches all tags
+     @return An XmlNodeList collection of XmlElement nodes with the specified tag in the node tree. The order of the returned element nodes is the order they appear in the source document.
     */
     XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
+
+    /*! @brief Return the element with the specified id attribute
+
+     This method will traverse the descendant nodes of the specified element and return an XmlElement node object representing the first document element with the specified id attribute.
+
+     The XmlDocument interface also defines the getElementsByTagName method, which is similar to this method, but traverses the entire document instead of traversing the descendant nodes of an element.
+     @param id The id to retrieve
+     @return The XmlElement node with the specified id attribute in the node tree
+    */
+    XmlElement getElementById(String id);
+
+    /*! @brief Return a node list of all elements with the specified class name
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document with the specified class name, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements with the specified tag name are added or deleted in the document, its content will be automatically updated as necessary.
+     @param className The class name to retrieve
+     @return An XmlNodeList collection of XmlElement nodes with the specified class name in the document tree. The order of the returned element nodes is the order they appear in the source document.
+    */
+    XmlNodeList getElementsByClassName(String className);
+
+    /*! @brief Return an XmlNodeList of elements matching the specified CSS selector
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document matching the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements matching the specified selector are added or deleted in the document, its content will be automatically updated as necessary.
+     @param selectors Specify the CSS selector
+     @return XmlElement nodes matching the specified CSS selector
+    */
+    XmlElement querySelector(String selectors);
+
+    /*! @brief Return an XmlNodeList of all elements matching the specified CSS selector
+
+     This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document matching the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements matching the specified selector are added or deleted in the document, its content will be automatically updated as necessary.
+     @param selectors Specify the CSS selector
+     @return An XmlNodeList collection of XmlElement nodes matching the specified CSS selector. The order of the returned element nodes is the order they appear in the source document.
+    */
+    XmlNodeList querySelectorAll(String selectors);
+
+    /*! @brief Query whether the current element matches the specified CSS selector
+     @param selectors Specify the CSS selector
+     @return If the current element matches the specified selector, return true, otherwise return false
+    */
+    Boolean matches(String selectors);
 };

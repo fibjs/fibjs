@@ -17,7 +17,7 @@
  * 
  * const utf8String = 'hello';
  * const gbkString = iconv.decode('gbk', iconv.encode('utf-8', utf8String));
- * console.log(gbkString);  // output "你好"
+ * console.log(gbkString);  // output "hello"
  * ```
  * 
  * 注意：`encode` 和 `decode` 方法的第一个参数 charset 都是指定要使用的编码。

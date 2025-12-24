@@ -20,10 +20,10 @@
  * ```JavaScript
  * const url = require('url');
  * 
- * // 使用完整 URL 字符串
+ * // Use full URL string
  * const myURL = new URL('https://user:pass@example.com:8080/path?query=value#hash');
  * 
- * // 使用相对 URL 和基础 URL
+ * // Use relative URL and base URL
  * const relativeURL = new URL('/api/users', 'https://example.com');
  * console.log(relativeURL.href); // 'https://example.com/api/users'
  * ```
@@ -57,13 +57,13 @@
  * ```JavaScript
  * const myURL = new URL('https://example.com/old-path');
  * 
- * // 解析 URL 字符串
+ * // Parse URL string
  * const parsed = URL.parse('https://example.com/path');
  * 
- * // 检查 URL 是否有效
+ * // Check if URL is valid
  * const isValid = URL.canParse('https://example.com');
  * 
- * // 重定位到新路径
+ * // Redirect to new path
  * const newURL = myURL.resolve('../new-path');
  * ```
  *  

@@ -1,0 +1,21 @@
+/*! @brief test_suite module is a test suite module, can be called as a function */
+module test_suite
+{
+    /*! @brief Define a test suite, can be nested
+     @param name Define project name
+     @param block Test content
+     */
+    static Function(String name, Function block);
+
+    /*! @brief Pause test suite project definition
+     @param name Define project name
+     @param block Test content
+     */
+    static skip(String name, Function block);
+
+    /*! @brief Independent test suite project definition
+     @param name Define project name
+     @param block Test content
+     */
+    static only(String name, Function block);
+};

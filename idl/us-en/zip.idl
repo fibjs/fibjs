@@ -1,46 +1,64 @@
+/*! @brief The zip module is a module for file compression and decompression. It provides operations such as compression, decompression, searching, and enumerating file lists in zip files
 
-/*! @brief Zip file processing module.
+Through the zip module, we can package multiple files into a zip file, or decompress zip files to restore original files.
 
- It can be used to compress and decompress file into or from zip file. The way to use：
- @code
- var zip = require('zip');
- @endcode
+Here are some examples:
+
+1. Compress files:
+
+```JavaScript
+var zip = require('zip');
+var zipfile = zip.open('/path/to/dest.zip', 'w');
+
+zipfile.write('/path/to/src1', 'src1');
+zipfile.write('/path/to/src2', 'src2');
+zipfile.close();
+```
+
+2. Decompress files:
+
+```JavaScript
+var zip = require('zip');
+var zipfile = zip.open('/path/to/src.zip', 'r');
+
+var filenames = zipfile.namelist();
+for (var i = 0; i < filenames.length; ++i) {
+  var filename = filenames[i];
+  var data = zipfile.read(filename);
+  console.log(filename + ': ' + data.length + ' bytes');
+}
+zipfile.close();
+```
  */
 module zip
 {
-	/*! @brief Constants of compress type, no compress and only store for this. */
-	const Integer ZIP_STORED = 0;
+    /*! @brief Determine if file is zip format
+	 @param filename Filename
+	 @return Returns true if file is zip file
+	 */
+    static Boolean isZipFile(String filename) async;
 
-	/*! @brief Constants of compress type, library zlib is needed. */
-	const Integer ZIP_DEFLATED = 1;
-	
-	/*! @brief  Judge if the file is zip file. 
-	 @param filename to be judged.
-     @return Judge result, true means yes.
-     */
-	static Boolean isZipFile(String filename) async;
+    /*! @brief Open a zip file
+	 @param path File path
+	 @param mod Open file mode, "r" for read, "w" for create, "a" for append to zip file
+	 @param codec Set zip file encoding, default is "utf8"
+	 @return Returns zip file object
+	 */
+    static ZipFile open(String path, String mod = "r", String codec = "utf8") async;
 
-	/*! @brief Open a zip file.
-	 @param path The path of file to be opened.
-	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
-	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
-     @return The zip file object.
-     */
-	static ZipFile open(String path, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
+    /*! @brief Open a zip file
+	 @param data Zip file data
+	 @param mod Open file mode, "r" for read, "w" for create, "a" for append to zip file
+	 @param codec Set zip file encoding, default is "utf8"
+	 @return Returns zip file object
+	 */
+    static ZipFile open(Buffer data, String mod = "r", String codec = "utf8") async;
 
-	/*! @brief Open buffer of zip file data.
-	 @param data Buffer of zip file data.
-	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
-	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
-     @return The zip file object.
-     */
-	static ZipFile open(Buffer data, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
-
-	/*! @brief Open stream of zip file data.
-	 @param strm Stream of zip file data.
-	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
-	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
-     @return The zip file object.
-     */
-	static ZipFile open(SeekableStream strm, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
+    /*! @brief Open a zip file
+	 @param strm Zip file stream
+	 @param mod Open file mode, "r" for read, "w" for create, "a" for append to zip file
+	 @param codec Set zip file encoding, default is "utf8"
+	 @return Returns zip file object
+	 */
+    static ZipFile open(SeekableStream strm, String mod = "r", String codec = "utf8") async;
 };

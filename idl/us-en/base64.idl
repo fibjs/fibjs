@@ -1,25 +1,35 @@
-/*! @brief base64 module with encode and decode operations.
- to use:
- @code
- var encoding = require('encoding');
- var base64 = encoding.base64;
- @endcode
- or:
- @code
- var base64 = require('base64');
- @endcode
+/*! @brief base64 encoding and decoding module
+ 
+ `base64` is a method to encode binary data into ASCII strings for transmission over the network. The `base64` module provides some support for Base64 encoding and decoding.
+
+ Using the `base64` module, you can encode strings into Base64 format, or decode Base64 format into strings. For example, encoding a string into Base64 format:
+ ```JavaScript
+ const { encode } = require('base64');
+ const str = 'hello, world';
+ const encodedStr = encode(str);
+ console.log(encodedStr); // ==> "aGVsbG8sIHdvcmxk"
+ ```
+ Decoding a Base64 formatted string into a string:
+ ```JavaScript
+ const { decode } = require('base64');
+ const encodedStr = 'aGVsbG8sIHdvcmxk';
+ const str = decode(encodedStr);
+ console.log(str); // ==> "hello, world"
+ ```
+ When processing data containing sensitive information, using Base64 encoding does not provide security guarantees. Because Base64 encoding can be easily cracked, other more secure methods should be used to handle such data.
  */
 module base64
 {
-	/*! @brief Encode buffer data to string with base64 format.
-	 @param data Buffer data to be encoded.
-	 @return The encoded result string.
+    /*! @brief Encode data in base64 way
+	 @param data The data to encode
+	 @param url Specify whether to use url safe character encoding
+	 @return Return the encoded string
 	 */
-	static String encode(Buffer data);
+    static String encode(Buffer data, Boolean url = false);
 
-	/*! @brief Decode string to binary data with base64 format.
-	 @param data String to be decoded.
-	 @return The decoded result binary data.
+    /*! @brief Decode string to binary data in base64 way
+	 @param data The string to decode
+	 @return Return the decoded binary data
 	 */
-	static Buffer decode(String data);
+    static Buffer decode(String data);
 };

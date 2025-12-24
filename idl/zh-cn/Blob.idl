@@ -10,19 +10,19 @@ Blob 可用于存储二进制数据、文本、图片等，常用于文件上传
 
 常见用法示例：
 ```JavaScript
-// 创建空 Blob
+// Create empty Blob
 const blob = new Blob();
 
-// 创建包含字符串和二进制的 Blob
+// Create Blob containing string and binary
 const blob = new Blob(["hello", new Uint8Array([1,2,3])], { type: "text/plain" });
 
-// 切片
+// Slice
 const part = blob.slice(0, 5);
 
-// 读取文本内容
+// Read text content
 blob.text().then(txt => console.log(txt));
 
-// 读取二进制内容
+// Read binary content
 blob.arrayBuffer().then(buf => ...);
 ```
  */

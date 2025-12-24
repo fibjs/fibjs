@@ -1,47 +1,106 @@
+/*! @brief HttpCookie is a cookie object encapsulated by the HTTP protocol. It provides access to and setting of various cookie attributes, and also supports the organization and processing of multiple cookies. It is an important attribute supported by both http.Request and http.Response objects.
 
-/*! @brief http Cookie Object, used to add and handle cookies */
+On the server side, you can get all cookies in the HTTP request through HttpRequest.cookies. Each cookie here is an HttpCookie object, through which you can get or set cookie-related information using its properties or methods.
+For example, we can read the corresponding attributes from the cookie sent by the client through the following code:
+```JavaScript
+const http = require('http');
+const server = new http.Server(8080, function(request) {
+    const cookies = request.cookies;
+    const name = cookies.get('name');
+    request.response.write(`Hello ${name}!`);
+});
+server.start();
+```
+Here we use the HttpRequest.cookies property to get all cookies in the request. Then use the cookies.get method, passing the cookie name, to get the value of that cookie.
+
+To send a cookie to the client, you can create a new cookie through the HttpCookie object and add it to the HttpResponse.cookies collection. Here is an example:
+```JavaScript
+const http = require('http');
+const server = new http.Server(8080, function(request) {
+    const cookies = request.cookies;
+    let name = cookies.get('name');
+
+    if (name) {
+        request.response.write(`Hello ${name} again!`);
+    } 
+    else {
+        name = 'User';
+        request.response.cookies.add(new http.Cookie('name', name, { expires: new Date(Date.now() + 900000) }));
+        request.response.write(`Welcome ${name}!`);
+    }
+});
+
+server.start();
+```
+In the above example, we first get the HttpRequest.cookies, then try to read the value of the cookie named 'name' from it. If the cookie exists, we send a response to the request and use the cookie's value to greet the client. If the cookie does not exist, we create a new cookie object and add it to the HttpResponse.cookies collection. The first parameter with name and value is used to specify the cookie name and corresponding value. At the same time, the expires attribute is used to specify the expiration time of the cookie, here specifying the current time plus 15 minutes as the expiration time. Finally, we add a welcome message to the response content.
+ */
 interface HttpCookie : object
 {
-    /*! @brief HttpCookie constructor, creating a new HttpCookie Object
-     @param opts specify the properties of the cookie
+    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+
+     The options that can be set for opts are as follows:
+     ```JavaScript
+     {
+         "name": "", // specify the name of the cookie
+         "value": "", // specify the value of the cookie
+         "expires": Date, // specify the expires time of the cookie
+         "domain": "", // specify the domain of the cookie
+         "path": "", // specify the path of the cookie
+         "secure": false, // specify the secure of the cookie
+         "httpOnly": false, // specify the httpOnly of the cookie
+     }
+     ```
+     @param opts Specify the properties of the created cookie
     */
     HttpCookie(Object opts = {});
 
-    /*! @brief HttpCookie constructor, creating a new HttpCookie Object
-     @param name specify the name of the cookie
-     @param value specify the value of the cookie
-     @param opts specify other properties of the cookie
+    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+
+     The options that can be set for opts are as follows:
+     ```JavaScript
+     {
+         "expires": Date, // specify the expires time of the cookie
+         "domain": "", // specify the domain of the cookie
+         "path": "", // specify the path of the cookie
+         "secure": false, // specify the secure of the cookie
+         "httpOnly": false, // specify the httpOnly of the cookie
+     }
+     ```
+     @param name Specify the name of the created cookie
+     @param value Specify the value of the created cookie
+     @param opts Specify other properties of the created cookie
     */
     HttpCookie(String name, String value, Object opts = {});
 
-    /*! @brief parsing the given string, filling out the object
-     @param header specify the header string that need to be parsed
+    /*! @brief Parse the given string and fill the cookie object
+     @param header Specify the header string to parse
     */
     parse(String header);
 
-    /*! @brief detecting whether the given url and the current configuration are matched
-     @param url specify the url to be detected
+    /*! @brief Check if the given url matches the current settings
+     @param url Specify the url to test
+     @return Returns true if match succeeds
     */
     Boolean match(String url);
 
-    /*! @brief querying and setting the name of the cookie */
+    /*! @brief Query and set the cookie name */
     String name;
 
-    /*! @brief querying and setting the value of the cookie */
+    /*! @brief Query and set the cookie value */
     String value;
 
-    /*! @brief querying and setting the damain scope of the cookie */
+    /*! @brief Query and set the cookie domain scope */
     String domain;
 
-    /*! @brief querying and setting the path scope of the cookie */
+    /*! @brief Query and set the cookie path scope */
     String path;
 
-    /*! @brief querying and setting the expire time of the cookie */
+    /*! @brief Query and set the cookie expiration time */
     Date expires;
 
-    /*! @brief querying and settinng whether the cookie allows http request, defaults to false */
+    /*! @brief Query and set whether the cookie only allows http requests, default false */
     Boolean httpOnly;
 
-    /*! @brief querying and setting whether the cookie is only passed by https, defaults to false */
+    /*! @brief Query and set whether the cookie is only transmitted via https, default false */
     Boolean secure;
 };

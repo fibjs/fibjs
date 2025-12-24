@@ -177,22 +177,22 @@ module process : EventEmitter
      resourceUsage 生成类似以下结果：
      ```JavaScript
      {
-       "userCPUTime": 132379,      // 用户 CPU 时间(微秒)，与 process.cpuUsage().user 相同
-       "systemCPUTime": 50507,     // 系统 CPU 时间(微秒)，与 process.cpuUsage().system 相同
-       "maxRSS": 8622080,          // 最大物理内存使用量(KB)
-       "sharedMemorySize": 0,      // 共享内存大小(不支持)
-       "unsharedDataSize": 0,      // 非共享数据大小(不支持)
-       "unsharedStackSize": 0,     // 非共享栈大小(不支持)
-       "minorPageFault": 2,        // 次要页面错误次数
-       "majorPageFault": 0,        // 主要页面错误次数(Windows 不支持)
-       "swappedOut": 0,            // 交换到磁盘次数(不支持)
-       "fsRead": 100,              // 文件系统读取次数
-       "fsWrite": 50,              // 文件系统写入次数
-       "ipcSent": 0,               // IPC 消息发送次数(不支持)
-       "ipcReceived": 0,           // IPC 消息接收次数(不支持)
-       "signalsCount": 0,          // 信号接收次数(不支持)
-       "voluntaryContextSwitches": 1000,    // 主动上下文切换次数(Windows 不支持)
-       "involuntaryContextSwitches": 500    // 被动上下文切换次数(Windows 不支持)
+       "userCPUTime": 132379,      // User CPU time (microseconds), same as process.cpuUsage().user
+       "systemCPUTime": 50507,     // System CPU time (microseconds), same as process.cpuUsage().system
+       "maxRSS": 8622080,          // Maximum physical memory usage (KB)
+       "sharedMemorySize": 0,      // Shared memory size (not supported)
+       "unsharedDataSize": 0,      // Unshared data size (not supported)
+       "unsharedStackSize": 0,     // Unshared stack size (not supported)
+       "minorPageFault": 2,        // Number of minor page faults
+       "majorPageFault": 0,        // Number of major page faults (not supported on Windows)
+       "swappedOut": 0,            // Number of times swapped out (not supported)
+       "fsRead": 100,              // Number of filesystem reads
+       "fsWrite": 50,              // Number of filesystem writes
+       "ipcSent": 0,               // Number of IPC messages sent (not supported)
+       "ipcReceived": 0,           // Number of IPC messages received (not supported)
+       "signalsCount": 0,          // Number of signals received (not supported)
+       "voluntaryContextSwitches": 1000,    // Number of voluntary context switches (not supported on Windows)
+       "involuntaryContextSwitches": 500    // Number of involuntary context switches (not supported on Windows)
      }
      ```
      @return 返回包含资源使用报告的对象

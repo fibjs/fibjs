@@ -1,0 +1,83 @@
+/*! @brief Event source interface for server-sent events
+
+  Usage:
+  ```JavaScript
+    const http = require('http');
+    
+    const es = new http.EventSource('http://localhost:8080');
+  ```
+*/
+interface EventSource : EventEmitter
+{
+    /*! @brief Constructor
+
+     options contains additional options for the request, supports the following:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "headers": {}
+     }
+     ```
+
+      @param url Server address
+      @param options Options
+    */
+    EventSource(String url, Object options = {});
+
+    /*! @brief Close the connection */
+    close() async;
+
+    /*! @brief Send event to client
+
+     options contains additional options for the request, supports the following:
+     ```JavaScript
+     {
+         "event": "message", // specify event type, default is message
+         "id": "", // event ID
+         "retry": 0 // retry interval in milliseconds
+     }
+     ```
+
+     @param data Event data
+     @param options Options
+     @return Returns the number of bytes sent
+    */
+    Integer send(String data, Object options = {}) async;
+
+    /*! @brief Event source state, values are CONNECTING, OPEN, CLOSED */
+    readonly Integer readyState;
+
+    /*! @brief Server address */
+    readonly String url;
+
+    /*! @brief Whether to carry credentials */
+    readonly Boolean withCredentials;
+
+    /*! @brief HTTP response object */
+    readonly HttpResponse response;
+
+    /*! @brief Open event callback */
+    event open();
+
+    /*! @brief Error event callback */
+    event error();
+
+    /*! @brief Message event callback */
+    event message();
+
+    /*! @brief Close event callback */
+    event close();
+};

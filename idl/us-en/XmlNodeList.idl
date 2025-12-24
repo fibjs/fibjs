@@ -1,24 +1,23 @@
-
-/*! @brief XmlNodeList object represents an ordered node list
+/*! @brief XmlNodeList object represents an ordered list of nodes
 */
 interface XmlNodeList : object
 {
-    /*! @brief Get number of nodes
+    /*! @brief Return the number of nodes in the node list
     */
     readonly Integer length;
 
-    /*! @brief Get node by given index
-     @param index Index of node
-     @return Return node with given index
+    /*! @brief Return the node at the specified index in the node list
+     @param index Specify the index to query
+     @return The node at the specified index
     */
     XmlNode item(Integer index);
 
-    /*! @brief Able to access data by index
+    /*! @brief Can directly access data using subscript
     */
     readonly XmlNode operator[];
 
-    /*! @brief Create an iterator
-     @return Return an iterator
-     */
-    Iterator operator Iterator();
+    /*! @brief Query the iterator of the current object elements
+     @return Return the iterator of the current object elements
+    */
+    Iterator @iterator();
 };

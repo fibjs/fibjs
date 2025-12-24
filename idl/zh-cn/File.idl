@@ -11,20 +11,20 @@ File 继承自 Blob，除具备所有 Blob 的二进制数据能力外，还增�
 
 常见用法示例：
 ```JavaScript
-// 创建 File 对象
+// Create File object
 const file = new File(["hello"], "greeting.txt", { type: "text/plain" });
 
-// 读取文件名和类型
+// Read filename and type
 console.log(file.name); // "greeting.txt"
 console.log(file.type); // "text/plain"
 
-// 获取最后修改时间
+// Get last modified time
 console.log(file.lastModified);
 
-// 切片
+// Slice
 const part = file.slice(0, 2);
 
-// 异步读取内容
+// Read content asynchronously
 file.text().then(txt => console.log(txt));
 ```
 */

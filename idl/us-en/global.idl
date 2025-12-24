@@ -1,144 +1,245 @@
-
-/*! @brief Global object, which can be accessed by all scripts*/
+/*! @brief Global object, the basic object accessible to all scripts*/
 module global
 {
-    /*! @brief Binary data cache object, which used for IO reading and writing, reference Buffer object.*/
+    /*! @brief Binary data buffer object, used for data processing in io read and write, see Buffer object.*/
     static Buffer;
 
-    /*! @brief A 64-bit integer object，reference Int64 object.*/
-    static Int64;
+    /*! @brief Create a URLSearchParams request object, see URLSearchParams */
+    static URLSearchParams;
 
-    /*! @brief Console Access Objects */
+    /*! @brief Create a UrlObject request object, see UrlObject */
+    static UrlObject new URL();
+
+    /*! @brief Create a Blob request object, see Blob */
+    static Blob;
+
+    /*! @brief Create a File request object, see File */
+    static File;
+
+    /*! @brief Create a Headers object, see Headers */
+    static Headers;
+
+    /*! @brief Create a FormData object, see FormData */
+    static FormData;
+
+    /*! @brief Create an http request object, see HttpRequest */
+    static HttpRequest new Request();
+
+    /*! @brief Create an http response object, see HttpResponse */
+    static HttpResponse new Response();
+
+    /*! @brief TextDecoder decoding object, see TextDecoder object.*/
+    static TextDecoder;
+
+    /*! @brief TextEncoder encoding object, see TextEncoder object.*/
+    static TextEncoder;
+
+    /*! @brief Controller object, used to abort one or more Web requests when needed, see AbortController object.*/
+    static AbortController;
+
+    /*! @brief CryptoKey class to represent symmetric or asymmetric keys, each key exposes different functions */
+    static CryptoKey;
+
+    /*! @brief Console access object */
     static console;
 
-    /*! @brief Process Objects*/
+    /*! @brief Process object */
     static process;
 
-    /*! @brief Worker Object，only available at Worker entry script*/
-    static readonly Worker Master;
+    /*! @brief Basic performance monitoring module */
+    static performance;
 
-    /*! @brief global Object*/
+    /*! @brief PerformanceObserver interface for observing performance records */
+    static PerformanceObserver;
+
+    /*! @brief w3c webcrypto standard encryption module */
+    static webcrypto new crypto();
+
+    /*! @brief Global object */
     static readonly Object global;
 
+    /*! @brief Global object */
+    static readonly Object globalThis;
+
     /*! @brief Run a script
-     @param fname Specifies the running path for script
-     @param argv Specify the run parameters, which can be caught in script by argv.
+     @param fname Specify the script path to run
      */
-    static run(String fname, Array argv = []);
+    static run(String fname);
 
-    /*! @brief Get the current script's run parameters, start js for process start parameter, and run script to obtain parameters passed */
-    static readonly Array argv;
+    /*! @brief Load a module and return the module object, for more information see @ref module
 
-    /*! @brief Load a module and return module object, reference @ref module
+     require can be used to load basic modules, file modules.
 
-     require can be used to load the base module, such as file module.
+     Basic modules are modules initialized when the sandbox is created, just pass the corresponding id when referencing, such as require("net").
 
-     Base module is initializing when the sandbox created, only need pass the id when referencing, e.g: require("net")。
+     File modules are user-defined modules, pass relative paths starting with ./ or ../ when referencing. File modules support .js, .jsc and .json files.
 
-     File module is user-defined modules which required by the relative path beginning with './' or '../'. File module supports .js and .json file.
+     File modules also support package.json format, when the module is a directory structure, require will first query the main in package.json, if not found, try to load index.js, index.jsc or index.json under the path.
 
-     File module also supports the format package.json, system will first require the main in package.json when the module is a directory, then will try to load index.js or index.json in the path if failed.
+     If the reference path does not start with ./ or ../, and is not a basic module, require looks up from node_modules under the current module path, and recurses to parent directories.
 
-     If the path is not a reference beginning with ./ or ../, and the module is not non-base module, system will first require the match one in startup path, and then look for the .modules in current path, then try the parent directory.
+     The basic process is as follows:
 
-     @param id Specifies the name of module to load
-     @return Returns the derivation of the load module
+     ```dot
+        digraph{
+            node [fontname = "Helvetica,sans-Serif", fontsize = 10];
+            edge [fontname = "Helvetica,sans-Serif", fontsize = 10];
+
+            start [label="start"];
+            resolve [label="path.resolve" shape="rect"];
+            search [label="recursive lookup\nnode_modules\nfrom the current path" shape="rect"];
+            load [label="load" shape="rect"];
+            end [label="end" shape="doublecircle"];
+
+            is_native [label="is internal module?" shape="diamond"];
+            is_mod [label="is module?" shape="diamond"];
+            is_abs [label="is absolute?" shape="diamond"];
+            has_file [label="module exists?" shape="diamond"];
+            has_ext [label="module.js exists?" shape="diamond"];
+            has_package [label="/package.json\nexists?" shape="diamond"];
+            has_main [label="main exists?" shape="diamond"];
+            has_index [label="index.js exists?" shape="diamond"];
+
+            start -> is_native;
+            is_native -> end [label="Yes"];
+            is_native -> is_mod [label="No"];
+            is_mod -> search [label="Yes"];
+            search -> has_file;
+            is_mod -> is_abs [label="No"];
+            is_abs -> has_file [label="Yes"];
+            is_abs -> resolve [label="No"];
+            resolve -> has_file;
+            has_file -> load [label="Yes"];
+            has_file -> has_ext [label="No"];
+            has_ext -> load [label="Yes"];
+            has_ext -> has_package [label="No"];
+            has_package -> has_main [label="Yes"];
+            has_package -> has_index [label="No"];
+            has_main -> load [label="Yes"];
+            has_main -> has_index [label="No"];
+            has_index -> load [label="Yes"];
+            has_index -> end [label="No"];
+            load -> end;
+        }
+     ```
+
+     @param id Specify the module name to load
+     @return Return the export object of the loaded module
      */
     static Value require(String id);
 
-    /*! @brief Mandatory for garbage collection*/
-    static GC();
-
-    /*! @brief current script filename*/
-    static readonly String __filename;
-
-    /*! @brief current script directory*/
-    static readonly String __dirname;
-
-    /*! @brief cancels a timed, repeating action which was previously established by a call to setInterval()
-        @param t The identifier of the repeated action you want to cancel. This ID was returned by the corresponding call to setInterval().
-    */
-    static clearInterval(Timer t);
-
-    /*! @brief cancels a timeout previously established by calling setTimeout().
-        @param t The identifier of the timeout you want to cancel. This ID was returned by the corresponding call to setTimeout().
-    */
-    static clearTimeout(Timer t);
-
-    /*! @brief clears the action specified by setImmediate.
-        @param t immediateID is a ID returned by setImmediate.
-    */
-    static clearImmediate(Timer t);
-
-    /*! @brief repeatedly calls a function or executes a code snippet, with a fixed time delay between each call.
-        @param callback A function to be executed every delay milliseconds. The function is not passed any parameters, and no return value is expected.
-        @param timeout The time, in milliseconds (thousandths of a second), the timer should delay in between executions of the specified function or code.When greater than 2^31 , execute immediately
-        @param args Optional arguments to pass when the callback is called.
-        @return The returned timeoutID is a numeric, non-zero value which identifies the timer created by the call to setInterval(); this value can be passed to clearInterval() to cancel the timeout.
-    */
-    static Timer setInterval(Function callback, Number timeout, ...args);
-
-    /*! @brief sets a timer which executes a function or specified piece of code once after the timer expires.
-        @param callback A function to be executed after the timer expires.
-        @param timeout The time, in milliseconds (thousandths of a second), the timer should wait before the specified function or code is executed.When greater than 2^31 , execute immediately
-        @param args Optional arguments to pass when the callback is called.
-        @return The returned timeoutID is a positive integer value which identifies the timer created by the call to setTimeout(); this value can be passed to clearTimeout() to cancel the timeout.
+    /*! @brief Call the function after the specified time
+    @param callback Specify the callback function
+    @param timeout Specify the delay time in milliseconds. Execute immediately if it exceeds 2^31.
+    @param args Additional parameters, passed into the specified callback, optional.
+    @return Return the timer object
     */
     static Timer setTimeout(Function callback, Number timeout = 1, ...args);
 
-    /*! @brief run a callback function immediately after the browser has completed other operations such as events and display updates.
-        @param callback the function you wish to call.
-        @param args Optional arguments to pass when the callback is called.
-        @return where immediateID is the ID of the immediate which can be used later with clearImmediate.
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearTimeout(Value t);
+
+    /*! @brief Call the function every specified interval
+     @param callback Specify the callback function
+     @param timeout Specify the interval time in milliseconds. Execute immediately if it exceeds 2^31.
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return the timer object
+    */
+    static Timer setInterval(Function callback, Number timeout, ...args);
+
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearInterval(Value t);
+
+    /*! @brief Call the function every specified interval, this is a high-precision timer that will actively interrupt the running JavaScript script to execute the timer
+     Since the timer of setHrInterval will interrupt the running code to execute the callback, do not modify data that may affect other modules in the callback function, or call any api functions marked as async in the callback, otherwise unpredictable results will occur. For example:
+     ```JavaScript
+        var timers = require('timers');
+
+        var cnt = 0;
+        timers.setHrInterval(() => {
+            cnt++;
+        }, 100);
+
+        while (cnt < 10);
+
+        console.error("===============================> done");
+     ```
+     In this code, the loop in line 8 will not end because cnt changes, because JavaScript optimizes the code and determines that cnt will not change during this loop.
+     @param callback Specify the callback function
+     @param timeout Specify the interval time in milliseconds. Execute immediately if it exceeds 2^31.
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return the timer object
+    */
+    static Timer setHrInterval(Function callback, Number timeout, ...args);
+
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearHrInterval(Value t);
+
+    /*! @brief Execute the callback function immediately at the next idle time
+     @param callback Specify the callback function
+     @param args Additional parameters, passed into the specified callback, optional.
+     @return Return the timer object
     */
     static Timer setImmediate(Function callback, ...args);
 
-    /*! @brief Enter the interactive mode, you can interactively execute the internal commands and code which can only be referenced when js start.
-     @param cmds Add commands in the following format:
-     @code
-        [
-            {
-                cmd: ".test",
-                help: "this is a test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            },
-            {
-                cmd: ".test1",
-                help: "this is an other test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            }
-        ]
-     @endcode
-     */
-    static repl(Array cmds = []);
+    /*! @brief Clear the specified timer
+     @param t Specify the timer to clear
+    */
+    static clearImmediate(Value t);
 
-    /*! @brief Enter the interactive mode, you can interactively execute the internal commands and code which can only be referenced when js start.
+    /*! @brief Encode data in base64
+	 @param data Data to encode
+	 @return Return the encoded string
+	 */
+    static String btoa(String data);
 
-     At the same time allowed only a Stream repl, close the previous one when create a new Stream repl.
-     @param out Input/output stream object, usually for a network connection
-     @param cmds Add commands in the following format:
-     @code
-        [
-            {
-                cmd: ".test",
-                help: "this is a test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            },
-            {
-                cmd: ".test1",
-                help: "this is an other test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            }
-        ]
-     @endcode
+    /*! @brief Decode base64 string to binary data
+	 @param data String to decode
+	 @return Return the decoded binary data
+	 */
+    static String atob(String data);
+
+    /*! @brief Create a deep copy of a value
+     Create a deep copy of the given value using the structured clone algorithm. Supports circular references.
+
+     The transfer parameter is used to specify a list of transferable objects (such as ArrayBuffer) that need to be transferred rather than cloned. After transfer, the original object will be unusable.
+
+     @param value Value to clone
+     @param options Optional parameter object, containing transfer array
+     @return Return the cloned value
      */
-    static repl(Stream out, Array cmds = []);
+    static Value structuredClone(Value value, Object options = {});
+
+    /*! @brief Request the specified url and return the result, equivalent to http.request(url, ...)
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @return Return server response
+     */
+    static HttpResponse fetch(String url, Object opts = {}) promise;
 };

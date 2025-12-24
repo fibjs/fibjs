@@ -1,0 +1,175 @@
+/*! @brief WebRTC network real-time communication module
+
+The `rtc` module is a module for implementing WebRTC network real-time communication. It provides a series of functions and interfaces to help developers create and manage WebRTC connections, send and receive real-time data. The module contains the following main components:
+
+1. **RTCPeerConnection**: Core object, used to create and manage WebRTC connections, handle connection status, send and receive media data.
+2. **RTCSessionDescription**: Session description object, used to describe the media format and other attributes of WebRTC connections.
+3. **RTCIceCandidate**: ICE candidate parameter object, used for NAT traversal and connection establishment.
+4. **RTCDataChannel**: Data channel interface, used to transmit arbitrary types of data in WebRTC connections.
+
+In addition, the `rtc` module also provides global SCTP parameter settings, listening service binding and unbinding, etc., ensuring developers can flexibly configure and manage WebRTC connections. Through these interfaces and methods, developers can easily implement real-time audio and video communication, file transfer, text chat and other functions.
+
+### Example
+
+The following is an example of how to use the `rtc` module to create a simple WebRTC connection:
+
+```javascript
+const rtc = require('rtc');
+
+// Create RTCPeerConnection object
+var pc = new rtc.RTCPeerConnection({
+    iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
+});
+
+// Create data channel
+var dataChannel = pc.createDataChannel('myDataChannel');
+
+// Set local description
+pc.setLocalDescription(new rtc.RTCSessionDescription({
+    type: 'offer',
+    sdp: 'v=0...'
+})).then(() => {
+    console.log('Local description set');
+});
+
+// Set remote description
+pc.setRemoteDescription(new rtc.RTCSessionDescription({
+    type: 'answer',
+    sdp: 'v=0...'
+})).then(() => {
+    console.log('Remote description set');
+});
+
+// Add ICE candidate
+pc.addIceCandidate(new rtc.RTCIceCandidate({
+    candidate: 'candidate:842163049 1 udp 1677729535 192.168.1.2 3478 typ srflx raddr 0.0.0.0 rport 0 generation 0 ufrag abc network-id 1',
+    sdpMid: '0'
+})).then(() => {
+    console.log('ICE candidate added');
+});
+
+// Listen for connection state changes
+pc.onconnectionstatechange = function(event) {
+    console.log('Connection state change: ', pc.connectionState);
+};
+
+// Listen for data channel events
+pc.ondatachannel = function(event) {
+    var receiveChannel = event.channel;
+    receiveChannel.onmessage = function(event) {
+        console.log('Received message: ', event.data);
+    };
+};
+
+// Listen for ICE candidate events
+pc.onicecandidate = function(event) {
+    if (event.candidate) {
+        console.log('New ICE candidate: ', event.candidate);
+    }
+};
+
+// Listen for ICE connection state changes
+pc.oniceconnectionstatechange = function(event) {
+    console.log('ICE connection state change: ', pc.iceConnectionState);
+};
+
+// Listen for signaling state changes
+pc.onsignalingstatechange = function(event) {
+    console.log('Signaling state change: ', pc.signalingState);
+};
+
+// Listen for media track events
+pc.ontrack = function(event) {
+    console.log('New track: ', event.track);
+};
+```
+
+Through the above example code, developers can create a basic WebRTC connection and handle connection status, data channels, ICE candidates and other events.*/
+module rtc
+{
+    /*! @brief WebRTC connection object, see RTCPeerConnection */
+    static RTCPeerConnection;
+
+    /*! @brief WebRTC session description object, see RTCSessionDescription */
+    static RTCSessionDescription;
+
+    /*! @brief WebRTC ICE candidate parameter object, see RTCIceCandidate */
+    static RTCIceCandidate;
+
+    /*! @brief Bind a WebRTC listening service on the specified address and port
+
+    The bind method is used to bind a WebRTC listening service on the specified address and port to respond to unhandshaked WebRTC connection requests.
+
+     @param bind_address Bind address
+     @param local_port Local port
+     @param cb Callback function
+    */
+    static listen(String bind_address, Integer local_port, Function cb);
+
+    /*! @brief Bind a WebRTC listening service on the specified port
+
+    The bind method is used to bind a WebRTC listening service on the specified port to respond to unhandshaked WebRTC connection requests.
+
+     @param local_port Local port
+     @param cb Callback function
+    */
+    static listen(Integer local_port, Function cb);
+
+    /*! @brief Unbind WebRTC listening service
+     @param bind_address Bind address
+     @param local_port Local port
+     */
+    static stopListen(String bind_address, Integer local_port);
+
+    /*! @brief Unbind WebRTC listening service
+     @param local_port Local port
+     */
+    static stopListen(Integer local_port);
+
+    /*! @brief Start a STUN/TURN server
+
+     The startServer method is used to start a STUN/TURN server for NAT traversal and connection establishment. The config parameter is an object containing the following fields:
+        - `credentials` - Server credentials, containing { `username`: `password`} key-value pairs
+        - `maxAllocations` - Maximum number of allocations
+        - `maxPeers` - Maximum number of peers
+        - `bindAddress` - Bind address
+        - `port` - Port
+        - `relayPortRangeBegin` - TURN server port range begin
+        - `relayPortRangeEnd` - TURN server port range end
+
+     @param config Server configuration
+    */
+    static startServer(Object config);
+
+    /*@! @brief Set WebRTC global SCTP parameters
+
+     The setSctpSettings method is used to set WebRTC global SCTP parameters, and the new settings take effect immediately. Existing connections are not affected. The following parameters are supported:
+        - `recvBufferSize` - Receive buffer size in bytes (default: 1MiB)
+        - `sendBufferSize` - Send buffer size in bytes (default: 1MiB)
+        - `maxChunksOnQueue` - Maximum number of data chunks in queue (default: 10K)
+        - `initialCongestionWindow` - Initial congestion window size in MTU (Maximum Transmission Unit) (default: 10 MTUs)
+        - `maxBurst` - Maximum burst transmission in MTU (default: 10 MTUs)
+        - `congestionControlModule` - Congestion control module, 0: RFC2581 (default), 1: HSTCP, 2: H-TCP, 3: RTCC
+        - `delayedSackTimeMs` - Delayed acknowledgment time in milliseconds (default: 20ms)
+        - `minRetransmitTimeoutMs` - Minimum retransmit timeout in milliseconds (default: 200ms)
+        - `maxRetransmitTimeoutMs` - Maximum retransmit timeout in milliseconds (default: 10s)
+        - `initialRetransmitTimeoutMs` - Initial retransmit timeout in milliseconds (default: 1s)
+        - `maxRetransmitAttempts` - Maximum retransmit attempts (default: 5)
+        - `heartbeatIntervalMs` - Heartbeat interval in milliseconds (default: 10s)
+
+     @param settings SCTP parameters
+    */
+    static setSctpSettings(Object settings);
+
+    /*! @brief Query and set WebRTC log level
+
+     The loglevel property is used to query and set the WebRTC log level, and the new level takes effect immediately. The following levels are supported:
+        - `none` - No log output
+        - `error` - Output error logs
+        - `warning` - Output warning logs
+        - `info` - Output info logs
+        - `debug` - Output debug logs
+        - `verbose` - Output verbose logs
+    */
+    static String loglevel;
+};

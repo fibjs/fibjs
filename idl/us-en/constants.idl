@@ -1,0 +1,534 @@
+/*! @brief Common constants definition module
+
+ Reference method:
+ ```JavaScript
+ var constants = require('constants');
+ ```
+ */
+module constants
+{
+    /*! @brief Dynamic library lazy loading */
+    const RTLD_LAZY = 1;
+
+    /*! @brief Dynamic library immediate loading */
+    const RTLD_NOW = 2;
+
+    /*! @brief Dynamic library global scope loading */
+    const RTLD_GLOBAL = 8;
+
+    /*! @brief Dynamic library local scope loading */
+    const RTLD_LOCAL = 4;
+
+    /*! @brief Argument list too long error */
+    const E2BIG = 7;
+
+    /*! @brief No access permission error */
+    const EACCES = 13;
+
+    /*! @brief Address already in use error */
+    const EADDRINUSE = 48;
+
+    /*! @brief Address not available error */
+    const EADDRNOTAVAIL = 49;
+
+    /*! @brief Address family not supported error */
+    const EAFNOSUPPORT = 47;
+
+    /*! @brief Resource temporarily unavailable error */
+    const EAGAIN = 35;
+
+    /*! @brief Connection already in progress error */
+    const EALREADY = 37;
+
+    /*! @brief File descriptor error */
+    const EBADF = 9;
+
+    /*! @brief Bad message error */
+    const EBADMSG = 94;
+
+    /*! @brief Device or resource busy error */
+    const EBUSY = 16;
+
+    /*! @brief Operation canceled error */
+    const ECANCELED = 89;
+
+    /*! @brief No child process error */
+    const ECHILD = 10;
+
+    /*! @brief Connection aborted error */
+    const ECONNABORTED = 53;
+
+    /*! @brief Connection refused error */
+    const ECONNREFUSED = 61;
+
+    /*! @brief Connection reset error */
+    const ECONNRESET = 54;
+
+    /*! @brief Resource deadlock avoided error */
+    const EDEADLK = 11;
+
+    /*! @brief Destination address required error */
+    const EDESTADDRREQ = 39;
+
+    /*! @brief Math argument out of domain error */
+    const EDOM = 33;
+
+    /*! @brief Quota exceeded error */
+    const EDQUOT = 69;
+
+    /*! @brief File exists error */
+    const EEXIST = 17;
+
+    /*! @brief Bad address error */
+    const EFAULT = 14;
+
+    /*! @brief File too large error */
+    const EFBIG = 27;
+
+    /*! @brief Host unreachable error */
+    const EHOSTUNREACH = 65;
+
+    /*! @brief Identifier removed error */
+    const EIDRM = 90;
+
+    /*! @brief Illegal byte sequence error */
+    const EILSEQ = 92;
+
+    /*! @brief Operation in progress error */
+    const EINPROGRESS = 36;
+
+    /*! @brief Function call interrupted error */
+    const EINTR = 4;
+
+    /*! @brief Invalid argument error */
+    const EINVAL = 22;
+
+    /*! @brief Input/output error */
+    const EIO = 5;
+
+    /*! @brief Socket is connected error */
+    const EISCONN = 56;
+
+    /*! @brief Is a directory error */
+    const EISDIR = 21;
+
+    /*! @brief Too many symbolic link levels error */
+    const ELOOP = 62;
+
+    /*! @brief Too many open files error */
+    const EMFILE = 24;
+
+    /*! @brief Too many links error */
+    const EMLINK = 31;
+
+    /*! @brief Message too long error */
+    const EMSGSIZE = 40;
+
+    /*! @brief Multihop attempted error */
+    const EMULTIHOP = 95;
+
+    /*! @brief Filename too long error */
+    const ENAMETOOLONG = 63;
+
+    /*! @brief Network is down error */
+    const ENETDOWN = 50;
+
+    /*! @brief Network connection reset error */
+    const ENETRESET = 52;
+
+    /*! @brief Network unreachable error */
+    const ENETUNREACH = 51;
+
+    /*! @brief Too many open files in system error */
+    const ENFILE = 23;
+
+    /*! @brief No buffer space available error */
+    const ENOBUFS = 55;
+
+    /*! @brief No data available error */
+    const ENODATA = 96;
+
+    /*! @brief No such device error */
+    const ENODEV = 19;
+
+    /*! @brief No such file or directory error */
+    const ENOENT = 2;
+
+    /*! @brief Executable file format error */
+    const ENOEXEC = 8;
+
+    /*! @brief No locks available error */
+    const ENOLCK = 77;
+
+    /*! @brief Link has been severed error */
+    const ENOLINK = 97;
+
+    /*! @brief Out of memory error */
+    const ENOMEM = 12;
+
+    /*! @brief No message of desired type error */
+    const ENOMSG = 91;
+
+    /*! @brief Protocol not available error */
+    const ENOPROTOOPT = 42;
+
+    /*! @brief No space left on device error */
+    const ENOSPC = 28;
+
+    /*! @brief Out of streams resources error */
+    const ENOSR = 98;
+
+    /*! @brief Device not a stream error */
+    const ENOSTR = 99;
+
+    /*! @brief Function not implemented error */
+    const ENOSYS = 78;
+
+    /*! @brief Socket not connected error */
+    const ENOTCONN = 57;
+
+    /*! @brief Not a directory error */
+    const ENOTDIR = 20;
+
+    /*! @brief Directory not empty error */
+    const ENOTEMPTY = 66;
+
+    /*! @brief Socket operation on non-socket error */
+    const ENOTSOCK = 38;
+
+    /*! @brief Operation not supported error */
+    const ENOTSUP = 45;
+
+    /*! @brief Inappropriate I/O control operation error */
+    const ENOTTY = 25;
+
+    /*! @brief No such device or address error */
+    const ENXIO = 6;
+
+    /*! @brief Operation not supported on socket error */
+    const EOPNOTSUPP = 102;
+
+    /*! @brief Value too large to be stored in data type error */
+    const EOVERFLOW = 84;
+
+    /*! @brief Operation not permitted error */
+    const EPERM = 1;
+
+    /*! @brief Broken pipe error */
+    const EPIPE = 32;
+
+    /*! @brief Protocol error */
+    const EPROTO = 100;
+
+    /*! @brief Protocol not supported error */
+    const EPROTONOSUPPORT = 43;
+
+    /*! @brief Wrong protocol type error */
+    const EPROTOTYPE = 41;
+
+    /*! @brief Result too large error */
+    const ERANGE = 34;
+
+    /*! @brief Read-only file system error */
+    const EROFS = 30;
+
+    /*! @brief Invalid seek error */
+    const ESPIPE = 29;
+
+    /*! @brief No such process error */
+    const ESRCH = 3;
+
+    /*! @brief Stale file handle error */
+    const ESTALE = 70;
+
+    /*! @brief Timer expired error */
+    const ETIME = 101;
+
+    /*! @brief Connection timed out error */
+    const ETIMEDOUT = 60;
+
+    /*! @brief Text file busy error */
+    const ETXTBSY = 26;
+
+    /*! @brief Operation would block error */
+    const EWOULDBLOCK = 35;
+
+    /*! @brief Cross-device link error */
+    const EXDEV = 18;
+
+    /*! @brief Low priority */
+    const PRIORITY_LOW = 19;
+
+    /*! @brief Below normal priority */
+    const PRIORITY_BELOW_NORMAL = 10;
+
+    /*! @brief Normal priority */
+    const PRIORITY_NORMAL = 0;
+
+    /*! @brief Above normal priority */
+    const PRIORITY_ABOVE_NORMAL = -7;
+
+    /*! @brief High priority */
+    const PRIORITY_HIGH = -14;
+
+    /*! @brief Highest priority */
+    const PRIORITY_HIGHEST = -20;
+
+    /*! @brief Hangup signal */
+    const SIGHUP = 1;
+
+    /*! @brief Interrupt signal */
+    const SIGINT = 2;
+
+    /*! @brief Quit signal */
+    const SIGQUIT = 3;
+
+    /*! @brief Illegal instruction signal */
+    const SIGILL = 4;
+
+    /*! @brief Trace trap signal */
+    const SIGTRAP = 5;
+
+    /*! @brief Abort signal */
+    const SIGABRT = 6;
+
+    /*! @brief IOT trap signal */
+    const SIGIOT = 6;
+
+    /*! @brief Bus error signal */
+    const SIGBUS = 10;
+
+    /*! @brief Floating point exception signal */
+    const SIGFPE = 8;
+
+    /*! @brief Kill signal */
+    const SIGKILL = 9;
+
+    /*! @brief User defined signal 1 */
+    const SIGUSR1 = 30;
+
+    /*! @brief Segmentation fault signal */
+    const SIGSEGV = 11;
+
+    /*! @brief User defined signal 2 */
+    const SIGUSR2 = 31;
+
+    /*! @brief Broken pipe signal */
+    const SIGPIPE = 13;
+
+    /*! @brief Alarm signal */
+    const SIGALRM = 14;
+
+    /*! @brief Terminate signal */
+    const SIGTERM = 15;
+
+    /*! @brief Child process terminated or stopped signal */
+    const SIGCHLD = 20;
+
+    /*! @brief Continue execution signal */
+    const SIGCONT = 19;
+
+    /*! @brief Stop execution signal */
+    const SIGSTOP = 17;
+
+    /*! @brief Terminal stop signal */
+    const SIGTSTP = 18;
+
+    /*! @brief Background process attempting read signal */
+    const SIGTTIN = 21;
+
+    /*! @brief Background process attempting write signal */
+    const SIGTTOU = 22;
+
+    /*! @brief Socket urgent condition signal */
+    const SIGURG = 16;
+
+    /*! @brief CPU time limit exceeded signal */
+    const SIGXCPU = 24;
+
+    /*! @brief File size limit exceeded signal */
+    const SIGXFSZ = 25;
+
+    /*! @brief Virtual timer expired signal */
+    const SIGVTALRM = 26;
+
+    /*! @brief Profiling timer expired signal */
+    const SIGPROF = 27;
+
+    /*! @brief Window size changed signal */
+    const SIGWINCH = 28;
+
+    /*! @brief I/O now possible signal */
+    const SIGIO = 23;
+
+    /*! @brief Information request signal */
+    const SIGINFO = 29;
+
+    /*! @brief Bad system call signal */
+    const SIGSYS = 12;
+
+    /*! @brief Symbolic link to directory */
+    const UV_FS_SYMLINK_DIR = 1;
+
+    /*! @brief Symbolic link to junction */
+    const UV_FS_SYMLINK_JUNCTION = 2;
+
+    /*! @brief Open for reading only */
+    const O_RDONLY = 0;
+
+    /*! @brief Open for writing only */
+    const O_WRONLY = 1;
+
+    /*! @brief Open for reading and writing */
+    const O_RDWR = 2;
+
+    /*! @brief Unknown directory entry type */
+    const UV_DIRENT_UNKNOWN = 0;
+
+    /*! @brief File directory entry type */
+    const UV_DIRENT_FILE = 1;
+
+    /*! @brief Directory directory entry type */
+    const UV_DIRENT_DIR = 2;
+
+    /*! @brief Symbolic link directory entry type */
+    const UV_DIRENT_LINK = 3;
+
+    /*! @brief FIFO directory entry type */
+    const UV_DIRENT_FIFO = 4;
+
+    /*! @brief Socket directory entry type */
+    const UV_DIRENT_SOCKET = 5;
+
+    /*! @brief Character device directory entry type */
+    const UV_DIRENT_CHAR = 6;
+
+    /*! @brief Block device directory entry type */
+    const UV_DIRENT_BLOCK = 7;
+
+    /*! @brief Bit mask for file type bit field */
+    const S_IFMT = 61440;
+
+    /*! @brief Regular file */
+    const S_IFREG = 32768;
+
+    /*! @brief Directory */
+    const S_IFDIR = 16384;
+
+    /*! @brief Character device */
+    const S_IFCHR = 8192;
+
+    /*! @brief Block device */
+    const S_IFBLK = 24576;
+
+    /*! @brief FIFO */
+    const S_IFIFO = 4096;
+
+    /*! @brief Symbolic link */
+    const S_IFLNK = 40960;
+
+    /*! @brief Socket */
+    const S_IFSOCK = 49152;
+
+    /*! @brief Create file if it does not exist */
+    const O_CREAT = 512;
+
+    /*! @brief Ensure exclusive creation of file */
+    const O_EXCL = 2048;
+
+    /*! @brief File mapping flag */
+    const UV_FS_O_FILEMAP = 0;
+
+    /*! @brief Do not allocate controlling terminal */
+    const O_NOCTTY = 131072;
+
+    /*! @brief Truncate file to zero length */
+    const O_TRUNC = 1024;
+
+    /*! @brief Append to end of file */
+    const O_APPEND = 8;
+
+    /*! @brief Open directory */
+    const O_DIRECTORY = 1048576;
+
+    /*! @brief Do not follow symbolic links */
+    const O_NOFOLLOW = 256;
+
+    /*! @brief Synchronous I/O */
+    const O_SYNC = 128;
+
+    /*! @brief Synchronous I/O data integrity completion */
+    const O_DSYNC = 4194304;
+
+    /*! @brief Allow opening symbolic links */
+    const O_SYMLINK = 2097152;
+
+    /*! @brief Non-blocking mode */
+    const O_NONBLOCK = 4;
+
+    /*! @brief Owner read write execute permissions */
+    const S_IRWXU = 448;
+
+    /*! @brief Owner read permission */
+    const S_IRUSR = 256;
+
+    /*! @brief Owner write permission */
+    const S_IWUSR = 128;
+
+    /*! @brief Owner execute permission */
+    const S_IXUSR = 64;
+
+    /*! @brief Group read write execute permissions */
+    const S_IRWXG = 56;
+
+    /*! @brief Group read permission */
+    const S_IRGRP = 32;
+
+    /*! @brief Group write permission */
+    const S_IWGRP = 16;
+
+    /*! @brief Group execute permission */
+    const S_IXGRP = 8;
+
+    /*! @brief Others read write execute permissions */
+    const S_IRWXO = 7;
+
+    /*! @brief Others read permission */
+    const S_IROTH = 4;
+
+    /*! @brief Others write permission */
+    const S_IWOTH = 2;
+
+    /*! @brief Others execute permission */
+    const S_IXOTH = 1;
+
+    /*! @brief Test if file exists */
+    const F_OK = 0;
+
+    /*! @brief Test read permission */
+    const R_OK = 4;
+
+    /*! @brief Test write permission */
+    const W_OK = 2;
+
+    /*! @brief Test execute permission */
+    const X_OK = 1;
+
+    /*! @brief Exclusive copy file flag */
+    const UV_FS_COPYFILE_EXCL = 1;
+
+    /*! @brief Exclusive copy file flag */
+    const COPYFILE_EXCL = 1;
+
+    /*! @brief File clone copy flag */
+    const UV_FS_COPYFILE_FICLONE = 2;
+
+    /*! @brief File clone copy flag */
+    const COPYFILE_FICLONE = 2;
+
+    /*! @brief File clone force copy flag */
+    const UV_FS_COPYFILE_FICLONE_FORCE = 4;
+
+    /*! @brief File clone force copy flag */
+    const COPYFILE_FICLONE_FORCE = 4;
+};

@@ -12,13 +12,13 @@ declare class Class_KeyObject extends Class_object {
      *     返回结果的内容如下：
      *     ```JavaScript
      *     {
-     *         modulusLength: 2048, // 密钥大小（以位为单位）（RSA、DSA）。
-     *         publicExponent: 65537n, // 公共指数 (RSA)。
-     *         hashAlgorithm:  'sha1', // 消息摘要的名称 (RSA-PSS)。
-     *         mgf1HashAlgorithm:  'sha1', // MGF1 (RSA-PSS) 使用的消息摘要的名称。
-     *         saltLength: 20, // 最小盐长度（以字节为单位）（RSA-PSS）。
-     *         divisorLength: , // q 的大小（以位 (DSA) 为单位）。
-     *         namedCurve: '' // 曲线名称 (EC)。
+     *         modulusLength: 2048, // Key size in bits (RSA, DSA).
+     *         publicExponent: 65537n, // Public exponent (RSA).
+     *         hashAlgorithm:  'sha1', // Name of the message digest (RSA-PSS).
+     *         mgf1HashAlgorithm:  'sha1', // Name of the message digest used by MGF1 (RSA-PSS).
+     *         saltLength: 20, // Minimum salt length in bytes (RSA-PSS).
+     *         divisorLength: , // Size of q in bits (DSA).
+     *         namedCurve: '' // Curve name (EC).
      *     }
      *     ```
      *     

@@ -1,20 +1,74 @@
+/*! @brief SQLite object is a member of the built-in module db, mainly responsible for SQLite database connection and operation, can be used for SQLite database creation, query, insertion, update and other operations. At the same time, SQLite object also provides some advanced operations such as backup, formatted SQL, etc. SQLite connection object also supports transaction operations
 
-/*! @brief sqlite database connection object
+In actual applications, we usually create data tables of SQLite type according to business needs, and then perform data addition, deletion, modification, and query operations, for example:
 
- Used for db.open or db.openSQLite, to create it:
- @code
- var slite = db.openSQLite("sqlite:/path/to/db");
- @endcode
+```JavaScript
+var db = require('db')
+
+// open a SQLite database
+var sqlite = db.openSQLite('test.db')
+
+// use execute method to create a table
+sqlite.execute('CREATE TABLE test (id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, age INT NOT NULL)')
+
+// use execute method to insert data
+sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 1, 'Alice', 18)
+sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 2, 'Bob', 20)
+sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 3, 'Charlie', 22)
+
+// use execute method to query data
+var rs = sqlite.execute('SELECT * FROM test')
+console.log(rs)
+
+// use execute method to update data
+sqlite.execute('UPDATE test SET name=?, age=? WHERE id=?', 'Marry', 19, 1)
+
+// use execute method to delete data
+sqlite.execute('DELETE FROM test WHERE id=?', 2)
+```
+
+SQLite also has a built-in vec_index module, we can create an index on vector fields in the SQLite database, retrieve based on vector fields, and get the set of vectors most similar to the target vector. Supports using arrays of numeric types to represent vectors, such as [1, 2, 3], and supports vector dimensions. In addition, vec_index supports batch operations within transactions.
+
+Here is a simple example:
+
+``` JavaScript
+var db = require('db');
+var path = require('path');
+
+var conn = db.openSQLite(path.join(__dirname, 'vec_test.db'));
+
+conn.execute('create virtual table vindex using vec_index(title(3), description(3))');
+
+conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 3)`);
+``` 
+
+You can use the vec_search function to perform vector retrieval, for example:
+
+``` JavaScript
+var key = [1, 2, 5.1234];
+var limit = 1;
+
+var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}")`);
+``` 
+
+vec_search returns a set of closest vectors and a distance array, where distances are arranged in ascending order. If you need to return multiple sets of closest vectors, you can use the :limit parameter, for example:
+
+``` JavaScript
+var key = [1, 2, 5.1234];
+var limit = 1;
+
+var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}:10")`);
+``` 
 */
 interface SQLite : DbConnection
 {
-    /*! @brief Database file name */
+    /*! @brief Current database file name */
     readonly String fileName;
 
-    /*! @brief Get and set connection timeout in ms */
+    /*! @brief Query and set database timeout time, in milliseconds */
     Integer timeout;
 
-    /*! @brief Backup current database to new location
-     @param fileName New location */
+    /*! @brief Backup current database to new file
+	 @param fileName Specify the database file name for backup */
     backup(String fileName) async;
 };

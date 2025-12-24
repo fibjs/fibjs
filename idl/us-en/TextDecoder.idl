@@ -1,0 +1,30 @@
+/*! @brief TextDecoder decoding object
+
+ Creation method
+ ```JavaScript
+ var textDecoder = new util.TextDecoder('utf8');
+ ```
+ */
+interface TextDecoder : object
+{
+    /*! @brief TextDecoder object constructor, construct with parameters
+	 @param codec specifies the decoding character set
+ 	 @param opts specifies decoding options
+     */
+    TextDecoder(String codec = "utf8", Object opts = {});
+
+    /*! @brief Convert binary data to text
+	 @param data binary data to convert
+ 	 @param opts specifies decoding options
+	 @return returns the decoded text
+	 */
+    String decode(Buffer data, Object opts = {});
+
+    /*! @brief Convert binary data to text
+	 @return returns the decoded text
+	 */
+    String decode();
+
+    /*! @brief Query the current encoding character set */
+    readonly String encoding;
+};

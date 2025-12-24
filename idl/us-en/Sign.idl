@@ -1,0 +1,71 @@
+/*! @brief Utility for generating signatures
+
+  crypto.createSign method is used to create Sign instance. The parameter is the string name of the hash function to use. Sign object cannot be created directly using new keyword.
+
+  Example:
+  ```JavaScript
+    const {
+        generateKeyPairSync,
+        createSign,
+        createVerify,
+    } = require('crypto');
+
+    const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+    });
+
+    const sign = createSign('SHA256');
+    sign.update('some data to sign');
+    const signature = sign.sign(privateKey);
+
+    const verify = createVerify('SHA256');
+    verify.update('some data to sign');
+    console.log(verify.verify(publicKey, signature));
+  ```
+ */
+interface Sign : object
+{
+    /*! @brief Update Sign content with given data
+     @param data Data to update
+     @return Return Sign object itself
+    */
+    Sign update(Buffer data);
+
+    /*! @brief Update Sign content with given data
+     @param data Data to update
+     @param codec Encoding of data
+     @return Return Sign object itself
+    */
+    Sign update(String data, String codec = "utf8");
+
+    /*! @brief Calculate signature of all passed data
+     @param privateKey Private key for signing
+     @param encoding Encoding of return value
+     @return Return signed value
+    */
+    Value sign(Buffer privateKey, String encoding = "buffer");
+
+    /*! @brief Calculate signature of all passed data
+     @param privateKey Private key for signing
+     @param encoding Encoding of return value
+     @return Return signed value
+    */
+    Value sign(KeyObject privateKey, String encoding = "buffer");
+
+    /*! @brief Calculate signature of all passed data
+
+     Parameters in key will be used to call crypto.createPrivateKey to create private key object, also supports the following signing parameters:
+     - dsaEncoding For DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
+      - 'der' (default): DER encoded ASN.1 signature structure encoding (r, s) 
+      - 'ieee-p1363': Signature format r || s proposed in IEEE-P1363
+     - padding RSA optional padding value, one of the following: 
+      - RSA_PKCS1_PADDING (default)
+      - RSA_PKCS1_PSS_PADDING, RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function used for signing the message as specified in RFC 4055 Section 3.1
+     - saltLength When padding is RSA_PKCS1_PSS_PADDING, the salt length. Special value RSA_PSS_SALTLEN_DIGEST sets salt length to digest size, RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to maximum allowed value
+
+     @param key Private key for signing
+     @param encoding Encoding of return value
+     @return Return signed value
+    */
+    Value sign(Object key, String encoding = "buffer");
+};

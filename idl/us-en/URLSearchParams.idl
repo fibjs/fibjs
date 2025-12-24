@@ -1,0 +1,115 @@
+/*! @brief URLSearchParams is a container class specifically for handling URL query parameters, inheriting from HttpCollection
+
+URLSearchParams implements the standard URLSearchParams API for parsing and manipulating URL query strings. It provides complete query parameter management functionality, supporting standard query parameter operations, inheriting all functions of HttpCollection, including adding, setting, querying, and deleting parameters.
+
+URLSearchParams supports the following usage methods:
+
+1. As global URLSearchParams API (Web standard):
+
+```JavaScript
+// Create an empty URLSearchParams object
+const params = new URLSearchParams();
+
+// Initialize with query string
+const params = new URLSearchParams('name=John&age=30&city=Beijing');
+
+// Initialize with object
+const params = new URLSearchParams({
+    name: 'John',
+    age: '30',
+    city: 'Beijing'
+});
+
+// Initialize with array
+const params = new URLSearchParams([
+    ['name', 'John'],
+    ['age', '30'],
+    ['city', 'Beijing']
+]);
+
+// Copy from another URLSearchParams object
+const copy = new URLSearchParams(params);
+```
+
+URLSearchParams API standard method examples:
+
+```JavaScript
+// Standard URLSearchParams API methods
+params.set('name', 'Alice');
+params.append('hobby', 'reading');
+params.append('hobby', 'coding');  // Support multiple parameters with same name
+params.get('name');        // 'Alice'
+params.getAll('hobby');    // ['reading', 'coding']
+params.has('age');         // true
+params.delete('city');
+
+// Convert to string
+params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
+
+// Iterator support
+for (const [name, value] of params) {
+    console.log(`${name}: ${value}`);
+}
+
+// Iterate over keys
+for (const name of params.keys()) {
+    console.log(name);
+}
+
+// Iterate over values
+for (const value of params.values()) {
+    console.log(value);
+}
+
+// forEach method
+params.forEach((value, name) => {
+    console.log(`${name}: ${value}`);
+});
+
+// Sort parameters
+params.sort();
+```
+
+fibjs extension method examples (inherited from HttpCollection):
+
+```JavaScript
+// Add multiple values (without overwriting existing values)
+params.add('tags', 'javascript');
+
+// Get first value
+const firstName = params.first('name');
+
+// Get all values
+const allHobbies = params.all('hobby');
+
+// Set multiple values
+params.set('colors', ['red', 'green', 'blue']);
+```
+
+URLSearchParams automatically handles URL encoding and decoding, fully complying with the Web standard URLSearchParams API specification.
+ */
+interface URLSearchParams : HttpCollection
+{
+    /*! @brief URLSearchParams constructor, create a new empty query parameter container */
+    URLSearchParams();
+
+    /*! @brief URLSearchParams constructor, initialize parameter container with given query string
+     @param init query string for initialization, such as "name=value&key=val"
+     */
+    URLSearchParams(String init);
+
+    /*! @brief URLSearchParams constructor, initialize parameter container with given object
+     @param init parameter object for initialization, key is parameter name, value is parameter value
+     */
+    URLSearchParams(Object init);
+
+    /*! @brief URLSearchParams constructor, initialize parameter container with given array
+     @param init parameter array for initialization, each element is an array containing parameter name and parameter value
+     */
+    URLSearchParams(Array init);
+
+    /*! @brief URLSearchParams constructor, initialize parameter container with given URLSearchParams object
+     @param init URLSearchParams object for initialization
+     */
+    URLSearchParams(URLSearchParams init);
+};

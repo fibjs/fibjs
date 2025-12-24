@@ -1,25 +1,25 @@
-/*! @brief json module with encode and decode operations.
- to use:
- @code
+/*! @brief json encoding and decoding module
+ Reference method:
+ ```JavaScript
  var encoding = require('encoding');
  var json = encoding.json;
- @endcode
- or:
- @code
+ ```
+ or
+ ```JavaScript
  var json = require('json');
- @endcode
+ ```
  */
 module json
 {
-	/*! @brief Encode a json variable to string with json format.
-	 @param data Value to be encoded.
-	 @return The encoded string result.
+    /*! @brief Encode variable in json format
+	 @param data Variable to encode
+	 @return Return the encoded string
 	 */
-	static String encode(Value data);
+    static String encode(Value data);
 
-	/*! @brief Decode a string variable to json with json format.
-	 @param data String to be decoded.
-	 @return Json value decoded result.
+    /*! @brief Decode string to a variable in json format
+	 @param data String to decode
+	 @return Return the decoded variable
 	 */
-	static Value decode(String data);
+    static Value decode(String data);
 };

@@ -1,0 +1,69 @@
+/*! @brief performance basic performance monitoring module
+
+ Reference method:
+ ```JavaScript
+ var performance = require('perf_hooks').performance;
+ ```
+ */
+module performance
+{
+    /*! @brief Clear all performance marks
+     @param name Mark name, if empty then clear all marks
+     */
+    static clearMarks(String name = "");
+
+    /*! @brief Clear all performance measures
+     @param name Measure name, if empty then clear all measures
+     */
+    static clearMeasures(String name = "");
+
+    /*! @brief Create a performance mark
+
+     options is an object containing the following properties:
+      - detail: additional information
+      - startTime: start time, if empty then use current time
+
+     @param name Mark name
+     @param options Additional options
+    */
+    static mark(String name, Object options = {});
+
+    /*! @brief Create a performance measure
+     @param name Measure name
+     @param startMark Start mark name, if empty then use process start time
+     @param endMark End mark name, if empty then use current time
+    */
+    static measure(String name, String startMark = "", String endMark = "");
+
+    /*! @brief Create a performance measure
+
+     options is an object containing the following properties:
+      - detail: additional information
+      - duration: duration
+      - end: if Number type, indicates end time, if String type, indicates end mark name
+      - start: if Number type, indicates start time, if String type, indicates start mark name
+
+     @param name Measure name
+     @param options Additional options
+    */
+    static measure(String name, Object options = {});
+
+    /*! @brief Get all performance entries
+     @return Return all performance entries*/
+    static NArray getEntries();
+
+    /*! @brief Get all performance entries
+     @param type Entry type
+     @return Return all performance entries*/
+    static NArray getEntriesByType(String type);
+
+    /*! @brief Get all performance entries
+     @param name Entry name
+     @param type Entry type
+     @return Return all performance entries*/
+    static NArray getEntriesByName(String name, String type = "");
+
+    /*! @brief Query current process time 
+     @return Return current process time*/
+    static Number now();
+};

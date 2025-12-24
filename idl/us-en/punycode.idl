@@ -1,35 +1,35 @@
+/*! @brief punycode internationalized domain name conversion module
 
-/*! @brief punycode Internationalized Domain translation modules
-Punycode is a character encoding scheme defined by RFC 3492 that is primarily intended for use in Internationalized Domain Names. Because host names in URLs are limited to ASCII characters only, Domain Names that contain non-ASCII characters must be converted into ASCII using the Punycode scheme.
+ Punycode is the character encoding scheme mainly used for internationalized domain names defined by RFC 3492. Because URL hostnames are limited to ASCII characters, hostnames containing non-ASCII characters must be converted to ASCII using the punycode algorithm.
 
- example:
+ Usage:
  ```JavaScript
  var punycode = require('punycode');
  ```
  */
 module punycode
 {
-    /*! @brief  Converts a string of Unicode codepoints to a Punycode string of ASCII-only characters.
-	 @param domain String in Unicode
-	 @return a Punycode string of ASCII-only characters.
+    /*! @brief Convert a Unicode string to an equivalent Punycode string containing only ASCII characters
+	 @param domain Given Unicode string
+	 @return Return the encoded Punycode string containing only ASCII characters
 	 */
     static String encode(String domain);
 
-    /*! @brief Converts a Punycode string of ASCII-only characters to the equivalent string of Unicode codepoints.
-	 @param domain a Punycode string of ASCII-only characters
-	 @return string of Unicode codepoints.
+    /*! @brief Convert a Punycode string to an equivalent Unicode string
+	 @param domain Given Unicode string
+	 @return Return the decoded Unicode string
 	 */
     static String decode(String domain);
 
-    /*! @brief Converts a Unicode string representing an Internationalized Domain Name to Punycode. Only the non-ASCII parts of the domain name will be converted. Calling punycode.toASCII() on a string that already only contains ASCII characters will have no effect.
-	 @param domain a Unicode string representing an Internationalized Domain Name
-	 @return a punycode string representing an an Internationalized Domain Name
+    /*! @brief Convert a Unicode string representing a domain name to a string containing only ASCII characters. Only the non-ASCII string parts representing the domain name will be converted. That is, if you call a string that has already been converted to ASCII, it is also fine.
+	 @param domain Given Unicode string
+	 @return Return the encoded ASCII string
 	 */
     static String toASCII(String domain);
 
-    /*! @brief Converts a string representing a domain name containing Punycode encoded characters into Unicode. Only the Punycode encoded parts of the domain name are be converted.
-	 @param domain a string representing a domain name containing Punycode encoded characters
-	 @return a Unicode string representing an Internationalized Domain Name
+    /*! @brief Convert a Punycode string representing a domain name to a Unicode string. Only the Punycode string parts representing the domain name will be converted. That is, if you call a string that has already been converted to Unicode, it is also fine.
+	 @param domain Given ASCII string
+	 @return Return the decoded Unicode string
 	 */
     static String toUnicode(String domain);
 };

@@ -1,0 +1,40 @@
+/*! @brief TTY read stream object, used for reading and writing to tty
+
+ There is no way to create this class separately, globally only `process.stdin` instance
+
+ ```JavaScript
+ process.stdin.read(1)
+ ```
+ */
+interface TTYInputStream : Stream
+{
+    /*! @brief Create a new TTYInputStream object, parameter fd specifies the underlying file descriptor
+     @param fd Specify the underlying file descriptor, which must be a tty device
+     @param opts Options object passed to the Stream constructor
+     */
+    TTYInputStream(Integer fd, Object opts = {});
+
+    /*! @brief Create a new TTYInputStream object, parameter fd specifies the underlying file object
+     @param fd Specify the underlying file object, which must be a tty device
+     @param opts Options object passed to the Stream constructor
+     */
+    TTYInputStream(FileHandle fd, Object opts = {});
+
+    /*! @brief Always true
+    */
+    readonly Boolean isTTY;
+
+    /*! @brief Always true, indicating the stream is readable
+    */
+    readonly Boolean readable;
+
+    /*! @brief Query whether it is in raw mode, when true, indicates tty is configured for raw device operation
+    */
+    readonly Boolean isRaw;
+
+    /*! @brief Set whether tty works in raw mode
+     @param isRawMode When true, work in raw mode; otherwise work in default mode. `readStream.isRaw` will be affected by this method
+     @return Return itself
+     */
+    TTYInputStream setRawMode(Boolean isRawMode);
+};

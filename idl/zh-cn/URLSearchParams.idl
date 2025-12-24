@@ -7,82 +7,82 @@ URLSearchParams 支持以下几种使用方式：
 1. 作为全局 URLSearchParams API 使用（Web 标准）：
 
 ```JavaScript
-// 创建空的 URLSearchParams 对象
+// Create empty URLSearchParams object
 const params = new URLSearchParams();
 
-// 使用查询字符串初始化
+// Initialize with query string
 const params = new URLSearchParams('name=John&age=30&city=Beijing');
 
-// 使用对象初始化
+// Initialize with object
 const params = new URLSearchParams({
     name: 'John',
     age: '30',
     city: 'Beijing'
 });
 
-// 使用数组初始化
+// Initialize with array
 const params = new URLSearchParams([
     ['name', 'John'],
     ['age', '30'],
     ['city', 'Beijing']
 ]);
 
-// 从另一个 URLSearchParams 对象复制
+// Copy from another URLSearchParams object
 const copy = new URLSearchParams(params);
 ```
 
 URLSearchParams API 标准方法示例：
 
 ```JavaScript
-// 标准 URLSearchParams API 方法
+// Standard URLSearchParams API methods
 params.set('name', 'Alice');
 params.append('hobby', 'reading');
-params.append('hobby', 'coding');  // 支持多个同名参数
+params.append('hobby', 'coding');  // Support multiple parameters with same name
 params.get('name');        // 'Alice'
 params.getAll('hobby');    // ['reading', 'coding']
 params.has('age');         // true
 params.delete('city');
 
-// 转换为字符串
+// Convert to string
 params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
 
-// 迭代器支持
+// Iterator support
 for (const [name, value] of params) {
     console.log(`${name}: ${value}`);
 }
 
-// 遍历键名
+// Iterate over keys
 for (const name of params.keys()) {
     console.log(name);
 }
 
-// 遍历值
+// Iterate over values
 for (const value of params.values()) {
     console.log(value);
 }
 
-// forEach 方法
+// forEach method
 params.forEach((value, name) => {
     console.log(`${name}: ${value}`);
 });
 
-// 排序参数
+// Sort parameters
 params.sort();
 ```
 
 fibjs 扩展方法示例（继承自 HttpCollection）：
 
 ```JavaScript
-// 添加多个值（不覆盖现有值）
+// Add multiple values (without overwriting existing)
 params.add('tags', 'javascript');
 
-// 获取第一个值
+// Get first value
 const firstName = params.first('name');
 
-// 获取所有值
+// Get all values
 const allHobbies = params.all('hobby');
 
-// 设置多个值
+// Set multiple values
 params.set('colors', ['red', 'green', 'blue']);
 ```
 

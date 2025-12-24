@@ -27,34 +27,34 @@ var logger = util.debuglog('example');
 以下是一些使用 `Logger` 对象的示例：
 
 ```JavaScript
-// 创建 Logger 对象
+// Create Logger object
 var logger = util.debuglog('example');
 
-// 记录普通日志信息
+// Log general log information
 logger('This is a log message');
 logger.log('This is a log message with format: %s', 'example');
 
-// 记录调试日志信息
+// Log debug log information
 logger.debug('This is a debug message');
 
-// 记录警告日志信息
+// Log warning log information
 logger.warn('This is a warning message');
 logger.warning('This is a warning message');
 
-// 记录错误日志信息
+// Log error log information
 logger.error('This is an error message');
 
-// 记录关键错误日志信息
+// Log critical error log information
 logger.crit('This is a critical message');
 logger.critical('This is a critical message');
 
-// 记录警报错误日志信息
+// Log alert error log information
 logger.alert('This is an alert message');
 
-// 输出当前调用堆栈
+// Output current call stack
 logger.trace('This is a trace message');
 
-// 用 JSON 格式输出对象
+// Output object in JSON format
 logger.dir({ key: 'value' }, { colors: true, depth: 1 });
 ```
 

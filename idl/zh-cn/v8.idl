@@ -14,31 +14,31 @@
 以下是一些使用 `v8` 模块的示例代码，展示了如何获取堆内存统计信息、保存和加载堆快照以及启动运行状态采样。
 
 ```javascript
-// 引入 v8 模块
+// Import v8 module
 var v8 = require('v8');
 
-// 获取堆内存统计信息
+// Get heap memory statistics
 var heapStats = v8.getHeapStatistics();
 console.log('Heap Statistics:', heapStats);
 
-// 获取堆空间统计信息
+// Get heap space statistics
 var heapSpaceStats = v8.getHeapSpaceStatistics();
 console.log('Heap Space Statistics:', heapSpaceStats);
 
-// 保存堆快照
+// Save heap snapshot
 v8.saveSnapshot('snapshot1');
 
-// 加载堆快照
+// Load heap snapshot
 var snapshot = v8.loadSnapshot('snapshot1');
 console.log('Loaded Snapshot:', snapshot);
 
-// 获取当前时间节点的堆快照
+// Get current heap snapshot
 var currentSnapshot = v8.takeSnapshot();
 console.log('Current Snapshot:', currentSnapshot);
 
-// 对比执行前后的堆内存变化
+// Compare heap memory changes before and after execution
 function testFunction() {
-    // 模拟一些内存分配操作
+    // Simulate some memory allocation operations
     var arr = [];
     for (var i = 0; i < 10000; i++) {
         arr.push({index: i});
@@ -47,11 +47,11 @@ function testFunction() {
 var diffResult = v8.diff(testFunction);
 console.log('Heap Diff Result:', diffResult);
 
-// 启动运行状态采样日志
+// Start runtime sampling log
 var timer = v8.start('samplingLog', 60000, 100);
 console.log('Sampling started, timer:', timer);
 
-// 停止采样
+// Stop sampling
 // timer.clear();
 ```
 

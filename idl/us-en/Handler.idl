@@ -1,9 +1,34 @@
-/*! @brief Meassage Handler Interface */
+/*! @brief Message handler interface */
 interface Handler : object
 {
-    /*! @brief handle a message or an object
-     @param v specify the message or object to be handled
-     @return return the handler of the next step
+    /*! @brief Constructs a message handler chain processing object
+     @param hdlrs Array of handlers
+     */
+    Handler(Handler hdlrs[]);
+
+    /*! @brief Creates a message handler routing object
+     @param map Initialization routing parameters
+     */
+    Handler(Object map);
+
+    /*! @brief Creates a JavaScript message handler
+     @param hdlr JavaScript handler function
+     */
+    Handler(Function hdlr);
+
+    /*! @brief Constructs a fileHandler or HttpRepeater
+     @param hdlr The address parameter of the handler
+     */
+    Handler(String hdlr);
+
+    /*! @brief Queries whether the current handler supports routing
+     @return Returns whether the current handler supports routing
+     */
+    Boolean isRouting();
+
+    /*! @brief Processes a message or object
+     @param v Specifies the message or object to process
+     @return Returns the next handler
      */
     Handler invoke(object v) async;
 };

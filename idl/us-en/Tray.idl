@@ -1,0 +1,11 @@
+/*! @brief System tray icon, used to display an icon in the system tray */
+interface Tray : object
+{
+    /*! @brief Query the menu of the status icon
+     @return return the menu of the status icon
+    */
+    Menu getMenu();
+
+    /*! @brief Close the status icon */
+    close() async;
+};

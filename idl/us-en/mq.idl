@@ -1,80 +1,52 @@
-
 /*! @brief Message queue module */
 module mq
 {
-    /*! @brief Create a message obeject, see Message */
+    /*! @brief Create a message object, see Message */
     static Message;
 
-    /*! @brief Create a HTTP handler, see HttpHandler */
+    /*! @brief Create an http protocol handler object, see HttpHandler */
     static HttpHandler;
 
-    /*! @brief Create a message chain handler, see Chain */
+    /*! @brief Create a message handler object, if the value is a built-in handler, return directly
+
+     hdlr accepts built-in message handlers, processing functions, chain processing arrays, routing objects:
+     - Function javascript function, will use this function for processing
+     - Handler built-in handler, will use this handler for processing
+     - Chain processing array, equivalent to returning new mq.Chain(hdlr), see Chain
+     - Routing object, equivalent to returning new mq.Routing(hdlr), see Routing
+
+     Message processing function syntax is as follows:
+     ```JavaScript
+     function func(v){
+     }
+     ```
+     Parameter v is the message being processed, return result allows four types:
+     - Function javascript function, will use this function for next stage processing
+     - Handler built-in handler, will use this handler for next stage processing
+     - Chain processing array, equivalent to new mq.Chain(v), see Chain
+     - Routing object, equivalent to new mq.Routing(v), see Routing
+
+     No return or other return results will end message processing.
+     @param hdlr Built-in message handler, processing function, chain processing array, routing object
+     @return Return the handler encapsulating the processing function
+     */
+    static Handler;
+
+    /*! @brief Create a message handler chain processing object, see Chain */
     static Chain;
 
-    /*! @brief Create a message routing handler, see Routing*/
+    /*! @brief Create a message handler routing object, see Routing*/
     static Routing;
 
-    /*! @brief Create a javascript message handler, return immediately when pass by value
-     @param hdlr builtin handler, function or javascript mapping object, handler will map be mapped automatically
-     @return Return handler of handle function
-
-     Syntax:
-     @code
-     function func(v){
-     }
-     @endcode
-     Parameter v is the message to procee, there are three possibilities:
-     - Object javascript object, used for mapping message
-     - Function javascript function, used for next stage
-     - Handler Builtin handler for next stage
-     No return or other result will finish message processing.
-
-     Use message mapping handler to handle nested logic as follows:
-     @code
-     hdlr = mq.jsHandler({
-         // fun1
-        fun1 : function(v){},
-        sub : {
-            // sub.fun2 or sub/fun2
-            fun2 : function(v){},
-            // sub.hdlr or sub/hdlr
-            hdlr: myHandler
-        }
-     });
-     @endcode
-     In the example, fun1 and fun2 are normal javascript handle function, sub is a sub-object, myHandler is a handler
-     */
-    static Handler jsHandler(Value hdlr);
-
-    /*! @brief Create async handler
-      @return Return created handler
-
-     Wait handler async as follows:
-     @code
-     function func(v){
-         var await = mq.await();
-
-         call_some_async_func(v1, v2, v3, function() {
-                 await.end();
-             });
-
-         return await;
-     }
-     @endcode
-     Example uses javascript message handle function, when it returns, message handle engine will wait for await until await.end being called.
-     */
-    static AsyncWait await();
-
-    /*! @brief Create a empty handler
-     @return Return empry handler
+    /*! @brief Create an empty handler object, this handler object does nothing and returns directly
+     @return Return empty processing function
      */
     static Handler nullHandler();
 
-    /*! @brief Invoke a message or object to given handler
-     @param hdlr Handler to operate
-     @param v Message or object
+    /*! @brief Process a message or object using the given handler
 
-     Unlike invoke method of handler, this will loop and wait every handler until reach null
+    Unlike the handler's invoke method, this method will cyclically call the return handler of each handler until the handler returns null.
+     @param hdlr Specify the handler to use
      */
     static invoke(Handler hdlr, object v) async;
 };

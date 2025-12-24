@@ -1,62 +1,63 @@
-/*! @brief http server object
+/*! @brief HttpServer is one of the built-in objects, it is an object used to create HTTP servers. An HttpServer object contains two required parameters: port and event handler interface object. In the event handler interface object, the specific implementation can be a simple callback function, or complex routing, chain processing arrays, etc.
 
- http server object is the object that wrap TcpServer and HttpHandler as a combination, which makes it convenient to build a server, logically equivalent to:
- @code
- var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
-    ...
- }));
- @endcode
+The http server object is a combination and encapsulation of TcpServer and HttpHandler, convenient for quickly building servers, logically equivalent to:
+```JavaScript
+var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
+   ...
+}));
+```
 
- How to create:
- @code
- var http = require("http");
- var svr = new http.Server(80, function(req){
-     ...
- });
- @endcode
+Below is the simplest application example of HttpServer, it just returns the string hello world for all requests.
+```JavaScript
+const http = require('http');
+var svr = new http.Server(8080, (req) => {
+    req.response.write('hello, world');
+});
+svr.start();
+```
+
+From the code, we can see that first, we imported the built-in http module. Then we created a new HttpServer object and passed in two necessary parameters: one is the port number, the other is the specific event handler interface object. In this example, we used a simple callback function as the event handler interface to respond to data from HTTP requests. Where `req.response.write('hello, world')` is used to respond our string hello world to the client.
+
+After completing the creation of the HttpServer object, use `svr.start()` to start the server, so that we can receive HTTP requests from the Internet through this server.
  */
-interface HttpServer: TcpServer
+interface HttpServer : TcpServer
 {
     /*! @brief HttpServer constructor, listen on all local addresses
-      @param port spcify http server listen port
-      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler:
-     */
-    HttpServer(Integer port, Value hdlr);
+    @param port specifies the http server listening port
+    @param hdlr http built-in message processor, processing function, chain processing array, routing object, see mq.Handler for details
+   */
+    HttpServer(Integer port, Handler hdlr);
 
     /*! @brief HttpServer constructor
-      @param addr specify http server listening address, listen on all local addressed if the param is ""
-      @param port specify http server listen port
-      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler
+    @param addr specifies the http server listening address, "" means listen on all local addresses
+    @param port specifies the http server listening port
+    @param hdlr http built-in message processor, processing function, chain processing array, routing object, see mq.Handler for details
+   */
+    HttpServer(String addr, Integer port, Handler hdlr);
+
+    /*! @brief HttpServer constructor
+    @param addr specifies the http server listening address, "" means listen on all local addresses
+    @param hdlr http built-in message processor, processing function, chain processing array, routing object, see mq.Handler for details
+   */
+    HttpServer(String addr, Handler hdlr);
+
+    /*! @brief Allow cross-origin requests
+     @param allowHeaders specifies accepted http header fields
      */
-    HttpServer(String addr, Integer port, Value hdlr);
+    enableCrossOrigin(String allowHeaders = "Content-Type");
 
-    /*! @brief querying and setting whether cross-domain request is permitted, defaults to false */
-    Boolean crossDomain;
-
-    /*! @brief querying and setting whether the output is compressed by gzip, defaults to false */
-    Boolean forceGZIP;
-
-    /*! @brief querying and setting the max number of request headers, defaults to 128 */
+    /*! @brief Query and set the maximum number of request headers, default is 128 */
     Integer maxHeadersCount;
 
-    /*! @brief querying and setting the max size of the uploading file in MB, defults to 64MB */
-    Integer maxUploadSize;
+    /*! @brief Query and set the maximum request header length, default is 8192 */
+    Integer maxHeaderSize;
 
-    /*! @brief querying working status of the http protocol conversion processor
+    /*! @brief Query and set the maximum body size in MB, default is 64 */
+    Integer maxBodySize;
 
-      returning a stats object, see the structure:
-      @code
-      {
-          total : 1000,    // total requests number that been handled
-          pendding : 100,  // current request being handled
-          request : 10,    // the new created request
-          response : 10,   // sended response
-          error : 100,     // errors, not including 404
-          error_400 : 10,  // request errors
-          error_404 : 12,  // 404 errors number
-          error_500 : 2    // internal processor error
-      }
-      @endcode
-     */
-    readonly Stats httpStats;
+    /*! @brief Automatic decompression function switch, default off */
+    Boolean enableEncoding;
+
+    /*! @brief Query and set the server name, default is: fibjs/0.x.0 */
+    String serverName;
 };

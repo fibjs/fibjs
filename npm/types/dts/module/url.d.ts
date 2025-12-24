@@ -22,10 +22,10 @@
  * ```JavaScript
  * const { URL, URLSearchParams } = require('url');
  * 
- * // 创建 URL 对象
+ * // Create URL object
  * const myURL = new URL('https://example.com:8080/path?key=value#hash');
  * 
- * // 访问 URL 各部分
+ * // Access URL parts
  * console.log(myURL.protocol);  // 'https:'
  * console.log(myURL.hostname);  // 'example.com'
  * console.log(myURL.port);      // '8080'
@@ -33,7 +33,7 @@
  * console.log(myURL.search);    // '?key=value'
  * console.log(myURL.hash);      // '#hash'
  * 
- * // 修改 URL
+ * // Modify URL
  * myURL.pathname = '/new-path';
  * myURL.searchParams.set('new-key', 'new-value');
  * console.log(myURL.href);      // 'https://example.com:8080/new-path?key=value&new-key=new-value#hash'
@@ -44,11 +44,11 @@
  * ```JavaScript
  * const url = require('url');
  * 
- * // 解析 URL 字符串
+ * // Parse URL string
  * const parsed = url.parse('https://example.com/path?key=value#hash');
  * console.log(parsed.hostname);  // 'example.com'
  * 
- * // 格式化 URL 对象
+ * // Format URL object
  * const formatted = url.format({
  *   protocol: 'https:',
  *   hostname: 'example.com',
@@ -56,7 +56,7 @@
  * });
  * console.log(formatted);  // 'https://example.com/path'
  * 
- * // 解析相对 URL
+ * // Resolve relative URL
  * const resolved = url.resolve('https://example.com/foo/', '../bar');
  * console.log(resolved);   // 'https://example.com/bar'
  * ```
@@ -66,11 +66,11 @@
  * ```JavaScript
  * const url = require('url');
  * 
- * // 路径转文件 URL
+ * // Convert path to file URL
  * const fileURL = url.pathToFileURL('/path/to/file.txt');
  * console.log(fileURL.href);  // 'file:///path/to/file.txt'
  * 
- * // 文件 URL 转路径
+ * // Convert file URL to path
  * const filePath = url.fileURLToPath('file:///path/to/file.txt');
  * console.log(filePath);      // '/path/to/file.txt'
  * ```
@@ -80,11 +80,11 @@
  * ```JavaScript
  * const url = require('url');
  * 
- * // Unicode 域名转 ASCII
+ * // Convert Unicode domain to ASCII
  * const ascii = url.domainToASCII('测试.com');
  * console.log(ascii);         // 'xn--0zwm56d.com'
  * 
- * // ASCII 域名转 Unicode
+ * // Convert ASCII domain to Unicode
  * const unicode = url.domainToUnicode('xn--0zwm56d.com');
  * console.log(unicode);       // '测试.com'
  * ```
