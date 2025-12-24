@@ -12,6 +12,17 @@ var { translate } = require('../translate');
 const IDL_LANG = process.env.FIBJS_IDL_LANG || 'us-en';
 const LOG_PREFIX = `[generator]`;
 
+// Escape string value for IDL output
+const _escapeStringValue = (value) => {
+    if (typeof value === 'string' && value.startsWith('"') && value.endsWith('"')) {
+        // Extract the string content, escape backslashes, and re-wrap
+        const content = value.slice(1, -1);
+        const escaped = content.replace(/\\/g, '\\\\');
+        return '"' + escaped + '"';
+    }
+    return value;
+}
+
 const _formatParamDefaultValue = (param, member) => {
     if (param.default.value) {
         switch (param.default.value) {
@@ -25,7 +36,7 @@ const _formatParamDefaultValue = (param, member) => {
                 return 'null'
         }
 
-        return param.default.value;
+        return _escapeStringValue(param.default.value);
     } else if (param.default.const) {
         if (Array.isArray(param.default.const))
             return param.default.const.join('.')
@@ -88,7 +99,8 @@ function normalizeIDLTextFromModuleDef(mdef, idlLang = IDL_LANG) {
             switch (member_def.memType) {
                 case 'const':
                     return ejs_tpl_module_member_const({
-                        ...ctx
+                        ...ctx,
+                        _escapeStringValue
                     }) + lineEOL
                 case 'prop':
                     return ejs_tpl_module_member_prop({
@@ -148,7 +160,8 @@ function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
             switch (member_def.memType) {
                 case 'const':
                     return ejs_tpl_interface_member_const({
-                        ...ctx
+                        ...ctx,
+                        _escapeStringValue
                     }) + lineEOL
                 case 'prop':
                     return ejs_tpl_interface_member_prop({

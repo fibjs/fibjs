@@ -1,2 +1,2 @@
 /*<%-_translate(member.comments)%>*/
-    <%-member.deprecated ? `deprecated ` : ''%>const <%-member.type ? `${member.type}` : ''%><%-member.name%> = <%-member.default.value%>;
+    <%-member.deprecated ? `deprecated ` : ''%>const <%-member.type ? `${member.type} ` : ''%><%-member.name%> = <%-_escapeStringValue(member.default.value)%>;

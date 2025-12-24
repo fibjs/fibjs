@@ -30,10 +30,6 @@ public:
 
 public:
     // uuid_base
-    static result_t get_NIL(exlib::string& retVal);
-    static result_t get_MAX(exlib::string& retVal);
-    static result_t get_DNS_NAMESPACE(exlib::string& retVal);
-    static result_t get_URL_NAMESPACE(exlib::string& retVal);
     static result_t parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal);
     static result_t stringify(Buffer_base* arr, int32_t offset, exlib::string& retVal);
     static result_t v1(v8::Local<v8::Object> options, exlib::string& retVal);
@@ -68,10 +64,6 @@ public:
     { return CALL_E_TYPEMISMATCH; }
 
 public:
-    static void s_static_get_NIL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_DNS_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_URL_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -120,18 +112,18 @@ inline ClassInfo& uuid_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "NIL", s_static_get_NIL, block_set, true },
-        { "MAX", s_static_get_MAX, block_set, true },
-        { "DNS_NAMESPACE", s_static_get_DNS_NAMESPACE, block_set, true },
-        { "URL_NAMESPACE", s_static_get_URL_NAMESPACE, block_set, true },
         { "hostID", s_static_get_hostID, s_static_set_hostID, true }
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "DNS", C_DNS },
-        { "URL", C_URL },
-        { "OID", C_OID },
-        { "X509", C_X509 }
+        { "DNS", ClassData::CONST_Integer, { .intValue = C_DNS } },
+        { "URL", ClassData::CONST_Integer, { .intValue = C_URL } },
+        { "OID", ClassData::CONST_Integer, { .intValue = C_OID } },
+        { "X509", ClassData::CONST_Integer, { .intValue = C_X509 } },
+        { "NIL", ClassData::CONST_String, { .stringValue = "00000000-0000-0000-0000-000000000000" } },
+        { "MAX", ClassData::CONST_String, { .stringValue = "ffffffff-ffff-ffff-ffff-ffffffffffff" } },
+        { "DNS_NAMESPACE", ClassData::CONST_String, { .stringValue = "6ba7b810-9dad-11d1-80b4-00c04fd430c8" } },
+        { "URL_NAMESPACE", ClassData::CONST_String, { .stringValue = "6ba7b811-9dad-11d1-80b4-00c04fd430c8" } }
     };
 
     static ClassData s_cd = {
@@ -143,58 +135,6 @@ inline ClassInfo& uuid_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void uuid_base::s_static_get_NIL(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_NIL(vr);
-
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_static_get_MAX(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_MAX(vr);
-
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_static_get_DNS_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_DNS_NAMESPACE(vr);
-
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_static_get_URL_NAMESPACE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_URL_NAMESPACE(vr);
-
-    METHOD_RETURN();
 }
 
 inline void uuid_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)

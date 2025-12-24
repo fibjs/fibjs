@@ -261,9 +261,9 @@ inline ClassInfo& fs_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "SEEK_SET", C_SEEK_SET },
-        { "SEEK_CUR", C_SEEK_CUR },
-        { "SEEK_END", C_SEEK_END }
+        { "SEEK_SET", ClassData::CONST_Integer, { .intValue = C_SEEK_SET } },
+        { "SEEK_CUR", ClassData::CONST_Integer, { .intValue = C_SEEK_CUR } },
+        { "SEEK_END", ClassData::CONST_Integer, { .intValue = C_SEEK_END } }
     };
 
     static ClassData s_cd = {

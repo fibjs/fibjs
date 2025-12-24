@@ -178,16 +178,16 @@ inline ClassInfo& console_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "FATAL", C_FATAL },
-        { "ALERT", C_ALERT },
-        { "CRIT", C_CRIT },
-        { "ERROR", C_ERROR },
-        { "WARN", C_WARN },
-        { "NOTICE", C_NOTICE },
-        { "INFO", C_INFO },
-        { "DEBUG", C_DEBUG },
-        { "PRINT", C_PRINT },
-        { "NOTSET", C_NOTSET }
+        { "FATAL", ClassData::CONST_Integer, { .intValue = C_FATAL } },
+        { "ALERT", ClassData::CONST_Integer, { .intValue = C_ALERT } },
+        { "CRIT", ClassData::CONST_Integer, { .intValue = C_CRIT } },
+        { "ERROR", ClassData::CONST_Integer, { .intValue = C_ERROR } },
+        { "WARN", ClassData::CONST_Integer, { .intValue = C_WARN } },
+        { "NOTICE", ClassData::CONST_Integer, { .intValue = C_NOTICE } },
+        { "INFO", ClassData::CONST_Integer, { .intValue = C_INFO } },
+        { "DEBUG", ClassData::CONST_Integer, { .intValue = C_DEBUG } },
+        { "PRINT", ClassData::CONST_Integer, { .intValue = C_PRINT } },
+        { "NOTSET", ClassData::CONST_Integer, { .intValue = C_NOTSET } }
     };
 
     static ClassData s_cd = {

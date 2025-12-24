@@ -33,8 +33,6 @@ public:
     static result_t resolve(OptArgs ps, exlib::string& retVal);
     static result_t relative(exlib::string _from, exlib::string to, exlib::string& retVal);
     static result_t toNamespacedPath(v8::Local<v8::Value> path, v8::Local<v8::Value>& retVal);
-    static result_t get_sep(exlib::string& retVal);
-    static result_t get_delimiter(exlib::string& retVal);
     static result_t get_posix(v8::Local<v8::Object>& retVal);
     static result_t get_win32(v8::Local<v8::Object>& retVal);
 
@@ -63,8 +61,6 @@ public:
     static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_relative(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_sep(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_delimiter(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_posix(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_win32(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -90,15 +86,18 @@ inline ClassInfo& path_posix_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "sep", s_static_get_sep, block_set, true },
-        { "delimiter", s_static_get_delimiter, block_set, true },
         { "posix", s_static_get_posix, block_set, true },
         { "win32", s_static_get_win32, block_set, true }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "sep", ClassData::CONST_String, { .stringValue = "/" } },
+        { "delimiter", ClassData::CONST_String, { .stringValue = ":" } }
+    };
+
     static ClassData s_cd = {
         "path_posix", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info(),
         false
     };
@@ -301,32 +300,6 @@ inline void path_posix_base::s_static_toNamespacedPath(const v8::FunctionCallbac
     OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = toNamespacedPath(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void path_posix_base::s_static_get_sep(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_sep(vr);
-
-    METHOD_RETURN();
-}
-
-inline void path_posix_base::s_static_get_delimiter(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_delimiter(vr);
 
     METHOD_RETURN();
 }

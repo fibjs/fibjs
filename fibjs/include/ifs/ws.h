@@ -74,16 +74,16 @@ inline ClassInfo& ws_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "CONTINUE", C_CONTINUE },
-        { "TEXT", C_TEXT },
-        { "BINARY", C_BINARY },
-        { "CLOSE", C_CLOSE },
-        { "PING", C_PING },
-        { "PONG", C_PONG },
-        { "CONNECTING", C_CONNECTING },
-        { "OPEN", C_OPEN },
-        { "CLOSING", C_CLOSING },
-        { "CLOSED", C_CLOSED }
+        { "CONTINUE", ClassData::CONST_Integer, { .intValue = C_CONTINUE } },
+        { "TEXT", ClassData::CONST_Integer, { .intValue = C_TEXT } },
+        { "BINARY", ClassData::CONST_Integer, { .intValue = C_BINARY } },
+        { "CLOSE", ClassData::CONST_Integer, { .intValue = C_CLOSE } },
+        { "PING", ClassData::CONST_Integer, { .intValue = C_PING } },
+        { "PONG", ClassData::CONST_Integer, { .intValue = C_PONG } },
+        { "CONNECTING", ClassData::CONST_Integer, { .intValue = C_CONNECTING } },
+        { "OPEN", ClassData::CONST_Integer, { .intValue = C_OPEN } },
+        { "CLOSING", ClassData::CONST_Integer, { .intValue = C_CLOSING } },
+        { "CLOSED", ClassData::CONST_Integer, { .intValue = C_CLOSED } }
     };
 
     static ClassData s_cd = {

@@ -45,22 +45,22 @@ declare module 'uuid' {
     /**
      * @description 返回一个空的 uuid 
      */
-    const NIL: string;
+    export const NIL: "00000000-0000-0000-0000-000000000000";
 
     /**
      * @description 返回一个最大 UUID 字符串 
      */
-    const MAX: string;
+    export const MAX: "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
     /**
      * @description v3 和 v5 的 DNS 命名空间 UUID 
      */
-    const DNS_NAMESPACE: string;
+    export const DNS_NAMESPACE: "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
     /**
      * @description v3 和 v5 的 URL 命名空间 UUID 
      */
-    const URL_NAMESPACE: string;
+    export const URL_NAMESPACE: "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
 
     /**
      * @description 解析 uuid 字符串

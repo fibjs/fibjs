@@ -34,7 +34,7 @@ result_t path_win32_base::basename(exlib::string path, exlib::string ext, exlib:
 result_t path_win32_base::format(v8::Local<v8::Object> pathObject, exlib::string& retVal)
 {
     exlib::string sep;
-    get_sep(sep);
+    sep.assign(1, PATH_SLASH_WIN32);
     return _universal_format(sep, pathObject, retVal);
 }
 
@@ -160,18 +160,6 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
     }
 
     retVal = path;
-    return 0;
-}
-
-result_t path_win32_base::get_sep(exlib::string& retVal)
-{
-    retVal.assign(1, PATH_SLASH_WIN32);
-    return 0;
-}
-
-result_t path_win32_base::get_delimiter(exlib::string& retVal)
-{
-    retVal.assign(1, PATH_DELIMITER_WIN32);
     return 0;
 }
 

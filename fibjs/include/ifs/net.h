@@ -131,10 +131,10 @@ inline ClassInfo& net_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "AF_UNIX", C_AF_UNIX },
-        { "AF_PIPE", C_AF_PIPE },
-        { "AF_INET", C_AF_INET },
-        { "AF_INET6", C_AF_INET6 }
+        { "AF_UNIX", ClassData::CONST_Integer, { .intValue = C_AF_UNIX } },
+        { "AF_PIPE", ClassData::CONST_Integer, { .intValue = C_AF_PIPE } },
+        { "AF_INET", ClassData::CONST_Integer, { .intValue = C_AF_INET } },
+        { "AF_INET6", ClassData::CONST_Integer, { .intValue = C_AF_INET6 } }
     };
 
     static ClassData s_cd = {

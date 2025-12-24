@@ -737,7 +737,16 @@ function processDeclareInterface(def, {
                     mem.name,
                     (() => {
                         if (mem.default && mem.default.value) {
-                            return dom.type.numberLiteral(mem.default.value);
+                            const value = mem.default.value;
+                            // Infer type from value
+                            if (value === 'true' || value === 'false') {
+                                return dom.create.namedTypeReference(value);
+                            } else if (value.startsWith('"') && value.endsWith('"')) {
+                                const strValue = value.replace(/^"|"$/g, '');
+                                return dom.type.stringLiteral(strValue);
+                            } else {
+                                return dom.type.numberLiteral(value);
+                            }
                         }
 
                         throw new Error(`unsupported const-memType member '${mem.name}' on ${unitCategory} '${unitName}'`)
@@ -920,7 +929,16 @@ function processDeclareModule(def, {
                     mem.name,
                     (() => {
                         if (mem.default && mem.default.value) {
-                            return dom.type.numberLiteral(mem.default.value);
+                            const value = mem.default.value;
+                            // Infer type from value
+                            if (value === 'true' || value === 'false') {
+                                return dom.create.namedTypeReference(value);
+                            } else if (value.startsWith('"') && value.endsWith('"')) {
+                                const strValue = value.replace(/^"|"$/g, '');
+                                return dom.type.stringLiteral(strValue);
+                            } else {
+                                return dom.type.numberLiteral(value);
+                            }
                         }
 
                         throw new Error(`unsupported const-memType member '${mem.name}' on ${unitCategory} '${unitName}'`)

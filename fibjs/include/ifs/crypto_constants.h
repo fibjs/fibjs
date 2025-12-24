@@ -47,14 +47,14 @@ namespace fibjs {
 inline ClassInfo& crypto_constants_base::class_info()
 {
     static ClassData::ClassConst s_const[] = {
-        { "RSA_PKCS1_PADDING", C_RSA_PKCS1_PADDING },
-        { "RSA_NO_PADDING", C_RSA_NO_PADDING },
-        { "RSA_PKCS1_OAEP_PADDING", C_RSA_PKCS1_OAEP_PADDING },
-        { "RSA_X931_PADDING", C_RSA_X931_PADDING },
-        { "RSA_PKCS1_PSS_PADDING", C_RSA_PKCS1_PSS_PADDING },
-        { "RSA_PSS_SALTLEN_DIGEST", C_RSA_PSS_SALTLEN_DIGEST },
-        { "RSA_PSS_SALTLEN_MAX_SIGN", C_RSA_PSS_SALTLEN_MAX_SIGN },
-        { "RSA_PSS_SALTLEN_AUTO", C_RSA_PSS_SALTLEN_AUTO }
+        { "RSA_PKCS1_PADDING", ClassData::CONST_Integer, { .intValue = C_RSA_PKCS1_PADDING } },
+        { "RSA_NO_PADDING", ClassData::CONST_Integer, { .intValue = C_RSA_NO_PADDING } },
+        { "RSA_PKCS1_OAEP_PADDING", ClassData::CONST_Integer, { .intValue = C_RSA_PKCS1_OAEP_PADDING } },
+        { "RSA_X931_PADDING", ClassData::CONST_Integer, { .intValue = C_RSA_X931_PADDING } },
+        { "RSA_PKCS1_PSS_PADDING", ClassData::CONST_Integer, { .intValue = C_RSA_PKCS1_PSS_PADDING } },
+        { "RSA_PSS_SALTLEN_DIGEST", ClassData::CONST_Integer, { .intValue = C_RSA_PSS_SALTLEN_DIGEST } },
+        { "RSA_PSS_SALTLEN_MAX_SIGN", ClassData::CONST_Integer, { .intValue = C_RSA_PSS_SALTLEN_MAX_SIGN } },
+        { "RSA_PSS_SALTLEN_AUTO", ClassData::CONST_Integer, { .intValue = C_RSA_PSS_SALTLEN_AUTO } }
     };
 
     static ClassData s_cd = {

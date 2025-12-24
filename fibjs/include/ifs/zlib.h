@@ -169,10 +169,10 @@ inline ClassInfo& zlib_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "NO_COMPRESSION", C_NO_COMPRESSION },
-        { "BEST_SPEED", C_BEST_SPEED },
-        { "BEST_COMPRESSION", C_BEST_COMPRESSION },
-        { "DEFAULT_COMPRESSION", C_DEFAULT_COMPRESSION }
+        { "NO_COMPRESSION", ClassData::CONST_Integer, { .intValue = C_NO_COMPRESSION } },
+        { "BEST_SPEED", ClassData::CONST_Integer, { .intValue = C_BEST_SPEED } },
+        { "BEST_COMPRESSION", ClassData::CONST_Integer, { .intValue = C_BEST_COMPRESSION } },
+        { "DEFAULT_COMPRESSION", ClassData::CONST_Integer, { .intValue = C_DEFAULT_COMPRESSION } }
     };
 
     static ClassData s_cd = {

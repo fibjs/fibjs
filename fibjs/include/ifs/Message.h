@@ -139,8 +139,8 @@ inline ClassInfo& Message_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "TEXT", C_TEXT },
-        { "BINARY", C_BINARY }
+        { "TEXT", ClassData::CONST_Integer, { .intValue = C_TEXT } },
+        { "BINARY", ClassData::CONST_Integer, { .intValue = C_BINARY } }
     };
 
     static ClassData s_cd = {

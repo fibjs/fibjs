@@ -64,10 +64,10 @@ inline ClassInfo& sse_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "CONNECTING", C_CONNECTING },
-        { "OPEN", C_OPEN },
-        { "CLOSED", C_CLOSED },
-        { "SENDER", C_SENDER }
+        { "CONNECTING", ClassData::CONST_Integer, { .intValue = C_CONNECTING } },
+        { "OPEN", ClassData::CONST_Integer, { .intValue = C_OPEN } },
+        { "CLOSED", ClassData::CONST_Integer, { .intValue = C_CLOSED } },
+        { "SENDER", ClassData::CONST_Integer, { .intValue = C_SENDER } }
     };
 
     static ClassData s_cd = {

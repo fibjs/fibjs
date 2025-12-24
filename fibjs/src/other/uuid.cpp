@@ -306,32 +306,6 @@ result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,
     }
 }
 
-result_t uuid_base::get_NIL(exlib::string& retVal)
-{
-    // Return nil UUID string (all zeros)
-    retVal = "00000000-0000-0000-0000-000000000000";
-    return 0;
-}
-
-result_t uuid_base::get_MAX(exlib::string& retVal)
-{
-    // Return max UUID string (all ones)
-    retVal = "ffffffff-ffff-ffff-ffff-ffffffffffff";
-    return 0;
-}
-
-result_t uuid_base::get_DNS_NAMESPACE(exlib::string& retVal)
-{
-    retVal = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-    return 0;
-}
-
-result_t uuid_base::get_URL_NAMESPACE(exlib::string& retVal)
-{
-    retVal = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
-    return 0;
-}
-
 result_t uuid_base::parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal)
 {
     uint8_t uuid_bytes[16];

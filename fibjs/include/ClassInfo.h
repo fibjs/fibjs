@@ -33,9 +33,20 @@ struct ClassData {
         bool is_static;
     };
 
+    enum ConstType {
+        CONST_Integer = 0,
+        CONST_Boolean = 1,
+        CONST_String = 2
+    };
+
     struct ClassConst {
         const char* name;
-        int32_t value;
+        ConstType type;
+        union {
+            int32_t intValue;
+            bool boolValue;
+            const char* stringValue;
+        };
     };
 
     struct ClassMethod {
@@ -287,9 +298,19 @@ public:
             }
 
         for (i = 0; i < m_cd.cc; i++) {
-            o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
-                 v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value))
-                .IsJust();
+            v8::Local<v8::Value> constVal;
+            switch (m_cd.ccs[i].type) {
+            case ClassData::CONST_Integer:
+                constVal = v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].intValue);
+                break;
+            case ClassData::CONST_Boolean:
+                constVal = v8::Boolean::New(isolate->m_isolate, m_cd.ccs[i].boolValue);
+                break;
+            case ClassData::CONST_String:
+                constVal = isolate->NewString(m_cd.ccs[i].stringValue);
+                break;
+            }
+            o->Set(_context, isolate->NewString(m_cd.ccs[i].name), constVal).IsJust();
         }
 
         if (m_cd.base)
@@ -465,10 +486,22 @@ private:
 
             for (i = 0; i < m_cd.cc; i++) {
                 v8::Local<v8::String> name = isolate->NewString(m_cd.ccs[i].name);
+                v8::Local<v8::Value> constVal;
+                switch (m_cd.ccs[i].type) {
+                case ClassData::CONST_Integer:
+                    constVal = v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].intValue);
+                    break;
+                case ClassData::CONST_Boolean:
+                    constVal = v8::Boolean::New(isolate->m_isolate, m_cd.ccs[i].boolValue);
+                    break;
+                case ClassData::CONST_String:
+                    constVal = isolate->NewString(m_cd.ccs[i].stringValue);
+                    break;
+                }
 
-                pt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                pt->Set(name, constVal);
                 if (m_cd.has_async)
-                    ppt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                    ppt->Set(name, constVal);
             }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();

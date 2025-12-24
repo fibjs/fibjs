@@ -74,14 +74,14 @@ inline ClassInfo& xml_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "ELEMENT_NODE", C_ELEMENT_NODE },
-        { "ATTRIBUTE_NODE", C_ATTRIBUTE_NODE },
-        { "TEXT_NODE", C_TEXT_NODE },
-        { "CDATA_SECTION_NODE", C_CDATA_SECTION_NODE },
-        { "PROCESSING_INSTRUCTION_NODE", C_PROCESSING_INSTRUCTION_NODE },
-        { "COMMENT_NODE", C_COMMENT_NODE },
-        { "DOCUMENT_NODE", C_DOCUMENT_NODE },
-        { "DOCUMENT_TYPE_NODE", C_DOCUMENT_TYPE_NODE }
+        { "ELEMENT_NODE", ClassData::CONST_Integer, { .intValue = C_ELEMENT_NODE } },
+        { "ATTRIBUTE_NODE", ClassData::CONST_Integer, { .intValue = C_ATTRIBUTE_NODE } },
+        { "TEXT_NODE", ClassData::CONST_Integer, { .intValue = C_TEXT_NODE } },
+        { "CDATA_SECTION_NODE", ClassData::CONST_Integer, { .intValue = C_CDATA_SECTION_NODE } },
+        { "PROCESSING_INSTRUCTION_NODE", ClassData::CONST_Integer, { .intValue = C_PROCESSING_INSTRUCTION_NODE } },
+        { "COMMENT_NODE", ClassData::CONST_Integer, { .intValue = C_COMMENT_NODE } },
+        { "DOCUMENT_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_NODE } },
+        { "DOCUMENT_TYPE_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_TYPE_NODE } }
     };
 
     static ClassData s_cd = {

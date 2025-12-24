@@ -113,11 +113,11 @@ module path_posix
 
     /*! @brief 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
      */
-    static readonly String sep;
+    const sep = "/";
 
     /*! @brief 查询当前操作系统的多路径组合字符，posix 返回 ':', windows 返回  ';'
      */
-    static readonly String delimiter;
+    const delimiter = ":";
 
     /*! @brief posix 实现，参见 path_posix
      */

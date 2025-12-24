@@ -143,13 +143,13 @@ declare module 'path_posix' {
      * @description 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
      *      
      */
-    const sep: string;
+    export const sep: "/";
 
     /**
      * @description 查询当前操作系统的多路径组合字符，posix 返回 ':', windows 返回  ';'
      *      
      */
-    const delimiter: string;
+    export const delimiter: ":";
 
     /**
      * @description posix 实现，参见 path_posix

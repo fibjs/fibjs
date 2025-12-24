@@ -88,15 +88,15 @@ inline ClassInfo& registry_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "CLASSES_ROOT", C_CLASSES_ROOT },
-        { "CURRENT_USER", C_CURRENT_USER },
-        { "LOCAL_MACHINE", C_LOCAL_MACHINE },
-        { "USERS", C_USERS },
-        { "CURRENT_CONFIG", C_CURRENT_CONFIG },
-        { "SZ", C_SZ },
-        { "EXPAND_SZ", C_EXPAND_SZ },
-        { "DWORD", C_DWORD },
-        { "QWORD", C_QWORD }
+        { "CLASSES_ROOT", ClassData::CONST_Integer, { .intValue = C_CLASSES_ROOT } },
+        { "CURRENT_USER", ClassData::CONST_Integer, { .intValue = C_CURRENT_USER } },
+        { "LOCAL_MACHINE", ClassData::CONST_Integer, { .intValue = C_LOCAL_MACHINE } },
+        { "USERS", ClassData::CONST_Integer, { .intValue = C_USERS } },
+        { "CURRENT_CONFIG", ClassData::CONST_Integer, { .intValue = C_CURRENT_CONFIG } },
+        { "SZ", ClassData::CONST_Integer, { .intValue = C_SZ } },
+        { "EXPAND_SZ", ClassData::CONST_Integer, { .intValue = C_EXPAND_SZ } },
+        { "DWORD", ClassData::CONST_Integer, { .intValue = C_DWORD } },
+        { "QWORD", ClassData::CONST_Integer, { .intValue = C_QWORD } }
     };
 
     static ClassData s_cd = {

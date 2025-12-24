@@ -141,6 +141,15 @@ function record_exist() {
  * @param {object} allDefs all definitions for cross-reference
  */
 function gen_code(cls, def, baseFolder, allDefs) {
+    // Infer const type from value
+    function inferConstType(fn) {
+        if (fn.type) return fn.type;
+        var value = fn.default.value;
+        if (value === 'true' || value === 'false') return 'Boolean';
+        if (value.startsWith('"') && value.endsWith('"')) return 'String';
+        return 'Integer';
+    }
+
     var typeMap = {
         "Integer": "int32_t",
         "Long": "int64_t",
@@ -928,7 +937,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
             var consts = [];
 
             def.members.forEach(fn => {
-                if (fn.memType === "const")
+                // Only Integer consts go into enum
+                if (fn.memType === "const" && inferConstType(fn) === 'Integer')
                     consts.push(`        C_${fn.name} = ${fn.default.value}`);
             });
 
@@ -1249,7 +1259,25 @@ function gen_code(cls, def, baseFolder, allDefs) {
             def.members.forEach(fn => {
                 if (fn.memType == 'const') {
                     var fname = fn.name;
-                    deflist.push(`        { "${fname}", C_${fname} }`);
+                    var constType = inferConstType(fn);
+                    var valueExpr;
+
+                    if (constType === 'Integer') {
+                        valueExpr = `{ .intValue = C_${fname} }`;
+                    } else if (constType === 'Boolean') {
+                        valueExpr = `{ .boolValue = ${fn.default.value} }`;
+                    } else if (constType === 'String') {
+                        // Escape backslashes for C++ string literal
+                        var strVal = fn.default.value;
+                        if (strVal.startsWith('"') && strVal.endsWith('"')) {
+                            var content = strVal.slice(1, -1);
+                            content = content.replace(/\\/g, '\\\\');
+                            strVal = '"' + content + '"';
+                        }
+                        valueExpr = `{ .stringValue = ${strVal} }`;
+                    }
+
+                    deflist.push(`        { "${fname}", ClassData::CONST_${constType}, ${valueExpr} }`);
                 }
             });
 

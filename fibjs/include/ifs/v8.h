@@ -106,27 +106,27 @@ inline ClassInfo& v8_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "Node_Hidden", C_Node_Hidden },
-        { "Node_Array", C_Node_Array },
-        { "Node_String", C_Node_String },
-        { "Node_Object", C_Node_Object },
-        { "Node_Code", C_Node_Code },
-        { "Node_Closure", C_Node_Closure },
-        { "Node_RegExp", C_Node_RegExp },
-        { "Node_HeapNumber", C_Node_HeapNumber },
-        { "Node_Native", C_Node_Native },
-        { "Node_Synthetic", C_Node_Synthetic },
-        { "Node_ConsString", C_Node_ConsString },
-        { "Node_SlicedString", C_Node_SlicedString },
-        { "Node_Symbol", C_Node_Symbol },
-        { "Node_SimdValue", C_Node_SimdValue },
-        { "Edge_ContextVariable", C_Edge_ContextVariable },
-        { "Edge_Element", C_Edge_Element },
-        { "Edge_Property", C_Edge_Property },
-        { "Edge_Internal", C_Edge_Internal },
-        { "Edge_Hidden", C_Edge_Hidden },
-        { "Edge_Shortcut", C_Edge_Shortcut },
-        { "Edge_Weak", C_Edge_Weak }
+        { "Node_Hidden", ClassData::CONST_Integer, { .intValue = C_Node_Hidden } },
+        { "Node_Array", ClassData::CONST_Integer, { .intValue = C_Node_Array } },
+        { "Node_String", ClassData::CONST_Integer, { .intValue = C_Node_String } },
+        { "Node_Object", ClassData::CONST_Integer, { .intValue = C_Node_Object } },
+        { "Node_Code", ClassData::CONST_Integer, { .intValue = C_Node_Code } },
+        { "Node_Closure", ClassData::CONST_Integer, { .intValue = C_Node_Closure } },
+        { "Node_RegExp", ClassData::CONST_Integer, { .intValue = C_Node_RegExp } },
+        { "Node_HeapNumber", ClassData::CONST_Integer, { .intValue = C_Node_HeapNumber } },
+        { "Node_Native", ClassData::CONST_Integer, { .intValue = C_Node_Native } },
+        { "Node_Synthetic", ClassData::CONST_Integer, { .intValue = C_Node_Synthetic } },
+        { "Node_ConsString", ClassData::CONST_Integer, { .intValue = C_Node_ConsString } },
+        { "Node_SlicedString", ClassData::CONST_Integer, { .intValue = C_Node_SlicedString } },
+        { "Node_Symbol", ClassData::CONST_Integer, { .intValue = C_Node_Symbol } },
+        { "Node_SimdValue", ClassData::CONST_Integer, { .intValue = C_Node_SimdValue } },
+        { "Edge_ContextVariable", ClassData::CONST_Integer, { .intValue = C_Edge_ContextVariable } },
+        { "Edge_Element", ClassData::CONST_Integer, { .intValue = C_Edge_Element } },
+        { "Edge_Property", ClassData::CONST_Integer, { .intValue = C_Edge_Property } },
+        { "Edge_Internal", ClassData::CONST_Integer, { .intValue = C_Edge_Internal } },
+        { "Edge_Hidden", ClassData::CONST_Integer, { .intValue = C_Edge_Hidden } },
+        { "Edge_Shortcut", ClassData::CONST_Integer, { .intValue = C_Edge_Shortcut } },
+        { "Edge_Weak", ClassData::CONST_Integer, { .intValue = C_Edge_Weak } }
     };
 
     static ClassData s_cd = {
