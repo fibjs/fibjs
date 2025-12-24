@@ -27,6 +27,7 @@ public:
     static result_t _new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_isTTY(bool& retVal) = 0;
+    virtual result_t get_readable(bool& retVal) = 0;
     virtual result_t get_isRaw(bool& retVal) = 0;
     virtual result_t setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>& retVal) = 0;
 
@@ -37,6 +38,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_readable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_isRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setRawMode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -53,6 +55,7 @@ inline ClassInfo& TTYInputStream_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "isTTY", s_get_isTTY, block_set, false },
+        { "readable", s_get_readable, block_set, false },
         { "isRaw", s_get_isRaw, block_set, false }
     };
 
@@ -129,6 +132,20 @@ inline void TTYInputStream_base::s_get_isTTY(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER(0, 0);
 
     hr = pInst->get_isTTY(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TTYInputStream_base::s_get_readable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(TTYInputStream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_readable(vr);
 
     METHOD_RETURN();
 }

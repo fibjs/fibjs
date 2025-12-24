@@ -228,4 +228,34 @@ result_t TTYOutputStream::get__writableState(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+TTYOutputStream::TTYOutputStream(int32_t fd)
+    : UVStream_tmpl<TTYOutputStream_base>(fd)
+{
+    uv_call([&] {
+        uv_tty_init(s_uv_loop, &m_tty, fd, 0);
+        uv_stream_set_blocking(&m_stream, 1);
+
+        uv_signal_init(s_uv_loop, &m_sigwinch);
+        m_sigwinch.data = this;
+        return uv_signal_start(&m_sigwinch, on_sigwinch, SIGWINCH);
+    });
+}
+
+TTYOutputStream::~TTYOutputStream()
+{
+    uv_call([&] {
+        uv_signal_stop(&m_sigwinch);
+        return 0;
+    });
+}
+
+void TTYOutputStream::on_sigwinch(uv_signal_t* handle, int signum)
+{
+    TTYOutputStream* pThis = (TTYOutputStream*)handle->data;
+    if (pThis) {
+        // Emit 'resize' event
+        pThis->_emit("resize");
+    }
+}
+
 }

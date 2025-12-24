@@ -56,7 +56,7 @@ describe('tty', () => {
       assert.isTrue(process.stdout.isTTY);
     });
 
-    xit("TTYOutputStream::clearLine", () => {
+    it("TTYOutputStream::clearLine", () => {
       var bs = child_process.spawn(cmd, [path.join(__dirname, 'tty_test', 'clearLine.js')]);
       var stdout = new io.BufferedStream(bs.stdout);
     });
@@ -66,6 +66,59 @@ describe('tty', () => {
     it("isTTY", () => {
       assert.isTrue(process.stderr.isTTY);
     });
+  });
+
+  it("stdin data event in pty mode", () => {
+    var bs = child_process.spawn(cmd, [path.join(__dirname, 'tty_test', 'pty_stdin_data_test.js')], {
+      stdio: 'pty'
+    });
+
+    var stdout = new io.BufferedStream(bs.stdout);
+
+    // Function to strip ANSI and carriage return
+    function cleanLine(str) {
+      return str.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '').replace(/\r$/, '');
+    }
+
+    // Wait for process to be ready
+    var line = cleanLine(stdout.readLine());
+    assert.equal(line, "PTY_STDIN_TEST_START");
+
+    line = cleanLine(stdout.readLine());
+    assert.equal(line, "PTY_STDIN_LISTENER_READY");
+
+    // Send input to stdin
+    bs.stdin.write("HELLO\n");
+
+    // PTY echoes input first, then our output
+    line = cleanLine(stdout.readLine());
+    // Skip echo if present
+    if (line === "HELLO") {
+      line = cleanLine(stdout.readLine());
+    }
+    assert.equal(line, "RECEIVED:HELLO");
+
+    // Send another input
+    bs.stdin.write("WORLD\n");
+    line = cleanLine(stdout.readLine());
+    if (line === "WORLD") {
+      line = cleanLine(stdout.readLine());
+    }
+    assert.equal(line, "RECEIVED:WORLD");
+
+    // Send exit command
+    bs.stdin.write("EXIT\n");
+    line = cleanLine(stdout.readLine());
+    if (line === "EXIT") {
+      line = cleanLine(stdout.readLine());
+    }
+    assert.equal(line, "RECEIVED:EXIT");
+
+    line = cleanLine(stdout.readLine());
+    assert.equal(line, "PTY_STDIN_TEST_EXIT");
+
+    bs.join();
+    assert.equal(bs.exitCode, 0);
   });
 });
 

@@ -36,6 +36,12 @@ declare class Class_TTYOutputStream extends Class_Stream {
     readonly isTTY: boolean;
 
     /**
+     * @description 恒为 true，表示流可写
+     *     
+     */
+    readonly writable: boolean;
+
+    /**
      * @description 返回此 TTYOutputStream 对应的终端的列数
      *     
      */
@@ -130,6 +136,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      
      */
     getWindowSize(): any[];
+
+    /**
+     * @description 当终端尺寸改变时触发 
+     */
+    on(event: "resize", listener: ()=>void): this;
 
 }
 

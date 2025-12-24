@@ -35,6 +35,12 @@ declare class Class_TTYInputStream extends Class_Stream {
     readonly isTTY: boolean;
 
     /**
+     * @description 恒为 true，表示流可读
+     *     
+     */
+    readonly readable: boolean;
+
+    /**
      * @description 查询是否是处于 raw mode, 为 true 时, 表示 tty 被配置为以 raw device 操作时
      *     
      */

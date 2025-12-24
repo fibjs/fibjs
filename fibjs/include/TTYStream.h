@@ -51,6 +51,12 @@ public:
 
         return 0;
     }
+    virtual result_t get_readable(bool& retVal)
+    {
+        retVal = true;
+
+        return 0;
+    }
     virtual result_t get_isRaw(bool& retVal);
     virtual result_t setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>& retVal);
 
@@ -60,18 +66,18 @@ public:
 
 class TTYOutputStream : public UVStream_tmpl<TTYOutputStream_base> {
 public:
-    TTYOutputStream(int32_t fd)
-        : UVStream_tmpl<TTYOutputStream_base>(fd)
-    {
-        uv_call([&] {
-            uv_tty_init(s_uv_loop, &m_tty, fd, 0);
-            return uv_stream_set_blocking(&m_stream, 1);
-        });
-    }
+    TTYOutputStream(int32_t fd);
+    ~TTYOutputStream();
 
 public:
     // TTYOutputStream_base
     virtual result_t get_isTTY(bool& retVal)
+    {
+        retVal = true;
+
+        return 0;
+    }
+    virtual result_t get_writable(bool& retVal)
     {
         retVal = true;
 
@@ -91,6 +97,10 @@ public:
     static const char* kClearToLineEnd;
     static const char* kClearLine;
     static const char* kClearScreenDown;
+
+private:
+    static void on_sigwinch(uv_signal_t* handle, int signum);
+    uv_signal_t m_sigwinch;
 };
 
 } /* namespace fibjs */
