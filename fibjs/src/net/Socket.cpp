@@ -296,16 +296,14 @@ public:
     virtual int32_t post(int32_t v)
     {
         if (m_ac) {
-            if (v >= 0)
-                m_sock->setConnected();
+            m_sock->on_connected(v < 0 ? v : 0);
             m_ac->post(v);
         } else {
+            m_sock->on_connected(v < 0 ? v : 0);
             if (v < 0)
                 (new EventInfo(m_sock, "error", v))->emit();
-            else {
-                m_sock->setConnected();
+            else
                 (new EventInfo(m_sock, "connect"))->emit();
-            }
         }
         delete this;
         return 0;
@@ -329,6 +327,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     }
 #endif
 
+    startConnectEvent();
     retVal = this;
     if (!m_connect_event)
         return m_aio.connect(host, port, new connectWrapper(this, ac), timeout);

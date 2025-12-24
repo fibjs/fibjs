@@ -329,6 +329,62 @@ function test_net(eng, use_uv) {
                 assert.equal("GET / HTTP/1.0", s1.recv());
                 s1.close();
             });
+
+            it("async connect error when connection refused", () => {
+                test_util.gc();
+                var socketCount = test_util.countObject('Socket');
+
+                var errorEvent = new coroutine.Event();
+                var errorReceived = null;
+
+                // Use a port that is not listening
+                var unusedPort = 59999;
+
+                var s1 = new net.Socket(net_config.family);
+                s1.on('connect', function () {
+                    errorEvent.set();
+                });
+                s1.on('data', function (data) {
+                    errorEvent.set();
+                });
+                s1.on('error', function (err) {
+                    errorReceived = err;
+                    errorEvent.set();
+                });
+
+                s1.connect(unusedPort, net_config.address);
+
+                errorEvent.wait();
+                assert.ok(errorReceived !== null);
+
+                // Verify socket is released after error
+                s1 = null;
+                test_util.gc();
+                assert.equal(socketCount, test_util.countObject('Socket'));
+            });
+
+            it("no leak when on data but no connect", () => {
+                test_util.gc();
+                var socketCount = test_util.countObject('Socket');
+
+                var s1 = new net.Socket(net_config.family);
+                s1.on('data', function (data) { });
+
+                s1 = null;
+                test_util.gc();
+                assert.equal(socketCount, test_util.countObject('Socket'));
+            });
+
+            it("no leak when just create socket", () => {
+                test_util.gc();
+                var socketCount = test_util.countObject('Socket');
+
+                var s1 = new net.Socket(net_config.family);
+
+                s1 = null;
+                test_util.gc();
+                assert.equal(socketCount, test_util.countObject('Socket'));
+            });
         });
 
         it("write and send return value validation", () => {

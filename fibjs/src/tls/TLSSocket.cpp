@@ -174,7 +174,7 @@ public:
 
         switch (m_state) {
         case SSL_ERROR_NONE:
-            m_sock->setConnected();
+            m_sock->on_connected();
             if (m_isolate)
                 (new EventInfo(m_sock, "connect"))->emit();
             return next();
@@ -191,6 +191,7 @@ public:
 
     virtual int32_t error(int32_t v)
     {
+        m_sock->on_connected(v);
         if (m_isolate)
             (new EventInfo(m_sock, "error", v))->emit();
         return v;
@@ -221,6 +222,8 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    startConnectEvent();
 
     if (!m_connect_event)
         return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
@@ -253,6 +256,7 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    startConnectEvent();
     return (new AsyncHandshake(this, socket, true, "", ac))->post(0);
 }
 

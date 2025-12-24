@@ -20,7 +20,7 @@ class TLSSocket : public AsyncStream<TLSSocket_base> {
 public:
     TLSSocket()
     {
-        m_state = 2;
+        m_state = 3;
     }
 
 public:

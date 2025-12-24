@@ -410,6 +410,7 @@ describe('tls', () => {
             assert.ok(connected);
             assert.equal(receivedData, "GET / HTTP/1.0");
             ss.close();
+            ss = null;
         });
 
         it("on data after connect success", () => {
@@ -434,6 +435,74 @@ describe('tls', () => {
             dataEvent.wait();
             assert.equal(receivedData, "GET / HTTP/1.0");
             ss.close();
+            ss = null;
+        });
+
+        it("async connect error when handshake fails", () => {
+            test_util.gc();
+            var tlsSocketCount = test_util.countObject('TLSSocket');
+
+            var errorEvent = new coroutine.Event();
+            var errorReceived = null;
+
+            // Create a raw TCP connection to a TLS server, then connect TLSSocket
+            // with wrong certificates - this will cause handshake failure
+            var s1 = new net.Socket();
+            s1.connect(9080 + base_port, "127.0.0.1");
+            test_util.push(s1);
+
+            // Create TLS socket with wrong context (no proper CA)
+            var wrongCtx = tls.createSecureContext({});
+            var ss = new tls.TLSSocket(wrongCtx);
+            ss.on('connect', function () {
+                errorEvent.set();
+            });
+            ss.on('data', function (data) {
+                errorEvent.set();
+            });
+            ss.on('error', function (err) {
+                errorReceived = err;
+                errorEvent.set();
+            });
+
+            ss.connect(s1);
+
+            errorEvent.wait();
+            assert.ok(errorReceived !== null);
+
+            // Close the underlying socket to trigger server side error
+            s1.close();
+
+            // Wait for server side to finish processing
+            coroutine.sleep(100);
+
+            // Verify TLSSocket is released after error
+            ss = null;
+            test_util.gc();
+            assert.equal(tlsSocketCount, test_util.countObject('TLSSocket'));
+        });
+
+        it("no leak when on data but no connect", () => {
+            test_util.gc();
+            var tlsSocketCount = test_util.countObject('TLSSocket');
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.on('data', function (data) { });
+
+            ss = null;
+            test_util.gc();
+            assert.equal(tlsSocketCount, test_util.countObject('TLSSocket'));
+        });
+
+        it("no leak when just create TLSSocket", () => {
+            test_util.gc();
+            var tlsSocketCount = test_util.countObject('TLSSocket');
+
+            var ss = new tls.TLSSocket(ctx);
+
+            ss = null;
+            test_util.gc();
+            assert.equal(tlsSocketCount, test_util.countObject('TLSSocket'));
         });
 
         it("read specific bytes", () => {

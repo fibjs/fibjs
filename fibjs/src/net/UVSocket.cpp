@@ -222,8 +222,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         {
             AsyncConnect* pThis = (AsyncConnect*)req;
 
-            if (status >= 0)
-                pThis->m_sock->setConnected();
+            pThis->m_sock->on_connected(status < 0 ? status : 0);
 
             if (pThis->m_ac) {
                 pThis->m_ac->apost(status);
@@ -246,6 +245,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    startConnectEvent();
     retVal = this;
     if (m_family == net_base::C_AF_UNIX) {
         if (!m_connect_event)

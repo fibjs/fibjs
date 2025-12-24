@@ -22,7 +22,7 @@ public:
         : m_family(family)
     {
         if (!connected)
-            m_state = 2;
+            m_state = 3;
     }
 
 public:
