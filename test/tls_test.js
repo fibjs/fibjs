@@ -478,6 +478,7 @@ describe('tls', () => {
 
             // Verify TLSSocket is released after error
             ss = null;
+            errorReceived = null;
             test_util.gc();
             assert.equal(tlsSocketCount, test_util.countObject('TLSSocket'));
         });

@@ -359,6 +359,7 @@ function test_net(eng, use_uv) {
 
                 // Verify socket is released after error
                 s1 = null;
+                errorReceived = null;
                 test_util.gc();
                 assert.equal(socketCount, test_util.countObject('Socket'));
             });
