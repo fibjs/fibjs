@@ -317,7 +317,10 @@ private:
 result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
+    {
+        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
 #ifdef _WIN32
     if (!m_bBind) {
@@ -327,7 +330,6 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     }
 #endif
 
-    startConnectEvent();
     retVal = this;
     if (!m_connect_event)
         return m_aio.connect(host, port, new connectWrapper(this, ac), timeout);

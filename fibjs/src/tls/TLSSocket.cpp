@@ -220,10 +220,10 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
     if (hr < 0)
         return hr;
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
-
-    startConnectEvent();
+    }
 
     if (!m_connect_event)
         return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
@@ -253,10 +253,11 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
-    startConnectEvent();
     return (new AsyncHandshake(this, socket, true, "", ac))->post(0);
 }
 

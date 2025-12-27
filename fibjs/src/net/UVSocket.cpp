@@ -242,10 +242,11 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         AsyncEvent* m_ac;
     };
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
-    startConnectEvent();
     retVal = this;
     if (m_family == net_base::C_AF_UNIX) {
         if (!m_connect_event)
