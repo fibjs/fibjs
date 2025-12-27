@@ -53,7 +53,6 @@ result_t CryptoKey::createPublicKey()
 
 result_t CryptoKey::generate_ecdsa()
 {
-    Isolate* isolate = holder();
     Variant v;
 
     if (m_usageMap.find("sign") == m_usageMap.end())
