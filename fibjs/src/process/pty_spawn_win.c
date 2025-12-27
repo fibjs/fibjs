@@ -30,6 +30,8 @@ static int create_conpty(conpty_data_t* data, int cols, int rows);
 #include "uv/src/win/handle-inl.h"
 #include "uv/src/win/req-inl.h"
 
+#include <exlib/include/ex_assert.h>
+
 // ConPTY API definitions for compatibility with Windows 10 1809+
 #ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
 #define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE \
