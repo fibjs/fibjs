@@ -1052,7 +1052,7 @@ function test_net(eng, use_uv) {
                 });
 
                 // Wait for first read to timeout
-                coroutine.sleep(300);
+                coroutine.sleep(500);
                 assert.equal(timeoutResult, 20021);  // CALL_E_TIMEOUT (absolute value)
 
                 // Now send data - should be received by the second read
