@@ -28,6 +28,7 @@ extern char** environ;
 #endif
 
 #include "uv/src/uv-common.h"
+#include <exlib/include/ex_assert.h>
 
 #if defined(_AIX) || defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__linux__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define uv__cloexec uv__cloexec_ioctl
@@ -96,7 +97,7 @@ static void uv__chld(uv_signal_t* handle, int signum)
     QUEUE* q;
     QUEUE* h;
 
-    assert(signum == SIGCHLD);
+    ex_assert(signum == SIGCHLD);
 
     QUEUE_INIT(&pending);
     loop = handle->loop;
@@ -148,7 +149,7 @@ static void uv__chld(uv_signal_t* handle, int signum)
 
         process->exit_cb(process, exit_status, term_signal);
     }
-    assert(QUEUE_EMPTY(&pending));
+    ex_assert(QUEUE_EMPTY(&pending));
 }
 
 static void uv__write_int(int fd, int val)
@@ -162,7 +163,7 @@ static void uv__write_int(int fd, int val)
     if (n == -1 && errno == EPIPE)
         return; /* parent process has quit */
 
-    assert(n == sizeof(val));
+    ex_assert(n == sizeof(val));
 }
 
 static void uv__process_child_init(const uv_process_options_t* options,
@@ -399,12 +400,12 @@ int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t
         do
             err = waitpid(pid, &status, 0); /* okay, read errorno */
         while (err == -1 && errno == EINTR);
-        assert(err == pid);
+        ex_assert(err == pid);
     } else if (r == -1 && errno == EPIPE) {
         do
             err = waitpid(pid, &status, 0); /* okay, got EPIPE */
         while (err == -1 && errno == EINTR);
-        assert(err == pid);
+        ex_assert(err == pid);
     } else
         abort();
 

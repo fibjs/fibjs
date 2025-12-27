@@ -128,7 +128,7 @@ public:
 
     v8::Local<v8::Function> getFunction(Isolate* isolate)
     {
-        assert(!m_cd.module);
+        ex_assert(!m_cd.module);
         return _init(isolate)->m_function.Get(isolate->m_isolate);
     }
 
@@ -142,19 +142,19 @@ public:
 
     v8::Local<v8::Object> CreateInstance(Isolate* isolate)
     {
-        assert(!m_cd.module);
+        ex_assert(!m_cd.module);
         return _init(isolate)->m_cache.Get(isolate->m_isolate)->Clone();
     }
 
     v8::Local<v8::Value> GetAsyncPrototype(Isolate* isolate)
     {
-        assert(!m_cd.module);
+        ex_assert(!m_cd.module);
         return _init(isolate)->m_pcache.Get(isolate->m_isolate)->GetPrototype();
     }
 
     v8::Local<v8::Value> GetPrototype(Isolate* isolate)
     {
-        assert(!m_cd.module);
+        ex_assert(!m_cd.module);
         return _init(isolate)->m_cache.Get(isolate->m_isolate)->GetPrototype();
     }
 

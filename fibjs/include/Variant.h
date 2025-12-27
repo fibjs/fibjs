@@ -208,7 +208,7 @@ public:
             return *this;
         }
 
-        assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
+        ex_assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
 
         clear();
         set_type(_t);

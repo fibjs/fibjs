@@ -79,7 +79,7 @@ public:
 
     Isolate* isolate()
     {
-        assert(v8::Locker::IsLocked(m_isolate->m_isolate));
+        ex_assert(v8::Locker::IsLocked(m_isolate->m_isolate));
         return m_isolate;
     }
 

@@ -141,7 +141,7 @@ public:
 
     std::priority_queue<std::pair<float, hnswlib::labeltype>> search(const void* query_data, size_t k) const
     {
-        assert(k <= cur_element_count);
+        ex_assert(k <= cur_element_count);
 
         int32_t cpus = 0;
         os_base::cpuNumbers(cpus);

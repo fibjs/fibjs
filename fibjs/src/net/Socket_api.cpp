@@ -35,7 +35,7 @@ namespace socket {
             return 0;
         }
 
-        assert(!Runtime::check());
+        ex_assert(!Runtime::check());
 
         obj_ptr<Stream_base> retVal;
         result_t hr = ((Socket_base*)sock)->cc_connect(port, host, 0, retVal);
@@ -67,7 +67,7 @@ namespace socket {
             return -1;
         }
 
-        assert(!Runtime::check());
+        ex_assert(!Runtime::check());
 
         obj_ptr<Buffer_base> retVal;
 
@@ -96,7 +96,7 @@ namespace socket {
         if (cbBuffer <= 0)
             return 0;
 
-        assert(!Runtime::check());
+        ex_assert(!Runtime::check());
 
         obj_ptr<Buffer_base> retVal;
 
@@ -128,7 +128,7 @@ namespace socket {
         if (cbBuffer <= 0)
             return 0;
 
-        assert(!Runtime::check());
+        ex_assert(!Runtime::check());
 
         obj_ptr<Buffer_base> buf = new Buffer((const char*)buffer, cbBuffer);
 

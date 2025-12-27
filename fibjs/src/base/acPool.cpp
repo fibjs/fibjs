@@ -173,7 +173,7 @@ int32_t AsyncCallBack::post(int32_t v)
 {
     if (m_pThis)
         m_pThis->leave(this);
-    assert(m_isolate);
+    ex_assert(m_isolate);
     return callback(v);
 }
 

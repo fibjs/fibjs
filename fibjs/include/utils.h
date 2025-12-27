@@ -97,10 +97,11 @@ typedef int32_t SOCKET;
 
 #endif // _WIN32
 
+#include <exlib/include/service.h>
+#include <exlib/include/ex_assert.h>
+
 #include "date.h"
 #include "Variant.h"
-
-#include <exlib/include/service.h>
 
 #ifdef _DEBUG
 #undef _DEBUG

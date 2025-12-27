@@ -9,6 +9,7 @@
 #include "exlib/include/qstring.h"
 #include "v8/src/api/api-inl.h"
 #include "v8_api.h"
+#include <exlib/include/ex_assert.h>
 
 using namespace v8;
 
@@ -18,6 +19,9 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
 {
     i::Isolate* v8_isolate = (i::Isolate*)isolate;
     i::ThreadLocalTop tt;
+
+    ex_assert(entry_fp != NULL);
+    ex_assert(handle != NULL);
 
     tt.c_entry_fp_ = (i::Address)entry_fp;
     tt.handler_ = (i::Address)handle;

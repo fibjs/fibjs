@@ -56,7 +56,7 @@ public:
     {
         if (internalUnref() == 0) {
             if (m_isJSObject) {
-                assert(!m_weak.m_inlist);
+                ex_assert(!m_weak.m_inlist);
 
                 Isolate* isolate = m_isolate;
 
@@ -140,7 +140,7 @@ public:
         m_isJSObject |= JSOBJECT_JSVALUE;
         holder();
 
-        assert(m_isolate != 0);
+        ex_assert(m_isolate != 0);
     }
 
 private:
@@ -164,7 +164,7 @@ private:
 
     static void WeakCallback(const v8::WeakCallbackInfo<object_base>& data)
     {
-        assert(!data.GetParameter()->handle_.IsEmpty());
+        ex_assert(!data.GetParameter()->handle_.IsEmpty());
         data.GetParameter()->clear_handle();
     }
 

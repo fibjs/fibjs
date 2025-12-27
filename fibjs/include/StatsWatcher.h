@@ -104,7 +104,7 @@ public:
         StatsWatcher* pThis = NULL;
         pThis = container_of(timer_req, StatsWatcher, m_timer_req);
 
-        assert(&pThis->m_timer_req == timer_req);
+        ex_assert(&pThis->m_timer_req == timer_req);
 
         if (!pThis)
             return;
@@ -144,7 +144,7 @@ public:
 public:
     void bindChangeHandler(v8::Local<v8::Function> callback)
     {
-        assert(!callback.IsEmpty());
+        ex_assert(!callback.IsEmpty());
 
         exlib::string _chname = "change";
         JSTrigger self = JSTrigger(this);

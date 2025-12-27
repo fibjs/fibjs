@@ -168,8 +168,8 @@ public:
 
     void setParent(XmlNodeImpl* parent, int32_t idx)
     {
-        assert(m_parent == 0);
-        assert(m_index == -1);
+        ex_assert(m_parent == 0);
+        ex_assert(m_index == -1);
 
         setDocument(parent->m_document);
 
@@ -180,8 +180,8 @@ public:
 
     void clearParent()
     {
-        assert(m_parent != 0);
-        assert(m_index != -1);
+        ex_assert(m_parent != 0);
+        ex_assert(m_index != -1);
 
         m_parent = NULL;
         m_index = -1;

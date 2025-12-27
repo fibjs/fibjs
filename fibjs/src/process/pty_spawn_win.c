@@ -222,7 +222,7 @@ static int uv__utf8_to_utf16_alloc(const char* s, WCHAR** ws_ptr)
         -1,
         ws,
         ws_len);
-    assert(r == ws_len);
+    ex_assert(r == ws_len);
 
     *ws_ptr = ws;
     return 0;
@@ -525,9 +525,9 @@ static void CALLBACK exit_wait_callback(void* data, BOOLEAN didTimeout)
     uv_process_t* process = (uv_process_t*)data;
     uv_loop_t* loop = process->loop;
 
-    assert(didTimeout == FALSE);
-    assert(process);
-    assert(!process->exit_cb_pending);
+    ex_assert(didTimeout == FALSE);
+    ex_assert(process);
+    ex_assert(!process->exit_cb_pending);
 
     process->exit_cb_pending = 1;
 
@@ -571,7 +571,7 @@ int pty_spawn(uv_loop_t* loop,
         return UV_EINVAL;
     }
 
-    assert(options->file != NULL);
+    ex_assert(options->file != NULL);
 
     // Create anonymous pipes for ConPTY
     err = create_anonymous_pipes(&conpty_data);

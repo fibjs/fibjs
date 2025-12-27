@@ -213,7 +213,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
         virtual Isolate* isolate()
         {
-            assert(m_isolate);
+            ex_assert(m_isolate);
             return m_isolate;
         }
 

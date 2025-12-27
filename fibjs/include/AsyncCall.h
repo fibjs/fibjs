@@ -48,7 +48,7 @@ public:
 
     virtual Isolate* isolate()
     {
-        assert(m_isolate);
+        ex_assert(m_isolate);
         return m_isolate;
     }
 
@@ -427,7 +427,7 @@ public:
 
     virtual Isolate* isolate()
     {
-        assert(m_isolate);
+        ex_assert(m_isolate);
         return m_isolate;
     }
 
