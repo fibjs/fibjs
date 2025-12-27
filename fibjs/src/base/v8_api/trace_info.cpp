@@ -36,7 +36,17 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
         i::FrameSummaries frames = frame->Summarize();
 
         const i::FrameSummary::JavaScriptFrameSummary& summ = frames.frames[0].AsJavaScript();
-        i::Handle<i::Script> script = i::Cast<i::Script>(summ.script());
+        i::Handle<i::Object> script_obj = summ.script();
+        if (!i::IsScript(*script_obj)) {
+#ifdef DEBUG
+            String::Utf8Value funcname(isolate, Utils::ToLocal(i::JSFunction::GetName(v8_isolate, summ.function())));
+            printf("traceInfo: script is not Script, func=%s, fp=%p, handler=%p\n",
+                *funcname ? *funcname : "(anonymous)", entry_fp, handle);
+#endif
+            continue;
+        }
+
+        i::Handle<i::Script> script = i::Cast<i::Script>(script_obj);
         if (script->type() == i::Script::Type::kNormal) {
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;

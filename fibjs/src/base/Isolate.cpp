@@ -33,8 +33,12 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
 {
     m_fb = JSFiber::current();
-    V8FrameInfo _fi = save_fi(m_isolate->m_isolate);
 
+    // Save old stack pointers for nested SnapshotJsScope
+    m_old_c_entry_fp_ = m_fb->m_c_entry_fp_;
+    m_old_handler_ = m_fb->m_handler_;
+
+    V8FrameInfo _fi = save_fi(m_isolate->m_isolate);
     m_fb->m_c_entry_fp_ = _fi.entry_fp;
     m_fb->m_handler_ = _fi.handle;
 
@@ -43,6 +47,10 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()
 {
+    // Restore old stack pointers for nested SnapshotJsScope
+    m_fb->m_c_entry_fp_ = m_old_c_entry_fp_;
+    m_fb->m_handler_ = m_old_handler_;
+
     if (m_fb->m_termed && !m_isolate->m_isolate->IsExecutionTerminating())
         m_isolate->m_isolate->TerminateExecution();
 }

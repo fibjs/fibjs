@@ -9,6 +9,7 @@
 #pragma once
 
 #include "ifs/io.h"
+#include "Fiber.h"
 
 namespace fibjs {
 
@@ -62,6 +63,8 @@ public:
         // Emit error event in JS context with proper Error object
         obj_ptr<Stream_base> stream = m_this;
         m_isolate->sync([stream, v]() -> int32_t {
+            JSFiber::EnterJsScope s;
+
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;
             stream->_emit("error", &err, 1, retVal);

@@ -144,11 +144,13 @@ result_t JSFiber::get_stack(exlib::string& retVal)
             str += " (native code)";
         }
 
-        exlib::string str1 = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
-        if (!str1.empty()) {
-            if (m_native_name)
-                str += '\n';
-            str += str1;
+        if (m_c_entry_fp_ && m_handler_) {
+            exlib::string str1 = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
+            if (!str1.empty()) {
+                if (m_native_name)
+                    str += '\n';
+                str += str1;
+            }
         }
 
         retVal = str;
