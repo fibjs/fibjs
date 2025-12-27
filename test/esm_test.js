@@ -273,6 +273,31 @@ describe('ECMAScript modules', () => {
         });
     });
 
+    it("import.meta in dependency module should point to correct file", async () => {
+        var m = await import('./esm_files/esm22.mjs');
+
+        // Parent module's import.meta should point to esm22.mjs
+        assert.equal(m.parentMeta.filename, path.join(__dirname, 'esm_files', 'esm22.mjs'));
+        assert.equal(m.parentMeta.dirname, path.join(__dirname, 'esm_files'));
+
+        // Child module's import.meta should point to esm22_dep.mjs, NOT esm22.mjs
+        assert.equal(m.childMeta.filename, path.join(__dirname, 'esm_files', 'esm22_dep.mjs'));
+        assert.equal(m.childMeta.dirname, path.join(__dirname, 'esm_files'));
+
+        // Verify they are different
+        assert.notEqual(m.parentMeta.filename, m.childMeta.filename);
+
+        assert.equal(m.childValue, 22);
+    });
+
+    it("module instantiation failure should not crash", async () => {
+        // This tests that when a module with import.meta fails to instantiate,
+        // it should throw an error but not crash
+        await assert.rejects(async () => {
+            await import('./esm_files/esm23_error.mjs');
+        });
+    });
+
     it("BUGFIX: crash when cjs export 'default'", async () => {
         var m = await import('./esm_files/esm15.mjs');
         assert.deepEqual(m, {

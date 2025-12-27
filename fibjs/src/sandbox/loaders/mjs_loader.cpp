@@ -361,6 +361,18 @@ private:
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
                 hr = CALL_E_JAVASCRIPT;
+            else {
+                // After InstantiateModule succeeds, init import.meta for all SourceTextModules
+                // Must be done after instantiation to avoid V8 Reset assertion failure
+                for (auto& ref : module_refs) {
+                    v8::Local<v8::Module> mod = ref->second.first.Get(m_isolate->m_isolate);
+                    // Only init import meta for SourceTextModule (not SyntheticModule)
+                    if (!mod->IsSyntheticModule()) {
+                        m_sb->m_pending_module = ref->first;
+                        initImportMeta(m_isolate->m_isolate, mod);
+                    }
+                }
+            }
         }
 
         if (hr < 0) {
@@ -477,9 +489,6 @@ private:
                 ThrowError(exception);
                 return v8::Local<v8::Module>();
             }
-
-            m_sb->m_pending_module = id;
-            initImportMeta(m_isolate->m_isolate, module);
         }
 
         it = m_sb->module_map.emplace(id, std::make_pair<v8::Global<v8::Module>, int32_t>(v8::Global<v8::Module>(m_isolate->m_isolate, module), 1)).first;
