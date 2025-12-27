@@ -26,18 +26,22 @@ public:
         UVTimeout(UVStream_tmpl* _this)
             : m_this(_this)
             , m_timeout(_this->m_timeout)
+            , m_timer_started(false)
         {
-            if (m_timeout > 0) {
-                uv_timer_init(s_uv_loop, this);
-                uv_timer_start(this, on_timeout, m_timeout, 0);
-            }
         }
 
         UVTimeout(UVStream_tmpl* _this, int32_t timeout)
             : m_this(_this)
             , m_timeout(timeout)
+            , m_timer_started(false)
         {
-            if (m_timeout > 0) {
+        }
+
+        // Must be called in uv loop thread (from invoke())
+        void start_timer()
+        {
+            if (m_timeout > 0 && !m_timer_started) {
+                m_timer_started = true;
                 uv_timer_init(s_uv_loop, this);
                 uv_timer_start(this, on_timeout, m_timeout, 0);
             }
@@ -66,7 +70,7 @@ public:
 
         void cancel_timer()
         {
-            if (m_timeout > 0) {
+            if (m_timeout > 0 && m_timer_started) {
                 uv_timer_stop(this);
                 uv_close((uv_handle_t*)(uv_timer_t*)this, on_timer_closed);
             } else
@@ -76,6 +80,7 @@ public:
     public:
         obj_ptr<UVStream_tmpl> m_this;
         int32_t m_timeout;
+        bool m_timer_started;
     };
 
 public:
@@ -140,6 +145,7 @@ public:
     public:
         virtual void invoke()
         {
+            UVTimeout::start_timer();  // Start timer in uv loop thread
             m_this->queue_read.putTail(this);
             if (m_this->queue_read.count() == 1) {
                 int32_t ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
@@ -259,6 +265,7 @@ public:
     public:
         virtual void invoke()
         {
+            UVTimeout::start_timer();  // Start timer in uv loop thread
             m_this->queue_write.putTail(this);
             if (m_this->queue_write.count() == 1) {
                 int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
