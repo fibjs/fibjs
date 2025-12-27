@@ -377,7 +377,9 @@ describe("child_process", () => {
         assert.equal(stdout.readLine(), "hello, exec1");
     });
 
-    if (!process.env.QEMU_LD_PREFIX) {
+    const isAndroid = process.platform === 'android';
+    
+    if (!process.env.QEMU_LD_PREFIX && !isAndroid) {
         it("exec", () => {
             var ret = child_process.exec("export a = 100");
             assert.equal(ret.stdout, null);

@@ -12,6 +12,8 @@ var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
 
+const isAndroid = process.platform === 'android';
+
 var net_config = {
     family: net.AF_INET6,
     address: '::1',
@@ -1870,7 +1872,7 @@ function test_net(eng, use_uv) {
             assert.equal(no1, test_util.countObject('Socket'));
         });
 
-        describe("unix socket", () => {
+        (isAndroid ? describe.skip : describe)("unix socket", () => {
             it("echo", () => {
                 function connect(c) {
                     try {
