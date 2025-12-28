@@ -3014,14 +3014,32 @@ void TsStrip::parseClassMember() {
 // ========================================================================
 
 /**
- * parseInterfaceDeclaration - remove entirely
+ * parseInterfaceDeclaration - convert to var declaration to preserve export
+ * 
+ * Transform: export interface Name<T> extends Base { ... }
+ * To:        export var       Name                       ;
+ * 
+ * This preserves the name so it can be imported, while maintaining
+ * character positions for source maps.
  */
 void TsStrip::parseInterfaceDeclaration(int start) {
     // interface Name<T> extends ... { ... }
+    // At this point, 'interface' keyword has been consumed, current token is the name
+    // 'start' points to either 'interface' or 'export' (if exported)
+    
+    // Record position right after 'interface' keyword (before name)
+    int nameStart = getNodePos();
+    
     // Interface name can be an identifier or contextual keyword (like 'abstract', 'type', etc.)
+    int nameEnd = nameStart;
     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
+        nameEnd = getPrevTokenEnd();
     }
+    
+    // Record start of type parameters/extends/body (everything after name to be erased)
+    int afterNameStart = getNodePos();
+    
     if (token() == SyntaxKind::LessThanToken) {
         skipTypeArguments();
     }
@@ -3035,9 +3053,59 @@ void TsStrip::parseInterfaceDeclaration(int start) {
         skipBlock();
     }
     
-    // Use getPrevTokenEnd() to avoid erasing comments after the declaration
-    addReplacement(start, getPrevTokenEnd());
-    fixASI(start, getPrevTokenEnd());
+    int declEnd = getPrevTokenEnd();
+    
+    // Find the 'interface' keyword position
+    // We need to locate it by scanning backwards from nameStart
+    // 'interface' is 9 characters, 'var' is 3 characters
+    // We'll replace 'interface' with 'var      ' (var + 6 spaces)
+    
+    // The 'interface' keyword ends at nameStart (after any whitespace)
+    // We need to find where it starts
+    int interfaceKeywordStart = start;
+    int interfaceKeywordEnd = nameStart;
+    
+    // If start != interface position (e.g., start is 'export'), find interface keyword
+    // by looking at the source text
+    // We scan from start to find 'interface'
+    const char* interfaceStr = "interface";
+    int interfaceLen = 9;
+    
+    for (int pos = start; pos < nameStart; pos++) {
+        bool match = true;
+        for (int j = 0; j < interfaceLen && pos + j < (int)m_length; j++) {
+            if (m_src[pos + j] != (uint8_t)interfaceStr[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            interfaceKeywordStart = pos;
+            interfaceKeywordEnd = pos + interfaceLen;
+            break;
+        }
+    }
+    
+    // Replace 'interface' with 'var' + spaces
+    // Write 'var' at interfaceKeywordStart
+    addOverwrite(interfaceKeywordStart, 'v');
+    addOverwrite(interfaceKeywordStart + 1, 'a');
+    addOverwrite(interfaceKeywordStart + 2, 'r');
+    
+    // Replace remaining 'erface' (6 chars) with spaces
+    addReplacement(interfaceKeywordStart + 3, interfaceKeywordEnd);
+    
+    // Erase everything between name end and declaration end (type params, extends, body)
+    if (afterNameStart < declEnd) {
+        addReplacement(afterNameStart, declEnd);
+    }
+    
+    // Add semicolon at the end position (overwrite last char of the erased range)
+    if (declEnd > 0) {
+        addOverwrite(declEnd - 1, ';');
+    }
+    
+    fixASI(start, declEnd);
 }
 
 /**

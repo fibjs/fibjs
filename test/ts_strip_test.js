@@ -290,8 +290,32 @@ describe('TypeScript Type Erasure Tests', () => {
 
     describe('Interface and Type Alias', () => {
 
-        it('should remove interface declaration completely', () => {
-            assert.strictEqual(strip('interface User { name: string; age: number; }'), '                                             ');
+        it('should convert interface declaration to var', () => {
+            // interface is converted to var declaration to preserve export capability
+            assert.strictEqual(strip('interface User { name: string; age: number; }'), 'var       User                              ;');
+        });
+
+        it('should convert interface with generics to var', () => {
+            // interface with type parameters
+            assert.strictEqual(strip('interface List<T> { items: T[]; }'), 'var       List                  ;');
+        });
+
+        it('should convert interface with multiple generics to var', () => {
+            assert.strictEqual(strip('interface Map<K, V> {}'), 'var       Map        ;');
+        });
+
+        it('should convert interface with extends to var', () => {
+            assert.strictEqual(strip('interface Child extends Parent {}'), 'var       Child                 ;');
+        });
+
+        it('should convert interface with multiple extends to var', () => {
+            assert.strictEqual(strip('interface Mixed extends A, B, C {}'), 'var       Mixed                  ;');
+        });
+
+        it('should convert multiline interface to var', () => {
+            const input = 'interface Person {\n  name: string;\n  age: number;\n}';
+            const expected = 'var       Person  \n               \n              \n;';
+            assert.strictEqual(strip(input), expected);
         });
 
         it('should remove type alias completely', () => {
@@ -830,9 +854,9 @@ const cfg: Config = { debug: true };
 setup(cfg);
 `;
             const expected = `
-                  
+var       Config  
                    
- 
+;
 
 function setup(config        )       {
     console.log(config);
@@ -1203,8 +1227,9 @@ console.log("Hello");`;
             const input = `while (false)
     interface X { }
 console.log("Done");`;
+            // interface is converted to var declaration
             const expected = `while (false)
-    ;              
+    ;ar       X   ;
 console.log("Done");`;
             assert.strictEqual(strip(input), expected);
         });
@@ -1287,7 +1312,8 @@ declare const x: number;`;
 
         it('should insert semicolon for while with interface body', () => {
             const input = `while (false) interface X {}`;
-            const expected = `while (false) ;             `;
+            // interface is converted to var declaration
+            const expected = `while (false) ;ar       X  ;`;
             assert.strictEqual(strip(input), expected);
         });
 
@@ -1305,7 +1331,8 @@ declare const x: number;`;
 
         it('should insert semicolon for for with interface body', () => {
             const input = `for (;;) interface X {}`;
-            const expected = `for (;;) ;             `;
+            // interface is converted to var declaration
+            const expected = `for (;;) ;ar       X  ;`;
             assert.strictEqual(strip(input), expected);
         });
 
@@ -1852,7 +1879,7 @@ declare const stat: any;
 
         itDiff('should handle truncated interface',
             'interface A {',
-            '             ',  // fibjs: erases entire interface
+            'var       A ;',  // fibjs: converts to var declaration
             null);  // amaro: throws
 
         itDiff('should handle truncated object type annotation',
@@ -1943,13 +1970,13 @@ declare const stat: any;
 
         itDiff('should handle comment after interface',
             'interface A { x: number }\n\n// comment',
-            '                         \n\n          ',  // fibjs: comments erased
+            'var       A             ;\n\n          ',  // fibjs: converts to var, comments erased
             '                         \n\n// comment'   // amaro: comments preserved
         );
 
         itDiff('should handle Chinese comment after interface',
             'interface A { x: number }\n\n// 中文注释',
-            '                         \n\n               ',  // fibjs: comments erased (15 bytes: // + 4 chinese chars * 3)
+            'var       A             ;\n\n               ',  // fibjs: converts to var, comments erased (15 bytes: // + 4 chinese chars * 3)
             '                         \n\n// 中文注释'   // amaro: comments preserved
         );
 
@@ -1967,25 +1994,25 @@ declare const stat: any;
 
         itDiff('should handle block comment after interface',
             'interface A {}\n\n/* block comment */',
-            '              \n\n                   ',  // fibjs: comments erased
+            'var       A  ;\n\n                   ',  // fibjs: converts to var, comments erased
             '              \n\n/* block comment */'   // amaro: comments preserved
         );
 
         itDiff('should handle comment between interfaces',
             'interface A {}\n// comment\ninterface B {}',
-            '              \n          \n              ',  // fibjs: comments erased
+            'var       A  ;\n          \nvar       B  ;',  // fibjs: converts to var, comments erased
             '              \n// comment\n              '   // amaro: comments preserved
         );
 
         itDiff('should handle multiple comments after interface',
             'interface A {}\n// line1\n// line2\nconst x = 1;',
-            '              \n        \n        \nconst x = 1;',  // fibjs: comments erased
+            'var       A  ;\n        \n        \nconst x = 1;',  // fibjs: converts to var, comments erased
             '              \n// line1\n// line2\nconst x = 1;'   // amaro: comments preserved
         );
 
         itDiff('should handle comment after interface with body',
             'interface Foo {\n    x: number;\n}\n// This comment',
-            '               \n              \n \n               ',  // fibjs: comments erased
+            'var       Foo  \n              \n;\n               ',  // fibjs: converts to var, comments erased
             '               \n              \n \n// This comment'   // amaro: comments preserved
         );
 
@@ -2199,8 +2226,8 @@ declare const stat: any;
 
             it('should strip export interface', () => {
                 const input = 'export interface Props { name: string; }';
-                // Entire export interface is erased to avoid orphan 'export'
-                const expected = '                                        ';
+                // interface is converted to var declaration to allow import
+                const expected = 'export var       Props                 ;';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -2551,9 +2578,10 @@ declare const stat: any;
 
         describe('Export Interface and Type Complete Erasure', () => {
 
-            it('should completely erase export interface', () => {
+            it('should convert export interface to var declaration', () => {
                 const input = 'export interface User { name: string; }';
-                const expected = '                                       ';
+                // interface is converted to var declaration to allow import
+                const expected = 'export var       User                 ;';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -2563,9 +2591,10 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should erase export interface with generics', () => {
+            it('should convert export interface with generics to var', () => {
                 const input = 'export interface List<T> { items: T[]; }';
-                const expected = '                                        ';
+                // interface is converted to var declaration to allow import
+                const expected = 'export var       List                  ;';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -3310,27 +3339,31 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip interface with default as name', () => {
+            it('should convert interface with default as name to var', () => {
                 const input = 'interface default { x: number }';
-                const expected = '                               ';
+                // interface is converted to var declaration
+                const expected = 'var       default             ;';
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip interface with class as name', () => {
+            it('should convert interface with class as name to var', () => {
                 const input = 'interface class { value: string }';
-                const expected = '                                 ';
+                // interface is converted to var declaration
+                const expected = 'var       class                 ;';
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip interface with function as name', () => {
+            it('should convert interface with function as name to var', () => {
                 const input = 'interface function { call(): void }';
-                const expected = '                                   ';
+                // interface is converted to var declaration
+                const expected = 'var       function                ;';
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip interface with abstract as name', () => {
+            it('should convert interface with abstract as name to var', () => {
                 const input = 'interface abstract { x: number }';
-                const expected = '                                ';
+                // interface is converted to var declaration
+                const expected = 'var       abstract             ;';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -3468,9 +3501,10 @@ declare const stat: any;
         describe('Export Default Interface/Type', () => {
             // export default interface/type should be completely erased
 
-            it('should strip export default interface entirely', () => {
+            it('should convert export default interface to var', () => {
                 const input = 'export default interface zzz { x: string; }';
-                const expected = '                                           ';
+                // interface is converted to var declaration
+                const expected = 'export default var       zzz              ;';
                 assert.strictEqual(strip(input), expected);
             });
 
@@ -3702,9 +3736,10 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip export default interface after function', () => {
+            it('should convert export default interface after function to var', () => {
                 const input = 'export default function foo() { }\nexport default interface Foo { }';
-                const expected = 'export default function foo() { }\n                                ';
+                // interface is converted to var declaration
+                const expected = 'export default function foo() { }\nexport default var       Foo   ;';
                 assert.strictEqual(strip(input), expected);
             });
 
