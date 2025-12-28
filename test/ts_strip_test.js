@@ -290,33 +290,42 @@ describe('TypeScript Type Erasure Tests', () => {
 
     describe('Interface and Type Alias', () => {
 
-        it('should convert interface declaration to var', () => {
-            // interface is converted to var declaration to preserve export capability
-            assert.strictEqual(strip('interface User { name: string; age: number; }'), 'var       User                              ;');
-        });
+        // fibjs converts interface to var declaration; amaro completely erases it
+        itDiff('should convert interface declaration to var',
+            'interface User { name: string; age: number; }',
+            'var       User                              ;',  // fibjs: converts to var
+            '                                             '   // amaro: completely erases
+        );
 
-        it('should convert interface with generics to var', () => {
-            // interface with type parameters
-            assert.strictEqual(strip('interface List<T> { items: T[]; }'), 'var       List                  ;');
-        });
+        itDiff('should convert interface with generics to var',
+            'interface List<T> { items: T[]; }',
+            'var       List                  ;',  // fibjs: converts to var
+            '                                 '   // amaro: completely erases
+        );
 
-        it('should convert interface with multiple generics to var', () => {
-            assert.strictEqual(strip('interface Map<K, V> {}'), 'var       Map        ;');
-        });
+        itDiff('should convert interface with multiple generics to var',
+            'interface Map<K, V> {}',
+            'var       Map        ;',  // fibjs: converts to var
+            '                      '   // amaro: completely erases
+        );
 
-        it('should convert interface with extends to var', () => {
-            assert.strictEqual(strip('interface Child extends Parent {}'), 'var       Child                 ;');
-        });
+        itDiff('should convert interface with extends to var',
+            'interface Child extends Parent {}',
+            'var       Child                 ;',  // fibjs: converts to var
+            '                                 '   // amaro: completely erases
+        );
 
-        it('should convert interface with multiple extends to var', () => {
-            assert.strictEqual(strip('interface Mixed extends A, B, C {}'), 'var       Mixed                  ;');
-        });
+        itDiff('should convert interface with multiple extends to var',
+            'interface Mixed extends A, B, C {}',
+            'var       Mixed                  ;',  // fibjs: converts to var
+            '                                  '   // amaro: completely erases
+        );
 
-        it('should convert multiline interface to var', () => {
-            const input = 'interface Person {\n  name: string;\n  age: number;\n}';
-            const expected = 'var       Person  \n               \n              \n;';
-            assert.strictEqual(strip(input), expected);
-        });
+        itDiff('should convert multiline interface to var',
+            'interface Person {\n  name: string;\n  age: number;\n}',
+            'var       Person  \n               \n              \n;',  // fibjs: converts to var
+            '                  \n               \n              \n '   // amaro: completely erases
+        );
 
         it('should remove type alias completely', () => {
             assert.strictEqual(strip('type Status = "active" | "inactive";'), '                                    ');
@@ -539,13 +548,14 @@ let q4 = <const> [1, 2, 3];`;
             });
         });
 
-        it('should remove type assertion but keep const assertion', () => {
-            const input = `let v1 = <string>'abc';
-let v2 = <const> 'abc';`;
-            const out = strip(input);
-            assert.ok(!out.includes('<string>'), 'Should remove <string> type assertion');
-            assert.ok(out.includes('<const>'), 'Should preserve <const> assertion');
-        });
+        // amaro doesn't support angle-bracket syntax for type assertions
+        itDiff('should remove type assertion but keep const assertion',
+            `let v1 = <string>'abc';
+let v2 = <const> 'abc';`,
+            `let v1 =         'abc';
+let v2 = <const> 'abc';`,  // fibjs: removes <string>, keeps <const>
+            null  // amaro: throws (angle-bracket syntax not supported)
+        );
 
         it('should remove import type with deeply nested dotted access', () => {
             const input = 'let x: import("foo").a.b.c.d;';
@@ -581,12 +591,12 @@ let v2 = <const> 'abc';`;
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should handle static static with type annotation', () => {
-            const input = 'class C { static static [x: string]: string; }';
-            const out = strip(input);
-            assert.ok(out.includes('static static'), 'Should preserve static static');
-            assert.ok(!out.includes('[x: string]'), 'Should remove type annotation');
-        });
+        // fibjs preserves 'static static', amaro erases both
+        itDiff('should handle static static with type annotation',
+            'class C { static static [x: string]: string; }',
+            'class C { static static                      }',  // fibjs: preserves static static
+            'class C {                                    }'   // amaro: erases entirely
+        );
 
         it('should remove decorator from this parameter in class method', () => {
             const input = 'class C { method(@dec this: C) {} }';
@@ -603,12 +613,12 @@ let v2 = <const> 'abc';`;
             assert.ok(!out.includes(': C'), 'Should remove type annotations');
         });
 
-        it('should handle static override static', () => {
-            const input = 'class C { static override static }';
-            const out = strip(input);
-            assert.ok(out.includes('static'), 'Should preserve static keyword');
-            assert.ok(!out.includes('override'), 'Should remove override modifier');
-        });
+        // amaro throws for override without extends
+        itDiff('should handle static override static',
+            'class C { static override static }',
+            'class C { static          static }',  // fibjs: removes override
+            null  // amaro: throws (override requires extends)
+        );
 
         it('should remove abstract on same line', () => {
             const input = 'abstract class A {}';
@@ -664,14 +674,12 @@ let v2 = <const> 'abc';`;
             assert.ok(out.includes('?.()'), 'Should keep optional chain call');
         });
 
-        it('should remove interface with complex extends clause', () => {
-            // interface B extends A<{}, { x: {} }> {}
-            const input = 'interface B extends A<{}, { x: {} }> {}';
-            const out = strip(input);
-            assert.ok(!out.includes('interface'), 'Should remove interface');
-            assert.ok(!out.includes('extends'), 'Should remove extends');
-            assert.ok(!out.includes('{'), 'Should remove everything');
-        });
+        // fibjs converts interface to var, amaro completely erases
+        itDiff('should handle interface with complex extends clause',
+            'interface B extends A<{}, { x: {} }> {}',
+            'var       B                           ;',  // fibjs: converts to var
+            '                                       '   // amaro: complete erasure
+        );
 
         it('should handle duplicate modifier keywords as property names', () => {
             // protected protected: any - first is modifier, second is property name
@@ -840,8 +848,9 @@ const z: boolean = true;`;
             assert.strictEqual(strip('type EventName = `on${string}`;'), '                               ');
         });
 
-        it('should handle mixed code', () => {
-            const input = `
+        // fibjs converts interface to var; amaro completely erases interface
+        itDiff('should handle mixed code',
+            `
 interface Config {
     debug: boolean;
 }
@@ -852,8 +861,8 @@ function setup(config: Config): void {
 
 const cfg: Config = { debug: true };
 setup(cfg);
-`;
-            const expected = `
+`,
+            `
 var       Config  
                    
 ;
@@ -864,9 +873,20 @@ function setup(config        )       {
 
 const cfg         = { debug: true };
 setup(cfg);
-`;
-            assert.strictEqual(strip(input), expected);
-        });
+`,  // fibjs: converts interface to var
+            `
+                  
+                   
+ 
+
+function setup(config        )       {
+    console.log(config);
+}
+
+const cfg         = { debug: true };
+setup(cfg);
+`   // amaro: completely erases interface
+        );
 
     });
 
@@ -1177,24 +1197,25 @@ function f(x: string) { return x; }`;
 
     describe('Invalid Unicode Escape Sequences', () => {
         // Invalid unicode escapes should not cause infinite loops
+        // fibjs is tolerant of invalid escapes; amaro throws errors
 
-        it('should handle invalid unicode escape with incomplete hex digits', () => {
-            const input = 'var arg\\u003%';
-            const output = strip(input);
-            assert.strictEqual(output, input);
-        });
+        itDiff('should handle invalid unicode escape with incomplete hex digits',
+            'var arg\\u003%',
+            'var arg\\u003%',  // fibjs: preserves as-is
+            null  // amaro: throws (bad escape sequence)
+        );
 
-        it('should handle invalid unicode escape at end of file', () => {
-            const input = 'var x\\u';
-            const output = strip(input);
-            assert.strictEqual(output, input);
-        });
+        itDiff('should handle invalid unicode escape at end of file',
+            'var x\\u',
+            'var x\\u',  // fibjs: preserves as-is
+            null  // amaro: throws
+        );
 
-        it('should handle invalid unicode escape with only 2 hex digits', () => {
-            const input = 'var x\\u00;';
-            const output = strip(input);
-            assert.strictEqual(output, input);
-        });
+        itDiff('should handle invalid unicode escape with only 2 hex digits',
+            'var x\\u00;',
+            'var x\\u00;',  // fibjs: preserves as-is
+            null  // amaro: throws
+        );
 
         it('should handle valid unicode escape in identifier', () => {
             const input = 'var \\u0061bc: number = 1;';
@@ -1221,16 +1242,18 @@ console.log("Hello");`;
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should handle interface in while body', () => {
-            const input = `while (false)
+        // fibjs converts interface to var; amaro completely erases interface
+        itDiff('should handle interface in while body',
+            `while (false)
     interface X { }
-console.log("Done");`;
-            // interface is converted to var declaration
-            const expected = `while (false)
+console.log("Done");`,
+            `while (false)
     ;ar       X   ;
-console.log("Done");`;
-            assert.strictEqual(strip(input), expected);
-        });
+console.log("Done");`,  // fibjs: converts to var with leading semicolon
+            `while (false)
+    ;              
+console.log("Done");`   // amaro: complete erasure
+        );
 
     });
 
@@ -1276,14 +1299,14 @@ declare const x: number;`;
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should handle as expression followed by slash', () => {
-            // Slash could be regex start - no semicolon needed for expression level
-            const input = `const x = 1 as any
-/regex/`;
-            const expected = `const x = 1       
-/regex/`;
-            assert.strictEqual(strip(input), expected);
-        });
+        // amaro cannot correctly parse regex after type erasure
+        itDiff('should handle as expression followed by slash',
+            `const x = 1 as any
+/regex/`,
+            `const x = 1       
+/regex/`,  // fibjs: correctly handles regex
+            null   // amaro: throws (cannot determine / is regex start or division)
+        );
 
         it('should handle as expression followed by plus', () => {
             // Plus is safe - continues the expression
@@ -1307,13 +1330,13 @@ declare const x: number;`;
 
     describe('Control Flow Statement Body ASI', () => {
         // When a control flow statement body is a TypeScript declaration, insert semicolon
+        // fibjs converts interface to var; amaro completely erases interface
 
-        it('should insert semicolon for while with interface body', () => {
-            const input = `while (false) interface X {}`;
-            // interface is converted to var declaration
-            const expected = `while (false) ;ar       X  ;`;
-            assert.strictEqual(strip(input), expected);
-        });
+        itDiff('should insert semicolon for while with interface body',
+            `while (false) interface X {}`,
+            `while (false) ;ar       X  ;`,  // fibjs: converts to var with leading semicolon
+            `while (false) ;             `   // amaro: complete erasure
+        );
 
         it('should insert semicolon for if with type body', () => {
             const input = `if (false) type T = number;`;
@@ -1327,18 +1350,18 @@ declare const x: number;`;
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should insert semicolon for for with interface body', () => {
-            const input = `for (;;) interface X {}`;
-            // interface is converted to var declaration
-            const expected = `for (;;) ;ar       X  ;`;
-            assert.strictEqual(strip(input), expected);
-        });
+        itDiff('should insert semicolon for for with interface body',
+            `for (;;) interface X {}`,
+            `for (;;) ;ar       X  ;`,  // fibjs: converts to var with leading semicolon
+            `for (;;) ;             `   // amaro: complete erasure
+        );
 
-        it('should insert semicolon for with with type body', () => {
-            const input = `with (obj) type T = number;`;
-            const expected = `with (obj) ;               `;
-            assert.strictEqual(strip(input), expected);
-        });
+        // amaro doesn't support 'with' statement
+        itDiff('should insert semicolon for with with type body',
+            `with (obj) type T = number;`,
+            `with (obj) ;               `,  // fibjs: strips type with semicolon
+            null  // amaro: throws error ('with' not supported)
+        );
 
         it('should not insert semicolon for function call before declare', () => {
             // Function call f() should not trigger control flow ASI
@@ -1554,11 +1577,12 @@ declare const stat: any;
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should strip index signature with multiple modifiers', () => {
-            const input = 'class C { public readonly [x: string]: any; }';
-            const expected = 'class C {                                   }';
-            assert.strictEqual(strip(input), expected);
-        });
+        // amaro doesn't support index signature with multiple modifiers
+        itDiff('should strip index signature with multiple modifiers',
+            'class C { public readonly [x: string]: any; }',
+            'class C {                                   }',  // fibjs: strips it
+            null  // amaro: throws error
+        );
 
     });
 
@@ -1898,10 +1922,11 @@ declare const stat: any;
             'const s         = `unterminated ${x}',  // fibjs: strips type, keeps unterminated template
             null);  // amaro: throws
 
-        it('should handle unterminated block comment', () => {
-            // fibjs preserves unterminated block comment
-            assert.strictEqual(strip('const x: number = 1; /* unterminated'), 'const x         = 1; /* unterminated');
-        });
+        // fibjs preserves unterminated block comment, amaro throws
+        itDiff('should handle unterminated block comment',
+            'const x: number = 1; /* unterminated',
+            'const x         = 1; /* unterminated',  // fibjs: strips type, keeps unterminated comment
+            null);  // amaro: throws
 
         itDiff('should handle unterminated regex literal',
             'const re: RegExp = /unterminated',
@@ -1918,10 +1943,12 @@ declare const stat: any;
             'const s         = "\\u{";',  // fibjs: strips type, keeps invalid escape
             null);  // amaro: throws
 
-        itDiff('should handle truncated generic call (missing >)',
-            'foo<string(1);',
-            'foo<string(1);',  // fibjs: preserves as-is (not recognized as type args)
-            null);  // amaro: throws
+        // Both fibjs and amaro preserve as-is (not recognized as type args)
+        it('should handle truncated generic call (missing >)', () => {
+            const input = 'foo<string(1);';
+            const expected = 'foo<string(1);';
+            assert.strictEqual(strip(input), expected);
+        });
 
         itDiff('should handle truncated arrow function (missing >)',
             'const fn: (x: number) => number = (x: number) = x;',
@@ -1943,10 +1970,12 @@ declare const stat: any;
             '                             ',  // fibjs: erases entire type alias
             null);  // amaro: throws
 
-        itDiff('should handle truncated import statement',
-            'import { a } from "mod"',
-            'import { a } from "mod"',  // fibjs: preserves valid import (just missing semicolon)
-            null);  // amaro: throws
+        // Both fibjs and amaro preserve valid import (just missing semicolon)
+        it('should handle truncated import statement', () => {
+            const input = 'import { a } from "mod"';
+            const expected = 'import { a } from "mod"';
+            assert.strictEqual(strip(input), expected);
+        });
 
         itDiff('should handle truncated export statement',
             'export { a',
@@ -1962,14 +1991,19 @@ declare const stat: any;
 
     describe('Comments Handling', () => {
         // Both fibjs and amaro preserve comments (only erase type annotations)
+        // fibjs converts interface to var; amaro completely erases interface
 
-        it('should handle comment after interface', () => {
-            assert.strictEqual(strip('interface A { x: number }\n\n// comment'), 'var       A             ;\n\n// comment');
-        });
+        itDiff('should handle comment after interface',
+            'interface A { x: number }\n\n// comment',
+            'var       A             ;\n\n// comment',  // fibjs: converts to var
+            '                         \n\n// comment'   // amaro: completely erases
+        );
 
-        it('should handle Chinese comment after interface', () => {
-            assert.strictEqual(strip('interface A { x: number }\n\n// 中文注释'), 'var       A             ;\n\n// 中文注释');
-        });
+        itDiff('should handle Chinese comment after interface',
+            'interface A { x: number }\n\n// 中文注释',
+            'var       A             ;\n\n// 中文注释',  // fibjs: converts to var
+            '                         \n\n// 中文注释'   // amaro: completely erases
+        );
 
         it('should handle comment after type alias', () => {
             assert.strictEqual(strip('type A = string;\n\n// comment'), '                \n\n// comment');
@@ -1979,21 +2013,29 @@ declare const stat: any;
             assert.strictEqual(strip('declare const x: number;\n\n// comment'), '                        \n\n// comment');
         });
 
-        it('should handle block comment after interface', () => {
-            assert.strictEqual(strip('interface A {}\n\n/* block comment */'), 'var       A  ;\n\n/* block comment */');
-        });
+        itDiff('should handle block comment after interface',
+            'interface A {}\n\n/* block comment */',
+            'var       A  ;\n\n/* block comment */',  // fibjs: converts to var
+            '              \n\n/* block comment */'   // amaro: completely erases
+        );
 
-        it('should handle comment between interfaces', () => {
-            assert.strictEqual(strip('interface A {}\n// comment\ninterface B {}'), 'var       A  ;\n// comment\nvar       B  ;');
-        });
+        itDiff('should handle comment between interfaces',
+            'interface A {}\n// comment\ninterface B {}',
+            'var       A  ;\n// comment\nvar       B  ;',  // fibjs: converts to var
+            '              \n// comment\n              '   // amaro: completely erases
+        );
 
-        it('should handle multiple comments after interface', () => {
-            assert.strictEqual(strip('interface A {}\n// line1\n// line2\nconst x = 1;'), 'var       A  ;\n// line1\n// line2\nconst x = 1;');
-        });
+        itDiff('should handle multiple comments after interface',
+            'interface A {}\n// line1\n// line2\nconst x = 1;',
+            'var       A  ;\n// line1\n// line2\nconst x = 1;',  // fibjs: converts to var
+            '              \n// line1\n// line2\nconst x = 1;'   // amaro: completely erases
+        );
 
-        it('should handle comment after interface with body', () => {
-            assert.strictEqual(strip('interface Foo {\n    x: number;\n}\n// This comment'), 'var       Foo  \n              \n;\n// This comment');
-        });
+        itDiff('should handle comment after interface with body',
+            'interface Foo {\n    x: number;\n}\n// This comment',
+            'var       Foo  \n              \n;\n// This comment',  // fibjs: converts to var
+            '               \n              \n \n// This comment'   // amaro: completely erases
+        );
 
     });
 
@@ -2203,12 +2245,12 @@ declare const stat: any;
 
         describe('Export with Types', () => {
 
-            it('should strip export interface', () => {
-                const input = 'export interface Props { name: string; }';
-                // interface is converted to var declaration to allow import
-                const expected = 'export var       Props                 ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            // fibjs converts interface to var; amaro completely erases interface
+            itDiff('should strip export interface',
+                'export interface Props { name: string; }',
+                'export var       Props                 ;',  // fibjs: converts to var
+                '                                        '   // amaro: completely erases
+            );
 
             it('should strip export type', () => {
                 const input = 'export type ID = string | number;';
@@ -2541,28 +2583,30 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip public as constructor parameter modifier', () => {
-                const input = 'class A { constructor(public name: string) {} }';
-                const expected = 'class A { constructor(       name        ) {} }';
-                assert.strictEqual(strip(input), expected);
-            });
+            // amaro doesn't support TypeScript parameter property in strip-only mode
+            itDiff('should strip public as constructor parameter modifier',
+                'class A { constructor(public name: string) {} }',
+                'class A { constructor(       name        ) {} }',  // fibjs: strips modifier
+                null  // amaro: throws (parameter property not supported)
+            );
 
-            it('should strip override as constructor parameter modifier', () => {
-                const input = 'class A { constructor(override name: string) {} }';
-                const expected = 'class A { constructor(         name        ) {} }';
-                assert.strictEqual(strip(input), expected);
-            });
+            // amaro doesn't support TypeScript parameter property in strip-only mode
+            itDiff('should strip override as constructor parameter modifier',
+                'class A { constructor(override name: string) {} }',
+                'class A { constructor(         name        ) {} }',  // fibjs: strips modifier
+                null  // amaro: throws (parameter property not supported)
+            );
 
         });
 
         describe('Export Interface and Type Complete Erasure', () => {
 
-            it('should convert export interface to var declaration', () => {
-                const input = 'export interface User { name: string; }';
-                // interface is converted to var declaration to allow import
-                const expected = 'export var       User                 ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            // fibjs converts interface to var; amaro completely erases interface
+            itDiff('should convert export interface to var declaration',
+                'export interface User { name: string; }',
+                'export var       User                 ;',  // fibjs: converts to var
+                '                                       '   // amaro: completely erases
+            );
 
             it('should completely erase export type alias', () => {
                 const input = 'export type ID = string | number;';
@@ -2570,12 +2614,11 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should convert export interface with generics to var', () => {
-                const input = 'export interface List<T> { items: T[]; }';
-                // interface is converted to var declaration to allow import
-                const expected = 'export var       List                  ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should convert export interface with generics to var',
+                'export interface List<T> { items: T[]; }',
+                'export var       List                  ;',  // fibjs: converts to var
+                '                                        '   // amaro: completely erases
+            );
 
         });
 
@@ -3218,75 +3261,76 @@ declare const stat: any;
         });
 
         describe('Syntax Error in Import', () => {
+            // fibjs is tolerant of syntax errors; amaro throws
 
-            it('should handle syntax error with semicolon in import braces', () => {
-                const input = 'import { F1; } from "lib";';
-                const expected = 'import { F1; } from "lib";';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle syntax error with semicolon in import braces',
+                'import { F1; } from "lib";',
+                'import { F1; } from "lib";',  // fibjs: preserves as-is
+                null  // amaro: throws
+            );
 
-            it('should handle syntax error with class keyword in import', () => {
-                const input = 'import { F1, F2 class class class; } from "lib";';
-                const expected = 'import { F1, F2 class class class; } from "lib";';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle syntax error with class keyword in import',
+                'import { F1, F2 class class class; } from "lib";',
+                'import { F1, F2 class class class; } from "lib";',  // fibjs: preserves as-is
+                null  // amaro: throws
+            );
 
         });
 
         describe('Syntax Error in Class Body', () => {
+            // fibjs is tolerant of syntax errors; amaro throws
 
-            it('should handle unrecognized token in class body', () => {
-                const input = 'class A {\n  x: number\n  ~~\n}';
-                // Note: For non-modifier property names (like 'x'), no semicolon is inserted
-                // after type erasure, which matches amaro's behavior for valid syntax.
-                // amaro would throw an error for this invalid syntax.
-                const expected = 'class A {\n  x        \n  ~~\n}';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle unrecognized token in class body',
+                'class A {\n  x: number\n  ~~\n}',
+                'class A {\n  x        \n  ~~\n}',  // fibjs: strips type, preserves invalid token
+                null  // amaro: throws
+            );
 
         });
 
         describe('Syntax Error in Export Type', () => {
+            // fibjs is tolerant of syntax errors; amaro throws
 
-            it('should handle unrecognized token in export type braces', () => {
-                const input = 'export type { ~ };';
-                const expected = '                  ';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle unrecognized token in export type braces',
+                'export type { ~ };',
+                '                  ',  // fibjs: erases type export
+                null  // amaro: throws
+            );
 
-            it('should handle semicolon in export type braces', () => {
-                const input = 'export type { ; };';
-                const expected = '                  ';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle semicolon in export type braces',
+                'export type { ; };',
+                '                  ',  // fibjs: erases type export
+                null  // amaro: throws
+            );
 
-            it('should handle number literal in export type braces', () => {
-                const input = 'export type { 123 };';
-                const expected = '                    ';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle number literal in export type braces',
+                'export type { 123 };',
+                '                    ',  // fibjs: erases type export
+                null  // amaro: throws
+            );
 
         });
 
         describe('Syntax Error in Export Named', () => {
+            // fibjs is tolerant of syntax errors; amaro throws
 
-            it('should handle unrecognized token in export braces', () => {
-                const input = 'export { ~ };';
-                const expected = 'export { ~ };';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle unrecognized token in export braces',
+                'export { ~ };',
+                'export { ~ };',  // fibjs: preserves as-is
+                null  // amaro: throws
+            );
 
-            it('should handle semicolon in export braces', () => {
-                const input = 'export { ; };';
-                const expected = 'export { ; };';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle semicolon in export braces',
+                'export { ; };',
+                'export { ; };',  // fibjs: preserves as-is
+                null  // amaro: throws
+            );
 
-            it('should handle number literal in export braces', () => {
-                const input = 'export { 123 };';
-                const expected = 'export { 123 };';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle number literal in export braces',
+                'export { 123 };',
+                'export { 123 };',  // fibjs: preserves as-is
+                null  // amaro: throws
+            );
 
         });
 
@@ -3318,33 +3362,30 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should convert interface with default as name to var', () => {
-                const input = 'interface default { x: number }';
-                // interface is converted to var declaration
-                const expected = 'var       default             ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            // fibjs converts interface to var declaration, amaro completely erases
+            itDiff('should handle interface with default as name',
+                'interface default { x: number }',
+                'var       default             ;',  // fibjs: converts to var
+                '                               '   // amaro: complete erasure
+            );
 
-            it('should convert interface with class as name to var', () => {
-                const input = 'interface class { value: string }';
-                // interface is converted to var declaration
-                const expected = 'var       class                 ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle interface with class as name',
+                'interface class { value: string }',
+                'var       class                 ;',  // fibjs: converts to var
+                '                                 '   // amaro: complete erasure
+            );
 
-            it('should convert interface with function as name to var', () => {
-                const input = 'interface function { call(): void }';
-                // interface is converted to var declaration
-                const expected = 'var       function                ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle interface with function as name',
+                'interface function { call(): void }',
+                'var       function                ;',  // fibjs: converts to var
+                '                                   '   // amaro: complete erasure
+            );
 
-            it('should convert interface with abstract as name to var', () => {
-                const input = 'interface abstract { x: number }';
-                // interface is converted to var declaration
-                const expected = 'var       abstract             ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should handle interface with abstract as name',
+                'interface abstract { x: number }',
+                'var       abstract             ;',  // fibjs: converts to var
+                '                                '   // amaro: complete erasure
+            );
 
         });
 
@@ -3480,18 +3521,19 @@ declare const stat: any;
         describe('Export Default Interface/Type', () => {
             // export default interface/type should be completely erased
 
-            it('should convert export default interface to var', () => {
-                const input = 'export default interface zzz { x: string; }';
-                // interface is converted to var declaration
-                const expected = 'export default var       zzz              ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            // fibjs converts interface to var declaration, amaro completely erases
+            itDiff('should handle export default interface',
+                'export default interface zzz { x: string; }',
+                'export default var       zzz              ;',  // fibjs: converts to var
+                '                                           '   // amaro: complete erasure
+            );
 
-            it('should strip export default type entirely', () => {
-                const input = 'export default type Foo = string;';
-                const expected = '                                 ';
-                assert.strictEqual(strip(input), expected);
-            });
+            // amaro doesn't support 'export default type' syntax
+            itDiff('should strip export default type entirely',
+                'export default type Foo = string;',
+                '                                 ',  // fibjs: strips to spaces
+                null  // amaro: throws error
+            );
 
         });
 
@@ -3645,11 +3687,12 @@ declare const stat: any;
                 assert.strictEqual(result, input);
             });
 
-            it('should throw error for excessive nesting depth', () => {
-                const depth = 600;
-                const input = '('.repeat(depth) + '1' + ')'.repeat(depth);
-                assert.throws(() => strip(input), /Maximum recursion depth exceeded/);
-            });
+            // fibjs and amaro have different error messages for deep nesting
+            itThrowsDiff('should throw error for excessive nesting depth',
+                '('.repeat(600) + '1' + ')'.repeat(600),
+                /Maximum recursion depth exceeded/,  // fibjs error
+                /Maximum call stack size exceeded/   // amaro error
+            );
 
         });
 
@@ -3661,10 +3704,12 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should throw error for non-empty namespace global', () => {
-                const input = 'namespace global { const x = 1; }';
-                assert.throws(() => strip(input), /namespace\/module with body is not supported/);
-            });
+            // fibjs and amaro have different error messages for namespace with body
+            itThrowsDiff('should throw error for non-empty namespace global',
+                'namespace global { const x = 1; }',
+                /namespace\/module with body is not supported/,  // fibjs error
+                /TypeScript namespace.*not supported/            // amaro error
+            );
 
             it('should strip empty namespace Foo', () => {
                 const input = 'namespace Foo { }';
@@ -3672,11 +3717,12 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should strip empty module Bar', () => {
-                const input = 'module Bar { }';
-                const expected = '              ';
-                assert.strictEqual(strip(input), expected);
-            });
+            // amaro doesn't support 'module' keyword at all
+            itDiff('should strip empty module Bar',
+                'module Bar { }',
+                '              ',  // fibjs: strips empty module
+                null  // amaro: throws ('module' keyword not supported)
+            );
 
             it('should strip global scope augmentation', () => {
                 const input = 'global { interface Array<T> { x } }';
@@ -3715,12 +3761,12 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should convert export default interface after function to var', () => {
-                const input = 'export default function foo() { }\nexport default interface Foo { }';
-                // interface is converted to var declaration
-                const expected = 'export default function foo() { }\nexport default var       Foo   ;';
-                assert.strictEqual(strip(input), expected);
-            });
+            // fibjs converts interface to var declaration, amaro completely erases
+            itDiff('should handle export default interface after function',
+                'export default function foo() { }\nexport default interface Foo { }',
+                'export default function foo() { }\nexport default var       Foo   ;',  // fibjs: converts to var
+                'export default function foo() { }\n                                '   // amaro: complete erasure
+            );
 
         });
 
@@ -3944,27 +3990,33 @@ declare const stat: any;
                 assert.strictEqual(strip(input3), expected3);
             });
 
-            it('should preserve abstract and override as property names', () => {
+            it('should preserve abstract as property name', () => {
                 // abstract as property name
                 const input1 = 'class C { abstract = false; }';
                 const expected1 = 'class C { abstract = false; }';
                 assert.strictEqual(strip(input1), expected1);
+            });
 
+            it('should preserve override as property name with type', () => {
                 // override as property name with type
                 const input2 = 'class C { override: string; }';
                 const expected2 = 'class C { override        ; }';
                 assert.strictEqual(strip(input2), expected2);
-
-                // Both as modifiers (should be removed)
-                const input3 = 'class C { override foo(): void {} abstract bar(): void; }';
-                const expected3 = 'class C {          foo()       {}                       }';
-                assert.strictEqual(strip(input3), expected3);
-
-                // Mixed usage
-                const input4 = 'class C { abstract = false; override foo() {} }';
-                const expected4 = 'class C { abstract = false;          foo() {} }';
-                assert.strictEqual(strip(input4), expected4);
             });
+
+            // amaro throws for override without extends
+            itDiff('should strip abstract and override as modifiers',
+                'class C { override foo(): void {} abstract bar(): void; }',
+                'class C {          foo()       {}                       }',  // fibjs: strips modifiers
+                null  // amaro: throws (override requires extends)
+            );
+
+            // amaro throws for override without extends
+            itDiff('should handle mixed abstract property and override method',
+                'class C { abstract = false; override foo() {} }',
+                'class C { abstract = false;          foo() {} }',  // fibjs: strips override
+                null  // amaro: throws (override requires extends)
+            );
 
             it('should strip template literal types in type arguments', () => {
                 // Simple template literal type
@@ -3976,12 +4028,16 @@ declare const stat: any;
                 const input2 = 'test<``>();';
                 const expected2 = 'test    ();';
                 assert.strictEqual(strip(input2), expected2);
+            });
 
-                // Template literal type with expression
-                const input3 = 'test<`hello ${x as number} world`>();';
-                const expected3 = 'test                              ();';
-                assert.strictEqual(strip(input3), expected3);
+            // amaro has issues with template literal types containing expressions
+            itDiff('should strip template literal types with expression in type arguments',
+                'test<`hello ${x as number} world`>();',
+                'test                              ();',  // fibjs: strips correctly
+                null  // amaro: throws (empty parenthesized expression)
+            );
 
+            it('should strip complex type arguments with template literal', () => {
                 // Nested type arguments with template literal
                 const input4 = 'expectTypeOf<z.infer<typeof empty>>().toEqualTypeOf<``>();';
                 const expected4 = 'expectTypeOf                       ().toEqualTypeOf    ();';
@@ -3998,37 +4054,47 @@ declare const stat: any;
                 assert.strictEqual(strip(input6), expected6);
             });
 
-            it('should strip complex nested template literal types', () => {
-                // Nested template strings
-                const input1 = 'test<`outer ${`inner ${x as number}`} end`>();';
-                const expected1 = 'test                                       ();';
-                assert.strictEqual(strip(input1), expected1);
+            // amaro has issues with nested template literal types
+            itDiff('should strip complex nested template literal types',
+                'test<`outer ${`inner ${x as number}`} end`>();',
+                'test                                       ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
-                // Multiple embedded expressions
-                const input2 = 'test<`a ${x as string} b ${y as number} c`>();';
-                const expected2 = 'test                                       ();';
-                assert.strictEqual(strip(input2), expected2);
+            // amaro has issues with template literal types containing multiple expressions
+            itDiff('should strip template literal types with multiple expressions',
+                'test<`a ${x as string} b ${y as number} c`>();',
+                'test                                       ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
-                // Embedded object literals
-                const input3 = 'test<`value: ${obj as { a: number }}`>();';
-                const expected3 = 'test                                  ();';
-                assert.strictEqual(strip(input3), expected3);
+            // amaro has issues with template literal types containing expressions
+            itDiff('should strip template literal types with object and function',
+                'test<`value: ${obj as { a: number }}`>();',
+                'test                                  ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
-                // Embedded function calls with type arguments
-                const input4 = 'test<`result: ${fn<T>() as string}`>();';
-                const expected4 = 'test                                ();';
-                assert.strictEqual(strip(input4), expected4);
+            // amaro has issues with complex template literal types
+            itDiff('should strip more template literal types',
+                'test<`result: ${fn<T>() as string}`>();',
+                'test                                ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
-                // Embedded ternary expressions
-                const input5 = 'test<`${x ? (a as string) : (b as number)}`>();';
-                const expected5 = 'test                                        ();';
-                assert.strictEqual(strip(input5), expected5);
+            // amaro has issues with template literal types containing complex expressions
+            itDiff('should strip template literal types with ternary and array',
+                'test<`${x ? (a as string) : (b as number)}`>();',
+                'test                                        ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
-                // Embedded arrays with generics
-                const input6 = 'test<`items: ${arr as Array<string>}`>();';
-                const expected6 = 'test                                  ();';
-                assert.strictEqual(strip(input6), expected6);
-            });
+            // amaro has issues with template literal types containing generics
+            itDiff('should strip template literal types with array generics',
+                'test<`items: ${arr as Array<string>}`>();',
+                'test                                  ();',  // fibjs: strips correctly
+                null  // amaro: throws
+            );
 
             it('should preserve template string values while stripping embedded types', () => {
                 // Pure template string with embedded type arguments
@@ -4077,20 +4143,24 @@ declare const stat: any;
                 const input2 = 'console.log(`result: ${`string1 ${exp1 as number}` + `string2 ${exp2 as string}`}`);';
                 const expected2 = 'console.log(`result: ${`string1 ${exp1          }` + `string2 ${exp2          }`}`);';
                 assert.strictEqual(strip(input2), expected2);
+            });
 
-                // Triple nesting with types
-                const input3 = 'const msg = `outer: ${`mid1: ${`inner1: ${x as number}`}` + `mid2: ${`inner2: ${y as string}`}`}`);';
-                const expected3 = 'const msg = `outer: ${`mid1: ${`inner1: ${x          }`}` + `mid2: ${`inner2: ${y          }`}`}`);';
-                assert.strictEqual(strip(input3), expected3);
+            // Both fibjs and amaro handle triple nested templates correctly
+            it('should handle triple nested template strings with types', () => {
+                const input = 'const msg = `outer: ${`mid1: ${`inner1: ${x as number}`}` + `mid2: ${`inner2: ${y as string}`}`}`;';
+                const expected = 'const msg = `outer: ${`mid1: ${`inner1: ${x          }`}` + `mid2: ${`inner2: ${y          }`}`}`;';
+                assert.strictEqual(strip(input), expected);
+            });
 
+            it('should handle complex template with types', () => {
                 // Multiple operations with templates and generic types
                 const input4 = 'const complex = `value: ${`a ${x as T}` + `b ${y as U}` + `c ${z as V}`}`;';
                 const expected4 = 'const complex = `value: ${`a ${x     }` + `b ${y     }` + `c ${z     }`}`;';
                 assert.strictEqual(strip(input4), expected4);
 
                 // Function calls with template arguments
-                const input5 = 'const fn = `result: ${foo(`arg1 ${a as number}`) + bar(`arg2 ${b as string}`)}`);';
-                const expected5 = 'const fn = `result: ${foo(`arg1 ${a          }`) + bar(`arg2 ${b          }`)}`);';
+                const input5 = 'const fn = `result: ${foo(`arg1 ${a as number}`) + bar(`arg2 ${b as string}`)}`;';
+                const expected5 = 'const fn = `result: ${foo(`arg1 ${a          }`) + bar(`arg2 ${b          }`)}`;';
                 assert.strictEqual(strip(input5), expected5);
 
                 // Nested ternary with templates
