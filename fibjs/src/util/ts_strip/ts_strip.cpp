@@ -83,13 +83,6 @@ int getBinaryOperatorPrecedence(SyntaxKind kind) {
     }
 }
 
-// Span to be replaced with spaces
-struct Replacement {
-    int start;
-    int end;
-    Replacement(int s, int e) : start(s), end(e) {}
-};
-
 // Single byte overwrite
 struct Overwrite {
     int pos;
@@ -97,9 +90,8 @@ struct Overwrite {
     Overwrite(int p, uint8_t v) : pos(p), value(v) {}
 };
 
-// Result containing all replacements and overwrites
+// Result containing overwrites (replacements are now applied inline)
 struct StripResult {
-    std::vector<Replacement> replacements;
     std::vector<Overwrite> overwrites;
 };
 
@@ -135,7 +127,6 @@ private:
     bool m_allowReturnTypeInArrowFunction;  // Like TypeScript's allowReturnTypeInArrowFunction parameter
     int m_recursionDepth;
     
-    std::vector<Replacement> m_replacements;
     std::vector<Overwrite> m_overwrites;
 
     void checkRecursionDepth() {
@@ -242,8 +233,12 @@ private:
     
     // ========== Replacement recording ==========
     void addReplacement(int start, int end) {
-        if (start < end) {
-            m_replacements.push_back(Replacement(start, end));
+        // Directly replace in-place instead of collecting spans
+        for (int i = start; i < end && i < (int)m_length; i++) {
+            uint8_t ch = m_src[i];
+            if (ch != '\n' && ch != '\r') {
+                m_src[i] = ' ';
+            }
         }
     }
     
@@ -4588,18 +4583,8 @@ void TsStrip::parseSourceFile() {
 }
 
 void TsStrip::applyReplacements() {
-    // Apply replacements FIRST (replace with spaces, preserve newlines)
-    // This must be done before overwrites so that overwrites can override
-    for (const auto& r : m_replacements) {
-        for (int i = r.start; i < r.end && i < (int)m_length; i++) {
-            uint8_t ch = m_src[i];
-            if (ch != '\n' && ch != '\r') {
-                m_src[i] = ' ';
-            }
-        }
-    }
-    
-    // Apply overwrites AFTER replacements (so semicolons aren't erased)
+    // Replacements are now applied inline in addReplacement()
+    // Only apply overwrites here (so semicolons aren't erased by inline replacements)
     for (const auto& ow : m_overwrites) {
         if (ow.pos >= 0 && ow.pos < (int)m_length) {
             m_src[ow.pos] = ow.value;
@@ -4614,7 +4599,7 @@ void TsStrip::strip() {
 
 StripResult TsStrip::parse() {
     parseSourceFile();
-    return StripResult { std::move(m_replacements), std::move(m_overwrites) };
+    return StripResult { std::move(m_overwrites) };
 }
 
 // Public API
