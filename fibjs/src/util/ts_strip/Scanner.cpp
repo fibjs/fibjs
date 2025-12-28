@@ -174,21 +174,13 @@ void Scanner::skipTrivia() {
             p += (p + 1 < end && p[1] == '\n') ? 2 : 1;
         } else if (ch == '/') {
             if (p + 1 < end && p[1] == '/') {
-                // Single line comment - erase to spaces
-                uint8_t* commentStart = p;
+                // Single line comment - just skip over it (preserve in output)
                 p += 2;
                 while (p < end && *p != '\n' && *p != '\r') {
                     p++;
                 }
-                // Erase comment
-                while (commentStart < p) {
-                    if (*commentStart != '\n' && *commentStart != '\r')
-                        *commentStart = ' ';
-                    commentStart++;
-                }
             } else if (p + 1 < end && p[1] == '*') {
-                // Multi-line comment - erase to spaces
-                uint8_t* commentStart = p;
+                // Multi-line comment - just skip over it (preserve in output)
                 p += 2;
                 while (p < end) {
                     if (*p == '*' && p + 1 < end && p[1] == '/') {
@@ -200,12 +192,6 @@ void Scanner::skipTrivia() {
                     }
                     p++;
                 }
-                // Erase comment
-                while (commentStart < p) {
-                    if (*commentStart != '\n' && *commentStart != '\r')
-                        *commentStart = ' ';
-                    commentStart++;
-                }
             } else {
                 break;
             }
@@ -214,16 +200,6 @@ void Scanner::skipTrivia() {
         }
     }
     m_pos = p - m_text;
-}
-
-void Scanner::eraseToSpaces(int start, int end) {
-    for (int i = start; i < end && i < (int)m_length; i++) {
-        uint8_t ch = m_text[i];
-        // Preserve newlines for line number tracking
-        if (ch != '\n' && ch != '\r') {
-            m_text[i] = ' ';
-        }
-    }
 }
 
 std::string_view Scanner::getTokenText() const {

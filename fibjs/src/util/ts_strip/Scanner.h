@@ -139,9 +139,6 @@ private:
     SyntaxKind m_token;
     std::string_view m_tokenValue;
     bool m_hasLineBreak;
-    
-    // Erase range to spaces (preserving newlines)
-    void eraseToSpaces(int start, int end);
 };
 
 } // namespace ts

@@ -1135,12 +1135,10 @@ function f(x: string) { return x; }`;
 
     describe('Comments in Type Positions', () => {
 
-        // fibjs erases all comments; amaro preserves them
-        itDiff('should handle comments in optional parameter',
-            'function foo(id/** Why? */?: string) {}',
-            'function foo(id                    ) {}',  // fibjs: comments erased
-            'function foo(id/** Why? */         ) {}'   // amaro: comments preserved
-        );
+        // Both fibjs and amaro preserve comments
+        it('should handle comments in optional parameter', () => {
+            assert.strictEqual(strip('function foo(id/** Why? */?: string) {}'), 'function foo(id/** Why? */         ) {}');
+        });
 
         it('should strip class type parameters when comment follows <', () => {
             const input = 'class C</**doc*/ T> { }';
@@ -1792,12 +1790,10 @@ declare const stat: any;
             assert.strictEqual(strip('   \n\t  '), '   \n\t  ');
         });
 
-        // fibjs erases all comments; amaro preserves them
-        itDiff('should handle comments only',
-            '// comment\n/* block */',
-            '          \n           ',  // fibjs: comments erased
-            '// comment\n/* block */'   // amaro: comments preserved
-        );
+        // Both fibjs and amaro preserve comments
+        it('should handle comments only', () => {
+            assert.strictEqual(strip('// comment\n/* block */'), '// comment\n/* block */');
+        });
 
         it('should handle string with type-like content', () => {
             assert.strictEqual(strip('const s: string = "const x: number = 1"'), 'const s         = "const x: number = 1"');
@@ -1902,10 +1898,10 @@ declare const stat: any;
             'const s         = `unterminated ${x}',  // fibjs: strips type, keeps unterminated template
             null);  // amaro: throws
 
-        itDiff('should handle unterminated block comment',
-            'const x: number = 1; /* unterminated',
-            'const x         = 1;                ',  // fibjs: strips type, erases unterminated comment
-            null);  // amaro: throws
+        it('should handle unterminated block comment', () => {
+            // fibjs preserves unterminated block comment
+            assert.strictEqual(strip('const x: number = 1; /* unterminated'), 'const x         = 1; /* unterminated');
+        });
 
         itDiff('should handle unterminated regex literal',
             'const re: RegExp = /unterminated',
@@ -1965,56 +1961,39 @@ declare const stat: any;
     });
 
     describe('Comments Handling', () => {
-        // fibjs erases all comments at scanner level for consistency
-        // amaro preserves comments (only erases type annotations)
+        // Both fibjs and amaro preserve comments (only erase type annotations)
 
-        itDiff('should handle comment after interface',
-            'interface A { x: number }\n\n// comment',
-            'var       A             ;\n\n          ',  // fibjs: converts to var, comments erased
-            '                         \n\n// comment'   // amaro: comments preserved
-        );
+        it('should handle comment after interface', () => {
+            assert.strictEqual(strip('interface A { x: number }\n\n// comment'), 'var       A             ;\n\n// comment');
+        });
 
-        itDiff('should handle Chinese comment after interface',
-            'interface A { x: number }\n\n// 中文注释',
-            'var       A             ;\n\n               ',  // fibjs: converts to var, comments erased (15 bytes: // + 4 chinese chars * 3)
-            '                         \n\n// 中文注释'   // amaro: comments preserved
-        );
+        it('should handle Chinese comment after interface', () => {
+            assert.strictEqual(strip('interface A { x: number }\n\n// 中文注释'), 'var       A             ;\n\n// 中文注释');
+        });
 
-        itDiff('should handle comment after type alias',
-            'type A = string;\n\n// comment',
-            '                \n\n          ',  // fibjs: comments erased
-            '                \n\n// comment'   // amaro: comments preserved
-        );
+        it('should handle comment after type alias', () => {
+            assert.strictEqual(strip('type A = string;\n\n// comment'), '                \n\n// comment');
+        });
 
-        itDiff('should handle comment after declare',
-            'declare const x: number;\n\n// comment',
-            '                        \n\n          ',  // fibjs: comments erased
-            '                        \n\n// comment'   // amaro: comments preserved
-        );
+        it('should handle comment after declare', () => {
+            assert.strictEqual(strip('declare const x: number;\n\n// comment'), '                        \n\n// comment');
+        });
 
-        itDiff('should handle block comment after interface',
-            'interface A {}\n\n/* block comment */',
-            'var       A  ;\n\n                   ',  // fibjs: converts to var, comments erased
-            '              \n\n/* block comment */'   // amaro: comments preserved
-        );
+        it('should handle block comment after interface', () => {
+            assert.strictEqual(strip('interface A {}\n\n/* block comment */'), 'var       A  ;\n\n/* block comment */');
+        });
 
-        itDiff('should handle comment between interfaces',
-            'interface A {}\n// comment\ninterface B {}',
-            'var       A  ;\n          \nvar       B  ;',  // fibjs: converts to var, comments erased
-            '              \n// comment\n              '   // amaro: comments preserved
-        );
+        it('should handle comment between interfaces', () => {
+            assert.strictEqual(strip('interface A {}\n// comment\ninterface B {}'), 'var       A  ;\n// comment\nvar       B  ;');
+        });
 
-        itDiff('should handle multiple comments after interface',
-            'interface A {}\n// line1\n// line2\nconst x = 1;',
-            'var       A  ;\n        \n        \nconst x = 1;',  // fibjs: converts to var, comments erased
-            '              \n// line1\n// line2\nconst x = 1;'   // amaro: comments preserved
-        );
+        it('should handle multiple comments after interface', () => {
+            assert.strictEqual(strip('interface A {}\n// line1\n// line2\nconst x = 1;'), 'var       A  ;\n// line1\n// line2\nconst x = 1;');
+        });
 
-        itDiff('should handle comment after interface with body',
-            'interface Foo {\n    x: number;\n}\n// This comment',
-            'var       Foo  \n              \n;\n               ',  // fibjs: converts to var, comments erased
-            '               \n              \n \n// This comment'   // amaro: comments preserved
-        );
+        it('should handle comment after interface with body', () => {
+            assert.strictEqual(strip('interface Foo {\n    x: number;\n}\n// This comment'), 'var       Foo  \n              \n;\n// This comment');
+        });
 
     });
 
