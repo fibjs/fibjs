@@ -15,6 +15,7 @@
 #include "ifs/fs.h"
 #include "FileStream.h"
 #include "Buffer.h"
+#include "v8_api.h"
 
 #ifdef _WIN32
 #define pclose _pclose
@@ -96,9 +97,6 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string strBuf;
-
-    int32_t bytes;
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
         return CHECK_ERROR(LastError());
@@ -112,31 +110,32 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
     sz -= p;
 
-    bytes = (int32_t)sz;
+    int32_t bytes = (int32_t)sz;
 
-    if (bytes > 0) {
-        strBuf.resize(bytes);
-        int32_t sz = bytes;
-        char* p = strBuf.data();
-
-        while (sz) {
-            int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
-            if (n < 0)
-                return CHECK_ERROR(LastError());
-            if (n == 0)
-                break;
-
-            sz -= n;
-            p += n;
-        }
-
-        strBuf.resize(bytes - sz);
-    }
-
-    if (strBuf.length() == 0)
+    if (bytes <= 0)
         return CALL_RETURN_NULL;
 
-    retVal = new Buffer(strBuf.c_str(), strBuf.length());
+    // Allocate Buffer directly and read into it to avoid extra copy
+    std::shared_ptr<v8::BackingStore> store = NewBackingStore(bytes);
+    char* buf = (char*)store->Data();
+    int32_t remaining = bytes;
+
+    while (remaining > 0) {
+        int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
+        if (n < 0)
+            return CHECK_ERROR(LastError());
+        if (n == 0)
+            break;
+
+        remaining -= n;
+        buf += n;
+    }
+
+    int32_t actualBytes = bytes - remaining;
+    if (actualBytes == 0)
+        return CALL_RETURN_NULL;
+
+    retVal = new Buffer(store, 0, actualBytes);
 
     return 0;
 }
