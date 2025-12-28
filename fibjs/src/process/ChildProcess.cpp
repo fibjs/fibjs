@@ -25,10 +25,19 @@ void ChildProcess::on_uv_close(uv_handle_t* handle)
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
 
     // If no stdout pipe exists, trigger close event on process close
-    if (!cp->m_stdio[1])
-        cp->emit_close();
+    if (!cp->m_stdio[1]) {
+        cp->m_stdoutClosed = true;
+        cp->try_emit_close();
+    }
 
     cp->isolate_unref();
+}
+
+void ChildProcess::try_emit_close()
+{
+    // Only emit close when both process has exited AND stdout is closed
+    if (m_exited && m_stdoutClosed)
+        emit_close();
 }
 
 void ChildProcess::emit_close()
@@ -69,6 +78,8 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     cp->m_ev.set();
 
     cp->_emit("exit", args, 2);
+    cp->m_exited = true;
+    cp->try_emit_close();
 
     uv_close((uv_handle_t*)handle, on_uv_close);
 }
@@ -81,7 +92,8 @@ result_t ChildProcess::create_pipe(int32_t idx)
         // prevent GC from releasing this before the callback is called
         Ref();
         onClose = [this](int32_t fd) -> void {
-            emit_close();
+            m_stdoutClosed = true;
+            try_emit_close();
             Unref();
         };
     }
@@ -383,7 +395,8 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
                 UVStream::uv_pipe(m_stdio[0], stdinfd, nullptr);
 
                 UVStream::uv_pipe(m_stdio[1], stdoutfd, [this](int32_t fd) -> void {
-                    emit_close();
+                    m_stdoutClosed = true;
+                    try_emit_close();
                 });
             }
         } else
@@ -686,6 +699,15 @@ result_t ChildProcess::unref(obj_ptr<ChildProcess_base>& retVal)
 {
     object_base::isolate_unref();
     retVal = this;
+    return 0;
+}
+
+result_t ChildProcess::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+{
+    // When "close" event is listened, start reading stdout to ensure close event is triggered
+    if (ev == "close" && m_stdio[1])
+        m_stdio[1]->startRecvStream();
+
     return 0;
 }
 

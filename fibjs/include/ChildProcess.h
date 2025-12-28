@@ -49,6 +49,8 @@ public:
         , m_rows(24)
         , m_stdinfd(-1)
         , m_stdoutfd(-1)
+        , m_exited(false)
+        , m_stdoutClosed(false)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -78,6 +80,10 @@ public:
     virtual result_t unref(obj_ptr<ChildProcess_base>& retVal);
 
 public:
+    // object_base
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
+
+public:
     static int32_t spawn(uv_process_t* process, const uv_process_options_t* options);
     result_t spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork);
 
@@ -97,6 +103,7 @@ public:
     static void on_uv_close(uv_handle_t* handle);
     static void OnExit(uv_process_t* handle, int64_t exit_status, int term_signal);
     void emit_close();
+    void try_emit_close();
 
 public:
     exlib::Event m_ev;
@@ -120,6 +127,8 @@ public:
 
     bool m_killed;
     int32_t m_exitCode;
+    bool m_exited;
+    bool m_stdoutClosed;
 
     std::vector<char*> envp;
 
