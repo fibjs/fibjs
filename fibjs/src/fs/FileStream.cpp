@@ -140,6 +140,53 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t FileStream::readAllText(exlib::string& retVal)
+{
+    if (m_fd == -1)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
+    if (p < 0)
+        return CHECK_ERROR(LastError());
+
+    int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
+    if (sz < 0)
+        return CHECK_ERROR(LastError());
+
+    if (_lseeki64(m_fd, p, SEEK_SET) < 0)
+        return CHECK_ERROR(LastError());
+
+    sz -= p;
+
+    int32_t bytes = (int32_t)sz;
+
+    if (bytes <= 0) {
+        retVal.clear();
+        return 0;
+    }
+
+    // Allocate string buffer directly and read into it
+    retVal.resize(bytes);
+    char* buf = retVal.data();
+    int32_t remaining = bytes;
+
+    while (remaining > 0) {
+        int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
+        if (n < 0)
+            return CHECK_ERROR(LastError());
+        if (n == 0)
+            break;
+
+        remaining -= n;
+        buf += n;
+    }
+
+    int32_t actualBytes = bytes - remaining;
+    retVal.resize(actualBytes);
+
+    return 0;
+}
+
 result_t FileStream::Write(const char* p, int32_t sz)
 {
     if (m_fd == -1)

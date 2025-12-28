@@ -66,6 +66,10 @@ public:
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
 
 public:
+    // Fast path for reading text files directly to string
+    result_t readAllText(exlib::string& retVal);
+
+public:
     // File_base
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t get_fd(int32_t& retVal);

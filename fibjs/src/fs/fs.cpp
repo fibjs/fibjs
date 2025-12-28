@@ -144,13 +144,32 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
-    obj_ptr<Buffer_base> buf;
     result_t hr;
 
     hr = openFile(fname, "r", f, ac);
     if (hr < 0)
         return hr;
 
+    // Fast path for utf8: read directly to string to avoid Buffer intermediate
+    if (encoding == "utf8" || encoding == "utf-8") {
+        FileStream_base* pFileBase = FileStream_base::getInstance(f);
+        if (pFileBase) {
+            // FileStream: use readAllText for zero-copy string reading
+            FileStream* pFile = static_cast<FileStream*>(pFileBase);
+            exlib::string strBuf;
+            hr = pFile->readAllText(strBuf);
+            f->cc_close();
+
+            if (hr < 0)
+                return hr;
+
+            retVal = strBuf;
+            return 0;
+        }
+    }
+
+    // Normal path: read to Buffer first
+    obj_ptr<Buffer_base> buf;
     hr = f->cc_readAll(buf);
     f->cc_close();
 
