@@ -10,6 +10,7 @@
 #include "SandBox.h"
 #include "Buffer.h"
 #include "loaders.h"
+#include "ts_cache.h"
 #include "../../util/ts_strip/ts_strip.h"
 #include "ifs/url.h"
 
@@ -454,12 +455,25 @@ private:
                 TryCatch try_catch;
 
                 if (is_typescript(id)) {
-                    // For TypeScript: strip types in-place on the buffer
-                    try {
-                        ts_strip::stripInPlace(data_->data(), data_->length());
-                    } catch (const std::exception& e) {
-                        ThrowError(e.what());
-                        return v8::Local<v8::Module>();
+                    // Compute hash of original TypeScript content BEFORE stripping
+                    size_t hash = ts_cache_hash(data_->data(), data_->length());
+                    
+                    // Try to get cached JS first (skips small files automatically)
+                    obj_ptr<Buffer_base> cached_js;
+                    if (ts_cache_get(hash, data_->length(), cached_js)) {
+                        // Cache hit: use cached JS
+                        data_ = Buffer::Cast(cached_js);
+                    } else {
+                        // Cache miss: strip TypeScript types in-place
+                        try {
+                            ts_strip::stripInPlace(data_->data(), data_->length());
+                        } catch (const std::exception& e) {
+                            ThrowError(e.what());
+                            return v8::Local<v8::Module>();
+                        }
+                        
+                        // Async save to cache (fire and forget, zero copy with ref counting)
+                        ts_cache_set(hash, data_);
                     }
 
                     v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);

@@ -9,6 +9,7 @@
 #include "SandBox.h"
 #include "Buffer.h"
 #include "loaders.h"
+#include "ts_cache.h"
 #include "../../util/ts_strip/ts_strip.h"
 
 namespace fibjs {
@@ -17,12 +18,22 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
 {
     Buffer* buf = Buffer::Cast(src);
     
-    // Strip TypeScript types in-place on the buffer data
+    // Compute hash of original TypeScript content BEFORE stripping
+    size_t hash = ts_cache_hash(buf->data(), buf->length());
+    
+    // Try to get cached JS first (skips small files automatically)
+    if (ts_cache_get(hash, buf->length(), retVal))
+        return 0;
+    
+    // Cache miss: strip TypeScript types in-place
     try {
         ts_strip::stripInPlace(buf->data(), buf->length());
     } catch (const std::exception& e) {
         return CHECK_ERROR(Runtime::setError(e.what()));
     }
+
+    // Async save to cache (fire and forget, zero copy with ref counting)
+    ts_cache_set(hash, src);
 
     retVal = src;
 
