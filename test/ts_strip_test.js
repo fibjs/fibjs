@@ -4178,4 +4178,109 @@ declare const stat: any;
 
     });
 
+    // ========================================================================
+    // Bug reproduction tests - these test specific bugs that have been fixed
+    // ========================================================================
+    
+    describe('Bug Reproductions', () => {
+        
+        describe('Async arrow + spread in object literal deletes last property value', () => {
+            // Bug: When async arrow function is followed by spread property in object literal,
+            // the LAST property's value gets deleted (replaced with spaces).
+            // Trigger: async () => ... + {...spread} + any following properties
+            // The last property value disappears regardless of whether async has typed params.
+            
+            it('should preserve last property value: async + spread + value', () => {
+                const input = 'const x = { fn: async () => 1, d: {...x}, y: 1 };';
+                const expected = 'const x = { fn: async () => 1, d: {...x}, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            it('should preserve last property value: async(a) + spread + value', () => {
+                const input = 'const x = { fn: async (a) => a, d: {...x}, y: 1 };';
+                const expected = 'const x = { fn: async (a) => a, d: {...x}, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            it('should preserve last property value: typed async + spread + value', () => {
+                const input = 'const x = { fn: async (a: T) => a, d: {...x}, y: 1 };';
+                const expected = 'const x = { fn: async (a   ) => a, d: {...x}, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            it('should preserve multiple property values after spread', () => {
+                const input = 'const x = { fn: async (a: T) => a, d: {...x}, a, b, y: 1 };';
+                const expected = 'const x = { fn: async (a   ) => a, d: {...x}, a, b, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            it('should preserve complex last property value', () => {
+                const input = 'const x = { fn: async (a: T) => a, data: {...d}, type, status: initialStatus };';
+                const expected = 'const x = { fn: async (a   ) => a, data: {...d}, type, status: initialStatus };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            it('should preserve arrow function as last property value', () => {
+                const input = 'const x = { fn: async (a: T) => a, d: {...d}, type, setReady: () => 1 };';
+                const expected = 'const x = { fn: async (a   ) => a, d: {...d}, type, setReady: () => 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            // Control: these should work (sync arrow + spread is fine)
+            it('should work with sync arrow + spread (control)', () => {
+                const input = 'const x = { fn: (a: T) => a, d: {...x}, y: 1 };';
+                const expected = 'const x = { fn: (a   ) => a, d: {...x}, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+            
+            // Control: async without spread is fine  
+            it('should work with async arrow without spread (control)', () => {
+                const input = 'const x = { fn: async (a: T) => a, y: 1 };';
+                const expected = 'const x = { fn: async (a   ) => a, y: 1 };';
+                assert.strictEqual(strip(input), expected);
+            });
+        });
+        
+        describe('This keyword deleted after method with arrow type param', () => {
+            // Bug: When a method has function type parameters, 'this' keyword in 
+            // the next method's if condition gets deleted.
+            // Trigger: method1(cb: (x: T) => void) then method2 with if(this.x)
+            // NOTE: These must be inside a class - standalone method definitions are invalid syntax!
+            
+            it('should preserve this in if condition after method with arrow type param', () => {
+                const input = `class C { fn1(cb: (x: T) => void): R { } fn2(): void { if (this.x) {} } }`;
+                const output = strip(input);
+                assert.ok(output.includes('this.x'), `Expected 'this.x' in output but got: ${output}`);
+            });
+            
+            it('should preserve this after complex function type params', () => {
+                const input = `class C { fn(cb: ((a: number, b: number) => void) | null = null): R { } fn2(): void { if (this.x) {} } }`;
+                const output = strip(input);
+                assert.ok(output.includes('this.x'), `Expected 'this.x' in output but got: ${output}`);
+            });
+            
+            it('should preserve this in processAll pattern', () => {
+                const input = `
+class TaskProcessor {
+  createTask(
+    callback: (data: TaskData, context: TaskContext) => Promise<void>
+  ): { task: AsyncTask } {
+    const x = 1;
+  }
+  async processAll(
+    onProgress: ((completed: number, total: number) => void) | null = null
+  ): Promise<boolean> {
+    if (this.queue.length === 0) {
+      return true;
+    }
+  }
+}
+`;
+                const output = strip(input);
+                assert.ok(output.includes('this.queue'), `Expected 'this.queue' in output but got: ${output}`);
+            });
+        });
+        
+    });
+
 });

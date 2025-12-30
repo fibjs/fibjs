@@ -1344,11 +1344,29 @@ void TsStrip::parsePrimaryExpression() {
                     // get/set/async could be:
                     // 1. Accessor/async method: get foo() {}, async bar() {}
                     // 2. Property with get/set/async as name: { get: value, set: value }
+                    // 3. async arrow function property: { callback: async (args) => body } - but only for async
+                    
+                    SyntaxKind keyword = token();
                     nextToken();
                     
                     // If followed by ':', it's a simple property like { get: value }
                     if (token() == SyntaxKind::ColonToken) {
                         nextToken();
+                        parseAssignmentExpressionOrHigher();
+                        if (!parseOptional(SyntaxKind::CommaToken)) {
+                            break;
+                        }
+                        continue;
+                    }
+                    
+                    // For async specifically: if followed by '(' or '<', it could be an async arrow function property
+                    // Check if there's a method name. If not, treat as value expression.
+                    if (keyword == SyntaxKind::AsyncKeyword && 
+                        (token() == SyntaxKind::OpenParenToken || 
+                         (token() == SyntaxKind::LessThanToken && peekToken().kind != SyntaxKind::GreaterThanToken))) {
+                        // This is likely: callback: async (args) => body
+                        // or: callback: async <T>(args) => body
+                        // Already consumed 'async', now parse the rest as expression
                         parseAssignmentExpressionOrHigher();
                         if (!parseOptional(SyntaxKind::CommaToken)) {
                             break;
@@ -1621,7 +1639,9 @@ void TsStrip::parsePrimaryExpression() {
                         if (token() == SyntaxKind::OpenBraceToken) {
                             parseBlock();
                         } else {
-                            parseExpression();
+                            // Use parseAssignmentExpressionOrHigher instead of parseExpression
+                            // to avoid parsing comma-separated expressions as part of the arrow body.
+                            parseAssignmentExpressionOrHigher();
                         }
                     }
                 }
@@ -1639,7 +1659,11 @@ void TsStrip::parsePrimaryExpression() {
                     if (token() == SyntaxKind::OpenBraceToken) {
                         parseBlock();
                     } else {
-                        parseExpression();
+                        // Use parseAssignmentExpressionOrHigher instead of parseExpression
+                        // to avoid parsing comma-separated expressions as part of the arrow body.
+                        // In object literals like { fn: async () => 1, x: 2 }, the comma should
+                        // be a property separator, not part of the arrow function body.
+                        parseAssignmentExpressionOrHigher();
                     }
                 }
             }
@@ -1992,21 +2016,24 @@ void TsStrip::parseStatement() {
  * This is the KEY function that properly handles expression statements!
  */
 void TsStrip::parseExpressionOrLabeledStatement() {
-    // Avoiding having to do the lookahead for a labeled statement by just trying to parse
-    // out an expression, seeing if it is identifier and then seeing if it is followed by
-    // a colon.
-    bool wasIdentifier = (token() == SyntaxKind::Identifier);
+    // A labeled statement is: identifier ':' statement
+    // We need to check if the current identifier is followed DIRECTLY by ':'
+    // NOT: fn2() : void  (function call followed by colon - not a label!)
+    // YES: myLabel: statement
     
-    parseExpression();
-    
-    if (wasIdentifier && token() == SyntaxKind::ColonToken) {
-        // It's a labeled statement: label: statement
-        nextToken();
+    // Check for labeled statement BEFORE parsing the expression
+    if (token() == SyntaxKind::Identifier && peekToken().kind == SyntaxKind::ColonToken) {
+        // This is a labeled statement: label: statement
+        nextToken(); // consume identifier
+        nextToken(); // consume ':'
         parseStatement();
-    } else {
-        if (!tryParseSemicolon()) {
-            // Error: missing semicolon, but continue
-        }
+        return;
+    }
+    
+    // Parse as expression statement
+    parseExpression();
+    if (!tryParseSemicolon()) {
+        // Error: missing semicolon, but continue
     }
 }
 
