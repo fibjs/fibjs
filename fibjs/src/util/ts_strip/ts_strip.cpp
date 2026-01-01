@@ -360,7 +360,7 @@ private:
     void parseFunctionDeclaration(int outerStart = -1);
     void parseClassDeclaration();
     void parseInterfaceDeclaration(int start);
-    void parseTypeAliasDeclaration(int start);
+    void parseTypeAliasDeclaration(int start, bool isExported = false);
     void parseEnumDeclaration(int start, bool isDeclare = false);
     void parseModuleDeclaration(int start, bool isDeclare = false);
     void parseImportDeclaration();
@@ -3131,14 +3131,34 @@ void TsStrip::parseInterfaceDeclaration(int start) {
 }
 
 /**
- * parseTypeAliasDeclaration - remove entirely
+ * parseTypeAliasDeclaration - handle type alias
+ * 
+ * If isExported=true (export type / export declare type):
+ *   Transform: export type Name<T> = Type;
+ *   To:        export var  Name          ;
+ *   This preserves the name so it can be imported.
+ * 
+ * If isExported=false (local type alias):
+ *   Completely erase the declaration.
  */
-void TsStrip::parseTypeAliasDeclaration(int start) {
+void TsStrip::parseTypeAliasDeclaration(int start, bool isExported) {
     // type Name<T> = Type;
+    // At this point, 'type' keyword has been consumed, current token is the name
+    // 'start' points to either 'type' or 'export' (if exported)
+    
+    // Record position right after 'type' keyword (before name)
+    int nameStart = getNodePos();
+    
     // Type alias name can be an identifier or contextual keyword
+    int nameEnd = nameStart;
     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
+        nameEnd = getPrevTokenEnd();
     }
+    
+    // Record start of type parameters/body (everything after name to be erased)
+    int afterNameStart = getNodePos();
+    
     if (token() == SyntaxKind::LessThanToken) {
         skipTypeArguments();
     }
@@ -3147,9 +3167,54 @@ void TsStrip::parseTypeAliasDeclaration(int start) {
     }
     tryParseSemicolon();
     
-    // Use getPrevTokenEnd() to avoid erasing comments after the declaration
-    addReplacement(start, getPrevTokenEnd());
-    fixASI(start, getPrevTokenEnd());
+    int declEnd = getPrevTokenEnd();
+    
+    if (!isExported) {
+        // Not exported - completely erase
+        addReplacement(start, declEnd);
+        fixASI(start, declEnd);
+        return;
+    }
+    
+    // Exported - convert 'type' to 'var '
+    // Find the 'type' keyword position
+    // 'type' is 4 characters, 'var' is 3 characters
+    // We'll replace 'type' with 'var ' (var + 1 space)
+    const char* typeStr = "type";
+    int typeLen = 4;
+    int typeKeywordStart = start;
+    
+    for (int pos = start; pos < nameStart; pos++) {
+        bool match = true;
+        for (int j = 0; j < typeLen && pos + j < (int)m_length; j++) {
+            if (m_src[pos + j] != (uint8_t)typeStr[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            typeKeywordStart = pos;
+            break;
+        }
+    }
+    
+    // Replace 'type' with 'var '
+    addOverwrite(typeKeywordStart, 'v');
+    addOverwrite(typeKeywordStart + 1, 'a');
+    addOverwrite(typeKeywordStart + 2, 'r');
+    addOverwrite(typeKeywordStart + 3, ' ');
+    
+    // Erase everything between name end and declaration end (type params, = Type, etc.)
+    if (afterNameStart < declEnd) {
+        addReplacement(afterNameStart, declEnd);
+    }
+    
+    // Add semicolon at the end position
+    if (declEnd > 0) {
+        addOverwrite(declEnd - 1, ';');
+    }
+    
+    fixASI(start, declEnd);
 }
 
 /**
@@ -3532,7 +3597,7 @@ void TsStrip::parseExportDeclaration() {
 
         // export type Name = ...;
         if (token() == SyntaxKind::Identifier) {
-            parseTypeAliasDeclaration(start);
+            parseTypeAliasDeclaration(start, true);  // isExported=true
             return;
         }
 
@@ -3604,9 +3669,9 @@ void TsStrip::parseExportDeclaration() {
             parseInterfaceDeclaration(start);  // Use export start to erase everything
         } else if (token() == SyntaxKind::TypeKeyword && 
                    (peekToken().kind == SyntaxKind::Identifier || isKeyword(peekToken().kind))) {
-            // export default type X = ... - erase entirely including "export default"
+            // export default type X = ... -> export default var  X ;
             nextToken();
-            parseTypeAliasDeclaration(start);  // Use export start to erase everything
+            parseTypeAliasDeclaration(start, true);  // isExported=true
         } else {
             parseAssignmentExpressionOrHigher();
             tryParseSemicolon();
@@ -3655,7 +3720,7 @@ void TsStrip::parseExportDeclaration() {
         case SyntaxKind::TypeKeyword:
             if (peekToken().kind == SyntaxKind::Identifier) {
                 nextToken();
-                parseTypeAliasDeclaration(start);
+                parseTypeAliasDeclaration(start, true);  // isExported=true
             } else if (peekToken().kind == SyntaxKind::OpenBraceToken) {
                 // export type { ... }
                 nextToken();
@@ -3675,8 +3740,25 @@ void TsStrip::parseExportDeclaration() {
         }
         case SyntaxKind::DeclareKeyword: {
             nextToken();
-            parseDeclaration();
-            addReplacement(start, getNodePos());
+            // For interface and type, handle specially to preserve export var
+            if (token() == SyntaxKind::InterfaceKeyword) {
+                // export declare interface X { } -> export var       X ;
+                // Erase 'declare ' (between export and interface)
+                addReplacement(start + 6, getNodePos()); // 6 = strlen("export")
+                int ifaceStart = getNodePos();
+                nextToken();
+                parseInterfaceDeclaration(ifaceStart);
+            } else if (token() == SyntaxKind::TypeKeyword) {
+                // export declare type X = ... -> export var  X ;
+                // Erase 'declare ' (between export and type)
+                addReplacement(start + 6, getNodePos()); // 6 = strlen("export")
+                int typeStart = getNodePos();
+                nextToken();
+                parseTypeAliasDeclaration(typeStart, true);  // isExported=true
+            } else {
+                parseDeclaration();
+                addReplacement(start, getNodePos());
+            }
             break;
         }
         case SyntaxKind::AsteriskToken:

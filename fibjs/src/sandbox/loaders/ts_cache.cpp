@@ -15,12 +15,13 @@
 #include "ifs/os.h"
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #ifdef _WIN32
 #include <io.h>
 #include <direct.h>
 #define mkdir(path, mode) _mkdir(path)
+#else
+#include <unistd.h>
 #endif
 
 namespace fibjs {

@@ -504,19 +504,20 @@ export class ClassA {
             assert.strictEqual(strip('import { type User, getData } from "./module";'), 'import {            getData } from "./module";');
         });
 
-        it('should remove export type alias with arrow function type', () => {
-            // Bug: export type X = (T) => R was leaving "=> R" behind
+        it('should convert export type alias with arrow function type to var', () => {
+            // export type should be converted to export var for import compatibility
             const input = 'export type Fn = (x: T) => R;';
+            const expected = 'export var  Fn              ;';
             const out = strip(input);
-            assert.ok(!out.includes('=>'), out);
-            assert.doesNotThrow(() => new Function(out), out);
+            assert.strictEqual(out, expected);
+            assert.ok(!out.includes('=>'), 'Arrow should not leak: ' + out);
         });
 
-        it('should remove export type alias with generic arrow function type', () => {
+        it('should convert export type alias with generic arrow function type to var', () => {
             const input = 'export type GetResult<T extends Base, R extends Result> = (resolution: T) => R | undefined;';
             const out = strip(input);
-            assert.ok(!out.includes('=>'), out);
-            assert.doesNotThrow(() => new Function(out), out);
+            assert.ok(out.startsWith('export var  GetResult'), 'Should start with export var: ' + out);
+            assert.ok(!out.includes('=>'), 'Arrow should not leak: ' + out);
         });
 
         it('should remove import type with dotted access', () => {
@@ -2252,12 +2253,11 @@ declare const stat: any;
                 '                                        '   // amaro: completely erases
             );
 
-            it('should strip export type', () => {
-                const input = 'export type ID = string | number;';
-                // Entire export type is erased to avoid orphan 'export'
-                const expected = '                                 ';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should strip export type',
+                'export type ID = string | number;',
+                'export var  ID                  ;',  // fibjs: converts to var for import compatibility
+                '                                 '   // amaro: completely erases
+            );
 
             it('should keep export const with type', () => {
                 const input = 'export const x: number = 1;';
@@ -2608,11 +2608,11 @@ declare const stat: any;
                 '                                       '   // amaro: completely erases
             );
 
-            it('should completely erase export type alias', () => {
-                const input = 'export type ID = string | number;';
-                const expected = '                                 ';
-                assert.strictEqual(strip(input), expected);
-            });
+            itDiff('should convert export type alias to var declaration',
+                'export type ID = string | number;',
+                'export var  ID                  ;',  // fibjs: converts to var for import compatibility
+                '                                 '   // amaro: completely erases
+            );
 
             itDiff('should convert export interface with generics to var',
                 'export interface List<T> { items: T[]; }',
@@ -3528,10 +3528,10 @@ declare const stat: any;
                 '                                           '   // amaro: complete erasure
             );
 
-            // amaro doesn't support 'export default type' syntax
-            itDiff('should strip export default type entirely',
+            // export default type should be converted to export default var for import compatibility
+            itDiff('should convert export default type to var',
                 'export default type Foo = string;',
-                '                                 ',  // fibjs: strips to spaces
+                'export default var  Foo         ;',  // fibjs: converts to var
                 null  // amaro: throws error
             );
 
@@ -3740,9 +3740,9 @@ declare const stat: any;
 
         describe('Keyword Identifier Edge Cases', () => {
 
-            it('should strip export type with typeof default', () => {
+            it('should convert export type with typeof default to var', () => {
                 const input = 'export type X = typeof default;';
-                const expected = ' '.repeat(input.length);
+                const expected = 'export var  X                 ;';
                 assert.strictEqual(strip(input), expected);
             });
 
