@@ -28,11 +28,15 @@ interface XmlElement : XmlNode
 
     /*! Query the HTML text of the selected element and its descendants, valid only in html mode. When querying, return the HTML encoding of the element and all child nodes within the node.
     */
-    readonly String outerHTML;
+    String outerHTML;
 
     /*! Query and set the class attribute of the element, valid only in html mode
     */
     String className;
+
+    /*! @brief Return an object containing all data-* attribute key-value pairs of the element, valid only in html mode. Attribute names are converted from data-xxx-yyy format to xxxYyy camelCase format
+    */
+    readonly Object dataset;
 
     /*! @brief Return a NamedNodeMap containing the attributes of the selected node. If the selected node is not an element, this property returns NULL.
     */

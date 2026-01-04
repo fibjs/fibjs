@@ -108,8 +108,10 @@ public:
     virtual result_t get_innerHTML(exlib::string& retVal);
     virtual result_t set_innerHTML(exlib::string newVal);
     virtual result_t get_outerHTML(exlib::string& retVal);
+    virtual result_t set_outerHTML(exlib::string newVal);
     virtual result_t get_className(exlib::string& retVal);
     virtual result_t set_className(exlib::string newVal);
+    virtual result_t get_dataset(v8::Local<v8::Object>& retVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal);
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal);

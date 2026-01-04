@@ -36,8 +36,10 @@ public:
     virtual result_t get_innerHTML(exlib::string& retVal) = 0;
     virtual result_t set_innerHTML(exlib::string newVal) = 0;
     virtual result_t get_outerHTML(exlib::string& retVal) = 0;
+    virtual result_t set_outerHTML(exlib::string newVal) = 0;
     virtual result_t get_className(exlib::string& retVal) = 0;
     virtual result_t set_className(exlib::string newVal) = 0;
+    virtual result_t get_dataset(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal) = 0;
@@ -81,8 +83,10 @@ public:
     static void s_get_innerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_innerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_outerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_outerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_className(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_className(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -142,8 +146,9 @@ inline ClassInfo& XmlElement_base::class_info()
         { "tagName", s_get_tagName, block_set, false },
         { "id", s_get_id, s_set_id, false },
         { "innerHTML", s_get_innerHTML, s_set_innerHTML, false },
-        { "outerHTML", s_get_outerHTML, block_set, false },
+        { "outerHTML", s_get_outerHTML, s_set_outerHTML, false },
         { "className", s_get_className, s_set_className, false },
+        { "dataset", s_get_dataset, block_set, false },
         { "attributes", s_get_attributes, block_set, false }
     };
 
@@ -298,6 +303,20 @@ inline void XmlElement_base::s_get_outerHTML(const v8::FunctionCallbackInfo<v8::
     METHOD_RETURN();
 }
 
+inline void XmlElement_base::s_set_outerHTML(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_outerHTML(v0);
+
+    METHOD_VOID();
+}
+
 inline void XmlElement_base::s_get_className(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
@@ -324,6 +343,20 @@ inline void XmlElement_base::s_set_className(const v8::FunctionCallbackInfo<v8::
     hr = pInst->set_className(v0);
 
     METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_dataset(vr);
+
+    METHOD_RETURN();
 }
 
 inline void XmlElement_base::s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args)

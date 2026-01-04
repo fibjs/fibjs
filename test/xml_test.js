@@ -2825,12 +2825,147 @@ describe('xml', () => {
             assert.equal(hdoc.body.firstChild.tagName, "IMG");
         });
 
+        it("outerHTML", () => {
+            var hdoc = parseHtml("<div id='test'>Hello</div>");
+            var div = hdoc.getElementById("test");
+
+            // Test get outerHTML
+            assert.equal(div.outerHTML, '<div id="test">Hello</div>');
+
+            // Test set outerHTML - replaces element with new content
+            div.outerHTML = "<span>World</span><p>New</p>";
+            assert.equal(hdoc.body.innerHTML, "<span>World</span><p>New</p>");
+
+            // Original element should be detached (no parent)
+            assert.equal(div.parentNode, null);
+
+            // Test outerHTML on element without parent (should throw error per MDN spec)
+            var orphan = hdoc.createElement("div");
+            orphan.textContent = "orphan";
+            assert.throws(() => {
+                orphan.outerHTML = "<span>replaced</span>";
+            });
+        });
+
         it("textContent", () => {
             var hdoc = parseHtml("<Div>    <p>abcde\nf&lt;</div>");
             assert.equal(hdoc.body.textContent, "    abcde\nf<");
 
             hdoc.body.textContent = "<img><br>";
             assert.equal(hdoc.body.innerHTML, "&lt;img&gt;&lt;br&gt;");
+        });
+
+        describe("dataset", () => {
+            it("basic camelCase conversion", () => {
+                var hdoc = parseHtml('<div id="user" data-user-id="12345" data-user-name="John" data-abc-def-ghi="test">Content</div>');
+                var div = hdoc.getElementById("user");
+
+                assert.equal(typeof div.dataset, "object");
+                assert.equal(div.dataset.userId, "12345");
+                assert.equal(div.dataset.userName, "John");
+                assert.equal(div.dataset.abcDefGhi, "test");
+            });
+
+            it("non-existent attribute returns undefined", () => {
+                var hdoc = parseHtml('<div id="test" data-exists="yes">Test</div>');
+                var div = hdoc.getElementById("test");
+                assert.equal(div.dataset.nonExistent, undefined);
+            });
+
+            it("element without data attributes", () => {
+                var hdoc = parseHtml('<span id="empty">No data</span>');
+                var span = hdoc.getElementById("empty");
+                assert.equal(Object.keys(span.dataset).length, 0);
+            });
+
+            it("single letter attribute names", () => {
+                var hdoc = parseHtml('<div id="t1" data-a="1" data-b="2">Test</div>');
+                var t1 = hdoc.getElementById("t1");
+                assert.equal(t1.dataset.a, "1");
+                assert.equal(t1.dataset.b, "2");
+            });
+
+            it("numbers in attribute name", () => {
+                var hdoc = parseHtml('<div id="t2" data-item1="a" data-item2name="b" data-123="c">Test</div>');
+                var t2 = hdoc.getElementById("t2");
+                assert.equal(t2.dataset.item1, "a");
+                assert.equal(t2.dataset.item2name, "b");
+                assert.equal(t2.dataset["123"], "c");
+            });
+
+            it("empty value and boolean-like attribute", () => {
+                var hdoc = parseHtml('<div id="t3" data-empty="" data-flag>Test</div>');
+                var t3 = hdoc.getElementById("t3");
+                assert.equal(t3.dataset.empty, "");
+                assert.equal(t3.dataset.flag, "");
+            });
+
+            it("special characters (dots, colons) preserved", () => {
+                var hdoc = parseHtml('<div id="t4" data-a.b="dot" data-a:b="colon">Test</div>');
+                var t4 = hdoc.getElementById("t4");
+                assert.equal(t4.dataset["a.b"], "dot");
+                assert.equal(t4.dataset["a:b"], "colon");
+            });
+
+            it("uppercase in HTML normalized to lowercase", () => {
+                var hdoc = parseHtml('<div id="t5" data-MyValue="upper" DATA-OTHER="caps">Test</div>');
+                var t5 = hdoc.getElementById("t5");
+                assert.equal(t5.dataset.myvalue, "upper");
+                assert.equal(t5.dataset.other, "caps");
+            });
+
+            it("dynamically added via setAttribute", () => {
+                var hdoc = parseHtml('<div id="t6">Test</div>');
+                var t6 = hdoc.getElementById("t6");
+                assert.equal(Object.keys(t6.dataset).length, 0);
+                t6.setAttribute("data-dynamic-value", "added");
+                assert.equal(t6.dataset.dynamicValue, "added");
+            });
+
+            it("multiple consecutive dashes", () => {
+                var hdoc = parseHtml('<div id="t7" data-a--b="double" data-x---y="triple">Test</div>');
+                var t7 = hdoc.getElementById("t7");
+                // data-a--b -> a-B (dash + lowercase = uppercase, other dashes preserved)
+                assert.equal(t7.dataset["a-B"], "double");
+                assert.equal(t7.dataset["x--Y"], "triple");
+            });
+
+            it("trailing dash", () => {
+                var hdoc = parseHtml('<div id="t8" data-test-="trailing">Test</div>');
+                var t8 = hdoc.getElementById("t8");
+                assert.equal(t8.dataset["test-"], "trailing");
+            });
+
+            it("underscore in name preserved", () => {
+                var hdoc = parseHtml('<div id="t9" data-my_value="underscore" data-a_b-c="mixed">Test</div>');
+                var t9 = hdoc.getElementById("t9");
+                assert.equal(t9.dataset.my_value, "underscore");
+                assert.equal(t9.dataset.a_bC, "mixed");
+            });
+
+            it("value with special characters", () => {
+                var hdoc = parseHtml('<div id="t10" data-json=\'{"key":"value"}\' data-html="&lt;b&gt;bold&lt;/b&gt;">Test</div>');
+                var t10 = hdoc.getElementById("t10");
+                assert.equal(t10.dataset.json, '{"key":"value"}');
+                assert.equal(t10.dataset.html, "<b>bold</b>");
+            });
+
+            it("remove data attribute updates dataset", () => {
+                var hdoc = parseHtml('<div id="t11" data-remove-me="value">Test</div>');
+                var t11 = hdoc.getElementById("t11");
+                assert.equal(t11.dataset.removeMe, "value");
+                t11.removeAttribute("data-remove-me");
+                assert.equal(t11.dataset.removeMe, undefined);
+                assert.equal(Object.keys(t11.dataset).length, 0);
+            });
+
+            it("modify existing data attribute updates dataset", () => {
+                var hdoc = parseHtml('<div id="t12" data-modify="old">Test</div>');
+                var t12 = hdoc.getElementById("t12");
+                assert.equal(t12.dataset.modify, "old");
+                t12.setAttribute("data-modify", "new");
+                assert.equal(t12.dataset.modify, "new");
+            });
         });
 
 

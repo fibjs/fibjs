@@ -48,13 +48,19 @@ declare class Class_XmlElement extends Class_XmlNode {
      * ! 查询选定元素及其后代的 HTML 文本，仅在 html 模式有效。查询时，返回元素及节点内所有子节点的 HTML 编码。
      *     
      */
-    readonly outerHTML: string;
+    outerHTML: string;
 
     /**
      * ! 查询和设置元素的 class 属性，仅在 html 模式有效
      *     
      */
     className: string;
+
+    /**
+     * @description 返回一个对象，包含元素所有 data-* 属性的键值对，仅在 html 模式有效。属性名会从 data-xxx-yyy 格式转换为 xxxYyy 驼峰格式
+     *     
+     */
+    readonly dataset: FIBJS.GeneralObject;
 
     /**
      * @description 返回包含被选节点属性的 NamedNodeMap。如果被选节点不是元素，则该属性返回 NULL。

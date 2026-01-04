@@ -319,6 +319,41 @@ result_t XmlElement::get_outerHTML(exlib::string& retVal)
     return toString(retVal);
 }
 
+result_t XmlElement::set_outerHTML(exlib::string newVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    obj_ptr<XmlNode_base> parent;
+    result_t hr = get_parentNode(parent);
+    if (hr < 0 || parent == NULL)
+        return CHECK_ERROR(Runtime::setError("XmlElement: This element has no parent node."));
+
+    // Parse the new HTML content
+    obj_ptr<XmlDocument> doc = new XmlDocument(false);
+    hr = doc->load(newVal);
+    if (hr < 0)
+        return hr;
+
+    // Get the body element which contains the parsed nodes
+    obj_ptr<XmlElement_base> body;
+    hr = doc->get_body(body);
+    if (hr < 0 || body == NULL)
+        return hr;
+
+    // Insert all new nodes before this element, then remove this element
+    obj_ptr<XmlNode_base> node;
+    obj_ptr<XmlNode_base> out;
+    while (body->get_firstChild(node) == 0) {
+        parent->insertBefore(node, this, out);
+    }
+
+    // Remove this element from parent
+    parent->removeChild(this, out);
+
+    return 0;
+}
+
 result_t XmlElement::get_className(exlib::string& retVal)
 {
     getAttribute("class", retVal);
@@ -331,6 +366,67 @@ result_t XmlElement::set_className(exlib::string newVal)
         return removeAttribute("class");
 
     return setAttribute("class", newVal);
+}
+
+// Convert data-xxx-yyy to xxxYyy (camelCase)
+// Per MDN spec: dash followed by lowercase letter -> remove dash, uppercase letter
+// Other dashes are preserved
+static exlib::string dataAttrToCamelCase(const exlib::string& name)
+{
+    // name starts with "data-", remove it
+    exlib::string result;
+
+    for (size_t i = 5; i < name.length(); i++) {
+        char c = name[i];
+        if (c == '-' && i + 1 < name.length()) {
+            char next = name[i + 1];
+            if (next >= 'a' && next <= 'z') {
+                // Dash followed by lowercase: remove dash, uppercase the letter
+                result += (next - 'a' + 'A');
+                i++; // skip the next character as we've processed it
+            } else {
+                // Dash not followed by lowercase: keep the dash
+                result += c;
+            }
+        } else {
+            result += c;
+        }
+    }
+
+    return result;
+}
+
+result_t XmlElement::get_dataset(v8::Local<v8::Object>& retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+
+    int32_t len;
+    m_attrs->get_length(len);
+
+    for (int32_t i = 0; i < len; i++) {
+        obj_ptr<XmlAttr_base> attr;
+        m_attrs->item(i, attr);
+
+        exlib::string name;
+        attr->get_nodeName(name);
+
+        // Check if attribute name starts with "data-"
+        if (name.length() > 5 && name.substr(0, 5) == "data-") {
+            exlib::string camelName = dataAttrToCamelCase(name);
+            exlib::string value;
+            attr->get_nodeValue(value);
+
+            obj->Set(context, isolate->NewString(camelName), isolate->NewString(value)).IsJust();
+        }
+    }
+
+    retVal = obj;
+    return 0;
 }
 
 result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal)
