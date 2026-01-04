@@ -3333,6 +3333,86 @@ describe('xml', () => {
                 });
             });
 
+            // template.content tests
+            describe('template.content', () => {
+                it("returns DocumentFragment for template element", () => {
+                    var doc = xml.parse('<html><body><template><p>Hello</p><p>World</p></template></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+
+                    assert.equal(template.tagName, "TEMPLATE");
+                    assert.notEqual(template.content, null);
+                    assert.equal(template.content.nodeType, 11);
+                    assert.equal(template.content.nodeName, "#document-fragment");
+                });
+
+                it("content contains cloned children", () => {
+                    var doc = xml.parse('<html><body><template><span>A</span><span>B</span></template></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+                    var content = template.content;
+
+                    assert.equal(content.childNodes.length, 2);
+                    assert.equal(content.firstChild.tagName, "SPAN");
+                    assert.equal(content.firstChild.textContent, "A");
+                    assert.equal(content.lastChild.tagName, "SPAN");
+                    assert.equal(content.lastChild.textContent, "B");
+                });
+
+                it("content returns null for non-template elements", () => {
+                    var doc = xml.parse('<html><body><div><p>Hello</p></div></body></html>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    assert.equal(div.content, null);
+                });
+
+                it("content returns null in XML mode", () => {
+                    var xdoc = newDoc();
+                    var template = xdoc.createElement("template");
+                    template.appendChild(xdoc.createElement("child"));
+
+                    assert.equal(template.content, null);
+                });
+
+                it("content can be inserted with appendChild", () => {
+                    var doc = xml.parse('<html><body><template><p>Hello</p></template><div id="target"></div></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+                    var target = doc.getElementById('target');
+
+                    assert.equal(target.innerHTML, "");
+                    target.appendChild(template.content);
+                    assert.equal(target.innerHTML, '<p>Hello</p>');
+                });
+
+                it("content can be inserted with insertBefore", () => {
+                    var doc = xml.parse('<html><body><template><p>A</p><p>B</p></template><div id="target"><span>X</span></div></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+                    var target = doc.getElementById('target');
+                    var refNode = target.firstChild;
+
+                    target.insertBefore(template.content, refNode);
+                    assert.equal(target.innerHTML, '<p>A</p><p>B</p><span>X</span>');
+                });
+
+                it("content can be inserted with insertAfter", () => {
+                    var doc = xml.parse('<html><body><template><p>A</p><p>B</p></template><div id="target"><span>X</span></div></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+                    var target = doc.getElementById('target');
+                    var refNode = target.firstChild;
+
+                    target.insertAfter(template.content, refNode);
+                    assert.equal(target.innerHTML, '<span>X</span><p>A</p><p>B</p>');
+                });
+
+                it("content can be inserted with replaceChild", () => {
+                    var doc = xml.parse('<html><body><template><p>A</p><p>B</p></template><div id="target"><span>X</span></div></body></html>', 'text/html');
+                    var template = doc.body.firstChild;
+                    var target = doc.getElementById('target');
+                    var oldChild = target.firstChild;
+
+                    target.replaceChild(template.content, oldChild);
+                    assert.equal(target.innerHTML, '<p>A</p><p>B</p>');
+                });
+            });
+
             // classList (DOMTokenList) tests
             describe('classList', () => {
                 it("basic access", () => {

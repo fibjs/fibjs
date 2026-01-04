@@ -42,6 +42,10 @@ interface XmlElement : XmlNode
     */
     readonly Object dataset;
 
+    /*! @brief 返回 template 元素的内容，仅对 template 元素有效，返回一个包含其子节点的 DocumentFragment
+    */
+    readonly XmlDocumentFragment content;
+
     /*! @brief 返回包含被选节点属性的 NamedNodeMap。如果被选节点不是元素，则该属性返回 NULL。
     */
     readonly XmlNamedNodeMap attributes;

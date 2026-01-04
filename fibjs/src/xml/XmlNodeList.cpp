@@ -171,6 +171,10 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
 
         while (fragChilds->m_childs.size() > 0) {
             XmlNodeImpl* child = fragChilds->m_childs[0];
+
+            // Hold a reference to prevent premature destruction during removeChild
+            obj_ptr<XmlNode_base> childRef = child->m_node;
+
             obj_ptr<XmlNode_base> tmp;
             fragChilds->removeChild(child->m_node, tmp);
 
@@ -239,6 +243,10 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
 
         while (fragChilds->m_childs.size() > 0) {
             XmlNodeImpl* child = fragChilds->m_childs[0];
+
+            // Hold a reference to prevent premature destruction during removeChild
+            obj_ptr<XmlNode_base> childRef = child->m_node;
+
             obj_ptr<XmlNode_base> tmp;
             fragChilds->removeChild(child->m_node, tmp);
 
@@ -318,6 +326,10 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
         // Insert all fragment children at the position
         while (fragChilds->m_childs.size() > 0) {
             XmlNodeImpl* child = fragChilds->m_childs[0];
+
+            // Hold a reference to prevent premature destruction during removeChild
+            obj_ptr<XmlNode_base> childRef = child->m_node;
+
             obj_ptr<XmlNode_base> tmp;
             fragChilds->removeChild(child->m_node, tmp);
 
@@ -399,6 +411,10 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
         XmlNodeList* fragChilds = pNew->m_childs;
         while (fragChilds->m_childs.size() > 0) {
             XmlNodeImpl* child = fragChilds->m_childs[0];
+
+            // Hold a reference to prevent premature destruction during removeChild
+            obj_ptr<XmlNode_base> childRef = child->m_node;
+
             obj_ptr<XmlNode_base> tmp;
             fragChilds->removeChild(child->m_node, tmp);
 

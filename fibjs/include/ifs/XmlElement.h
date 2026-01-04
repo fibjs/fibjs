@@ -18,6 +18,7 @@ namespace fibjs {
 
 class XmlNode_base;
 class DOMTokenList_base;
+class XmlDocumentFragment_base;
 class XmlNamedNodeMap_base;
 class XmlAttr_base;
 class XmlNodeList_base;
@@ -42,6 +43,7 @@ public:
     virtual result_t set_className(exlib::string newVal) = 0;
     virtual result_t get_classList(obj_ptr<DOMTokenList_base>& retVal) = 0;
     virtual result_t get_dataset(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_content(obj_ptr<XmlDocumentFragment_base>& retVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
     virtual result_t hasAttributes(bool& retVal) = 0;
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal) = 0;
@@ -91,6 +93,7 @@ public:
     static void s_set_className(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_classList(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_content(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasAttributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -116,6 +119,7 @@ public:
 }
 
 #include "ifs/DOMTokenList.h"
+#include "ifs/XmlDocumentFragment.h"
 #include "ifs/XmlNamedNodeMap.h"
 #include "ifs/XmlAttr.h"
 #include "ifs/XmlNodeList.h"
@@ -157,6 +161,7 @@ inline ClassInfo& XmlElement_base::class_info()
         { "className", s_get_className, s_set_className, false },
         { "classList", s_get_classList, block_set, false },
         { "dataset", s_get_dataset, block_set, false },
+        { "content", s_get_content, block_set, false },
         { "attributes", s_get_attributes, block_set, false }
     };
 
@@ -377,6 +382,20 @@ inline void XmlElement_base::s_get_dataset(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(0, 0);
 
     hr = pInst->get_dataset(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_get_content(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlDocumentFragment_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_content(vr);
 
     METHOD_RETURN();
 }

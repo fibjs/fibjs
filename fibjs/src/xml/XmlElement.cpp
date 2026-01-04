@@ -11,6 +11,7 @@
 #include "XmlAttr.h"
 #include "XmlText.h"
 #include "XmlDocument.h"
+#include "XmlDocumentFragment.h"
 #include "StringBuffer.h"
 #include "parse.h"
 #include <algorithm>
@@ -443,6 +444,32 @@ result_t XmlElement::get_dataset(v8::Local<v8::Object>& retVal)
     }
 
     retVal = obj;
+    return 0;
+}
+
+result_t XmlElement::get_content(obj_ptr<XmlDocumentFragment_base>& retVal)
+{
+    // content property is only valid for <template> elements in HTML mode
+    if (m_isXml)
+        return CALL_RETURN_NULL;
+
+    // Check if this is a template element (case-insensitive for HTML)
+    if (qstricmp(m_tagName.c_str(), "TEMPLATE") != 0)
+        return CALL_RETURN_NULL;
+
+    // Create a DocumentFragment containing clones of all child nodes
+    obj_ptr<XmlDocumentFragment> fragment = new XmlDocumentFragment(m_document);
+
+    // Clone children to the fragment (template content behavior)
+    int32_t len = (int32_t)m_childs->m_childs.size();
+    for (int32_t i = 0; i < len; i++) {
+        obj_ptr<XmlNode_base> child;
+        m_childs->m_childs[i]->m_node->cloneNode(true, child);
+        obj_ptr<XmlNode_base> tmp;
+        fragment->appendChild(child, tmp);
+    }
+
+    retVal = fragment;
     return 0;
 }
 

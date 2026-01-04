@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /// <reference path="../interface/DOMTokenList.d.ts" />
+/// <reference path="../interface/XmlDocumentFragment.d.ts" />
 /// <reference path="../interface/XmlNamedNodeMap.d.ts" />
 /// <reference path="../interface/XmlAttr.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
@@ -68,6 +69,12 @@ declare class Class_XmlElement extends Class_XmlNode {
      *     
      */
     readonly dataset: FIBJS.GeneralObject;
+
+    /**
+     * @description 返回 template 元素的内容，仅对 template 元素有效，返回一个包含其子节点的 DocumentFragment
+     *     
+     */
+    readonly content: Class_XmlDocumentFragment;
 
     /**
      * @description 返回包含被选节点属性的 NamedNodeMap。如果被选节点不是元素，则该属性返回 NULL。
