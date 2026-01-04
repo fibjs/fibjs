@@ -8,6 +8,7 @@
 /// <reference path="../interface/XmlComment.d.ts" />
 /// <reference path="../interface/XmlCDATASection.d.ts" />
 /// <reference path="../interface/XmlProcessingInstruction.d.ts" />
+/// <reference path="../interface/XmlDocumentFragment.d.ts" />
 /**
  * @description XmlDocument 是  xml 模块的一个对象，它代表整个 XML 文档，提供了对整个文档的访问入口
  * 
@@ -200,6 +201,15 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *     
      */
     createProcessingInstruction(target: string, data: string): Class_XmlProcessingInstruction;
+
+    /**
+     * @description 创建空的 XmlDocumentFragment 节点
+     * 
+     *      DocumentFragment 是一个轻量级的文档对象，可以包含多个子节点。当把 DocumentFragment 插入文档时，插入的不是 DocumentFragment 本身，而是它的所有子节点。
+     *      @return 新创建的 XmlDocumentFragment 节点
+     *     
+     */
+    createDocumentFragment(): Class_XmlDocumentFragment;
 
     /**
      * @description 返回符合指定 CSS 选择器的元素的 XmlNodeList

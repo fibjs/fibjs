@@ -373,6 +373,18 @@ result_t XmlElement::set_className(exlib::string newVal)
     return setAttribute("class", newVal);
 }
 
+result_t XmlElement::get_classList(obj_ptr<DOMTokenList_base>& retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    if (!m_classList)
+        m_classList = new DOMTokenList(this);
+
+    retVal = m_classList;
+    return 0;
+}
+
 // Convert data-xxx-yyy to xxxYyy (camelCase)
 // Per MDN spec: dash followed by lowercase letter -> remove dash, uppercase letter
 // Other dashes are preserved

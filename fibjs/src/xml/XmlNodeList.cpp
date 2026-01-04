@@ -102,23 +102,27 @@ result_t XmlNodeList::lastChild(obj_ptr<XmlNode_base>& retVal)
 
 XmlNodeImpl* XmlNodeList::checkChild(XmlNode_base* child)
 {
-    static char s_child_rules[11][11] = {
-        //  E  A  T  CS ER EN PI C  D  DT
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // NONE
-        { 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0 }, // ELEMENT_NODE
-        { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 }, // ATTRIBUTE_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // TEXT_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // CDATA_SECTION_NODE
-        { 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0 }, // ENTITY_REFERENCE_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // ENTITY_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // PROCESSING_INSTRUCTION_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // COMMENT_NODE
-        { 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1 }, // DOCUMENT_NODE
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } // DOCUMENT_TYPE_NODE
+    static char s_child_rules[12][12] = {
+        //  E  A  T  CS ER EN PI C  D  DT DF
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // NONE
+        { 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1 }, // ELEMENT_NODE
+        { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 }, // ATTRIBUTE_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // TEXT_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // CDATA_SECTION_NODE
+        { 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0 }, // ENTITY_REFERENCE_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // ENTITY_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // PROCESSING_INSTRUCTION_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // COMMENT_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1 }, // DOCUMENT_NODE
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // DOCUMENT_TYPE_NODE
+        { 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0 }  // DOCUMENT_FRAGMENT_NODE
     };
 
     XmlNodeImpl* node = XmlNodeImpl::fromNode(child);
     if (!node)
+        return NULL;
+
+    if (node->m_type >= 12 || m_this->m_type >= 12)
         return NULL;
 
     if (!s_child_rules[m_this->m_type][node->m_type])
@@ -159,6 +163,33 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
 
     if (pRef->m_parent != m_this)
         return CHECK_ERROR(Runtime::setError("XmlNodeList: The node before which the new node is to be inserted is not a child of this node."));
+
+    // Handle DocumentFragment: insert all its children instead of itself
+    if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
+        XmlNodeList* fragChilds = pNew->m_childs;
+        int32_t idx = pRef->m_index;
+
+        while (fragChilds->m_childs.size() > 0) {
+            XmlNodeImpl* child = fragChilds->m_childs[0];
+            obj_ptr<XmlNode_base> tmp;
+            fragChilds->removeChild(child->m_node, tmp);
+
+            int32_t sz = (int32_t)m_childs.size();
+            m_childs.resize(sz + 1);
+
+            for (int32_t i = sz; i > idx; i--) {
+                XmlNodeImpl* pTmp = m_childs[i - 1];
+                m_childs[i] = pTmp;
+                pTmp->m_index++;
+            }
+
+            child->setParent(m_this, idx);
+            m_childs[idx] = child;
+            idx++;
+        }
+        retVal = newChild;
+        return 0;
+    }
 
     if (pNew == pRef) {
         retVal = newChild;
@@ -201,6 +232,33 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
     if (pRef->m_parent != m_this)
         return CHECK_ERROR(Runtime::setError("XmlNodeList: The node after which the new node is to be inserted is not a child of this node."));
 
+    // Handle DocumentFragment: insert all its children instead of itself
+    if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
+        XmlNodeList* fragChilds = pNew->m_childs;
+        int32_t idx = pRef->m_index + 1;
+
+        while (fragChilds->m_childs.size() > 0) {
+            XmlNodeImpl* child = fragChilds->m_childs[0];
+            obj_ptr<XmlNode_base> tmp;
+            fragChilds->removeChild(child->m_node, tmp);
+
+            int32_t sz = (int32_t)m_childs.size();
+            m_childs.resize(sz + 1);
+
+            for (int32_t i = sz; i > idx; i--) {
+                XmlNodeImpl* pTmp = m_childs[i - 1];
+                m_childs[i] = pTmp;
+                pTmp->m_index++;
+            }
+
+            child->setParent(m_this, idx);
+            m_childs[idx] = child;
+            idx++;
+        }
+        retVal = newChild;
+        return 0;
+    }
+
     if (pNew == pRef) {
         retVal = newChild;
         return 0;
@@ -241,6 +299,44 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
 
     if (pOld->m_parent != m_this)
         return CHECK_ERROR(Runtime::setError("XmlNodeList: The node to be replaced is not a child of this node."));
+
+    // Handle DocumentFragment: replace with all its children
+    if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
+        XmlNodeList* fragChilds = pNew->m_childs;
+        int32_t idx = pOld->m_index;
+
+        // Remove the old child first
+        int32_t sz = (int32_t)m_childs.size();
+        for (int32_t i = idx; i < sz - 1; i++) {
+            XmlNodeImpl* pTmp = m_childs[i + 1];
+            m_childs[i] = pTmp;
+            pTmp->m_index--;
+        }
+        m_childs.resize(sz - 1);
+        pOld->clearParent();
+
+        // Insert all fragment children at the position
+        while (fragChilds->m_childs.size() > 0) {
+            XmlNodeImpl* child = fragChilds->m_childs[0];
+            obj_ptr<XmlNode_base> tmp;
+            fragChilds->removeChild(child->m_node, tmp);
+
+            sz = (int32_t)m_childs.size();
+            m_childs.resize(sz + 1);
+
+            for (int32_t i = sz; i > idx; i--) {
+                XmlNodeImpl* pTmp = m_childs[i - 1];
+                m_childs[i] = pTmp;
+                pTmp->m_index++;
+            }
+
+            child->setParent(m_this, idx);
+            m_childs[idx] = child;
+            idx++;
+        }
+        retVal = oldChild;
+        return 0;
+    }
 
     if (pNew == pOld) {
         retVal = newChild;
@@ -297,6 +393,21 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
     XmlNodeImpl* pNew = checkChild(newChild);
     if (!pNew)
         return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    // Handle DocumentFragment: append all its children instead of itself
+    if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
+        XmlNodeList* fragChilds = pNew->m_childs;
+        while (fragChilds->m_childs.size() > 0) {
+            XmlNodeImpl* child = fragChilds->m_childs[0];
+            obj_ptr<XmlNode_base> tmp;
+            fragChilds->removeChild(child->m_node, tmp);
+
+            child->setParent(m_this, (int32_t)m_childs.size());
+            m_childs.push_back(child);
+        }
+        retVal = newChild;
+        return 0;
+    }
 
     if (!checkNew(pNew))
         return CHECK_ERROR(Runtime::setError("XmlNodeList: The new child element contains the parent."));

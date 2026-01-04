@@ -28,10 +28,14 @@ public:
         C_ATTRIBUTE_NODE = 2,
         C_TEXT_NODE = 3,
         C_CDATA_SECTION_NODE = 4,
+        C_ENTITY_REFERENCE_NODE = 5,
+        C_ENTITY_NODE = 6,
         C_PROCESSING_INSTRUCTION_NODE = 7,
         C_COMMENT_NODE = 8,
         C_DOCUMENT_NODE = 9,
-        C_DOCUMENT_TYPE_NODE = 10
+        C_DOCUMENT_TYPE_NODE = 10,
+        C_DOCUMENT_FRAGMENT_NODE = 11,
+        C_NOTATION_NODE = 12
     };
 
 public:
@@ -78,10 +82,14 @@ inline ClassInfo& xml_base::class_info()
         { "ATTRIBUTE_NODE", ClassData::CONST_Integer, { .intValue = C_ATTRIBUTE_NODE } },
         { "TEXT_NODE", ClassData::CONST_Integer, { .intValue = C_TEXT_NODE } },
         { "CDATA_SECTION_NODE", ClassData::CONST_Integer, { .intValue = C_CDATA_SECTION_NODE } },
+        { "ENTITY_REFERENCE_NODE", ClassData::CONST_Integer, { .intValue = C_ENTITY_REFERENCE_NODE } },
+        { "ENTITY_NODE", ClassData::CONST_Integer, { .intValue = C_ENTITY_NODE } },
         { "PROCESSING_INSTRUCTION_NODE", ClassData::CONST_Integer, { .intValue = C_PROCESSING_INSTRUCTION_NODE } },
         { "COMMENT_NODE", ClassData::CONST_Integer, { .intValue = C_COMMENT_NODE } },
         { "DOCUMENT_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_NODE } },
-        { "DOCUMENT_TYPE_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_TYPE_NODE } }
+        { "DOCUMENT_TYPE_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_TYPE_NODE } },
+        { "DOCUMENT_FRAGMENT_NODE", ClassData::CONST_Integer, { .intValue = C_DOCUMENT_FRAGMENT_NODE } },
+        { "NOTATION_NODE", ClassData::CONST_Integer, { .intValue = C_NOTATION_NODE } }
     };
 
     static ClassData s_cd = {

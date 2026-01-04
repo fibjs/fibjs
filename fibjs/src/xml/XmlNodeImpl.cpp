@@ -9,6 +9,7 @@
 #include "XmlNodeImpl.h"
 #include "XmlDocument.h"
 #include "XmlDocumentType.h"
+#include "XmlDocumentFragment.h"
 #include "XmlElement.h"
 #include "XmlText.h"
 #include "XmlComment.h"
@@ -44,6 +45,8 @@ XmlNodeImpl* XmlNodeImpl::fromNode(XmlNode_base* pNode)
         return (XmlDocument*)pNode;
     case xml_base::C_DOCUMENT_TYPE_NODE:
         return (XmlDocumentType*)pNode;
+    case xml_base::C_DOCUMENT_FRAGMENT_NODE:
+        return (XmlDocumentFragment*)pNode;
     }
 
     return NULL;

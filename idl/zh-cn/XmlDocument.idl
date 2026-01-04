@@ -148,6 +148,13 @@ interface XmlDocument : XmlNode
     */
     XmlProcessingInstruction createProcessingInstruction(String target, String data);
 
+    /*! @brief 创建空的 XmlDocumentFragment 节点
+
+     DocumentFragment 是一个轻量级的文档对象，可以包含多个子节点。当把 DocumentFragment 插入文档时，插入的不是 DocumentFragment 本身，而是它的所有子节点。
+     @return 新创建的 XmlDocumentFragment 节点
+    */
+    XmlDocumentFragment createDocumentFragment();
+
     /*! @brief 返回符合指定 CSS 选择器的元素的 XmlNodeList
 
      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。

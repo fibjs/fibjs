@@ -44,6 +44,14 @@ module xml
     */
     const CDATA_SECTION_NODE = 4;
 
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an EntityReference object (deprecated)
+    */
+    const ENTITY_REFERENCE_NODE = 5;
+
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an Entity object (deprecated)
+    */
+    const ENTITY_NODE = 6;
+
     /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlProcessingInstruction object
     */
     const PROCESSING_INSTRUCTION_NODE = 7;
@@ -59,6 +67,14 @@ module xml
     /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlDocumentType object
     */
     const DOCUMENT_TYPE_NODE = 10;
+
+    /*! @brief XmlNode's nodeType property constant, indicating the node is an XmlDocumentFragment object
+    */
+    const DOCUMENT_FRAGMENT_NODE = 11;
+
+    /*! @brief XmlNode's nodeType property constant, indicating the node is a Notation object (deprecated)
+    */
+    const NOTATION_NODE = 12;
 
     /*! @brief XML document object, see XmlDocument object*/
     static XmlDocument new Document();

@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
+/// <reference path="../interface/DOMTokenList.d.ts" />
 /// <reference path="../interface/XmlNamedNodeMap.d.ts" />
 /// <reference path="../interface/XmlAttr.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
@@ -55,6 +56,12 @@ declare class Class_XmlElement extends Class_XmlNode {
      *     
      */
     className: string;
+
+    /**
+     * @description 返回一个 DOMTokenList 对象，包含元素的 class 属性的标记列表，仅在 html 模式有效
+     *     
+     */
+    readonly classList: Class_DOMTokenList;
 
     /**
      * @description 返回一个对象，包含元素所有 data-* 属性的键值对，仅在 html 模式有效。属性名会从 data-xxx-yyy 格式转换为 xxxYyy 驼峰格式

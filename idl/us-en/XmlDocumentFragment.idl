@@ -1,0 +1,11 @@
+/*! @brief XmlDocumentFragment object represents a lightweight document object that can hold a portion of a document
+
+The XmlDocumentFragment node does not belong to the document tree, and its parentNode is always null. However, it can have child nodes, which can be XmlElement, XmlText, or other types of nodes.
+
+When a DocumentFragment node is inserted into the document tree, it is not the DocumentFragment itself that is inserted, but all of its descendant nodes. This makes DocumentFragment a very useful placeholder for temporarily holding nodes that will be inserted into the document at once.
+
+XmlDocumentFragment objects can be created using the createDocumentFragment() method of XmlDocument.
+*/
+interface XmlDocumentFragment : XmlNode
+{
+};

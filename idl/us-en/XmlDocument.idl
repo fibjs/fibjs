@@ -147,7 +147,12 @@ interface XmlDocument : XmlNode
      @return The newly created ProcessingInstruction node
     */
     XmlProcessingInstruction createProcessingInstruction(String target, String data);
+    /*! @brief Create an empty XmlDocumentFragment node
 
+     DocumentFragment is a lightweight document object that can contain multiple child nodes. When a DocumentFragment is inserted into a document, it is not the DocumentFragment itself that is inserted, but all of its child nodes.
+     @return The newly created XmlDocumentFragment node
+    */
+    XmlDocumentFragment createDocumentFragment();
     /*! @brief Return an XmlNodeList of elements that match the specified CSS selector
 
      This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document that match the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements that match the specified selector are added or removed in the document, its content will be automatically updated as necessary.

@@ -14,6 +14,7 @@
 #include "XmlComment.h"
 #include "XmlCDATASection.h"
 #include "XmlProcessingInstruction.h"
+#include "XmlDocumentFragment.h"
 #include "XmlParser.h"
 #include "encoding_iconv.h"
 
@@ -451,6 +452,12 @@ result_t XmlDocument::createProcessingInstruction(exlib::string target, exlib::s
     obj_ptr<XmlProcessingInstruction_base>& retVal)
 {
     retVal = new XmlProcessingInstruction(this, target, data);
+    return 0;
+}
+
+result_t XmlDocument::createDocumentFragment(obj_ptr<XmlDocumentFragment_base>& retVal)
+{
+    retVal = new XmlDocumentFragment(this);
     return 0;
 }
 

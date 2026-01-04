@@ -3219,6 +3219,246 @@ describe('xml', () => {
                 var doc = xml.parse(data, "text/html");
                 assert.equal(doc.documentElement.textContent, "哈哈哈哈");
             });
+
+            // DocumentFragment tests
+            describe('DocumentFragment', () => {
+                it("createDocumentFragment basic", () => {
+                    var xdoc = newDoc();
+                    var fragment = xdoc.createDocumentFragment();
+
+                    assert.equal(fragment.nodeType, 11);
+                    assert.equal(fragment.nodeName, "#document-fragment");
+                    assert.equal(fragment.parentNode, null);
+                    assert.equal(fragment.ownerDocument, xdoc);
+                });
+
+                it("appendChild children to fragment", () => {
+                    var xdoc = newDoc();
+                    var fragment = xdoc.createDocumentFragment();
+
+                    var text = xdoc.createTextNode("Hello");
+                    var el = xdoc.createElement("span");
+                    el.textContent = "World";
+
+                    fragment.appendChild(text);
+                    fragment.appendChild(el);
+
+                    assert.equal(fragment.childNodes.length, 2);
+                    assert.equal(fragment.firstChild.nodeValue, "Hello");
+                    assert.equal(fragment.lastChild.tagName, "span");
+                });
+
+                it("appendChild fragment moves children", () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement("root");
+                    xdoc.appendChild(root);
+
+                    root.appendChild(xdoc.createElement("a"));
+                    root.appendChild(xdoc.createElement("b"));
+
+                    var fragment = xdoc.createDocumentFragment();
+                    fragment.appendChild(xdoc.createElement("x"));
+                    fragment.appendChild(xdoc.createElement("y"));
+
+                    assert.equal(root.childNodes.length, 2);
+                    assert.equal(fragment.childNodes.length, 2);
+
+                    root.appendChild(fragment);
+
+                    assert.equal(root.childNodes.length, 4);
+                    assert.equal(fragment.childNodes.length, 0);
+                    assert.equal(root.childNodes[2].tagName, "x");
+                    assert.equal(root.childNodes[3].tagName, "y");
+                });
+
+                it("insertBefore with fragment", () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement("root");
+                    xdoc.appendChild(root);
+
+                    var a = xdoc.createElement("a");
+                    var b = xdoc.createElement("b");
+                    var c = xdoc.createElement("c");
+                    root.appendChild(a);
+                    root.appendChild(b);
+                    root.appendChild(c);
+
+                    var fragment = xdoc.createDocumentFragment();
+                    fragment.appendChild(xdoc.createElement("x"));
+                    fragment.appendChild(xdoc.createElement("y"));
+
+                    root.insertBefore(fragment, b);
+
+                    assert.equal(root.childNodes.length, 5);
+                    assert.equal(root.childNodes[0].tagName, "a");
+                    assert.equal(root.childNodes[1].tagName, "x");
+                    assert.equal(root.childNodes[2].tagName, "y");
+                    assert.equal(root.childNodes[3].tagName, "b");
+                    assert.equal(root.childNodes[4].tagName, "c");
+                });
+
+                it("replaceChild with fragment", () => {
+                    var xdoc = newDoc();
+                    var root = xdoc.createElement("root");
+                    xdoc.appendChild(root);
+
+                    var a = xdoc.createElement("a");
+                    var b = xdoc.createElement("b");
+                    var c = xdoc.createElement("c");
+                    root.appendChild(a);
+                    root.appendChild(b);
+                    root.appendChild(c);
+
+                    var fragment = xdoc.createDocumentFragment();
+                    fragment.appendChild(xdoc.createElement("x"));
+                    fragment.appendChild(xdoc.createElement("y"));
+
+                    root.replaceChild(fragment, b);
+
+                    assert.equal(root.childNodes.length, 4);
+                    assert.equal(root.childNodes[0].tagName, "a");
+                    assert.equal(root.childNodes[1].tagName, "x");
+                    assert.equal(root.childNodes[2].tagName, "y");
+                    assert.equal(root.childNodes[3].tagName, "c");
+                });
+
+                it("fragment parentNode always null", () => {
+                    var xdoc = newDoc();
+                    var fragment = xdoc.createDocumentFragment();
+                    var el = xdoc.createElement("test");
+                    fragment.appendChild(el);
+
+                    assert.equal(fragment.parentNode, null);
+                    assert.equal(el.parentNode, fragment);
+                });
+            });
+
+            // classList (DOMTokenList) tests
+            describe('classList', () => {
+                it("basic access", () => {
+                    var doc = xml.parse('<div class="foo bar baz"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    assert.equal(div.classList.length, 3);
+                    assert.equal(div.classList.value, "foo bar baz");
+                    assert.equal(div.classList[0], "foo");
+                    assert.equal(div.classList[1], "bar");
+                    assert.equal(div.classList[2], "baz");
+                    assert.equal(div.classList.item(0), "foo");
+                    assert.equal(div.classList.item(3), null);
+                });
+
+                it("contains", () => {
+                    var doc = xml.parse('<div class="foo bar"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    assert.equal(div.classList.contains("foo"), true);
+                    assert.equal(div.classList.contains("bar"), true);
+                    assert.equal(div.classList.contains("baz"), false);
+                });
+
+                it("add", () => {
+                    var doc = xml.parse('<div class="foo"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    div.classList.add("bar");
+                    assert.equal(div.className, "foo bar");
+
+                    div.classList.add("baz", "qux");
+                    assert.equal(div.className, "foo bar baz qux");
+
+                    // Adding existing class should not duplicate
+                    div.classList.add("foo");
+                    assert.equal(div.className, "foo bar baz qux");
+                });
+
+                it("remove", () => {
+                    var doc = xml.parse('<div class="foo bar baz qux"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    div.classList.remove("bar");
+                    assert.equal(div.className, "foo baz qux");
+
+                    div.classList.remove("foo", "qux");
+                    assert.equal(div.className, "baz");
+
+                    // Removing non-existent class should be no-op
+                    div.classList.remove("notexist");
+                    assert.equal(div.className, "baz");
+                });
+
+                it("toggle", () => {
+                    var doc = xml.parse('<div class="foo bar"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    // Toggle existing off
+                    assert.equal(div.classList.toggle("foo"), false);
+                    assert.equal(div.className, "bar");
+
+                    // Toggle non-existing on
+                    assert.equal(div.classList.toggle("foo"), true);
+                    assert.equal(div.className, "bar foo");
+                });
+
+                it("toggle with force", () => {
+                    var doc = xml.parse('<div class="foo"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    // force=true adds if not present
+                    assert.equal(div.classList.toggle("bar", true), true);
+                    assert.equal(div.className, "foo bar");
+
+                    // force=true keeps if present
+                    assert.equal(div.classList.toggle("bar", true), true);
+                    assert.equal(div.className, "foo bar");
+
+                    // force=false removes if present
+                    assert.equal(div.classList.toggle("bar", false), false);
+                    assert.equal(div.className, "foo");
+
+                    // force=false no-op if not present
+                    assert.equal(div.classList.toggle("bar", false), false);
+                    assert.equal(div.className, "foo");
+                });
+
+                it("replace", () => {
+                    var doc = xml.parse('<div class="foo bar baz"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    assert.equal(div.classList.replace("bar", "replaced"), true);
+                    assert.equal(div.className, "foo replaced baz");
+
+                    assert.equal(div.classList.replace("notexist", "x"), false);
+                    assert.equal(div.className, "foo replaced baz");
+                });
+
+                it("toString", () => {
+                    var doc = xml.parse('<div class="foo bar"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    assert.equal(div.classList.toString(), "foo bar");
+                });
+
+                it("classList only in HTML mode", () => {
+                    var xdoc = newDoc();
+                    var e = xdoc.createElement("test");
+                    // In XML mode, classList should throw or return undefined
+                    assert.throws(() => {
+                        var cl = e.classList;
+                    });
+                });
+
+                it("classList reflects className changes", () => {
+                    var doc = xml.parse('<div class="a"></div>', 'text/html');
+                    var div = doc.body.firstChild;
+
+                    div.className = "x y z";
+                    assert.equal(div.classList.length, 3);
+                    assert.equal(div.classList[0], "x");
+                    assert.equal(div.classList[1], "y");
+                    assert.equal(div.classList[2], "z");
+                });
+            });
         });
     }
 

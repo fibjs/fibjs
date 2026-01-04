@@ -44,6 +44,14 @@ module xml
     */
     const CDATA_SECTION_NODE = 4;
 
+    /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 EntityReference 对象（已废弃）
+    */
+    const ENTITY_REFERENCE_NODE = 5;
+
+    /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 Entity 对象（已废弃）
+    */
+    const ENTITY_NODE = 6;
+
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlProcessingInstruction 对象
     */
     const PROCESSING_INSTRUCTION_NODE = 7;
@@ -59,6 +67,14 @@ module xml
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentType 对象
     */
     const DOCUMENT_TYPE_NODE = 10;
+
+    /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentFragment 对象
+    */
+    const DOCUMENT_FRAGMENT_NODE = 11;
+
+    /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 Notation 对象（已废弃）
+    */
+    const NOTATION_NODE = 12;
 
     /*! @brief xml 文档对象，参见 XmlDocument 对象*/
     static XmlDocument new Document();

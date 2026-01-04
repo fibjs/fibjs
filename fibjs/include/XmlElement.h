@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/XmlElement.h"
+#include "DOMTokenList.h"
 #include "XmlNodeImpl.h"
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
@@ -112,6 +113,7 @@ public:
     virtual result_t set_outerHTML(exlib::string newVal);
     virtual result_t get_className(exlib::string& retVal);
     virtual result_t set_className(exlib::string newVal);
+    virtual result_t get_classList(obj_ptr<DOMTokenList_base>& retVal);
     virtual result_t get_dataset(v8::Local<v8::Object>& retVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);
     virtual result_t hasAttributes(bool& retVal);
@@ -313,6 +315,7 @@ private:
     exlib::string m_prefix;
     exlib::string m_namespaceURI;
     obj_ptr<XmlNamedNodeMap> m_attrs;
+    obj_ptr<DOMTokenList_base> m_classList;
 };
 
 } /* namespace fibjs */

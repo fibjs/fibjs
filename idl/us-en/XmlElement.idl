@@ -34,6 +34,10 @@ interface XmlElement : XmlNode
     */
     String className;
 
+    /*! @brief Return a DOMTokenList object containing the list of tokens in the element's class attribute, valid only in html mode
+    */
+    readonly DOMTokenList classList;
+
     /*! @brief Return an object containing all data-* attribute key-value pairs of the element, valid only in html mode. Attribute names are converted from data-xxx-yyy format to xxxYyy camelCase format
     */
     readonly Object dataset;

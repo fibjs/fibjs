@@ -58,6 +58,18 @@ declare module 'xml' {
     export const CDATA_SECTION_NODE: 4;
 
     /**
+     * @description XmlNode 的 nodeType 属性常量，表示节点为 EntityReference 对象（已废弃）
+     *     
+     */
+    export const ENTITY_REFERENCE_NODE: 5;
+
+    /**
+     * @description XmlNode 的 nodeType 属性常量，表示节点为 Entity 对象（已废弃）
+     *     
+     */
+    export const ENTITY_NODE: 6;
+
+    /**
      * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlProcessingInstruction 对象
      *     
      */
@@ -80,6 +92,18 @@ declare module 'xml' {
      *     
      */
     export const DOCUMENT_TYPE_NODE: 10;
+
+    /**
+     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentFragment 对象
+     *     
+     */
+    export const DOCUMENT_FRAGMENT_NODE: 11;
+
+    /**
+     * @description XmlNode 的 nodeType 属性常量，表示节点为 Notation 对象（已废弃）
+     *     
+     */
+    export const NOTATION_NODE: 12;
 
     /**
      * @description xml 文档对象，参见 XmlDocument 对象
