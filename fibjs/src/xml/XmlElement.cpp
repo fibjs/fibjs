@@ -262,6 +262,17 @@ result_t XmlElement::set_id(exlib::string newVal)
 
 result_t XmlElement::get_innerHTML(exlib::string& retVal)
 {
+    // For template elements, innerHTML reflects the content's children
+    if (!m_isXml && qstricmp(m_tagName.c_str(), "TEMPLATE") == 0 && m_content) {
+        obj_ptr<XmlNodeList_base> childNodes;
+        m_content->get_childNodes(childNodes);
+        bool hasChildren;
+        m_content->hasChildNodes(hasChildren);
+        if (hasChildren)
+            ((XmlNodeList*)(XmlNodeList_base*)childNodes)->toString(retVal);
+        return 0;
+    }
+
     if (m_childs->hasChildNodes())
         m_childs->toString(retVal);
 
@@ -457,18 +468,27 @@ result_t XmlElement::get_content(obj_ptr<XmlDocumentFragment_base>& retVal)
     if (qstricmp(m_tagName.c_str(), "TEMPLATE") != 0)
         return CALL_RETURN_NULL;
 
-    // Create a DocumentFragment containing clones of all child nodes
-    obj_ptr<XmlDocumentFragment> fragment = new XmlDocumentFragment(m_document);
-
-    // Clone children to the fragment (template content behavior)
-    int32_t len = (int32_t)m_childs->m_childs.size();
-    for (int32_t i = 0; i < len; i++) {
-        obj_ptr<XmlNode_base> child;
-        m_childs->m_childs[i]->m_node->cloneNode(true, child);
-        obj_ptr<XmlNode_base> tmp;
-        fragment->appendChild(child, tmp);
+    // Return cached content if available
+    if (m_content) {
+        retVal = m_content;
+        return 0;
     }
 
+    // Create a persistent DocumentFragment for template content
+    // According to DOM spec, template.content returns a DocumentFragment
+    // that contains the template's actual children (not clones)
+    obj_ptr<XmlDocumentFragment> fragment = new XmlDocumentFragment(m_document);
+
+    // Move all children from template to the content fragment
+    while (m_childs->m_childs.size() > 0) {
+        XmlNodeImpl* child = m_childs->m_childs[0];
+        obj_ptr<XmlNode_base> childRef = child->m_node;
+        obj_ptr<XmlNode_base> tmp;
+        m_childs->removeChild(child->m_node, tmp);
+        fragment->appendChild(childRef, tmp);
+    }
+
+    m_content = fragment;
     retVal = fragment;
     return 0;
 }

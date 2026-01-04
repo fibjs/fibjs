@@ -3345,7 +3345,7 @@ describe('xml', () => {
                     assert.equal(template.content.nodeName, "#document-fragment");
                 });
 
-                it("content contains cloned children", () => {
+                it("content contains children", () => {
                     var doc = xml.parse('<html><body><template><span>A</span><span>B</span></template></body></html>', 'text/html');
                     var template = doc.body.firstChild;
                     var content = template.content;
@@ -3355,6 +3355,23 @@ describe('xml', () => {
                     assert.equal(content.firstChild.textContent, "A");
                     assert.equal(content.lastChild.tagName, "SPAN");
                     assert.equal(content.lastChild.textContent, "B");
+                });
+
+                it("modifying content reflects in innerHTML", () => {
+                    var doc = new xml.Document('text/html');
+                    var template = doc.createElement('template');
+                    template.innerHTML = '<div>Hello</div><script>alert(1)</script>';
+
+                    assert.equal(template.innerHTML, '<div>Hello</div><script>alert(1)</script>');
+
+                    // Remove script from content
+                    var content = template.content;
+                    var script = content.lastChild;
+                    var warning = doc.createElement('pre');
+                    warning.textContent = 'Blocked!';
+                    script.replaceWith(warning);
+
+                    assert.equal(template.innerHTML, '<div>Hello</div><pre>Blocked!</pre>');
                 });
 
                 it("content returns null for non-template elements", () => {

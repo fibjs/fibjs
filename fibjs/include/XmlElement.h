@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/XmlElement.h"
+#include "ifs/XmlDocumentFragment.h"
 #include "DOMTokenList.h"
 #include "XmlNodeImpl.h"
 #include "XmlNodeList.h"
@@ -317,6 +318,7 @@ private:
     exlib::string m_namespaceURI;
     obj_ptr<XmlNamedNodeMap> m_attrs;
     obj_ptr<DOMTokenList_base> m_classList;
+    obj_ptr<XmlDocumentFragment_base> m_content; // cached content for <template> elements
 };
 
 } /* namespace fibjs */
