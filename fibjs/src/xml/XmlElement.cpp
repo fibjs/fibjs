@@ -205,6 +205,11 @@ result_t XmlElement::remove(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::remove(retVal);
 }
 
+result_t XmlElement::replaceWith(OptArgs nodes)
+{
+    return XmlNodeImpl::replaceWith(nodes);
+}
+
 result_t XmlElement::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);
@@ -432,6 +437,14 @@ result_t XmlElement::get_dataset(v8::Local<v8::Object>& retVal)
 result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal)
 {
     retVal = m_attrs;
+    return 0;
+}
+
+result_t XmlElement::hasAttributes(bool& retVal)
+{
+    int32_t len;
+    m_attrs->get_length(len);
+    retVal = len > 0;
     return 0;
 }
 

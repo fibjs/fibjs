@@ -42,6 +42,11 @@ interface XmlElement : XmlNode
     */
     readonly XmlNamedNodeMap attributes;
 
+    /*! @brief Query whether the current element has any attributes
+     @return Return true if the current element has attributes, otherwise return false
+    */
+    Boolean hasAttributes();
+
     /*! @brief Query the value of an attribute by name
      @param name Specify the attribute name to query
      @return Return the value of the attribute

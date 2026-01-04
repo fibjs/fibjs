@@ -198,6 +198,31 @@ public:
         return CALL_RETURN_NULL;
     }
 
+    result_t replaceWith(OptArgs nodes)
+    {
+        if (!m_parent || !m_parent->m_childs)
+            return 0;
+
+        // Insert all new nodes before the current node
+        int32_t len = nodes.Length();
+        for (int32_t i = 0; i < len; i++) {
+            Variant v = nodes[i];
+            obj_ptr<XmlNode_base> node = XmlNode_base::getInstance(v.object());
+            if (node) {
+                obj_ptr<XmlNode_base> retVal;
+                result_t hr = m_parent->m_childs->insertBefore(node, m_node, retVal);
+                if (hr < 0)
+                    return hr;
+            }
+        }
+
+        // Remove the current node
+        obj_ptr<XmlNode_base> retVal;
+        m_parent->m_childs->removeChild(m_node, retVal);
+
+        return 0;
+    }
+
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;

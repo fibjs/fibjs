@@ -69,6 +69,13 @@ declare class Class_XmlElement extends Class_XmlNode {
     readonly attributes: Class_XmlNamedNodeMap;
 
     /**
+     * @description 查询当前元素是否拥有任何属性
+     *      @return 如果当前元素拥有属性则返回 true，否则返回 false
+     *     
+     */
+    hasAttributes(): boolean;
+
+    /**
      * @description 通过名称查询属性的值
      *      @param name 指定查询的属性名
      *      @return 返回属性的值

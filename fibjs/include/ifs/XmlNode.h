@@ -52,6 +52,7 @@ public:
     virtual result_t replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t replaceWith(OptArgs nodes) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -94,6 +95,7 @@ public:
     static void s_replaceChild(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeChild(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_replaceWith(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -114,7 +116,8 @@ inline ClassInfo& XmlNode_base::class_info()
         { "appendChild", s_appendChild, false, ClassData::ASYNC_SYNC },
         { "replaceChild", s_replaceChild, false, ClassData::ASYNC_SYNC },
         { "removeChild", s_removeChild, false, ClassData::ASYNC_SYNC },
-        { "remove", s_remove, false, ClassData::ASYNC_SYNC }
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "replaceWith", s_replaceWith, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -568,5 +571,19 @@ inline void XmlNode_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     hr = pInst->remove(vr);
 
     METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_replaceWith(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = pInst->replaceWith(v0);
+
+    METHOD_VOID();
 }
 }

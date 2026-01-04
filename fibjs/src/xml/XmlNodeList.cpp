@@ -419,4 +419,24 @@ result_t XmlNodeList::normalize()
 
     return 0;
 }
+
+result_t XmlNodeList::forEach(v8::Local<v8::Function> callback)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    int32_t sz = (int32_t)m_childs.size();
+
+    for (int32_t i = 0; i < sz; i++) {
+        v8::Local<v8::Value> args[3];
+        args[0] = m_childs[i]->m_node->wrap();
+        args[1] = v8::Int32::New(isolate->m_isolate, i);
+        args[2] = wrap();
+
+        v8::Local<v8::Value> result = callback->Call(context, v8::Undefined(isolate->m_isolate), 3, args).FromMaybe(v8::Local<v8::Value>());
+        if (result.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+    }
+
+    return 0;
+}
 }

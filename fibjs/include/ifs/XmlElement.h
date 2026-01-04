@@ -41,6 +41,7 @@ public:
     virtual result_t set_className(exlib::string newVal) = 0;
     virtual result_t get_dataset(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
+    virtual result_t hasAttributes(bool& retVal) = 0;
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal) = 0;
     virtual result_t getAttributeNode(exlib::string name, obj_ptr<XmlAttr_base>& retVal) = 0;
@@ -88,6 +89,7 @@ public:
     static void s_set_className(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_hasAttributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -118,6 +120,7 @@ namespace fibjs {
 inline ClassInfo& XmlElement_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "hasAttributes", s_hasAttributes, false, ClassData::ASYNC_SYNC },
         { "getAttribute", s_getAttribute, false, ClassData::ASYNC_SYNC },
         { "getAttributeNS", s_getAttributeNS, false, ClassData::ASYNC_SYNC },
         { "getAttributeNode", s_getAttributeNode, false, ClassData::ASYNC_SYNC },
@@ -369,6 +372,20 @@ inline void XmlElement_base::s_get_attributes(const v8::FunctionCallbackInfo<v8:
     METHOD_OVER(0, 0);
 
     hr = pInst->get_attributes(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_hasAttributes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->hasAttributes(vr);
 
     METHOD_RETURN();
 }

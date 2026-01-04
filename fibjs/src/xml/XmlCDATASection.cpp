@@ -140,6 +140,11 @@ result_t XmlCDATASection::remove(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::remove(retVal);
 }
 
+result_t XmlCDATASection::replaceWith(OptArgs nodes)
+{
+    return XmlNodeImpl::replaceWith(nodes);
+}
+
 result_t XmlCDATASection::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

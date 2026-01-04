@@ -27,6 +27,7 @@ public:
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t forEach(v8::Local<v8::Function> callback) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -44,6 +45,7 @@ public:
     static void s_item(const v8::FunctionCallbackInfo<v8::Value>& args);
     static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -55,7 +57,8 @@ inline ClassInfo& XmlNodeList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "item", s_item, false, ClassData::ASYNC_SYNC },
-        { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC }
+        { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC },
+        { "forEach", s_forEach, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -133,5 +136,19 @@ inline void XmlNodeList_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v
     hr = pInst->symbol_iterator(vr);
 
     METHOD_RETURN();
+}
+
+inline void XmlNodeList_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlNodeList_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->forEach(v0);
+
+    METHOD_VOID();
 }
 }

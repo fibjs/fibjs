@@ -142,6 +142,11 @@ result_t XmlProcessingInstruction::remove(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::remove(retVal);
 }
 
+result_t XmlProcessingInstruction::replaceWith(OptArgs nodes)
+{
+    return XmlNodeImpl::replaceWith(nodes);
+}
+
 result_t XmlProcessingInstruction::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

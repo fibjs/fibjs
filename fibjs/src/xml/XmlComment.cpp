@@ -140,6 +140,11 @@ result_t XmlComment::remove(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::remove(retVal);
 }
 
+result_t XmlComment::replaceWith(OptArgs nodes)
+{
+    return XmlNodeImpl::replaceWith(nodes);
+}
+
 result_t XmlComment::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

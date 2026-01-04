@@ -486,6 +486,67 @@ describe('xml', () => {
                 // Both browser and fibjs should return undefined/null for orphan elements
                 assert.equal(result, isBrowser ? undefined : null);
             });
+
+            it("replaceWith", () => {
+                var xdoc = newDoc();
+                var parent = xdoc.createElement("parent");
+                var child1 = xdoc.createElement("child1");
+                var child2 = xdoc.createElement("child2");
+                var child3 = xdoc.createElement("child3");
+                var newElement = xdoc.createElement("newElement");
+
+                parent.appendChild(child1);
+                parent.appendChild(child2);
+                parent.appendChild(child3);
+
+                // Test replaceWith single element
+                child2.replaceWith(newElement);
+                assert.equal(parent.childNodes.length, 3);
+                assert.equal(parent.childNodes[0], child1);
+                assert.equal(parent.childNodes[1], newElement);
+                assert.equal(parent.childNodes[2], child3);
+                assert.equal(child2.parentNode, null);
+                assert.equal(newElement.parentNode, parent);
+
+                // Test replaceWith multiple elements
+                var newEl1 = xdoc.createElement("new1");
+                var newEl2 = xdoc.createElement("new2");
+                child3.replaceWith(newEl1, newEl2);
+                assert.equal(parent.childNodes.length, 4);
+                assert.equal(parent.childNodes[0], child1);
+                assert.equal(parent.childNodes[1], newElement);
+                assert.equal(parent.childNodes[2], newEl1);
+                assert.equal(parent.childNodes[3], newEl2);
+
+                // Test replaceWith on orphan element (should do nothing)
+                var orphan = xdoc.createElement("orphan");
+                var replacement = xdoc.createElement("replacement");
+                orphan.replaceWith(replacement); // Should not throw
+                assert.equal(orphan.parentNode, null);
+            });
+
+            it("hasAttributes", () => {
+                var xdoc = newDoc();
+                var elem = xdoc.createElement("test");
+
+                // Element without attributes
+                assert.equal(elem.hasAttributes(), false);
+
+                // Element with one attribute
+                elem.setAttribute("id", "test-id");
+                assert.equal(elem.hasAttributes(), true);
+
+                // Element with multiple attributes
+                elem.setAttribute("class", "test-class");
+                elem.setAttribute("data-value", "123");
+                assert.equal(elem.hasAttributes(), true);
+
+                // After removing all attributes
+                elem.removeAttribute("id");
+                elem.removeAttribute("class");
+                elem.removeAttribute("data-value");
+                assert.equal(elem.hasAttributes(), false);
+            });
         });
 
         // CharacterData tests
@@ -970,6 +1031,62 @@ describe('xml', () => {
                 assert.equal(root.childNodes.length, 2);
                 assert.equal(root.childNodes[0], element2);
                 assert.equal(root.childNodes[1], element3);
+            });
+
+            it("forEach", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+
+                var element1 = xdoc.createElement("child1");
+                var element2 = xdoc.createElement("child2");
+                var element3 = xdoc.createElement("child3");
+
+                root.appendChild(element1);
+                root.appendChild(element2);
+                root.appendChild(element3);
+
+                // Test forEach with childNodes
+                var items = [];
+                var indices = [];
+                var lists = [];
+                root.childNodes.forEach(function (node, index, list) {
+                    items.push(node);
+                    indices.push(index);
+                    lists.push(list);
+                });
+
+                assert.equal(items.length, 3);
+                assert.equal(items[0], element1);
+                assert.equal(items[1], element2);
+                assert.equal(items[2], element3);
+                assert.deepEqual(indices, [0, 1, 2]);
+                assert.equal(lists[0], root.childNodes);
+
+                // Test forEach with empty nodeList
+                var emptyRoot = xdoc.createElement("empty");
+                var emptyItems = [];
+                emptyRoot.childNodes.forEach(function (node) {
+                    emptyItems.push(node);
+                });
+                assert.equal(emptyItems.length, 0);
+
+                // Test forEach with querySelectorAll result
+                var container = xdoc.createElement("container");
+                xdoc.appendChild(container);
+                var div1 = xdoc.createElement("div");
+                var div2 = xdoc.createElement("div");
+                var span = xdoc.createElement("span");
+                container.appendChild(div1);
+                container.appendChild(div2);
+                container.appendChild(span);
+
+                var divs = [];
+                container.querySelectorAll("div").forEach(function (el) {
+                    divs.push(el);
+                });
+                assert.equal(divs.length, 2);
+                assert.equal(divs[0], div1);
+                assert.equal(divs[1], div2);
             });
 
             it("error handling", () => {

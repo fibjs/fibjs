@@ -234,5 +234,14 @@ declare class Class_XmlNode extends Class_object {
      */
     remove(): Class_XmlNode;
 
+    /**
+     * @description 用一个或多个节点替换当前节点
+     * 
+     *      该方法将当前节点从其父节点中移除，并在原位置插入指定的新节点。如果当前节点没有父节点，则此方法无效。
+     *      @param nodes 要替换当前节点的一个或多个节点
+     *     
+     */
+    replaceWith(...nodes: any[]): void;
+
 }
 

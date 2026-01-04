@@ -174,4 +174,11 @@ interface XmlNode : object
      @return Return the deleted node
     */
     XmlNode remove();
+
+    /*! @brief Replace the current node with one or more nodes
+
+     This method removes the current node from its parent node and inserts the specified new nodes at the original position. If the current node has no parent node, this method does nothing.
+     @param nodes One or more nodes to replace the current node
+    */
+    replaceWith(...nodes);
 };

@@ -42,6 +42,11 @@ interface XmlElement : XmlNode
     */
     readonly XmlNamedNodeMap attributes;
 
+    /*! @brief 查询当前元素是否拥有任何属性
+     @return 如果当前元素拥有属性则返回 true，否则返回 false
+    */
+    Boolean hasAttributes();
+
     /*! @brief 通过名称查询属性的值
      @param name 指定查询的属性名
      @return 返回属性的值

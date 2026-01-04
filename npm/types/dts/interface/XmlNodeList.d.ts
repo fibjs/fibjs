@@ -22,5 +22,12 @@ declare class Class_XmlNodeList extends Class_object {
 
     "[Symbol.iterator]"(): Iterator<any>;
 
+    /**
+     * @description 对列表中的每个节点执行一次指定的回调函数
+     *      @param callback 对每个节点执行的回调函数，接收三个参数：当前节点、索引、节点列表本身
+     *     
+     */
+    forEach(callback: (...args: any[])=>any): void;
+
 }
 

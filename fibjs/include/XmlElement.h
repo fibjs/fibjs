@@ -95,6 +95,7 @@ public:
     virtual result_t replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t replaceWith(OptArgs nodes);
 
 public:
     // XmlElement_base
@@ -113,6 +114,7 @@ public:
     virtual result_t set_className(exlib::string newVal);
     virtual result_t get_dataset(v8::Local<v8::Object>& retVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);
+    virtual result_t hasAttributes(bool& retVal);
     virtual result_t getAttribute(exlib::string name, exlib::string& retVal);
     virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal);
     virtual result_t getAttributeNode(exlib::string name, obj_ptr<XmlAttr_base>& retVal);

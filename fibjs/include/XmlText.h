@@ -68,6 +68,7 @@ public:
     virtual result_t replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t replaceWith(OptArgs nodes);
 
 public:
     // XmlCharacterData_base
