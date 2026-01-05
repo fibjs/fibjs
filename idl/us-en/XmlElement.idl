@@ -200,4 +200,10 @@ interface XmlElement : XmlNode
      @return If the current element matches the specified selector, return true, otherwise return false
     */
     Boolean matches(String selectors);
+
+    /*! @brief Find the closest ancestor element matching the specified CSS selector
+     @param selectors Specify the CSS selector
+     @return Return the closest matching ancestor element, or null if no match is found
+    */
+    XmlElement closest(String selectors);
 };

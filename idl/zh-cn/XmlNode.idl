@@ -181,4 +181,19 @@ interface XmlNode : object
      @param nodes 要替换当前节点的一个或多个节点
     */
     replaceWith(...nodes);
+
+    /*! @brief 检查当前节点是否包含指定的节点
+     @param node 要检查的节点
+     @return 如果当前节点包含指定节点则返回 true，否则返回 false
+    */
+    Boolean contains(XmlNode node);
+
+    /*! @brief 返回当前节点的根节点
+     @return 返回根节点
+    */
+    XmlNode getRootNode();
+
+    /*! @brief 返回当前节点是否连接到文档中
+    */
+    readonly Boolean isConnected;
 };

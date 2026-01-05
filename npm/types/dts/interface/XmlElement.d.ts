@@ -273,5 +273,13 @@ declare class Class_XmlElement extends Class_XmlNode {
      */
     matches(selectors: string): boolean;
 
+    /**
+     * @description 向上查找匹配指定 CSS 选择器的祖先元素
+     *      @param selectors 指定 CSS 选择器
+     *      @return 返回匹配的最近祖先元素，如果没有匹配则返回 null
+     *     
+     */
+    closest(selectors: string): Class_XmlElement;
+
 }
 

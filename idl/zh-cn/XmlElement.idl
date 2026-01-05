@@ -200,4 +200,10 @@ interface XmlElement : XmlNode
      @return 如果当前元素匹配指定选择器，则返回 true，否则返回 false
     */
     Boolean matches(String selectors);
+
+    /*! @brief 向上查找匹配指定 CSS 选择器的祖先元素
+     @param selectors 指定 CSS 选择器
+     @return 返回匹配的最近祖先元素，如果没有匹配则返回 null
+    */
+    XmlElement closest(String selectors);
 };

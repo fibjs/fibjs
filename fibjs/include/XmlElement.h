@@ -98,6 +98,9 @@ public:
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal);
     virtual result_t replaceWith(OptArgs nodes);
+    virtual result_t contains(XmlNode_base* node, bool& retVal);
+    virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_isConnected(bool& retVal);
 
 public:
     // XmlElement_base
@@ -138,6 +141,7 @@ public:
     virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t matches(exlib::string selectors, bool& retVal);
+    virtual result_t closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)

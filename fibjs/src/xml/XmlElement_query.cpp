@@ -1645,6 +1645,38 @@ result_t XmlElement::matches(exlib::string selectors, bool& retVal)
     return 0;
 }
 
+result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
+{
+    if (selectors.empty()) {
+        return Runtime::setError("SyntaxError: Failed to execute 'closest': The provided selector is empty.");
+    }
+
+    SelectorList selectorList;
+    if (!parseSelectors(selectors, selectorList)) {
+        return Runtime::setError("SyntaxError: Failed to execute 'closest': The provided selector is invalid.");
+    }
+
+    // Start from the current element and walk up the DOM tree
+    XmlElement* current = this;
+    while (current) {
+        // Check if current element matches any of the selectors
+        for (const auto& complexSelector : selectorList.selectors) {
+            if (matchesComplexSelector(current, complexSelector, m_isXml)) {
+                retVal = current;
+                return 0;
+            }
+        }
+
+        // Move to parent element
+        if (!current->m_parent || current->m_parent->m_type != xml_base::C_ELEMENT_NODE)
+            break;
+        current = static_cast<XmlElement*>(current->m_parent->m_node);
+    }
+
+    retVal = NULL;
+    return CALL_RETURN_NULL;
+}
+
 result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
 {
     if (selectors.empty()) {

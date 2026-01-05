@@ -243,5 +243,26 @@ declare class Class_XmlNode extends Class_object {
      */
     replaceWith(...nodes: any[]): void;
 
+    /**
+     * @description 检查当前节点是否包含指定的节点
+     *      @param node 要检查的节点
+     *      @return 如果当前节点包含指定节点则返回 true，否则返回 false
+     *     
+     */
+    contains(node: Class_XmlNode): boolean;
+
+    /**
+     * @description 返回当前节点的根节点
+     *      @return 返回根节点
+     *     
+     */
+    getRootNode(): Class_XmlNode;
+
+    /**
+     * @description 返回当前节点是否连接到文档中
+     *     
+     */
+    readonly isConnected: boolean;
+
 }
 

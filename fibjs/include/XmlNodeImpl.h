@@ -223,6 +223,59 @@ public:
         return 0;
     }
 
+    result_t contains(XmlNode_base* node, bool& retVal)
+    {
+        retVal = false;
+
+        if (!node)
+            return 0;
+
+        // Check if node is the same as this node
+        if (node == m_node) {
+            retVal = true;
+            return 0;
+        }
+
+        // Check all descendants
+        XmlNodeImpl* impl = fromNode(node);
+        if (!impl)
+            return 0;
+
+        // Walk up the parent chain to see if we are an ancestor
+        XmlNodeImpl* parent = impl->m_parent;
+        while (parent) {
+            if (parent->m_node == m_node) {
+                retVal = true;
+                return 0;
+            }
+            parent = parent->m_parent;
+        }
+
+        return 0;
+    }
+
+    result_t getRootNode(obj_ptr<XmlNode_base>& retVal)
+    {
+        XmlNodeImpl* root = this;
+        while (root->m_parent)
+            root = root->m_parent;
+
+        retVal = root->m_node;
+        return 0;
+    }
+
+    result_t get_isConnected(bool& retVal)
+    {
+        // A node is connected if it has an ownerDocument and is in the document tree
+        // Walk up to root and check if it's a Document node
+        XmlNodeImpl* root = this;
+        while (root->m_parent)
+            root = root->m_parent;
+
+        retVal = (root->m_type == xml_base::C_DOCUMENT_NODE);
+        return 0;
+    }
+
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;

@@ -195,4 +195,19 @@ result_t XmlDocumentFragment::replaceWith(OptArgs nodes)
     return 0;
 }
 
+result_t XmlDocumentFragment::contains(XmlNode_base* node, bool& retVal)
+{
+    return XmlNodeImpl::contains(node, retVal);
+}
+
+result_t XmlDocumentFragment::getRootNode(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::getRootNode(retVal);
+}
+
+result_t XmlDocumentFragment::get_isConnected(bool& retVal)
+{
+    return XmlNodeImpl::get_isConnected(retVal);
+}
+
 } /* namespace fibjs */

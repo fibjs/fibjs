@@ -145,6 +145,21 @@ result_t XmlCDATASection::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlCDATASection::contains(XmlNode_base* node, bool& retVal)
+{
+    return XmlNodeImpl::contains(node, retVal);
+}
+
+result_t XmlCDATASection::getRootNode(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::getRootNode(retVal);
+}
+
+result_t XmlCDATASection::get_isConnected(bool& retVal)
+{
+    return XmlNodeImpl::get_isConnected(retVal);
+}
+
 result_t XmlCDATASection::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

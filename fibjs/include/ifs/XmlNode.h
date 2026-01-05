@@ -53,6 +53,9 @@ public:
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t replaceWith(OptArgs nodes) = 0;
+    virtual result_t contains(XmlNode_base* node, bool& retVal) = 0;
+    virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_isConnected(bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -96,6 +99,9 @@ public:
     static void s_removeChild(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_replaceWith(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_contains(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getRootNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_isConnected(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -117,7 +123,9 @@ inline ClassInfo& XmlNode_base::class_info()
         { "replaceChild", s_replaceChild, false, ClassData::ASYNC_SYNC },
         { "removeChild", s_removeChild, false, ClassData::ASYNC_SYNC },
         { "remove", s_remove, false, ClassData::ASYNC_SYNC },
-        { "replaceWith", s_replaceWith, false, ClassData::ASYNC_SYNC }
+        { "replaceWith", s_replaceWith, false, ClassData::ASYNC_SYNC },
+        { "contains", s_contains, false, ClassData::ASYNC_SYNC },
+        { "getRootNode", s_getRootNode, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -136,7 +144,8 @@ inline ClassInfo& XmlNode_base::class_info()
         { "lastElementChild", s_get_lastElementChild, block_set, false },
         { "previousElementSibling", s_get_previousElementSibling, block_set, false },
         { "nextElementSibling", s_get_nextElementSibling, block_set, false },
-        { "textContent", s_get_textContent, s_set_textContent, false }
+        { "textContent", s_get_textContent, s_set_textContent, false },
+        { "isConnected", s_get_isConnected, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -585,5 +594,49 @@ inline void XmlNode_base::s_replaceWith(const v8::FunctionCallbackInfo<v8::Value
     hr = pInst->replaceWith(v0);
 
     METHOD_VOID();
+}
+
+inline void XmlNode_base::s_contains(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+
+    hr = pInst->contains(v0.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_getRootNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getRootNode(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_isConnected(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_isConnected(vr);
+
+    METHOD_RETURN();
 }
 }

@@ -65,6 +65,7 @@ public:
     virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t matches(exlib::string selectors, bool& retVal) = 0;
+    virtual result_t closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -115,6 +116,7 @@ public:
     static void s_querySelector(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_querySelectorAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_matches(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_closest(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -147,7 +149,8 @@ inline ClassInfo& XmlElement_base::class_info()
         { "getElementsByClassName", s_getElementsByClassName, false, ClassData::ASYNC_SYNC },
         { "querySelector", s_querySelector, false, ClassData::ASYNC_SYNC },
         { "querySelectorAll", s_querySelectorAll, false, ClassData::ASYNC_SYNC },
-        { "matches", s_matches, false, ClassData::ASYNC_SYNC }
+        { "matches", s_matches, false, ClassData::ASYNC_SYNC },
+        { "closest", s_closest, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -728,6 +731,22 @@ inline void XmlElement_base::s_matches(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
 
     hr = pInst->matches(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_closest(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->closest(v0, vr);
 
     METHOD_RETURN();
 }

@@ -1175,6 +1175,87 @@ describe('xml', () => {
                 assert.equal(otherElem.ownerDocument, xdoc);
             });
 
+            it("contains", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                var child = xdoc.createElement("child");
+                var grandchild = xdoc.createElement("grandchild");
+                root.appendChild(child);
+                child.appendChild(grandchild);
+
+                // contains returns true for self
+                assert.equal(root.contains(root), true);
+                // contains returns true for direct children
+                assert.equal(root.contains(child), true);
+                // contains returns true for descendants
+                assert.equal(root.contains(grandchild), true);
+                // contains returns false for ancestors
+                assert.equal(child.contains(root), false);
+                // contains returns false for unrelated nodes
+                var other = xdoc.createElement("other");
+                assert.equal(root.contains(other), false);
+            });
+
+            it("getRootNode", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                var child = xdoc.createElement("child");
+                root.appendChild(child);
+                xdoc.appendChild(root);
+
+                // getRootNode returns document for connected nodes
+                assert.equal(child.getRootNode(), xdoc);
+                assert.equal(root.getRootNode(), xdoc);
+                // getRootNode returns self for detached nodes
+                var detached = xdoc.createElement("detached");
+                assert.equal(detached.getRootNode(), detached);
+            });
+
+            it("isConnected", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                
+                // Detached node is not connected
+                assert.equal(root.isConnected, false);
+                
+                // Append to document
+                xdoc.appendChild(root);
+                assert.equal(root.isConnected, true);
+                
+                // Child of connected node is also connected
+                var child = xdoc.createElement("child");
+                root.appendChild(child);
+                assert.equal(child.isConnected, true);
+                
+                // Remove from document
+                xdoc.removeChild(root);
+                assert.equal(root.isConnected, false);
+                assert.equal(child.isConnected, false);
+            });
+
+            it("closest", () => {
+                var xdoc = newDoc();
+                var div = xdoc.createElement("div");
+                div.className = "container";
+                var span = xdoc.createElement("span");
+                span.id = "inner";
+                var b = xdoc.createElement("b");
+                div.appendChild(span);
+                span.appendChild(b);
+
+                // closest finds ancestor by tag
+                assert.equal(b.closest("span"), span);
+                assert.equal(b.closest("div"), div);
+                // closest can return self
+                assert.equal(b.closest("b"), b);
+                // closest finds by class
+                assert.equal(b.closest(".container"), div);
+                // closest finds by id
+                assert.equal(span.closest("#inner"), span);
+                // closest returns null when no match
+                assert.equal(b.closest(".nonexistent"), null);
+                assert.equal(b.closest("p"), null);
+            });
 
         });
 
