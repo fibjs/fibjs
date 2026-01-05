@@ -1282,7 +1282,10 @@ describe("child_process", () => {
                 events.push('close');
             });
 
-            coroutine.sleep(500); // Allow time for process to complete
+            // Wait for both events, check every 100ms, up to 30 times (3 seconds)
+            for (var i = 0; i < 30 && events.length < 2; i++) {
+                coroutine.sleep(100);
+            }
 
             // exit should come before close
             assert.equal(events[0], 'exit');
