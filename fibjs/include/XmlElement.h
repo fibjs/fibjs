@@ -147,6 +147,9 @@ public:
     virtual result_t append(OptArgs nodes);
     virtual result_t prepend(OptArgs nodes);
     virtual result_t replaceChildren(OptArgs nodes);
+    virtual result_t insertAdjacentElement(exlib::string position, XmlElement_base* element, obj_ptr<XmlElement_base>& retVal);
+    virtual result_t insertAdjacentHTML(exlib::string position, exlib::string html);
+    virtual result_t insertAdjacentText(exlib::string position, exlib::string text);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)

@@ -889,4 +889,218 @@ result_t XmlElement::replaceChildren(OptArgs nodes)
     // Append new nodes
     return append(nodes);
 }
+
+// Helper function to parse position string
+static int32_t parsePosition(exlib::string position)
+{
+    // Convert to lowercase for case-insensitive comparison
+    exlib::string lower = position;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    if (lower == "beforebegin")
+        return 0;
+    else if (lower == "afterbegin")
+        return 1;
+    else if (lower == "beforeend")
+        return 2;
+    else if (lower == "afterend")
+        return 3;
+    return -1;
+}
+
+result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_base* element, obj_ptr<XmlElement_base>& retVal)
+{
+    int32_t pos = parsePosition(position);
+    if (pos < 0)
+        return CHECK_ERROR(Runtime::setError("XmlElement: Invalid position argument"));
+
+    obj_ptr<XmlNode_base> result;
+    result_t hr;
+
+    switch (pos) {
+    case 0: // beforebegin - insert before this element
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        hr = m_parent->m_childs->insertBefore(element, this, result);
+        break;
+    case 1: // afterbegin - insert as first child
+        {
+            obj_ptr<XmlNode_base> firstChild;
+            m_childs->firstChild(firstChild);
+            if (firstChild)
+                hr = m_childs->insertBefore(element, firstChild, result);
+            else
+                hr = m_childs->appendChild(element, result);
+        }
+        break;
+    case 2: // beforeend - insert as last child
+        hr = m_childs->appendChild(element, result);
+        break;
+    case 3: // afterend - insert after this element
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        hr = m_parent->m_childs->insertAfter(element, this, result);
+        break;
+    }
+
+    if (hr < 0)
+        return hr;
+
+    retVal = element;
+    return 0;
+}
+
+result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string html)
+{
+    int32_t pos = parsePosition(position);
+    if (pos < 0)
+        return CHECK_ERROR(Runtime::setError("XmlElement: Invalid position argument"));
+
+    if (html.empty())
+        return 0;
+
+    result_t hr;
+    obj_ptr<XmlNode_base> result;
+
+    if (m_isXml) {
+        // For XML documents, wrap content in a root element for parsing
+        exlib::string wrappedContent = "<root>" + html + "</root>";
+        obj_ptr<XmlDocument> doc = new XmlDocument(true);
+        hr = doc->load(wrappedContent);
+        if (hr < 0)
+            return hr;
+
+        obj_ptr<XmlElement_base> docElement;
+        hr = doc->get_documentElement(docElement);
+        if (hr < 0 || !docElement)
+            return hr;
+
+        // Track the reference node for afterend position
+        XmlNode_base* refNode = this;
+
+        obj_ptr<XmlNode_base> node;
+        while (docElement->get_firstChild(node) == 0) {
+            switch (pos) {
+            case 0: // beforebegin
+                if (!m_parent)
+                    continue;
+                hr = m_parent->m_childs->insertBefore(node, this, result);
+                break;
+            case 1: // afterbegin
+                {
+                    obj_ptr<XmlNode_base> firstChild;
+                    m_childs->firstChild(firstChild);
+                    if (firstChild)
+                        hr = m_childs->insertBefore(node, firstChild, result);
+                    else
+                        hr = m_childs->appendChild(node, result);
+                }
+                break;
+            case 2: // beforeend
+                hr = m_childs->appendChild(node, result);
+                break;
+            case 3: // afterend
+                if (!m_parent)
+                    continue;
+                hr = m_parent->m_childs->insertAfter(node, refNode, result);
+                if (hr >= 0)
+                    refNode = node;
+                break;
+            }
+            if (hr < 0)
+                return hr;
+        }
+    } else {
+        // For HTML documents, parse as HTML
+        obj_ptr<XmlDocument> doc = new XmlDocument(false);
+        hr = doc->load(html);
+        if (hr < 0)
+            return hr;
+
+        obj_ptr<XmlElement_base> body;
+        hr = doc->get_body(body);
+        if (hr < 0 || !body)
+            return hr;
+
+        // Track the reference node for afterend position
+        XmlNode_base* refNode = this;
+
+        obj_ptr<XmlNode_base> node;
+        while (body->get_firstChild(node) == 0) {
+            switch (pos) {
+            case 0: // beforebegin
+                if (!m_parent)
+                    continue;
+                hr = m_parent->m_childs->insertBefore(node, this, result);
+                break;
+            case 1: // afterbegin
+                {
+                    obj_ptr<XmlNode_base> firstChild;
+                    m_childs->firstChild(firstChild);
+                    if (firstChild)
+                        hr = m_childs->insertBefore(node, firstChild, result);
+                    else
+                        hr = m_childs->appendChild(node, result);
+                }
+                break;
+            case 2: // beforeend
+                hr = m_childs->appendChild(node, result);
+                break;
+            case 3: // afterend
+                if (!m_parent)
+                    continue;
+                hr = m_parent->m_childs->insertAfter(node, refNode, result);
+                if (hr >= 0)
+                    refNode = node;
+                break;
+            }
+            if (hr < 0)
+                return hr;
+        }
+    }
+
+    return 0;
+}
+
+result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string text)
+{
+    int32_t pos = parsePosition(position);
+    if (pos < 0)
+        return CHECK_ERROR(Runtime::setError("XmlElement: Invalid position argument"));
+
+    // Create text node
+    obj_ptr<XmlText_base> textNode;
+    m_document->createTextNode(text, textNode);
+
+    obj_ptr<XmlNode_base> result;
+    result_t hr;
+
+    switch (pos) {
+    case 0: // beforebegin
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        hr = m_parent->m_childs->insertBefore(textNode, this, result);
+        break;
+    case 1: // afterbegin
+        {
+            obj_ptr<XmlNode_base> firstChild;
+            m_childs->firstChild(firstChild);
+            if (firstChild)
+                hr = m_childs->insertBefore(textNode, firstChild, result);
+            else
+                hr = m_childs->appendChild(textNode, result);
+        }
+        break;
+    case 2: // beforeend
+        hr = m_childs->appendChild(textNode, result);
+        break;
+    case 3: // afterend
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        hr = m_parent->m_childs->insertAfter(textNode, this, result);
+        break;
+    }
+
+    return hr;
+}
 }

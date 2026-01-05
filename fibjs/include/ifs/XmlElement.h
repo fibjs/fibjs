@@ -69,6 +69,9 @@ public:
     virtual result_t append(OptArgs nodes) = 0;
     virtual result_t prepend(OptArgs nodes) = 0;
     virtual result_t replaceChildren(OptArgs nodes) = 0;
+    virtual result_t insertAdjacentElement(exlib::string position, XmlElement_base* element, obj_ptr<XmlElement_base>& retVal) = 0;
+    virtual result_t insertAdjacentHTML(exlib::string position, exlib::string html) = 0;
+    virtual result_t insertAdjacentText(exlib::string position, exlib::string text) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -123,6 +126,9 @@ public:
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_prepend(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_replaceChildren(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_insertAdjacentElement(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_insertAdjacentHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_insertAdjacentText(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -159,7 +165,10 @@ inline ClassInfo& XmlElement_base::class_info()
         { "closest", s_closest, false, ClassData::ASYNC_SYNC },
         { "append", s_append, false, ClassData::ASYNC_SYNC },
         { "prepend", s_prepend, false, ClassData::ASYNC_SYNC },
-        { "replaceChildren", s_replaceChildren, false, ClassData::ASYNC_SYNC }
+        { "replaceChildren", s_replaceChildren, false, ClassData::ASYNC_SYNC },
+        { "insertAdjacentElement", s_insertAdjacentElement, false, ClassData::ASYNC_SYNC },
+        { "insertAdjacentHTML", s_insertAdjacentHTML, false, ClassData::ASYNC_SYNC },
+        { "insertAdjacentText", s_insertAdjacentText, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -798,6 +807,53 @@ inline void XmlElement_base::s_replaceChildren(const v8::FunctionCallbackInfo<v8
     ARG_LIST(0);
 
     hr = pInst->replaceChildren(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_insertAdjacentElement(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<XmlElement_base>, 1);
+
+    hr = pInst->insertAdjacentElement(v0, v1.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_insertAdjacentHTML(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->insertAdjacentHTML(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_insertAdjacentText(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->insertAdjacentText(v0, v1);
 
     METHOD_VOID();
 }

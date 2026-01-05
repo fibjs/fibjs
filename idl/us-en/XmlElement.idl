@@ -227,4 +227,44 @@ interface XmlElement : XmlNode
      @param nodes One or more nodes to set, can be node objects or strings
     */
     replaceChildren(...nodes);
+
+    /*! @brief Insert an element node at the specified position
+
+     The position parameter can be one of the following values:
+     - 'beforebegin': Insert before the current element
+     - 'afterbegin': Insert before the first child node of the current element
+     - 'beforeend': Insert after the last child node of the current element
+     - 'afterend': Insert after the current element
+
+     @param position Specify the insertion position
+     @param element The element node to insert
+     @return Return the inserted element, or null if insertion failed
+    */
+    XmlElement insertAdjacentElement(String position, XmlElement element);
+
+    /*! @brief Insert HTML text at the specified position
+
+     The position parameter can be one of the following values:
+     - 'beforebegin': Insert before the current element
+     - 'afterbegin': Insert before the first child node of the current element
+     - 'beforeend': Insert after the last child node of the current element
+     - 'afterend': Insert after the current element
+
+     @param position Specify the insertion position
+     @param html The HTML text to insert
+    */
+    insertAdjacentHTML(String position, String html);
+
+    /*! @brief Insert a text node at the specified position
+
+     The position parameter can be one of the following values:
+     - 'beforebegin': Insert before the current element
+     - 'afterbegin': Insert before the first child node of the current element
+     - 'beforeend': Insert after the last child node of the current element
+     - 'afterend': Insert after the current element
+
+     @param position Specify the insertion position
+     @param text The text to insert
+    */
+    insertAdjacentText(String position, String text);
 };

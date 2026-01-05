@@ -3885,6 +3885,122 @@ describe('xml', () => {
                 });
             });
         });
+
+        describe('insertAdjacent methods', () => {
+            describe('insertAdjacentElement', () => {
+                it('beforebegin - inserts element before current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    const span = doc.createElement('span');
+                    const result = ref.insertAdjacentElement('beforebegin', span);
+                    assert.equal(result.tagName.toLowerCase(), 'span');
+                    assert.equal(doc.body.firstChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('afterbegin - inserts element as first child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    const span = doc.createElement('span');
+                    ref.insertAdjacentElement('afterbegin', span);
+                    assert.equal(ref.firstChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('beforeend - inserts element as last child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    const span = doc.createElement('span');
+                    ref.insertAdjacentElement('beforeend', span);
+                    assert.equal(ref.lastChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('afterend - inserts element after current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    const span = doc.createElement('span');
+                    ref.insertAdjacentElement('afterend', span);
+                    assert.equal(doc.body.lastChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('is case-insensitive for position', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    const span = doc.createElement('span');
+                    ref.insertAdjacentElement('BeforeEnd', span);
+                    assert.equal(ref.lastChild.tagName.toLowerCase(), 'span');
+                });
+            });
+
+            describe('insertAdjacentText', () => {
+                it('beforebegin - inserts text before current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentText('beforebegin', 'Hello');
+                    assert.equal(doc.body.firstChild.nodeType, 3);
+                    assert.equal(doc.body.firstChild.nodeValue, 'Hello');
+                });
+
+                it('afterbegin - inserts text as first child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentText('afterbegin', 'Hello');
+                    assert.equal(ref.firstChild.nodeType, 3);
+                    assert.equal(ref.firstChild.nodeValue, 'Hello');
+                });
+
+                it('beforeend - inserts text as last child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentText('beforeend', 'World');
+                    assert.equal(ref.lastChild.nodeType, 3);
+                    assert.equal(ref.lastChild.nodeValue, 'World');
+                });
+
+                it('afterend - inserts text after current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentText('afterend', 'World');
+                    assert.equal(doc.body.lastChild.nodeType, 3);
+                    assert.equal(doc.body.lastChild.nodeValue, 'World');
+                });
+            });
+
+            describe('insertAdjacentHTML', () => {
+                it('beforebegin - inserts HTML before current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentHTML('beforebegin', '<span>new</span>');
+                    assert.equal(doc.body.firstChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('afterbegin - inserts HTML as first child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentHTML('afterbegin', '<span>new</span>');
+                    assert.equal(ref.firstChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('beforeend - inserts HTML as last child', () => {
+                    const doc = parseHtml('<html><body><div id="ref"><p>existing</p></div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentHTML('beforeend', '<span>new</span>');
+                    assert.equal(ref.lastChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('afterend - inserts HTML after current element', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentHTML('afterend', '<span>new</span>');
+                    assert.equal(doc.body.lastChild.tagName.toLowerCase(), 'span');
+                });
+
+                it('inserts multiple elements from HTML', () => {
+                    const doc = parseHtml('<html><body><div id="ref">content</div></body></html>');
+                    const ref = doc.getElementById('ref');
+                    ref.insertAdjacentHTML('beforeend', '<span>1</span><span>2</span>');
+                    assert.equal(ref.children.length, 2);
+                });
+            });
+        });
     }
 
     // Browser-only tests for features not supported in fibjs

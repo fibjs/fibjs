@@ -308,5 +308,51 @@ declare class Class_XmlElement extends Class_XmlNode {
      */
     replaceChildren(...nodes: any[]): void;
 
+    /**
+     * @description 在指定位置插入一个元素节点
+     * 
+     *      position 参数可以是以下值之一：
+     *      - 'beforebegin': 在当前元素之前插入
+     *      - 'afterbegin': 在当前元素的第一个子节点之前插入
+     *      - 'beforeend': 在当前元素的最后一个子节点之后插入
+     *      - 'afterend': 在当前元素之后插入
+     * 
+     *      @param position 指定插入位置
+     *      @param element 要插入的元素节点
+     *      @return 返回插入的元素，如果插入失败则返回 null
+     *     
+     */
+    insertAdjacentElement(position: string, element: Class_XmlElement): Class_XmlElement;
+
+    /**
+     * @description 在指定位置插入 HTML 文本
+     * 
+     *      position 参数可以是以下值之一：
+     *      - 'beforebegin': 在当前元素之前插入
+     *      - 'afterbegin': 在当前元素的第一个子节点之前插入
+     *      - 'beforeend': 在当前元素的最后一个子节点之后插入
+     *      - 'afterend': 在当前元素之后插入
+     * 
+     *      @param position 指定插入位置
+     *      @param html 要插入的 HTML 文本
+     *     
+     */
+    insertAdjacentHTML(position: string, html: string): void;
+
+    /**
+     * @description 在指定位置插入文本节点
+     * 
+     *      position 参数可以是以下值之一：
+     *      - 'beforebegin': 在当前元素之前插入
+     *      - 'afterbegin': 在当前元素的第一个子节点之前插入
+     *      - 'beforeend': 在当前元素的最后一个子节点之后插入
+     *      - 'afterend': 在当前元素之后插入
+     * 
+     *      @param position 指定插入位置
+     *      @param text 要插入的文本
+     *     
+     */
+    insertAdjacentText(position: string, text: string): void;
+
 }
 
