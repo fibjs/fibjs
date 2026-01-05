@@ -13,7 +13,7 @@
 
 namespace fibjs {
 
-result_t run_test(int32_t mode, v8::Local<v8::Object>& retVal);
+void run_test(int32_t mode);
 
 static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
@@ -24,8 +24,7 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     process_base::get_argv(argv);
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
     if (hr >= 0) {
-        v8::Local<v8::Object> ret;
-        hr = run_test(console_base::C_ERROR, ret);
+        run_test(console_base::C_ERROR);
     }
 
     if (hr < 0) {

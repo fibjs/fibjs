@@ -133,7 +133,8 @@ public:
 
         v8::Local<v8::Value> result;
         bool success = block->Call(block->GetCreationContextChecked(),
-            v8::Object::New(isolate->m_isolate), 0, NULL).ToLocal(&result);
+                                v8::Object::New(isolate->m_isolate), 0, NULL)
+                           .ToLocal(&result);
 
         // 如果返回 Promise，等待其完成（处理 async describe）
         if (success && !result.IsEmpty() && result->IsPromise())
@@ -626,13 +627,28 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
     return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func));
 }
 
-result_t run_test(int32_t mode, v8::Local<v8::Object>& retVal)
+void run_test(int32_t mode)
 {
+    TestData* td = TestData::current();
+    if (!td->m_root)
+        return;
+
     Isolate* isolate = Isolate::current();
     isolate->m_isolate->LowMemoryNotification();
     g_track_native_object = true;
 
-    return _case::run(mode, retVal);
+    isolate->sync([isolate, mode]() -> int {
+        v8::HandleScope handle_scope(isolate->m_isolate);
+        JSFiber::EnterJsScope s;
+
+        v8::Local<v8::Object> ret;
+        result_t hr = _case::run(mode, ret);
+        if (hr < 0) {
+            ThrowResult(hr);
+        }
+
+        return 0;
+    });
 }
 
 static void must_call(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -731,8 +747,6 @@ result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
     retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
     return 0;
 }
-
-
 
 result_t test_base::get_slow(int32_t& retVal)
 {
