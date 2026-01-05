@@ -28,18 +28,15 @@ using namespace v8;
 
 namespace fibjs {
 
-intptr_t RunMicrotaskSize(v8::Isolate* isolate)
+void Isolate::RunMicrotasks()
 {
-    i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
-    i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
-    return queue->size();
-}
+    if (m_module_evaluating > 0)
+        return;
 
-void Isolate::PerformMicrotaskCheckpoint()
-{
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
-    if (queue->size_ > 0) {
+
+    do {
         for (intptr_t i = 0, p = 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
             sync([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
@@ -59,35 +56,7 @@ void Isolate::PerformMicrotaskCheckpoint()
         }
 
         queue->size_ = 0;
-    }
+    } while (m_isolate->HasPendingBackgroundTasks()
+        && v8::platform::PumpMessageLoop(g_default_platform, m_isolate, v8::platform::MessageLoopBehavior::kWaitForWork));
 }
-
-void Isolate::RunMicrotasks()
-{
-    if (m_module_evaluating > 0)
-        return;
-
-    bool not_in_task = false;
-    if (m_intask.compare_exchange_strong(not_in_task, true)) {
-        if ((RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())) {
-            m_intask = true;
-            sync([this]() -> int {
-                {
-                    PerformMicrotaskCheckpoint();
-                    while (v8::platform::PumpMessageLoop(g_default_platform, m_isolate,
-                        m_isolate->HasPendingBackgroundTasks()
-                            ? v8::platform::MessageLoopBehavior::kWaitForWork
-                            : platform::MessageLoopBehavior::kDoNotWait))
-                        PerformMicrotaskCheckpoint();
-                }
-
-                m_intask = false;
-
-                return 0;
-            });
-        } else
-            m_intask = false;
-    }
-}
-
 }

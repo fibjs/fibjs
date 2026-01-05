@@ -283,9 +283,6 @@ public:
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
 
-
-    std::atomic_bool m_intask;
-
     std::unordered_map<exlib::string, obj_ptr<PerformanceMark>> m_markEntries;
     std::unordered_map<exlib::string, std::vector<obj_ptr<PerformanceObserver>>> m_perfObservers;
     exlib::spinlock m_perfLock;
