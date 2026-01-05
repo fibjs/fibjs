@@ -25,4 +25,19 @@ interface XmlNodeList : object
      @param callback The callback function to execute for each node, receiving three parameters: current node, index, node list itself
     */
     forEach(Function callback);
+
+    /*! @brief Return an iterator to iterate over the indices of each node in the node list
+     @return Return an index iterator
+    */
+    Iterator keys();
+
+    /*! @brief Return an iterator to iterate over the values of each node in the node list
+     @return Return a value iterator
+    */
+    Iterator values();
+
+    /*! @brief Return an iterator to iterate over [index, value] pairs of each node in the node list
+     @return Return a key-value pair iterator
+    */
+    Iterator entries();
 };

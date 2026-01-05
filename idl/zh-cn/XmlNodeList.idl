@@ -25,4 +25,19 @@ interface XmlNodeList : object
      @param callback 对每个节点执行的回调函数，接收三个参数：当前节点、索引、节点列表本身
     */
     forEach(Function callback);
+
+    /*! @brief 返回一个迭代器，用于遍历节点列表中每个节点的索引
+     @return 返回索引迭代器
+    */
+    Iterator keys();
+
+    /*! @brief 返回一个迭代器，用于遍历节点列表中每个节点的值
+     @return 返回值迭代器
+    */
+    Iterator values();
+
+    /*! @brief 返回一个迭代器，用于遍历节点列表中每个节点的 [索引, 值] 对
+     @return 返回键值对迭代器
+    */
+    Iterator entries();
 };

@@ -29,5 +29,26 @@ declare class Class_XmlNodeList extends Class_object {
      */
     forEach(callback: (...args: any[])=>any): void;
 
+    /**
+     * @description 返回一个迭代器，用于遍历节点列表中每个节点的索引
+     *      @return 返回索引迭代器
+     *     
+     */
+    keys(): Iterator<any>;
+
+    /**
+     * @description 返回一个迭代器，用于遍历节点列表中每个节点的值
+     *      @return 返回值迭代器
+     *     
+     */
+    values(): Iterator<any>;
+
+    /**
+     * @description 返回一个迭代器，用于遍历节点列表中每个节点的 [索引, 值] 对
+     *      @return 返回键值对迭代器
+     *     
+     */
+    entries(): Iterator<any>;
+
 }
 

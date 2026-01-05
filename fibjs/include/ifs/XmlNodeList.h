@@ -28,6 +28,9 @@ public:
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t forEach(v8::Local<v8::Function> callback) = 0;
+    virtual result_t keys(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t values(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t entries(obj_ptr<Iterator_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -46,6 +49,9 @@ public:
     static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_entries(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -58,7 +64,10 @@ inline ClassInfo& XmlNodeList_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "item", s_item, false, ClassData::ASYNC_SYNC },
         { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC },
-        { "forEach", s_forEach, false, ClassData::ASYNC_SYNC }
+        { "forEach", s_forEach, false, ClassData::ASYNC_SYNC },
+        { "keys", s_keys, false, ClassData::ASYNC_SYNC },
+        { "values", s_values, false, ClassData::ASYNC_SYNC },
+        { "entries", s_entries, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -150,5 +159,47 @@ inline void XmlNodeList_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value
     hr = pInst->forEach(v0);
 
     METHOD_VOID();
+}
+
+inline void XmlNodeList_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(XmlNodeList_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->keys(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNodeList_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(XmlNodeList_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->values(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNodeList_base::s_entries(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(XmlNodeList_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->entries(vr);
+
+    METHOD_RETURN();
 }
 }

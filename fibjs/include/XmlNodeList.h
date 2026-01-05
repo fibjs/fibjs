@@ -39,6 +39,9 @@ public:
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal);
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal);
     virtual result_t forEach(v8::Local<v8::Function> callback);
+    virtual result_t keys(obj_ptr<Iterator_base>& retVal);
+    virtual result_t values(obj_ptr<Iterator_base>& retVal);
+    virtual result_t entries(obj_ptr<Iterator_base>& retVal);
 
 public:
     void clean();

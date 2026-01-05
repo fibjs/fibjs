@@ -11,6 +11,8 @@
 #include "ifs/XmlText.h"
 #include <string.h>
 #include "StringBuffer.h"
+#include "Iterator.h"
+#include "SimpleObject.h"
 
 namespace fibjs {
 
@@ -496,6 +498,25 @@ result_t XmlNodeList::cloneChilds(XmlNode_base* to)
 
 result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 {
+    return values(retVal);
+}
+
+result_t XmlNodeList::keys(obj_ptr<Iterator_base>& retVal)
+{
+    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+        if (index >= m_childs.size()) {
+            cb(false);
+            return;
+        }
+
+        retVal = (int32_t)index;
+        cb(true);
+    });
+    return 0;
+}
+
+result_t XmlNodeList::values(obj_ptr<Iterator_base>& retVal)
+{
     retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
         if (index >= m_childs.size()) {
             cb(false);
@@ -503,6 +524,24 @@ result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
         }
 
         retVal = m_childs[index]->m_node;
+        cb(true);
+    });
+    return 0;
+}
+
+result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
+{
+    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
+        if (index >= m_childs.size()) {
+            cb(false);
+            return;
+        }
+
+        obj_ptr<NArray> array = new NArray();
+        array->append((int32_t)index);
+        array->append(m_childs[index]->m_node);
+
+        retVal = array;
         cb(true);
     });
     return 0;

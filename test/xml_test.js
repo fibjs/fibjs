@@ -1089,6 +1089,75 @@ describe('xml', () => {
                 assert.equal(divs[1], div2);
             });
 
+            it("keys", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                var child1 = xdoc.createElement("child1");
+                var child2 = xdoc.createElement("child2");
+                var child3 = xdoc.createElement("child3");
+                root.appendChild(child1);
+                root.appendChild(child2);
+                root.appendChild(child3);
+
+                // Test keys() returns indices
+                var keys = [];
+                for (var k of root.childNodes.keys()) {
+                    keys.push(k);
+                }
+                assert.deepEqual(keys, [0, 1, 2]);
+
+                // Test empty NodeList
+                var empty = xdoc.createElement("empty");
+                var emptyKeys = [];
+                for (var k of empty.childNodes.keys()) {
+                    emptyKeys.push(k);
+                }
+                assert.deepEqual(emptyKeys, []);
+            });
+
+            it("values", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                var child1 = xdoc.createElement("child1");
+                var child2 = xdoc.createElement("child2");
+                root.appendChild(child1);
+                root.appendChild(child2);
+
+                // Test values() returns nodes
+                var values = [];
+                for (var v of root.childNodes.values()) {
+                    values.push(v);
+                }
+                assert.equal(values.length, 2);
+                assert.equal(values[0], child1);
+                assert.equal(values[1], child2);
+
+                // values() should be same as @@iterator
+                var iteratorValues = [];
+                for (var n of root.childNodes) {
+                    iteratorValues.push(n);
+                }
+                assert.deepEqual(values, iteratorValues);
+            });
+
+            it("entries", () => {
+                var xdoc = newDoc();
+                var root = xdoc.createElement("root");
+                var child1 = xdoc.createElement("child1");
+                var child2 = xdoc.createElement("child2");
+                root.appendChild(child1);
+                root.appendChild(child2);
+
+                // Test entries() returns [index, node] pairs
+                var entries = [];
+                for (var e of root.childNodes.entries()) {
+                    entries.push(e);
+                }
+                assert.equal(entries.length, 2);
+                assert.deepEqual(entries[0], [0, child1]);
+                assert.deepEqual(entries[1], [1, child2]);
+            });
+
             it("error handling", () => {
                 var xdoc = newDoc();
                 var elem = xdoc.createElement("test");
