@@ -27,66 +27,6 @@ result_t XmlDocumentType::set_nodeValue(exlib::string newVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocumentType::get_nodeType(int32_t& retVal)
-{
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
-result_t XmlDocumentType::get_parentNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_parentNode(retVal);
-}
-
-result_t XmlDocumentType::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlDocumentType::get_children(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_children(retVal);
-}
-
-result_t XmlDocumentType::get_firstChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlDocumentType::get_lastChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlDocumentType::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousSibling(retVal);
-}
-
-result_t XmlDocumentType::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextSibling(retVal);
-}
-
-result_t XmlDocumentType::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_firstElementChild(retVal);
-}
-
-result_t XmlDocumentType::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_lastElementChild(retVal);
-}
-
-result_t XmlDocumentType::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousElementSibling(retVal);
-}
-
-result_t XmlDocumentType::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextElementSibling(retVal);
-}
-
 result_t XmlDocumentType::get_textContent(exlib::string& retVal)
 {
     return 0;
@@ -95,11 +35,6 @@ result_t XmlDocumentType::get_textContent(exlib::string& retVal)
 result_t XmlDocumentType::set_textContent(exlib::string newVal)
 {
     return 0;
-}
-
-result_t XmlDocumentType::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
 result_t XmlDocumentType::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
@@ -112,98 +47,10 @@ result_t XmlDocumentType::lookupNamespaceURI(exlib::string prefix, exlib::string
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocumentType::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertBefore(newChild, refChild, retVal);
-}
-
-result_t XmlDocumentType::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertAfter(newChild, refChild, retVal);
-}
-
-result_t XmlDocumentType::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->replaceChild(newChild, oldChild, retVal);
-}
-
-result_t XmlDocumentType::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->removeChild(oldChild, retVal);
-}
-
-result_t XmlDocumentType::remove(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::remove(retVal);
-}
-
-result_t XmlDocumentType::replaceWith(OptArgs nodes)
-{
-    return XmlNodeImpl::replaceWith(nodes);
-}
-
-result_t XmlDocumentType::before(OptArgs nodes)
-{
-    return XmlNodeImpl::before(nodes);
-}
-
-result_t XmlDocumentType::after(OptArgs nodes)
-{
-    return XmlNodeImpl::after(nodes);
-}
-
-result_t XmlDocumentType::contains(XmlNode_base* node, bool& retVal)
-{
-    return XmlNodeImpl::contains(node, retVal);
-}
-
-result_t XmlDocumentType::getRootNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::getRootNode(retVal);
-}
-
-result_t XmlDocumentType::get_isConnected(bool& retVal)
-{
-    return XmlNodeImpl::get_isConnected(retVal);
-}
-
-result_t XmlDocumentType::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
-{
-    return XmlNodeImpl::compareDocumentPosition(other, retVal);
-}
-
-result_t XmlDocumentType::isEqualNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isEqualNode(other, retVal);
-}
-
-result_t XmlDocumentType::isSameNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isSameNode(other, retVal);
-}
-
-result_t XmlDocumentType::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->appendChild(newChild, retVal);
-}
-
-result_t XmlDocumentType::hasChildNodes(bool& retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
 result_t XmlDocumentType::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlDocumentType> doctype = new XmlDocumentType(*this);
     return XmlNodeImpl::cloneNode(doctype, deep, retVal);
-}
-
-result_t XmlDocumentType::normalize()
-{
-    return m_childs->normalize();
 }
 
 result_t XmlDocumentType::get_name(exlib::string& retVal)

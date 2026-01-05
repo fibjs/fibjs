@@ -27,66 +27,6 @@ result_t XmlComment::set_nodeValue(exlib::string newVal)
     return m_data.set_data(newVal);
 }
 
-result_t XmlComment::get_nodeType(int32_t& retVal)
-{
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
-result_t XmlComment::get_parentNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_parentNode(retVal);
-}
-
-result_t XmlComment::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlComment::get_children(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_children(retVal);
-}
-
-result_t XmlComment::get_firstChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlComment::get_lastChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlComment::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousSibling(retVal);
-}
-
-result_t XmlComment::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextSibling(retVal);
-}
-
-result_t XmlComment::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_firstElementChild(retVal);
-}
-
-result_t XmlComment::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_lastElementChild(retVal);
-}
-
-result_t XmlComment::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousElementSibling(retVal);
-}
-
-result_t XmlComment::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextElementSibling(retVal);
-}
-
 result_t XmlComment::get_textContent(exlib::string& retVal)
 {
     return 0;
@@ -97,113 +37,10 @@ result_t XmlComment::set_textContent(exlib::string newVal)
     return 0;
 }
 
-result_t XmlComment::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
-}
-
-result_t XmlComment::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
-{
-    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
-}
-
-result_t XmlComment::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
-{
-    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
-}
-
-result_t XmlComment::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertBefore(newChild, refChild, retVal);
-}
-
-result_t XmlComment::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertAfter(newChild, refChild, retVal);
-}
-
-result_t XmlComment::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->replaceChild(newChild, oldChild, retVal);
-}
-
-result_t XmlComment::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->removeChild(oldChild, retVal);
-}
-
-result_t XmlComment::remove(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::remove(retVal);
-}
-
-result_t XmlComment::replaceWith(OptArgs nodes)
-{
-    return XmlNodeImpl::replaceWith(nodes);
-}
-
-result_t XmlComment::before(OptArgs nodes)
-{
-    return XmlNodeImpl::before(nodes);
-}
-
-result_t XmlComment::after(OptArgs nodes)
-{
-    return XmlNodeImpl::after(nodes);
-}
-
-result_t XmlComment::contains(XmlNode_base* node, bool& retVal)
-{
-    return XmlNodeImpl::contains(node, retVal);
-}
-
-result_t XmlComment::getRootNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::getRootNode(retVal);
-}
-
-result_t XmlComment::get_isConnected(bool& retVal)
-{
-    return XmlNodeImpl::get_isConnected(retVal);
-}
-
-result_t XmlComment::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
-{
-    return XmlNodeImpl::compareDocumentPosition(other, retVal);
-}
-
-result_t XmlComment::isEqualNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isEqualNode(other, retVal);
-}
-
-result_t XmlComment::isSameNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isSameNode(other, retVal);
-}
-
-result_t XmlComment::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->appendChild(newChild, retVal);
-}
-
-result_t XmlComment::hasChildNodes(bool& retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
 result_t XmlComment::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlComment> comment = new XmlComment(*this);
     return XmlNodeImpl::cloneNode(comment, deep, retVal);
-}
-
-result_t XmlComment::normalize()
-{
-    return m_childs->normalize();
 }
 
 result_t XmlComment::get_data(exlib::string& retVal)
@@ -254,4 +91,5 @@ result_t XmlComment::toString(exlib::string& retVal)
 
     return 0;
 }
-}
+
+} /* namespace fibjs */

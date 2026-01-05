@@ -34,11 +34,6 @@ result_t XmlElement::set_nodeValue(exlib::string newVal)
     return 0;
 }
 
-result_t XmlElement::get_nodeType(int32_t& retVal)
-{
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
 result_t XmlElement::get_namespaceURI(exlib::string& retVal)
 {
     if (m_namespaceURI.empty())
@@ -69,61 +64,6 @@ result_t XmlElement::get_localName(exlib::string& retVal)
     return 0;
 }
 
-result_t XmlElement::get_parentNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_parentNode(retVal);
-}
-
-result_t XmlElement::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlElement::get_children(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_children(retVal);
-}
-
-result_t XmlElement::get_firstChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlElement::get_lastChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlElement::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousSibling(retVal);
-}
-
-result_t XmlElement::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextSibling(retVal);
-}
-
-result_t XmlElement::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_firstElementChild(retVal);
-}
-
-result_t XmlElement::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_lastElementChild(retVal);
-}
-
-result_t XmlElement::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousElementSibling(retVal);
-}
-
-result_t XmlElement::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextElementSibling(retVal);
-}
-
 result_t XmlElement::get_textContent(exlib::string& retVal)
 {
     StringBuffer strs;
@@ -143,11 +83,6 @@ result_t XmlElement::set_textContent(exlib::string newVal)
     appendChild(text, out);
 
     return 0;
-}
-
-result_t XmlElement::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
 result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
@@ -178,89 +113,6 @@ result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& ret
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
 
-result_t XmlElement::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertBefore(newChild, refChild, retVal);
-}
-
-result_t XmlElement::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertAfter(newChild, refChild, retVal);
-}
-
-result_t XmlElement::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->replaceChild(newChild, oldChild, retVal);
-}
-
-result_t XmlElement::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->removeChild(oldChild, retVal);
-}
-
-result_t XmlElement::remove(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::remove(retVal);
-}
-
-result_t XmlElement::replaceWith(OptArgs nodes)
-{
-    return XmlNodeImpl::replaceWith(nodes);
-}
-
-result_t XmlElement::before(OptArgs nodes)
-{
-    return XmlNodeImpl::before(nodes);
-}
-
-result_t XmlElement::after(OptArgs nodes)
-{
-    return XmlNodeImpl::after(nodes);
-}
-
-result_t XmlElement::contains(XmlNode_base* node, bool& retVal)
-{
-    return XmlNodeImpl::contains(node, retVal);
-}
-
-result_t XmlElement::getRootNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::getRootNode(retVal);
-}
-
-result_t XmlElement::get_isConnected(bool& retVal)
-{
-    return XmlNodeImpl::get_isConnected(retVal);
-}
-
-result_t XmlElement::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
-{
-    return XmlNodeImpl::compareDocumentPosition(other, retVal);
-}
-
-result_t XmlElement::isEqualNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isEqualNode(other, retVal);
-}
-
-result_t XmlElement::isSameNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isSameNode(other, retVal);
-}
-
-result_t XmlElement::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->appendChild(newChild, retVal);
-}
-
-result_t XmlElement::hasChildNodes(bool& retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
 result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlElement> el = new XmlElement(*this);
@@ -269,11 +121,6 @@ result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
         return hr;
 
     return XmlNodeImpl::cloneNode(el, deep, retVal);
-}
-
-result_t XmlElement::normalize()
-{
-    return m_childs->normalize();
 }
 
 result_t XmlElement::get_tagName(exlib::string& retVal)

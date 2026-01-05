@@ -101,66 +101,6 @@ result_t XmlDocument::set_nodeValue(exlib::string newVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocument::get_nodeType(int32_t& retVal)
-{
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
-result_t XmlDocument::get_parentNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_parentNode(retVal);
-}
-
-result_t XmlDocument::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlDocument::get_children(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_children(retVal);
-}
-
-result_t XmlDocument::get_firstChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlDocument::get_lastChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlDocument::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousSibling(retVal);
-}
-
-result_t XmlDocument::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextSibling(retVal);
-}
-
-result_t XmlDocument::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_firstElementChild(retVal);
-}
-
-result_t XmlDocument::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_lastElementChild(retVal);
-}
-
-result_t XmlDocument::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousElementSibling(retVal);
-}
-
-result_t XmlDocument::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextElementSibling(retVal);
-}
-
 result_t XmlDocument::get_textContent(exlib::string& retVal)
 {
     return 0;
@@ -169,11 +109,6 @@ result_t XmlDocument::get_textContent(exlib::string& retVal)
 result_t XmlDocument::set_textContent(exlib::string newVal)
 {
     return 0;
-}
-
-result_t XmlDocument::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
 result_t XmlDocument::checkNode(XmlNode_base* newChild)
@@ -270,56 +205,6 @@ result_t XmlDocument::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
     return m_childs->removeChild(oldChild, retVal);
 }
 
-result_t XmlDocument::remove(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::remove(retVal);
-}
-
-result_t XmlDocument::replaceWith(OptArgs nodes)
-{
-    return XmlNodeImpl::replaceWith(nodes);
-}
-
-result_t XmlDocument::before(OptArgs nodes)
-{
-    return XmlNodeImpl::before(nodes);
-}
-
-result_t XmlDocument::after(OptArgs nodes)
-{
-    return XmlNodeImpl::after(nodes);
-}
-
-result_t XmlDocument::contains(XmlNode_base* node, bool& retVal)
-{
-    return XmlNodeImpl::contains(node, retVal);
-}
-
-result_t XmlDocument::getRootNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::getRootNode(retVal);
-}
-
-result_t XmlDocument::get_isConnected(bool& retVal)
-{
-    return XmlNodeImpl::get_isConnected(retVal);
-}
-
-result_t XmlDocument::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
-{
-    return XmlNodeImpl::compareDocumentPosition(other, retVal);
-}
-
-result_t XmlDocument::isEqualNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isEqualNode(other, retVal);
-}
-
-result_t XmlDocument::isSameNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isSameNode(other, retVal);
-}
-
 result_t XmlDocument::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     result_t hr = checkNode(newChild);
@@ -329,20 +214,10 @@ result_t XmlDocument::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
     return m_childs->appendChild(newChild, retVal);
 }
 
-result_t XmlDocument::hasChildNodes(bool& retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
 result_t XmlDocument::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlDocument> doc = new XmlDocument(*this);
     return XmlNodeImpl::cloneNode(doc, deep, retVal);
-}
-
-result_t XmlDocument::normalize()
-{
-    return m_childs->normalize();
 }
 
 result_t XmlDocument::load(exlib::string source)

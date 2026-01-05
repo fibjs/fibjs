@@ -27,66 +27,6 @@ result_t XmlCDATASection::set_nodeValue(exlib::string newVal)
     return m_data.set_data(newVal);
 }
 
-result_t XmlCDATASection::get_nodeType(int32_t& retVal)
-{
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
-result_t XmlCDATASection::get_parentNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_parentNode(retVal);
-}
-
-result_t XmlCDATASection::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlCDATASection::get_children(obj_ptr<XmlNodeList_base>& retVal)
-{
-    return XmlNodeImpl::get_children(retVal);
-}
-
-result_t XmlCDATASection::get_firstChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlCDATASection::get_lastChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlCDATASection::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousSibling(retVal);
-}
-
-result_t XmlCDATASection::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextSibling(retVal);
-}
-
-result_t XmlCDATASection::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_firstElementChild(retVal);
-}
-
-result_t XmlCDATASection::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_lastElementChild(retVal);
-}
-
-result_t XmlCDATASection::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_previousElementSibling(retVal);
-}
-
-result_t XmlCDATASection::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::get_nextElementSibling(retVal);
-}
-
 result_t XmlCDATASection::get_textContent(exlib::string& retVal)
 {
     return 0;
@@ -97,113 +37,10 @@ result_t XmlCDATASection::set_textContent(exlib::string newVal)
     return 0;
 }
 
-result_t XmlCDATASection::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
-}
-
-result_t XmlCDATASection::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
-{
-    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
-}
-
-result_t XmlCDATASection::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
-{
-    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
-}
-
-result_t XmlCDATASection::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertBefore(newChild, refChild, retVal);
-}
-
-result_t XmlCDATASection::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->insertAfter(newChild, refChild, retVal);
-}
-
-result_t XmlCDATASection::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
-    obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->replaceChild(newChild, oldChild, retVal);
-}
-
-result_t XmlCDATASection::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->removeChild(oldChild, retVal);
-}
-
-result_t XmlCDATASection::remove(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::remove(retVal);
-}
-
-result_t XmlCDATASection::replaceWith(OptArgs nodes)
-{
-    return XmlNodeImpl::replaceWith(nodes);
-}
-
-result_t XmlCDATASection::before(OptArgs nodes)
-{
-    return XmlNodeImpl::before(nodes);
-}
-
-result_t XmlCDATASection::after(OptArgs nodes)
-{
-    return XmlNodeImpl::after(nodes);
-}
-
-result_t XmlCDATASection::contains(XmlNode_base* node, bool& retVal)
-{
-    return XmlNodeImpl::contains(node, retVal);
-}
-
-result_t XmlCDATASection::getRootNode(obj_ptr<XmlNode_base>& retVal)
-{
-    return XmlNodeImpl::getRootNode(retVal);
-}
-
-result_t XmlCDATASection::get_isConnected(bool& retVal)
-{
-    return XmlNodeImpl::get_isConnected(retVal);
-}
-
-result_t XmlCDATASection::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
-{
-    return XmlNodeImpl::compareDocumentPosition(other, retVal);
-}
-
-result_t XmlCDATASection::isEqualNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isEqualNode(other, retVal);
-}
-
-result_t XmlCDATASection::isSameNode(XmlNode_base* other, bool& retVal)
-{
-    return XmlNodeImpl::isSameNode(other, retVal);
-}
-
-result_t XmlCDATASection::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
-{
-    return m_childs->appendChild(newChild, retVal);
-}
-
-result_t XmlCDATASection::hasChildNodes(bool& retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
 result_t XmlCDATASection::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlCDATASection> cds = new XmlCDATASection(*this);
     return XmlNodeImpl::cloneNode(cds, deep, retVal);
-}
-
-result_t XmlCDATASection::normalize()
-{
-    return m_childs->normalize();
 }
 
 result_t XmlCDATASection::get_data(exlib::string& retVal)
@@ -272,4 +109,5 @@ result_t XmlCDATASection::toString(exlib::string& retVal)
 
     return 0;
 }
-}
+
+} /* namespace fibjs */
