@@ -207,7 +207,14 @@ public:
         int32_t len = nodes.Length();
         for (int32_t i = 0; i < len; i++) {
             Variant v = nodes[i];
-            obj_ptr<XmlNode_base> node = XmlNode_base::getInstance(v.object());
+            obj_ptr<XmlNode_base> node;
+            if (v.type() == Variant::VT_String) {
+                obj_ptr<XmlText_base> textNode;
+                m_document->createTextNode(v.string(), textNode);
+                node = textNode;
+            } else {
+                node = XmlNode_base::getInstance(v.object());
+            }
             if (node) {
                 obj_ptr<XmlNode_base> retVal;
                 result_t hr = m_parent->m_childs->insertBefore(node, m_node, retVal);
@@ -219,6 +226,66 @@ public:
         // Remove the current node
         obj_ptr<XmlNode_base> retVal;
         m_parent->m_childs->removeChild(m_node, retVal);
+
+        return 0;
+    }
+
+    result_t before(OptArgs nodes)
+    {
+        if (!m_parent || !m_parent->m_childs)
+            return 0;
+
+        // Insert all nodes before the current node
+        int32_t len = nodes.Length();
+        for (int32_t i = 0; i < len; i++) {
+            Variant v = nodes[i];
+            obj_ptr<XmlNode_base> node;
+            if (v.type() == Variant::VT_String) {
+                obj_ptr<XmlText_base> textNode;
+                m_document->createTextNode(v.string(), textNode);
+                node = textNode;
+            } else {
+                node = XmlNode_base::getInstance(v.object());
+            }
+            if (node) {
+                obj_ptr<XmlNode_base> retVal;
+                result_t hr = m_parent->m_childs->insertBefore(node, m_node, retVal);
+                if (hr < 0)
+                    return hr;
+            }
+        }
+
+        return 0;
+    }
+
+    result_t after(OptArgs nodes)
+    {
+        if (!m_parent || !m_parent->m_childs)
+            return 0;
+
+        // Insert all nodes after the current node
+        // Track the reference node for subsequent insertions
+        XmlNode_base* refNode = m_node;
+        int32_t len = nodes.Length();
+        for (int32_t i = 0; i < len; i++) {
+            Variant v = nodes[i];
+            obj_ptr<XmlNode_base> node;
+            if (v.type() == Variant::VT_String) {
+                obj_ptr<XmlText_base> textNode;
+                m_document->createTextNode(v.string(), textNode);
+                node = textNode;
+            } else {
+                node = XmlNode_base::getInstance(v.object());
+            }
+            if (node) {
+                obj_ptr<XmlNode_base> retVal;
+                result_t hr = m_parent->m_childs->insertAfter(node, refNode, retVal);
+                if (hr < 0)
+                    return hr;
+                // Update reference node for next insertion
+                refNode = node;
+            }
+        }
 
         return 0;
     }

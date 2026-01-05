@@ -211,6 +211,16 @@ result_t XmlElement::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlElement::before(OptArgs nodes)
+{
+    return XmlNodeImpl::before(nodes);
+}
+
+result_t XmlElement::after(OptArgs nodes)
+{
+    return XmlNodeImpl::after(nodes);
+}
+
 result_t XmlElement::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);
@@ -815,5 +825,68 @@ result_t XmlElement::toString(exlib::string& retVal)
         retVal.append("/>");
 
     return 0;
+}
+
+result_t XmlElement::append(OptArgs nodes)
+{
+    int32_t len = nodes.Length();
+    for (int32_t i = 0; i < len; i++) {
+        Variant v = nodes[i];
+        obj_ptr<XmlNode_base> node;
+        if (v.type() == Variant::VT_String) {
+            obj_ptr<XmlText_base> textNode;
+            m_document->createTextNode(v.string(), textNode);
+            node = textNode;
+        } else {
+            node = XmlNode_base::getInstance(v.object());
+        }
+        if (node) {
+            obj_ptr<XmlNode_base> retVal;
+            result_t hr = m_childs->appendChild(node, retVal);
+            if (hr < 0)
+                return hr;
+        }
+    }
+    return 0;
+}
+
+result_t XmlElement::prepend(OptArgs nodes)
+{
+    obj_ptr<XmlNode_base> firstChild;
+    m_childs->firstChild(firstChild);
+
+    int32_t len = nodes.Length();
+    for (int32_t i = 0; i < len; i++) {
+        Variant v = nodes[i];
+        obj_ptr<XmlNode_base> node;
+        if (v.type() == Variant::VT_String) {
+            obj_ptr<XmlText_base> textNode;
+            m_document->createTextNode(v.string(), textNode);
+            node = textNode;
+        } else {
+            node = XmlNode_base::getInstance(v.object());
+        }
+        if (node) {
+            obj_ptr<XmlNode_base> retVal;
+            result_t hr;
+            if (firstChild) {
+                hr = m_childs->insertBefore(node, firstChild, retVal);
+            } else {
+                hr = m_childs->appendChild(node, retVal);
+            }
+            if (hr < 0)
+                return hr;
+        }
+    }
+    return 0;
+}
+
+result_t XmlElement::replaceChildren(OptArgs nodes)
+{
+    // Remove all existing children
+    m_childs->removeAll();
+
+    // Append new nodes
+    return append(nodes);
 }
 }

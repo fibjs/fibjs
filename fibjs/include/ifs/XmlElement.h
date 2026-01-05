@@ -66,6 +66,9 @@ public:
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t matches(exlib::string selectors, bool& retVal) = 0;
     virtual result_t closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal) = 0;
+    virtual result_t append(OptArgs nodes) = 0;
+    virtual result_t prepend(OptArgs nodes) = 0;
+    virtual result_t replaceChildren(OptArgs nodes) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -117,6 +120,9 @@ public:
     static void s_querySelectorAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_matches(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_closest(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_prepend(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_replaceChildren(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -150,7 +156,10 @@ inline ClassInfo& XmlElement_base::class_info()
         { "querySelector", s_querySelector, false, ClassData::ASYNC_SYNC },
         { "querySelectorAll", s_querySelectorAll, false, ClassData::ASYNC_SYNC },
         { "matches", s_matches, false, ClassData::ASYNC_SYNC },
-        { "closest", s_closest, false, ClassData::ASYNC_SYNC }
+        { "closest", s_closest, false, ClassData::ASYNC_SYNC },
+        { "append", s_append, false, ClassData::ASYNC_SYNC },
+        { "prepend", s_prepend, false, ClassData::ASYNC_SYNC },
+        { "replaceChildren", s_replaceChildren, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -749,5 +758,47 @@ inline void XmlElement_base::s_closest(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->closest(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = pInst->append(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_prepend(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = pInst->prepend(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_replaceChildren(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = pInst->replaceChildren(v0);
+
+    METHOD_VOID();
 }
 }

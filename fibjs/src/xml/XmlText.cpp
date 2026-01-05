@@ -147,6 +147,16 @@ result_t XmlText::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlText::before(OptArgs nodes)
+{
+    return XmlNodeImpl::before(nodes);
+}
+
+result_t XmlText::after(OptArgs nodes)
+{
+    return XmlNodeImpl::after(nodes);
+}
+
 result_t XmlText::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);

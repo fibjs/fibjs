@@ -3707,6 +3707,184 @@ describe('xml', () => {
                 });
             });
         });
+
+        describe('append/prepend/before/after/replaceChildren', () => {
+            describe('append()', () => {
+                it('should append single node', () => {
+                    const doc = parseHtml('<html><body></body></html>');
+                    const body = doc.body;
+                    const div = doc.createElement('div');
+                    body.append(div);
+                    assert.equal(body.lastChild.tagName.toLowerCase(), 'div');
+                });
+
+                it('should append multiple nodes', () => {
+                    const doc = parseHtml('<html><body></body></html>');
+                    const body = doc.body;
+                    const div1 = doc.createElement('div');
+                    const div2 = doc.createElement('span');
+                    body.append(div1, div2);
+                    assert.equal(body.children.length, 2);
+                    assert.equal(body.children[0].tagName.toLowerCase(), 'div');
+                    assert.equal(body.children[1].tagName.toLowerCase(), 'span');
+                });
+
+                it('should append string as text node', () => {
+                    const doc = parseHtml('<html><body></body></html>');
+                    const body = doc.body;
+                    body.append('Hello World');
+                    assert.equal(body.textContent, 'Hello World');
+                });
+
+                it('should append mixed nodes and strings', () => {
+                    const doc = parseHtml('<html><body></body></html>');
+                    const body = doc.body;
+                    const div = doc.createElement('div');
+                    body.append('Text1', div, 'Text2');
+                    assert.equal(body.childNodes.length, 3);
+                    assert.equal(body.childNodes[0].nodeType, 3); // TEXT_NODE
+                    assert.equal(body.childNodes[1].tagName.toLowerCase(), 'div');
+                    assert.equal(body.childNodes[2].nodeType, 3); // TEXT_NODE
+                });
+            });
+
+            describe('prepend()', () => {
+                it('should prepend single node', () => {
+                    const doc = parseHtml('<html><body><p>existing</p></body></html>');
+                    const body = doc.body;
+                    const div = doc.createElement('div');
+                    body.prepend(div);
+                    assert.equal(body.firstChild.tagName.toLowerCase(), 'div');
+                });
+
+                it('should prepend multiple nodes', () => {
+                    const doc = parseHtml('<html><body><p>existing</p></body></html>');
+                    const body = doc.body;
+                    const div1 = doc.createElement('div');
+                    const div2 = doc.createElement('span');
+                    body.prepend(div1, div2);
+                    assert.equal(body.children[0].tagName.toLowerCase(), 'div');
+                    assert.equal(body.children[1].tagName.toLowerCase(), 'span');
+                    assert.equal(body.children[2].tagName.toLowerCase(), 'p');
+                });
+
+                it('should prepend string as text node', () => {
+                    const doc = parseHtml('<html><body><p>existing</p></body></html>');
+                    const body = doc.body;
+                    body.prepend('Hello');
+                    assert.equal(body.firstChild.nodeType, 3); // TEXT_NODE
+                    assert.equal(body.firstChild.nodeValue, 'Hello');
+                });
+            });
+
+            describe('before()', () => {
+                it('should insert node before element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    const div = doc.createElement('div');
+                    p.before(div);
+                    assert.equal(doc.body.firstChild.tagName.toLowerCase(), 'div');
+                });
+
+                it('should insert multiple nodes before element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    const div1 = doc.createElement('div');
+                    const div2 = doc.createElement('span');
+                    p.before(div1, div2);
+                    assert.equal(doc.body.children[0].tagName.toLowerCase(), 'div');
+                    assert.equal(doc.body.children[1].tagName.toLowerCase(), 'span');
+                    assert.equal(doc.body.children[2].tagName.toLowerCase(), 'p');
+                });
+
+                it('should insert string as text node before element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    p.before('Hello');
+                    assert.equal(doc.body.firstChild.nodeType, 3); // TEXT_NODE
+                    assert.equal(doc.body.firstChild.nodeValue, 'Hello');
+                });
+            });
+
+            describe('after()', () => {
+                it('should insert node after element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    const div = doc.createElement('div');
+                    p.after(div);
+                    assert.equal(doc.body.lastChild.tagName.toLowerCase(), 'div');
+                });
+
+                it('should insert multiple nodes after element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    const div1 = doc.createElement('div');
+                    const div2 = doc.createElement('span');
+                    p.after(div1, div2);
+                    assert.equal(doc.body.children[0].tagName.toLowerCase(), 'p');
+                    assert.equal(doc.body.children[1].tagName.toLowerCase(), 'div');
+                    assert.equal(doc.body.children[2].tagName.toLowerCase(), 'span');
+                });
+
+                it('should insert string as text node after element', () => {
+                    const doc = parseHtml('<html><body><p id="ref">test</p></body></html>');
+                    const p = doc.getElementById('ref');
+                    p.after('World');
+                    assert.equal(doc.body.lastChild.nodeType, 3); // TEXT_NODE
+                    assert.equal(doc.body.lastChild.nodeValue, 'World');
+                });
+            });
+
+            describe('replaceChildren()', () => {
+                it('should replace all children with new nodes', () => {
+                    const doc = parseHtml('<html><body><p>old1</p><p>old2</p></body></html>');
+                    const body = doc.body;
+                    const div = doc.createElement('div');
+                    body.replaceChildren(div);
+                    assert.equal(body.children.length, 1);
+                    assert.equal(body.firstChild.tagName.toLowerCase(), 'div');
+                });
+
+                it('should clear all children when called with no arguments', () => {
+                    const doc = parseHtml('<html><body><p>old1</p><p>old2</p></body></html>');
+                    const body = doc.body;
+                    body.replaceChildren();
+                    assert.equal(body.children.length, 0);
+                });
+
+                it('should replace with mixed nodes and strings', () => {
+                    const doc = parseHtml('<html><body><p>old</p></body></html>');
+                    const body = doc.body;
+                    const div = doc.createElement('div');
+                    body.replaceChildren('Text', div, 'More');
+                    assert.equal(body.childNodes.length, 3);
+                    assert.equal(body.childNodes[0].nodeValue, 'Text');
+                    assert.equal(body.childNodes[1].tagName.toLowerCase(), 'div');
+                    assert.equal(body.childNodes[2].nodeValue, 'More');
+                });
+            });
+
+            describe('replaceWith() with string', () => {
+                it('should replace element with string', () => {
+                    const doc = parseHtml('<html><body><p id="old">remove me</p></body></html>');
+                    const p = doc.getElementById('old');
+                    p.replaceWith('Hello World');
+                    assert.equal(doc.body.textContent, 'Hello World');
+                    assert.equal(doc.body.firstChild.nodeType, 3);
+                });
+
+                it('should replace element with mixed nodes and strings', () => {
+                    const doc = parseHtml('<html><body><p id="old">remove me</p></body></html>');
+                    const p = doc.getElementById('old');
+                    const span = doc.createElement('span');
+                    p.replaceWith('Before', span, 'After');
+                    assert.equal(doc.body.childNodes.length, 3);
+                    assert.equal(doc.body.childNodes[0].nodeValue, 'Before');
+                    assert.equal(doc.body.childNodes[1].tagName.toLowerCase(), 'span');
+                    assert.equal(doc.body.childNodes[2].nodeValue, 'After');
+                });
+            });
+        });
     }
 
     // Browser-only tests for features not supported in fibjs

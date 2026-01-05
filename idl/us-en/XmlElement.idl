@@ -206,4 +206,25 @@ interface XmlElement : XmlNode
      @return Return the closest matching ancestor element, or null if no match is found
     */
     XmlElement closest(String selectors);
+
+    /*! @brief Append one or more nodes to the end of the current element's child nodes
+
+     This method appends the specified nodes to the end of the current element's child node list. String arguments are automatically converted to text nodes.
+     @param nodes One or more nodes to append, can be node objects or strings
+    */
+    append(...nodes);
+
+    /*! @brief Prepend one or more nodes to the beginning of the current element's child nodes
+
+     This method prepends the specified nodes to the beginning of the current element's child node list. String arguments are automatically converted to text nodes.
+     @param nodes One or more nodes to prepend, can be node objects or strings
+    */
+    prepend(...nodes);
+
+    /*! @brief Replace all child nodes of the current element
+
+     This method replaces all child nodes of the current element with the specified nodes. String arguments are automatically converted to text nodes. If no arguments are provided, all child nodes are removed.
+     @param nodes One or more nodes to set, can be node objects or strings
+    */
+    replaceChildren(...nodes);
 };

@@ -63,6 +63,8 @@ public:
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal);
     virtual result_t remove(obj_ptr<XmlNode_base>& retVal);
     virtual result_t replaceWith(OptArgs nodes);
+    virtual result_t before(OptArgs nodes);
+    virtual result_t after(OptArgs nodes);
     virtual result_t contains(XmlNode_base* node, bool& retVal);
     virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_isConnected(bool& retVal);

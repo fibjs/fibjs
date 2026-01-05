@@ -195,6 +195,18 @@ result_t XmlDocumentFragment::replaceWith(OptArgs nodes)
     return 0;
 }
 
+result_t XmlDocumentFragment::before(OptArgs nodes)
+{
+    // DocumentFragment cannot have siblings since it never has a parent
+    return 0;
+}
+
+result_t XmlDocumentFragment::after(OptArgs nodes)
+{
+    // DocumentFragment cannot have siblings since it never has a parent
+    return 0;
+}
+
 result_t XmlDocumentFragment::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);

@@ -145,6 +145,16 @@ result_t XmlDocumentType::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlDocumentType::before(OptArgs nodes)
+{
+    return XmlNodeImpl::before(nodes);
+}
+
+result_t XmlDocumentType::after(OptArgs nodes)
+{
+    return XmlNodeImpl::after(nodes);
+}
+
 result_t XmlDocumentType::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);

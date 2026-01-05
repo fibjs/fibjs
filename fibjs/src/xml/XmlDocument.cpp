@@ -280,6 +280,16 @@ result_t XmlDocument::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlDocument::before(OptArgs nodes)
+{
+    return XmlNodeImpl::before(nodes);
+}
+
+result_t XmlDocument::after(OptArgs nodes)
+{
+    return XmlNodeImpl::after(nodes);
+}
+
 result_t XmlDocument::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);

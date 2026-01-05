@@ -182,6 +182,20 @@ interface XmlNode : object
     */
     replaceWith(...nodes);
 
+    /*! @brief Insert one or more nodes before the current node
+
+     This method inserts the specified nodes before the current node, under the same parent node. If the current node has no parent node, this method does nothing.
+     @param nodes One or more nodes to insert, can be node objects or strings
+    */
+    before(...nodes);
+
+    /*! @brief Insert one or more nodes after the current node
+
+     This method inserts the specified nodes after the current node, under the same parent node. If the current node has no parent node, this method does nothing.
+     @param nodes One or more nodes to insert, can be node objects or strings
+    */
+    after(...nodes);
+
     /*! @brief Check whether the current node contains the specified node
      @param node The node to check
      @return Return true if the current node contains the specified node, otherwise return false

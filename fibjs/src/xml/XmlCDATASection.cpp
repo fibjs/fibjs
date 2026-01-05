@@ -145,6 +145,16 @@ result_t XmlCDATASection::replaceWith(OptArgs nodes)
     return XmlNodeImpl::replaceWith(nodes);
 }
 
+result_t XmlCDATASection::before(OptArgs nodes)
+{
+    return XmlNodeImpl::before(nodes);
+}
+
+result_t XmlCDATASection::after(OptArgs nodes)
+{
+    return XmlNodeImpl::after(nodes);
+}
+
 result_t XmlCDATASection::contains(XmlNode_base* node, bool& retVal)
 {
     return XmlNodeImpl::contains(node, retVal);

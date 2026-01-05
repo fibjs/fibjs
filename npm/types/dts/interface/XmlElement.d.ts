@@ -281,5 +281,32 @@ declare class Class_XmlElement extends Class_XmlNode {
      */
     closest(selectors: string): Class_XmlElement;
 
+    /**
+     * @description 在当前元素的子节点末尾添加一个或多个节点
+     * 
+     *      该方法将指定的节点添加到当前元素的子节点列表末尾。字符串参数会自动转换为文本节点。
+     *      @param nodes 要添加的一个或多个节点，可以是节点对象或字符串
+     *     
+     */
+    append(...nodes: any[]): void;
+
+    /**
+     * @description 在当前元素的子节点开头添加一个或多个节点
+     * 
+     *      该方法将指定的节点添加到当前元素的子节点列表开头。字符串参数会自动转换为文本节点。
+     *      @param nodes 要添加的一个或多个节点，可以是节点对象或字符串
+     *     
+     */
+    prepend(...nodes: any[]): void;
+
+    /**
+     * @description 替换当前元素的所有子节点
+     * 
+     *      该方法将当前元素的所有子节点替换为指定的节点。字符串参数会自动转换为文本节点。如果不传入任何参数，则清空所有子节点。
+     *      @param nodes 要设置的一个或多个节点，可以是节点对象或字符串
+     *     
+     */
+    replaceChildren(...nodes: any[]): void;
+
 }
 
