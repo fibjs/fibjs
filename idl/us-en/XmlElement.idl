@@ -267,4 +267,21 @@ interface XmlElement : XmlNode
      @param text The text to insert
     */
     insertAdjacentText(String position, String text);
+
+    /*! @brief Toggle a boolean attribute on the element
+
+     If the attribute exists, it is removed; if it doesn't exist, it is added.
+     @param name The name of the attribute to toggle
+     @return Return true if the attribute exists after the operation, otherwise return false
+    */
+    Boolean toggleAttribute(String name);
+
+    /*! @brief Toggle a boolean attribute on the element
+
+     Forcibly add or remove the attribute based on the force parameter.
+     @param name The name of the attribute to toggle
+     @param force If true forces adding the attribute, if false forces removing the attribute
+     @return Return true if the attribute exists after the operation, otherwise return false
+    */
+    Boolean toggleAttribute(String name, Boolean force);
 };

@@ -170,6 +170,21 @@ result_t XmlCDATASection::get_isConnected(bool& retVal)
     return XmlNodeImpl::get_isConnected(retVal);
 }
 
+result_t XmlCDATASection::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
+{
+    return XmlNodeImpl::compareDocumentPosition(other, retVal);
+}
+
+result_t XmlCDATASection::isEqualNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isEqualNode(other, retVal);
+}
+
+result_t XmlCDATASection::isSameNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isSameNode(other, retVal);
+}
+
 result_t XmlCDATASection::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

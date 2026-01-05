@@ -343,6 +343,219 @@ public:
         return 0;
     }
 
+    result_t compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
+    {
+        // Position constants
+        const int32_t DOCUMENT_POSITION_DISCONNECTED = 1;
+        const int32_t DOCUMENT_POSITION_PRECEDING = 2;
+        const int32_t DOCUMENT_POSITION_FOLLOWING = 4;
+        const int32_t DOCUMENT_POSITION_CONTAINS = 8;
+        const int32_t DOCUMENT_POSITION_CONTAINED_BY = 16;
+
+        retVal = 0;
+
+        if (!other) {
+            retVal = DOCUMENT_POSITION_DISCONNECTED;
+            return 0;
+        }
+
+        // Same node
+        if (other == m_node) {
+            retVal = 0;
+            return 0;
+        }
+
+        XmlNodeImpl* otherImpl = fromNode(other);
+        if (!otherImpl) {
+            retVal = DOCUMENT_POSITION_DISCONNECTED;
+            return 0;
+        }
+
+        // Check if nodes are in the same document
+        obj_ptr<XmlNode_base> thisRoot, otherRoot;
+        getRootNode(thisRoot);
+        otherImpl->getRootNode(otherRoot);
+
+        if (thisRoot != otherRoot) {
+            retVal = DOCUMENT_POSITION_DISCONNECTED | DOCUMENT_POSITION_PRECEDING;
+            return 0;
+        }
+
+        // Check if other contains this
+        XmlNodeImpl* parent = m_parent;
+        while (parent) {
+            if (parent->m_node == other) {
+                retVal = DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING;
+                return 0;
+            }
+            parent = parent->m_parent;
+        }
+
+        // Check if this contains other
+        parent = otherImpl->m_parent;
+        while (parent) {
+            if (parent->m_node == m_node) {
+                retVal = DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING;
+                return 0;
+            }
+            parent = parent->m_parent;
+        }
+
+        // Find common ancestor and compare position
+        // Build ancestor chain for this node
+        std::vector<XmlNodeImpl*> thisChain;
+        XmlNodeImpl* node = this;
+        while (node) {
+            thisChain.push_back(node);
+            node = node->m_parent;
+        }
+
+        // Build ancestor chain for other node
+        std::vector<XmlNodeImpl*> otherChain;
+        node = otherImpl;
+        while (node) {
+            otherChain.push_back(node);
+            node = node->m_parent;
+        }
+
+        // Find common ancestor
+        XmlNodeImpl* commonAncestor = nullptr;
+        XmlNodeImpl* thisAncestor = nullptr;
+        XmlNodeImpl* otherAncestor = nullptr;
+
+        for (size_t i = 0; i < thisChain.size(); i++) {
+            for (size_t j = 0; j < otherChain.size(); j++) {
+                if (thisChain[i] == otherChain[j]) {
+                    commonAncestor = thisChain[i];
+                    if (i > 0)
+                        thisAncestor = thisChain[i - 1];
+                    if (j > 0)
+                        otherAncestor = otherChain[j - 1];
+                    break;
+                }
+            }
+            if (commonAncestor)
+                break;
+        }
+
+        if (!commonAncestor) {
+            retVal = DOCUMENT_POSITION_DISCONNECTED;
+            return 0;
+        }
+
+        // Compare positions under common ancestor
+        if (thisAncestor && otherAncestor) {
+            if (thisAncestor->m_index < otherAncestor->m_index)
+                retVal = DOCUMENT_POSITION_FOLLOWING;
+            else
+                retVal = DOCUMENT_POSITION_PRECEDING;
+        } else if (!thisAncestor) {
+            // this is the common ancestor, so other is contained
+            retVal = DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING;
+        } else {
+            // other is the common ancestor, so this is contained
+            retVal = DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING;
+        }
+
+        return 0;
+    }
+
+    result_t isEqualNode(XmlNode_base* other, bool& retVal)
+    {
+        retVal = false;
+
+        if (!other)
+            return 0;
+
+        // Check node type
+        int32_t otherType;
+        other->get_nodeType(otherType);
+        if (otherType != m_type)
+            return 0;
+
+        // Check node name
+        exlib::string thisName, otherName;
+        m_node->get_nodeName(thisName);
+        other->get_nodeName(otherName);
+        if (thisName != otherName)
+            return 0;
+
+        // Check node value
+        exlib::string thisValue, otherValue;
+        m_node->get_nodeValue(thisValue);
+        other->get_nodeValue(otherValue);
+        if (thisValue != otherValue)
+            return 0;
+
+        // For Element nodes, compare attributes
+        if (m_type == xml_base::C_ELEMENT_NODE) {
+            obj_ptr<XmlNamedNodeMap_base> thisAttrs, otherAttrs;
+            ((XmlElement_base*)m_node)->get_attributes(thisAttrs);
+            ((XmlElement_base*)other)->get_attributes(otherAttrs);
+
+            int32_t thisAttrLen, otherAttrLen;
+            thisAttrs->get_length(thisAttrLen);
+            otherAttrs->get_length(otherAttrLen);
+            if (thisAttrLen != otherAttrLen)
+                return 0;
+
+            // Compare each attribute
+            for (int32_t i = 0; i < thisAttrLen; i++) {
+                obj_ptr<XmlAttr_base> thisAttr;
+                thisAttrs->item(i, thisAttr);
+
+                exlib::string attrName, thisAttrValue, otherAttrValue;
+                thisAttr->get_name(attrName);
+                thisAttr->get_value(thisAttrValue);
+
+                // Get corresponding attribute from other element
+                obj_ptr<XmlAttr_base> otherAttr;
+                otherAttrs->getNamedItem(attrName, otherAttr);
+                if (!otherAttr)
+                    return 0;
+
+                otherAttr->get_value(otherAttrValue);
+                if (thisAttrValue != otherAttrValue)
+                    return 0;
+            }
+        }
+
+        // Check children count
+        obj_ptr<XmlNodeList_base> thisChildren, otherChildren;
+        m_node->get_childNodes(thisChildren);
+        other->get_childNodes(otherChildren);
+
+        int32_t thisLen, otherLen;
+        thisChildren->get_length(thisLen);
+        otherChildren->get_length(otherLen);
+        if (thisLen != otherLen)
+            return 0;
+
+        // Compare children recursively
+        for (int32_t i = 0; i < thisLen; i++) {
+            obj_ptr<XmlNode_base> thisChild, otherChild;
+            thisChildren->item(i, thisChild);
+            otherChildren->item(i, otherChild);
+
+            bool childEqual;
+            XmlNodeImpl* thisImpl = fromNode(thisChild);
+            if (!thisImpl)
+                return 0;
+            thisImpl->isEqualNode(otherChild, childEqual);
+            if (!childEqual)
+                return 0;
+        }
+
+        retVal = true;
+        return 0;
+    }
+
+    result_t isSameNode(XmlNode_base* other, bool& retVal)
+    {
+        retVal = (other == m_node);
+        return 0;
+    }
+
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;

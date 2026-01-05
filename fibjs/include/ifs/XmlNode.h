@@ -58,6 +58,9 @@ public:
     virtual result_t contains(XmlNode_base* node, bool& retVal) = 0;
     virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_isConnected(bool& retVal) = 0;
+    virtual result_t compareDocumentPosition(XmlNode_base* other, int32_t& retVal) = 0;
+    virtual result_t isEqualNode(XmlNode_base* other, bool& retVal) = 0;
+    virtual result_t isSameNode(XmlNode_base* other, bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -106,6 +109,9 @@ public:
     static void s_contains(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getRootNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_isConnected(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_compareDocumentPosition(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isEqualNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isSameNode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -131,7 +137,10 @@ inline ClassInfo& XmlNode_base::class_info()
         { "before", s_before, false, ClassData::ASYNC_SYNC },
         { "after", s_after, false, ClassData::ASYNC_SYNC },
         { "contains", s_contains, false, ClassData::ASYNC_SYNC },
-        { "getRootNode", s_getRootNode, false, ClassData::ASYNC_SYNC }
+        { "getRootNode", s_getRootNode, false, ClassData::ASYNC_SYNC },
+        { "compareDocumentPosition", s_compareDocumentPosition, false, ClassData::ASYNC_SYNC },
+        { "isEqualNode", s_isEqualNode, false, ClassData::ASYNC_SYNC },
+        { "isSameNode", s_isSameNode, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -670,6 +679,54 @@ inline void XmlNode_base::s_get_isConnected(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(0, 0);
 
     hr = pInst->get_isConnected(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_compareDocumentPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+
+    hr = pInst->compareDocumentPosition(v0.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_isEqualNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+
+    hr = pInst->isEqualNode(v0.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_isSameNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+
+    hr = pInst->isSameNode(v0.get(), vr);
 
     METHOD_RETURN();
 }

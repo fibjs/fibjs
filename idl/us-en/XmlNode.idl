@@ -210,4 +210,35 @@ interface XmlNode : object
     /*! @brief Return whether the current node is connected to a document
     */
     readonly Boolean isConnected;
+
+    /*! @brief Compare the document position of two nodes
+
+     Returns a bitmask indicating the position relationship between two nodes:
+     - DOCUMENT_POSITION_DISCONNECTED (1): Two nodes are not in the same document
+     - DOCUMENT_POSITION_PRECEDING (2): The argument node precedes the current node
+     - DOCUMENT_POSITION_FOLLOWING (4): The argument node follows the current node
+     - DOCUMENT_POSITION_CONTAINS (8): The argument node contains the current node
+     - DOCUMENT_POSITION_CONTAINED_BY (16): The current node contains the argument node
+     - DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC (32): Position relationship is implementation-specific
+
+     @param other The node to compare
+     @return Return the bitmask indicating position relationship
+    */
+    Integer compareDocumentPosition(XmlNode other);
+
+    /*! @brief Check whether two nodes are structurally equal
+
+     Two nodes are structurally equal if they have the same type, same attribute values, same child node structure, etc.
+     @param other The node to compare
+     @return Return true if two nodes are structurally equal, otherwise return false
+    */
+    Boolean isEqualNode(XmlNode other);
+
+    /*! @brief Check whether two nodes are the same node
+
+     Same as the === operator, checks if two references point to the same object.
+     @param other The node to compare
+     @return Return true if same node, otherwise return false
+    */
+    Boolean isSameNode(XmlNode other);
 };

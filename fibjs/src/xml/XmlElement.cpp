@@ -236,6 +236,21 @@ result_t XmlElement::get_isConnected(bool& retVal)
     return XmlNodeImpl::get_isConnected(retVal);
 }
 
+result_t XmlElement::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
+{
+    return XmlNodeImpl::compareDocumentPosition(other, retVal);
+}
+
+result_t XmlElement::isEqualNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isEqualNode(other, retVal);
+}
+
+result_t XmlElement::isSameNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isSameNode(other, retVal);
+}
+
 result_t XmlElement::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);
@@ -1102,5 +1117,65 @@ result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string te
     }
 
     return hr;
+}
+
+result_t XmlElement::toggleAttribute(exlib::string name, bool& retVal)
+{
+    // In HTML mode, normalize attribute names to lowercase
+    if (!m_isXml)
+        exlib::qstrlwr(name);
+
+    bool has;
+    result_t hr = hasAttribute(name, has);
+    if (hr < 0)
+        return hr;
+
+    if (has) {
+        // Attribute exists - remove it
+        hr = removeAttribute(name);
+        if (hr < 0)
+            return hr;
+        retVal = false;
+    } else {
+        // Attribute does not exist - add it with empty value
+        hr = setAttribute(name, "");
+        if (hr < 0)
+            return hr;
+        retVal = true;
+    }
+
+    return 0;
+}
+
+result_t XmlElement::toggleAttribute(exlib::string name, bool force, bool& retVal)
+{
+    // In HTML mode, normalize attribute names to lowercase
+    if (!m_isXml)
+        exlib::qstrlwr(name);
+
+    bool has;
+    result_t hr = hasAttribute(name, has);
+    if (hr < 0)
+        return hr;
+
+    if (force) {
+        // force is true - ensure attribute exists
+        if (!has) {
+            hr = setAttribute(name, "");
+            if (hr < 0)
+                return hr;
+        }
+        retVal = true;
+    } else {
+        // force is false - ensure attribute does not exist
+        if (has) {
+            hr = removeAttribute(name);
+            if (hr < 0)
+                return hr;
+        }
+        retVal = false;
+    }
+
+    return 0;
 }
 }

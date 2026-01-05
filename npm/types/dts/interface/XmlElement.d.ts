@@ -354,5 +354,26 @@ declare class Class_XmlElement extends Class_XmlNode {
      */
     insertAdjacentText(position: string, text: string): void;
 
+    /**
+     * @description 切换元素上的布尔属性
+     * 
+     *      如果属性存在则移除，如果不存在则添加。
+     *      @param name 要切换的属性名称
+     *      @return 如果操作后属性存在则返回 true，否则返回 false
+     *     
+     */
+    toggleAttribute(name: string): boolean;
+
+    /**
+     * @description 切换元素上的布尔属性
+     * 
+     *      根据 force 参数强制添加或移除属性。
+     *      @param name 要切换的属性名称
+     *      @param force 如果为 true 则强制添加属性，如果为 false 则强制移除属性
+     *      @return 如果操作后属性存在则返回 true，否则返回 false
+     *     
+     */
+    toggleAttribute(name: string, force: boolean): boolean;
+
 }
 

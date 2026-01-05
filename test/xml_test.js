@@ -4001,6 +4001,142 @@ describe('xml', () => {
                 });
             });
         });
+
+        describe('Node comparison methods', () => {
+            describe('compareDocumentPosition', () => {
+                it('returns 0 for same node', () => {
+                    const doc = xml.parse('<root><item/></root>');
+                    const item = doc.documentElement.firstChild;
+                    assert.equal(item.compareDocumentPosition(item), 0);
+                });
+
+                it('returns FOLLOWING | CONTAINED_BY for child', () => {
+                    const doc = xml.parse('<root><parent id="p"><child id="c"/></parent></root>');
+                    const parent = doc.getElementById('p');
+                    const child = doc.getElementById('c');
+                    const pos = parent.compareDocumentPosition(child);
+                    // FOLLOWING = 4, CONTAINED_BY = 16
+                    assert.ok(pos & 4, 'should have FOLLOWING bit');
+                    assert.ok(pos & 16, 'should have CONTAINED_BY bit');
+                });
+
+                it('returns PRECEDING | CONTAINS for parent', () => {
+                    const doc = xml.parse('<root><parent id="p"><child id="c"/></parent></root>');
+                    const parent = doc.getElementById('p');
+                    const child = doc.getElementById('c');
+                    const pos = child.compareDocumentPosition(parent);
+                    // PRECEDING = 2, CONTAINS = 8
+                    assert.ok(pos & 2, 'should have PRECEDING bit');
+                    assert.ok(pos & 8, 'should have CONTAINS bit');
+                });
+
+                it('returns FOLLOWING for later sibling', () => {
+                    const doc = xml.parse('<root><a id="a"/><b id="b"/></root>');
+                    const a = doc.getElementById('a');
+                    const b = doc.getElementById('b');
+                    const pos = a.compareDocumentPosition(b);
+                    assert.ok(pos & 4, 'should have FOLLOWING bit');
+                });
+
+                it('returns PRECEDING for earlier sibling', () => {
+                    const doc = xml.parse('<root><a id="a"/><b id="b"/></root>');
+                    const a = doc.getElementById('a');
+                    const b = doc.getElementById('b');
+                    const pos = b.compareDocumentPosition(a);
+                    assert.ok(pos & 2, 'should have PRECEDING bit');
+                });
+            });
+
+            describe('isEqualNode', () => {
+                it('returns true for structurally equal nodes', () => {
+                    const doc1 = xml.parse('<root><item id="1">hello</item></root>');
+                    const doc2 = xml.parse('<root><item id="1">hello</item></root>');
+                    assert.ok(doc1.documentElement.isEqualNode(doc2.documentElement));
+                });
+
+                it('returns false for different attributes', () => {
+                    const doc1 = xml.parse('<root id="1"/>');
+                    const doc2 = xml.parse('<root id="2"/>');
+                    assert.ok(!doc1.documentElement.isEqualNode(doc2.documentElement));
+                });
+
+                it('returns false for different text content', () => {
+                    const doc1 = xml.parse('<root>hello</root>');
+                    const doc2 = xml.parse('<root>world</root>');
+                    assert.ok(!doc1.documentElement.isEqualNode(doc2.documentElement));
+                });
+
+                it('returns false for different child count', () => {
+                    const doc1 = xml.parse('<root><a/><b/></root>');
+                    const doc2 = xml.parse('<root><a/></root>');
+                    assert.ok(!doc1.documentElement.isEqualNode(doc2.documentElement));
+                });
+            });
+
+            describe('isSameNode', () => {
+                it('returns true for same reference', () => {
+                    const doc = xml.parse('<root><item/></root>');
+                    const item = doc.documentElement.firstChild;
+                    assert.ok(item.isSameNode(item));
+                });
+
+                it('returns false for different nodes with same content', () => {
+                    const doc1 = xml.parse('<root><item/></root>');
+                    const doc2 = xml.parse('<root><item/></root>');
+                    assert.ok(!doc1.documentElement.isSameNode(doc2.documentElement));
+                });
+            });
+        });
+
+        describe('toggleAttribute', () => {
+            it('adds attribute when not present (no force)', () => {
+                const doc = xml.parse('<root><button/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('disabled');
+                assert.equal(result, true);
+                assert.ok(btn.hasAttribute('disabled'));
+            });
+
+            it('removes attribute when present (no force)', () => {
+                const doc = xml.parse('<root><button disabled=""/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('disabled');
+                assert.equal(result, false);
+                assert.ok(!btn.hasAttribute('disabled'));
+            });
+
+            it('adds attribute when force is true and not present', () => {
+                const doc = xml.parse('<root><button/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('hidden', true);
+                assert.equal(result, true);
+                assert.ok(btn.hasAttribute('hidden'));
+            });
+
+            it('keeps attribute when force is true and present', () => {
+                const doc = xml.parse('<root><button hidden=""/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('hidden', true);
+                assert.equal(result, true);
+                assert.ok(btn.hasAttribute('hidden'));
+            });
+
+            it('removes attribute when force is false and present', () => {
+                const doc = xml.parse('<root><button hidden=""/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('hidden', false);
+                assert.equal(result, false);
+                assert.ok(!btn.hasAttribute('hidden'));
+            });
+
+            it('does nothing when force is false and not present', () => {
+                const doc = xml.parse('<root><button/></root>');
+                const btn = doc.documentElement.firstChild;
+                const result = btn.toggleAttribute('hidden', false);
+                assert.equal(result, false);
+                assert.ok(!btn.hasAttribute('hidden'));
+            });
+        });
     }
 
     // Browser-only tests for features not supported in fibjs

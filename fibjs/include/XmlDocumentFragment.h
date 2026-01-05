@@ -65,6 +65,9 @@ public:
     virtual result_t contains(XmlNode_base* node, bool& retVal);
     virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_isConnected(bool& retVal);
+    virtual result_t compareDocumentPosition(XmlNode_base* other, int32_t& retVal);
+    virtual result_t isEqualNode(XmlNode_base* other, bool& retVal);
+    virtual result_t isSameNode(XmlNode_base* other, bool& retVal);
 };
 
 } /* namespace fibjs */

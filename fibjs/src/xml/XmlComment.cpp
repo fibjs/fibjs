@@ -170,6 +170,21 @@ result_t XmlComment::get_isConnected(bool& retVal)
     return XmlNodeImpl::get_isConnected(retVal);
 }
 
+result_t XmlComment::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
+{
+    return XmlNodeImpl::compareDocumentPosition(other, retVal);
+}
+
+result_t XmlComment::isEqualNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isEqualNode(other, retVal);
+}
+
+result_t XmlComment::isSameNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isSameNode(other, retVal);
+}
+
 result_t XmlComment::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->appendChild(newChild, retVal);

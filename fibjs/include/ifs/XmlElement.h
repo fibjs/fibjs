@@ -72,6 +72,8 @@ public:
     virtual result_t insertAdjacentElement(exlib::string position, XmlElement_base* element, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t insertAdjacentHTML(exlib::string position, exlib::string html) = 0;
     virtual result_t insertAdjacentText(exlib::string position, exlib::string text) = 0;
+    virtual result_t toggleAttribute(exlib::string name, bool& retVal) = 0;
+    virtual result_t toggleAttribute(exlib::string name, bool force, bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -129,6 +131,7 @@ public:
     static void s_insertAdjacentElement(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_insertAdjacentHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_insertAdjacentText(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toggleAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -168,7 +171,8 @@ inline ClassInfo& XmlElement_base::class_info()
         { "replaceChildren", s_replaceChildren, false, ClassData::ASYNC_SYNC },
         { "insertAdjacentElement", s_insertAdjacentElement, false, ClassData::ASYNC_SYNC },
         { "insertAdjacentHTML", s_insertAdjacentHTML, false, ClassData::ASYNC_SYNC },
-        { "insertAdjacentText", s_insertAdjacentText, false, ClassData::ASYNC_SYNC }
+        { "insertAdjacentText", s_insertAdjacentText, false, ClassData::ASYNC_SYNC },
+        { "toggleAttribute", s_toggleAttribute, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -856,5 +860,28 @@ inline void XmlElement_base::s_insertAdjacentText(const v8::FunctionCallbackInfo
     hr = pInst->insertAdjacentText(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void XmlElement_base::s_toggleAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->toggleAttribute(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(bool, 1);
+
+    hr = pInst->toggleAttribute(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 }

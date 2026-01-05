@@ -222,4 +222,19 @@ result_t XmlDocumentFragment::get_isConnected(bool& retVal)
     return XmlNodeImpl::get_isConnected(retVal);
 }
 
+result_t XmlDocumentFragment::compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
+{
+    return XmlNodeImpl::compareDocumentPosition(other, retVal);
+}
+
+result_t XmlDocumentFragment::isEqualNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isEqualNode(other, retVal);
+}
+
+result_t XmlDocumentFragment::isSameNode(XmlNode_base* other, bool& retVal)
+{
+    return XmlNodeImpl::isSameNode(other, retVal);
+}
+
 } /* namespace fibjs */

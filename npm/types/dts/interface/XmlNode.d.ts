@@ -282,5 +282,42 @@ declare class Class_XmlNode extends Class_object {
      */
     readonly isConnected: boolean;
 
+    /**
+     * @description 比较两个节点在文档中的位置关系
+     * 
+     *      返回一个位掩码，表示两个节点的位置关系：
+     *      - DOCUMENT_POSITION_DISCONNECTED (1): 两个节点不在同一文档中
+     *      - DOCUMENT_POSITION_PRECEDING (2): 参数节点在当前节点之前
+     *      - DOCUMENT_POSITION_FOLLOWING (4): 参数节点在当前节点之后
+     *      - DOCUMENT_POSITION_CONTAINS (8): 参数节点包含当前节点
+     *      - DOCUMENT_POSITION_CONTAINED_BY (16): 当前节点包含参数节点
+     *      - DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC (32): 位置关系由实现决定
+     * 
+     *      @param other 要比较的节点
+     *      @return 返回位掩码表示的位置关系
+     *     
+     */
+    compareDocumentPosition(other: Class_XmlNode): number;
+
+    /**
+     * @description 检查两个节点是否结构相等
+     * 
+     *      两个节点结构相等意味着它们具有相同的类型、相同的属性值、相同的子节点结构等。
+     *      @param other 要比较的节点
+     *      @return 如果两个节点结构相等则返回 true，否则返回 false
+     *     
+     */
+    isEqualNode(other: Class_XmlNode): boolean;
+
+    /**
+     * @description 检查两个节点是否是同一个节点
+     * 
+     *      与 === 运算符作用相同，检查两个引用是否指向同一对象。
+     *      @param other 要比较的节点
+     *      @return 如果是同一节点则返回 true，否则返回 false
+     *     
+     */
+    isSameNode(other: Class_XmlNode): boolean;
+
 }
 

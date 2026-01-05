@@ -103,6 +103,9 @@ public:
     virtual result_t contains(XmlNode_base* node, bool& retVal);
     virtual result_t getRootNode(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_isConnected(bool& retVal);
+    virtual result_t compareDocumentPosition(XmlNode_base* other, int32_t& retVal);
+    virtual result_t isEqualNode(XmlNode_base* other, bool& retVal);
+    virtual result_t isSameNode(XmlNode_base* other, bool& retVal);
 
 public:
     // XmlElement_base
@@ -150,6 +153,8 @@ public:
     virtual result_t insertAdjacentElement(exlib::string position, XmlElement_base* element, obj_ptr<XmlElement_base>& retVal);
     virtual result_t insertAdjacentHTML(exlib::string position, exlib::string html);
     virtual result_t insertAdjacentText(exlib::string position, exlib::string text);
+    virtual result_t toggleAttribute(exlib::string name, bool& retVal);
+    virtual result_t toggleAttribute(exlib::string name, bool force, bool& retVal);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)
