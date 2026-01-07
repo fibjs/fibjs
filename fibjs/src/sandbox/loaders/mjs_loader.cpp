@@ -537,6 +537,9 @@ private:
             exlib::string pname;
             path_base::dirname(base, pname);
 
+            // Set pending module for error reporting before resolving
+            m_sb->m_pending_module = base;
+
             hr = resove_module(id, pname, data, exports, isCJS);
             if (hr < 0)
                 return hr;

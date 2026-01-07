@@ -298,6 +298,38 @@ describe('ECMAScript modules', () => {
         });
     });
 
+    it("error message should contain the file path that initiated the import", async () => {
+        // This tests that when a module cannot be found, the error message
+        // should include the path of the file that tried to import it
+        try {
+            await import('./esm_files/esm24_import_notfound.mjs');
+            assert.fail("Should have thrown an error");
+        } catch (e) {
+            var expectedPath = path.join(__dirname, 'esm_files', 'esm24_import_notfound.mjs');
+            assert.ok(e.message.includes('this_module_does_not_exist.mjs'), 
+                'Error message should contain the missing module name');
+            assert.ok(e.message.includes('esm24_import_notfound.mjs'), 
+                'Error message should contain the file path that initiated the import');
+        }
+    });
+
+    it("error message should contain the correct file path in dependency tree", async () => {
+        // This tests that when a dependency module cannot be found,
+        // the error message should include the path of the dependency file that tried to import it,
+        // not the root module
+        try {
+            await import('./esm_files/esm25_parent.mjs');
+            assert.fail("Should have thrown an error");
+        } catch (e) {
+            assert.ok(e.message.includes('nonexistent_dep_module.mjs'), 
+                'Error message should contain the missing module name');
+            assert.ok(e.message.includes('esm25_child.mjs'), 
+                'Error message should contain the child file path that initiated the import');
+            assert.ok(!e.message.includes('esm25_parent.mjs') || e.message.indexOf('esm25_child.mjs') < e.message.indexOf('esm25_parent.mjs'),
+                'Error message should reference the child module, not just the parent');
+        }
+    });
+
     it("BUGFIX: crash when cjs export 'default'", async () => {
         var m = await import('./esm_files/esm15.mjs');
         assert.deepEqual(m, {
