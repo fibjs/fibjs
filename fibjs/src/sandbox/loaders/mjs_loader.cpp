@@ -717,6 +717,8 @@ void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local
     if (sb == nullptr)
         return;
 
+    meta->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("sandbox")), sb->wrap()).IsJust();
+
     exlib::string path_name;
     path_base::dirname(sb->m_pending_module, path_name);
 
@@ -748,10 +750,21 @@ v8::MaybeLocal<v8::Promise> SandBox::ImportModuleDynamically(v8::Local<v8::Conte
     uint32_t id = _host_options->Get(isolate->m_isolate, 0)->Uint32Value(context).FromMaybe(0);
 
     exlib::string base = ToString(isolate->m_isolate, resource_name);
+    exlib::string spec = ToString(isolate->m_isolate, specifier);
     exlib::string pname;
     path_base::dirname(base, pname);
 
-    return isolate->m_sandboxes.find(id)->second->async_import(ToString(isolate->m_isolate, specifier), pname);
+    auto it = isolate->m_sandboxes.find(id);
+    if (it == isolate->m_sandboxes.end()) {
+        // Throw JavaScript error instead of segfault
+        exlib::string error_msg = "Cannot import module '" + spec + "': Sandbox has been garbage collected";
+        isolate->m_isolate->ThrowException(
+            v8::Exception::Error(isolate->NewString(error_msg))
+        );
+        return v8::MaybeLocal<v8::Promise>();
+    }
+    
+    return it->second->async_import(spec, pname);
 }
 
 result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,

@@ -356,6 +356,52 @@ describe('ECMAScript modules', () => {
         var m = await import('./esm_files/crash_import/test.mjs');
         assert.ok(m);
     });
+
+    it("BUGFIX: Sandbox should not be GC'd while module functions are still in use", async () => {
+        // Create temporary test modules
+        const fs = require('fs');
+        const module1Path = path.join(__dirname, 'esm_files', 'gc_test_module1.mjs');
+        const module2Path = path.join(__dirname, 'esm_files', 'gc_test_module2.mjs');
+
+        fs.writeTextFile(module1Path, `
+export async function doImport() {
+    const m2 = await import('./gc_test_module2.mjs');
+    return m2;
+}
+`);
+
+        fs.writeTextFile(module2Path, `
+import { describe } from 'node:test';
+export const value = 42;
+`);
+
+        try {
+            // Create sandbox with addBuiltinModules to allow node:test import
+            let sandbox = new vm.SandBox({});
+            sandbox.addBuiltinModules();
+            
+            let module1 = await sandbox.import(module1Path, __dirname);
+            let doImport = module1.doImport;
+            
+            // Release sandbox reference and force GC
+            sandbox = null;
+            if (typeof global.gc === 'function') {
+                global.gc();
+                global.gc();
+                coroutine.sleep(10);
+            }
+            
+            // Dynamic import should still work because sandbox is kept alive via import.meta
+            const result = await doImport();
+            assert.equal(result.value, 42);
+        } finally {
+            // Cleanup
+            try {
+                fs.unlink(module1Path);
+                fs.unlink(module2Path);
+            } catch (e) { }
+        }
+    });
 });
 
 
