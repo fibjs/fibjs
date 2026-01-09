@@ -857,25 +857,10 @@ std::vector<Token> Scanner::scanAllTokens() {
     while (true) {
         SyntaxKind kind = scan();
         
-        // Try to rescan slash as regex to prevent contents from being treated as comments
-        // This is important for regexes like /\/\*...\*\// or /\/\/.../ which contain
-        // patterns that look like comments. If we successfully scan as regex, the scanner's
-        // position advances past the entire regex, preventing skipTrivia() from corrupting
-        // the regex contents in subsequent scans.
-        if (kind == SyntaxKind::SlashToken || kind == SyntaxKind::SlashEqualsToken) {
-            SyntaxKind beforeRescan = m_token;
-            int beforePos = m_pos;
-            reScanSlashToken();
-            // If rescan succeeded (token changed to RegularExpressionLiteral), use it
-            // Otherwise, restore original token (it's a real division operator)
-            if (m_token == SyntaxKind::RegularExpressionLiteral) {
-                kind = m_token;
-            } else {
-                m_token = beforeRescan;
-                m_pos = beforePos;
-                kind = beforeRescan;
-            }
-        }
+        // Note: We do NOT try to rescan slash as regex here, because we don't have
+        // syntactic context. The parser (TsStrip) will call reScanSlashTokenAsRegularExpressionLiteral()
+        // when it determines that a slash is in a position where a regex is expected.
+        // This avoids incorrectly treating division operators as regex delimiters.
         
         // Track template literal state
         if (kind == SyntaxKind::TemplateHead) {

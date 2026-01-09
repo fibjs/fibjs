@@ -4280,6 +4280,76 @@ class TaskProcessor {
                 assert.ok(output.includes('this.queue'), `Expected 'this.queue' in output but got: ${output}`);
             });
         });
+
+        describe('Private methods with multiline template strings', () => {
+            // Bug: When a class has multiple private methods returning multiline template strings,
+            // the 'private' keyword in subsequent methods may not be stripped correctly.
+            // This was discovered in jsoncanvas-renderer.ts where getArrowMarkerStart's 'private'
+            // was not being stripped after getArrowMarker which returns a multiline template string.
+
+            it('should strip private keyword in method after multiline template string', () => {
+                const input = `class C {
+  private getArrowMarker(id: string, color: string): string {
+    return \`<marker id="\${id}" markerWidth="\${ARROW_WIDTH}" markerHeight="\${ARROW_HEIGHT}" refX="\${ARROW_WIDTH}" refY="\${ARROW_HEIGHT / 2}" orient="auto">
+      <polygon points="0 0, \${ARROW_WIDTH} \${ARROW_HEIGHT / 2}, 0 \${ARROW_HEIGHT}" fill="\${color}"/>
+    </marker>\`;
+  }
+
+  private getArrowMarkerStart(id: string, color: string): string {
+    return \`<marker id="\${id}" markerWidth="\${ARROW_WIDTH}" markerHeight="\${ARROW_HEIGHT}" refX="0" refY="\${ARROW_HEIGHT / 2}" orient="auto">
+      <polygon points="\${ARROW_WIDTH} 0, 0 \${ARROW_HEIGHT / 2}, \${ARROW_WIDTH} \${ARROW_HEIGHT}" fill="\${color}"/>
+    </marker>\`;
+  }
+}`;
+                const output = strip(input);
+                // Check that 'private' keywords are stripped (replaced with spaces)
+                assert.ok(!output.includes('private'), `Expected 'private' to be stripped but got: ${output}`);
+                // Check that method names are preserved
+                assert.ok(output.includes('getArrowMarker'), `Expected 'getArrowMarker' in output`);
+                assert.ok(output.includes('getArrowMarkerStart'), `Expected 'getArrowMarkerStart' in output`);
+            });
+
+            it('should strip private keyword in third method after two multiline templates', () => {
+                const input = `class C {
+  private method1(id: string): string {
+    return \`line1
+    line2\`;
+  }
+
+  private method2(id: string): string {
+    return \`line1
+    line2\`;
+  }
+
+  private method3(side: string | undefined): { x: number; y: number } {
+    return { x: 0, y: -1 };
+  }
+}`;
+                const output = strip(input);
+                assert.ok(!output.includes('private'), `Expected all 'private' keywords to be stripped but got: ${output}`);
+                assert.ok(output.includes('method1'), `Expected 'method1' in output`);
+                assert.ok(output.includes('method2'), `Expected 'method2' in output`);
+                assert.ok(output.includes('method3'), `Expected 'method3' in output`);
+            });
+
+            it('should handle template with multiple interpolations across lines', () => {
+                const input = `class C {
+  private render(a: number, b: number): string {
+    return \`<svg width="\${a}" height="\${b}">
+      <rect x="\${a / 2}" y="\${b / 2}"/>
+    </svg>\`;
+  }
+
+  private nextMethod(x: string): void {
+    console.log(x);
+  }
+}`;
+                const output = strip(input);
+                assert.ok(!output.includes('private'), `Expected 'private' to be stripped but got: ${output}`);
+                assert.ok(output.includes('render(a'), `Expected 'render(a' in output`);
+                assert.ok(output.includes('nextMethod(x'), `Expected 'nextMethod(x' in output`);
+            });
+        });
         
     });
 
