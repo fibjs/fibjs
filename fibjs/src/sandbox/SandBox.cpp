@@ -200,8 +200,6 @@ result_t SandBox::addBuiltinModules()
         pModule = pModule->m_next;
     }
 
-    installBuffer();
-
     return 0;
 }
 

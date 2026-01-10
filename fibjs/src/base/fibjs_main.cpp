@@ -41,6 +41,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
 
     isolate->m_topSandbox = new SandBox();
     isolate->m_topSandbox->addBuiltinModules();
+    isolate->m_topSandbox->installBuffer();
 
     if (!isolate->m_fname.empty()) {
         v8::Local<v8::Value> result;

@@ -109,6 +109,7 @@ void Worker::_main()
 
     m_isolate->m_topSandbox = new SandBox();
     m_isolate->m_topSandbox->addBuiltinModules();
+    m_isolate->m_topSandbox->installBuffer();
 
     s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_peer_worker);
     if (s.m_hr < 0)
