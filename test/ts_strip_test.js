@@ -4350,6 +4350,61 @@ class TaskProcessor {
                 assert.ok(output.includes('nextMethod(x'), `Expected 'nextMethod(x' in output`);
             });
         });
+
+        describe('Regex with backtick character', () => {
+            it('should strip type annotation after regex containing backtick', () => {
+                const input = `interface T { name: string; }
+const a: T = { f: () => /^\\\`/.test("x") };
+const b: T = { name: "b" };`;
+                const output = strip(input);
+                // Both type annotations should be stripped
+                assert.ok(!output.includes('const a: T'), `Expected 'const a: T' to be stripped but got: ${output}`);
+                assert.ok(!output.includes('const b: T'), `Expected 'const b: T' to be stripped but got: ${output}`);
+                assert.ok(output.includes('const a    ='), `Expected 'const a    =' in output`);
+                assert.ok(output.includes('const b    ='), `Expected 'const b    =' in output`);
+            });
+
+            it('should handle fenced code detector pattern with backtick in regex', () => {
+                const input = `interface BlockDetector {
+  name: string;
+  isStart: (lines: string[], index: number) => boolean;
+}
+
+const fencedCodeDetector: BlockDetector = {
+  name: 'fenced-code',
+  isStart: (lines, index) => {
+    const trimmed = lines[index].trim();
+    return /^(\\\`{3,}|~{3,})/.test(trimmed);
+  }
+};
+
+const mathBlockDetector: BlockDetector = {
+  name: 'math',
+  isStart: (lines, index) => lines[index].trim() === '$$'
+};`;
+                const output = strip(input);
+                // Both type annotations should be stripped
+                assert.ok(!output.includes('const fencedCodeDetector: BlockDetector'), 
+                    `Expected fencedCodeDetector type annotation to be stripped but got: ${output}`);
+                assert.ok(!output.includes('const mathBlockDetector: BlockDetector'), 
+                    `Expected mathBlockDetector type annotation to be stripped but got: ${output}`);
+                // Variable names should be preserved
+                assert.ok(output.includes('const fencedCodeDetector'), `Expected 'const fencedCodeDetector' in output`);
+                assert.ok(output.includes('const mathBlockDetector'), `Expected 'const mathBlockDetector' in output`);
+            });
+
+            it('should handle multiple regexes with backticks', () => {
+                const input = `interface T { x: number; }
+const a: T = { f: () => /\\\`{3,}/.test("x") };
+const b: T = { f: () => /~{3,}/.test("x") };
+const c: T = { f: () => /\\\`+/.test("x") };
+const d: T = { x: 1 };`;
+                const output = strip(input);
+                // All type annotations should be stripped
+                assert.ok(!output.includes(': T ='), `Expected all ': T' type annotations to be stripped but got: ${output}`);
+                assert.ok(output.includes('const d    ='), `Expected 'const d    =' in output but got: ${output}`);
+            });
+        });
         
     });
 

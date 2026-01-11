@@ -207,7 +207,65 @@ private:
         }
 
         t.kind = SyntaxKind::RegularExpressionLiteral;
+        const int oldEnd = t.end;
         t.end = p;
+        
+        // If the regex extends beyond the original token end, we need to check
+        // if any subsequent tokens were incorrectly scanned (e.g., a backtick
+        // inside the regex was scanned as a template literal start).
+        // In that case, we need to rescan the affected tokens.
+        if (p > oldEnd && m_tokenIndex + 1 < m_tokens.size()) {
+            // Find the first token that starts at or after the regex end
+            size_t nextIdx = m_tokenIndex + 1;
+            while (nextIdx < m_tokens.size() && m_tokens[nextIdx].pos < p) {
+                nextIdx++;
+            }
+            
+            // Check if we skipped any tokens that had their end position 
+            // extend beyond the regex end (e.g., a template literal that 
+            // consumed too much)
+            if (nextIdx > m_tokenIndex + 1) {
+                const Token& lastSkipped = m_tokens[nextIdx - 1];
+                if (lastSkipped.end > p) {
+                    // The last skipped token extended beyond the regex.
+                    // We need to rescan from position p to lastSkipped.end
+                    Scanner rescanner(m_src, m_length);
+                    rescanner.setTextPos(p);
+                    
+                    std::vector<Token> newTokens;
+                    while (true) {
+                        SyntaxKind kind = rescanner.scan();
+                        int tokenPos = rescanner.getTokenStart();
+                        int tokenEnd = rescanner.getTokenEnd();
+                        bool hadLineBreak = rescanner.hasPrecedingLineBreak();
+                        
+                        // Stop when we reach a position covered by existing valid tokens
+                        if (tokenPos >= lastSkipped.end) {
+                            break;
+                        }
+                        
+                        newTokens.push_back(Token(kind, tokenPos, tokenEnd, hadLineBreak));
+                        
+                        if (kind == SyntaxKind::EndOfFileToken) {
+                            break;
+                        }
+                    }
+                    
+                    // Replace the skipped tokens with the rescanned ones
+                    // First, remove tokens from m_tokenIndex+1 to nextIdx-1 (inclusive)
+                    // Then insert newTokens at m_tokenIndex+1
+                    if (!newTokens.empty()) {
+                        // Erase old tokens
+                        m_tokens.erase(m_tokens.begin() + m_tokenIndex + 1, 
+                                      m_tokens.begin() + nextIdx);
+                        // Insert new tokens
+                        m_tokens.insert(m_tokens.begin() + m_tokenIndex + 1,
+                                       newTokens.begin(), newTokens.end());
+                    }
+                }
+            }
+        }
+        
         return true;
     }
     
