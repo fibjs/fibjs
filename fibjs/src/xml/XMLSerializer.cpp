@@ -9,6 +9,7 @@
 #include "ifs/XMLSerializer.h"
 #include "ifs/xml.h"
 #include "XMLSerializer.h"
+#include "XmlElement.h"
 
 namespace fibjs {
 
@@ -22,6 +23,16 @@ result_t XMLSerializer_base::_new(obj_ptr<XMLSerializer_base>& retVal, v8::Local
 
 result_t XMLSerializer::serializeToString(XmlNode_base* node, exlib::string& retVal)
 {
+    // XMLSerializer should serialize nodes using XML rules,
+    // even if the underlying DOM was parsed as HTML.
+    if (node) {
+        int32_t type;
+        node->get_nodeType(type);
+
+        if (type == xml_base::C_ELEMENT_NODE)
+            return ((XmlElement*)node)->toXmlString(retVal);
+    }
+
     return xml_base::serialize(node, retVal);
 }
 

@@ -4222,6 +4222,14 @@ describe('xml', () => {
                     parser.parseFromString('<root/>', 'text/plain');
                 });
             });
+
+            it('should serialize void elements correctly in HTML mode', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<html><body><img><br><hr><input></body></html>', 'text/html');
+                const innerHTML = doc.body.innerHTML;
+                // HTML mode serialization: void elements should NOT be self-closed (no '/>')
+                assert.equal(innerHTML, '<img><br><hr><input>');
+            });
         });
     });
 
@@ -4286,6 +4294,22 @@ describe('xml', () => {
                 const doc2 = parser.parseFromString(result, 'text/xml');
                 assert.equal(doc2.documentElement.nodeName, 'root');
                 assert.equal(doc2.documentElement.firstChild.getAttribute('attr'), 'value');
+            });
+
+            it('should serialize HTML void elements', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<html><body><img><br><hr><input></body></html>', 'text/html');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc.body);
+                // In browsers, XMLSerializer serializes as XML/XHTML and void elements are self-closed.
+                // In fibjs, current behavior is HTML-style (<br>) when serializing HTML DOM.
+                const browserExpected = '<body xmlns="http://www.w3.org/1999/xhtml"><img /><br /><hr /><input /></body>';
+                const fibjsExpected = '<body><img /><br /><hr /><input /></body>';
+
+                if (isBrowser)
+                    assert.equal(str, browserExpected);
+                else
+                    assert.equal(str, fibjsExpected);
             });
         });
     });

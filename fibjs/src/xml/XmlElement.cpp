@@ -689,6 +689,67 @@ result_t XmlElement::toString(exlib::string& retVal)
     return 0;
 }
 
+result_t XmlElement::toXmlString(exlib::string& retVal)
+{
+    retVal = "<";
+
+    exlib::string tagName(m_tagName);
+
+    if (!m_isXml)
+        exlib::qstrlwr(tagName);
+
+    if (m_prefix.empty()) {
+        if (!m_namespaceURI.empty()) {
+            bool skip_def_ns = false;
+
+            if (m_parent) {
+                int32_t type;
+
+                m_parent->get_nodeType(type);
+                if (type == xml_base::C_ELEMENT_NODE) {
+                    exlib::string def_ns;
+                    ((XmlElement*)m_parent->m_node)->get_defaultNamespace(def_ns);
+
+                    if (def_ns == m_namespaceURI)
+                        skip_def_ns = true;
+                }
+            }
+
+            if (!skip_def_ns)
+                setAttribute("xmlns", m_namespaceURI);
+        }
+        retVal.append(tagName);
+    } else {
+        fix_prefix(m_namespaceURI, m_prefix);
+
+        retVal.append(m_prefix);
+        retVal += ':';
+        retVal.append(m_localName);
+    }
+
+    exlib::string strAttr;
+    m_attrs->toString(strAttr);
+    retVal.append(strAttr);
+
+    if (m_childs->hasChildNodes()) {
+        exlib::string strChild;
+        m_childs->toXmlString(strChild);
+
+        retVal += '>';
+        retVal.append(strChild);
+        retVal.append("</");
+        retVal.append(tagName);
+        retVal += '>';
+    } else {
+        if (m_isXml)
+            retVal.append("/>");
+        else
+            retVal.append(" />");
+    }
+
+    return 0;
+}
+
 result_t XmlElement::append(OptArgs nodes)
 {
     int32_t len = nodes.Length();

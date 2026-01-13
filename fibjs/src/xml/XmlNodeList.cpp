@@ -8,6 +8,7 @@
 #include "object.h"
 #include "XmlNodeList.h"
 #include "XmlNodeImpl.h"
+#include "XmlElement.h"
 #include "ifs/XmlText.h"
 #include <string.h>
 #include "StringBuffer.h"
@@ -56,6 +57,35 @@ result_t XmlNodeList::toString(exlib::string& retVal)
         exlib::string str;
 
         m_childs[i]->m_node->toString(str);
+        strs.append(str);
+    }
+
+    retVal = strs.str();
+
+    return 0;
+}
+
+result_t XmlNodeList::toXmlString(exlib::string& retVal)
+{
+    StringBuffer strs;
+
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    if (sz == 0) {
+        retVal.clear();
+        return 0;
+    }
+
+    for (i = 0; i < sz; i++) {
+        exlib::string str;
+
+        if (m_childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
+            ((XmlElement*)m_childs[i]->m_node)->toXmlString(str);
+        } else {
+            m_childs[i]->m_node->toString(str);
+        }
+
         strs.append(str);
     }
 
