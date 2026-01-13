@@ -40,6 +40,15 @@ module global
     /*! @brief CryptoKey class to represent symmetric or asymmetric keys, each key exposes different functions */
     static CryptoKey;
 
+    /*! @brief DOMParser interface for parsing strings into DOM documents, see DOMParser object */
+    static DOMParser;
+
+    /*! @brief XMLSerializer interface for serializing DOM nodes to strings, see XMLSerializer object */
+    static XMLSerializer;
+
+    /*! @brief XMLDocument interface representing an XML document, equivalent to XmlDocument */
+    static XmlDocument new XMLDocument();
+
     /*! @brief Console access object */
     static console;
 

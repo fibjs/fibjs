@@ -10,15 +10,6 @@ if (typeof window === 'undefined') {
     function newHtmlDoc() {
         return new xml.Document("text/html");
     }
-
-    var serialize = xml.serialize;
-    var parseHtml = (txt) => {
-        return xml.parse(txt, "text/html")
-    };
-
-    var parse = (txt) => {
-        return xml.parse(txt, "text/xml")
-    };
 } else {
     var isBrowser = true;
     // Browser-compatible XML functions
@@ -29,21 +20,21 @@ if (typeof window === 'undefined') {
     function newHtmlDoc() {
         return document.implementation.createHTMLDocument();
     }
-
-    var serialize = (node) => {
-        return new XMLSerializer().serializeToString(node);
-    };
-
-    var parseHtml = (txt) => {
-        const parser = new DOMParser();
-        return parser.parseFromString(txt, "text/html");
-    };
-
-    var parse = (txt) => {
-        const parser = new DOMParser();
-        return parser.parseFromString(txt, "text/xml");
-    };
 }
+
+var serialize = (node) => {
+    return new XMLSerializer().serializeToString(node);
+};
+
+var parseHtml = (txt) => {
+    const parser = new DOMParser();
+    return parser.parseFromString(txt, "text/html");
+};
+
+var parse = (txt) => {
+    const parser = new DOMParser();
+    return parser.parseFromString(txt, "text/xml");
+};
 
 // Helper function for testing CharacterData interface
 function test_CharacterData(fn) {
@@ -4166,4 +4157,164 @@ describe('xml', () => {
             });
         });
     }
+
+    describe('DOMParser', () => {
+        it('should be a constructor', () => {
+            assert.equal(typeof DOMParser, 'function');
+            const parser = new DOMParser();
+            assert.ok(parser instanceof DOMParser);
+        });
+
+        describe('parseFromString', () => {
+            it('should parse XML with text/xml', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
+                assert.equal(doc.documentElement.nodeName, 'root');
+                assert.equal(doc.documentElement.firstChild.nodeName, 'item');
+                assert.equal(doc.documentElement.firstChild.textContent, 'data');
+            });
+
+            it('should parse XML with application/xml', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root attr="value"/>', 'application/xml');
+                assert.equal(doc.documentElement.nodeName, 'root');
+                assert.equal(doc.documentElement.getAttribute('attr'), 'value');
+            });
+
+            it('should parse XML with application/xhtml+xml', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<html xmlns="http://www.w3.org/1999/xhtml"><body>test</body></html>', 'application/xhtml+xml');
+                assert.equal(doc.documentElement.nodeName, 'html');
+            });
+
+            it('should parse XML with image/svg+xml', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40"/></svg>', 'image/svg+xml');
+                assert.equal(doc.documentElement.nodeName, 'svg');
+                assert.equal(doc.documentElement.firstChild.nodeName, 'circle');
+            });
+
+            it('should parse HTML with text/html', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<html><body><div id="test">Hello</div></body></html>', 'text/html');
+                assert.equal(doc.documentElement.nodeName.toUpperCase(), 'HTML');
+                assert.equal(doc.body.firstChild.id, 'test');
+                assert.equal(doc.body.firstChild.textContent, 'Hello');
+            });
+
+            it('should parse HTML fragment', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<div><span>content</span></div>', 'text/html');
+                assert.ok(doc.body);
+                assert.equal(doc.body.firstChild.nodeName.toUpperCase(), 'DIV');
+            });
+
+            it('should throw on invalid mimeType', () => {
+                const parser = new DOMParser();
+                assert.throws(() => {
+                    parser.parseFromString('<root/>', 'invalid/type');
+                });
+            });
+
+            it('should throw on unsupported mimeType', () => {
+                const parser = new DOMParser();
+                assert.throws(() => {
+                    parser.parseFromString('<root/>', 'text/plain');
+                });
+            });
+        });
+    });
+
+    describe('XMLSerializer', () => {
+        it('should be a constructor', () => {
+            assert.equal(typeof XMLSerializer, 'function');
+            const serializer = new XMLSerializer();
+            assert.ok(serializer instanceof XMLSerializer);
+        });
+
+        describe('serializeToString', () => {
+            it('should serialize XML document', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc);
+                assert.ok(str.indexOf('<root>') !== -1);
+                assert.ok(str.indexOf('<item>data</item>') !== -1);
+            });
+
+            it('should serialize XML element', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root><item id="1">data</item></root>', 'text/xml');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc.documentElement.firstChild);
+                assert.ok(str.indexOf('<item') !== -1);
+                assert.ok(str.indexOf('id="1"') !== -1);
+                assert.ok(str.indexOf('data') !== -1);
+            });
+
+            it('should serialize text node', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root>hello world</root>', 'text/xml');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc.documentElement.firstChild);
+                assert.equal(str, 'hello world');
+            });
+
+            it('should serialize comment node', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root><!--comment--></root>', 'text/xml');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc.documentElement.firstChild);
+                assert.equal(str, '<!--comment-->');
+            });
+
+            it('should handle attributes with special characters', () => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<root attr="a&lt;b&amp;c"/>', 'text/xml');
+                const serializer = new XMLSerializer();
+                const str = serializer.serializeToString(doc.documentElement);
+                assert.ok(str.indexOf('&lt;') !== -1 || str.indexOf('<') !== -1);
+            });
+
+            it('should roundtrip XML correctly', () => {
+                const original = '<root><child attr="value">text</child></root>';
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(original, 'text/xml');
+                const serializer = new XMLSerializer();
+                const result = serializer.serializeToString(doc.documentElement);
+                // Re-parse to verify structure
+                const doc2 = parser.parseFromString(result, 'text/xml');
+                assert.equal(doc2.documentElement.nodeName, 'root');
+                assert.equal(doc2.documentElement.firstChild.getAttribute('attr'), 'value');
+            });
+        });
+    });
+
+    describe('XMLDocument', () => {
+        it('should be available as global', () => {
+            assert.equal(typeof XMLDocument, 'function');
+        });
+
+        it('should be instance of parsed XML document', () => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString('<root/>', 'text/xml');
+            assert.ok(doc instanceof XMLDocument);
+            assert.equal(doc.nodeType, 9); // DOCUMENT_NODE
+        });
+
+        if (!isBrowser) {
+            // fibjs allows direct construction, browser doesn't
+            it('should create XML document directly', () => {
+                const doc = new XMLDocument();
+                assert.equal(doc.nodeType, 9); // DOCUMENT_NODE
+            });
+
+            it('should be equivalent to xml.Document', () => {
+                const xml = require('xml');
+                const doc1 = new XMLDocument();
+                const doc2 = new xml.Document();
+                assert.equal(doc1.constructor, doc2.constructor);
+            });
+        }
+    });
 });

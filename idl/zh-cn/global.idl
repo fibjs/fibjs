@@ -40,6 +40,15 @@ module global
     /*! @brief CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 */
     static CryptoKey;
 
+    /*! @brief DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 */
+    static DOMParser;
+
+    /*! @brief XMLSerializer 接口，用于将 DOM 节点序列化为字符串，参见 XMLSerializer 对象 */
+    static XMLSerializer;
+
+    /*! @brief XMLDocument 接口，代表 XML 文档，等同于 XmlDocument */
+    static XmlDocument new XMLDocument();
+
     /*! @brief 控制台访问对象 */
     static console;
 

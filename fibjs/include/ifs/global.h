@@ -28,6 +28,9 @@ class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
 class CryptoKey_base;
+class DOMParser_base;
+class XMLSerializer_base;
+class XmlDocument_base;
 class console_base;
 class process_base;
 class performance_base;
@@ -104,6 +107,9 @@ public:
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
 #include "ifs/CryptoKey.h"
+#include "ifs/DOMParser.h"
+#include "ifs/XMLSerializer.h"
+#include "ifs/XmlDocument.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
@@ -145,6 +151,9 @@ inline ClassInfo& global_base::class_info()
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
         { "CryptoKey", CryptoKey_base::class_info },
+        { "DOMParser", DOMParser_base::class_info },
+        { "XMLSerializer", XMLSerializer_base::class_info },
+        { "XMLDocument", XmlDocument_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info },
         { "performance", performance_base::class_info },

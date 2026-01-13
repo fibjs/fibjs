@@ -12,6 +12,9 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
+/// <reference path="../interface/DOMParser.d.ts" />
+/// <reference path="../interface/XMLSerializer.d.ts" />
+/// <reference path="../interface/XmlDocument.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
@@ -86,6 +89,21 @@ declare module 'global' {
      * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
      */
     const CryptoKey: typeof Class_CryptoKey;
+
+    /**
+     * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 
+     */
+    const DOMParser: typeof Class_DOMParser;
+
+    /**
+     * @description XMLSerializer 接口，用于将 DOM 节点序列化为字符串，参见 XMLSerializer 对象 
+     */
+    const XMLSerializer: typeof Class_XMLSerializer;
+
+    /**
+     * @description XMLDocument 接口，代表 XML 文档，等同于 XmlDocument 
+     */
+    const XMLDocument: typeof Class_XmlDocument;
 
     /**
      * @description 控制台访问对象 

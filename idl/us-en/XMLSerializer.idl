@@ -1,0 +1,24 @@
+/*! @brief The XMLSerializer interface provides the ability to serialize a DOM tree into an XML string
+
+ XMLSerializer can serialize DOM nodes into an XML string:
+ ```JavaScript
+ const serializer = new XMLSerializer();
+ 
+ // Serialize XML document
+ const parser = new DOMParser();
+ const doc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
+ const xmlStr = serializer.serializeToString(doc);
+ console.log(xmlStr); // Output: <root><item>data</item></root>
+ ```
+*/
+interface XMLSerializer : object
+{
+    /*! @brief Construct an XMLSerializer object */
+    XMLSerializer();
+
+    /*! @brief Serialize a DOM node into an XML string
+     @param node The DOM node to serialize
+     @return Returns the serialized XML string
+    */
+    String serializeToString(XmlNode node);
+};
