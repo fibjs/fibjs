@@ -52,6 +52,10 @@ interface XmlNode : object
     */
     readonly XmlNode parentNode;
 
+    /*! @brief 可返回某节点的父元素，如果父节点不是元素节点则返回 null
+    */
+    readonly XmlElement parentElement;
+
     /*! @brief 查询是否存在子节点
      @return 存在任何子节点时返回 true，否则返回 false
     */

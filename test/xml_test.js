@@ -478,6 +478,52 @@ describe('xml', () => {
                 assert.equal(result, isBrowser ? undefined : null);
             });
 
+            it("parentElement", () => {
+                var xdoc = newDoc();
+                var parent = xdoc.createElement("parent");
+                var child = xdoc.createElement("child");
+                var grandchild = xdoc.createElement("grandchild");
+
+                xdoc.appendChild(parent);
+                parent.appendChild(child);
+                child.appendChild(grandchild);
+
+                // Document's parentElement should be null
+                assert.equal(xdoc.parentElement, null);
+
+                // Root element's parent is document, so parentElement should be null
+                assert.equal(parent.parentElement, null);
+                assert.equal(parent.parentNode, xdoc);
+
+                // Child element's parentElement should be the parent element
+                assert.equal(child.parentElement, parent);
+                assert.equal(child.parentNode, parent);
+
+                // Grandchild element's parentElement should be the child element
+                assert.equal(grandchild.parentElement, child);
+                assert.equal(grandchild.parentNode, child);
+
+                // Orphan element's parentElement should be null
+                var orphan = xdoc.createElement("orphan");
+                assert.equal(orphan.parentElement, null);
+                assert.equal(orphan.parentNode, null);
+
+                // After removing, parentElement should be null
+                child.removeChild(grandchild);
+                assert.equal(grandchild.parentElement, null);
+                assert.equal(grandchild.parentNode, null);
+
+                // Text node's parentElement
+                var text = xdoc.createTextNode("hello");
+                parent.appendChild(text);
+                assert.equal(text.parentElement, parent);
+
+                // Comment node's parentElement
+                var comment = xdoc.createComment("comment");
+                parent.appendChild(comment);
+                assert.equal(comment.parentElement, parent);
+            });
+
             it("replaceWith", () => {
                 var xdoc = newDoc();
                 var parent = xdoc.createElement("parent");

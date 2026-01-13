@@ -52,6 +52,10 @@ interface XmlNode : object
     */
     readonly XmlNode parentNode;
 
+    /*! @brief Can return the parent element of a node, returns null if the parent is not an element node
+    */
+    readonly XmlElement parentElement;
+
     /*! @brief Query whether there are child nodes
      @return Return true if there are any child nodes, otherwise return false
     */

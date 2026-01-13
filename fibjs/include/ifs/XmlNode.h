@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class XmlDocument_base;
+class XmlElement_base;
 class XmlNodeList_base;
 
 class XmlNode_base : public object_base {
@@ -29,6 +30,7 @@ public:
     virtual result_t set_nodeValue(exlib::string newVal) = 0;
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
     virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_parentElement(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t hasChildNodes(bool& retVal) = 0;
     virtual result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t get_children(obj_ptr<XmlNodeList_base>& retVal) = 0;
@@ -80,6 +82,7 @@ public:
     static void s_set_nodeValue(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ownerDocument(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_parentNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_parentElement(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_childNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_children(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -116,6 +119,7 @@ public:
 }
 
 #include "ifs/XmlDocument.h"
+#include "ifs/XmlElement.h"
 #include "ifs/XmlNodeList.h"
 
 namespace fibjs {
@@ -149,6 +153,7 @@ inline ClassInfo& XmlNode_base::class_info()
         { "nodeValue", s_get_nodeValue, s_set_nodeValue, false },
         { "ownerDocument", s_get_ownerDocument, block_set, false },
         { "parentNode", s_get_parentNode, block_set, false },
+        { "parentElement", s_get_parentElement, block_set, false },
         { "childNodes", s_get_childNodes, block_set, false },
         { "children", s_get_children, block_set, false },
         { "firstChild", s_get_firstChild, block_set, false },
@@ -254,6 +259,20 @@ inline void XmlNode_base::s_get_parentNode(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(0, 0);
 
     hr = pInst->get_parentNode(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_parentElement(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlNode_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_parentElement(vr);
 
     METHOD_RETURN();
 }

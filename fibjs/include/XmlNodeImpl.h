@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/xml.h"
+#include "ifs/XmlElement.h"
 #include "XmlNodeList.h"
 
 namespace fibjs {
@@ -41,6 +42,14 @@ public:
         if (!m_parent)
             return CALL_RETURN_NULL;
         retVal = m_parent->m_node;
+        return 0;
+    }
+
+    result_t get_parentElement(obj_ptr<XmlElement_base>& retVal)
+    {
+        if (!m_parent || m_parent->m_type != xml_base::C_ELEMENT_NODE)
+            return CALL_RETURN_NULL;
+        retVal = (XmlElement_base*)m_parent->m_node;
         return 0;
     }
 

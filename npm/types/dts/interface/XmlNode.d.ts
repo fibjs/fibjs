@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
+/// <reference path="../interface/XmlElement.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
 /**
  * @description XmlNode 对象是整个 DOM 的基础数据类型
@@ -66,6 +67,12 @@ declare class Class_XmlNode extends Class_object {
      *     
      */
     readonly parentNode: Class_XmlNode;
+
+    /**
+     * @description 可返回某节点的父元素，如果父节点不是元素节点则返回 null
+     *     
+     */
+    readonly parentElement: Class_XmlElement;
 
     /**
      * @description 查询是否存在子节点

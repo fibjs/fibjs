@@ -52,6 +52,11 @@ public:
         return XmlNodeImpl::get_parentNode(retVal);
     }
 
+    virtual result_t get_parentElement(obj_ptr<XmlElement_base>& retVal) override
+    {
+        return XmlNodeImpl::get_parentElement(retVal);
+    }
+
     virtual result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal) override
     {
         return XmlNodeImpl::get_childNodes(retVal);
