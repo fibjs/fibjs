@@ -43,23 +43,35 @@ interface Stat : object
     /*! @brief File last modification time (ms) */
     readonly Number mtimeMs;
 
+    /*! @brief File last modification time (ns), only valid when bigint is true */
+    readonly Long mtimeNs;
+
     /*! @brief File last access time */
     readonly Date atime;
 
     /*! @brief File last access time (ms) */
     readonly Number atimeMs;
 
-    /*! @brief File creation time */
+    /*! @brief File last access time (ns), only valid when bigint is true */
+    readonly Long atimeNs;
+
+    /*! @brief File status change time */
     readonly Date ctime;
 
-    /*! @brief File creation time (ms) */
+    /*! @brief File status change time (ms) */
     readonly Number ctimeMs;
+
+    /*! @brief File status change time (ns), only valid when bigint is true */
+    readonly Long ctimeNs;
 
     /*! @brief File birth time */
     readonly Date birthtime;
 
     /*! @brief File birth time (ms) */
     readonly Number birthtimeMs;
+
+    /*! @brief File birth time (ns), only valid when bigint is true */
+    readonly Long birthtimeNs;
 
     /*! @brief Query if the file has write permission
      @return true if has write permission

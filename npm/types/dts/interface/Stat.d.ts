@@ -73,6 +73,11 @@ declare class Class_Stat extends Class_object {
     readonly mtimeMs: number;
 
     /**
+     * @description 文件最后修改时间(ns)，仅在 bigint 为 true 时有效 
+     */
+    readonly mtimeNs: number;
+
+    /**
      * @description 文件最后访问时间 
      */
     readonly atime: typeof Date;
@@ -83,14 +88,24 @@ declare class Class_Stat extends Class_object {
     readonly atimeMs: number;
 
     /**
-     * @description 文件创建时间 
+     * @description 文件最后访问时间(ns)，仅在 bigint 为 true 时有效 
+     */
+    readonly atimeNs: number;
+
+    /**
+     * @description 文件状态修改时间 
      */
     readonly ctime: typeof Date;
 
     /**
-     * @description 文件创建时间(ms) 
+     * @description 文件状态修改时间(ms) 
      */
     readonly ctimeMs: number;
+
+    /**
+     * @description 文件状态修改时间(ns)，仅在 bigint 为 true 时有效 
+     */
+    readonly ctimeNs: number;
 
     /**
      * @description 文件产生时间 
@@ -101,6 +116,11 @@ declare class Class_Stat extends Class_object {
      * @description 文件产生时间(ms) 
      */
     readonly birthtimeMs: number;
+
+    /**
+     * @description 文件产生时间(ns)，仅在 bigint 为 true 时有效 
+     */
+    readonly birthtimeNs: number;
 
     /**
      * @description 查询文件是否有写入权限

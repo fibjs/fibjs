@@ -469,6 +469,11 @@ result_t fs_base::fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEv
     return 0;
 }
 
+result_t fs_base::fstat(FileHandle_base* fd, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    return fstat(fd, retVal, ac);
+}
+
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())

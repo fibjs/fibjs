@@ -139,7 +139,62 @@ describe('fs', () => {
             }
 
             assert.equal(code, "ENOENT");
-        })
+        });
+
+        it('stat with options', () => {
+            var st = fs.stat('.', { bigint: true });
+            assert_stat_property(st);
+            assert.equal(st.isDirectory(), true);
+
+            // Test nanosecond properties
+            assert.isNumber(st.mtimeNs);
+            assert.isNumber(st.atimeNs);
+            assert.isNumber(st.ctimeNs);
+            assert.isNumber(st.birthtimeNs);
+        });
+
+        it('lstat with options', () => {
+            var st = fs.lstat('.', { bigint: true });
+            assert_stat_property(st);
+            assert.equal(st.isDirectory(), true);
+
+            // Test nanosecond properties
+            assert.isNumber(st.mtimeNs);
+            assert.isNumber(st.atimeNs);
+            assert.isNumber(st.ctimeNs);
+            assert.isNumber(st.birthtimeNs);
+        });
+
+        it('fstat with options', () => {
+            var fd = fs.open(path.join(__dirname, 'fs_test.js'));
+            var st = fs.fstat(fd, { bigint: true });
+            fs.close(fd);
+
+            assert_stat_property(st);
+            assert.equal(st.isFile(), true);
+
+            // Test nanosecond properties
+            assert.isNumber(st.mtimeNs);
+            assert.isNumber(st.atimeNs);
+            assert.isNumber(st.ctimeNs);
+            assert.isNumber(st.birthtimeNs);
+        });
+
+        it('stat nanosecond properties', () => {
+            var st = fs.stat('.');
+
+            // Nanosecond properties should be numbers (int64)
+            assert.isNumber(st.mtimeNs);
+            assert.isNumber(st.atimeNs);
+            assert.isNumber(st.ctimeNs);
+            assert.isNumber(st.birthtimeNs);
+
+            // Nanosecond values should be valid (non-negative)
+            assert.ok(st.mtimeNs >= 0, 'mtimeNs should be non-negative');
+            assert.ok(st.atimeNs >= 0, 'atimeNs should be non-negative');
+            assert.ok(st.ctimeNs >= 0, 'ctimeNs should be non-negative');
+            assert.ok(st.birthtimeNs >= 0, 'birthtimeNs should be non-negative');
+        });
     });
 
     it("file open & close", () => {

@@ -97,12 +97,16 @@ public:
     virtual result_t get_blocks(int32_t& retVal);
     virtual result_t get_mtime(date_t& retVal);
     virtual result_t get_mtimeMs(double& retVal);
+    virtual result_t get_mtimeNs(int64_t& retVal);
     virtual result_t get_atime(date_t& retVal);
     virtual result_t get_atimeMs(double& retVal);
+    virtual result_t get_atimeNs(int64_t& retVal);
     virtual result_t get_ctime(date_t& retVal);
     virtual result_t get_ctimeMs(double& retVal);
+    virtual result_t get_ctimeNs(int64_t& retVal);
     virtual result_t get_birthtime(date_t& retVal);
     virtual result_t get_birthtimeMs(double& retVal);
+    virtual result_t get_birthtimeNs(int64_t& retVal);
     virtual result_t isWritable(bool& retVal);
     virtual result_t isReadable(bool& retVal);
     virtual result_t isExecutable(bool& retVal);

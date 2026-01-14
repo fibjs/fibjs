@@ -279,6 +279,11 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     return 0;
 }
 
+result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    return lstat(path, retVal, ac);
+}
+
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -305,6 +310,11 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
     retVal = pStat;
 
     return 0;
+}
+
+result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    return stat(path, retVal, ac);
 }
 
 result_t fs_base::openFile(exlib::string fname, exlib::string flags,

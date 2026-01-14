@@ -558,6 +558,56 @@ declare module 'fs' {
     function statAsync(path: string): Promise<Class_Stat>;
 
     /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function stat(path: string, options: FIBJS.GeneralObject): Class_Stat;
+
+    function stat(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+
+    /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function statSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
+
+    /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function statAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
+
+    /**
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
@@ -584,6 +634,56 @@ declare module 'fs' {
     function lstatAsync(path: string): Promise<Class_Stat>;
 
     /**
+     * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function lstat(path: string, options: FIBJS.GeneralObject): Class_Stat;
+
+    function lstat(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+
+    /**
+     * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function lstatSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
+
+    /**
+     * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param path 指定查询的文件
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function lstatAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
+
+    /**
      * @description 查询指定文件的基础信息
      *      @param fd 文件描述符对象
      *      @return 返回文件的基础信息
@@ -608,6 +708,56 @@ declare module 'fs' {
      *      
      */
     function fstatAsync(fd: Class_FileHandle): Promise<Class_Stat>;
+
+    /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function fstat(fd: Class_FileHandle, options: FIBJS.GeneralObject): Class_Stat;
+
+    function fstat(fd: Class_FileHandle, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+
+    /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function fstatSync(fd: Class_FileHandle, options: FIBJS.GeneralObject): Class_Stat;
+
+    /**
+     * @description 查询指定文件的基础信息
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定查询选项
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function fstatAsync(fd: Class_FileHandle, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
     /**
      * @description 读取指定的软连接文件, windows 下不支持此方法

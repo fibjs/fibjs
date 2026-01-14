@@ -43,23 +43,35 @@ interface Stat : object
     /*! @brief 文件最后修改时间(ms) */
     readonly Number mtimeMs;
 
+    /*! @brief 文件最后修改时间(ns)，仅在 bigint 为 true 时有效 */
+    readonly Long mtimeNs;
+
     /*! @brief 文件最后访问时间 */
     readonly Date atime;
 
     /*! @brief 文件最后访问时间(ms) */
     readonly Number atimeMs;
 
-    /*! @brief 文件创建时间 */
+    /*! @brief 文件最后访问时间(ns)，仅在 bigint 为 true 时有效 */
+    readonly Long atimeNs;
+
+    /*! @brief 文件状态修改时间 */
     readonly Date ctime;
 
-    /*! @brief 文件创建时间(ms) */
+    /*! @brief 文件状态修改时间(ms) */
     readonly Number ctimeMs;
+
+    /*! @brief 文件状态修改时间(ns)，仅在 bigint 为 true 时有效 */
+    readonly Long ctimeNs;
 
     /*! @brief 文件产生时间 */
     readonly Date birthtime;
 
     /*! @brief 文件产生时间(ms) */
     readonly Number birthtimeMs;
+
+    /*! @brief 文件产生时间(ns)，仅在 bigint 为 true 时有效 */
+    readonly Long birthtimeNs;
 
     /*! @brief 查询文件是否有写入权限
      @return 为 true 则有写入权限

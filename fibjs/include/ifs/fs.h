@@ -51,8 +51,11 @@ public:
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
     static result_t lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    static result_t stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    static result_t lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    static result_t fstat(FileHandle_base* fd, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
     static result_t realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
     static result_t symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac);
@@ -165,8 +168,11 @@ public:
     ASYNC_STATIC3(fs_base, chown, exlib::string, int32_t, int32_t);
     ASYNC_STATIC3(fs_base, lchown, exlib::string, int32_t, int32_t);
     ASYNC_STATICVALUE2(fs_base, stat, exlib::string, obj_ptr<Stat_base>);
+    ASYNC_STATICVALUE3(fs_base, stat, exlib::string, v8::Local<v8::Object>, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, lstat, exlib::string, obj_ptr<Stat_base>);
+    ASYNC_STATICVALUE3(fs_base, lstat, exlib::string, v8::Local<v8::Object>, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, fstat, FileHandle_base*, obj_ptr<Stat_base>);
+    ASYNC_STATICVALUE3(fs_base, fstat, FileHandle_base*, v8::Local<v8::Object>, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, readlink, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(fs_base, realpath, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, symlink, exlib::string, exlib::string, exlib::string);
@@ -526,6 +532,16 @@ inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_stat(v0, vr);
 
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_stat(v0, v1, cb, args);
+    else
+        hr = ac_stat(v0, v1, vr);
+
     METHOD_RETURN();
 }
 
@@ -544,6 +560,16 @@ inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_lstat(v0, vr);
 
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_lstat(v0, v1, cb, args);
+    else
+        hr = ac_lstat(v0, v1, vr);
+
     METHOD_RETURN();
 }
 
@@ -561,6 +587,16 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = acb_fstat(v0.get(), cb, args);
     else
         hr = ac_fstat(v0.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<FileHandle_base>, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_fstat(v0.get(), v1, cb, args);
+    else
+        hr = ac_fstat(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

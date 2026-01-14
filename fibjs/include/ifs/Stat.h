@@ -33,12 +33,16 @@ public:
     virtual result_t get_blocks(int32_t& retVal) = 0;
     virtual result_t get_mtime(date_t& retVal) = 0;
     virtual result_t get_mtimeMs(double& retVal) = 0;
+    virtual result_t get_mtimeNs(int64_t& retVal) = 0;
     virtual result_t get_atime(date_t& retVal) = 0;
     virtual result_t get_atimeMs(double& retVal) = 0;
+    virtual result_t get_atimeNs(int64_t& retVal) = 0;
     virtual result_t get_ctime(date_t& retVal) = 0;
     virtual result_t get_ctimeMs(double& retVal) = 0;
+    virtual result_t get_ctimeNs(int64_t& retVal) = 0;
     virtual result_t get_birthtime(date_t& retVal) = 0;
     virtual result_t get_birthtimeMs(double& retVal) = 0;
+    virtual result_t get_birthtimeNs(int64_t& retVal) = 0;
     virtual result_t isWritable(bool& retVal) = 0;
     virtual result_t isReadable(bool& retVal) = 0;
     virtual result_t isExecutable(bool& retVal) = 0;
@@ -77,12 +81,16 @@ public:
     static void s_get_blocks(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_mtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_mtimeMs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_mtimeNs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_atime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_atimeMs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_atimeNs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ctime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ctimeMs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ctimeNs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_birthtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_birthtimeMs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_birthtimeNs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -130,12 +138,16 @@ inline ClassInfo& Stat_base::class_info()
         { "blocks", s_get_blocks, block_set, false },
         { "mtime", s_get_mtime, block_set, false },
         { "mtimeMs", s_get_mtimeMs, block_set, false },
+        { "mtimeNs", s_get_mtimeNs, block_set, false },
         { "atime", s_get_atime, block_set, false },
         { "atimeMs", s_get_atimeMs, block_set, false },
+        { "atimeNs", s_get_atimeNs, block_set, false },
         { "ctime", s_get_ctime, block_set, false },
         { "ctimeMs", s_get_ctimeMs, block_set, false },
+        { "ctimeNs", s_get_ctimeNs, block_set, false },
         { "birthtime", s_get_birthtime, block_set, false },
-        { "birthtimeMs", s_get_birthtimeMs, block_set, false }
+        { "birthtimeMs", s_get_birthtimeMs, block_set, false },
+        { "birthtimeNs", s_get_birthtimeNs, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -331,6 +343,20 @@ inline void Stat_base::s_get_mtimeMs(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
+inline void Stat_base::s_get_mtimeNs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_mtimeNs(vr);
+
+    METHOD_RETURN();
+}
+
 inline void Stat_base::s_get_atime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
@@ -355,6 +381,20 @@ inline void Stat_base::s_get_atimeMs(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER(0, 0);
 
     hr = pInst->get_atimeMs(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_atimeNs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_atimeNs(vr);
 
     METHOD_RETURN();
 }
@@ -387,6 +427,20 @@ inline void Stat_base::s_get_ctimeMs(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
+inline void Stat_base::s_get_ctimeNs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_ctimeNs(vr);
+
+    METHOD_RETURN();
+}
+
 inline void Stat_base::s_get_birthtime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
@@ -411,6 +465,20 @@ inline void Stat_base::s_get_birthtimeMs(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER(0, 0);
 
     hr = pInst->get_birthtimeMs(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_birthtimeNs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_birthtimeNs(vr);
 
     METHOD_RETURN();
 }

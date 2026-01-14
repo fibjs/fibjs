@@ -179,17 +179,59 @@ module fs
      */
     static Stat stat(String path) async;
 
+    /*! @brief Query the basic information of the specified file
+
+     options supports the following values:
+     ```JavaScript
+     {
+         "bigint": false // When true, the numeric values in the returned Stat object will be BigInt. Default: false
+     }
+     ```
+     @param path Specify the file to query
+     @param options Specify query options
+     @return Return the basic information of the file
+     */
+    static Stat stat(String path, Object options) async;
+
     /*! @brief Query the basic information of the specified file, unlike stat, when path is a soft link, the returned information will be that of the soft link itself, not the pointed file
      @param path Specify the file to query
      @return Return the basic information of the file
      */
     static Stat lstat(String path) async;
 
+    /*! @brief Query the basic information of the specified file, unlike stat, when path is a soft link, the returned information will be that of the soft link itself, not the pointed file
+
+     options supports the following values:
+     ```JavaScript
+     {
+         "bigint": false // When true, the numeric values in the returned Stat object will be BigInt. Default: false
+     }
+     ```
+     @param path Specify the file to query
+     @param options Specify query options
+     @return Return the basic information of the file
+     */
+    static Stat lstat(String path, Object options) async;
+
     /*! @brief Query the basic information of the specified file
      @param fd File descriptor object
      @return Return the basic information of the file
      */
     static Stat fstat(FileHandle fd) async;
+
+    /*! @brief Query the basic information of the specified file
+
+     options supports the following values:
+     ```JavaScript
+     {
+         "bigint": false // When true, the numeric values in the returned Stat object will be BigInt. Default: false
+     }
+     ```
+     @param fd File descriptor object
+     @param options Specify query options
+     @return Return the basic information of the file
+     */
+    static Stat fstat(FileHandle fd, Object options) async;
 
     /*! @brief Read the specified soft link file, this method is not supported on Windows
      @param path Specify the soft link file to read

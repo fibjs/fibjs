@@ -177,6 +177,12 @@ result_t Stat::get_mtimeMs(double& retVal)
     return 0;
 };
 
+result_t Stat::get_mtimeNs(int64_t& retVal)
+{
+    retVal = mtimeNs;
+    return 0;
+};
+
 result_t Stat::get_atime(date_t& retVal)
 {
     retVal = atime;
@@ -186,6 +192,12 @@ result_t Stat::get_atime(date_t& retVal)
 result_t Stat::get_atimeMs(double& retVal)
 {
     retVal = atime.date();
+    return 0;
+};
+
+result_t Stat::get_atimeNs(int64_t& retVal)
+{
+    retVal = atimeNs;
     return 0;
 };
 
@@ -201,6 +213,12 @@ result_t Stat::get_ctimeMs(double& retVal)
     return 0;
 };
 
+result_t Stat::get_ctimeNs(int64_t& retVal)
+{
+    retVal = ctimeNs;
+    return 0;
+};
+
 result_t Stat::get_birthtime(date_t& retVal)
 {
     retVal = birthtime;
@@ -210,6 +228,12 @@ result_t Stat::get_birthtime(date_t& retVal)
 result_t Stat::get_birthtimeMs(double& retVal)
 {
     retVal = birthtime.date();
+    return 0;
+};
+
+result_t Stat::get_birthtimeNs(int64_t& retVal)
+{
+    retVal = birthtimeNs;
     return 0;
 };
 
