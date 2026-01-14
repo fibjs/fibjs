@@ -54,7 +54,9 @@ result_t SandBox::repl(exlib::string src)
         global->Set(_context, isolate->NewString("__dirname"), isolate->NewString(cwd)).IsJust();
         global->Set(_context, isolate->NewString("__filename"), isolate->NewString(filename)).IsJust();
 
-        result_t hr = context.m_sb->evalModule(src, context.m_id, v);
+        // Pass full path (filename) instead of just [eval] so that
+        // ESM module resolution can correctly resolve relative paths
+        result_t hr = context.m_sb->evalModule(src, filename, v);
 
         if (!v.IsEmpty() && !v->IsUndefined())
             console_base::dir(v, v8::Local<v8::Object>());

@@ -164,6 +164,177 @@ describe('eval (-e)', () => {
         });
     });
 
+    describe('require local files', () => {
+        it('require relative .js file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "const m = require('./eval_files/cjs_module.js'); console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('require relative .js file without extension', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "const m = require('./eval_files/cjs_module'); console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('require with function call', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "const m = require('./eval_files/cjs_module'); console.log(m.greet('World'))"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, 'Hello, World');
+        });
+    });
+
+    describe('dynamic import local files', () => {
+        it('dynamic import relative .js file', () => {
+            // fibjs: CJS modules are exposed directly, not wrapped in { default: ... }
+            var result = child_process.execFileSync(cmd, ['-e', "import('./eval_files/cjs_module.js').then(m => console.log(m.value))"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('dynamic import relative .mjs file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import('./eval_files/esm_module.mjs').then(m => console.log(m.value))"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '100');
+        });
+
+        it('dynamic import relative .mts file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import('./eval_files/ts_module.mts').then(m => console.log(m.value))"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '300');
+        });
+    });
+
+    describe('static import local files', () => {
+        it('static import relative .js file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import m from './eval_files/cjs_module.js'; console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('static import relative .mjs file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import { value } from './eval_files/esm_module.mjs'; console.log(value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '100');
+        });
+
+        it('static import relative .mts file from TypeScript', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import { value } from './eval_files/ts_module.mts'; console.log(value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '300');
+        });
+
+        it('static import default from .mjs file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import m from './eval_files/esm_module.mjs'; console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '200');
+        });
+
+        it('static import namespace from .mjs file', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import * as m from './eval_files/esm_module.mjs'; console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, '100');
+        });
+    });
+
+    // Tests for ESM package (with "type": "module" in package.json)
+    describe('require local files in ESM package', () => {
+        var esmPkgDir = path.join(__dirname, 'eval_files', 'esm_pkg');
+
+        it('require relative .cjs file in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "const m = require('./cjs_module.cjs'); console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('require ESM .js file in ESM package should fail', () => {
+            // In ESM package, .js files are treated as ESM, and ESM cannot be required
+            try {
+                child_process.execFileSync(cmd, ['-e', "const m = require('./esm_module.js'); console.log(m.value)"], {
+                    encoding: 'utf8',
+                    cwd: esmPkgDir
+                });
+                assert.fail('Should have thrown an error');
+            } catch (e) {
+                assert.ok(e.stderr && e.stderr.includes('ECMAScript modules are not supported in require'),
+                    'Expected error message about ESM not being supported in require');
+            }
+        });
+    });
+
+    describe('dynamic import local files in ESM package', () => {
+        var esmPkgDir = path.join(__dirname, 'eval_files', 'esm_pkg');
+
+        it('dynamic import relative .cjs file in ESM package', () => {
+            // fibjs: CJS modules are exposed directly, not wrapped in { default: ... }
+            var result = child_process.execFileSync(cmd, ['-e', "import('./cjs_module.cjs').then(m => console.log(m.value))"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('dynamic import relative .js file in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import('./esm_module.js').then(m => console.log(m.value))"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '100');
+        });
+    });
+
+    describe('static import local files in ESM package', () => {
+        var esmPkgDir = path.join(__dirname, 'eval_files', 'esm_pkg');
+
+        it('static import relative .cjs file in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import m from './cjs_module.cjs'; console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '42');
+        });
+
+        it('static import relative .js file in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import { value } from './esm_module.js'; console.log(value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '100');
+        });
+
+        it('static import default from .js file in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import m from './esm_module.js'; console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '200');
+        });
+    });
+
     describe('CommonJS-style variables', () => {
         it('__dirname is defined', () => {
             var result = runEval('console.log(typeof __dirname)');
