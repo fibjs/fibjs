@@ -85,6 +85,8 @@ static void printHelp()
          "  --cov[=filename]            collect code coverage information (only work on the main Worker).\n"
          "  --cov-process               generate code coverage analysis report.\n"
          "\n"
+         "  --check [options] <files>   run TypeScript type checker.\n"
+         "\n"
          "  --v8-options                print v8 command line options.\n"
          "\n"
          "Documentation can be found at http://fibjs.org\n");
