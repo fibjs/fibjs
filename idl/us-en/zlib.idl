@@ -91,6 +91,14 @@ module zlib
      */
     static Buffer deflate(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
+    /*! @brief Compress data using deflate algorithm (zlib format)
+     @param data Given data to compress
+     @param options Specify compression options, supported options include:
+       - level: Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
+     */
+    static Buffer deflate(Buffer data, Object options) async;
+
     /*! @brief Compress data to stream object using deflate algorithm (zlib format)
      @param data Given data to compress
      @param stm Specify stream to store compressed data
@@ -112,6 +120,14 @@ module zlib
      */
     static Buffer inflate(Buffer data, Integer maxSize = -1) async;
 
+    /*! @brief Decompress data compressed by deflate algorithm (zlib format)
+     @param data Given compressed data
+     @param options Specify decompression options, supported options include:
+       - maxOutputLength: Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
+     */
+    static Buffer inflate(Buffer data, Object options) async;
+
     /*! @brief Decompress data compressed by deflate algorithm to stream object (zlib format)
      @param data Given data to decompress
      @param stm Specify stream to store decompressed data
@@ -132,6 +148,14 @@ module zlib
      */
     static Buffer gzip(Buffer data) async;
 
+    /*! @brief Compress data using gzip algorithm
+     @param data Given data to compress
+     @param options Specify compression options, supported options include:
+       - level: Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
+     */
+    static Buffer gzip(Buffer data, Object options) async;
+
     /*! @brief Compress data to stream object using gzip algorithm
      @param data Given data to compress
      @param stm Specify stream to store compressed data
@@ -150,6 +174,14 @@ module zlib
      @return Returns decompressed binary data
      */
     static Buffer gunzip(Buffer data, Integer maxSize = -1) async;
+
+    /*! @brief Decompress data compressed by gzip algorithm
+     @param data Given compressed data
+     @param options Specify decompression options, supported options include:
+       - maxOutputLength: Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
+     */
+    static Buffer gunzip(Buffer data, Object options) async;
 
     /*! @brief Decompress data compressed by gzip algorithm to stream object
      @param data Given data to decompress
@@ -172,6 +204,14 @@ module zlib
      */
     static Buffer deflateRaw(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
+    /*! @brief Compress data using deflate algorithm (deflateRaw)
+     @param data Given data to compress
+     @param options Specify compression options, supported options include:
+       - level: Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
+     */
+    static Buffer deflateRaw(Buffer data, Object options) async;
+
     /*! @brief Compress data to stream object using deflate algorithm (deflateRaw)
      @param data Given data to compress
      @param stm Specify stream to store compressed data
@@ -192,6 +232,14 @@ module zlib
      @return Returns decompressed binary data
      */
     static Buffer inflateRaw(Buffer data, Integer maxSize = -1) async;
+
+    /*! @brief Decompress data compressed by deflate algorithm (inflateRaw)
+     @param data Given compressed data
+     @param options Specify decompression options, supported options include:
+       - maxOutputLength: Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
+     */
+    static Buffer inflateRaw(Buffer data, Object options) async;
 
     /*! @brief Decompress data compressed by deflate algorithm to stream object (inflateRaw)
      @param data Given data to decompress
@@ -226,6 +274,14 @@ module zlib
      */
     static Buffer zip(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
+    /*! @brief Compress data using zip algorithm
+     @param data Given data to compress
+     @param options Specify compression options, supported options include:
+       - level: Specify compression level, default DEFAULT_COMPRESSION
+     @return Returns compressed binary data
+     */
+    static Buffer zip(Buffer data, Object options) async;
+
     /*! @brief Compress data to stream object using zip algorithm
      @param data Given data to compress
      @param stm Specify stream to store compressed data
@@ -246,6 +302,14 @@ module zlib
      @return Returns decompressed binary data
      */
     static Buffer unzip(Buffer data, Integer maxSize = -1) async;
+
+    /*! @brief Decompress data compressed by zip algorithm
+     @param data Given compressed data
+     @param options Specify decompression options, supported options include:
+       - maxOutputLength: Specify decompression size limit, default -1, no limit
+     @return Returns decompressed binary data
+     */
+    static Buffer unzip(Buffer data, Object options) async;
 
     /*! @brief Decompress data compressed by zip algorithm to stream object
      @param data Given data to decompress

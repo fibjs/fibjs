@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ZlibStream.h"
+#include "utils.h"
 
 namespace fibjs {
 
@@ -56,6 +57,21 @@ result_t zlib_base::deflate(Buffer_base* data, int32_t level, obj_ptr<Buffer_bas
     return (new def(NULL, level))->process(data, retVal, ac);
 }
 
+result_t zlib_base::deflate(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t level = C_DEFAULT_COMPRESSION;
+        result_t hr = GetConfigValue(options, "level", level, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = level;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new def(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
+}
+
 result_t zlib_base::deflateTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -78,6 +94,21 @@ result_t zlib_base::inflate(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_b
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new inf(NULL, maxSize))->process(data, retVal, ac);
+}
+
+result_t zlib_base::inflate(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t maxOutputLength = -1;
+        result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = maxOutputLength;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new inf(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
 }
 
 result_t zlib_base::inflateTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)
@@ -104,6 +135,21 @@ result_t zlib_base::gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncE
     return (new gz(NULL))->process(data, retVal, ac);
 }
 
+result_t zlib_base::gzip(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t level = C_DEFAULT_COMPRESSION;
+        result_t hr = GetConfigValue(options, "level", level, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = level;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new gz(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
+}
+
 result_t zlib_base::gzipTo(Buffer_base* data, Stream_base* stm, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -128,6 +174,21 @@ result_t zlib_base::gunzip(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_ba
     return (new gunz(NULL, maxSize))->process(data, retVal, ac);
 }
 
+result_t zlib_base::gunzip(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t maxOutputLength = -1;
+        result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = maxOutputLength;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new gunz(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
+}
+
 result_t zlib_base::gunzipTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -149,7 +210,22 @@ result_t zlib_base::deflateRaw(Buffer_base* data, int32_t level, obj_ptr<Buffer_
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new defraw(NULL))->process(data, retVal, ac);
+    return (new defraw(NULL, level))->process(data, retVal, ac);
+}
+
+result_t zlib_base::deflateRaw(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t level = C_DEFAULT_COMPRESSION;
+        result_t hr = GetConfigValue(options, "level", level, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = level;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new defraw(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
 }
 
 result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac)
@@ -157,7 +233,7 @@ result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm, int32_t le
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new defraw(stm))->process(data, ac);
+    return (new defraw(stm, level))->process(data, ac);
 }
 
 result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t level, AsyncEvent* ac)
@@ -165,7 +241,7 @@ result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t lev
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new defraw(stm))->process(src, ac);
+    return (new defraw(stm, level))->process(src, ac);
 }
 
 result_t zlib_base::inflateRaw(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
@@ -174,6 +250,21 @@ result_t zlib_base::inflateRaw(Buffer_base* data, int32_t maxSize, obj_ptr<Buffe
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new infraw(NULL, maxSize))->process(data, retVal, ac);
+}
+
+result_t zlib_base::inflateRaw(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t maxOutputLength = -1;
+        result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = maxOutputLength;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new infraw(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
 }
 
 result_t zlib_base::inflateRawTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)
@@ -212,6 +303,21 @@ result_t zlib_base::zip(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& 
     return (new class zip(NULL, level))->process(data, retVal, ac);
 }
 
+result_t zlib_base::zip(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t level = C_DEFAULT_COMPRESSION;
+        result_t hr = GetConfigValue(options, "level", level, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = level;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new class zip(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
+}
+
 result_t zlib_base::zipTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -234,6 +340,21 @@ result_t zlib_base::unzip(Buffer_base* data, int32_t maxSize, obj_ptr<Buffer_bas
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new class unzip(NULL, maxSize))->process(data, retVal, ac);
+}
+
+result_t zlib_base::unzip(Buffer_base* data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        int32_t maxOutputLength = -1;
+        result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = maxOutputLength;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return (new class unzip(NULL, ac->m_ctx[0].intVal()))->process(data, retVal, ac);
 }
 
 result_t zlib_base::unzipTo(Buffer_base* data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac)

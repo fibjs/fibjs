@@ -947,5 +947,181 @@ describe("zlib", () => {
             });
         });
     });
-});
 
+    // Test options parameter for Node.js compatibility
+    describe("options parameter (Node.js compatibility)", () => {
+        // Use longer test data to show compression level differences
+        var testData = Buffer.alloc(10240);
+        for (var i = 0; i < testData.length; i++) {
+            testData[i] = i % 256;
+        }
+
+        describe("compression functions with options.level", () => {
+            it("deflate with options.level", () => {
+                var compressed_fast = zlib.deflate(testData, { level: zlib.BEST_SPEED });
+                var compressed_best = zlib.deflate(testData, { level: zlib.BEST_COMPRESSION });
+                var compressed_default = zlib.deflate(testData, { level: zlib.DEFAULT_COMPRESSION });
+
+                // All should decompress correctly
+                assert.deepEqual(zlib.inflate(compressed_fast), testData);
+                assert.deepEqual(zlib.inflate(compressed_best), testData);
+                assert.deepEqual(zlib.inflate(compressed_default), testData);
+            });
+
+            it("gzip with options.level", () => {
+                var compressed_fast = zlib.gzip(testData, { level: zlib.BEST_SPEED });
+                var compressed_best = zlib.gzip(testData, { level: zlib.BEST_COMPRESSION });
+                var compressed_default = zlib.gzip(testData, { level: zlib.DEFAULT_COMPRESSION });
+
+                // All should decompress correctly
+                assert.deepEqual(zlib.gunzip(compressed_fast), testData);
+                assert.deepEqual(zlib.gunzip(compressed_best), testData);
+                assert.deepEqual(zlib.gunzip(compressed_default), testData);
+            });
+
+            it("deflateRaw with options.level", () => {
+                var compressed_fast = zlib.deflateRaw(testData, { level: zlib.BEST_SPEED });
+                var compressed_best = zlib.deflateRaw(testData, { level: zlib.BEST_COMPRESSION });
+                var compressed_default = zlib.deflateRaw(testData, { level: zlib.DEFAULT_COMPRESSION });
+
+                // All should decompress correctly
+                assert.deepEqual(zlib.inflateRaw(compressed_fast), testData);
+                assert.deepEqual(zlib.inflateRaw(compressed_best), testData);
+                assert.deepEqual(zlib.inflateRaw(compressed_default), testData);
+            });
+
+            it("zip with options.level", () => {
+                var compressed_fast = zlib.zip(testData, { level: zlib.BEST_SPEED });
+                var compressed_best = zlib.zip(testData, { level: zlib.BEST_COMPRESSION });
+                var compressed_default = zlib.zip(testData, { level: zlib.DEFAULT_COMPRESSION });
+
+                // All should decompress correctly
+                assert.deepEqual(zlib.unzip(compressed_fast), testData);
+                assert.deepEqual(zlib.unzip(compressed_best), testData);
+                assert.deepEqual(zlib.unzip(compressed_default), testData);
+            });
+
+            it("options.level with numeric values", () => {
+                // Test with numeric level values (0-9)
+                var compressed_0 = zlib.deflate(testData, { level: 0 });
+                var compressed_1 = zlib.deflate(testData, { level: 1 });
+                var compressed_6 = zlib.deflate(testData, { level: 6 });
+                var compressed_9 = zlib.deflate(testData, { level: 9 });
+
+                // All should decompress correctly
+                assert.deepEqual(zlib.inflate(compressed_0), testData);
+                assert.deepEqual(zlib.inflate(compressed_1), testData);
+                assert.deepEqual(zlib.inflate(compressed_6), testData);
+                assert.deepEqual(zlib.inflate(compressed_9), testData);
+
+                // Level 0 (no compression) should be larger than level 9
+                assert.ok(compressed_0.length > compressed_9.length);
+            });
+        });
+
+        describe("decompression functions with options.maxOutputLength", () => {
+            var shortData = Buffer.from("Test data for maxOutputLength testing.");
+
+            it("inflate with options.maxOutputLength", () => {
+                var compressed = zlib.deflate(shortData);
+                var decompressed = zlib.inflate(compressed, { maxOutputLength: 1024 });
+                assert.deepEqual(decompressed, shortData);
+
+                // Should throw when output exceeds maxOutputLength
+                assert.throws(() => {
+                    zlib.inflate(compressed, { maxOutputLength: 10 });
+                });
+            });
+
+            it("gunzip with options.maxOutputLength", () => {
+                var compressed = zlib.gzip(shortData);
+                var decompressed = zlib.gunzip(compressed, { maxOutputLength: 1024 });
+                assert.deepEqual(decompressed, shortData);
+
+                // Should throw when output exceeds maxOutputLength
+                assert.throws(() => {
+                    zlib.gunzip(compressed, { maxOutputLength: 10 });
+                });
+            });
+
+            it("inflateRaw with options.maxOutputLength", () => {
+                var compressed = zlib.deflateRaw(shortData);
+                var decompressed = zlib.inflateRaw(compressed, { maxOutputLength: 1024 });
+                assert.deepEqual(decompressed, shortData);
+
+                // Should throw when output exceeds maxOutputLength
+                assert.throws(() => {
+                    zlib.inflateRaw(compressed, { maxOutputLength: 10 });
+                });
+            });
+
+            it("unzip with options.maxOutputLength", () => {
+                var compressed = zlib.zip(shortData);
+                var decompressed = zlib.unzip(compressed, { maxOutputLength: 1024 });
+                assert.deepEqual(decompressed, shortData);
+
+                // Should throw when output exceeds maxOutputLength
+                assert.throws(() => {
+                    zlib.unzip(compressed, { maxOutputLength: 10 });
+                });
+            });
+
+            it("maxOutputLength with -1 means no limit", () => {
+                var largeData = Buffer.alloc(10240);
+                for (var i = 0; i < largeData.length; i++) {
+                    largeData[i] = Math.random() * 256;
+                }
+
+                var compressed = zlib.deflate(largeData);
+                var decompressed = zlib.inflate(compressed, { maxOutputLength: -1 });
+                assert.deepEqual(decompressed, largeData);
+            });
+        });
+
+        describe("backward compatibility", () => {
+            var shortData = Buffer.from("Short test data for backward compatibility testing.");
+
+            it("integer parameter still works for compression level", () => {
+                var compressed_int = zlib.deflate(shortData, zlib.BEST_SPEED);
+                var compressed_opt = zlib.deflate(shortData, { level: zlib.BEST_SPEED });
+
+                assert.deepEqual(zlib.inflate(compressed_int), shortData);
+                assert.deepEqual(zlib.inflate(compressed_opt), shortData);
+                assert.deepEqual(compressed_int, compressed_opt);
+            });
+
+            it("integer parameter still works for maxSize", () => {
+                var compressed = zlib.deflate(shortData);
+                var decompressed_int = zlib.inflate(compressed, 1024);
+                var decompressed_opt = zlib.inflate(compressed, { maxOutputLength: 1024 });
+
+                assert.deepEqual(decompressed_int, shortData);
+                assert.deepEqual(decompressed_opt, shortData);
+            });
+
+            it("default behavior when options is empty object", () => {
+                var compressed = zlib.deflate(shortData, {});
+                var decompressed = zlib.inflate(compressed, {});
+
+                assert.deepEqual(decompressed, shortData);
+            });
+        });
+
+        describe("error handling for invalid options", () => {
+            var shortData = Buffer.from("Test data for error handling.");
+
+            it("should handle invalid level type gracefully", () => {
+                assert.throws(() => {
+                    zlib.deflate(shortData, { level: "invalid" });
+                });
+            });
+
+            it("should handle invalid maxOutputLength type gracefully", () => {
+                var compressed = zlib.deflate(shortData);
+                assert.throws(() => {
+                    zlib.inflate(compressed, { maxOutputLength: "invalid" });
+                });
+            });
+        });
+    });
+});

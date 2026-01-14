@@ -368,10 +368,15 @@ public:
 
 class gz : public def_base {
 public:
-    gz(Stream_base* stm)
+    gz(Stream_base* stm, int32_t level = -1)
         : def_base(stm)
     {
-        deflateInit2(&strm, -1, Z_DEFLATED, GZIP_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+        if (level < zlib_base::C_DEFAULT_COMPRESSION)
+            level = zlib_base::C_DEFAULT_COMPRESSION;
+        else if (level > zlib_base::C_BEST_COMPRESSION)
+            level = zlib_base::C_BEST_COMPRESSION;
+
+        deflateInit2(&strm, level, Z_DEFLATED, GZIP_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     }
 };
 
@@ -386,10 +391,15 @@ public:
 
 class defraw : public def_base {
 public:
-    defraw(Stream_base* stm)
+    defraw(Stream_base* stm, int32_t level = -1)
         : def_base(stm)
     {
-        deflateInit2(&strm, -1, Z_DEFLATED, RAW_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+        if (level < zlib_base::C_DEFAULT_COMPRESSION)
+            level = zlib_base::C_DEFAULT_COMPRESSION;
+        else if (level > zlib_base::C_BEST_COMPRESSION)
+            level = zlib_base::C_BEST_COMPRESSION;
+
+        deflateInit2(&strm, level, Z_DEFLATED, RAW_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     }
 };
 
