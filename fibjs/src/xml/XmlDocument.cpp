@@ -376,6 +376,60 @@ result_t XmlDocument::createDocumentFragment(obj_ptr<XmlDocumentFragment_base>& 
     return 0;
 }
 
+result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<XmlNode_base>& retVal)
+{
+    if (!importedNode)
+        return CALL_E_INVALIDARG;
+
+    int32_t type;
+    importedNode->get_nodeType(type);
+
+    // Cannot import Document nodes
+    if (type == xml_base::C_DOCUMENT_NODE)
+        return Runtime::setError("XmlDocument: Cannot import a document node.");
+
+    // Clone the node (which creates a copy with this document as owner)
+    obj_ptr<XmlNode_base> clonedNode;
+    result_t hr = importedNode->cloneNode(deep, clonedNode);
+    if (hr < 0)
+        return hr;
+
+    // Set the owner document of the cloned node to this document
+    XmlNodeImpl* impl = XmlNodeImpl::fromNode(clonedNode);
+    if (impl)
+        impl->setDocument(this);
+
+    retVal = clonedNode;
+    return 0;
+}
+
+result_t XmlDocument::adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>& retVal)
+{
+    if (!adoptedNode)
+        return CALL_E_INVALIDARG;
+
+    int32_t type;
+    adoptedNode->get_nodeType(type);
+
+    // Cannot adopt Document nodes
+    if (type == xml_base::C_DOCUMENT_NODE)
+        return Runtime::setError("XmlDocument: Cannot adopt a document node.");
+
+    // Remove the node from its current parent (if any)
+    XmlNodeImpl* impl = XmlNodeImpl::fromNode(adoptedNode);
+    if (impl) {
+        // Remove from parent if attached
+        obj_ptr<XmlNode_base> removed;
+        impl->remove(removed);
+
+        // Set the owner document to this document
+        impl->setDocument(this);
+    }
+
+    retVal = adoptedNode;
+    return 0;
+}
+
 result_t XmlDocument::get_head(obj_ptr<XmlElement_base>& retVal)
 {
     if (m_isXml)

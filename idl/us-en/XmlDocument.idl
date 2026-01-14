@@ -153,6 +153,23 @@ interface XmlDocument : XmlNode
      @return The newly created XmlDocumentFragment node
     */
     XmlDocumentFragment createDocumentFragment();
+
+    /*! @brief Import a node from another document into this document
+
+     This method creates a copy of the source node that can be inserted into this document. The source node remains unchanged. If you need to move a node from another document to this document instead of copying, use the adoptNode method.
+     @param importedNode The node to import
+     @param deep If true, recursively import the entire subtree of the node; if false, import only the node itself
+     @return The newly imported node belonging to this document
+    */
+    XmlNode importNode(XmlNode importedNode, Boolean deep = true);
+
+    /*! @brief Adopt a node from another document into this document
+
+     This method moves a node from another document to this document. The node is removed from the original document, and its ownerDocument property is changed to this document. Unlike importNode, adoptNode does not create a copy.
+     @param adoptedNode The node to adopt
+     @return The adopted node
+    */
+    XmlNode adoptNode(XmlNode adoptedNode);
     /*! @brief Return an XmlNodeList of elements that match the specified CSS selector
 
      This method will return an XmlNodeList object (which can be treated as a read-only array), which stores all XmlElement nodes in the document that match the specified CSS selector, in the order they appear in the source document. The XmlNodeList object is "live", meaning that if elements that match the specified selector are added or removed in the document, its content will be automatically updated as necessary.

@@ -77,6 +77,8 @@ public:
     virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal);
     virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base>& retVal);
     virtual result_t createDocumentFragment(obj_ptr<XmlDocumentFragment_base>& retVal);
+    virtual result_t importNode(XmlNode_base* importedNode, bool deep, obj_ptr<XmlNode_base>& retVal);
+    virtual result_t adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>& retVal);
     virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal);
 

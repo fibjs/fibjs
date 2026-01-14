@@ -56,6 +56,8 @@ public:
     virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal) = 0;
     virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base>& retVal) = 0;
     virtual result_t createDocumentFragment(obj_ptr<XmlDocumentFragment_base>& retVal) = 0;
+    virtual result_t importNode(XmlNode_base* importedNode, bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal) = 0;
 
@@ -87,6 +89,8 @@ public:
     static void s_createCDATASection(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createProcessingInstruction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createDocumentFragment(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_importNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_adoptNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_querySelector(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_querySelectorAll(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -118,6 +122,8 @@ inline ClassInfo& XmlDocument_base::class_info()
         { "createCDATASection", s_createCDATASection, false, ClassData::ASYNC_SYNC },
         { "createProcessingInstruction", s_createProcessingInstruction, false, ClassData::ASYNC_SYNC },
         { "createDocumentFragment", s_createDocumentFragment, false, ClassData::ASYNC_SYNC },
+        { "importNode", s_importNode, false, ClassData::ASYNC_SYNC },
+        { "adoptNode", s_adoptNode, false, ClassData::ASYNC_SYNC },
         { "querySelector", s_querySelector, false, ClassData::ASYNC_SYNC },
         { "querySelectorAll", s_querySelectorAll, false, ClassData::ASYNC_SYNC }
     };
@@ -513,6 +519,39 @@ inline void XmlDocument_base::s_createDocumentFragment(const v8::FunctionCallbac
     METHOD_OVER(0, 0);
 
     hr = pInst->createDocumentFragment(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlDocument_base::s_importNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_INSTANCE(XmlDocument_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+    OPT_ARG(bool, 1, true);
+
+    hr = pInst->importNode(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlDocument_base::s_adoptNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_INSTANCE(XmlDocument_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<XmlNode_base>, 0);
+
+    hr = pInst->adoptNode(v0.get(), vr);
 
     METHOD_RETURN();
 }

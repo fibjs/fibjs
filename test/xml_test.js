@@ -3520,6 +3520,162 @@ describe('xml', () => {
                 });
             });
 
+            // importNode and adoptNode tests
+            describe('importNode and adoptNode', () => {
+                it("importNode basic - shallow copy", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var elem = doc1.createElement("test");
+                    elem.setAttribute("id", "myid");
+                    var child = doc1.createElement("child");
+                    elem.appendChild(child);
+
+                    // Import without deep copy
+                    var imported = doc2.importNode(elem, false);
+
+                    assert.equal(imported.tagName, "test");
+                    assert.equal(imported.getAttribute("id"), "myid");
+                    assert.equal(imported.ownerDocument, doc2);
+                    assert.equal(imported.childNodes.length, 0); // no children
+                    // Original node unchanged
+                    assert.equal(elem.ownerDocument, doc1);
+                    assert.equal(elem.childNodes.length, 1);
+                });
+
+                it("importNode deep copy", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var elem = doc1.createElement("parent");
+                    var child1 = doc1.createElement("child1");
+                    var child2 = doc1.createElement("child2");
+                    var grandchild = doc1.createElement("grandchild");
+                    elem.appendChild(child1);
+                    elem.appendChild(child2);
+                    child1.appendChild(grandchild);
+
+                    // Import with deep copy (default)
+                    var imported = doc2.importNode(elem);
+
+                    assert.equal(imported.tagName, "parent");
+                    assert.equal(imported.ownerDocument, doc2);
+                    assert.equal(imported.childNodes.length, 2);
+                    assert.equal(imported.childNodes[0].tagName, "child1");
+                    assert.equal(imported.childNodes[0].ownerDocument, doc2);
+                    assert.equal(imported.childNodes[0].childNodes.length, 1);
+                    assert.equal(imported.childNodes[0].childNodes[0].tagName, "grandchild");
+                    assert.equal(imported.childNodes[1].tagName, "child2");
+                    // Original unchanged
+                    assert.equal(elem.ownerDocument, doc1);
+                });
+
+                it("importNode text node", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var text = doc1.createTextNode("Hello World");
+                    var imported = doc2.importNode(text);
+
+                    assert.equal(imported.nodeType, 3);
+                    assert.equal(imported.textContent, "Hello World");
+                    assert.equal(imported.ownerDocument, doc2);
+                });
+
+                it("importNode comment node", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var comment = doc1.createComment("This is a comment");
+                    var imported = doc2.importNode(comment);
+
+                    assert.equal(imported.nodeType, 8);
+                    assert.equal(imported.data, "This is a comment");
+                    assert.equal(imported.ownerDocument, doc2);
+                });
+
+                it("importNode cannot import document", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    assert.throws(() => {
+                        doc2.importNode(doc1);
+                    });
+                });
+
+                it("adoptNode basic", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var elem = doc1.createElement("test");
+                    elem.setAttribute("id", "myid");
+
+                    var adopted = doc2.adoptNode(elem);
+
+                    assert.equal(adopted, elem); // Same node object
+                    assert.equal(adopted.ownerDocument, doc2);
+                    assert.equal(adopted.getAttribute("id"), "myid");
+                });
+
+                it("adoptNode removes from parent", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var parent = doc1.createElement("parent");
+                    var child = doc1.createElement("child");
+                    parent.appendChild(child);
+                    doc1.appendChild(parent);
+
+                    assert.equal(parent.childNodes.length, 1);
+                    assert.equal(child.parentNode, parent);
+
+                    var adopted = doc2.adoptNode(child);
+
+                    assert.equal(adopted, child);
+                    assert.equal(adopted.ownerDocument, doc2);
+                    assert.equal(adopted.parentNode, null);
+                    assert.equal(parent.childNodes.length, 0);
+                });
+
+                it("adoptNode with children", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var elem = doc1.createElement("parent");
+                    var child = doc1.createElement("child");
+                    var grandchild = doc1.createElement("grandchild");
+                    elem.appendChild(child);
+                    child.appendChild(grandchild);
+
+                    var adopted = doc2.adoptNode(elem);
+
+                    assert.equal(adopted.ownerDocument, doc2);
+                    assert.equal(adopted.childNodes[0].ownerDocument, doc2);
+                    assert.equal(adopted.childNodes[0].childNodes[0].ownerDocument, doc2);
+                });
+
+                it("adoptNode cannot adopt document", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    assert.throws(() => {
+                        doc2.adoptNode(doc1);
+                    });
+                });
+
+                it("adoptNode on detached node", () => {
+                    var doc1 = newDoc();
+                    var doc2 = newDoc();
+
+                    var elem = doc1.createElement("detached");
+
+                    var adopted = doc2.adoptNode(elem);
+
+                    assert.equal(adopted, elem);
+                    assert.equal(adopted.ownerDocument, doc2);
+                });
+            });
+
             // template.content tests
             describe('template.content', () => {
                 it("returns DocumentFragment for template element", () => {

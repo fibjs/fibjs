@@ -212,6 +212,27 @@ declare class Class_XmlDocument extends Class_XmlNode {
     createDocumentFragment(): Class_XmlDocumentFragment;
 
     /**
+     * @description 从另一个文档导入节点到当前文档
+     * 
+     *      此方法创建源节点的副本，可以将其插入当前文档。源节点保持不变。如果需要将节点从另一个文档移动到当前文档而不是复制，请使用 adoptNode 方法。
+     *      @param importedNode 要导入的节点
+     *      @param deep 如果为 true，则递归导入节点的整个子树；如果为 false，则只导入节点本身
+     *      @return 返回导入到当前文档的新节点
+     *     
+     */
+    importNode(importedNode: Class_XmlNode, deep?: boolean): Class_XmlNode;
+
+    /**
+     * @description 从另一个文档采用节点到当前文档
+     * 
+     *      此方法将节点从另一个文档移动到当前文档。节点将从原文档中移除，其 ownerDocument 属性将更改为当前文档。与 importNode 不同，adoptNode 不会创建副本。
+     *      @param adoptedNode 要采用的节点
+     *      @return 返回被采用的节点
+     *     
+     */
+    adoptNode(adoptedNode: Class_XmlNode): Class_XmlNode;
+
+    /**
      * @description 返回符合指定 CSS 选择器的元素的 XmlNodeList
      * 
      *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。
