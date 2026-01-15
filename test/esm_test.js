@@ -378,6 +378,45 @@ describe('ECMAScript modules', () => {
         const result = await doImport();
         assert.equal(result.value, 42);
     });
+
+    describe('require in ES module', () => {
+        const child_process = require('child_process');
+        const cmd = process.execPath;
+
+        it('should throw error when using require() in ES module', () => {
+            // Test that require() throws a clear error in ESM context
+            const testFile = path.join(__dirname, 'esm_files', 'require_error', 'test_require.js');
+            assert.throws(() => {
+                child_process.execFileSync(cmd, [testFile], {
+                    encoding: 'utf8',
+                    stdio: ['pipe', 'pipe', 'pipe']
+                });
+            }, (err) => {
+                // Check that stderr contains the expected error message
+                return err.stderr.includes('require is not defined in ES module scope');
+            });
+        });
+
+        it('should suggest using import instead', () => {
+            const testFile = path.join(__dirname, 'esm_files', 'require_error', 'test_require.js');
+            try {
+                child_process.execFileSync(cmd, [testFile], {
+                    encoding: 'utf8',
+                    stdio: ['pipe', 'pipe', 'pipe']
+                });
+                assert.fail('should have thrown');
+            } catch (err) {
+                assert.ok(err.stderr.includes('use import instead'), 
+                    'Error message should suggest using import instead');
+            }
+        });
+
+        it('should work with import in the same ESM package', async () => {
+            // Verify that import still works in the ESM package
+            const m = await import('./esm_files/esm1.mjs');
+            assert.deepEqual(m, { test: 4 });
+        });
+    });
 });
 
 

@@ -5,6 +5,7 @@
 #include "ifs/base64.h"
 #include "ifs/http.h"
 #include "SandBox.h"
+#include "Runtime.h"
 #include <vector>
 
 namespace fibjs {
@@ -30,7 +31,14 @@ result_t global_base::run(exlib::string fname)
 
 result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 {
-    return Isolate::current()->m_topSandbox->require(id, s_root, retVal);
+    Isolate* isolate = Isolate::current();
+
+    // Check if we are evaluating an ES module
+    // global.require should only work in REPL/script context, not in ES modules
+    if (isolate->m_module_evaluating > 0)
+        return Runtime::setError("require is not defined in ES module scope, use import instead");
+
+    return isolate->m_topSandbox->require(id, s_root, retVal);
 }
 
 result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
