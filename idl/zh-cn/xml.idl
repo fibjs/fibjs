@@ -79,6 +79,9 @@ module xml
     /*! @brief xml 文档对象，参见 XmlDocument 对象*/
     static XmlDocument new Document();
 
+    /*! @brief DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 */
+    static DOMParser;
+
     /*! @brief 解析 xml/html 文本，并创建 XmlDocument 对象，不支持多语种
      @param source 指定需要解析的 xml/html 文本
      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html

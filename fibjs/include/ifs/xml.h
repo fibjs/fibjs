@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class XmlDocument_base;
+class DOMParser_base;
 class Buffer_base;
 class XmlNode_base;
 
@@ -62,6 +63,7 @@ public:
 }
 
 #include "ifs/XmlDocument.h"
+#include "ifs/DOMParser.h"
 #include "ifs/Buffer.h"
 #include "ifs/XmlNode.h"
 
@@ -74,7 +76,8 @@ inline ClassInfo& xml_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "Document", XmlDocument_base::class_info }
+        { "Document", XmlDocument_base::class_info },
+        { "DOMParser", DOMParser_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {

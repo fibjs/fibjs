@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
+/// <reference path="../interface/DOMParser.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
@@ -109,6 +110,11 @@ declare module 'xml' {
      * @description xml 文档对象，参见 XmlDocument 对象
      */
     const Document: typeof Class_XmlDocument;
+
+    /**
+     * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 
+     */
+    const DOMParser: typeof Class_DOMParser;
 
     /**
      * @description 解析 xml/html 文本，并创建 XmlDocument 对象，不支持多语种

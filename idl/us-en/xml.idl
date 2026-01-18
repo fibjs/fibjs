@@ -79,6 +79,9 @@ module xml
     /*! @brief XML document object, see XmlDocument object*/
     static XmlDocument new Document();
 
+    /*! @brief DOMParser interface for parsing strings into DOM documents, see DOMParser object */
+    static DOMParser;
+
     /*! @brief Parse xml/html text and create XmlDocument object, does not support multiple languages
      @param source Specify the xml/html text to parse
      @param type Specify text type, default is text/xml, can also be text/html
