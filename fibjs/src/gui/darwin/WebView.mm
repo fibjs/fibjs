@@ -14,6 +14,7 @@
 #include "ifs/encoding.h"
 #include "WebView.h"
 #import <WebKit/WebKit.h>
+#include <unordered_set>
 
 extern int32_t s_window_count;
 
@@ -182,22 +183,54 @@ result_t WebView::goForward(AsyncEvent* ac)
     return 0;
 }
 
-static void js2Variant(id result, Variant& retVal)
+static const int kMaxJs2VariantDepth = 20;
+static const size_t kMaxJs2VariantElements = 10000;
+
+static void js2VariantInternal(id result, Variant& retVal, int depth, size_t& count, std::unordered_set<const void*>& visited)
 {
+    if (!result) {
+        retVal.setNull();
+        return;
+    }
+
+    if (depth > kMaxJs2VariantDepth || count > kMaxJs2VariantElements) {
+        retVal.setNull();
+        return;
+    }
+
+    const void* ptr = (__bridge const void*)result;
+    if (visited.find(ptr) != visited.end()) {
+        retVal.setNull();
+        return;
+    }
+
     if ([result isKindOfClass:[NSArray class]]) {
+        visited.insert(ptr);
         obj_ptr<NArray> array = new NArray();
         for (id obj in result) {
+            if (++count > kMaxJs2VariantElements) {
+                retVal.setNull();
+                return;
+            }
             Variant v;
-            js2Variant(obj, v);
+            js2VariantInternal(obj, v, depth + 1, count, visited);
             array->append(v);
         }
         retVal = array;
     } else if ([result isKindOfClass:[NSDictionary class]]) {
+        visited.insert(ptr);
         obj_ptr<NObject> obj = new NObject();
         for (id key in result) {
+            if (++count > kMaxJs2VariantElements) {
+                retVal.setNull();
+                return;
+            }
             Variant v;
-            js2Variant(result[key], v);
-            obj->add([key UTF8String], v);
+            js2VariantInternal(result[key], v, depth + 1, count, visited);
+            if ([key isKindOfClass:[NSString class]])
+                obj->add([key UTF8String], v);
+            else
+                obj->add([[key description] UTF8String], v);
         }
         retVal = obj;
     } else if ([result isKindOfClass:[NSDate class]]) {
@@ -211,13 +244,20 @@ static void js2Variant(id result, Variant& retVal)
         } else if (strcmp(type, @encode(char)) == 0) {
             retVal = [result boolValue] ? true : false;
         } else {
-            retVal = [result UTF8String];
+            retVal = [[result stringValue] UTF8String];
         }
     } else if ([result isKindOfClass:[NSString class]]) {
         retVal = [result UTF8String];
     } else if ([result isKindOfClass:[NSNull class]]) {
         retVal.setNull();
     }
+}
+
+static void js2Variant(id result, Variant& retVal)
+{
+    size_t count = 0;
+    std::unordered_set<const void*> visited;
+    js2VariantInternal(result, retVal, 0, count, visited);
 }
 
 static NSString* const WKJavaScriptExceptionMessage = @"WKJavaScriptExceptionMessage";

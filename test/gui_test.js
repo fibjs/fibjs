@@ -235,6 +235,25 @@ describe(gui_env, () => {
 
                 assert.deepEqual(r1, {});
             });
+
+            it("complex object no crash (darwin)", () => {
+                if (!darwin64) return;
+
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                let result;
+                assert.doesNotThrow(() => {
+                    result = win.eval(`(() => { const o = { a: 1, b: { c: 2 } }; o.self = o; return o; })()`);
+                });
+
+                win.close();
+
+                assert.ok(result === null || typeof result === "object");
+            });
         });
 
         it("close from inside", () => {
