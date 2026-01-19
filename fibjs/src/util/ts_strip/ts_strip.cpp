@@ -4640,12 +4640,13 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
             switch (nextTok) {
                 case SyntaxKind::OpenParenToken:    // Could be function call
                 case SyntaxKind::OpenBracketToken:  // Could be array subscript
+                case SyntaxKind::SlashToken:        // Could be regex (not division)
                 case SyntaxKind::NoSubstitutionTemplateLiteral:
                 case SyntaxKind::TemplateHead:      // Could be tagged template
                     needsSemicolon = true;
                     break;
                 default:
-                    // +, -, / are safe because they just continue the expression
+                    // +, - are safe because they just continue the expression
                     needsSemicolon = false;
                     break;
             }
@@ -4670,6 +4671,21 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
     }
     
     if (needsSemicolon && start < (int)m_length) {
+        int insertPos = start;
+        // For expression-level erasure followed by a regex on a new line,
+        // place the semicolon at the end of the erased span to preserve spacing.
+        if (!isStatement && token() == SyntaxKind::SlashToken && currentToken().hadLineBreak) {
+            int candidate = end - 1;
+            while (candidate >= start && candidate < (int)m_length) {
+                uint8_t ch = m_src[candidate];
+                if (ch != '\n' && ch != '\r') {
+                    insertPos = candidate;
+                    break;
+                }
+                candidate--;
+            }
+        }
+
         // SWC logic: check the token before 'start'
         // 1. If there's no token before (first statement), don't insert semicolon
         // 2. If the token before is a semicolon, overwrite it with ';' (to preserve it after replacement)
@@ -4729,8 +4745,8 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
                 return;
             }
         }
-        
-        addOverwrite(start, ';');
+
+        addOverwrite(insertPos, ';');
     }
 }
 

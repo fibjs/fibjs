@@ -1304,8 +1304,8 @@ declare const x: number;`;
         itDiff('should handle as expression followed by slash',
             `const x = 1 as any
 /regex/`,
-            `const x = 1       
-/regex/`,  // fibjs: correctly handles regex
+            `const x = 1      ;
+/regex/`,  // fibjs: insert semicolon to disambiguate regex
             null   // amaro: throws (cannot determine / is regex start or division)
         );
 
@@ -4404,6 +4404,517 @@ const d: T = { x: 1 };`;
                 assert.ok(!output.includes(': T ='), `Expected all ': T' type annotations to be stripped but got: ${output}`);
                 assert.ok(output.includes('const d    ='), `Expected 'const d    =' in output but got: ${output}`);
             });
+        });
+
+        describe('Regular Expression Recognition Tests', () => {
+
+            describe('Basic Regular Expression Literals', () => {
+                it('should recognize simple regex', () => {
+                    const input = `const pattern = /test/;`;
+                    const expected = `const pattern = /test/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex with flags', () => {
+                    const input = `const pattern = /test/gi;`;
+                    const expected = `const pattern = /test/gi;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex with all valid flags', () => {
+                    const input = `const pattern = /test/dgimsuvyor;`;
+                    const expected = `const pattern = /test/dgimsuvyor;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle empty regex', () => {
+                    const input = `const pattern = /(?:)/;`;
+                    const expected = `const pattern = /(?:)/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Regular Expression with Character Classes', () => {
+                it('should handle simple character class', () => {
+                    const input = `const pattern = /[abc]/;`;
+                    const expected = `const pattern = /[abc]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle negated character class', () => {
+                    const input = `const pattern = /[^abc]/;`;
+                    const expected = `const pattern = /[^abc]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle character range', () => {
+                    const input = `const pattern = /[a-zA-Z0-9]/;`;
+                    const expected = `const pattern = /[a-zA-Z0-9]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle escaped slash in character class', () => {
+                    const input = `const pattern = /[a\\/b]/;`;
+                    const expected = `const pattern = /[a\\/b]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle escaped backslash in character class', () => {
+                    const input = `const pattern = /[\\\\]/;`;
+                    const expected = `const pattern = /[\\\\]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle closing bracket in character class', () => {
+                    const input = `const pattern = /[\\]]/;`;
+                    const expected = `const pattern = /[\\]]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle empty character class', () => {
+                    const input = `const pattern = /[]/;`;
+                    const expected = `const pattern = /[]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle dash in character class', () => {
+                    const input = `const pattern = /[-abc]/;`;
+                    const expected = `const pattern = /[-abc]/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Regular Expression with Escape Sequences', () => {
+                it('should handle escaped special characters', () => {
+                    const input = `const pattern = /\\./;`;
+                    const expected = `const pattern = /\\./;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle multiple escaped characters', () => {
+                    const input = `const pattern = /\\n\\r\\t/;`;
+                    const expected = `const pattern = /\\n\\r\\t/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle character class escapes', () => {
+                    const input = `const pattern = /\\d\\w\\s/;`;
+                    const expected = `const pattern = /\\d\\w\\s/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle unicode escape', () => {
+                    const input = `const pattern = /\\u0041/;`;
+                    const expected = `const pattern = /\\u0041/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle unicode escape with braces', () => {
+                    const input = `const pattern = /\\u{1F600}/u;`;
+                    const expected = `const pattern = /\\u{1F600}/u;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle hex escape', () => {
+                    const input = `const pattern = /\\x41/;`;
+                    const expected = `const pattern = /\\x41/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle escaped forward slash', () => {
+                    const input = `const pattern = /\\//;`;
+                    const expected = `const pattern = /\\//;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle backslash before closing slash', () => {
+                    const input = `const pattern = /test\\\\/;`;
+                    const expected = `const pattern = /test\\\\/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Context Detection - After Operators', () => {
+                it('should recognize regex after equals', () => {
+                    const input = `const x = /test/;`;
+                    const expected = `const x = /test/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after open paren', () => {
+                    const input = `console.log(/test/);`;
+                    const expected = `console.log(/test/);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after comma', () => {
+                    const input = `const arr = [1, /test/, 2];`;
+                    const expected = `const arr = [1, /test/, 2];`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after colon in object', () => {
+                    const input = `const obj = { pattern: /test/ };`;
+                    const expected = `const obj = { pattern: /test/ };`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after return', () => {
+                    const input = `function f() { return /test/; }`;
+                    const expected = `function f() { return /test/; }`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after throw', () => {
+                    const input = `throw /error/;`;
+                    const expected = `throw /error/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after negation', () => {
+                    const input = `const x = !/test/.test(str);`;
+                    const expected = `const x = !/test/.test(str);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize regex after ternary colon', () => {
+                    const input = `const x = cond ? /a/ : /b/;`;
+                    const expected = `const x = cond ? /a/ : /b/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Context Detection - Division vs Regex', () => {
+                it('should recognize division after identifier', () => {
+                    const input = `const result = x / 2;`;
+                    const expected = `const result = x / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize division after closing paren', () => {
+                    const input = `const result = (x + y) / 2;`;
+                    const expected = `const result = (x + y) / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize division after number', () => {
+                    const input = `const result = 100 / 2;`;
+                    const expected = `const result = 100 / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize division after string', () => {
+                    const input = `const result = "10" / 2;`;
+                    const expected = `const result = "10" / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize division after closing bracket', () => {
+                    const input = `const result = arr[0] / 2;`;
+                    const expected = `const result = arr[0] / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should recognize division after this', () => {
+                    const input = `const result = this.value / 2;`;
+                    const expected = `const result = this.value / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('TypeScript Type Syntax + Regular Expression', () => {
+                it('should handle regex after removing type annotation', () => {
+                    const input = `const x: number = 10; /test/.test(str);`;
+                    const expected = `const x         = 10; /test/.test(str);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex after type assertion removal', () => {
+                    const input = `const x = <RegExp>/test/;`;
+                    // After removing <RegExp>, we get:
+                    const expected = `const x =         /test/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with as type assertion', () => {
+                    const input = `const pattern = /test/ as RegExp;`;
+                    const expected = `const pattern = /test/          ;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle division after as removal', () => {
+                    const input = `const x = (10 as number) / 2;`;
+                    const expected = `const x = (10          ) / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex after interface type parameter', () => {
+                    const input = `function test<T>(x: T) { return /test/; }`;
+                    const expected = `function test   (x   ) { return /test/; }`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Edge Cases - Ambiguous Slash After Type Removal', () => {
+                it('should insert semicolon when as followed by regex on new line', () => {
+                    const input = `const x = 1 as number\n/regex/.test(str)`;
+                    // Should insert semicolon after removing 'as number'
+                    const expected = `const x = 1         ;\n/regex/.test(str)`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle slash-equals after type removal', () => {
+                    const input = `let x = 10 as number\nx /= 2`;
+                    const expected = `let x = 10          \nx /= 2`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle multiple slashes in expression', () => {
+                    const input = `const x = a / b / c;`;
+                    const expected = `const x = a / b / c;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex followed by division', () => {
+                    const input = `const x = /test/.test(str) / 2;`;
+                    const expected = `const x = /test/.test(str) / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Complex Regular Expression Patterns', () => {
+                it('should handle regex with groups', () => {
+                    const input = `const pattern = /(abc)(def)/;`;
+                    const expected = `const pattern = /(abc)(def)/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with alternation', () => {
+                    const input = `const pattern = /abc|def|ghi/;`;
+                    const expected = `const pattern = /abc|def|ghi/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with quantifiers', () => {
+                    const input = `const pattern = /a+b*c?d{2}e{3,}f{4,6}/;`;
+                    const expected = `const pattern = /a+b*c?d{2}e{3,}f{4,6}/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with lookahead', () => {
+                    const input = `const pattern = /foo(?=bar)/;`;
+                    const expected = `const pattern = /foo(?=bar)/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with negative lookahead', () => {
+                    const input = `const pattern = /foo(?!bar)/;`;
+                    const expected = `const pattern = /foo(?!bar)/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with lookbehind', () => {
+                    const input = `const pattern = /(?<=foo)bar/;`;
+                    const expected = `const pattern = /(?<=foo)bar/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with named groups', () => {
+                    const input = `const pattern = /(?<year>\\d{4})-(?<month>\\d{2})/;`;
+                    const expected = `const pattern = /(?<year>\\d{4})-(?<month>\\d{2})/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with backreference', () => {
+                    const input = `const pattern = /(\\w)\\1/;`;
+                    const expected = `const pattern = /(\\w)\\1/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with word boundary', () => {
+                    const input = `const pattern = /\\bword\\b/;`;
+                    const expected = `const pattern = /\\bword\\b/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Regular Expression Method Calls', () => {
+                it('should handle regex.test() call', () => {
+                    const input = `/test/.test(str);`;
+                    const expected = `/test/.test(str);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex.exec() call', () => {
+                    const input = `const match = /test/.exec(str);`;
+                    const expected = `const match = /test/.exec(str);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle String.match() with regex', () => {
+                    const input = `const match = str.match(/test/g);`;
+                    const expected = `const match = str.match(/test/g);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle String.replace() with regex', () => {
+                    const input = `const result = str.replace(/test/g, 'TEST');`;
+                    const expected = `const result = str.replace(/test/g, 'TEST');`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle String.split() with regex', () => {
+                    const input = `const parts = str.split(/\\s+/);`;
+                    const expected = `const parts = str.split(/\\s+/);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Regular Expression in Different Contexts', () => {
+                it('should handle regex in array', () => {
+                    const input = `const patterns = [/a/, /b/, /c/];`;
+                    const expected = `const patterns = [/a/, /b/, /c/];`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex in object literal', () => {
+                    const input = `const obj = { pattern: /test/, flags: 'gi' };`;
+                    const expected = `const obj = { pattern: /test/, flags: 'gi' };`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex as function argument', () => {
+                    const input = `validate(/^\\d+$/, input);`;
+                    const expected = `validate(/^\\d+$/, input);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex as function return value', () => {
+                    const input = `function getPattern() { return /test/; }`;
+                    const expected = `function getPattern() { return /test/; }`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex in ternary expression', () => {
+                    const input = `const pattern = strict ? /^test$/ : /test/;`;
+                    const expected = `const pattern = strict ? /^test$/ : /test/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex in logical expression', () => {
+                    const input = `const pattern = custom || /default/;`;
+                    const expected = `const pattern = custom || /default/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Problematic Cases - Real World Bugs', () => {
+                it('should handle regex that looks like comment', () => {
+                    const input = `const pattern = /\\/\\*/;`;
+                    const expected = `const pattern = /\\/\\*/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with template-like content', () => {
+                    const input = `const pattern = /\${test}/;`;
+                    const expected = `const pattern = /\${test}/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with quote characters', () => {
+                    const input = `const pattern = /["']/;`;
+                    const expected = `const pattern = /["']/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex starting new line after type', () => {
+                    const input = `const getValue = () => 1 as number\n/test/`;
+                    // The regex on new line should be recognized correctly
+                    // A semicolon should be inserted after type removal
+                    const expected = `const getValue = () => 1         ;\n/test/`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should not treat division in complex expression as regex', () => {
+                    const input = `const result = (a + b as number) / (c + d);`;
+                    const expected = `const result = (a + b          ) / (c + d);`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex-like division operators', () => {
+                    // This should be division, not regex
+                    const input = `const x = y /= 2;`;
+                    const expected = `const x = y /= 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Special Characters in Regex', () => {
+                it('should handle regex with newline escape', () => {
+                    const input = `const pattern = /\\n/;`;
+                    const expected = `const pattern = /\\n/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with tab escape', () => {
+                    const input = `const pattern = /\\t/;`;
+                    const expected = `const pattern = /\\t/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with carriage return', () => {
+                    const input = `const pattern = /\\r/;`;
+                    const expected = `const pattern = /\\r/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with vertical tab', () => {
+                    const input = `const pattern = /\\v/;`;
+                    const expected = `const pattern = /\\v/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with form feed', () => {
+                    const input = `const pattern = /\\f/;`;
+                    const expected = `const pattern = /\\f/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle regex with null character', () => {
+                    const input = `const pattern = /\\0/;`;
+                    const expected = `const pattern = /\\0/;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Satisfies Operator + Slash', () => {
+                it('should handle division after satisfies removal', () => {
+                    const input = `const x = (10 satisfies number) / 2;`;
+                    const expected = `const x = (10                 ) / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should insert semicolon when satisfies followed by regex on new line', () => {
+                    const input = `const x = 1 satisfies number\n/regex/`;
+                    const expected = `const x = 1                ;\n/regex/`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
+            describe('Generic Functions + Division', () => {
+                it('should handle division after generic function call', () => {
+                    const input = `const x = fn<T>() / 2;`;
+                    const expected = `const x = fn   () / 2;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should handle multiple divisions after generic', () => {
+                    const input = `const x = getValue<number>() / 2 / 3;`;
+                    const expected = `const x = getValue        () / 2 / 3;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+            });
+
         });
         
     });
