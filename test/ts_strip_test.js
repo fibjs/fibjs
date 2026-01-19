@@ -4642,6 +4642,12 @@ const d: T = { x: 1 };`;
                     assert.strictEqual(strip(input), expected);
                 });
 
+                it('should not treat invalid regex flags as flags', () => {
+                    const input = `const x = /test/as number;`;
+                    const expected = `const x = /test/         ;`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
                 it('should handle division after as removal', () => {
                     const input = `const x = (10 as number) / 2;`;
                     const expected = `const x = (10          ) / 2;`;

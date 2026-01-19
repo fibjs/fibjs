@@ -196,10 +196,29 @@ private:
             p++;
         }
 
-        // Scan flags (ASCII identifier parts are enough for regexp flags)
+        // Scan flags (only valid ECMAScript regexp flags, avoid swallowing identifiers)
+        uint16_t flagsMask = 0;
+        auto flagBit = [](uint8_t ch) -> uint16_t {
+            switch (ch) {
+                case 'd': case 'D': return 1u << 0;
+                case 'g': case 'G': return 1u << 1;
+                case 'i': case 'I': return 1u << 2;
+                case 'm': case 'M': return 1u << 3;
+                case 's': case 'S': return 1u << 4;
+                case 'u': case 'U': return 1u << 5;
+                case 'v': case 'V': return 1u << 6;
+                case 'y': case 'Y': return 1u << 7;
+                default: return 0;
+            }
+        };
         while (p < end) {
             const uint8_t ch = m_src[p];
             if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+                uint16_t bit = flagBit(ch);
+                if (bit == 0 || (flagsMask & bit)) {
+                    break;
+                }
+                flagsMask |= bit;
                 p++;
                 continue;
             }
