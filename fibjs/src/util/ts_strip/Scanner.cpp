@@ -138,6 +138,19 @@ inline bool Scanner::isLineBreak(uint8_t ch) const {
     return ch == '\n' || ch == '\r';
 }
 
+inline bool Scanner::isUnicodeLineBreakAt(int pos) const {
+    if (pos + 2 >= (int)m_length) {
+        return false;
+    }
+    uint8_t b0 = charCodeAt(pos);
+    if (b0 != 0xE2) {
+        return false;
+    }
+    uint8_t b1 = charCodeAt(pos + 1);
+    uint8_t b2 = charCodeAt(pos + 2);
+    return b1 == 0x80 && (b2 == 0xA8 || b2 == 0xA9); // U+2028/U+2029
+}
+
 inline bool Scanner::isWhiteSpace(uint8_t ch) const {
     return ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f';
 }
@@ -172,6 +185,9 @@ void Scanner::skipTrivia() {
         } else if (ch == '\r') {
             m_hasLineBreak = true;
             p += (p + 1 < end && p[1] == '\n') ? 2 : 1;
+        } else if (isUnicodeLineBreakAt((int)(p - m_text))) {
+            m_hasLineBreak = true;
+            p += 3;
         } else if (ch == '/') {
             if (p + 1 < end && p[1] == '/') {
                 // Single line comment - just skip over it (preserve in output)
@@ -189,8 +205,10 @@ void Scanner::skipTrivia() {
                     }
                     if (*p == '\n' || *p == '\r') {
                         m_hasLineBreak = true;
+                    } else if (isUnicodeLineBreakAt((int)(p - m_text))) {
+                        m_hasLineBreak = true;
                     }
-                    p++;
+                    p += isUnicodeLineBreakAt((int)(p - m_text)) ? 3 : 1;
                 }
             } else {
                 break;
@@ -230,6 +248,9 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     
     while (p < end) {
         uint8_t ch = *p;
+        if (isUnicodeLineBreakAt((int)(p - m_text))) {
+            break;
+        }
         if ((ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
             (ch >= '0' && ch <= '9') ||
@@ -373,7 +394,7 @@ SyntaxKind Scanner::scanString(uint8_t quote) {
             }
             continue;
         }
-        if (isLineBreak(ch)) {
+        if (isLineBreak(ch) || isUnicodeLineBreakAt(m_pos)) {
             // Unterminated string - treat as end
             break;
         }
@@ -805,7 +826,7 @@ SyntaxKind Scanner::reScanSlashToken() {
         uint8_t ch = m_text[p];
         
         // Newline terminates regex (unterminated)
-        if (ch == CharCode::lineFeed || ch == CharCode::carriageReturn) {
+        if (ch == CharCode::lineFeed || ch == CharCode::carriageReturn || isUnicodeLineBreakAt(p)) {
             return m_token; // Not a valid regex, keep as slash
         }
         

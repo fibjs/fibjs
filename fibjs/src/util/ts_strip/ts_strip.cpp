@@ -163,6 +163,19 @@ private:
             return false;
         }
 
+        auto isUnicodeLineBreakAt = [&](int pos) -> bool {
+            if (pos + 2 >= (int)m_length) {
+                return false;
+            }
+            uint8_t b0 = m_src[pos];
+            if (b0 != 0xE2) {
+                return false;
+            }
+            uint8_t b1 = m_src[pos + 1];
+            uint8_t b2 = m_src[pos + 2];
+            return b1 == 0x80 && (b2 == 0xA8 || b2 == 0xA9); // U+2028/U+2029
+        };
+
         Token& t = m_tokens[m_tokenIndex];
         const int start = t.pos;
         int p = start + 1;
@@ -176,7 +189,7 @@ private:
             }
 
             const uint8_t ch = m_src[p];
-            if (ch == '\n' || ch == '\r') {
+            if (ch == '\n' || ch == '\r' || isUnicodeLineBreakAt(p)) {
                 return false;
             }
 
@@ -313,6 +326,14 @@ private:
         // Directly replace in-place instead of collecting spans
         for (int i = start; i < end && i < (int)m_length; i++) {
             uint8_t ch = m_src[i];
+            if (ch == 0xE2 && i + 2 < (int)m_length) {
+                uint8_t b1 = m_src[i + 1];
+                uint8_t b2 = m_src[i + 2];
+                if (b1 == 0x80 && (b2 == 0xA8 || b2 == 0xA9)) {
+                    i += 2;
+                    continue;
+                }
+            }
             if (ch != '\n' && ch != '\r') {
                 m_src[i] = ' ';
             }
@@ -4697,6 +4718,23 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
             int candidate = end - 1;
             while (candidate >= start && candidate < (int)m_length) {
                 uint8_t ch = m_src[candidate];
+                // Skip Unicode line separators (U+2028/U+2029)
+                if (candidate - 2 >= 0 && m_src[candidate - 2] == 0xE2 && m_src[candidate - 1] == 0x80
+                    && (ch == 0xA8 || ch == 0xA9)) {
+                    candidate -= 3;
+                    continue;
+                }
+                if (candidate - 1 >= 0 && m_src[candidate - 1] == 0xE2 && ch == 0x80
+                    && candidate + 1 < (int)m_length
+                    && (m_src[candidate + 1] == 0xA8 || m_src[candidate + 1] == 0xA9)) {
+                    candidate -= 2;
+                    continue;
+                }
+                if (ch == 0xE2 && candidate + 2 < (int)m_length && m_src[candidate + 1] == 0x80
+                    && (m_src[candidate + 2] == 0xA8 || m_src[candidate + 2] == 0xA9)) {
+                    candidate -= 1;
+                    continue;
+                }
                 if (ch != '\n' && ch != '\r') {
                     insertPos = candidate;
                     break;

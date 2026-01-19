@@ -120,6 +120,7 @@ private:
     bool isIdentifierPart(uint8_t ch) const;
     bool isLineBreak(uint8_t ch) const;
     bool isWhiteSpace(uint8_t ch) const;
+    bool isUnicodeLineBreakAt(int pos) const;
     
     void skipTrivia();
     SyntaxKind scanIdentifierOrKeyword();
