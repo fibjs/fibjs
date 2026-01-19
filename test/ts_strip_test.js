@@ -343,6 +343,12 @@ describe('TypeScript Type Erasure Tests', () => {
             assert.strictEqual(strip('const x = value as string;'), 'const x = value          ;');
         });
 
+        it('should preserve trailing comment after as assertion', () => {
+            const input = 'const x = 1 as number /*c*/ + 1;';
+            const expected = 'const x = 1           /*c*/ + 1;';
+            assert.strictEqual(strip(input), expected);
+        });
+
         it('should strip as assertion inside parenthesized comparison operand', () => {
             const input = 'for (let index = 0; index < (value as unknown[]).length; index++) {}';
             const out = strip(input);
@@ -359,6 +365,12 @@ describe('TypeScript Type Erasure Tests', () => {
 
         it('should strip satisfies expression', () => {
             assert.strictEqual(strip('const x = { name: "test" } satisfies User;'), 'const x = { name: "test" }               ;');
+        });
+
+        it('should preserve trailing comment after satisfies', () => {
+            const input = 'const x = 1 satisfies number /*c*/ + 1;';
+            const expected = 'const x = 1                  /*c*/ + 1;';
+            assert.strictEqual(strip(input), expected);
         });
 
     });
@@ -2561,6 +2573,18 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
+            it('should handle shebang with U+2028 line separator', () => {
+                const input = "#!/usr/bin/env ts-node\u2028const x: number = 1;";
+                const expected = "#!/usr/bin/env ts-node\u2028const x         = 1;";
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should handle shebang with U+2029 paragraph separator', () => {
+                const input = "#!/usr/bin/env ts-node\u2029const x: number = 1;";
+                const expected = "#!/usr/bin/env ts-node\u2029const x         = 1;";
+                assert.strictEqual(strip(input), expected);
+            });
+
         });
 
         describe('Contextual Keywords as Parameter Names', () => {
@@ -4683,13 +4707,13 @@ const d: T = { x: 1 };`;
 
                 it('should end single-line comment on U+2028', () => {
                     const input = `const x = 1 as number //c\u2028/regex/`;
-                    const expected = `const x = 1             ;\u2028/regex/`;
+                    const expected = `const x = 1         ; //c\u2028/regex/`;
                     assert.strictEqual(strip(input), expected);
                 });
 
                 it('should end single-line comment on U+2029', () => {
                     const input = `const x = 1 as number //c\u2029/regex/`;
-                    const expected = `const x = 1             ;\u2029/regex/`;
+                    const expected = `const x = 1         ; //c\u2029/regex/`;
                     assert.strictEqual(strip(input), expected);
                 });
 

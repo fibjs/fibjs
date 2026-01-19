@@ -164,11 +164,14 @@ void Scanner::skipTrivia() {
         // Skip shebang line (preserve it as-is)
         p += 2;
         while (p < end && *p != '\n' && *p != '\r') {
+            if (isUnicodeLineBreakAt((int)(p - m_text))) {
+                break;
+            }
             p++;
         }
         // Don't erase shebang - just skip over it
         m_pos = p - m_text;
-        if (p < end && (*p == '\n' || *p == '\r')) {
+        if (p < end && (*p == '\n' || *p == '\r' || isUnicodeLineBreakAt((int)(p - m_text)))) {
             m_hasLineBreak = true;
         }
         p = m_text + m_pos;

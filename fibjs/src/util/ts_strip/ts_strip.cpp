@@ -641,7 +641,7 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
                 } else {
                     skipType();
                 }
-                int asEnd = getNodePos();
+                int asEnd = getPrevTokenEnd();
                 addReplacement(asStart, asEnd);
                 
                 // Check if we need a semicolon for ASI safety
@@ -658,7 +658,7 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
                 int satStart = getNodePos();
                 nextToken();
                 skipType();
-                int satEnd = getNodePos();
+                int satEnd = getPrevTokenEnd();
                 addReplacement(satStart, satEnd);
                 
                 // Check if we need a semicolon for ASI safety
