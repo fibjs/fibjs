@@ -4681,6 +4681,18 @@ const d: T = { x: 1 };`;
                     assert.strictEqual(strip(input), expected);
                 });
 
+                it('should end single-line comment on U+2028', () => {
+                    const input = `const x = 1 as number //c\u2028/regex/`;
+                    const expected = `const x = 1             ;\u2028/regex/`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
+                it('should end single-line comment on U+2029', () => {
+                    const input = `const x = 1 as number //c\u2029/regex/`;
+                    const expected = `const x = 1             ;\u2029/regex/`;
+                    assert.strictEqual(strip(input), expected);
+                });
+
                 it('should handle slash-equals after type removal', () => {
                     const input = `let x = 10 as number\nx /= 2`;
                     const expected = `let x = 10          \nx /= 2`;

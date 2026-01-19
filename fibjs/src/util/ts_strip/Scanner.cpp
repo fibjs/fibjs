@@ -176,7 +176,7 @@ void Scanner::skipTrivia() {
     
     while (p < end) {
         uint8_t ch = *p;
-        
+
         if (ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f') {
             p++;
         } else if (ch == '\n') {
@@ -193,6 +193,9 @@ void Scanner::skipTrivia() {
                 // Single line comment - just skip over it (preserve in output)
                 p += 2;
                 while (p < end && *p != '\n' && *p != '\r') {
+                    if (isUnicodeLineBreakAt((int)(p - m_text))) {
+                        break;
+                    }
                     p++;
                 }
             } else if (p + 1 < end && p[1] == '*') {
@@ -207,8 +210,10 @@ void Scanner::skipTrivia() {
                         m_hasLineBreak = true;
                     } else if (isUnicodeLineBreakAt((int)(p - m_text))) {
                         m_hasLineBreak = true;
+                        p += 3;
+                        continue;
                     }
-                    p += isUnicodeLineBreakAt((int)(p - m_text)) ? 3 : 1;
+                    p++;
                 }
             } else {
                 break;
