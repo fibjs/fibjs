@@ -130,6 +130,15 @@ result_t XmlAttr::toString(exlib::string& retVal)
             case '\"':
                 sz1 += 6;
                 break;
+            case '\n':
+                sz1 += 5; // &#10;
+                break;
+            case '\r':
+                sz1 += 5; // &#13;
+                break;
+            case '\t':
+                sz1 += 4; // &#9;
+                break;
             default:
                 sz1++;
             }
@@ -159,6 +168,18 @@ result_t XmlAttr::toString(exlib::string& retVal)
                 case '\"':
                     memcpy(data1, "&quot;", 6);
                     data1 += 6;
+                    break;
+                case '\n':
+                    memcpy(data1, "&#10;", 5);
+                    data1 += 5;
+                    break;
+                case '\r':
+                    memcpy(data1, "&#13;", 5);
+                    data1 += 5;
+                    break;
+                case '\t':
+                    memcpy(data1, "&#9;", 4);
+                    data1 += 4;
                     break;
                 default:
                     *data1++ = ch;

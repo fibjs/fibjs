@@ -4513,6 +4513,116 @@ describe('xml', () => {
                 else
                     assert.equal(str, fibjsExpected);
             });
+
+            it('should escape newline (LF) in attribute values', () => {
+                // Newline (U+000A) in attribute values must be escaped as &#10; per XML spec
+                const xmlStr = '<root><item value="line1&#10;line2"/></root>';
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlStr, 'text/xml');
+
+                const item = doc.getElementsByTagName('item')[0];
+                const value = item.getAttribute('value');
+                // Parsed value should contain actual newline character
+                assert.equal(value, 'line1\nline2');
+
+                const serializer = new XMLSerializer();
+                const output = serializer.serializeToString(doc);
+
+                // Serialized output must escape newlines
+                assert.ok(output.indexOf('&#10;') !== -1, 'Newline should be escaped as &#10;');
+                assert.ok(output.indexOf('value="line1\nline2"') === -1, 'Raw newline should not appear in attribute');
+            });
+
+            it('should escape carriage return (CR) in attribute values', () => {
+                // Carriage return (U+000D) in attribute values must be escaped as &#13; per XML spec
+                const xmlStr = '<root><item value="line1&#13;line2"/></root>';
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlStr, 'text/xml');
+
+                const item = doc.getElementsByTagName('item')[0];
+                const value = item.getAttribute('value');
+                // Parsed value should contain actual carriage return character
+                assert.equal(value, 'line1\rline2');
+
+                const serializer = new XMLSerializer();
+                const output = serializer.serializeToString(doc);
+
+                // Serialized output must escape carriage returns
+                assert.ok(output.indexOf('&#13;') !== -1, 'Carriage return should be escaped as &#13;');
+                assert.ok(output.indexOf('value="line1\rline2"') === -1, 'Raw CR should not appear in attribute');
+            });
+
+            it('should escape tab in attribute values', () => {
+                // Tab (U+0009) in attribute values must be escaped as &#9; per XML spec
+                const xmlStr = '<root><item value="col1&#9;col2"/></root>';
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlStr, 'text/xml');
+
+                const item = doc.getElementsByTagName('item')[0];
+                const value = item.getAttribute('value');
+                // Parsed value should contain actual tab character
+                assert.equal(value, 'col1\tcol2');
+
+                const serializer = new XMLSerializer();
+                const output = serializer.serializeToString(doc);
+
+                // Serialized output must escape tabs
+                assert.ok(output.indexOf('&#9;') !== -1, 'Tab should be escaped as &#9;');
+                assert.ok(output.indexOf('value="col1\tcol2"') === -1, 'Raw tab should not appear in attribute');
+            });
+
+            it('should escape whitespace chars set via setAttribute', () => {
+                // Test setAttribute with actual whitespace characters
+                const doc = newDoc();
+                const root = doc.createElement('root');
+                doc.appendChild(root);
+                const item = doc.createElement('item');
+                root.appendChild(item);
+
+                // Set attribute with newline, carriage return and tab
+                item.setAttribute('value', 'a\nb\rc\td');
+
+                const serializer = new XMLSerializer();
+                const output = serializer.serializeToString(doc);
+
+                // All whitespace chars should be escaped
+                assert.ok(output.indexOf('&#10;') !== -1, 'Newline should be escaped as &#10;');
+                assert.ok(output.indexOf('&#13;') !== -1, 'Carriage return should be escaped as &#13;');
+                assert.ok(output.indexOf('&#9;') !== -1, 'Tab should be escaped as &#9;');
+            });
+
+            it('should roundtrip attribute values with whitespace correctly', () => {
+                const original = 'line1\nline2\rline3\tcol';
+                const doc = newDoc();
+                const root = doc.createElement('root');
+                doc.appendChild(root);
+                root.setAttribute('data', original);
+
+                const serializer = new XMLSerializer();
+                const xmlOutput = serializer.serializeToString(doc);
+
+                // Re-parse and verify the value is preserved
+                const parser = new DOMParser();
+                const doc2 = parser.parseFromString(xmlOutput, 'text/xml');
+                const reparsedValue = doc2.documentElement.getAttribute('data');
+
+                assert.equal(reparsedValue, original, 'Attribute value should roundtrip correctly');
+            });
+
+            it('should escape whitespace in HTML mode attribute values', () => {
+                // Test HTML mode - XMLSerializer should still escape whitespace chars
+                const doc = parseHtml('<html><body><div id="test"></div></body></html>');
+                const div = doc.getElementById('test');
+                div.setAttribute('data-value', 'a\nb\rc\td');
+
+                const serializer = new XMLSerializer();
+                const output = serializer.serializeToString(div);
+
+                // XMLSerializer should escape these even for HTML DOM
+                assert.ok(output.indexOf('&#10;') !== -1, 'Newline should be escaped in HTML mode');
+                assert.ok(output.indexOf('&#13;') !== -1, 'CR should be escaped in HTML mode');
+                assert.ok(output.indexOf('&#9;') !== -1, 'Tab should be escaped in HTML mode');
+            });
         });
     });
 
