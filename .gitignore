@@ -3,7 +3,6 @@
 /temp/*
 *.sdf
 *.suo
-out
 
 /*.dmp
 

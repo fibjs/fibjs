@@ -1,1 +1,1 @@
-<!DOCTYPE foo><foo bar="abc	xyz"/>
+<!DOCTYPE foo><foo bar="abc&#9;xyz"/>
