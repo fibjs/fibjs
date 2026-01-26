@@ -104,6 +104,8 @@ public:
     virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+    virtual result_t ref(obj_ptr<WebView_base>& retVal);
+    virtual result_t unref(obj_ptr<WebView_base>& retVal);
 
 public:
     void postWaitFor(exlib::string url);

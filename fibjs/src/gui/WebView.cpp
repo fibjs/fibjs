@@ -303,6 +303,20 @@ result_t WebView::getMenu(obj_ptr<Menu_base>& retVal)
     return CALL_RETURN_NULL;
 }
 
+result_t WebView::ref(obj_ptr<WebView_base>& retVal)
+{
+    isolate_ref();
+    retVal = this;
+    return 0;
+}
+
+result_t WebView::unref(obj_ptr<WebView_base>& retVal)
+{
+    isolate_unref();
+    retVal = this;
+    return 0;
+}
+
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     obj_ptr<WebView> webview = new WebView();

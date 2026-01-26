@@ -52,6 +52,8 @@ public:
     virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
+    virtual result_t ref(obj_ptr<WebView_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<WebView_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -107,6 +109,8 @@ public:
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
@@ -169,7 +173,9 @@ inline ClassInfo& WebView_base::class_info()
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
         { "takeScreenshot", s_takeScreenshot, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
+        { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -847,5 +853,33 @@ inline void WebView_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebView_base> vr;
+
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebView_base> vr;
+
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 }

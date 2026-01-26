@@ -702,5 +702,19 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     on(event: "message", listener: ()=>void): this;
 
+    /**
+     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    ref(): Class_WebView;
+
+    /**
+     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     *      @return 返回当前对象
+     *     
+     */
+    unref(): Class_WebView;
+
 }
 

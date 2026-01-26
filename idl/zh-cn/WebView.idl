@@ -242,4 +242,14 @@ interface WebView : EventEmitter
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
     event message();
+
+    /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     @return 返回当前对象
+    */
+    WebView ref();
+
+    /*! @brief 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     @return 返回当前对象
+    */
+    WebView unref();
 };
