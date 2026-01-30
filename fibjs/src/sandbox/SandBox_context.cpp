@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/url.h"
+#include "ifs/module.h"
 #include "SandBox.h"
 #include "path.h"
 
@@ -222,6 +223,15 @@ void SandBox::initModule()
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
     _mod->Set(context, isolate->NewString("createRequire"), isolate->NewFunction("createRequire", _createRequire, wrap(isolate))).IsJust();
+
+    // Build builtinModules array
+    v8::Local<v8::Array> builtinModules;
+    module_base::get_builtinModules(builtinModules);
+
+    // Set builtinModules as a read-only property
+    _mod->DefineOwnProperty(context, isolate->NewString("builtinModules"), builtinModules,
+        (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
 
     add("module", _mod);
     add("node:module", _mod);

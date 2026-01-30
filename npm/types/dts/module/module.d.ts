@@ -11,5 +11,12 @@ declare module 'module' {
      */
     function createRequire(base: string): (...args: any[])=>any;
 
+    /**
+     * !@description 内建模块名称列表
+     *      内建模块名称列表，与 Node.js 兼容。包含了所有的 fibjs 内建模块名称，以及带 node: 前缀的版本。
+     *     
+     */
+    const builtinModules: any[];
+
 }
 

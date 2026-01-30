@@ -533,5 +533,53 @@ describe("module", () => {
         var m = require(path.join(bin_path, '1_hello_world'));
         assert.equal(m.hello(), "world");
     });
-});
 
+    describe("builtinModules", () => {
+        it("module.builtinModules should be an array", () => {
+            var module = require('module');
+            assert.ok(Array.isArray(module.builtinModules));
+        });
+
+        it("should contain core modules", () => {
+            var module = require('module');
+            var builtins = module.builtinModules;
+            
+            // Check for some common modules
+            assert.ok(builtins.includes('buffer'));
+            assert.ok(builtins.includes('fs'));
+            assert.ok(builtins.includes('path'));
+            assert.ok(builtins.includes('http'));
+            assert.ok(builtins.includes('crypto'));
+        });
+
+        it("should contain node: prefixed modules", () => {
+            var module = require('module');
+            var builtins = module.builtinModules;
+            
+            // Check for node: prefixed versions
+            assert.ok(builtins.includes('node:buffer'));
+            assert.ok(builtins.includes('node:fs'));
+            assert.ok(builtins.includes('node:path'));
+            assert.ok(builtins.includes('node:http'));
+        });
+
+        it("should be read-only", () => {
+            var module = require('module');
+            var original = module.builtinModules;
+            var desc = Object.getOwnPropertyDescriptor(module, 'builtinModules');
+
+            assert.ok(desc);
+            assert.strictEqual(desc.writable, false);
+            assert.strictEqual(desc.configurable, false);
+
+            module.builtinModules = [];
+            assert.strictEqual(module.builtinModules, original);
+        });
+
+        it("should work with node:module", () => {
+            var module = require('node:module');
+            assert.ok(Array.isArray(module.builtinModules));
+            assert.ok(module.builtinModules.includes('buffer'));
+        });
+    });
+});

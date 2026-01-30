@@ -6,4 +6,9 @@ module module
      @return 返回一个模块引用函数
     */
     static Function createRequire(String base);
+
+    /*!@brief 内建模块名称列表
+     内建模块名称列表，与 Node.js 兼容。包含了所有的 fibjs 内建模块名称，以及带 node: 前缀的版本。
+    */
+    static readonly Array builtinModules;
 };
