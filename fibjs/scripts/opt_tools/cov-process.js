@@ -1365,6 +1365,53 @@ function gen_one_html(base_path, info) {
     fs.writeFile(path.join(base_path, info.pname), htmls.join(''));
 }
 
+
+function gen_missing_json(base_path, files) {
+    var reports = [];
+
+    files.forEach(file => {
+        if (!file.src) return;
+
+        var stats = file.stats;
+        if (stats.line_cnt === 0 || stats.line_cov === stats.line_cnt)
+            return;
+
+        var ranges = [];
+        var start = -1;
+        var lines = file.lines;
+
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i] === 0) {
+                if (start === -1)
+                    start = i + 1;
+            } else {
+                if (start !== -1) {
+                    var end = i;
+                    ranges.push(start === end ? start + "" : start + "-" + end);
+                    start = -1;
+                }
+            }
+        }
+        if (start !== -1) {
+            var end = lines.length;
+            ranges.push(start === end ? start + "" : start + "-" + end);
+        }
+
+        reports.push({
+            file: file.src,
+            percent: (stats.line_cov / stats.line_cnt * 100).toFixed(2) + '%',
+            uncovered_lines: ranges,
+            uncovered_num: stats.line_cnt - stats.line_cov
+        });
+    });
+
+    reports.sort((a, b) => b.uncovered_num - a.uncovered_num);
+
+    reports.forEach(r => delete r.uncovered_num);
+
+    fs.writeFile(path.join(base_path, 'coverage.json'), JSON.stringify(reports, null, 4));
+}
+
 function gen_html(base_path, info) {
     var ks = Object.keys(info.subs);
     while (ks.length == 1) {
@@ -1417,6 +1464,8 @@ function gen_html(base_path, info) {
     count_stats(info, '', 'All files');
 
     files.forEach(file => gen_one_html(base_path, file));
+
+    gen_missing_json(base_path, files);
 }
 
 if (process.argv.length < 4)
