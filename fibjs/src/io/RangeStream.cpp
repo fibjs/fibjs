@@ -9,6 +9,7 @@
 #include "object.h"
 #include "RangeStream.h"
 #include "Buffer.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 
@@ -77,8 +78,23 @@ result_t RangeStream_base::_new(SeekableStream_base* stm, int64_t begin, int64_t
     retVal = new RangeStream(stm, begin, end);
     return 0;
 }
+result_t RangeStream_base::_new(Stream_base* stm, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
+{
+    if (end < 0)
+        return Runtime::setError("'end' must be non-negative integer!");
 
+    // if the passed stream is a SeekableStream, use seekable mode with begin=0
+    obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(stm);
+    if (seekable) {
+        retVal = new RangeStream(seekable, 0, end);
+    } else {
+        retVal = new RangeStream(stm, end);
+    }
+
+    return 0;
+}
 RangeStream::RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end)
+    : m_seekable(true)
 {
     m_stream = stream;
     b_pos = begin;
@@ -87,80 +103,148 @@ RangeStream::RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end
     real_pos = get_c_pos();
 }
 
+RangeStream::RangeStream(Stream_base* stream, int64_t end)
+    : m_seekable(false)
+{
+    m_raw_stream = stream;
+    b_pos = 0;
+    e_pos = end;
+    real_pos = 0;
+}
+
 result_t RangeStream::get_fd(int32_t& retVal)
 {
-    if (!m_stream)
-        return CALL_E_CLOSED;
-
-    return m_stream->get_fd(retVal);
+    if (m_seekable) {
+        if (!m_stream)
+            return CALL_E_CLOSED;
+        return m_stream->get_fd(retVal);
+    } else {
+        if (!m_raw_stream)
+            return CALL_E_CLOSED;
+        return m_raw_stream->get_fd(retVal);
+    }
 }
 
 result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!m_stream)
-        return CALL_E_CLOSED;
+    if (m_seekable) {
+        if (!m_stream)
+            return CALL_E_CLOSED;
 
-    if (e_pos < real_pos || b_pos > real_pos)
-        return CALL_RETURN_NULL;
+        if (e_pos < real_pos || b_pos > real_pos)
+            return CALL_RETURN_NULL;
 
-    class asyncRead : public AsyncState {
-    public:
-        asyncRead(RangeStream* pThis, AsyncEvent* ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
-            : AsyncState(ac)
-            , m_pThis(pThis)
-            , m_bytes(bytes)
-            , m_retVal(retVal)
-        {
-            m_c_pos_snap = m_pThis->get_c_pos();
+        class asyncRead : public AsyncState {
+        public:
+            asyncRead(RangeStream* pThis, AsyncEvent* ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
+                : AsyncState(ac)
+                , m_pThis(pThis)
+                , m_bytes(bytes)
+                , m_retVal(retVal)
+            {
+                m_c_pos_snap = m_pThis->get_c_pos();
 
-            if (m_c_pos_snap != m_pThis->real_pos)
-                m_pThis->m_stream->seek(m_pThis->real_pos, fs_base::C_SEEK_SET);
+                if (m_c_pos_snap != m_pThis->real_pos)
+                    m_pThis->m_stream->seek(m_pThis->real_pos, fs_base::C_SEEK_SET);
 
-            next(read);
-        }
-
-    public:
-        ON_STATE(asyncRead, read)
-        {
-            int64_t rest_sz = m_pThis->e_pos - m_pThis->real_pos;
-
-            if (m_bytes < 0 || m_bytes > rest_sz)
-                return m_pThis->m_stream->read((int32_t)rest_sz, m_retVal, next(ready));
-            else
-                return m_pThis->m_stream->read(m_bytes, m_retVal, next(ready));
-        }
-
-        ON_STATE(asyncRead, ready)
-        {
-            if (n >= 0 && n != CALL_RETURN_NULL) {
-                int32_t len = Buffer::Cast(m_retVal)->length();
-                m_pThis->real_pos += len;
+                next(read);
             }
 
-            result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_base::C_SEEK_SET);
+        public:
+            ON_STATE(asyncRead, read)
+            {
+                int64_t rest_sz = m_pThis->e_pos - m_pThis->real_pos;
 
-            if (n != CALL_RETURN_NULL || hr < 0)
-                return next(hr);
-            else
+                if (m_bytes < 0 || m_bytes > rest_sz)
+                    return m_pThis->m_stream->read((int32_t)rest_sz, m_retVal, next(ready));
+                else
+                    return m_pThis->m_stream->read(m_bytes, m_retVal, next(ready));
+            }
+
+            ON_STATE(asyncRead, ready)
+            {
+                if (n >= 0 && n != CALL_RETURN_NULL) {
+                    int32_t len = Buffer::Cast(m_retVal)->length();
+                    m_pThis->real_pos += len;
+                }
+
+                result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_base::C_SEEK_SET);
+
+                if (n != CALL_RETURN_NULL || hr < 0)
+                    return next(hr);
+                else
+                    return next(n);
+            }
+
+        private:
+            obj_ptr<RangeStream> m_pThis;
+            int32_t m_bytes;
+            obj_ptr<Buffer_base>& m_retVal;
+
+            int64_t m_c_pos_snap;
+        };
+
+        if (ac->isSync())
+            return CALL_E_NOSYNC;
+
+        return (new asyncRead(this, ac, bytes, retVal))->post(0);
+    } else {
+        if (!m_raw_stream)
+            return CALL_E_CLOSED;
+
+        int64_t rest_sz = e_pos - real_pos;
+        if (rest_sz <= 0)
+            return CALL_RETURN_NULL;
+
+        class asyncReadRaw : public AsyncState {
+        public:
+            asyncReadRaw(RangeStream* pThis, AsyncEvent* ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
+                : AsyncState(ac)
+                , m_pThis(pThis)
+                , m_bytes(bytes)
+                , m_retVal(retVal)
+            {
+                next(read);
+            }
+
+        public:
+            ON_STATE(asyncReadRaw, read)
+            {
+                int64_t rest_sz = m_pThis->e_pos - m_pThis->real_pos;
+                if (rest_sz <= 0)
+                    return next(CALL_RETURN_NULL);
+
+                int32_t to_read = (m_bytes < 0 || m_bytes > rest_sz) ? (int32_t)rest_sz : m_bytes;
+                return m_pThis->m_raw_stream->read(to_read, m_retVal, next(ready));
+            }
+
+            ON_STATE(asyncReadRaw, ready)
+            {
+                if (n >= 0 && n != CALL_RETURN_NULL) {
+                    int32_t len = Buffer::Cast(m_retVal)->length();
+                    m_pThis->real_pos += len;
+                }
                 return next(n);
-        }
+            }
 
-    private:
-        obj_ptr<RangeStream> m_pThis;
-        int32_t m_bytes;
-        obj_ptr<Buffer_base>& m_retVal;
+        private:
+            obj_ptr<RangeStream> m_pThis;
+            int32_t m_bytes;
+            obj_ptr<Buffer_base>& m_retVal;
+        };
 
-        int64_t m_c_pos_snap;
-    };
+        if (ac->isSync())
+            return CALL_E_NOSYNC;
 
-    if (ac->isSync())
-        return CALL_E_NOSYNC;
-
-    return (new asyncRead(this, ac, bytes, retVal))->post(0);
+        return (new asyncReadRaw(this, ac, bytes, retVal))->post(0);
+    }
 }
 
 int64_t RangeStream::get_c_pos()
 {
+    if (!m_seekable)
+        return real_pos;
+
     int64_t pos;
     m_stream->tell(pos);
     return pos;
@@ -168,6 +252,9 @@ int64_t RangeStream::get_c_pos()
 
 int64_t RangeStream::valid_end()
 {
+    if (!m_seekable)
+        return e_pos;
+
     int64_t sz;
     m_stream->size(sz);
 
@@ -191,13 +278,19 @@ result_t RangeStream::flush(AsyncEvent* ac)
 
 result_t RangeStream::close(AsyncEvent* ac)
 {
-    m_stream = NULL;
+    if (m_seekable)
+        m_stream = NULL;
+    else
+        m_raw_stream = NULL;
 
     return 0;
 }
 
 result_t RangeStream::seek(int64_t offset, int32_t whence)
 {
+    if (!m_seekable)
+        return CALL_E_INVALID_CALL;
+
     switch (whence) {
     case fs_base::C_SEEK_SET:
         offset += b_pos;
@@ -222,6 +315,9 @@ result_t RangeStream::seek(int64_t offset, int32_t whence)
 
 result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
+    if (!m_seekable)
+        return CALL_E_INVALID_CALL;
+
     if (!m_stream)
         return CALL_E_CLOSED;
 
@@ -265,8 +361,13 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 
 result_t RangeStream::tell(int64_t& retVal)
 {
-    if (!m_stream)
-        return CALL_E_CLOSED;
+    if (m_seekable) {
+        if (!m_stream)
+            return CALL_E_CLOSED;
+    } else {
+        if (!m_raw_stream)
+            return CALL_E_CLOSED;
+    }
 
     retVal = real_pos - b_pos;
 
@@ -275,15 +376,23 @@ result_t RangeStream::tell(int64_t& retVal)
 
 result_t RangeStream::rewind()
 {
+    if (!m_seekable)
+        return CALL_E_INVALID_CALL;
+
     return seek(0, fs_base::C_SEEK_SET);
 }
 
 result_t RangeStream::size(int64_t& retVal)
 {
-    if (!m_stream)
-        return CALL_E_CLOSED;
-
-    retVal = valid_end() - valid_start();
+    if (m_seekable) {
+        if (!m_stream)
+            return CALL_E_CLOSED;
+        retVal = valid_end() - valid_start();
+    } else {
+        if (!m_raw_stream)
+            return CALL_E_CLOSED;
+        retVal = e_pos;
+    }
 
     return 0;
 }
@@ -300,10 +409,15 @@ result_t RangeStream::truncate(int64_t bytes, AsyncEvent* ac)
 
 result_t RangeStream::eof(bool& retVal)
 {
-    if (!m_stream)
-        return CALL_E_CLOSED;
-
-    retVal = get_c_pos() >= valid_end();
+    if (m_seekable) {
+        if (!m_stream)
+            return CALL_E_CLOSED;
+        retVal = get_c_pos() >= valid_end();
+    } else {
+        if (!m_raw_stream)
+            return CALL_E_CLOSED;
+        retVal = real_pos >= e_pos;
+    }
 
     return 0;
 }

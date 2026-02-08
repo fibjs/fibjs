@@ -13,10 +13,12 @@
 
 #include "../object.h"
 #include "ifs/SeekableStream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 
 class SeekableStream_base;
+class Stream_base;
 
 class RangeStream_base : public SeekableStream_base {
     DECLARE_CLASS(RangeStream_base);
@@ -25,6 +27,7 @@ public:
     // RangeStream_base
     static result_t _new(SeekableStream_base* stm, exlib::string range, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SeekableStream_base* stm, int64_t begin, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Stream_base* stm, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_begin(int64_t& retVal) = 0;
     virtual result_t get_end(int64_t& retVal) = 0;
 
@@ -84,6 +87,13 @@ inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(int64_t, 2);
 
     hr = _new(v0.get(), v1, v2, vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(int64_t, 1);
+
+    hr = _new(v0.get(), v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

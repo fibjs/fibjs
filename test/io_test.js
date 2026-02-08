@@ -352,6 +352,248 @@ describe('io', () => {
                 assert.strictEqual(stm.stat().isFile(), true);
             });
         });
+
+        describe('RangeStream(Stream, end) constructor', () => {
+            it("SeekableStream passed as Stream uses seekable mode", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var end = Math.min(100, sz);
+                var stm = new io.RangeStream(file, end);
+
+                // should be treated as RangeStream(file, 0, end)
+                assert.equal(stm.begin, 0);
+                assert.equal(stm.end, end);
+
+                // seekable operations should work
+                stm.seek(0, fs.SEEK_SET);
+                stm.rewind();
+
+                // read data and verify it matches direct file read
+                file.seek(0, fs.SEEK_SET);
+                var expected = file.read(end);
+                stm.rewind();
+                var actual = stm.readAll();
+                assert.equal(0, expected.compare(actual));
+
+                // stat should work
+                assert.isDefined(stm.stat());
+            });
+
+            it("SeekableStream: size equals end", () => {
+                var file = fs.openFile(filePath);
+                var stm = new io.RangeStream(file, 200);
+
+                assert.equal(stm.size(), 200);
+            });
+
+            it("SeekableStream: tell works after read", () => {
+                var file = fs.openFile(filePath);
+                var stm = new io.RangeStream(file, 200);
+
+                stm.rewind();
+                stm.read(50);
+                assert.equal(stm.tell(), 50);
+            });
+
+            it("non-seekable stream: basic read", () => {
+                var data = Buffer.from("hello world, this is a test of RangeStream with non-seekable stream");
+                var ms = new io.MemoryStream();
+                ms.write(data);
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 5);
+
+                assert.equal(stm.begin, 0);
+                assert.equal(stm.end, 5);
+
+                var buf = stm.readAll();
+                assert.equal(buf.length, 5);
+                assert.equal(buf.toString(), "hello");
+            });
+
+            it("non-seekable stream: read with limit", () => {
+                var data = Buffer.from("abcdefghijklmnopqrstuvwxyz");
+                var ms = new io.MemoryStream();
+                ms.write(data);
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 10);
+
+                // read 3 bytes at a time
+                var b1 = stm.read(3);
+                assert.equal(b1.toString(), "abc");
+                assert.equal(stm.tell(), 3);
+
+                var b2 = stm.read(3);
+                assert.equal(b2.toString(), "def");
+                assert.equal(stm.tell(), 6);
+
+                var b3 = stm.read(3);
+                assert.equal(b3.toString(), "ghi");
+                assert.equal(stm.tell(), 9);
+
+                // only 1 byte left
+                var b4 = stm.read(3);
+                assert.equal(b4.toString(), "j");
+                assert.equal(stm.tell(), 10);
+
+                // EOF
+                assert.equal(stm.read(1), null);
+            });
+
+            it("non-seekable stream: readAll respects end limit", () => {
+                var data = Buffer.from("0123456789ABCDEF");
+                var ms = new io.MemoryStream();
+                ms.write(data);
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 8);
+                var buf = stm.readAll();
+                assert.equal(buf.length, 8);
+                assert.equal(buf.toString(), "01234567");
+            });
+
+            it("non-seekable stream: size returns end", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("test data"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 100);
+                assert.equal(stm.size(), 100);
+            });
+
+            it("non-seekable stream: tell tracks position", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("abcdefghij"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 10);
+                assert.equal(stm.tell(), 0);
+
+                stm.read(4);
+                assert.equal(stm.tell(), 4);
+
+                stm.read(3);
+                assert.equal(stm.tell(), 7);
+            });
+
+            it("non-seekable stream: eof detection", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("abc"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 3);
+                assert.equal(stm.eof(), false);
+
+                stm.readAll();
+                assert.equal(stm.eof(), true);
+            });
+
+            it("non-seekable stream: seek/rewind/stat not allowed", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("test"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 4);
+
+                assert.throws(() => {
+                    stm.seek(0, fs.SEEK_SET);
+                });
+
+                assert.throws(() => {
+                    stm.rewind();
+                });
+
+                assert.throws(() => {
+                    stm.stat();
+                });
+            });
+
+            it("non-seekable stream: close then read fails", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("test data"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 5);
+                stm.read(2);
+                stm.close();
+
+                assert_error_msg(() => {
+                    stm.read(1);
+                }, `[20027] Object closed.`);
+
+                assert_error_msg(() => {
+                    stm.tell();
+                }, `[20027] Object closed.`);
+
+                assert_error_msg(() => {
+                    stm.size();
+                }, `[20027] Object closed.`);
+            });
+
+            it("non-seekable stream: end=0 reads nothing", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("data"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 0);
+                assert.equal(stm.readAll(), null);
+                assert.equal(stm.tell(), 0);
+                assert.equal(stm.eof(), true);
+            });
+
+            it("invalid: negative end", () => {
+                var ms = new io.MemoryStream();
+                var bs = new io.BufferedStream(ms);
+
+                assert_error_msg(() => {
+                    new io.RangeStream(bs, -1);
+                }, `'end' must be non-negative integer!`);
+            });
+
+            it("non-seekable stream: end larger than actual data", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("short"));
+                ms.rewind();
+                var bs = new io.BufferedStream(ms);
+
+                var stm = new io.RangeStream(bs, 1000);
+                // should read only available data (5 bytes), not hang
+                var buf = stm.readAll();
+                assert.equal(buf.length, 5);
+                assert.equal(buf.toString(), "short");
+            });
+
+            it("MemoryStream passed directly uses seekable mode", () => {
+                var ms = new io.MemoryStream();
+                ms.write(Buffer.from("hello world"));
+                ms.rewind();
+
+                // MemoryStream is SeekableStream, should auto-detect
+                var stm = new io.RangeStream(ms, 5);
+                assert.equal(stm.begin, 0);
+                assert.equal(stm.end, 5);
+
+                // seekable operations should work
+                stm.rewind();
+                var buf = stm.readAll();
+                assert.equal(buf.toString(), "hello");
+
+                // seek should work since it's seekable mode
+                stm.seek(0, fs.SEEK_SET);
+                var buf2 = stm.read(3);
+                assert.equal(buf2.toString(), "hel");
+            });
+        });
     });
 });
 

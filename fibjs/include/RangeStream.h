@@ -19,6 +19,7 @@ namespace fibjs {
 class RangeStream : public AsyncStream<RangeStream_base> {
 public:
     RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end);
+    RangeStream(Stream_base* stream, int64_t end);
 
 private:
     int64_t get_c_pos();
@@ -50,7 +51,9 @@ public:
     virtual result_t get_end(int64_t& retVal);
 
 private:
-    obj_ptr<SeekableStream_base> m_stream;
+    obj_ptr<SeekableStream_base> m_stream; // seekable mode
+    obj_ptr<Stream_base> m_raw_stream; // non-seekable mode
+    bool m_seekable; // mode flag
     int64_t b_pos; // begin position
     int64_t real_pos; // real position
     int64_t e_pos; // end position
