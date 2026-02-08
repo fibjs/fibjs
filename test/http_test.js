@@ -3315,8 +3315,6 @@ describe("http", () => {
             assert.equal(hc.poolSize, 128);
             assert.equal(hc.poolTimeout, 10000);
             assert.equal(hc.userAgent, "curl/8.14.1");
-            assert.equal(hc.http_proxy, "");
-            assert.equal(hc.https_proxy, "");
         });
 
         it("options", () => {
@@ -3332,8 +3330,10 @@ describe("http", () => {
                 poolSize: 100,
                 poolTimeout: 1000,
                 userAgent: "test agent",
-                http_proxy: "http://127.0.0.1:9998",
-                https_proxy: "https://127.0.0.1:9999"
+                proxyEnv: {
+                    http_proxy: "http://127.0.0.1:9998",
+                    https_proxy: "https://127.0.0.1:9999"
+                }
             });
 
             assert.equal(hc.keepAlive, false);
@@ -3347,8 +3347,10 @@ describe("http", () => {
             assert.equal(hc.poolSize, 100);
             assert.equal(hc.poolTimeout, 1000);
             assert.equal(hc.userAgent, "test agent");
-            assert.equal(hc.http_proxy, "http://127.0.0.1:9998");
-            assert.equal(hc.https_proxy, "https://127.0.0.1:9999");
+            assert.deepEqual(hc.proxyEnv, {
+                http_proxy: "http://127.0.0.1:9998",
+                https_proxy: "https://127.0.0.1:9999"
+            });
         });
     });
 
@@ -4119,7 +4121,7 @@ describe("http", () => {
             var hc = new http.Client({
                 ca: ca
             });
-            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.proxyEnv = { http_proxy: 'http://127.0.0.1:' + (8886 + base_port) };
 
             test_proxy(hc, 'http://fibjs.org/test.html');
             test_proxy(hc, `http://localhost:${8886 + base_port}/test.html`);
@@ -4127,7 +4129,7 @@ describe("http", () => {
 
         it('share connection between domains', () => {
             var hc = new http.Client();
-            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.proxyEnv = { http_proxy: 'http://127.0.0.1:' + (8886 + base_port) };
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
             assert.equal(test_proxy(hc, 'http://fibjs1.org/share_2'), 'http: share_1: http://fibjs1.org/share_2');
@@ -4138,7 +4140,7 @@ describe("http", () => {
             var hc = new http.Client({
                 ca: ca
             });
-            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.proxyEnv = { http_proxy: 'http://127.0.0.1:' + (8886 + base_port) };
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
             assert.equal(test_proxy(hc, `http://localhost:${8886 + base_port}/test.html`), 'http: /test.html');

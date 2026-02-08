@@ -102,21 +102,96 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(options, "http_proxy", m_http_proxy);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    hr = set_http_proxy(m_http_proxy);
-    if (hr < 0)
-        return hr;
-
-    hr = GetConfigValue(options, "https_proxy", m_https_proxy);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    hr = set_https_proxy(m_https_proxy);
-    if (hr < 0)
-        return hr;
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Value> v = options->Get(isolate->context(), isolate->NewString("proxyEnv")).FromMaybe(v8::Local<v8::Value>());
+    if (!v.IsEmpty() && v->IsObject()) {
+        hr = set_proxyEnv(v8::Local<v8::Object>::Cast(v));
+        if (hr < 0)
+            return hr;
+    }
 
     return 0;
+}
+
+bool HttpClient::should_bypass_proxy(exlib::string hostname, int32_t port)
+{
+    // Always bypass localhost
+    if (hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1")
+        return true;
+
+    // If no_proxy is empty, don't bypass
+    if (m_no_proxy.empty())
+        return false;
+
+    // Check if hostname matches any pattern in no_proxy
+    // no_proxy format: comma-separated list of hosts/domains/IPs
+    // Examples: "localhost,.example.com,192.168.1.0/24"
+    size_t pos = 0;
+    exlib::string no_proxy = m_no_proxy;
+
+    while (pos < no_proxy.length()) {
+        size_t end = no_proxy.find(',', pos);
+        if (end == exlib::string::npos)
+            end = no_proxy.length();
+
+        exlib::string pattern = no_proxy.substr(pos, end - pos);
+
+        // Trim whitespace
+        while (!pattern.empty() && (pattern[0] == ' ' || pattern[0] == '\t'))
+            pattern = pattern.substr(1);
+        while (!pattern.empty() && (pattern[pattern.length() - 1] == ' ' || pattern[pattern.length() - 1] == '\t'))
+            pattern = pattern.substr(0, pattern.length() - 1);
+
+        if (!pattern.empty()) {
+            // Check for wildcard *
+            if (pattern == "*")
+                return true;
+
+            // Check for port-specific pattern (e.g., "example.com:8080")
+            size_t colonPos = pattern.find(':');
+            if (colonPos != exlib::string::npos) {
+                exlib::string patternHost = pattern.substr(0, colonPos);
+                int32_t patternPort = atoi(pattern.substr(colonPos + 1).c_str());
+                if (patternPort != port) {
+                    pos = end + 1;
+                    continue;
+                }
+                pattern = patternHost;
+            }
+
+            // Check for exact match
+            if (hostname == pattern)
+                return true;
+
+            // Check for domain suffix match (e.g., ".example.com" matches "sub.example.com")
+            if (pattern[0] == '.') {
+                if (hostname.length() > pattern.length() &&
+                    hostname.substr(hostname.length() - pattern.length()) == pattern)
+                    return true;
+            }
+
+            // Check for wildcard domain match (e.g., "*.example.com")
+            if (pattern.length() > 2 && pattern[0] == '*' && pattern[1] == '.') {
+                exlib::string suffix = pattern.substr(1); // ".example.com"
+                if (hostname.length() > suffix.length() &&
+                    hostname.substr(hostname.length() - suffix.length()) == suffix)
+                    return true;
+                // Also match exact domain (e.g., "*.example.com" matches "example.com")
+                if (hostname == pattern.substr(2))
+                    return true;
+            }
+
+            // Check for suffix match without leading dot
+            if (hostname.length() > pattern.length() &&
+                hostname[hostname.length() - pattern.length() - 1] == '.' &&
+                hostname.substr(hostname.length() - pattern.length()) == pattern)
+                return true;
+        }
+
+        pos = end + 1;
+    }
+
+    return false;
 }
 
 result_t HttpClient::get_enableCookie(bool& retVal)
@@ -348,6 +423,82 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
     d.now();
     d.add(m_poolTimeout, date_t::_MICROSECOND);
     clean_coon(d);
+
+    return 0;
+}
+
+result_t HttpClient::get_proxyEnv(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    retVal = v8::Object::New(isolate->m_isolate);
+
+    if (!m_http_proxy.empty())
+        retVal->Set(context, isolate->NewString("http_proxy"),
+            isolate->NewString(m_http_proxy))
+            .IsJust();
+
+    if (!m_https_proxy.empty())
+        retVal->Set(context, isolate->NewString("https_proxy"),
+            isolate->NewString(m_https_proxy))
+            .IsJust();
+
+    if (!m_no_proxy.empty())
+        retVal->Set(context, isolate->NewString("no_proxy"),
+            isolate->NewString(m_no_proxy))
+            .IsJust();
+
+    return 0;
+}
+
+result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
+{
+    result_t hr;
+    exlib::string http_proxy, https_proxy, no_proxy;
+
+    // Check lowercase variants first (higher priority)
+    hr = GetConfigValue(newVal, "http_proxy", http_proxy);
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        // Try uppercase variant
+        hr = GetConfigValue(newVal, "HTTP_PROXY", http_proxy);
+    }
+    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
+        if (hr >= 0) {
+            hr = set_http_proxy(http_proxy);
+            if (hr < 0)
+                return hr;
+        }
+    } else {
+        return hr;
+    }
+
+    hr = GetConfigValue(newVal, "https_proxy", https_proxy);
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        // Try uppercase variant
+        hr = GetConfigValue(newVal, "HTTPS_PROXY", https_proxy);
+    }
+    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
+        if (hr >= 0) {
+            hr = set_https_proxy(https_proxy);
+            if (hr < 0)
+                return hr;
+        }
+    } else {
+        return hr;
+    }
+
+    hr = GetConfigValue(newVal, "no_proxy", no_proxy);
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        // Try uppercase variant
+        hr = GetConfigValue(newVal, "NO_PROXY", no_proxy);
+    }
+    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
+        if (hr >= 0)
+            m_no_proxy = no_proxy;
+    } else {
+        return hr;
+    }
 
     return 0;
 }
@@ -705,7 +856,9 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             m_req->set_method(m_method);
 
             exlib::string hostname = m_u->hostname();
-            if (hostname != "localhost" && hostname != "127.0.0.1" && hostname != "::1") {
+            exlib::string portStr = m_u->port();
+            int32_t port = portStr.empty() ? (m_ssl ? 443 : 80) : atoi(portStr.c_str());
+            if (!m_hc->should_bypass_proxy(hostname, port)) {
                 m_http_proxy = m_hc->m_http_proxy;
                 if (m_ssl && !m_hc->m_https_proxy.empty())
                     m_http_proxy = m_hc->m_https_proxy;

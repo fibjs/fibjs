@@ -61,8 +61,7 @@ interface HttpClient : object
      - userAgent: specify browser identifier
      - poolSize: specify maximum number of keep-alive cached connections
      - poolTimeout: specify keep-alive cached connection timeout time
-     - http_proxy: specify http proxy address
-     - https_proxy: specify https proxy address
+     - proxyEnv: specify environment variables for proxy configuration containing HTTP_PROXY, HTTPS_PROXY, NO_PROXY (and their lowercase variants)
 
      @param options options needed to create secure context using tls.createSecureContext
      */
@@ -107,11 +106,8 @@ interface HttpClient : object
     /*! @brief Query and set keep-alive cached connection timeout time, default 10000 ms */
     Integer poolTimeout;
 
-    /*! @brief Query and set http request proxy, support http/https/socks5 proxy */
-    String http_proxy;
-
-    /*! @brief Query and set https request proxy, support http/https/socks5 proxy, if not set or set to empty, reuse http_proxy */
-    String https_proxy;
+    /*! @brief Query and set environment variables for proxy configuration, supports HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase variants */
+    Object proxyEnv;
 
     /*! @brief Send http request to the specified stream object and return result
      @param conn specify the stream object that handles the request

@@ -161,16 +161,6 @@ declare module 'http' {
     var poolTimeout: number;
 
     /**
-     * @description 查询和设置 http 请求代理，支持 http/https/socks5 代理 
-     */
-    var http_proxy: string;
-
-    /**
-     * @description 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy 
-     */
-    var https_proxy: string;
-
-    /**
      * @description 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
      * 
      *      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
@@ -1046,6 +1036,18 @@ declare module 'http' {
      *      
      */
     function headAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
+     * @description 根据环境变量动态配置代理支持
+     *      当调用此函数时，会从环境变量（HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式）读取代理配置并全局应用。
+     *      可用于在运行时动态启用代理支持，作为 --use-env-proxy 标志的替代方案。
+     *      
+     *      @param proxyEnv 包含代理配置的对象。如果未提供，则会读取 process.env。
+     *               支持的属性：HTTP_PROXY、http_proxy、HTTPS_PROXY、https_proxy、NO_PROXY、no_proxy
+     *      @return 可调用的函数，用于恢复原始代理配置
+     *      
+     */
+    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): (...args: any[])=>any;
 
 }
 

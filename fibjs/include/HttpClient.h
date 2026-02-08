@@ -61,10 +61,12 @@ public:
     virtual result_t set_poolSize(int32_t newVal);
     virtual result_t get_poolTimeout(int32_t& retVal);
     virtual result_t set_poolTimeout(int32_t newVal);
-    virtual result_t get_http_proxy(exlib::string& retVal);
-    virtual result_t set_http_proxy(exlib::string newVal);
-    virtual result_t get_https_proxy(exlib::string& retVal);
-    virtual result_t set_https_proxy(exlib::string newVal);
+    result_t get_http_proxy(exlib::string& retVal);
+    result_t set_http_proxy(exlib::string newVal);
+    result_t get_https_proxy(exlib::string& retVal);
+    result_t set_https_proxy(exlib::string newVal);
+    virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal);
+    virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -79,6 +81,7 @@ public:
 
 public:
     result_t init(v8::Local<v8::Object> options);
+    bool should_bypass_proxy(exlib::string hostname, int32_t port);
     result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac);
     result_t request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
         SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
@@ -173,6 +176,8 @@ public:
     exlib::string m_userAgent;
 
 private:
+    friend class http_base;
+
     class Conn : public obj_base {
     public:
         date_t d;
@@ -185,5 +190,6 @@ private:
     int32_t m_poolTimeout;
     exlib::string m_http_proxy;
     exlib::string m_https_proxy;
+    exlib::string m_no_proxy;
 };
 } /* namespace fibjs */

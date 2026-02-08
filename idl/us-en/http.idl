@@ -100,12 +100,6 @@ module http
     /*! @brief Query and set the keep-alive cached connection timeout time, default 10000 ms */
     static Integer poolTimeout;
 
-    /*! @brief Query and set the http request proxy, supports http/https/socks5 proxy */
-    static String http_proxy;
-
-    /*! @brief Query and set the https request proxy, supports http/https/socks5 proxy, if not set or set to empty, reuse http_proxy */
-    static String https_proxy;
-
     /*! @brief Create an http static file handler to respond to http messages with static files
 
      fileHandler supports gzip pre-compression, when the request accepts gzip encoding, and filename.ext.gz file exists in the same path, it will directly return this file,
@@ -374,4 +368,14 @@ module http
      @return Return server response
      */
     static HttpResponse head(String url, Object opts = {}) async;
+
+    /*! @brief Dynamically configure proxy support from environment variables for http and https requests
+     When invoked, reads proxy configuration from environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase variants)
+     and applies them globally. Can be used to enable proxy support dynamically at runtime as an alternative to --use-env-proxy flag.
+     
+     @param proxyEnv Object containing proxy configuration. If not provided, will read from process.env.
+              Supported properties: HTTP_PROXY, http_proxy, HTTPS_PROXY, https_proxy, NO_PROXY, no_proxy
+     @return A function that can be called to restore the original proxy configuration
+     */
+    static Function setGlobalProxyFromEnv(Object proxyEnv = {});
 };

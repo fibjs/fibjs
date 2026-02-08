@@ -74,8 +74,7 @@ declare class Class_HttpClient extends Class_object {
      *      - userAgent: 指定浏览器标识
      *      - poolSize: 指定 keep-alive 最大缓存连接数
      *      - poolTimeout: 指定 keep-alive 缓存连接超时时间
-     *      - http_proxy: 指定 http 代理地址
-     *      - https_Proxy: 指定 https 代理地址
+     *      - proxyEnv: 指定代理配置环境变量，包含 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式
      * 
      *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
      *      
@@ -148,14 +147,9 @@ declare class Class_HttpClient extends Class_object {
     poolTimeout: number;
 
     /**
-     * @description 查询和设置 http 请求代理，支持 http/https/socks5 代理 
+     * @description 查询和设置代理配置环境变量，支持 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式 
      */
-    http_proxy: string;
-
-    /**
-     * @description 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy 
-     */
-    https_proxy: string;
+    proxyEnv: FIBJS.GeneralObject;
 
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果

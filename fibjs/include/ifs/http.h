@@ -59,10 +59,6 @@ public:
     static result_t set_poolSize(int32_t newVal);
     static result_t get_poolTimeout(int32_t& retVal);
     static result_t set_poolTimeout(int32_t newVal);
-    static result_t get_http_proxy(exlib::string& retVal);
-    static result_t set_http_proxy(exlib::string newVal);
-    static result_t get_https_proxy(exlib::string& retVal);
-    static result_t set_https_proxy(exlib::string newVal);
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -75,6 +71,7 @@ public:
     static result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -114,10 +111,6 @@ public:
     static void s_static_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_set_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_set_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -126,6 +119,7 @@ public:
     static void s_static_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_head(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setGlobalProxyFromEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -166,7 +160,8 @@ inline ClassInfo& http_base::class_info()
         { "del", s_static_del, true, ClassData::ASYNC_ASYNC },
         { "put", s_static_put, true, ClassData::ASYNC_ASYNC },
         { "patch", s_static_patch, true, ClassData::ASYNC_ASYNC },
-        { "head", s_static_head, true, ClassData::ASYNC_ASYNC }
+        { "head", s_static_head, true, ClassData::ASYNC_ASYNC },
+        { "setGlobalProxyFromEnv", s_static_setGlobalProxyFromEnv, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -195,9 +190,7 @@ inline ClassInfo& http_base::class_info()
         { "maxBodySize", s_static_get_maxBodySize, s_static_set_maxBodySize, true },
         { "userAgent", s_static_get_userAgent, s_static_set_userAgent, true },
         { "poolSize", s_static_get_poolSize, s_static_set_poolSize, true },
-        { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true },
-        { "http_proxy", s_static_get_http_proxy, s_static_set_http_proxy, true },
-        { "https_proxy", s_static_get_https_proxy, s_static_set_https_proxy, true }
+        { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true }
     };
 
     static ClassData s_cd = {
@@ -549,58 +542,6 @@ inline void http_base::s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v
     METHOD_VOID();
 }
 
-inline void http_base::s_static_get_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_http_proxy(vr);
-
-    METHOD_RETURN();
-}
-
-inline void http_base::s_static_set_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = set_http_proxy(v0);
-
-    METHOD_VOID();
-}
-
-inline void http_base::s_static_get_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_https_proxy(vr);
-
-    METHOD_RETURN();
-}
-
-inline void http_base::s_static_set_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = set_https_proxy(v0);
-
-    METHOD_VOID();
-}
-
 inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
@@ -787,6 +728,21 @@ inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = acb_head(v0, v1, cb, args);
     else
         hr = ac_head(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_setGlobalProxyFromEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = setGlobalProxyFromEnv(v0, vr);
 
     METHOD_RETURN();
 }

@@ -54,10 +54,8 @@ public:
     virtual result_t set_poolSize(int32_t newVal) = 0;
     virtual result_t get_poolTimeout(int32_t& retVal) = 0;
     virtual result_t set_poolTimeout(int32_t newVal) = 0;
-    virtual result_t get_http_proxy(exlib::string& retVal) = 0;
-    virtual result_t set_http_proxy(exlib::string newVal) = 0;
-    virtual result_t get_https_proxy(exlib::string& retVal) = 0;
-    virtual result_t set_https_proxy(exlib::string newVal) = 0;
+    virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -101,10 +99,8 @@ public:
     static void s_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -161,8 +157,7 @@ inline ClassInfo& HttpClient_base::class_info()
         { "userAgent", s_get_userAgent, s_set_userAgent, false },
         { "poolSize", s_get_poolSize, s_set_poolSize, false },
         { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, false },
-        { "http_proxy", s_get_http_proxy, s_set_http_proxy, false },
-        { "https_proxy", s_get_https_proxy, s_set_https_proxy, false }
+        { "proxyEnv", s_get_proxyEnv, s_set_proxyEnv, false }
     };
 
     static ClassData s_cd = {
@@ -578,58 +573,30 @@ inline void HttpClient_base::s_set_poolTimeout(const v8::FunctionCallbackInfo<v8
     METHOD_VOID();
 }
 
-inline void HttpClient_base::s_get_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void HttpClient_base::s_get_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    exlib::string vr;
+    v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_http_proxy(vr);
+    hr = pInst->get_proxyEnv(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpClient_base::s_set_http_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void HttpClient_base::s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->set_http_proxy(v0);
-
-    METHOD_VOID();
-}
-
-inline void HttpClient_base::s_get_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->get_https_proxy(vr);
-
-    METHOD_RETURN();
-}
-
-inline void HttpClient_base::s_set_https_proxy(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = pInst->set_https_proxy(v0);
+    hr = pInst->set_proxyEnv(v0);
 
     METHOD_VOID();
 }
