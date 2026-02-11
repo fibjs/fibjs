@@ -204,7 +204,7 @@ describe("db", () => {
                 "t4"
             ]);
 
-            if (conn.type == 'SQLite') {
+            if (conn.type != 'mssql') {
                 rs = conn.execute('select t1,t2,t3,t4 from test_null')[0];
                 assert.isNull(rs.t1);
                 assert.isNull(rs.t2);
@@ -840,6 +840,175 @@ describe("db", () => {
 
                     var columns = conn.execute('select * from information_schema.columns;');
                     assert.greaterThan(columns, 0);
+                });
+                break;
+            case 'dm':
+                it("DM data types", () => {
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_dm_types');
+                    } catch (e) { }
+
+                    conn.execute(`
+                        CREATE TABLE test_dm_types (
+                            id INT IDENTITY(1,1) PRIMARY KEY,
+                            text_col TEXT,
+                            varchar_col VARCHAR(255),
+                            char_col CHAR(10),
+                            blob_col BLOB,
+                            clob_col CLOB,
+                            boolean_col BIT,
+                            date_col DATE,
+                            time_col TIME,
+                            datetime_col DATETIME,
+                            timestamp_col TIMESTAMP,
+                            numeric_col NUMERIC(10,2),
+                            decimal_col DECIMAL(10,2),
+                            real_col REAL,
+                            double_col DOUBLE,
+                            smallint_col SMALLINT,
+                            integer_col INTEGER,
+                            bigint_col BIGINT,
+                            binary_col BINARY(10),
+                            varbinary_col VARBINARY(50),
+                            tinyint_col TINYINT
+                        )
+                    `);
+
+                    conn.execute(`
+                        INSERT INTO test_dm_types (
+                            text_col, varchar_col, char_col, blob_col, clob_col,
+                            boolean_col, date_col, time_col, datetime_col, timestamp_col,
+                            numeric_col, decimal_col, real_col, double_col,
+                            smallint_col, integer_col, bigint_col,
+                            binary_col, varbinary_col, tinyint_col
+                        ) VALUES (
+                            'This is text', 'varchar value', 'char value', ?, 'clob data',
+                            1, '2023-01-01', '12:30:45', '2023-01-01 12:30:45', '2023-01-01 12:30:45',
+                            123.45, 678.90, 3.14, 2.718281828,
+                            32767, 123456, 123456789012345,
+                            ?, ?, 127
+                        )
+                    `,
+                        Buffer.from('blob data'),
+                        Buffer.from('binary123\0'),
+                        Buffer.from('varbinary data')
+                    );
+
+                    var result = conn.execute('SELECT * FROM test_dm_types');
+                    assert.equal(result.length, 1);
+
+                    var row = result[0];
+
+                    // Test string types
+                    assert.equal(typeof row.text_col, 'string');
+                    assert.equal(row.text_col, 'This is text');
+                    assert.equal(typeof row.varchar_col, 'string');
+                    assert.equal(row.varchar_col, 'varchar value');
+                    assert.equal(typeof row.char_col, 'string');
+                    assert.equal(row.char_col, 'char value');
+                    assert.equal(typeof row.clob_col, 'string');
+                    assert.equal(row.clob_col, 'clob data');
+
+                    // Test binary types
+                    assert.equal(typeof row.blob_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.blob_col));
+                    assert.equal(row.blob_col.toString(), 'blob data');
+                    assert.equal(typeof row.binary_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.binary_col));
+                    assert.equal(typeof row.varbinary_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.varbinary_col));
+                    assert.equal(row.varbinary_col.toString(), 'varbinary data');
+
+                    // Test boolean type
+                    assert.equal(typeof row.boolean_col, 'boolean');
+                    assert.equal(row.boolean_col, true);
+
+                    // Test date/time types
+                    assert.equal(typeof row.date_col, 'object');
+                    assert.isTrue(row.date_col instanceof Date);
+                    assert.equal(typeof row.time_col, 'object');
+                    assert.isTrue(row.time_col instanceof Date);
+                    assert.equal(typeof row.datetime_col, 'object');
+                    assert.isTrue(row.datetime_col instanceof Date);
+                    assert.equal(typeof row.timestamp_col, 'object');
+                    assert.isTrue(row.timestamp_col instanceof Date);
+
+                    // Test numeric types
+                    assert.equal(typeof row.numeric_col, 'number');
+                    assert.equal(row.numeric_col, 123.45);
+                    assert.equal(typeof row.decimal_col, 'number');
+                    assert.equal(row.decimal_col, 678.90);
+                    assert.equal(typeof row.real_col, 'number');
+                    assert.ok(Math.abs(row.real_col - 3.14) < 0.01);
+                    assert.equal(typeof row.double_col, 'number');
+                    assert.ok(Math.abs(row.double_col - 2.718281828) < 0.000001);
+                    assert.equal(typeof row.smallint_col, 'number');
+                    assert.equal(row.smallint_col, 32767);
+                    assert.equal(typeof row.integer_col, 'number');
+                    assert.equal(row.integer_col, 123456);
+                    assert.equal(typeof row.bigint_col, 'number');
+                    assert.equal(row.bigint_col, 123456789012345);
+                    assert.equal(typeof row.tinyint_col, 'number');
+                    assert.equal(row.tinyint_col, 127);
+
+                    // Test serial type
+                    assert.equal(typeof row.id, 'number');
+                    assert.equal(row.id, 1);
+
+                    conn.execute('DROP TABLE test_dm_types');
+                });
+
+                it("DM extra data types", () => {
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_dm_extra');
+                    } catch (e) { }
+
+                    conn.execute(`
+                        CREATE TABLE test_dm_extra (
+                            id INT IDENTITY(1,1) PRIMARY KEY,
+                            image_col IMAGE,
+                            tstz_col TIMESTAMP WITH TIME ZONE,
+                            timetz_col TIME WITH TIME ZONE,
+                            iym_col INTERVAL YEAR(4) TO MONTH,
+                            idt_col INTERVAL DAY(3) TO SECOND(2)
+                        )
+                    `);
+
+                    conn.execute(`
+                        INSERT INTO test_dm_extra (image_col, tstz_col, timetz_col, iym_col, idt_col)
+                        VALUES (?, TIMESTAMP '2023-01-01 12:30:45 +08:00', TIME '12:30:45 +08:00',
+                                INTERVAL '15-8' YEAR(4) TO MONTH, INTERVAL '100 10:20:30.12' DAY(3) TO SECOND(2))
+                    `, Buffer.from('image binary data'));
+
+                    var result = conn.execute('SELECT * FROM test_dm_extra');
+                    assert.equal(result.length, 1);
+
+                    var row = result[0];
+
+                    // IMAGE - binary type
+                    assert.equal(typeof row.image_col, 'object');
+                    assert.isTrue(Buffer.isBuffer(row.image_col));
+                    assert.equal(row.image_col.toString(), 'image binary data');
+
+                    // TIMESTAMP WITH TIME ZONE - string
+                    assert.equal(typeof row.tstz_col, 'string');
+                    assert.ok(row.tstz_col.indexOf('2023-01-01') >= 0);
+                    assert.ok(row.tstz_col.indexOf('+08:00') >= 0);
+
+                    // TIME WITH TIME ZONE - string
+                    assert.equal(typeof row.timetz_col, 'string');
+                    assert.ok(row.timetz_col.indexOf('12:30:45') >= 0);
+
+                    // INTERVAL YEAR TO MONTH - string
+                    assert.equal(typeof row.iym_col, 'string');
+                    assert.ok(row.iym_col.indexOf('15-8') >= 0);
+
+                    // INTERVAL DAY TO SECOND - string
+                    assert.equal(typeof row.idt_col, 'string');
+                    assert.ok(row.idt_col.indexOf('100') >= 0);
+                    assert.ok(row.idt_col.indexOf('10:20:30') >= 0);
+
+                    conn.execute('DROP TABLE test_dm_extra');
                 });
                 break;
             case 'sqlite':
