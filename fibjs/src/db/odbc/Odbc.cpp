@@ -93,7 +93,7 @@ exlib::string odbc_error(int32_t handleType, void* handle)
 
 result_t odbc_set_autocommit(void* conn, bool on)
 {
-    SQLRETURN hr = SQLSetConnectAttr((SQLHDBC)conn, SQL_ATTR_AUTOCOMMIT,
+    SQLRETURN hr = SQLSetConnectAttrW((SQLHDBC)conn, SQL_ATTR_AUTOCOMMIT,
         (SQLPOINTER)(SQLULEN)(on ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF), 0);
     if (hr < 0)
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
