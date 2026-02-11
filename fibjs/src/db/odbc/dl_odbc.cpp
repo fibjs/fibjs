@@ -161,3 +161,10 @@ SQLRETURN SQL_API SQLColumnsA(SQLHSTMT StatementHandle, SQLCHAR* CatalogName,
     return s_SQLColumnsA(StatementHandle, CatalogName, NameLength1,
         SchemaName, NameLength2, TableName, NameLength3, ColumnName, NameLength4);
 }
+
+SQLRETURN SQL_API SQLSetConnectAttr(SQLHDBC ConnectionHandle,
+    SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
+{
+    odbc_func(SQLSetConnectAttr);
+    return s_SQLSetConnectAttr(ConnectionHandle, Attribute, Value, StringLength);
+}

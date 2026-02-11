@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
+/// <reference path="../interface/Stream.d.ts" />
 /**
  * @description Range 查询流读取对象
  * 
@@ -11,6 +12,14 @@
  *  var stm = new io.RangeStream(stream, 0, 10);
  *  stm.end // 10
  *  ```
+ * 
+ *  也可以对普通 Stream 对象进行长度限制读取，此时 begin 固定为 0，仅限制读取的字节数：
+ *  ```JavaScript
+ *  var stm = new io.RangeStream(stream, 1024);
+ *  stm.begin // 0
+ *  stm.end   // 1024
+ *  ```
+ *  如果传入的 stm 是 SeekableStream，则等同于 RangeStream(stm, 0, end)。
  *  
  */
 declare class Class_RangeStream extends Class_SeekableStream {
@@ -30,6 +39,14 @@ declare class Class_RangeStream extends Class_SeekableStream {
      *      
      */
     constructor(stm: Class_SeekableStream, begin: number, end: number);
+
+    /**
+     * @description RangeStream 构造函数, 用于对普通 Stream 进行长度限制读取
+     *       @param stm 基础流对象, 如果是 SeekableStream 则等同于 RangeStream(stm, 0, end)
+     *       @param end 从 stm 读取内容的最大字节数
+     *      
+     */
+    constructor(stm: Class_Stream, end: number);
 
     /**
      * @description 查询 range 开始值 

@@ -91,6 +91,15 @@ exlib::string odbc_error(int32_t handleType, void* handle)
     return result;
 }
 
+result_t odbc_set_autocommit(void* conn, bool on)
+{
+    SQLRETURN hr = SQLSetConnectAttr((SQLHDBC)conn, SQL_ATTR_AUTOCOMMIT,
+        (SQLPOINTER)(SQLULEN)(on ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF), 0);
+    if (hr < 0)
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+    return 0;
+}
+
 exlib::string safe_conn_string(const char* str)
 {
     bool b_safe = true;
@@ -387,16 +396,19 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     }
                     default: {
                         exlib::wstring value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), 2, &len);
+                        SQLLEN displaySize = 0;
+                        SQLColAttributeW(stmt, i + 1, SQL_DESC_DISPLAY_SIZE, NULL, 0, NULL, &displaySize);
+                        if (displaySize <= 0)
+                            displaySize = 256;
+                        value.resize(displaySize + 1);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), (displaySize + 1) * sizeof(SQLWCHAR), &len);
                         if (hr < 0)
                             break;
                         if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len / 2);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), len + 2, &len);
-                            if (hr >= 0)
-                                v = utf16to8String(value);
+                            v = utf16to8String(value);
                         }
                         break;
                     }

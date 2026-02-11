@@ -11,6 +11,7 @@
 #include "sql/SQLite.h"
 #include "sql/mysql.h"
 #include "sql/mssql.h"
+#include "sql/dm.h"
 #include "odbc/Odbc.h"
 
 namespace fibjs {
@@ -33,6 +34,9 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, A
 
     if (!qstrcmp(connString.c_str(), "psql:", 5))
         return openPSQL(connString, (obj_ptr<DbConnection_base>&)retVal, ac);
+
+    if (!qstrcmp(connString.c_str(), "dm:", 3))
+        return openDM(connString, (obj_ptr<DbConnection_base>&)retVal, ac);
 
     if (!qstrcmp(connString.c_str(), "redis:", 6))
         return openRedis(connString, (obj_ptr<Redis_base>&)retVal, ac);

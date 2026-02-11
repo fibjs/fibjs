@@ -13,7 +13,6 @@
 
 #include "../object.h"
 #include "ifs/SeekableStream.h"
-#include "ifs/Stream.h"
 
 namespace fibjs {
 
@@ -41,6 +40,8 @@ public:
     static void s_get_end(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& RangeStream_base::class_info()

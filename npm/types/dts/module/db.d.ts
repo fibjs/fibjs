@@ -156,6 +156,41 @@ declare module 'db' {
     function openMSSQLAsync(connString: string): Promise<Class_DbConnection>;
 
     /**
+     * @description 打开一个达梦数据库
+     * 
+     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
+     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
+     *      @param connString 数据库描述，如：dm://user:pass@host/db
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openDM(connString: string): Class_DbConnection;
+
+    function openDM(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
+
+    /**
+     * @description 打开一个达梦数据库
+     * 
+     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
+     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
+     *      @param connString 数据库描述，如：dm://user:pass@host/db
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openDMSync(connString: string): Class_DbConnection;
+
+    /**
+     * @description 打开一个达梦数据库
+     * 
+     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
+     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
+     *      @param connString 数据库描述，如：dm://user:pass@host/db
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openDMAsync(connString: string): Promise<Class_DbConnection>;
+
+    /**
      * @description 打开一个 PostgresSQL 数据库
      * 
      *      为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。

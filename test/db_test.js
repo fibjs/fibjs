@@ -24,6 +24,10 @@ var sql_server = {
     //     desc: '[mssql] sql db universal test',
     //     conn_str: `mssql://sa@localhost/${DBNAME}`,
     // },
+    // dm: {
+    //     desc: '[dm] sql db universal test',
+    //     conn_str: `dm://SYSDBA:123456789@localhost/${DBNAME}`,
+    // },
 }
 
 describe("db", () => {
@@ -39,6 +43,9 @@ describe("db", () => {
                 case 'mssql':
                 case 'mysql':
                     conn.execute(`CREATE DATABASE IF NOT EXISTS \`${DBNAME}\``);
+                    break;
+                case 'dm':
+                    try { conn.execute(`CREATE SCHEMA ${DBNAME}`); } catch (e) { }
                     break;
             }
         }
@@ -131,7 +138,10 @@ describe("db", () => {
         it("create table", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t0 INT IDENTITY PRIMARY KEY, t1 int, t2 nvarchar(128), t3 VARBINARY(100), t4 datetime);');
-            else {
+            else if (conn.type == 'dm') {
+                conn.execute('create table test(t0 INT IDENTITY(1,1) PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
+                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+            } else {
                 if (conn.type == 'psql') {
                     conn.execute('create table test(t0 SERIAL PRIMARY KEY, t1 int, t2 varchar(128), t3 BYTEA, t4 timestamp);');
                     conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BYTEA NULL, t4 timestamp NULL);');

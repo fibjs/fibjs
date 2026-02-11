@@ -43,6 +43,15 @@ module db
      */
     static DbConnection openMSSQL(String connString) async;
 
+    /*! @brief Open a DM (DaMeng) database
+
+     To establish a connection with DM database, you must install the DM ODBC driver.
+     On Linux, obtain the ODBC driver files from the DM database installation directory, copy them to the system library path, and configure unixODBC.
+     @param connString Database description, such as: dm://user:pass@host/db
+     @return Return database connection object
+     */
+    static DbConnection openDM(String connString) async;
+
     /*! @brief Open a PostgresSQL database
 
      To establish a connection with PostgresSQL, you must install the PostgresSQL odbc driver.
