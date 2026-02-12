@@ -21,6 +21,37 @@
 
 namespace fibjs {
 
+static exlib::string normalize_identifier(exlib::string str)
+{
+    // Some ODBC drivers return unquoted identifiers in ALL-UPPERCASE.
+    // Normalize such ASCII identifiers to lowercase for consistency.
+    bool has_alpha = false;
+    bool has_lower = false;
+    bool has_upper = false;
+
+    for (size_t i = 0; i < str.length(); i++) {
+        unsigned char ch = (unsigned char)str[i];
+        if (ch >= 'a' && ch <= 'z') {
+            has_alpha = true;
+            has_lower = true;
+        } else if (ch >= 'A' && ch <= 'Z') {
+            has_alpha = true;
+            has_upper = true;
+        }
+    }
+
+    if (!has_alpha || has_lower || !has_upper)
+        return str;
+
+    for (size_t i = 0; i < str.length(); i++) {
+        unsigned char ch = (unsigned char)str[i];
+        if (ch >= 'A' && ch <= 'Z')
+            str[i] = (char)(ch - 'A' + 'a');
+    }
+
+    return str;
+}
+
 void* g_odbc;
 
 result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
@@ -156,55 +187,81 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
         return CHECK_ERROR(Runtime::setError("odbc: unable to allocate connection."));
     }
 
-    exlib::string conn_str;
-
     if (*driver) {
-        conn_str.append("Driver=");
-        conn_str.append(safe_conn_string(driver));
-        conn_str.append(1, ';');
+        auto build_conn_str = [&](bool use_hostport) -> exlib::string {
+            exlib::string conn_str;
 
-        conn_str.append("Server=");
-        conn_str.append(safe_conn_string(host));
-        conn_str.append(1, ';');
-
-        if (port > 0) {
-            char str_buf[32];
-
-            snprintf(str_buf, sizeof(str_buf), "%d", port);
-            conn_str.append("Port=");
-            conn_str.append(safe_conn_string(str_buf));
+            conn_str.append("Driver=");
+            conn_str.append(safe_conn_string(driver));
             conn_str.append(1, ';');
+
+            conn_str.append("Server=");
+            conn_str.append(safe_conn_string(host));
+            if (use_hostport && port > 0) {
+                char str_buf[32];
+                snprintf(str_buf, sizeof(str_buf), ":%d", port);
+                conn_str.append(safe_conn_string(str_buf));
+            }
+            conn_str.append(1, ';');
+
+            if (!use_hostport && port > 0) {
+                char str_buf[32];
+                snprintf(str_buf, sizeof(str_buf), "%d", port);
+                conn_str.append("Port=");
+                conn_str.append(safe_conn_string(str_buf));
+                conn_str.append(1, ';');
+            }
+
+            if (*dbName) {
+                conn_str.append("Database=");
+                conn_str.append(safe_conn_string(dbName));
+                conn_str.append(1, ';');
+            }
+
+            if (*username) {
+                conn_str.append("Uid=");
+                conn_str.append(safe_conn_string(username));
+                conn_str.append(1, ';');
+            }
+
+            if (*password) {
+                conn_str.append("Pwd=");
+                conn_str.append(safe_conn_string(password));
+                conn_str.append(1, ';');
+            }
+
+            conn_str.append("TrustServerCertificate=Yes;");
+            return conn_str;
+        };
+
+        auto try_connect = [&](const exlib::string& conn_str) -> SQLRETURN {
+            exlib::wstring wstr(utf8to16String(conn_str));
+            return SQLDriverConnectW(conn, NULL, (SQLWCHAR*)wstr.c_str(), (SQLSMALLINT)wstr.length(),
+                NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
+        };
+
+        // Prefer the more compact "host:port" style, but fall back to "Server=host;Port=port"
+        // for drivers that do not accept host:port in the Server attribute.
+        exlib::string first_err;
+        exlib::string conn_str1 = build_conn_str(true);
+        hr = try_connect(conn_str1);
+        if (hr < 0) {
+            first_err = odbc_error(SQL_HANDLE_DBC, conn);
+            if (port > 0) {
+                exlib::string conn_str2 = build_conn_str(false);
+                hr = try_connect(conn_str2);
+            }
         }
 
-        if (*dbName) {
-            conn_str.append("Database=");
-            conn_str.append(safe_conn_string(dbName));
-            conn_str.append(1, ';');
+        if (hr < 0) {
+            exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
+            if (!first_err.empty() && err != first_err) {
+                err = first_err + "\n    " + err;
+            }
+            odbc_disconnect(conn);
+            conn = NULL;
+            return CHECK_ERROR(Runtime::setError(err));
         }
-
-        if (*username) {
-            conn_str.append("Uid=");
-            conn_str.append(safe_conn_string(username));
-            conn_str.append(1, ';');
-        }
-
-        if (*password) {
-            conn_str.append("Pwd=");
-            conn_str.append(safe_conn_string(password));
-            conn_str.append(1, ';');
-        }
-
-        conn_str.append("TrustServerCertificate=Yes;");
-    }
-
-    exlib::wstring wstr(utf8to16String(conn_str));
-    hr = SQLDriverConnectW(conn, NULL, (SQLWCHAR*)wstr.c_str(), (SQLSMALLINT)wstr.length(),
-        NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
-    if (hr < 0) {
-        exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
-        odbc_disconnect(conn);
-        conn = NULL;
-        return CHECK_ERROR(Runtime::setError(err));
     }
 
     return 0;
@@ -293,7 +350,8 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                 if (hr < 0)
                     break;
 
-                res->setField(i, utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
+                exlib::string fieldName = utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR));
+                res->setField(i, normalize_identifier(fieldName));
 
                 hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
                 if (hr < 0)
@@ -488,7 +546,8 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
         hr = SQLGetData(stmt, 3, SQL_C_CHAR, tableName, sizeof(tableName), &len); // Column 3 is TABLE_NAME
         if (hr >= 0) {
             res->beginRow();
-            Variant v = exlib::string(tableName, len == SQL_NULL_DATA ? 0 : len);
+            exlib::string name = exlib::string(tableName, len == SQL_NULL_DATA ? 0 : len);
+            Variant v = normalize_identifier(name);
             res->rowValue(0, v);
             res->endRow();
         }
@@ -514,13 +573,6 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
     if (hr < 0)
         return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
 
-    // Use ODBC SQLColumns to get column information - more compatible across different databases
-    hr = SQLColumnsA(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tableName.c_str(), SQL_NTS, NULL, 0);
-    if (hr < 0) {
-        SQLFreeStmt(stmt, SQL_DROP);
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
-    }
-
     obj_ptr<DBResult> res = new DBResult(5);
     res->setField(0, "column_name");
     res->setField(1, "data_type");
@@ -528,57 +580,103 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
     res->setField(3, "is_nullable");
     res->setField(4, "column_default");
 
-    while (true) {
-        hr = SQLFetch(stmt);
-        if (hr == SQL_NO_DATA)
-            break;
-        if (hr < 0) {
-            SQLFreeStmt(stmt, SQL_DROP);
+    auto fetchColumns = [&](const exlib::string& tn, int32_t& rows) -> result_t {
+        SQLRETURN hr2;
+
+        SQLFreeStmt(stmt, SQL_CLOSE);
+        hr2 = SQLColumnsA(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tn.c_str(), SQL_NTS, NULL, 0);
+        if (hr2 < 0)
             return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+
+        while (true) {
+            hr2 = SQLFetch(stmt);
+            if (hr2 == SQL_NO_DATA)
+                break;
+            if (hr2 < 0)
+                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+
+            res->beginRow();
+
+            // Column 4: COLUMN_NAME
+            SQLLEN len;
+            char columnName[256];
+            hr2 = SQLGetData(stmt, 4, SQL_C_CHAR, columnName, sizeof(columnName), &len);
+            exlib::string col = (hr2 >= 0 && len != SQL_NULL_DATA) ? exlib::string(columnName, len) : exlib::string("");
+            Variant v1 = normalize_identifier(col);
+            res->rowValue(0, v1);
+
+            // Column 6: TYPE_NAME
+            char typeName[256];
+            hr2 = SQLGetData(stmt, 6, SQL_C_CHAR, typeName, sizeof(typeName), &len);
+            Variant v2 = (hr2 >= 0 && len != SQL_NULL_DATA) ? exlib::string(typeName, len) : exlib::string("");
+            res->rowValue(1, v2);
+
+            // Column 7: COLUMN_SIZE
+            int32_t columnSize;
+            hr2 = SQLGetData(stmt, 7, SQL_C_LONG, &columnSize, sizeof(columnSize), &len);
+            Variant v3;
+            if (hr2 >= 0 && len != SQL_NULL_DATA)
+                v3 = columnSize;
+            else
+                v3.setNull();
+            res->rowValue(2, v3);
+
+            // Column 11: NULLABLE
+            int32_t nullable;
+            hr2 = SQLGetData(stmt, 11, SQL_C_LONG, &nullable, sizeof(nullable), &len);
+            Variant v4 = (hr2 >= 0 && len != SQL_NULL_DATA && nullable == SQL_NULLABLE) ? exlib::string("YES") : exlib::string("NO");
+            res->rowValue(3, v4);
+
+            // Column 13: COLUMN_DEF
+            char columnDefault[256];
+            hr2 = SQLGetData(stmt, 13, SQL_C_CHAR, columnDefault, sizeof(columnDefault), &len);
+            Variant v5;
+            if (hr2 >= 0 && len != SQL_NULL_DATA)
+                v5 = exlib::string(columnDefault, len);
+            else
+                v5.setNull();
+            res->rowValue(4, v5);
+
+            res->endRow();
+            rows++;
         }
 
-        res->beginRow();
+        return 0;
+    };
 
-        // Column 4: COLUMN_NAME
-        SQLLEN len;
-        char columnName[256];
-        hr = SQLGetData(stmt, 4, SQL_C_CHAR, columnName, sizeof(columnName), &len);
-        Variant v1 = (hr >= 0 && len != SQL_NULL_DATA) ? exlib::string(columnName, len) : exlib::string("");
-        res->rowValue(0, v1);
+    int32_t rows = 0;
+    result_t r = fetchColumns(tableName, rows);
+    if (r < 0) {
+        SQLFreeStmt(stmt, SQL_DROP);
+        return r;
+    }
 
-        // Column 6: TYPE_NAME
-        char typeName[256];
-        hr = SQLGetData(stmt, 6, SQL_C_CHAR, typeName, sizeof(typeName), &len);
-        Variant v2 = (hr >= 0 && len != SQL_NULL_DATA) ? exlib::string(typeName, len) : exlib::string("");
-        res->rowValue(1, v2);
+    // Retry with uppercased table name when metadata is stored in uppercase (e.g. DM)
+    if (rows == 0 && tableName.length() > 0) {
+        bool has_lower = false;
+        bool has_upper = false;
+        for (size_t i = 0; i < tableName.length(); i++) {
+            unsigned char ch = (unsigned char)tableName[i];
+            if (ch >= 'a' && ch <= 'z')
+                has_lower = true;
+            else if (ch >= 'A' && ch <= 'Z')
+                has_upper = true;
+        }
 
-        // Column 7: COLUMN_SIZE
-        int32_t columnSize;
-        hr = SQLGetData(stmt, 7, SQL_C_LONG, &columnSize, sizeof(columnSize), &len);
-        Variant v3;
-        if (hr >= 0 && len != SQL_NULL_DATA)
-            v3 = columnSize;
-        else
-            v3.setNull();
-        res->rowValue(2, v3);
+        if (has_lower && !has_upper) {
+            exlib::string tn = tableName;
+            for (size_t i = 0; i < tn.length(); i++) {
+                unsigned char ch = (unsigned char)tn[i];
+                if (ch >= 'a' && ch <= 'z')
+                    tn[i] = (char)(ch - 'a' + 'A');
+            }
 
-        // Column 11: NULLABLE
-        int32_t nullable;
-        hr = SQLGetData(stmt, 11, SQL_C_LONG, &nullable, sizeof(nullable), &len);
-        Variant v4 = (hr >= 0 && len != SQL_NULL_DATA && nullable == SQL_NULLABLE) ? exlib::string("YES") : exlib::string("NO");
-        res->rowValue(3, v4);
-
-        // Column 13: COLUMN_DEF
-        char columnDefault[256];
-        hr = SQLGetData(stmt, 13, SQL_C_CHAR, columnDefault, sizeof(columnDefault), &len);
-        Variant v5;
-        if (hr >= 0 && len != SQL_NULL_DATA)
-            v5 = exlib::string(columnDefault, len);
-        else
-            v5.setNull();
-        res->rowValue(4, v5);
-
-        res->endRow();
+            r = fetchColumns(tn, rows);
+            if (r < 0) {
+                SQLFreeStmt(stmt, SQL_DROP);
+                return r;
+            }
+        }
     }
 
     SQLFreeStmt(stmt, SQL_DROP);
