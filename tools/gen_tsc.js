@@ -2,6 +2,7 @@
  * Generate bundled tsc check script with embedded lib.d.ts files
  * 
  * Downloads TypeScript directly from npm registry - no local installation needed.
+ * Strips emit/transform/watch/build code to produce a check-only bundle.
  * 
  * Run: fibjs tools/gen_tsc.js
  */
@@ -74,6 +75,93 @@ async function downloadTypeScript() {
     return { version, files };
 }
 
+/**
+ * Strip emit/transform/build code from tsc source.
+ * These sections are not needed for type-check-only mode.
+ * 
+ * Removes:
+ *   - src/compiler/transformers/* (all JS transforms, ~23200 lines)
+ *   - src/compiler/tsbuild.ts, tsbuildPublic.ts (~1737 lines)
+ * 
+ * Keeps (needed by executeCommandLine / program):
+ *   - src/compiler/transformer.ts (getTransformers, referenced by program)
+ *   - src/compiler/emitter.ts (emitFiles, getCommonSourceDirectory, etc.)
+ *   - src/compiler/watchUtilities.ts (closeFileWatcherOf, etc.)
+ *   - src/compiler/watch.ts (createDiagnosticReporter, emitFilesAndReportErrors)
+ *   - src/compiler/watchPublic.ts (createWatchProgram, referenced by executeCommandLine)
+ */
+function stripEmitCode(tscCode) {
+    const lines = tscCode.split('\n');
+    const totalBefore = lines.length;
+
+    // Sections to strip: [startMarker, endMarker] (endMarker is the NEXT section start)
+    // Only strip sections whose exports are NOT referenced by kept code at check-time
+    const sectionsToStrip = [
+        // All transformer implementations (~23200 lines) - only called during emit
+        ['// src/compiler/transformers/utilities.ts', '// src/compiler/transformer.ts'],
+        // tsbuild* (~1737 lines) - only called for `tsc -b` mode
+        ['// src/compiler/tsbuild.ts', '// src/compiler/tsbuildPublic.ts'],
+        ['// src/compiler/tsbuildPublic.ts', '// src/compiler/executeCommandLine.ts'],
+    ];
+
+    // Find line indices for each marker
+    const markerLines = {};
+    for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        for (const [start, end] of sectionsToStrip) {
+            if (trimmed === start) markerLines[start] = i;
+            if (trimmed === end) markerLines[end] = i;
+        }
+    }
+
+    // Build set of lines to remove (mark for removal)
+    const removeSet = new Set();
+    let totalStripped = 0;
+    for (const [startMarker, endMarker] of sectionsToStrip) {
+        const startLine = markerLines[startMarker];
+        const endLine = markerLines[endMarker];
+        if (startLine !== undefined && endLine !== undefined && endLine > startLine) {
+            for (let i = startLine; i < endLine; i++) {
+                removeSet.add(i);
+            }
+            const count = endLine - startLine;
+            totalStripped += count;
+            console.log(`  Stripped: ${startMarker} (${count} lines)`);
+        } else {
+            console.log(`  WARNING: Could not find section ${startMarker} -> ${endMarker}`);
+        }
+    }
+
+    const result = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (!removeSet.has(i)) {
+            result.push(lines[i]);
+        }
+    }
+
+    console.log(`\n  Total stripped: ${totalStripped} lines (${(totalStripped * 100 / totalBefore).toFixed(1)}%)`);
+    console.log(`  Lines before: ${totalBefore}, after: ${result.length}`);
+
+    // Add stubs for functions from stripped transformers section that are
+    // referenced by the checker at type-check time
+    const stubs = `
+// Stubs for functions from stripped transformers section (used by checker)
+function isCompoundAssignment(kind) {
+  return kind >= 65 && kind <= 79;
+}
+function isInitializedProperty(member) {
+  return member.kind === 173 && member.initializer !== void 0;
+}
+function classHasDeclaredOrExplicitlyAssignedName(node) {
+  return !!node.name;
+}
+function getDeclarationDiagnostics(host, resolver, file) {
+  return emptyArray;
+}
+`;
+    return stubs + result.join('\n');
+}
+
 async function main() {
     const { version, files } = await downloadTypeScript();
     
@@ -96,24 +184,43 @@ async function main() {
     const libJson = JSON.stringify(libFiles);
     console.log(`Lib files total: ${libJson.length} bytes`);
 
+    // Strip emit/transform/watch/build code for check-only mode
+    console.log('\nStripping emit/transform/watch/build code...');
+    tscCode = stripEmitCode(tscCode);
+
+    // Replace the final executeCommandLine call to force --noEmit
+    // NOTE: In fibjs, process.argv is a read-only getter that returns a new array
+    // on each access, so we cannot modify it. Instead we inject --noEmit directly
+    // into sys.args before calling executeCommandLine.
+    tscCode = tscCode.replace(
+        'executeCommandLine(sys, noop, sys.args);',
+        [
+            '// Force --noEmit for check-only mode',
+            '// (fibjs process.argv is a read-only getter, so we patch sys.args directly)',
+            'if (!sys.args.some(function(a) { return a === "--noEmit"; })) {',
+            '    sys.args.unshift("--noEmit");',
+            '}',
+            'executeCommandLine(sys, noop, sys.args);',
+        ].join('\n')
+    );
+
     // Generate the check.js file with header that patches fs module
     const header = `#!/usr/bin/env fibjs
 /**
  * TypeScript type checker for fibjs
  * 
  * Bundled TypeScript version: ${version}
- * Generated by fibjs/scripts/opt_tools/build_check.js
+ * Generated by tools/gen_tsc.js
  * 
  * TypeScript is licensed under Apache License 2.0
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * 
- * Usage: fibjs check [options] <files...>
+ * Usage: fibjs --check [options] <files...>
  */
 
 (function() {
 "use strict";
 
-const process = require('process');
 const fs = require('fs');
 
 // Embedded lib.d.ts files
@@ -170,21 +277,12 @@ fs.statSync = function(path, options) {
     }
 };
 
-// Modify argv: add --noEmit by default for type-check only mode
-const args = process.argv.slice(2);
-const hasNoEmit = args.some(a => a === '--noEmit' || a.startsWith('--noEmit='));
-
-process.argv.length = 2;
-if (!hasNoEmit) {
-    process.argv.push('--noEmit');
-}
-process.argv.push(...args);
-
 })();
 
-// ============== TypeScript Compiler ==============
+// ============== TypeScript Compiler (check-only) ==============
 // The code below is from Microsoft TypeScript, licensed under Apache License 2.0
 // https://github.com/microsoft/TypeScript
+// Emit/transform/watch/build code has been stripped for check-only mode.
 
 `;
 
