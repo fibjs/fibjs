@@ -195,10 +195,13 @@ async function main() {
     tscCode = tscCode.replace(
         'executeCommandLine(sys, noop, sys.args);',
         [
-            '// Force --noEmit for check-only mode',
+            '// Force --noEmit and --allowImportingTsExtensions for check-only mode',
             '// (fibjs process.argv is a read-only getter, so we patch sys.args directly)',
             'if (!sys.args.some(function(a) { return a === "--noEmit"; })) {',
             '    sys.args.unshift("--noEmit");',
+            '}',
+            'if (!sys.args.some(function(a) { return a === "--allowImportingTsExtensions"; })) {',
+            '    sys.args.unshift("--allowImportingTsExtensions");',
             '}',
             'executeCommandLine(sys, noop, sys.args);',
         ].join('\n')

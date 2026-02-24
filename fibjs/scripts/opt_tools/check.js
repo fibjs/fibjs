@@ -108975,5 +108975,8 @@ if (sys.setBlocking) {
 if (!sys.args.some(function(a) { return a === "--noEmit"; })) {
     sys.args.unshift("--noEmit");
 }
+if (!sys.args.some(function(a) { return a === "--allowImportingTsExtensions"; })) {
+    sys.args.unshift("--allowImportingTsExtensions");
+}
 executeCommandLine(sys, noop, sys.args);
 //# sourceMappingURL=_tsc.js.map
