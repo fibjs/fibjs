@@ -9,7 +9,7 @@
 
 #include "ifs/BufferedStream.h"
 #include "StringBuffer.h"
-#include "encoding_iconv.h"
+#include "encoding_conv.h"
 #include "AsyncStream.h"
 
 namespace fibjs {
@@ -72,7 +72,7 @@ public:
     int32_t m_temp;
     exlib::string m_eol;
     StringBuffer m_strbuf;
-    encoding_iconv m_iconv;
+    encoding_conv m_iconv;
 };
 
 } /* namespace fibjs */

@@ -1,5 +1,5 @@
 /*
- * encoding_iconv.h
+ * encoding_conv.h
  *
  *  Created on: Jul 13, 2014
  *      Author: lion
@@ -11,11 +11,11 @@
 
 namespace fibjs {
 
-class encoding_iconv {
+class encoding_conv {
 public:
-    encoding_iconv();
-    encoding_iconv(exlib::string charset);
-    ~encoding_iconv();
+    encoding_conv();
+    encoding_conv(exlib::string charset);
+    ~encoding_conv();
 
     void open(const char* charset);
 
@@ -32,14 +32,15 @@ public:
     static bool is_ucs_encoding(exlib::string charset);
     static bool is_encoding(exlib::string charset);
 
+    // WHATWG encoding label normalization, returns canonical name or nullptr
+    static const char* normalizeEncoding(const exlib::string& label);
+
     exlib::string charset() const
     {
         return m_charset;
     }
 
 private:
-    void* m_iconv_en;
-    void* m_iconv_de;
     exlib::string m_charset;
 };
 

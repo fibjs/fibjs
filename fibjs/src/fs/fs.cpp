@@ -11,7 +11,7 @@
 
 #include "ifs/fs.h"
 #include "ifs/zip.h"
-#include "ifs/iconv.h"
+#include "encoding_conv.h"
 #include "path.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -438,7 +438,7 @@ result_t fs_base::write(FileHandle_base* fd, exlib::string string, int32_t posit
 
     obj_ptr<Buffer_base> buf;
 
-    result_t hr = iconv_base::encode(encoding, string, buf);
+    result_t hr = encoding_conv(encoding).encode(string, buf);
     if (hr < 0)
         return CHECK_ERROR(hr);
 

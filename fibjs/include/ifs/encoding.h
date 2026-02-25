@@ -20,7 +20,6 @@ class base64_base;
 class base58_base;
 class hex_base;
 class multibase_base;
-class iconv_base;
 class Buffer_base;
 class json_base;
 class msgpack_base;
@@ -65,7 +64,6 @@ public:
 #include "ifs/base58.h"
 #include "ifs/hex.h"
 #include "ifs/multibase.h"
-#include "ifs/iconv.h"
 #include "ifs/Buffer.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
@@ -89,7 +87,6 @@ inline ClassInfo& encoding_base::class_info()
         { "base58", base58_base::class_info },
         { "hex", hex_base::class_info },
         { "multibase", multibase_base::class_info },
-        { "iconv", iconv_base::class_info },
         { "json", json_base::class_info },
         { "msgpack", msgpack_base::class_info }
     };

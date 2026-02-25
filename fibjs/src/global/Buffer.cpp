@@ -749,7 +749,7 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
         || (codec == "base64") || (codec == "base64url")) {
         retVal = true;
     } else {
-        iconv_base::isEncoding(codec, retVal);
+        retVal = encoding_conv::is_encoding(codec);
     }
     return 0;
 }

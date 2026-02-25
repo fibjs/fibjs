@@ -1,5 +1,5 @@
 /*
- * encoding_iconv_ucs.cpp
+ * encoding_conv_ucs.cpp
  *
  *  Created on: Jan 24, 2023
  *      Author: lion
@@ -10,7 +10,7 @@
 #include <stddef.h>
 
 #include "object.h"
-#include "encoding_iconv.h"
+#include "encoding_conv.h"
 #include "ifs/encoding.h"
 #include "utf8.h"
 
@@ -84,7 +84,7 @@ inline bool is_ucs4_s(exlib::string codec)
     return false;
 }
 
-bool encoding_iconv::is_ucs_encoding(exlib::string charset)
+bool encoding_conv::is_ucs_encoding(exlib::string charset)
 {
     if ((charset == "utf8") || (charset == "utf-8")
 
@@ -113,7 +113,7 @@ bool encoding_iconv::is_ucs_encoding(exlib::string charset)
     return false;
 }
 
-result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
+result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal = data;
@@ -167,7 +167,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     return -1;
 }
 
-result_t encoding_iconv::ucs_decode(const char* data, size_t sz, exlib::string& retVal)
+result_t encoding_conv::ucs_decode(const char* data, size_t sz, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal.assign(data, sz);
@@ -208,7 +208,7 @@ result_t encoding_iconv::ucs_decode(const char* data, size_t sz, exlib::string& 
     return -1;
 }
 
-result_t encoding_iconv::ucs_decode(exlib::string data, exlib::string& retVal)
+result_t encoding_conv::ucs_decode(exlib::string data, exlib::string& retVal)
 {
     return ucs_decode(data.c_str(), data.length(), retVal);
 }

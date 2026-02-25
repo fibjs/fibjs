@@ -40,7 +40,6 @@
         "base58",
         "encoding",
         "hex",
-        "iconv",
         "json",
         "multibase",
         "msgpack",

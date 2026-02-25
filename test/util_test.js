@@ -2015,7 +2015,6 @@ describe('util', () => {
                 "mq",
                 "json",
                 "io",
-                "iconv",
                 "https",
                 "http",
                 "hex",

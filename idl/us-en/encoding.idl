@@ -2,7 +2,6 @@
 
 Below is a brief introduction to the sub-modules provided by the `encoding` module:
 
-- `iconv`: Used to handle conversions between various encodings.
 - `base64`: Provides support for Base64 encoding and decoding, can encode strings to Base64 format, and can also decode Base64 format to strings.
 - `base32`: Provides support for Base32 encoding and decoding, can encode given data to Base32 and return the encoded string. Can also decode Base32 encoded strings to original data.
 - `hex`: Provides support for hexadecimal encoding and decoding, can encode given data to hexadecimal and return the encoded string. Can also decode hexadecimal encoded strings to original data.
@@ -38,25 +37,22 @@ module encoding
     /*! @brief multibase encoding and decoding module */
     static multibase;
 
-    /*! @brief iconv encoding and decoding module */
-    static iconv;
-
     /*! @brief Determine if the specified encoding is supported
-     @param codec Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by iconv module
+     @param codec Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by ICU
      @return Return whether the encoding is supported
     */
     static Boolean isEncoding(String codec);
 
     /*! @brief Encode Buffer to string
      @param data Initialize string, string will be written in utf-8 format
-     @param codec Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by iconv module, default is "utf8"
+     @param codec Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by ICU, default is "utf8"
      @return Return the encoded string
     */
     static String encode(Buffer data, String codec = "utf8");
 
     /*! @brief Decode string to Buffer
      @param str Initialize string, string will be written in utf-8 format
-     @param data Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by iconv module, default is "utf8"
+     @param data Specify encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or character sets supported by ICU, default is "utf8"
      @return Return the decoded Buffer
     */
     static Buffer decode(String str, String codec = "utf8");

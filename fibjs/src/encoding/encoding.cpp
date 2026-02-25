@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "encoding.h"
-#include "encoding_iconv.h"
+#include "encoding_conv.h"
 #include "Url.h"
 #include "libbase58.h"
 #include <math.h>
@@ -376,8 +376,17 @@ result_t commonEncode(exlib::string codec, const char* data, size_t sz, exlib::s
 
             for (i = 0; i < sz; i++)
                 _retVal[i] = data[i] & 0x7f;
+        } else if ((codec == "binary") || (codec == "latin1")) {
+            exlib::wstring wdata = utf8to16String(data, sz);
+            sz = wdata.length();
+            const char16_t* s = wdata.c_str();
+
+            retVal.resize(sz);
+            char* _retVal = retVal.data();
+            for (size_t i = 0; i < sz; i++)
+                _retVal[i] = (char)s[i];
         } else
-            return encoding_iconv(codec).decode(data, sz, retVal);
+            return encoding_conv(codec).decode(data, sz, retVal);
     }
     return 0;
 }
@@ -415,8 +424,17 @@ result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& re
 
             for (i = 0; i < sz; i++)
                 _retVal[i] = data[i] & 0x7f;
+        } else if ((codec == "binary") || (codec == "latin1")) {
+            exlib::wstring wdata = utf8to16String(data);
+            size_t sz = wdata.length();
+            const char16_t* s = wdata.c_str();
+
+            retVal.resize(sz);
+            char* _retVal = retVal.data();
+            for (size_t i = 0; i < sz; i++)
+                _retVal[i] = (char)s[i];
         } else
-            return encoding_iconv(codec).encode(data, retVal);
+            return encoding_conv(codec).encode(data, retVal);
     }
 
     return 0;
@@ -473,7 +491,7 @@ result_t encoding_base::isEncoding(exlib::string codec, bool& retVal)
         || (codec == "base64") || (codec == "base64url")) {
         retVal = true;
     } else {
-        iconv_base::isEncoding(codec, retVal);
+        retVal = encoding_conv::is_encoding(codec);
     }
     return 0;
 }
@@ -509,8 +527,19 @@ result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::st
 
             for (i = 0; i < sz; i++)
                 _retVal[i] = p[i] & 0x7f;
+        } else if ((codec == "binary") || (codec == "latin1")) {
+            size_t sz = _data->length();
+            uint8_t* p = _data->data();
+
+            exlib::wstring wdata;
+            wdata.resize(sz);
+            char16_t* ws = wdata.data();
+            for (size_t i = 0; i < sz; i++)
+                ws[i] = p[i];
+
+            retVal = utf16to8String(wdata);
         } else
-            return iconv_base::decode(codec, data, retVal);
+            return encoding_conv(codec).decode(data, retVal);
     }
 
     return 0;
@@ -544,8 +573,21 @@ result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<B
                 _retVal[i] = p[i] & 0x7f;
 
             retVal = _data;
-        } else
-            return iconv_base::encode(codec, str, retVal);
+        } else if ((codec == "binary") || (codec == "latin1")) {
+            exlib::wstring wdata = utf8to16String(str);
+            size_t sz = wdata.length();
+            const char16_t* s = wdata.c_str();
+
+            Buffer* _data = new Buffer(NULL, sz);
+            uint8_t* _retVal = _data->data();
+            for (size_t i = 0; i < sz; i++)
+                _retVal[i] = (uint8_t)s[i];
+
+            retVal = _data;
+        } else {
+            encoding_conv conv(codec);
+            return conv.encode(str, retVal);
+        }
     }
 
     return 0;

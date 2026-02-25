@@ -32,7 +32,6 @@
 /// <reference path="../module/base58.d.ts" />
 /// <reference path="../module/encoding.d.ts" />
 /// <reference path="../module/hex.d.ts" />
-/// <reference path="../module/iconv.d.ts" />
 /// <reference path="../module/json.d.ts" />
 /// <reference path="../module/multibase.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />

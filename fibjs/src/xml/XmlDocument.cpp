@@ -16,7 +16,7 @@
 #include "XmlProcessingInstruction.h"
 #include "XmlDocumentFragment.h"
 #include "XmlParser.h"
-#include "encoding_iconv.h"
+#include "encoding_conv.h"
 
 namespace fibjs {
 
@@ -302,7 +302,7 @@ result_t XmlDocument::load(Buffer_base* source)
         }
 
         if (!m_encoding.empty()) {
-            encoding_iconv conv(m_encoding);
+            encoding_conv conv(m_encoding);
             conv.decode(strBuf, strBuf);
         }
     }

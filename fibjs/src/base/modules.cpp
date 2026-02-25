@@ -31,7 +31,6 @@ void importBuiltinModule()
     IMPORT_MODULE(hex);
     IMPORT_MODULE(http);
     IMPORT_MODULE(https);
-    IMPORT_MODULE(iconv);
     IMPORT_MODULE(io);
     IMPORT_MODULE(json);
     IMPORT_MODULE(mime);

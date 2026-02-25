@@ -13,7 +13,7 @@
 #include "utf8.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
-#include "encoding_iconv.h"
+#include "encoding_conv.h"
 
 namespace fibjs {
 
@@ -266,7 +266,7 @@ result_t ZipFile::get_info(obj_ptr<Info>& retVal)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     exlib::string _filename;
-    result_t hr = encoding_iconv(m_codec).decode(filename_inzip, _filename);
+    result_t hr = encoding_conv(m_codec).decode(filename_inzip, _filename);
     if (hr < 0)
         return hr;
 
@@ -378,7 +378,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncE
         return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
 
     exlib::string _filename;
-    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    result_t hr = encoding_conv(m_codec).encode(member, _filename);
     if (hr < 0)
         return hr;
 
@@ -463,7 +463,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string _filename;
-    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    result_t hr = encoding_conv(m_codec).encode(member, _filename);
     if (hr < 0)
         return hr;
 
@@ -484,7 +484,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string _filename;
-    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    result_t hr = encoding_conv(m_codec).encode(member, _filename);
     if (hr < 0)
         return hr;
 
@@ -511,7 +511,7 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string _filename;
-    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    result_t hr = encoding_conv(m_codec).encode(member, _filename);
     if (hr < 0)
         return hr;
 
@@ -720,7 +720,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     zi.tmz_date.tm_sec = dp.wSecond;
 
     exlib::string _filename;
-    hr = encoding_iconv(m_codec).encode(filename, _filename);
+    hr = encoding_conv(m_codec).encode(filename, _filename);
     if (hr < 0)
         return hr;
 

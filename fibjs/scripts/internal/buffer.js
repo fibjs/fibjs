@@ -315,7 +315,7 @@ class Buffer extends Uint8Array {
 
             if (typeof bufferOrLength === 'string') {
                 var codec = byte_offset;
-                if (codec === undefined || codec === 'utf8' || codec === 'utf-8' || codec == 'ascii' || codec === 'binary') {
+                if (codec === undefined || codec === 'utf8' || codec === 'utf-8' || codec == 'ascii' || codec === 'binary' || codec === 'latin1') {
                     var byte_length = Buffer.byteLength(bufferOrLength, codec);
 
                     let offset = getPool(byte_length);

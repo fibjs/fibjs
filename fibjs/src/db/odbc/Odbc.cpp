@@ -13,7 +13,7 @@
 #include "DBResult.h"
 #include "Url.h"
 #include "ifs/URLSearchParams.h"
-#include "encoding_iconv.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 

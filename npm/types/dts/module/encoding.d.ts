@@ -4,7 +4,6 @@
 /// <reference path="../module/base58.d.ts" />
 /// <reference path="../module/hex.d.ts" />
 /// <reference path="../module/multibase.d.ts" />
-/// <reference path="../module/iconv.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../module/json.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />
@@ -13,7 +12,6 @@
  * 
  * 下面是 `encoding` 模块提供的各个子模块的简要介绍：
  * 
- * - `iconv`：用于处理各种编码之间的转换。
  * - `base64`：提供了一些对 Base64 编解码的支持，可以将字符串编码为 Base64 格式，也可以将 Base64 格式解码为字符串。
  * - `base32`：提供了对 Base32 编解码的支持，可以将给定的数据进行 Base32 编码并返回编码后的字符串。也可以将 Base32 编码的字符串解码为原始的数据。
  * - `hex`：提供了对十六进制编解码的支持，可以将给定的数据进行十六进制编码，并返回编码后的字符串。也可以将十六进制编码的字符串解码为原始的数据。
@@ -60,13 +58,8 @@ declare module 'encoding' {
     const multibase: typeof import ('multibase');
 
     /**
-     * @description iconv 编码与解码模块 
-     */
-    const iconv: typeof import ('iconv');
-
-    /**
      * @description 判断指定的编码是否支持
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集
      *      @return 返回编码是否支持
      *     
      */
@@ -75,7 +68,7 @@ declare module 'encoding' {
     /**
      * @description 将 Buffer 编码为字符串
      *      @param data 初始化字符串，字符串将以 utf-8 格式写入
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集，缺省为 "utf8"
      *      @return 返回编码的字符串
      *     
      */
@@ -84,7 +77,7 @@ declare module 'encoding' {
     /**
      * @description 将字符串解码为 Buffer
      *      @param str 初始化字符串，字符串将以 utf-8 格式写入
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集，缺省为 "utf8"
      *      @return 返回解码的 Buffer
      *     
      */
