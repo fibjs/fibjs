@@ -59,8 +59,17 @@ logger.dir({ key: 'value' }, { colors: true, depth: 1 });
 
 Through these methods, you can conveniently record and manage log information in the application. Log recording not only helps developers discover and solve problems during development and debugging, but also provides important runtime information in the production environment of the application, helping operation and maintenance personnel monitor and maintain the stability and performance of the system.
  */
-interface Logger : object
+interface ConsoleObject : object
 {
+    /*! @brief ConsoleObject constructor, create a new ConsoleObject object */
+    ConsoleObject();
+
+    /*! @brief ConsoleObject constructor, create a new ConsoleObject object
+     @param stdout specify the writable stream for output, default is process.stdout
+     @param stderr specify the writable stream for error output, default is stdout
+     */
+    ConsoleObject(Value stdout, Value stderr = undefined);
+
     /*! @brief Record general log information, same as info
 
      Record general level log information. Usually used to output non-error prompt information.
@@ -265,4 +274,33 @@ interface Logger : object
      @param options specifies format control options
      */
     dir(Value obj, Object options = {});
+
+    /*! @brief Output object in JSON format
+     @param obj given object to display
+     */
+    table(Value obj);
+
+    /*! @brief Output object in JSON format
+     @param obj given object to display
+     @param fields given fields to display
+     */
+    table(Value obj, Array fields);
+
+    /*! @brief Start a timer
+
+     @param label title, default is empty string.
+     */
+    time(String label = "time");
+
+    /*! @brief Output current timing value of specified timer
+
+     @param label title, default is empty string.
+     */
+    timeElapse(String label = "time");
+
+    /*! @brief End specified timer and output final timing value
+
+     @param label title, default is empty string.
+     */
+    timeEnd(String label = "time");
 };

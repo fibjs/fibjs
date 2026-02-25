@@ -19,7 +19,7 @@ class TextDecoder_base;
 class TextEncoder_base;
 class types_base;
 class colors_base;
-class Logger_base;
+class ConsoleObject_base;
 class Buffer_base;
 
 class util_base : public object_base {
@@ -31,10 +31,10 @@ public:
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
-    static result_t debuglog(exlib::string section, obj_ptr<Logger_base>& retVal);
-    static result_t debuglog(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<Logger_base>& retVal);
-    static result_t debug(exlib::string section, obj_ptr<Logger_base>& retVal);
-    static result_t debug(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<Logger_base>& retVal);
+    static result_t debuglog(exlib::string section, obj_ptr<ConsoleObject_base>& retVal);
+    static result_t debuglog(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<ConsoleObject_base>& retVal);
+    static result_t debug(exlib::string section, obj_ptr<ConsoleObject_base>& retVal);
+    static result_t debug(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<ConsoleObject_base>& retVal);
     static result_t deprecate(v8::Local<v8::Function> fn, exlib::string msg, exlib::string code, v8::Local<v8::Function>& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -176,7 +176,7 @@ public:
 #include "ifs/TextEncoder.h"
 #include "ifs/types.h"
 #include "ifs/colors.h"
-#include "ifs/Logger.h"
+#include "ifs/ConsoleObject.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -319,7 +319,7 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
 
 inline void util_base::s_static_debuglog(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Logger_base> vr;
+    obj_ptr<ConsoleObject_base> vr;
 
     METHOD_ENTER();
 
@@ -341,7 +341,7 @@ inline void util_base::s_static_debuglog(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void util_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Logger_base> vr;
+    obj_ptr<ConsoleObject_base> vr;
 
     METHOD_ENTER();
 

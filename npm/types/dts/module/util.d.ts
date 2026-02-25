@@ -3,7 +3,7 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/types.d.ts" />
 /// <reference path="../module/colors.d.ts" />
-/// <reference path="../interface/Logger.d.ts" />
+/// <reference path="../interface/ConsoleObject.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description util 模块提供了对数据类型的判断、对象属性的复制、模版字符串的解析、事件处理等实用的工具函数
@@ -131,42 +131,42 @@ declare module 'util' {
     function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
      *      
      *      @param section 指定的调试区域
-     *      @return 返回一个 Logger 对象
+     *      @return 返回一个 ConsoleObject 对象
      *      
      */
-    function debuglog(section: string): Class_Logger;
+    function debuglog(section: string): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
      * 
      *      @param section 指定的调试区域
      *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
-     *      @return 返回一个 Logger 对象
+     *      @return 返回一个 ConsoleObject 对象
      *      
      */
-    function debuglog(section: string, fn: (...args: any[])=>any): Class_Logger;
+    function debuglog(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
      *      
      *      @param section 指定的调试区域
-     *      @return 返回一个 Logger 对象
+     *      @return 返回一个 ConsoleObject 对象
      *      
      */
-    function debug(section: string): Class_Logger;
+    function debug(section: string): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
      * 
      *      @param section 指定的调试区域
      *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
-     *      @return 返回一个 Logger 对象
+     *      @return 返回一个 ConsoleObject 对象
      *      
      */
-    function debug(section: string, fn: (...args: any[])=>any): Class_Logger;
+    function debug(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
      * @description 封装给定的函数，本函数仅为兼容，并不输出警告

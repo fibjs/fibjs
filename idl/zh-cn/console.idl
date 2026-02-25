@@ -488,4 +488,7 @@ module console
 
     /*! @brief 断言测试，如果测试值为假，则报错 */
     static assert;
+
+    /*! @brief Console 构造函数，用于创建输出到指定流的新 Console 实例 */
+    static ConsoleObject new Console();
 };

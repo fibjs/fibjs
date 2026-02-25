@@ -60,8 +60,17 @@ logger.dir({ key: 'value' }, { colors: true, depth: 1 });
 
 通过这些方法，您可以方便地记录和管理应用程序中的日志信息。日志记录不仅可以帮助开发者在开发和调试过程中发现和解决问题，还可以在应用程序的生产环境中提供重要的运行时信息，帮助运维人员监控和维护系统的稳定性和性能。
  */
-interface Logger : object
+interface ConsoleObject : object
 {
+    /*! @brief ConsoleObject 构造函数，创建新的 ConsoleObject 对象 */
+    ConsoleObject();
+
+    /*! @brief ConsoleObject 构造函数，创建新的 ConsoleObject 对象
+     @param stdout 指定输出的可写流，默认为 process.stdout
+     @param stderr 指定错误输出的可写流，默认为 stdout
+     */
+    ConsoleObject(Value stdout, Value stderr = undefined);
+
     /*! @brief 记录普通日志信息，与 info 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
@@ -266,4 +275,33 @@ interface Logger : object
      @param options 指定格式控制选项
      */
     dir(Value obj, Object options = {});
+
+    /*! @brief 用 JSON 格式输出对象
+     @param obj 给定要显示的对象
+     */
+    table(Value obj);
+
+    /*! @brief 用 JSON 格式输出对象
+     @param obj 给定要显示的对象
+     @param fields 给定要显示的字段
+     */
+    table(Value obj, Array fields);
+
+    /*! @brief 启动一个计时器
+
+     @param label 标题，缺省为空字符串。
+     */
+    time(String label = "time");
+
+    /*! @brief 输出指定计时器当前计时值
+
+     @param label 标题，缺省为空字符串。
+     */
+    timeElapse(String label = "time");
+
+    /*! @brief 结束指定计时器，并输出最后计时值
+
+     @param label 标题，缺省为空字符串。
+     */
+    timeEnd(String label = "time");
 };

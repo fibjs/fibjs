@@ -64,7 +64,20 @@
  * 通过这些方法，您可以方便地记录和管理应用程序中的日志信息。日志记录不仅可以帮助开发者在开发和调试过程中发现和解决问题，还可以在应用程序的生产环境中提供重要的运行时信息，帮助运维人员监控和维护系统的稳定性和性能。
  *  
  */
-declare class Class_Logger extends Class_object {
+declare class Class_ConsoleObject extends Class_object {
+    /**
+     * @description ConsoleObject 构造函数，创建新的 ConsoleObject 对象 
+     */
+    constructor();
+
+    /**
+     * @description ConsoleObject 构造函数，创建新的 ConsoleObject 对象
+     *      @param stdout 指定输出的可写流，默认为 process.stdout
+     *      @param stderr 指定错误输出的可写流，默认为 stdout
+     *      
+     */
+    constructor(stdout: any, stderr?: any);
+
     /**
      * @description 记录普通日志信息，与 info 等同
      * 
@@ -323,6 +336,45 @@ declare class Class_Logger extends Class_object {
      *      
      */
     dir(obj: any, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 用 JSON 格式输出对象
+     *      @param obj 给定要显示的对象
+     *      
+     */
+    table(obj: any): void;
+
+    /**
+     * @description 用 JSON 格式输出对象
+     *      @param obj 给定要显示的对象
+     *      @param fields 给定要显示的字段
+     *      
+     */
+    table(obj: any, fields: any[]): void;
+
+    /**
+     * @description 启动一个计时器
+     * 
+     *      @param label 标题，缺省为空字符串。
+     *      
+     */
+    time(label?: string): void;
+
+    /**
+     * @description 输出指定计时器当前计时值
+     * 
+     *      @param label 标题，缺省为空字符串。
+     *      
+     */
+    timeElapse(label?: string): void;
+
+    /**
+     * @description 结束指定计时器，并输出最后计时值
+     * 
+     *      @param label 标题，缺省为空字符串。
+     *      
+     */
+    timeEnd(label?: string): void;
 
 }
 

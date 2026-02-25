@@ -15,11 +15,13 @@
 
 namespace fibjs {
 
-class Logger_base : public object_base {
-    DECLARE_CLASS(Logger_base);
+class ConsoleObject_base : public object_base {
+    DECLARE_CLASS(ConsoleObject_base);
 
 public:
-    // Logger_base
+    // ConsoleObject_base
+    static result_t _new(obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Value> stdout, v8::Local<v8::Value> stderr, obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t _function(exlib::string fmt, OptArgs args) = 0;
     virtual result_t _function(OptArgs args) = 0;
     virtual result_t get_section(exlib::string& retVal) = 0;
@@ -47,19 +49,18 @@ public:
     virtual result_t trace(exlib::string fmt, OptArgs args) = 0;
     virtual result_t trace(OptArgs args) = 0;
     virtual result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options) = 0;
+    virtual result_t table(v8::Local<v8::Value> obj) = 0;
+    virtual result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields) = 0;
+    virtual result_t time(exlib::string label) = 0;
+    virtual result_t timeElapse(exlib::string label) = 0;
+    virtual result_t timeEnd(exlib::string label) = 0;
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-
-        ThrowTypeError("not a constructor");
-    }
-
-    static result_t load(v8::Local<v8::Value> v, obj_ptr<Logger_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<ConsoleObject_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_section(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_enabled(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,11 +76,15 @@ public:
     static void s_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_table(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 namespace fibjs {
-inline ClassInfo& Logger_base::class_info()
+inline ClassInfo& ConsoleObject_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "log", s_log, false, ClassData::ASYNC_SYNC },
@@ -93,7 +98,11 @@ inline ClassInfo& Logger_base::class_info()
         { "critical", s_critical, false, ClassData::ASYNC_SYNC },
         { "alert", s_alert, false, ClassData::ASYNC_SYNC },
         { "trace", s_trace, false, ClassData::ASYNC_SYNC },
-        { "dir", s_dir, false, ClassData::ASYNC_SYNC }
+        { "dir", s_dir, false, ClassData::ASYNC_SYNC },
+        { "table", s_table, false, ClassData::ASYNC_SYNC },
+        { "time", s_time, false, ClassData::ASYNC_SYNC },
+        { "timeElapse", s_timeElapse, false, ClassData::ASYNC_SYNC },
+        { "timeEnd", s_timeEnd, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -102,7 +111,7 @@ inline ClassInfo& Logger_base::class_info()
     };
 
     static ClassData s_cd = {
-        "Logger", false, s__new, s__function,
+        "ConsoleObject", false, s__new, s__function,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
@@ -112,9 +121,51 @@ inline ClassInfo& Logger_base::class_info()
     return s_ci;
 }
 
-inline void Logger_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    CONSTRUCT_INIT();
+    __new(args);
+}
+
+inline void ConsoleObject_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ConsoleObject_base> vr;
+
+    CONSTRUCT_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
+
+    CONSTRUCT_RETURN();
+}
+
+inline result_t ConsoleObject_base::load(v8::Local<v8::Value> v, obj_ptr<ConsoleObject_base>& retVal)
+{
+    obj_ptr<ConsoleObject_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
+
+    LOAD_RETURN();
+}
+
+inline void ConsoleObject_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -133,11 +184,11 @@ inline void Logger_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void Logger_base::s_get_section(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_get_section(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -147,11 +198,11 @@ inline void Logger_base::s_get_section(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void Logger_base::s_get_enabled(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_get_enabled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -161,9 +212,9 @@ inline void Logger_base::s_get_enabled(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void Logger_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -182,9 +233,9 @@ inline void Logger_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Logger_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -203,9 +254,9 @@ inline void Logger_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Logger_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -224,9 +275,9 @@ inline void Logger_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Logger_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -245,9 +296,9 @@ inline void Logger_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void Logger_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -266,9 +317,9 @@ inline void Logger_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Logger_base::s_warning(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_warning(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -287,9 +338,9 @@ inline void Logger_base::s_warning(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void Logger_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -308,9 +359,9 @@ inline void Logger_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Logger_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -329,9 +380,9 @@ inline void Logger_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Logger_base::s_critical(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_critical(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -350,9 +401,9 @@ inline void Logger_base::s_critical(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void Logger_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -371,9 +422,9 @@ inline void Logger_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Logger_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -392,9 +443,9 @@ inline void Logger_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Logger_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ConsoleObject_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Logger_base);
+    METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -403,6 +454,69 @@ inline void Logger_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->dir(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void ConsoleObject_base::s_table(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ConsoleObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = pInst->table(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+
+    hr = pInst->table(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void ConsoleObject_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ConsoleObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = pInst->time(v0);
+
+    METHOD_VOID();
+}
+
+inline void ConsoleObject_base::s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ConsoleObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = pInst->timeElapse(v0);
+
+    METHOD_VOID();
+}
+
+inline void ConsoleObject_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ConsoleObject_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = pInst->timeEnd(v0);
 
     METHOD_VOID();
 }

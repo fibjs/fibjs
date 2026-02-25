@@ -1859,7 +1859,7 @@ describe('util', () => {
         it("is function", () => {
             const debuglog = util.debuglog('test');
             assert.isFunction(debuglog);
-            assert.equal(debuglog.constructor.name, 'Logger');
+            assert.equal(debuglog.constructor.name, 'ConsoleObject');
         });
 
         it("disable default", () => {
@@ -1926,7 +1926,7 @@ describe('util', () => {
                 debuglog('test');
 
                 assert.isFunction(newlog);
-                assert.equal(newlog.constructor.name, 'Logger');
+                assert.equal(newlog.constructor.name, 'ConsoleObject');
 
                 assert.equal(newlog.debug, newlog);
                 assert.equal(newlog.info, newlog);

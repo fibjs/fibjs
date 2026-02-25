@@ -488,4 +488,7 @@ module console
 
     /*! @brief Assertion test, if test value is false, report error */
     static assert;
+
+    /*! @brief Console constructor, used to create a new Console instance that outputs to specified streams */
+    static ConsoleObject new Console();
 };

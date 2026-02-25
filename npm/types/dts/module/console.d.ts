@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/assert.d.ts" />
+/// <reference path="../interface/ConsoleObject.d.ts" />
 /**
  * @description 控制台访问对象
  * 
@@ -641,6 +642,11 @@ declare module 'console' {
      * @description 断言测试，如果测试值为假，则报错 
      */
     const assert: typeof import ('assert');
+
+    /**
+     * @description Console 构造函数，用于创建输出到指定流的新 Console 实例 
+     */
+    const Console: typeof Class_ConsoleObject;
 
 }
 

@@ -106,35 +106,35 @@ module util
      */
     static String inspect(Value obj, Object options = {});
 
-    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable
+    /*! @brief Create a ConsoleObject object that conditionally outputs debug information based on the NODE_DEBUG environment variable
      
      @param section Specified debug area
-     @return Return a Logger object
+     @return Return a ConsoleObject object
      */
-    static Logger debuglog(String section);
+    static ConsoleObject debuglog(String section);
 
-    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable
+    /*! @brief Create a ConsoleObject object that conditionally outputs debug information based on the NODE_DEBUG environment variable
 
      @param section Specified debug area
      @param fn Callback called when the log function is called for the first time, its function parameter is a more optimized log function
-     @return Return a Logger object
+     @return Return a ConsoleObject object
      */
-    static Logger debuglog(String section, Function fn);
+    static ConsoleObject debuglog(String section, Function fn);
 
-    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
+    /*! @brief Create a ConsoleObject object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
      
      @param section Specified debug area
-     @return Return a Logger object
+     @return Return a ConsoleObject object
      */
-    static Logger debug(String section);
+    static ConsoleObject debug(String section);
 
-    /*! @brief Create a Logger object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
+    /*! @brief Create a ConsoleObject object that conditionally outputs debug information based on the NODE_DEBUG environment variable. It is an alias for debuglog
 
      @param section Specified debug area
      @param fn Callback called when the log function is called for the first time, its function parameter is a more optimized log function
-     @return Return a Logger object
+     @return Return a ConsoleObject object
      */
-    static Logger debug(String section, Function fn);
+    static ConsoleObject debug(String section, Function fn);
 
     /*! @brief Wrap the given function, this function is only for compatibility and does not output warnings
 

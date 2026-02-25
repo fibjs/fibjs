@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class assert_base;
+class ConsoleObject_base;
 
 class console_base : public object_base {
     DECLARE_CLASS(console_base);
@@ -134,6 +135,7 @@ public:
 }
 
 #include "ifs/assert.h"
+#include "ifs/ConsoleObject.h"
 
 namespace fibjs {
 inline ClassInfo& console_base::class_info()
@@ -168,7 +170,8 @@ inline ClassInfo& console_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "assert", assert_base::class_info }
+        { "assert", assert_base::class_info },
+        { "Console", ConsoleObject_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {
