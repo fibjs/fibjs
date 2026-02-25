@@ -162,6 +162,44 @@ public:
     }
 
     // Stream_base
+    class AsyncReadVariant : public AsyncState {
+    public:
+        AsyncReadVariant(AsyncStream<T>* pThis, int32_t bytes, Variant& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_bytes(bytes)
+            , m_retVal(retVal)
+        {
+            next(doRead);
+        }
+
+        ON_STATE(AsyncReadVariant, doRead)
+        {
+            return m_pThis->readBuffer(m_bytes, m_buf, next(done));
+        }
+
+        ON_STATE(AsyncReadVariant, done)
+        {
+            if (n == CALL_RETURN_NULL)
+                return next(CALL_RETURN_NULL);
+
+            if (!m_pThis->m_decoder) {
+                m_retVal = m_buf;
+            } else {
+                exlib::string str;
+                m_pThis->m_decoder->decode(m_buf, true, str);
+                m_retVal = str;
+            }
+            return next(0);
+        }
+
+    private:
+        AsyncStream<T>* m_pThis;
+        int32_t m_bytes;
+        Variant& m_retVal;
+        obj_ptr<Buffer_base> m_buf;
+    };
+
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
     {
         // readable mode: return from pending queue synchronously
@@ -246,23 +284,8 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        obj_ptr<Buffer_base> buf;
-        result_t hr = this->readBuffer(bytes, buf, ac);
-        if (hr < 0)
-            return hr;
-        if (hr == CALL_RETURN_NULL)
-            return CALL_RETURN_NULL;
-
-        if (!this->m_decoder) {
-            retVal = buf;
-        } else {
-            exlib::string str;
-            hr = this->m_decoder->decode(buf, true, str);
-            if (hr < 0)
-                return hr;
-            retVal = str;
-        }
-        return 0;
+        (new AsyncReadVariant(this, bytes, retVal, ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal)
