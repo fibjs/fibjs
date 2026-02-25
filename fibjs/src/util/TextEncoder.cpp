@@ -211,14 +211,17 @@ result_t TextDecoder::ensureConverter()
 
 result_t TextDecoder::decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
+    // Parse stream option and delegate to C++ API
+    bool stream = false;
+    GetConfigValue(opts, "stream", stream);
+    return decode(data, !stream, retVal);
+}
+
+result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVal)
+{
     result_t hr = ensureConverter();
     if (hr < 0)
         return hr;
-
-    // Parse stream option
-    bool stream = false;
-    GetConfigValue(opts, "stream", stream);
-    bool flush = !stream;
 
     Buffer* buf = Buffer::Cast(data);
     const char* src = (const char*)buf->data();
@@ -262,10 +265,13 @@ result_t TextDecoder::decode(Buffer_base* data, v8::Local<v8::Object> opts, exli
         m_bomSeen = false;
 
         if (m_fatal) {
-            Isolate* isolate = holder();
-            isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-                isolate->NewString("The encoded data was not valid.")));
-            return CALL_E_JAVASCRIPT;
+            Isolate* isolate = Isolate::current();
+            if (isolate) {
+                isolate->m_isolate->ThrowException(v8::Exception::TypeError(
+                    isolate->NewString("The encoded data was not valid.")));
+                return CALL_E_JAVASCRIPT;
+            }
+            return CHECK_ERROR(Runtime::setError("The encoded data was not valid."));
         }
 
         // Should not reach here with SUBSTITUTE callback, but handle gracefully

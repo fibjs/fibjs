@@ -18,7 +18,7 @@ result_t MemoryStream::CloneStream::get_fd(int32_t& retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t MemoryStream::CloneStream::read(int32_t bytes,
+result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     exlib::string strBuf;
@@ -50,7 +50,7 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
 result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    return read(-1, retVal, ac);
+    return readBuffer(-1, retVal, ac);
 }
 
 result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncEvent* ac)

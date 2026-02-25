@@ -3,6 +3,7 @@ var assert = require('assert');
 var coroutine = require('coroutine');
 var path = require('path');
 var fs = require('fs');
+var net = require('net');
 var os = require('os');
 var zip = require('zip');
 var io = require('io');
@@ -845,6 +846,250 @@ describe('fs', () => {
 
         testFile.close();
         fs.unlink(path.join(__dirname, 'fs_test.js.data_event' + vmid));
+    });
+
+    it("stream setEncoding and read", () => {
+        var fn = path.join(__dirname, 'fs_test.js.enc' + vmid);
+
+        // Write UTF-8 content with multibyte characters
+        var content = 'Hello, 世界! 🌍 café';
+        fs.writeFile(fn, content);
+
+        // read without encoding returns Buffer
+        var f = fs.openFile(fn);
+        var result = f.read();
+        assert.ok(Buffer.isBuffer(result));
+        assert.equal(result.toString(), content);
+        f.close();
+
+        // read with setEncoding returns string
+        f = fs.openFile(fn);
+        f.setEncoding('utf8');
+        result = f.read();
+        assert.equal(typeof result, 'string');
+        assert.equal(result, content);
+        f.close();
+
+        // readBuffer always returns Buffer regardless of encoding
+        f = fs.openFile(fn);
+        f.setEncoding('utf8');
+        result = f.readBuffer();
+        assert.ok(Buffer.isBuffer(result));
+        assert.equal(result.toString(), content);
+        f.close();
+
+        fs.unlink(fn);
+    });
+
+    it("stream setEncoding with data event", () => {
+        var fn = path.join(__dirname, 'fs_test.js.enc_event' + vmid);
+        var content = 'Hello, 世界!';
+        fs.writeFile(fn, content);
+
+        var f = fs.openFile(fn);
+        f.setEncoding('utf8');
+
+        var receivedData = [];
+        f.on('data', (data) => {
+            // data event should emit strings when encoding is set
+            assert.equal(typeof data, 'string');
+            receivedData.push(data);
+        });
+
+        coroutine.sleep(10);
+
+        assert.equal(receivedData.join(''), content);
+
+        f.close();
+        fs.unlink(fn);
+    });
+
+    it("stream write with encoding", () => {
+        var fn = path.join(__dirname, 'fs_test.js.enc_write' + vmid);
+
+        // write string with default utf8 encoding
+        var f = fs.openFile(fn, 'w+');
+        f.write('Hello, 世界!');
+        f.rewind();
+        var result = f.read();
+        assert.ok(Buffer.isBuffer(result));
+        assert.equal(result.toString(), 'Hello, 世界!');
+
+        // write string with hex encoding
+        f.rewind();
+        f.truncate(0);
+        f.write('48656c6c6f', 'hex');
+        f.rewind();
+        result = f.read();
+        assert.equal(result.toString(), 'Hello');
+
+        // write string with base64 encoding
+        f.rewind();
+        f.truncate(0);
+        f.write('SGVsbG8=', 'base64');
+        f.rewind();
+        result = f.read();
+        assert.equal(result.toString(), 'Hello');
+
+        f.close();
+        fs.unlink(fn);
+    });
+
+    it("stream read with setEncoding on MemoryStream", () => {
+        var stm = new io.MemoryStream();
+
+        // Write multibyte UTF-8 content: "Hi中!🌍"
+        // "中" = E4 B8 AD, "🌍" = F0 9F 8C 8D
+        stm.write(Buffer.from([0x48, 0x69, 0xE4, 0xB8, 0xAD, 0x21,
+            0xF0, 0x9F, 0x8C, 0x8D]));
+        stm.rewind();
+
+        // Without encoding, read returns Buffer
+        var result = stm.read();
+        assert.ok(Buffer.isBuffer(result));
+        assert.equal(result.toString(), 'Hi中!🌍');
+
+        // With encoding, read returns string
+        stm.rewind();
+        stm.setEncoding('utf-8');
+        result = stm.read();
+        assert.equal(typeof result, 'string');
+        assert.equal(result, 'Hi中!🌍');
+
+        // readBuffer always returns Buffer
+        stm.rewind();
+        result = stm.readBuffer();
+        assert.ok(Buffer.isBuffer(result));
+        assert.equal(result.toString(), 'Hi中!🌍');
+    });
+
+    it("stream setEncoding data event on MemoryStream", () => {
+        var stm = new io.MemoryStream();
+        var content = 'Hello, 世界!🌍';
+        stm.write(Buffer.from(content));
+        stm.rewind();
+
+        stm.setEncoding('utf-8');
+
+        var receivedData = [];
+        stm.on('data', (data) => {
+            assert.equal(typeof data, 'string');
+            receivedData.push(data);
+        });
+
+        coroutine.sleep(10);
+        assert.equal(receivedData.join(''), content);
+    });
+
+    it("stream setEncoding with incomplete multibyte fragments over TCP", () => {
+        var port = 28900 + vmid;
+        var serverConn = null;
+        var serverReady = new coroutine.Event();
+
+        var s = new net.Socket(net.AF_INET);
+        s.bind(port);
+        s.listen();
+
+        coroutine.start(function () {
+            try {
+                serverConn = s.accept();
+                serverReady.set();
+            } catch (e) { }
+        });
+
+        var client = new net.Socket(net.AF_INET);
+        client.connect(port, '127.0.0.1');
+        serverReady.wait();
+
+        client.setEncoding('utf-8');
+
+        var received = [];
+        var closeEvent = new coroutine.Event();
+
+        client.on('data', function (data) {
+            assert.equal(typeof data, 'string');
+            received.push(data);
+        });
+
+        client.on('close', function () {
+            closeEvent.set();
+        });
+
+        // "中" = E4 B8 AD, "🌍" = F0 9F 8C 8D
+        // Send "Hi" + first 2 bytes of "中"
+        serverConn.send(Buffer.from([0x48, 0x69, 0xE4, 0xB8]));
+        coroutine.sleep(100);
+
+        // Send last byte of "中" + "!" + first byte of 🌍
+        serverConn.send(Buffer.from([0xAD, 0x21, 0xF0]));
+        coroutine.sleep(100);
+
+        // Send remaining 3 bytes of 🌍
+        serverConn.send(Buffer.from([0x9F, 0x8C, 0x8D]));
+        coroutine.sleep(100);
+
+        serverConn.close();
+        closeEvent.wait();
+
+        // Decoder should reassemble incomplete multibyte fragments across chunks
+        assert.equal(received.join(''), 'Hi中!🌍');
+
+        s.close();
+    });
+
+    it("stream setEncoding with incomplete GBK fragments over TCP", () => {
+        var port = 28910 + vmid;
+        var serverConn = null;
+        var serverReady = new coroutine.Event();
+
+        var s = new net.Socket(net.AF_INET);
+        s.bind(port);
+        s.listen();
+
+        coroutine.start(function () {
+            try {
+                serverConn = s.accept();
+                serverReady.set();
+            } catch (e) { }
+        });
+
+        var client = new net.Socket(net.AF_INET);
+        client.connect(port, '127.0.0.1');
+        serverReady.wait();
+
+        client.setEncoding('gbk');
+
+        var received = [];
+        var closeEvent = new coroutine.Event();
+
+        client.on('data', function (data) {
+            assert.equal(typeof data, 'string');
+            received.push(data);
+        });
+
+        client.on('close', function () {
+            closeEvent.set();
+        });
+
+        // GBK: "中" = D6 D0, "国" = B9 FA, "人" = C8 CB
+        // Send "A" + half of "中"
+        serverConn.send(Buffer.from([0x41, 0xD6]));
+        coroutine.sleep(100);
+
+        // Send complete "中" + half of "国"
+        serverConn.send(Buffer.from([0xD0, 0xB9]));
+        coroutine.sleep(100);
+
+        // Send complete "国" + complete "人"
+        serverConn.send(Buffer.from([0xFA, 0xC8, 0xCB]));
+        coroutine.sleep(100);
+
+        serverConn.close();
+        closeEvent.wait();
+
+        assert.equal(received.join(''), 'A中国人');
+
+        s.close();
     });
 
     it("readFile", () => {

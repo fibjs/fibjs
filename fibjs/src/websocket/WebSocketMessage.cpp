@@ -162,7 +162,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
                 len = m_bytes;
 
             m_buf.Release();
-            return m_from->read((int32_t)len, m_buf, next(write));
+            return m_from->readBuffer((int32_t)len, m_buf, next(write));
         }
 
         ON_STATE(asyncCopy, write)
@@ -377,7 +377,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
 
         ON_STATE(asyncReadFrom, head)
         {
-            return m_stm->read(2, m_buffer, next(extHead));
+            return m_stm->readBuffer(2, m_buffer, next(extHead));
         }
 
         ON_STATE(asyncReadFrom, extHead)
@@ -439,7 +439,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
 
             m_buffer.Release();
             if (sz)
-                return m_stm->read(sz, m_buffer, next(extReady));
+                return m_stm->readBuffer(sz, m_buffer, next(extReady));
 
             return next(copy);
         }

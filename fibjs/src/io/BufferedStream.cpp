@@ -38,7 +38,7 @@ public:
         if (hr != CALL_E_PENDDING)
             return next(hr);
 
-        return m_pThis->m_stm->read(-1, m_buf, next(ready));
+        return m_pThis->m_stm->readBuffer(-1, m_buf, next(ready));
     }
 
     ON_STATE(asyncBuffer, ready)
@@ -74,7 +74,7 @@ result_t BufferedStream::get_fd(int32_t& retVal)
     return m_stm->get_fd(retVal);
 }
 
-result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     class asyncRead : public asyncBuffer {
@@ -130,7 +130,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             return 0;
         } else
-            return m_stm->read(bytes, retVal, ac);
+            return m_stm->readBuffer(bytes, retVal, ac);
     }
 
     result_t hr = asyncRead::process(this, bytes, retVal, false);

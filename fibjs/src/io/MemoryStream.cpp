@@ -24,7 +24,7 @@ result_t MemoryStream::get_fd(int32_t& retVal)
     return CALL_E_INVALID_CALL;
 }
 
-result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+result_t MemoryStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     exlib::string strBuf;
@@ -63,7 +63,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    return read(-1, retVal, ac);
+    return readBuffer(-1, retVal, ac);
 }
 
 result_t MemoryStream::truncate(int64_t bytes, AsyncEvent* ac)

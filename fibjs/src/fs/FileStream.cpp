@@ -31,7 +31,7 @@ FileStream::~FileStream()
         });
 }
 
-result_t FileStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (m_fd == -1)

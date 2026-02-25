@@ -96,7 +96,7 @@ result_t Socket::get_fd(int32_t& retVal)
     return 0;
 }
 
-result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+result_t Socket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     return m_aio.read(bytes, retVal, ac, bytes > 0, m_timeout);

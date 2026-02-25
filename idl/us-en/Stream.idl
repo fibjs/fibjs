@@ -8,9 +8,21 @@ interface Stream : EventEmitter
 
     /*! @brief Read data of specified size from the stream
      @param bytes Specifies the amount of data to read, default is to read a random size data block, the size of the read data depends on the device
-     @return Returns the data read from the stream, returns null if no data is available or the connection is interrupted
+     @return Returns the data read from the stream. If encoding is set, returns a string; otherwise returns a Buffer. Returns null if no data is available or the connection is interrupted
      */
-    Buffer read(Integer bytes = -1) async;
+    Variant read(Integer bytes = -1) async;
+
+    /*! @brief Read data of specified size from the stream as Buffer
+     @param bytes Specifies the amount of data to read, default is to read a random size data block, the size of the read data depends on the device
+     @return Returns the Buffer data read from the stream, returns null if no data is available or the connection is interrupted
+     */
+    Buffer readBuffer(Integer bytes = -1) async;
+
+    /*! @brief Set the encoding for the stream. After setting, read() will return strings instead of Buffer objects
+     @param encoding The encoding to use, e.g. 'utf8', 'ascii', 'hex', etc. Pass null to return to Buffer mode
+     @return Returns the current stream object
+     */
+    Stream setEncoding(String encoding);
 
     /*! @brief Write the given data to the stream
      @param data The data to write

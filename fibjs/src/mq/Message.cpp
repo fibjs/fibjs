@@ -109,7 +109,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (m_body == NULL)
         return CALL_RETURN_NULL;
 
-    return m_body->read(bytes, retVal, ac);
+    return m_body->readBuffer(bytes, retVal, ac);
 }
 
 result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)

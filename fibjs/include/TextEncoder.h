@@ -55,6 +55,10 @@ public:
     virtual result_t get_fatal(bool& retVal);
     virtual result_t get_ignoreBOM(bool& retVal);
 
+public:
+    // C++ API for stream decoding without V8 opts
+    result_t decode(Buffer_base* data, bool flush, exlib::string& retVal);
+
 private:
     result_t ensureConverter();
 

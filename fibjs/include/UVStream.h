@@ -331,7 +331,7 @@ public:
         return 0;
     };
 
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);

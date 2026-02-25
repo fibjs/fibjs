@@ -1,6 +1,5 @@
 /*
- * AsyncStream
-.h
+ * AsyncStream.h
  *
  *  Created on: Jun 15, 2025
  *      Author: lion
@@ -9,15 +8,17 @@
 #pragma once
 
 #include "ifs/io.h"
+#include "TextEncoder.h"
 #include "Fiber.h"
 
 namespace fibjs {
 
 class AsyncStreamReader : public AsyncState {
 public:
-    AsyncStreamReader(Stream_base* pThis)
+    AsyncStreamReader(Stream_base* pThis, obj_ptr<TextDecoder>& decoder)
         : AsyncState(NULL)
         , m_this(pThis)
+        , m_decoder(decoder)
     {
         m_isolate = pThis->holder();
         m_holder = new ValueHolder(m_this->wrap());
@@ -37,7 +38,7 @@ public:
 
     ON_STATE(AsyncStreamReader, recv)
     {
-        return m_this->read(-1, m_buf, next(event));
+        return m_this->readBuffer(-1, m_buf, next(event));
     }
 
     ON_STATE(AsyncStreamReader, event)
@@ -47,7 +48,13 @@ public:
             return next();
         }
 
-        m_this->_emit("data", m_buf);
+        if (!m_decoder) {
+            m_this->_emit("data", m_buf);
+        } else {
+            exlib::string str;
+            m_decoder->decode(m_buf, false, str);
+            m_this->_emit("data", str);
+        }
         return next(recv);
     }
 
@@ -79,6 +86,7 @@ private:
     obj_ptr<ValueHolder> m_holder;
     obj_ptr<Stream_base> m_this;
     obj_ptr<Buffer_base> m_buf;
+    obj_ptr<TextDecoder>& m_decoder;
 };
 
 template <typename T>
@@ -96,6 +104,38 @@ public:
     }
 
     // Stream_base
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        obj_ptr<Buffer_base> buf;
+        result_t hr = this->readBuffer(bytes, buf, ac);
+        if (hr < 0)
+            return hr;
+        if (hr == CALL_RETURN_NULL)
+            return CALL_RETURN_NULL;
+
+        if (!this->m_decoder) {
+            retVal = buf;
+        } else {
+            exlib::string str;
+            hr = this->m_decoder->decode(buf, true, str);
+            if (hr < 0)
+                return hr;
+            retVal = str;
+        }
+        return 0;
+    }
+
+    virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal)
+    {
+        this->m_encoding = encoding;
+        this->m_decoder = new TextDecoder(encoding, false, false);
+        retVal = this;
+        return 0;
+    }
+
     virtual result_t write(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
     {
         return static_cast<T*>(this)->write(data, retVal, ac);
@@ -178,7 +218,7 @@ public:
 
         auto state = m_state.dec();
         if (state <= 1 && !reader)
-            reader = new AsyncStreamReader(this);
+            reader = new AsyncStreamReader(this, m_decoder);
         if (state == 0)
             reader->start();
     }
@@ -190,7 +230,7 @@ public:
 
         auto state = m_state.dec();
         if (state <= 1 && !reader)
-            reader = new AsyncStreamReader(this);
+            reader = new AsyncStreamReader(this, m_decoder);
         if (state == 0)
             reader->start();
     }
@@ -210,6 +250,7 @@ public:
 
 protected:
     AsyncStreamReader* reader = nullptr;
+    obj_ptr<TextDecoder> m_decoder;
     // Stream state as counter:
     // 0 = ready to start async read (all conditions met)
     // 1 = waiting for one condition (either startRecvStream or setConnected)

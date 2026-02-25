@@ -128,7 +128,7 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }

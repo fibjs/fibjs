@@ -48,7 +48,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
                 len = m_bytes;
 
             m_buf.Release();
-            return m_from->read((int32_t)len, m_buf, next(write));
+            return m_from->readBuffer((int32_t)len, m_buf, next(write));
         }
 
         ON_STATE(asyncCopy, write)
@@ -108,7 +108,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                     != BRIDGE_WRITE)
                     return error(0);
 
-                return m_data->m_stms[m_from]->read(-1, m_buf, next(write));
+                return m_data->m_stms[m_from]->readBuffer(-1, m_buf, next(write));
             }
 
             ON_STATE(AsyncCopy, write)

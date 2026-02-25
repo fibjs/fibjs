@@ -671,6 +671,74 @@ describe('TextDecoder', () => {
         assert.strictEqual(result, text);
     });
 
+    it('streaming decode GBK incomplete fragments', () => {
+        // GBK: "中" = D6 D0, "国" = B9 FA
+        const dec = new TextDecoder('gbk');
+        let r = '';
+        r += dec.decode(new Uint8Array([0xD6]), { stream: true }); // half of "中"
+        assert.strictEqual(r, '');
+        r += dec.decode(new Uint8Array([0xD0, 0xB9]), { stream: true }); // complete "中", half of "国"
+        assert.strictEqual(r, '中');
+        r += dec.decode(new Uint8Array([0xFA])); // complete "国"
+        assert.strictEqual(r, '中国');
+    });
+
+    it('streaming decode GBK byte-by-byte', () => {
+        // GBK: "你好" = C4 E3 BA C3
+        const dec = new TextDecoder('gbk');
+        let r = '';
+        r += dec.decode(new Uint8Array([0xC4]), { stream: true });
+        assert.strictEqual(r, '');
+        r += dec.decode(new Uint8Array([0xE3]), { stream: true });
+        assert.strictEqual(r, '你');
+        r += dec.decode(new Uint8Array([0xBA]), { stream: true });
+        assert.strictEqual(r, '你');
+        r += dec.decode(new Uint8Array([0xC3]));
+        assert.strictEqual(r, '你好');
+    });
+
+    it('streaming decode Shift_JIS incomplete fragments', () => {
+        // Shift_JIS: "日" = 93 FA, "本" = 96 7B
+        const dec = new TextDecoder('shift_jis');
+        let r = '';
+        r += dec.decode(new Uint8Array([0x93]), { stream: true }); // half of "日"
+        assert.strictEqual(r, '');
+        r += dec.decode(new Uint8Array([0xFA, 0x96]), { stream: true }); // complete "日", half of "本"
+        assert.strictEqual(r, '日');
+        r += dec.decode(new Uint8Array([0x7B])); // complete "本"
+        assert.strictEqual(r, '日本');
+    });
+
+    it('streaming decode UTF-16LE incomplete fragments', () => {
+        // UTF-16LE: "A" = 41 00, "B" = 42 00, CJK "中" = 2D 4E
+        const dec = new TextDecoder('utf-16le');
+        let r = '';
+        r += dec.decode(new Uint8Array([0x41]), { stream: true }); // half of "A"
+        assert.strictEqual(r, '');
+        r += dec.decode(new Uint8Array([0x00, 0x2D]), { stream: true }); // complete "A", half of "中"
+        assert.strictEqual(r, 'A');
+        r += dec.decode(new Uint8Array([0x4E, 0x42, 0x00])); // complete "中" + complete "B"
+        assert.strictEqual(r, 'A中B');
+    });
+
+    it('streaming decode mixed encodings with chunk sizes', () => {
+        // Test GBK with various chunk sizes like the UTF-8 WPT test
+        // GBK: "测试数据" = B2 E2 CA D4 CA FD BE DD
+        const gbkBytes = [0xB2, 0xE2, 0xCA, 0xD4, 0xCA, 0xFD, 0xBE, 0xDD];
+        const expected = '测试数据';
+
+        for (let chunkSize = 1; chunkSize <= 5; chunkSize++) {
+            const dec = new TextDecoder('gbk');
+            let result = '';
+            for (let i = 0; i < gbkBytes.length; i += chunkSize) {
+                const chunk = gbkBytes.slice(i, Math.min(i + chunkSize, gbkBytes.length));
+                result += dec.decode(new Uint8Array(chunk), { stream: true });
+            }
+            result += dec.decode(); // flush
+            assert.strictEqual(result, expected, `GBK chunk size ${chunkSize}`);
+        }
+    });
+
     it('decoder reuse after flush', () => {
         const dec = new TextDecoder('utf-8');
 

@@ -45,7 +45,7 @@ private:
         SeekableStream_base* strm = (SeekableStream_base*)stream;
         obj_ptr<Buffer_base> data;
 
-        hr = strm->cc_read((int32_t)size, data);
+        hr = strm->cc_readBuffer((int32_t)size, data);
         if (hr < 0 || hr == CALL_RETURN_NULL)
             return 0;
 
@@ -670,7 +670,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
     while (true) {
         obj_ptr<Buffer_base> buf;
 
-        hr = strm->cc_read(BUF_SIZE, buf);
+        hr = strm->cc_readBuffer(BUF_SIZE, buf);
         if (hr == CALL_RETURN_NULL)
             break;
         else if (hr < 0)
@@ -733,7 +733,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 
     strm->rewind();
     do {
-        hr = strm->cc_read(BUF_SIZE, buf);
+        hr = strm->cc_readBuffer(BUF_SIZE, buf);
         if (hr == CALL_RETURN_NULL)
             break;
         else if (hr < 0)

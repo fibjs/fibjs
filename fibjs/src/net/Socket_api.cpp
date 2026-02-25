@@ -100,7 +100,7 @@ namespace socket {
 
         obj_ptr<Buffer_base> retVal;
 
-        result_t hr = ((Socket_base*)sock)->cc_read(cbBuffer, retVal);
+        result_t hr = ((Socket_base*)sock)->cc_readBuffer(cbBuffer, retVal);
         if (hr < 0) {
             Runtime::setError(hr);
             return -1;

@@ -26,7 +26,9 @@ class Stream_base : public EventEmitter_base {
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal) = 0;
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -43,6 +45,9 @@ public:
     virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
 
 public:
+    exlib::string m_encoding;
+
+public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -56,6 +61,8 @@ public:
 public:
     static void s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -73,7 +80,8 @@ public:
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, Variant);
+    ASYNC_MEMBERVALUE2(Stream_base, readBuffer, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Stream_base, write, Buffer_base*, int32_t);
     ASYNC_MEMBERVALUE3(Stream_base, write, Buffer_base*, exlib::string, int32_t);
     ASYNC_MEMBERVALUE3(Stream_base, write, exlib::string, exlib::string, int32_t);
@@ -94,6 +102,8 @@ inline ClassInfo& Stream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
+        { "readBuffer", s_readBuffer, false, ClassData::ASYNC_ASYNC },
+        { "setEncoding", s_setEncoding, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "resume", s_resume, false, ClassData::ASYNC_SYNC },
         { "pause", s_pause, false, ClassData::ASYNC_SYNC },
@@ -139,7 +149,7 @@ inline void Stream_base::s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Buffer_base> vr;
+    Variant vr;
 
     ASYNC_METHOD_INSTANCE(Stream_base);
     ASYNC_METHOD_ENTER("Stream.read");
@@ -152,6 +162,41 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = pInst->acb_read(v0, cb, args);
     else
         hr = pInst->ac_read(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Stream_base);
+    ASYNC_METHOD_ENTER("Stream.readBuffer");
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(int32_t, 0, -1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readBuffer(v0, cb, args);
+    else
+        hr = pInst->ac_readBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->setEncoding(v0, vr);
 
     METHOD_RETURN();
 }

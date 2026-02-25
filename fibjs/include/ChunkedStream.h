@@ -32,7 +32,7 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         class asyncReadFrom : public AsyncState {
         public:
@@ -78,7 +78,7 @@ public:
                         && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
 
-                    return m_pThis->m_stm->read(sz, m_pThis->m_data, next(chunk_body_end));
+                    return m_pThis->m_stm->readBuffer(sz, m_pThis->m_data, next(chunk_body_end));
                 }
 
                 return m_pThis->m_stm->readLine(64, m_strLine, next(chunk_end));
@@ -91,7 +91,7 @@ public:
 
             ON_STATE(asyncReadFrom, read)
             {
-                return m_pThis->read(m_bytes, m_retVal, next());
+                return m_pThis->readBuffer(m_bytes, m_retVal, next());
             }
 
             ON_STATE(asyncReadFrom, chunk_end)

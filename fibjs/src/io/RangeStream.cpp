@@ -125,7 +125,7 @@ result_t RangeStream::get_fd(int32_t& retVal)
     }
 }
 
-result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_seekable) {
         if (!m_stream)
@@ -156,9 +156,9 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
                 int64_t rest_sz = m_pThis->e_pos - m_pThis->real_pos;
 
                 if (m_bytes < 0 || m_bytes > rest_sz)
-                    return m_pThis->m_stream->read((int32_t)rest_sz, m_retVal, next(ready));
+                    return m_pThis->m_stream->readBuffer((int32_t)rest_sz, m_retVal, next(ready));
                 else
-                    return m_pThis->m_stream->read(m_bytes, m_retVal, next(ready));
+                    return m_pThis->m_stream->readBuffer(m_bytes, m_retVal, next(ready));
             }
 
             ON_STATE(asyncRead, ready)
@@ -215,7 +215,7 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
                     return next(CALL_RETURN_NULL);
 
                 int32_t to_read = (m_bytes < 0 || m_bytes > rest_sz) ? (int32_t)rest_sz : m_bytes;
-                return m_pThis->m_raw_stream->read(to_read, m_retVal, next(ready));
+                return m_pThis->m_raw_stream->readBuffer(to_read, m_retVal, next(ready));
             }
 
             ON_STATE(asyncReadRaw, ready)
@@ -399,7 +399,7 @@ result_t RangeStream::size(int64_t& retVal)
 
 result_t RangeStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    return read(-1, retVal, ac);
+    return readBuffer(-1, retVal, ac);
 }
 
 result_t RangeStream::truncate(int64_t bytes, AsyncEvent* ac)

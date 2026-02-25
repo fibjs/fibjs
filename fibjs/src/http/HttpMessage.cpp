@@ -160,7 +160,7 @@ public:
     ON_STATE(asyncSendTo, tinybody)
     {
         m_pThis->body()->rewind();
-        return m_pThis->body()->read((int32_t)m_contentLength, m_buffer, next(header));
+        return m_pThis->body()->readBuffer((int32_t)m_contentLength, m_buffer, next(header));
     }
 
     ON_STATE(asyncSendTo, header)

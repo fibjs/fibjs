@@ -215,7 +215,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
                     return setResult(CALL_RETURN_NULL);
                 }
 
-                return m_stmBuffered->read(sz + 2, m_buffer, next(bulk_ok));
+                return m_stmBuffered->readBuffer(sz + 2, m_buffer, next(bulk_ok));
             }
 
             if (ch == '*') {

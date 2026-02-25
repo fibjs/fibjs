@@ -983,7 +983,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, socks_hello_response)
         {
-            return m_conn->read(2, m_buffer, next(socks_connect));
+            return m_conn->readBuffer(2, m_buffer, next(socks_connect));
         }
 
         ON_STATE(asyncRequest, socks_connect)
@@ -1025,7 +1025,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, socks_connect_req_5_bytes)
         {
-            return m_conn->read(5, m_buffer, next(socks_connect_res_5_bytes));
+            return m_conn->readBuffer(5, m_buffer, next(socks_connect_res_5_bytes));
         }
 
         ON_STATE(asyncRequest, socks_connect_res_5_bytes)
@@ -1048,7 +1048,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 len = (uint8_t)p[4] + 2; // domain
             }
 
-            return m_conn->read(len, m_buffer, next(socks_connected));
+            return m_conn->readBuffer(len, m_buffer, next(socks_connected));
         }
 
         ON_STATE(asyncRequest, socks_connected)
