@@ -21,7 +21,7 @@ class ConsoleObject_base : public object_base {
 public:
     // ConsoleObject_base
     static result_t _new(obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Value> stdout, v8::Local<v8::Value> stderr, obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Value> out, v8::Local<v8::Value> err, obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t _function(exlib::string fmt, OptArgs args) = 0;
     virtual result_t _function(OptArgs args) = 0;
     virtual result_t get_section(exlib::string& retVal) = 0;

@@ -72,11 +72,11 @@ declare class Class_ConsoleObject extends Class_object {
 
     /**
      * @description ConsoleObject 构造函数，创建新的 ConsoleObject 对象
-     *      @param stdout 指定输出的可写流，默认为 process.stdout
-     *      @param stderr 指定错误输出的可写流，默认为 stdout
+     *      @param out 指定输出的可写流，默认为 process.stdout
+     *      @param err 指定错误输出的可写流，默认为 stdout
      *      
      */
-    constructor(stdout: any, stderr?: any);
+    constructor(out: any, err?: any);
 
     /**
      * @description 记录普通日志信息，与 info 等同

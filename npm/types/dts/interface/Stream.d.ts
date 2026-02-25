@@ -15,28 +15,62 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description 从流内读取指定大小的数据
      *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
      *      
      */
-    read(bytes?: number): Class_Buffer;
+    read(bytes?: number): any;
 
-    read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 从流内读取指定大小的数据
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
-     *      
-     */
-    readSync(bytes?: number): Class_Buffer;
+    read(bytes?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 从流内读取指定大小的数据
      *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readAsync(bytes?: number): Promise<Class_Buffer>;
+    readSync(bytes?: number): any;
+
+    /**
+     * @description 从流内读取指定大小的数据
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAsync(bytes?: number): Promise<any>;
+
+    /**
+     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readBuffer(bytes?: number): Class_Buffer;
+
+    readBuffer(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readBufferSync(bytes?: number): Class_Buffer;
+
+    /**
+     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
+     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readBufferAsync(bytes?: number): Promise<Class_Buffer>;
+
+    /**
+     * @description 设置流的编码方式。设置后 read() 将返回字符串而非 Buffer 对象
+     *      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
+     *      @return 返回当前流对象
+     *      
+     */
+    setEncoding(encoding: string): Class_Stream;
 
     /**
      * @description 将给定的数据写入流

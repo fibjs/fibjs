@@ -250,6 +250,7 @@ public:
 
 protected:
     AsyncStreamReader* reader = nullptr;
+    exlib::string m_encoding;
     obj_ptr<TextDecoder> m_decoder;
     // Stream state as counter:
     // 0 = ready to start async read (all conditions met)

@@ -45,9 +45,6 @@ public:
     virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
 
 public:
-    exlib::string m_encoding;
-
-public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
