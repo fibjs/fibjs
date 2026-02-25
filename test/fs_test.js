@@ -1092,6 +1092,131 @@ describe('fs', () => {
         s.close();
     });
 
+    it("stream readable event on MemoryStream", () => {
+        var stm = new io.MemoryStream();
+        stm.write("hello world");
+        stm.rewind();
+        stm.setEncoding("utf8");
+
+        var chunks = [];
+        var readableCount = 0;
+        var readableDone = new coroutine.Event();
+
+        stm.on("readable", () => {
+            readableCount++;
+            var chunk;
+            while ((chunk = stm.read()) !== null) {
+                chunks.push(chunk);
+            }
+            readableDone.set();
+        });
+
+        readableDone.wait();
+        assert.equal(chunks.join(""), "hello world");
+        assert.equal(typeof chunks[0], "string");
+    });
+
+    it("stream readable read(n) on MemoryStream", () => {
+        var stm = new io.MemoryStream();
+        stm.write("abcdefghij"); // 10 bytes
+        stm.rewind();
+
+        var chunks = [];
+        var readableDone = new coroutine.Event();
+
+        stm.on("readable", () => {
+            var chunk;
+            while ((chunk = stm.read(3)) !== null) {
+                chunks.push(chunk);
+            }
+            // remaining 1 byte, read(3) returns null, read() gets it
+            chunk = stm.read();
+            if (chunk !== null)
+                chunks.push(chunk);
+            readableDone.set();
+        });
+
+        readableDone.wait();
+
+        // Should get: [abc], [def], [ghi], [j]
+        assert.equal(chunks.length, 4);
+        assert.deepEqual(chunks[0], Buffer.from("abc"));
+        assert.deepEqual(chunks[1], Buffer.from("def"));
+        assert.deepEqual(chunks[2], Buffer.from("ghi"));
+        assert.deepEqual(chunks[3], Buffer.from("j"));
+    });
+
+    it("stream readable raw buffer on MemoryStream", () => {
+        var stm = new io.MemoryStream();
+        stm.write("raw data");
+        stm.rewind();
+
+        var chunks = [];
+        var readableDone = new coroutine.Event();
+
+        stm.on("readable", () => {
+            var chunk;
+            while ((chunk = stm.read()) !== null) {
+                chunks.push(chunk);
+            }
+            readableDone.set();
+        });
+
+        readableDone.wait();
+        assert.ok(Buffer.isBuffer(chunks[0]));
+        assert.equal(chunks[0].toString(), "raw data");
+    });
+
+    it("stream readable with incomplete multibyte over TCP", () => {
+        var port = 28920 + vmid;
+        var serverConn = null;
+        var serverReady = new coroutine.Event();
+
+        var s = new net.Socket(net.AF_INET);
+        s.bind(port);
+        s.listen();
+
+        coroutine.start(function () {
+            try {
+                serverConn = s.accept();
+                serverReady.set();
+            } catch (e) { }
+        });
+
+        var client = new net.Socket(net.AF_INET);
+        client.connect(port, '127.0.0.1');
+        serverReady.wait();
+
+        client.setEncoding('utf8');
+
+        var received = [];
+        var closeEvent = new coroutine.Event();
+
+        client.on("readable", () => {
+            var chunk;
+            while ((chunk = client.read()) !== null) {
+                assert.equal(typeof chunk, "string");
+                received.push(chunk);
+            }
+        });
+
+        client.on("close", () => {
+            closeEvent.set();
+        });
+
+        // "中" = E4 B8 AD, send split across packets
+        serverConn.send(Buffer.from([0x48, 0x69, 0xE4])); // "Hi" + half of "中"
+        coroutine.sleep(100);
+        serverConn.send(Buffer.from([0xB8, 0xAD, 0x21])); // rest of "中" + "!"
+        coroutine.sleep(100);
+
+        serverConn.close();
+        closeEvent.wait();
+
+        assert.equal(received.join(''), 'Hi中!');
+        s.close();
+    });
+
     it("readFile", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
         var d = f.readAll();

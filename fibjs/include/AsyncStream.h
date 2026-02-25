@@ -9,16 +9,42 @@
 
 #include "ifs/io.h"
 #include "TextEncoder.h"
+#include "Buffer.h"
 #include "Fiber.h"
+#include <list>
 
 namespace fibjs {
 
+// Non-template base class holding readable mode state,
+// so AsyncStreamReader can access it via m_this pointer without templates
+class AsyncStreamBase {
+public:
+    bool m_readable = false;
+    exlib::spinlock m_lock;
+    std::list<obj_ptr<Buffer_base>> m_pendingQueue;
+    size_t m_totalBytes = 0;
+    size_t m_highWaterMark = 16384;
+    obj_ptr<TextDecoder> m_decoder;
+
+    static size_t roundUpPow2(size_t n)
+    {
+        n--;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+        n++;
+        return n;
+    }
+};
+
 class AsyncStreamReader : public AsyncState {
 public:
-    AsyncStreamReader(Stream_base* pThis, obj_ptr<TextDecoder>& decoder)
+    AsyncStreamReader(Stream_base* pThis, AsyncStreamBase* base)
         : AsyncState(NULL)
         , m_this(pThis)
-        , m_decoder(decoder)
+        , m_base(base)
     {
         m_isolate = pThis->holder();
         m_holder = new ValueHolder(m_this->wrap());
@@ -48,13 +74,40 @@ public:
             return next();
         }
 
-        if (!m_decoder) {
+        AsyncStreamBase* base = m_base;
+
+        if (m_base->m_readable) {
+            // readable mode: buffer data into pending queue
+            exlib::string buf;
+            m_buf->toString(buf);
+
+            bool isFull;
+            m_base->m_lock.lock();
+            m_base->m_pendingQueue.push_back(m_buf);
+            m_base->m_totalBytes += buf.length();
+            isFull = m_base->m_totalBytes >= m_base->m_highWaterMark;
+            m_base->m_lock.unlock();
+
+            m_this->_emit("readable");
+
+            if (isFull)
+                return next(drain);
+            return next(recv);
+        }
+
+        if (!m_base->m_decoder) {
             m_this->_emit("data", m_buf);
         } else {
             exlib::string str;
-            m_decoder->decode(m_buf, false, str);
+            m_base->m_decoder->decode(m_buf, false, str);
             m_this->_emit("data", str);
         }
+        return next(recv);
+    }
+
+    ON_STATE(AsyncStreamReader, drain)
+    {
+        // woken up by read() via apost(0), continue reading
         return next(recv);
     }
 
@@ -81,23 +134,28 @@ public:
         return v;
     }
 
+public:
+
 private:
     Isolate* m_isolate;
     obj_ptr<ValueHolder> m_holder;
     obj_ptr<Stream_base> m_this;
+    AsyncStreamBase* m_base;
     obj_ptr<Buffer_base> m_buf;
-    obj_ptr<TextDecoder>& m_decoder;
 };
 
 template <typename T>
-class AsyncStream : public T {
+class AsyncStream : public T, public AsyncStreamBase {
 public:
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         if (ev == "data")
             startRecvStream();
-        else if (ev == "connect")
+        else if (ev == "readable") {
+            m_readable = true;
+            startRecvStream();
+        } else if (ev == "connect")
             m_connect_event = true;
 
         return 0;
@@ -106,6 +164,85 @@ public:
     // Stream_base
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
     {
+        // readable mode: return from pending queue synchronously
+        if (m_readable) {
+            m_lock.lock();
+
+            if (m_pendingQueue.empty()) {
+                m_lock.unlock();
+                return CALL_RETURN_NULL;
+            }
+
+            // read(n) with n > 0: check if enough bytes buffered
+            if (bytes > 0) {
+                if ((size_t)bytes > m_totalBytes) {
+                    // not enough data, auto-grow highWaterMark if needed
+                    if ((size_t)bytes > m_highWaterMark)
+                        m_highWaterMark = roundUpPow2(bytes);
+                    m_lock.unlock();
+                    return CALL_RETURN_NULL;
+                }
+            }
+
+            bool wasFull = m_totalBytes >= m_highWaterMark;
+            obj_ptr<Buffer_base> buf;
+
+            if (bytes <= 0) {
+                // read() with no size: merge all chunks and return
+                if (m_pendingQueue.size() == 1) {
+                    buf = m_pendingQueue.front();
+                } else {
+                    exlib::string all;
+                    for (auto& b : m_pendingQueue) {
+                        exlib::string s;
+                        b->toString(s);
+                        all.append(s);
+                    }
+                    buf = new Buffer(all.c_str(), all.length());
+                }
+                m_pendingQueue.clear();
+                m_totalBytes = 0;
+            } else {
+                // read(n): take exactly n bytes
+                exlib::string result;
+                size_t remaining = bytes;
+                while (remaining > 0 && !m_pendingQueue.empty()) {
+                    obj_ptr<Buffer_base> front = m_pendingQueue.front();
+                    exlib::string s;
+                    front->toString(s);
+
+                    if (s.length() <= remaining) {
+                        result.append(s);
+                        remaining -= s.length();
+                        m_pendingQueue.pop_front();
+                    } else {
+                        result.append(s.c_str(), remaining);
+                        m_pendingQueue.front() = new Buffer(
+                            s.c_str() + remaining, s.length() - remaining);
+                        remaining = 0;
+                    }
+                }
+                m_totalBytes -= bytes;
+                buf = new Buffer(result.c_str(), result.length());
+            }
+
+            m_lock.unlock();
+
+            if (!this->m_decoder) {
+                retVal = buf;
+            } else {
+                exlib::string str;
+                this->m_decoder->decode(buf, false, str);
+                retVal = str;
+            }
+
+            // if buffer was at/above highWaterMark, wake reader to continue
+            if (wasFull && reader)
+                reader->apost(0);
+
+            return 0;
+        }
+
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -217,8 +354,9 @@ public:
             return;
 
         auto state = m_state.dec();
-        if (state <= 1 && !reader)
-            reader = new AsyncStreamReader(this, m_decoder);
+        if (state <= 1 && !reader) {
+            reader = new AsyncStreamReader(this, this);
+        }
         if (state == 0)
             reader->start();
     }
@@ -229,8 +367,9 @@ public:
             return;
 
         auto state = m_state.dec();
-        if (state <= 1 && !reader)
-            reader = new AsyncStreamReader(this, m_decoder);
+        if (state <= 1 && !reader) {
+            reader = new AsyncStreamReader(this, this);
+        }
         if (state == 0)
             reader->start();
     }
@@ -251,7 +390,6 @@ public:
 protected:
     AsyncStreamReader* reader = nullptr;
     exlib::string m_encoding;
-    obj_ptr<TextDecoder> m_decoder;
     // Stream state as counter:
     // 0 = ready to start async read (all conditions met)
     // 1 = waiting for one condition (either startRecvStream or setConnected)
