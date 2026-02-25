@@ -194,7 +194,10 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     _mod->Set(context, isolate->NewString("_sbox"), args.Data()).IsJust();
     _mod->Set(context, isolate->NewString("_id"), isolate->NewString(id)).IsJust();
 
-    args.GetReturnValue().Set(isolate->NewFunction("require", _require, _mod));
+    v8::Local<v8::Function> fn = isolate->NewFunction("require", _require, _mod);
+    fn->Set(context, isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod)).IsJust();
+
+    args.GetReturnValue().Set(fn);
 }
 
 SandBox::Context::Context(SandBox* sb, exlib::string id)

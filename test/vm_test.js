@@ -974,6 +974,17 @@ describe("vm", () => {
                 "b": 2
             });
         });
+
+        it('createRequire.resolve', () => {
+            var module = require('module');
+
+            var require1 = module.createRequire(path.join(__dirname, 'vm_test/custom_ext_js/test.js'));
+
+            assert.equal(typeof require1.resolve, 'function');
+            assert.equal(require1.resolve('./custom_ext.cjs.js'),
+                path.join(__dirname, 'vm_test', 'custom_ext_js', 'custom_ext.cjs.js'));
+            assert.equal(require1.resolve('path'), 'path');
+        });
     });
 
     describe(`all builtin modules aliases with prefix fibjs: / node:`, () => {
