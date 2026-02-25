@@ -9,6 +9,7 @@
 
 #include "ifs/TextEncoder.h"
 #include "ifs/TextDecoder.h"
+#include <unicode/include/unicode/ucnv.h>
 
 namespace fibjs {
 
@@ -22,6 +23,7 @@ public:
 public:
     // TextEncoder_base
     virtual result_t encode(exlib::string data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal);
+    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, v8::Local<v8::Object>& retVal);
     virtual result_t get_encoding(exlib::string& retVal);
 
 private:
@@ -30,9 +32,19 @@ private:
 
 class TextDecoder : public TextDecoder_base {
 public:
-    TextDecoder(exlib::string codec)
+    TextDecoder(exlib::string codec, bool fatal, bool ignoreBOM)
         : m_codec(codec)
+        , m_fatal(fatal)
+        , m_ignoreBOM(ignoreBOM)
+        , m_bomSeen(false)
+        , m_cnv(nullptr)
     {
+    }
+
+    ~TextDecoder()
+    {
+        if (m_cnv)
+            ucnv_close(m_cnv);
     }
 
 public:
@@ -40,9 +52,18 @@ public:
     virtual result_t decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t decode(exlib::string& retVal);
     virtual result_t get_encoding(exlib::string& retVal);
+    virtual result_t get_fatal(bool& retVal);
+    virtual result_t get_ignoreBOM(bool& retVal);
+
+private:
+    result_t ensureConverter();
 
 private:
     exlib::string m_codec;
+    bool m_fatal;
+    bool m_ignoreBOM;
+    bool m_bomSeen;
+    UConverter* m_cnv;
 };
 
 } /* namespace fibjs */

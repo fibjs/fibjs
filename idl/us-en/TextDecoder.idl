@@ -27,4 +27,10 @@ interface TextDecoder : object
 
     /*! @brief Query the current encoding character set */
     readonly String encoding;
+
+    /*! @brief Query whether to throw an exception on decoding error */
+    readonly Boolean fatal;
+
+    /*! @brief Query whether to ignore BOM */
+    readonly Boolean ignoreBOM;
 };

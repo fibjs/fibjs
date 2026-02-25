@@ -29,6 +29,15 @@ declare class Class_TextEncoder extends Class_object {
     encode(data?: string, opts?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
+     * @description 将文本编码到目标缓冲区
+     * 	 @param source 要编码的文本
+     * 	 @param destination 写入的目标缓冲区
+     * 	 @return 返回包含 read 和 written 属性的对象
+     * 	 
+     */
+    encodeInto(source: string, destination: Class_Buffer): FIBJS.GeneralObject;
+
+    /**
      * @description 查询当前的编码字符集 
      */
     readonly encoding: string;

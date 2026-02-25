@@ -26,6 +26,8 @@ public:
     virtual result_t decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
     virtual result_t decode(exlib::string& retVal) = 0;
     virtual result_t get_encoding(exlib::string& retVal) = 0;
+    virtual result_t get_fatal(bool& retVal) = 0;
+    virtual result_t get_ignoreBOM(bool& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -35,6 +37,8 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_fatal(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ignoreBOM(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -48,7 +52,9 @@ inline ClassInfo& TextDecoder_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "encoding", s_get_encoding, block_set, false }
+        { "encoding", s_get_encoding, block_set, false },
+        { "fatal", s_get_fatal, block_set, false },
+        { "ignoreBOM", s_get_ignoreBOM, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -131,6 +137,34 @@ inline void TextDecoder_base::s_get_encoding(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER(0, 0);
 
     hr = pInst->get_encoding(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TextDecoder_base::s_get_fatal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(TextDecoder_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_fatal(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TextDecoder_base::s_get_ignoreBOM(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(TextDecoder_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_ignoreBOM(vr);
 
     METHOD_RETURN();
 }

@@ -20,6 +20,13 @@ interface TextEncoder : object
 	 */
     Buffer encode(String data = "", Object opts = {});
 
+    /*! @brief Encode text into a destination buffer
+	 @param source text to encode
+	 @param destination destination buffer to write into
+	 @return returns an object with read and written properties
+	 */
+    Object encodeInto(String source, Buffer destination);
+
     /*! @brief Query the current encoding character set */
     readonly String encoding;
 };

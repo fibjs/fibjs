@@ -24,6 +24,7 @@ public:
     // TextEncoder_base
     static result_t _new(exlib::string codec, v8::Local<v8::Object> opts, obj_ptr<TextEncoder_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t encode(exlib::string data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_encoding(exlib::string& retVal) = 0;
 
 public:
@@ -33,6 +34,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_encodeInto(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -43,7 +45,8 @@ namespace fibjs {
 inline ClassInfo& TextEncoder_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_encode, false, ClassData::ASYNC_SYNC }
+        { "encode", s_encode, false, ClassData::ASYNC_SYNC },
+        { "encodeInto", s_encodeInto, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -112,6 +115,23 @@ inline void TextEncoder_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->encode(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void TextEncoder_base::s_encodeInto(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(TextEncoder_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = pInst->encodeInto(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }

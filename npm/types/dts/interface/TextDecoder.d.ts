@@ -40,5 +40,15 @@ declare class Class_TextDecoder extends Class_object {
      */
     readonly encoding: string;
 
+    /**
+     * @description 查询解码错误时是否抛出异常 
+     */
+    readonly fatal: boolean;
+
+    /**
+     * @description 查询是否忽略 BOM 
+     */
+    readonly ignoreBOM: boolean;
+
 }
 
