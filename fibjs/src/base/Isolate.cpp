@@ -111,6 +111,29 @@ void Isolate::sync(std::function<int(void)> func)
     post_task(new SyncFunc(func));
 }
 
+void Isolate::sync_urgent(std::function<int(void)> func)
+{
+    class SyncFunc : public AsyncEvent {
+    public:
+        SyncFunc(std::function<int(void)> func)
+            : m_func(func)
+        {
+        }
+
+        virtual result_t js_invoke()
+        {
+            result_t hr = m_func();
+            delete this;
+            return hr;
+        }
+
+    private:
+        std::function<int(void)> m_func;
+    };
+
+    post_urgent_task(new SyncFunc(func));
+}
+
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
     virtual void* Allocate(size_t length)

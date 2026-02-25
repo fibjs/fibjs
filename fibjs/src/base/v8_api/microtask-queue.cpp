@@ -39,7 +39,7 @@ void Isolate::RunMicrotasks()
     do {
         for (intptr_t i = 0, p = 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
-            sync([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
+            sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
                 JSFiber::EnterJsScope s;
 
                 std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);

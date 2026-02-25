@@ -53,5 +53,20 @@ describe('promise', () => {
     it("error in async function without await", () => {
         t('async3.js', '/promise/async3.js:7:11\n    throw new Error(100);\n          ^\nError: 100\n    at a_test (/promise/async3.js:7:11) {}\n');
     });
+
+    it("microtask should run before next macrotask", done => {
+        setImmediate(() => {
+            let microtaskRan = false;
+
+            Promise.resolve().then(() => {
+                microtaskRan = true;
+            });
+
+            setImmediate(() => {
+                assert.ok(microtaskRan, "Promise.then should drain before next setImmediate");
+                done();
+            });
+        });
+    });
 });
 

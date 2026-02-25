@@ -57,7 +57,9 @@ void JSFiber::FiberProcRunJavascript(void* p)
 
             {
                 v8::HandleScope handle_scope(isolate->m_isolate);
-                AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
+                AsyncEvent* ae = (AsyncEvent*)isolate->m_urgentJobs.getHead();
+                if (!ae)
+                    ae = (AsyncEvent*)isolate->m_jobs.getHead();
 
                 hr = ae->js_invoke();
             }

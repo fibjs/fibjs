@@ -127,10 +127,18 @@ public:
 
 public:
     void sync(std::function<int(void)> func);
+    void sync_urgent(std::function<int(void)> func);
     void post_task(exlib::linkitem* task)
     {
         Ref();
         m_jobs.putTail(task);
+        m_sem.post();
+    }
+
+    void post_urgent_task(exlib::linkitem* task)
+    {
+        Ref();
+        m_urgentJobs.putTail(task);
         m_sem.post();
     }
 
@@ -306,6 +314,7 @@ public:
     void* m_test;
 
     exlib::Semaphore m_sem;
+    exlib::LockedList<exlib::linkitem> m_urgentJobs;
     exlib::LockedList<exlib::linkitem> m_jobs;
     int32_t m_currentFibers;
     int32_t m_idleFibers;
