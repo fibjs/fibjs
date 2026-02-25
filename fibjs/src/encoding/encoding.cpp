@@ -377,14 +377,13 @@ result_t commonEncode(exlib::string codec, const char* data, size_t sz, exlib::s
             for (i = 0; i < sz; i++)
                 _retVal[i] = data[i] & 0x7f;
         } else if ((codec == "binary") || (codec == "latin1")) {
-            exlib::wstring wdata = utf8to16String(data, sz);
-            sz = wdata.length();
-            const char16_t* s = wdata.c_str();
-
-            retVal.resize(sz);
-            char* _retVal = retVal.data();
+            exlib::wstring wdata;
+            wdata.resize(sz);
+            char16_t* ws = wdata.data();
             for (size_t i = 0; i < sz; i++)
-                _retVal[i] = (char)s[i];
+                ws[i] = (uint8_t)data[i];
+
+            retVal = utf16to8String(wdata);
         } else
             return encoding_conv(codec).decode(data, sz, retVal);
     }
