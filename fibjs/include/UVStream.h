@@ -340,6 +340,47 @@ public:
         return CALL_E_PENDDING;
     }
 
+    // Background write event for stdio fd:
+    // a simple AsyncEvent that fires and forgets, emits "error" on failure
+    class AsyncBackgroundWrite : public AsyncEvent {
+    public:
+        AsyncBackgroundWrite(UVStream_tmpl* pThis)
+            : m_pThis(pThis)
+            , m_retVal(true)
+        {
+            m_isolate = pThis->holder();
+            setAsync();
+        }
+
+        virtual void apost(int32_t v)
+        {
+            if (v < 0) {
+                obj_ptr<Stream_base> stream = m_pThis;
+                Isolate* isolate = m_isolate;
+                isolate->sync([stream, v]() -> int32_t {
+                    JSFiber::EnterJsScope s;
+
+                    v8::Local<v8::Value> err = FillError(v);
+                    bool retVal;
+                    stream->_emit("error", &err, 1, retVal);
+                    return 0;
+                });
+            }
+            delete this;
+        }
+
+        bool m_retVal;
+
+    private:
+        Isolate* m_isolate;
+        obj_ptr<UVStream_tmpl> m_pThis;
+    };
+
+    bool isBackgroundWrite(AsyncEvent* ac)
+    {
+        return is_stdio_fd(m_fd) && ac->isSync() && dynamic_cast<AsyncCall*>(ac);
+    }
+
     virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
     {
         if (ac->isSync())
@@ -347,6 +388,42 @@ public:
 
         uv_post(new AsyncWrite(this, data, ac, m_timeout));
         return CALL_E_PENDDING;
+    }
+
+    virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac) override
+    {
+        if (isBackgroundWrite(ac)) {
+            retVal = true;
+            auto bgw = new AsyncBackgroundWrite(this);
+            AsyncStream<T>::write(data, bgw->m_retVal, bgw);
+            return 0;
+        }
+
+        return AsyncStream<T>::write(data, retVal, ac);
+    }
+
+    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac) override
+    {
+        if (isBackgroundWrite(ac)) {
+            retVal = true;
+            auto bgw = new AsyncBackgroundWrite(this);
+            AsyncStream<T>::write(data, encoding, bgw->m_retVal, bgw);
+            return 0;
+        }
+
+        return AsyncStream<T>::write(data, encoding, retVal, ac);
+    }
+
+    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) override
+    {
+        if (isBackgroundWrite(ac)) {
+            retVal = true;
+            auto bgw = new AsyncBackgroundWrite(this);
+            AsyncStream<T>::write(data, encoding, bgw->m_retVal, bgw);
+            return 0;
+        }
+
+        return AsyncStream<T>::write(data, encoding, retVal, ac);
     }
 
     virtual result_t flush(AsyncEvent* ac)
