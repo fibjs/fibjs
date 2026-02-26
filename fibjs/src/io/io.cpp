@@ -62,7 +62,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             if (m_bytes > 0)
                 m_bytes -= blen;
 
-            return m_to->write(m_buf, m_len, next(read));
+            return m_to->writeBuffer(m_buf, next(read));
         }
 
     public:
@@ -70,7 +70,6 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
         obj_ptr<Stream_base> m_to;
         int64_t m_bytes;
         int64_t& m_retVal;
-        int32_t m_len;
         obj_ptr<Buffer_base> m_buf;
     };
 
@@ -121,7 +120,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                     != BRIDGE_READ)
                     return error(0);
 
-                return m_data->m_stms[m_to]->write(m_buf, m_len, next(read));
+                return m_data->m_stms[m_to]->writeBuffer(m_buf, next(read));
             }
 
             ON_STATE(AsyncCopy, cancel)
@@ -147,7 +146,6 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
 
         public:
             AsyncData* m_data;
-            int32_t m_len;
             int32_t m_from, m_to;
             obj_ptr<Buffer_base> m_buf;
         };

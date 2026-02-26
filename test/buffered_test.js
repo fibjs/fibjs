@@ -144,13 +144,11 @@ describe("buffered stream", () => {
             // Test writeText return value
             var testText = 'Hello, world!';
             var result = buffered.writeText(testText);
-            // writeText should return undefined (void function)
             assert.equal(result, 13);
 
             // Test writeLine return value
             var testLine = 'Test Line';
             result = buffered.writeLine(testLine);
-            // writeLine should return undefined (void function)
             assert.equal(result, is_win32 ? 11 : 10); // Windows adds \r\n, others just \n
 
             // Verify the content was written correctly

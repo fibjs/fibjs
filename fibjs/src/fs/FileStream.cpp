@@ -204,16 +204,13 @@ result_t FileStream::Write(const char* p, int32_t sz)
     return 0;
 }
 
-result_t FileStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t FileStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
-    retVal = (int32_t)buf->length();
 
     return Write(data);
 }

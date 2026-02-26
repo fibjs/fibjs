@@ -24,25 +24,30 @@ interface Stream : EventEmitter
      */
     Stream setEncoding(String encoding);
 
+    /*! @brief 将给定的二进制数据写入流
+     @param data 给定要写入的 Buffer 数据
+     */
+    writeBuffer(Buffer data) async;
+
     /*! @brief 将给定的数据写入流
      @param data 给定要写入的数据
-     @return 返回实际写入的字节数
+     @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      */
-    Integer write(Buffer data) async;
+    Boolean write(Buffer data) async;
 
-    /*! @brief 将给定的字符串写入流
+    /*! @brief 将给定的数据写入流
      @param data 给定要写入的数据
      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     @return 返回实际写入的字节数
+     @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      */
-    Integer write(Buffer data, String encoding) async;
+    Boolean write(Buffer data, String encoding) async;
 
     /*! @brief 将给定的字符串写入流
      @param data 给定要写入的字符串数据
      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     @return 返回实际写入的字节数
+     @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      */
-    Integer write(String data, String encoding = "utf8") async;
+    Boolean write(String data, String encoding = "utf8") async;
 
     /*! @brief 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。
      @return 返回当前流对象

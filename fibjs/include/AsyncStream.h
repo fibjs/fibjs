@@ -296,12 +296,30 @@ public:
         return 0;
     }
 
-    virtual result_t write(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
     {
-        return static_cast<T*>(this)->write(data, retVal, ac);
+        return static_cast<T*>(this)->writeBuffer(data, ac);
     }
 
-    virtual result_t write(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        retVal = true;
+        return static_cast<T*>(this)->writeBuffer(data, ac);
+    }
+
+    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        retVal = true;
+        return static_cast<T*>(this)->writeBuffer(data, ac);
+    }
+
+    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
@@ -311,7 +329,8 @@ public:
         if (hr < 0)
             return hr;
 
-        return static_cast<T*>(this)->write(buf, retVal, ac);
+        retVal = true;
+        return static_cast<T*>(this)->writeBuffer(buf, ac);
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
@@ -340,17 +359,25 @@ public:
 
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     {
-        return static_cast<T*>(this)->write(data, retVal, ac);
+        return static_cast<T*>(this)->writeBuffer(data, ac);
     }
 
     virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
     {
-        return this->write(data, encoding, retVal, ac);
+        return static_cast<T*>(this)->writeBuffer(data, ac);
     }
 
     virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
     {
-        return this->write(data, encoding, retVal, ac);
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        obj_ptr<Buffer_base> buf;
+        result_t hr = Buffer_base::from(data, encoding, buf);
+        if (hr < 0)
+            return hr;
+
+        return static_cast<T*>(this)->writeBuffer(buf, ac);
     }
 
     virtual result_t ref(obj_ptr<Stream_base>& retVal)

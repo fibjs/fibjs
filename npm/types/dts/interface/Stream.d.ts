@@ -73,88 +73,111 @@ declare class Class_Stream extends Class_EventEmitter {
     setEncoding(encoding: string): Class_Stream;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description 将给定的二进制数据写入流
+     *      @param data 给定要写入的 Buffer 数据
      *      
      */
-    write(data: Class_Buffer): number;
+    writeBuffer(data: Class_Buffer): void;
 
-    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeBuffer(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 将给定的二进制数据写入流
+     *      @param data 给定要写入的 Buffer 数据
+     *      
+     */
+    writeBufferSync(data: Class_Buffer): void;
+
+    /**
+     * @description 将给定的二进制数据写入流
+     *      @param data 给定要写入的 Buffer 数据
+     *      
+     */
+    writeBufferAsync(data: Class_Buffer): Promise<void>;
 
     /**
      * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    writeSync(data: Class_Buffer): number;
+    write(data: Class_Buffer): boolean;
+
+    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    writeAsync(data: Class_Buffer): Promise<number>;
+    writeSync(data: Class_Buffer): boolean;
 
     /**
-     * @description 将给定的字符串写入流
+     * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    write(data: Class_Buffer, encoding: string): number;
-
-    write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeAsync(data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 将给定的字符串写入流
+     * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
      *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    writeSync(data: Class_Buffer, encoding: string): number;
+    write(data: Class_Buffer, encoding: string): boolean;
+
+    write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 将给定的字符串写入流
+     * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
      *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    writeAsync(data: Class_Buffer, encoding: string): Promise<number>;
+    writeSync(data: Class_Buffer, encoding: string): boolean;
+
+    /**
+     * @description 将给定的数据写入流
+     *      @param data 给定要写入的数据
+     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     *      
+     */
+    writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
 
     /**
      * @description 将给定的字符串写入流
      *      @param data 给定要写入的字符串数据
      *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    write(data: string, encoding?: string): number;
+    write(data: string, encoding?: string): boolean;
 
-    write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description 将给定的字符串写入流
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回实际写入的字节数
-     *      
-     */
-    writeSync(data: string, encoding?: string): number;
+    write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 将给定的字符串写入流
      *      @param data 给定要写入的字符串数据
      *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回实际写入的字节数
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
      *      
      */
-    writeAsync(data: string, encoding?: string): Promise<number>;
+    writeSync(data: string, encoding?: string): boolean;
+
+    /**
+     * @description 将给定的字符串写入流
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
+     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     *      
+     */
+    writeAsync(data: string, encoding?: string): Promise<boolean>;
 
     /**
      * @description 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。

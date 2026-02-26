@@ -22,7 +22,6 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
     obj_ptr<SeekableStream_base>& retVal, Headers_base* headers, bool defaultFormUrlEncoded)
 {
     result_t hr;
-    int32_t len;
 
     // null or undefined - no body
     if (body.IsEmpty() || body->IsNullOrUndefined())
@@ -127,7 +126,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
         }
     }
 
-    stm->write(buf, len, nullptr);
+    stm->writeBuffer(buf, nullptr);
     stm->rewind();
     retVal = stm;
     return 0;
@@ -193,7 +192,7 @@ public:
             memcpy(pBuf, m_body_buf->data(), m_body_length);
 
         m_buffer = new Buffer(m_strBuf.c_str(), m_strBuf.length());
-        return m_stm->write(m_buffer, m_len, next(body));
+        return m_stm->writeBuffer(m_buffer, next(body));
     }
 
     ON_STATE(asyncSendTo, body)
@@ -221,7 +220,6 @@ public:
     obj_ptr<Buffer_base> m_buffer;
     int64_t m_contentLength;
     int64_t m_copySize;
-    int32_t m_len;
     size_t m_body_length = 0;
     obj_ptr<Buffer> m_body_buf;
     exlib::string m_strCommand;

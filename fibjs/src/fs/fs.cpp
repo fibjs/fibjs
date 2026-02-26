@@ -239,7 +239,9 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t&
 
     obj_ptr<Buffer_base> buf = new Buffer(txt.c_str(), txt.length());
 
-    hr = f->cc_write(buf, retVal);
+    retVal = (int32_t)txt.length();
+    bool _retVal;
+    hr = f->cc_write(buf, _retVal);
     f->cc_close();
 
     return hr;
@@ -258,7 +260,9 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::strin
     if (hr < 0)
         return hr;
 
-    hr = f->cc_write(data, retVal);
+    retVal = Buffer::Cast(data)->length();
+    bool _retVal;
+    hr = f->cc_write(data, _retVal);
     f->cc_close();
 
     return hr;
@@ -316,7 +320,9 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, int32_t& re
     if (hr < 0)
         return hr;
 
-    hr = f->cc_write(data, retVal);
+    retVal = Buffer::Cast(data)->length();
+    bool _retVal;
+    hr = f->cc_write(data, _retVal);
     f->cc_close();
 
     return hr;

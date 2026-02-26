@@ -978,7 +978,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
 
             m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-            return m_conn->write(buf, m_len, next(socks_hello_response));
+            return m_conn->writeBuffer(buf, next(socks_hello_response));
         }
 
         ON_STATE(asyncRequest, socks_hello_response)
@@ -1020,7 +1020,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             strBuffer.append((char*)&port, 2);
 
             obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
-            return m_conn->write(buf, m_len, next(socks_connect_req_5_bytes));
+            return m_conn->writeBuffer(buf, next(socks_connect_req_5_bytes));
         }
 
         ON_STATE(asyncRequest, socks_connect_req_5_bytes)
@@ -1193,7 +1193,6 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;
-        int32_t m_len;
         bool m_keepAlive;
         obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
@@ -1290,7 +1289,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
             return hr;
 
         buf = new Buffer(s.c_str(), s.length());
-        int32_t len;
+        bool len;
         stm->cc_write(buf, len);
         Variant ct;
         if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
@@ -1303,7 +1302,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         if (hr < 0)
             return hr;
 
-        int32_t len;
+        bool len;
         stm->cc_write(buf, len);
         Variant ct;
         if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)

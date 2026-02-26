@@ -69,7 +69,7 @@ result_t MemoryStream::CloneStream::flush(AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t MemoryStream::CloneStream::write(Buffer_base* data, int32_t& retVal,
+result_t MemoryStream::CloneStream::writeBuffer(Buffer_base* data,
     AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);

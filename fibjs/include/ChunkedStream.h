@@ -126,7 +126,7 @@ public:
         return (new asyncReadFrom(this, bytes, retVal, ac))->post(0);
     }
 
-    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }

@@ -556,19 +556,19 @@ describe('tls', () => {
                 it("write return value validation", () => {
                     var ss = connect();
 
-                    // Test write return value with string
+                    // Test write return value with string (write now returns Boolean)
                     var testData = 'Hello TLS World!';
                     var bytesWritten = ss.write(testData);
-                    assert.equal(bytesWritten, testData.length);
+                    assert.equal(bytesWritten, true);
 
                     // Test write return value with Buffer
                     var testBuffer = new Buffer('TLS Buffer Data');
                     bytesWritten = ss.write(testBuffer);
-                    assert.equal(bytesWritten, testBuffer.length);
+                    assert.equal(bytesWritten, true);
 
                     // Test write return value with empty string
                     bytesWritten = ss.write('');
-                    assert.equal(bytesWritten, 0);
+                    assert.equal(bytesWritten, true);
 
                     ss.close();
                 });

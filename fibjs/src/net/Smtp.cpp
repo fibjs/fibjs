@@ -113,12 +113,11 @@ public:
 public:
     ON_STATE(asyncCommand, command)
     {
-        return m_stmBuffered->write(m_buf, m_len, next(ok));
+        return m_stmBuffered->writeBuffer(m_buf, next(ok));
     }
 
 private:
     obj_ptr<Buffer> m_buf;
-    int32_t m_len;
 };
 
 result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
@@ -160,7 +159,7 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         {
             m_tls = true;
             m_buf = new Buffer("STARTTLS\r\n");
-            return m_stmBuffered->write(m_buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(m_buf, next(ok));
         }
 
         ON_STATE(asyncConnect, ssl_handshake)
@@ -206,7 +205,6 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         exlib::string m_url;
         obj_ptr<Url> m_u;
         obj_ptr<Buffer> m_buf;
-        int32_t m_len;
         bool m_tls;
     };
 
@@ -263,13 +261,13 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
             s.append("\r\n", 2);
 
             m_buf = new Buffer(s.c_str(), s.length());
-            return m_stmBuffered->write(m_buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(m_buf, next(ok));
         }
 
         ON_STATE(asyncHello, starttls)
         {
             m_buf = new Buffer("STARTTLS\r\n");
-            return m_stmBuffered->write(m_buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(m_buf, next(ok));
         }
 
         ON_STATE(asyncHello, ssl_handshake)
@@ -321,7 +319,6 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
         exlib::string m_hostname;
         obj_ptr<Buffer> m_buf;
         int32_t step;
-        int32_t m_len;
     };
 
     if (!m_conn)
@@ -354,7 +351,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             exlib::string s("AUTH LOGIN\r\n", 12);
 
             obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
-            return m_stmBuffered->write(buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
         int32_t send_base64(exlib::string str)
@@ -366,7 +363,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             s.append("\r\n", 2);
 
             buf = new Buffer(s.c_str(), s.length());
-            return m_stmBuffered->write(buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
         ON_STATE(asyncLogin, send_username)
@@ -396,7 +393,6 @@ result_t Smtp::login(exlib::string username, exlib::string password,
         exlib::string m_username;
         exlib::string m_password;
         int32_t step;
-        int32_t m_len;
     };
 
     if (!m_conn)
@@ -449,7 +445,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
             exlib::string s("DATA\r\n", 6);
 
             obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
-            return m_stmBuffered->write(buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
         ON_STATE(asyncData, send_data)
@@ -459,7 +455,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
             s.append("\r\n.\r\n", 5);
 
             obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
-            return m_stmBuffered->write(buf, m_len, next(ok));
+            return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
         virtual int32_t recv_ok()
@@ -475,7 +471,6 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
     private:
         exlib::string m_txt;
         int32_t step;
-        int32_t m_len;
     };
 
     if (!m_conn)

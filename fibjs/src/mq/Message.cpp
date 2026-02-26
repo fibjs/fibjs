@@ -125,7 +125,8 @@ result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    return m_body->write(data, retVal, ac);
+    bool _retVal;
+    return m_body->write(data, _retVal, ac);
 }
 
 result_t Message::text(exlib::string data, exlib::string& retVal)
@@ -133,7 +134,7 @@ result_t Message::text(exlib::string data, exlib::string& retVal)
     m_body = new MemoryStream();
 
     obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
-    int32_t len;
+    bool len;
     return m_body->ac_write(buf, len);
 }
 
@@ -203,7 +204,7 @@ result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
         return hr;
 
     obj_ptr<Buffer_base> buf = new Buffer(str.c_str(), str.length());
-    int32_t len;
+    bool len;
     return m_body->ac_write(buf, len);
 }
 
@@ -238,7 +239,7 @@ result_t Message::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
     if (hr < 0)
         return hr;
 
-    int32_t len;
+    bool len;
     return m_body->ac_write(buf, len);
 }
 
@@ -362,8 +363,7 @@ void Message::copyTo(Message* target)
 
         if (hr >= 0 && buf) {
             obj_ptr<MemoryStream> ms = new MemoryStream();
-            int32_t len;
-            ms->write(buf, len, nullptr);
+            ms->writeBuffer(buf, nullptr);
             ms->rewind();
             target->m_body = ms;
         }

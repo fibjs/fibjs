@@ -224,7 +224,7 @@ result_t EventSource::close(AsyncEvent* ac)
         ON_STATE(asyncClose, send)
         {
             m_buf = new Buffer("0\r\n\r\n", 5);
-            return m_stream->write(m_buf, m_len, next(done));
+            return m_stream->writeBuffer(m_buf, next(done));
         }
 
         ON_STATE(asyncClose, done)
@@ -243,7 +243,6 @@ result_t EventSource::close(AsyncEvent* ac)
         obj_ptr<Stream_base> m_stream;
         AsyncEvent* m_ac_req;
         obj_ptr<Buffer> m_buf;
-        int32_t m_len;
     };
 
     if (ac->isSync())
@@ -369,7 +368,8 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     pBuf[pos++] = '\r';
     pBuf[pos++] = '\n';
 
-    return m_stream->write(buf, retVal, ac);
+    bool _retVal;
+    return m_stream->write(buf, _retVal, ac);
 }
 
 result_t EventSource::get_readyState(int32_t& retVal)

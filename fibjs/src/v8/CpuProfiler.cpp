@@ -41,7 +41,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
         str.append(1, '\n');
         obj_ptr<Buffer_base> buf = new Buffer(str.c_str(), str.length());
-        int32_t len;
+        bool len;
         SeekableStream_base::getInstance(_data)->cc_write(buf, len);
     }
 

@@ -143,9 +143,9 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t BufferedStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 {
-    return m_stm->write(data, retVal, ac);
+    return m_stm->writeBuffer(data, ac);
 }
 
 result_t BufferedStream::flush(AsyncEvent* ac)
@@ -361,7 +361,9 @@ result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncEven
         return hr;
 
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
-    return write(data, retVal, ac);
+    retVal = (int32_t)strBuf.length();
+    bool _retVal;
+    return write(data, _retVal, ac);
 }
 
 result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac)
@@ -377,7 +379,9 @@ result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncEven
 
     strBuf.append(m_eol);
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
-    return write(data, retVal, ac);
+    retVal = (int32_t)strBuf.length();
+    bool _retVal;
+    return write(data, _retVal, ac);
 }
 
 result_t BufferedStream::get_stream(obj_ptr<Stream_base>& retVal)

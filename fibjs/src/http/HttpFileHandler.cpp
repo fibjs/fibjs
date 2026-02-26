@@ -118,7 +118,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             static char padding[] = "                                                              ";
             exlib::string s;
             obj_ptr<Buffer_base> buf;
-            int32_t write_len;
+            bool write_len;
 
             length = m_dir->length();
 

@@ -24,25 +24,30 @@ interface Stream : EventEmitter
      */
     Stream setEncoding(String encoding);
 
+    /*! @brief Write the given binary data to the stream
+     @param data The Buffer data to write
+     */
+    writeBuffer(Buffer data) async;
+
     /*! @brief Write the given data to the stream
      @param data The data to write
-     @return Returns the number of bytes actually written
+     @return Returns true if the stream wishes for the calling code to wait for the 'drain' event to be emitted before continuing to write additional data; otherwise false
      */
-    Integer write(Buffer data) async;
+    Boolean write(Buffer data) async;
 
-    /*! @brief Write the given string to the stream
+    /*! @brief Write the given data to the stream
      @param data The data to write
      @param encoding The specified encoding method, since data is Buffer type, this parameter will be ignored
-     @return Returns the number of bytes actually written
+     @return Returns true if the stream wishes for the calling code to wait for the 'drain' event to be emitted before continuing to write additional data; otherwise false
      */
-    Integer write(Buffer data, String encoding) async;
+    Boolean write(Buffer data, String encoding) async;
 
     /*! @brief Write the given string to the stream
      @param data The string data to write
      @param encoding Specifies the encoding method of the string, default is "utf8"
-     @return Returns the number of bytes actually written
+     @return Returns true if the stream wishes for the calling code to wait for the 'drain' event to be emitted before continuing to write additional data; otherwise false
      */
-    Integer write(String data, String encoding = "utf8") async;
+    Boolean write(String data, String encoding = "utf8") async;
 
     /*! @brief Switch the stream to flowing read mode. In fibjs, switching to flowing read mode is irreversible, cannot switch back to non-flowing read mode.
      @return Returns the current stream object

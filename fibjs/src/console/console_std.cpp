@@ -49,7 +49,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
     }
 
     obj_ptr<Buffer_base> data = new Buffer(txt.c_str(), txt.length());
-    int32_t retVal;
+    bool retVal;
     out->cc_write(data, retVal);
 }
 
@@ -68,7 +68,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
     }
 
     obj_ptr<Buffer_base> data = new Buffer(txt.c_str(), txt.length());
-    int32_t retVal;
+    bool retVal;
     out->cc_write(data, retVal);
 }
 

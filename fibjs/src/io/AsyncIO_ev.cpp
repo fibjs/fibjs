@@ -541,19 +541,17 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_lockRecv, m_RecvOpt, timeout, this))->request();
 }
 
-result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t timeout)
+result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac, int32_t timeout)
 {
     class asyncSend : public AsyncSockProc {
     public:
-        asyncSend(intptr_t& sockfd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
+        asyncSend(intptr_t& sockfd, Buffer_base* data, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt, int32_t timeout, AsyncIO* pThis)
             : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt, timeout, pThis)
             , m_family(family)
-            , m_retVal(retVal)
         {
             m_data = Buffer::Cast(data);
             m_p = (const char*)m_data->data();
             m_sz = m_data->length();
-            m_retVal = m_sz;
 
             if (g_tcpdump)
                 outLog(console_base::C_WARN, clean_string(m_p, m_sz));
@@ -587,7 +585,6 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int3
         const char* m_p;
         int32_t m_sz;
         int32_t m_family;
-        int32_t& m_retVal;
     };
 
     if (m_fd == INVALID_SOCKET)
@@ -596,7 +593,7 @@ result_t AsyncIO::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac, int3
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSend(m_fd, data, retVal, ac, m_family, m_lockSend, m_SendOpt, timeout, this))->request();
+    return (new asyncSend(m_fd, data, ac, m_family, m_lockSend, m_SendOpt, timeout, this))->request();
 }
 
 void AsyncIO::run(void (*watchProc)(void*))
