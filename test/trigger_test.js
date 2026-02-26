@@ -519,5 +519,53 @@ describe("Trigger/EventEmitter", () => {
             events.defaultMaxListeners = 10;
         });
     });
+
+    describe("error event without listener", () => {
+        it("should throw when emitting error with Error object and no listener", () => {
+            var e = new events.EventEmitter();
+            assert.throws(() => {
+                e.emit('error', new Error('test error'));
+            }, err => {
+                assert.equal(err.message, 'test error');
+                return true;
+            });
+        });
+
+        it("should throw wrapped error when emitting error with string and no listener", () => {
+            var e = new events.EventEmitter();
+            assert.throws(() => {
+                e.emit('error', 'something went wrong');
+            }, err => {
+                assert.ok(err.message.indexOf('Unhandled error') >= 0);
+                assert.ok(err.message.indexOf('something went wrong') >= 0);
+                return true;
+            });
+        });
+
+        it("should throw when emitting error with no arguments and no listener", () => {
+            var e = new events.EventEmitter();
+            assert.throws(() => {
+                e.emit('error');
+            }, err => {
+                assert.ok(err.message.indexOf('Unhandled error') >= 0);
+                return true;
+            });
+        });
+
+        it("should not throw when error listener is registered", () => {
+            var e = new events.EventEmitter();
+            var caught = null;
+            e.on('error', (err) => {
+                caught = err;
+            });
+            assert.isTrue(e.emit('error', new Error('handled error')));
+            assert.equal(caught.message, 'handled error');
+        });
+
+        it("should not throw for non-error events without listener", () => {
+            var e = new events.EventEmitter();
+            assert.isFalse(e.emit('someEvent', 'data'));
+        });
+    });
 });
 

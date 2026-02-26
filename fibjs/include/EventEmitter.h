@@ -508,6 +508,21 @@ public:
         if (hr < 0)
             return hr;
 
+        if (ev == "error" && ff.IsEmpty()) {
+            if (argCount > 0 && !args[0].IsEmpty() && args[0]->IsNativeError()) {
+                isolate->ThrowException(args[0]);
+            } else {
+                exlib::string errMsg = "Unhandled error.";
+                if (argCount > 0 && !args[0].IsEmpty()) {
+                    errMsg += " (";
+                    errMsg += ToString(isolate, args[0]);
+                    errMsg += ")";
+                }
+                isolate->ThrowException(v8::Exception::Error(NewString(errMsg)));
+            }
+            return CALL_E_JAVASCRIPT;
+        }
+
         if (!ff.IsEmpty()) {
             JSValue r = ff->Call(context, o, argCount, args);
             retVal = true;
