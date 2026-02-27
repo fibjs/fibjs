@@ -9,6 +9,14 @@
 namespace fibjs {
 
 class AsyncEvent : public exlib::Task_base {
+public:
+    enum kCallType {
+        kAsyncCallEvent,
+        kAsyncCall,
+        kCAsyncCall,
+        kAsyncCallBack
+    };
+
 private:
     enum kStateType {
         kStateSync,
@@ -62,6 +70,11 @@ public:
         return m_state == kStateSync;
     }
 
+    virtual kCallType callType() const
+    {
+        return kAsyncCallEvent;
+    }
+
     void setAsync()
     {
         m_state = kStateAsync;
@@ -84,6 +97,11 @@ public:
         : AsyncEvent(isolate)
         , args(a)
     {
+    }
+
+    virtual kCallType callType() const override
+    {
+        return kAsyncCall;
     }
 
     virtual int32_t post(int32_t v)
@@ -142,6 +160,11 @@ public:
         : AsyncEvent(isolate)
         , args(a)
     {
+    }
+
+    virtual kCallType callType() const override
+    {
+        return kCAsyncCall;
     }
 
     virtual int32_t post(int32_t v)
@@ -401,6 +424,11 @@ class AsyncCallBack : public AsyncEvent {
 public:
     AsyncCallBack(v8::Local<v8::Object> cb, object_base* pThis = NULL);
     ~AsyncCallBack();
+
+    virtual kCallType callType() const override
+    {
+        return kAsyncCallBack;
+    }
 
 public:
     virtual void resume()

@@ -378,7 +378,7 @@ public:
 
     bool isBackgroundWrite(AsyncEvent* ac)
     {
-        return is_stdio_fd(m_fd) && ac->isSync() && dynamic_cast<AsyncCall*>(ac);
+        return is_stdio_fd(m_fd) && ac->isSync() && ac->callType() == AsyncEvent::kAsyncCall;
     }
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
