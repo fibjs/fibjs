@@ -97,10 +97,26 @@ result_t ECDH::getPrivateKey(exlib::string encoding, v8::Local<v8::Value>& retVa
     if (!priv_key)
         return Runtime::setError("Failed to get ECDH private key");
 
-    // Convert BIGNUM to bytes
-    int key_len = BN_num_bytes(priv_key);
+    // Use the curve order size to determine the fixed-length output,
+    // so that leading zeros are preserved (matching Node.js behavior).
+    const EC_GROUP* group = EC_KEY_get0_group(m_ec);
+    if (!group)
+        return Runtime::setError("Failed to get ECDH private key");
+
+    BIGNUM* order = BN_new();
+    if (!order)
+        return Runtime::setError("Failed to get ECDH private key");
+
+    if (!EC_GROUP_get_order(group, order, NULL)) {
+        BN_free(order);
+        return Runtime::setError("Failed to get ECDH private key");
+    }
+
+    int key_len = BN_num_bytes(order);
+    BN_free(order);
+
     obj_ptr<Buffer> key_buf = new Buffer(NULL, key_len);
-    BN_bn2bin(priv_key, (unsigned char*)key_buf->data());
+    BN_bn2binpad(priv_key, (unsigned char*)key_buf->data(), key_len);
 
     return key_buf->toValue(encoding, retVal);
 }
