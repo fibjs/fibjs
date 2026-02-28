@@ -458,7 +458,7 @@ private:
     void parseFunctionDeclaration(int outerStart = -1);
     void parseClassDeclaration();
     void parseInterfaceDeclaration(int start);
-    void parseTypeAliasDeclaration(int start, bool isExported = false);
+    void parseTypeAliasDeclaration(int start);
     void parseEnumDeclaration(int start, bool isDeclare = false);
     void parseModuleDeclaration(int start, bool isDeclare = false);
     void parseImportDeclaration();
@@ -3134,31 +3134,19 @@ void TsStrip::parseClassMember() {
 // ========================================================================
 
 /**
- * parseInterfaceDeclaration - convert to var declaration to preserve export
+ * parseInterfaceDeclaration - completely erase interface declaration
  * 
- * Transform: export interface Name<T> extends Base { ... }
- * To:        export var       Name                       ;
- * 
- * This preserves the name so it can be imported, while maintaining
- * character positions for source maps.
+ * Replaces the entire declaration (including export/declare if present) with spaces.
  */
 void TsStrip::parseInterfaceDeclaration(int start) {
     // interface Name<T> extends ... { ... }
     // At this point, 'interface' keyword has been consumed, current token is the name
     // 'start' points to either 'interface' or 'export' (if exported)
     
-    // Record position right after 'interface' keyword (before name)
-    int nameStart = getNodePos();
-    
     // Interface name can be an identifier or contextual keyword (like 'abstract', 'type', etc.)
-    int nameEnd = nameStart;
     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
-        nameEnd = getPrevTokenEnd();
     }
-    
-    // Record start of type parameters/extends/body (everything after name to be erased)
-    int afterNameStart = getNodePos();
     
     if (token() == SyntaxKind::LessThanToken) {
         skipTypeArguments();
@@ -3175,55 +3163,8 @@ void TsStrip::parseInterfaceDeclaration(int start) {
     
     int declEnd = getPrevTokenEnd();
     
-    // Find the 'interface' keyword position
-    // We need to locate it by scanning backwards from nameStart
-    // 'interface' is 9 characters, 'var' is 3 characters
-    // We'll replace 'interface' with 'var      ' (var + 6 spaces)
-    
-    // The 'interface' keyword ends at nameStart (after any whitespace)
-    // We need to find where it starts
-    int interfaceKeywordStart = start;
-    int interfaceKeywordEnd = nameStart;
-    
-    // If start != interface position (e.g., start is 'export'), find interface keyword
-    // by looking at the source text
-    // We scan from start to find 'interface'
-    const char* interfaceStr = "interface";
-    int interfaceLen = 9;
-    
-    for (int pos = start; pos < nameStart; pos++) {
-        bool match = true;
-        for (int j = 0; j < interfaceLen && pos + j < (int)m_length; j++) {
-            if (m_src[pos + j] != (uint8_t)interfaceStr[j]) {
-                match = false;
-                break;
-            }
-        }
-        if (match) {
-            interfaceKeywordStart = pos;
-            interfaceKeywordEnd = pos + interfaceLen;
-            break;
-        }
-    }
-    
-    // Replace 'interface' with 'var' + spaces
-    // Write 'var' at interfaceKeywordStart
-    addOverwrite(interfaceKeywordStart, 'v');
-    addOverwrite(interfaceKeywordStart + 1, 'a');
-    addOverwrite(interfaceKeywordStart + 2, 'r');
-    
-    // Replace remaining 'erface' (6 chars) with spaces
-    addReplacement(interfaceKeywordStart + 3, interfaceKeywordEnd);
-    
-    // Erase everything between name end and declaration end (type params, extends, body)
-    if (afterNameStart < declEnd) {
-        addReplacement(afterNameStart, declEnd);
-    }
-    
-    // Add semicolon at the end position (overwrite last char of the erased range)
-    if (declEnd > 0) {
-        addOverwrite(declEnd - 1, ';');
-    }
+    // Completely erase the entire interface declaration
+    addReplacement(start, declEnd);
     
     fixASI(start, declEnd);
 }
@@ -3231,31 +3172,17 @@ void TsStrip::parseInterfaceDeclaration(int start) {
 /**
  * parseTypeAliasDeclaration - handle type alias
  * 
- * If isExported=true (export type / export declare type):
- *   Transform: export type Name<T> = Type;
- *   To:        export var  Name          ;
- *   This preserves the name so it can be imported.
- * 
- * If isExported=false (local type alias):
- *   Completely erase the declaration.
+ * Completely erase the declaration (replace with spaces).
  */
-void TsStrip::parseTypeAliasDeclaration(int start, bool isExported) {
+void TsStrip::parseTypeAliasDeclaration(int start) {
     // type Name<T> = Type;
     // At this point, 'type' keyword has been consumed, current token is the name
     // 'start' points to either 'type' or 'export' (if exported)
     
-    // Record position right after 'type' keyword (before name)
-    int nameStart = getNodePos();
-    
     // Type alias name can be an identifier or contextual keyword
-    int nameEnd = nameStart;
     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
         nextToken();
-        nameEnd = getPrevTokenEnd();
     }
-    
-    // Record start of type parameters/body (everything after name to be erased)
-    int afterNameStart = getNodePos();
     
     if (token() == SyntaxKind::LessThanToken) {
         skipTypeArguments();
@@ -3267,51 +3194,8 @@ void TsStrip::parseTypeAliasDeclaration(int start, bool isExported) {
     
     int declEnd = getPrevTokenEnd();
     
-    if (!isExported) {
-        // Not exported - completely erase
-        addReplacement(start, declEnd);
-        fixASI(start, declEnd);
-        return;
-    }
-    
-    // Exported - convert 'type' to 'var '
-    // Find the 'type' keyword position
-    // 'type' is 4 characters, 'var' is 3 characters
-    // We'll replace 'type' with 'var ' (var + 1 space)
-    const char* typeStr = "type";
-    int typeLen = 4;
-    int typeKeywordStart = start;
-    
-    for (int pos = start; pos < nameStart; pos++) {
-        bool match = true;
-        for (int j = 0; j < typeLen && pos + j < (int)m_length; j++) {
-            if (m_src[pos + j] != (uint8_t)typeStr[j]) {
-                match = false;
-                break;
-            }
-        }
-        if (match) {
-            typeKeywordStart = pos;
-            break;
-        }
-    }
-    
-    // Replace 'type' with 'var '
-    addOverwrite(typeKeywordStart, 'v');
-    addOverwrite(typeKeywordStart + 1, 'a');
-    addOverwrite(typeKeywordStart + 2, 'r');
-    addOverwrite(typeKeywordStart + 3, ' ');
-    
-    // Erase everything between name end and declaration end (type params, = Type, etc.)
-    if (afterNameStart < declEnd) {
-        addReplacement(afterNameStart, declEnd);
-    }
-    
-    // Add semicolon at the end position
-    if (declEnd > 0) {
-        addOverwrite(declEnd - 1, ';');
-    }
-    
+    // Completely erase the entire type alias declaration
+    addReplacement(start, declEnd);
     fixASI(start, declEnd);
 }
 
@@ -3695,7 +3579,7 @@ void TsStrip::parseExportDeclaration() {
 
         // export type Name = ...;
         if (token() == SyntaxKind::Identifier) {
-            parseTypeAliasDeclaration(start, true);  // isExported=true
+            parseTypeAliasDeclaration(start);  // completely erase
             return;
         }
 
@@ -3767,9 +3651,9 @@ void TsStrip::parseExportDeclaration() {
             parseInterfaceDeclaration(start);  // Use export start to erase everything
         } else if (token() == SyntaxKind::TypeKeyword && 
                    (peekToken().kind == SyntaxKind::Identifier || isKeyword(peekToken().kind))) {
-            // export default type X = ... -> export default var  X ;
+            // export default type X = ... -> completely erased
             nextToken();
-            parseTypeAliasDeclaration(start, true);  // isExported=true
+            parseTypeAliasDeclaration(start);  // completely erase
         } else {
             parseAssignmentExpressionOrHigher();
             tryParseSemicolon();
@@ -3818,7 +3702,7 @@ void TsStrip::parseExportDeclaration() {
         case SyntaxKind::TypeKeyword:
             if (peekToken().kind == SyntaxKind::Identifier) {
                 nextToken();
-                parseTypeAliasDeclaration(start, true);  // isExported=true
+                parseTypeAliasDeclaration(start);  // completely erase
             } else if (peekToken().kind == SyntaxKind::OpenBraceToken) {
                 // export type { ... }
                 nextToken();
@@ -3838,21 +3722,15 @@ void TsStrip::parseExportDeclaration() {
         }
         case SyntaxKind::DeclareKeyword: {
             nextToken();
-            // For interface and type, handle specially to preserve export var
+            // For interface and type, completely erase (including export and declare)
             if (token() == SyntaxKind::InterfaceKeyword) {
-                // export declare interface X { } -> export var       X ;
-                // Erase 'declare ' (between export and interface)
-                addReplacement(start + 6, getNodePos()); // 6 = strlen("export")
-                int ifaceStart = getNodePos();
+                // export declare interface X { } -> completely erased
                 nextToken();
-                parseInterfaceDeclaration(ifaceStart);
+                parseInterfaceDeclaration(start);
             } else if (token() == SyntaxKind::TypeKeyword) {
-                // export declare type X = ... -> export var  X ;
-                // Erase 'declare ' (between export and type)
-                addReplacement(start + 6, getNodePos()); // 6 = strlen("export")
-                int typeStart = getNodePos();
+                // export declare type X = ... -> completely erased
                 nextToken();
-                parseTypeAliasDeclaration(typeStart, true);  // isExported=true
+                parseTypeAliasDeclaration(start);
             } else {
                 parseDeclaration();
                 addReplacement(start, getNodePos());
