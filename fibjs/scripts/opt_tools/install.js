@@ -24,15 +24,7 @@ const SEP = path.sep;
 
 const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
 
-if (process.env.http_proxy || process.env.HTTP_PROXY) {
-    http.http_proxy = process.env.http_proxy || process.env.HTTP_PROXY;
-    console.log(`[install] http request using proxy: ${http.http_proxy}`);
-}
-
-if (process.env.https_proxy || process.env.HTTPS_PROXY) {
-    http.https_proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
-    console.log(`[install] https request using proxy: ${http.https_proxy}`);
-}
+http.setGlobalProxyFromEnv();
 
 // ---------------------- UTILS :start ------------------------- //
 /**
