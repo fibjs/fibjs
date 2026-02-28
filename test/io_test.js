@@ -72,6 +72,64 @@ describe('io', () => {
         })
     });
 
+    describe('io.StreamReader', () => {
+        it('MemoryStream getReader basic read and EOF', async () => {
+            var ms = new io.MemoryStream();
+            ms.write(Buffer.from('Hello, StreamReader!'));
+            ms.rewind();
+
+            var reader = ms.getReader();
+            assert.equal(typeof reader, 'object');
+            assert.equal(typeof reader.read, 'function');
+
+            var result = await reader.read();
+            assert.equal(result.done, false);
+            assert.equal(result.value.toString(), 'Hello, StreamReader!');
+
+            var result2 = await reader.read();
+            assert.equal(result2.done, true);
+            assert.ok(Buffer.isBuffer(result2.value));
+            assert.equal(result2.value.length, 0);
+        });
+
+        it('MemoryStream getReader multiple reads', async () => {
+            var ms = new io.MemoryStream();
+            ms.write(Buffer.from('chunk1'));
+            ms.write(Buffer.from('chunk2'));
+            ms.rewind();
+
+            var reader = ms.getReader();
+            var chunks = [];
+
+            while (true) {
+                var ret = await reader.read();
+                if (ret.done)
+                    break;
+                chunks.push(ret.value.toString());
+            }
+
+            assert.equal(chunks.join(''), 'chunk1chunk2');
+        });
+
+        it('MemoryStream getReader releaseLock', () => {
+            var ms = new io.MemoryStream();
+            ms.write(Buffer.from('test'));
+            ms.rewind();
+
+            var reader = ms.getReader();
+            reader.releaseLock();
+        });
+
+        it('MemoryStream getReader cancel', async () => {
+            var ms = new io.MemoryStream();
+            ms.write(Buffer.from('test'));
+            ms.rewind();
+
+            var reader = ms.getReader();
+            await reader.cancel('no longer needed');
+        });
+    });
+
     describe('io.RangeStream', () => {
         var filePath;
         var file;

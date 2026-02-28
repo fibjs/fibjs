@@ -18,6 +18,7 @@ namespace fibjs {
 
 class EventEmitter_base;
 class Buffer_base;
+class StreamReader_base;
 
 class Stream_base : public EventEmitter_base {
     DECLARE_CLASS(Stream_base);
@@ -42,6 +43,7 @@ public:
     virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getReader(obj_ptr<StreamReader_base>& retVal) = 0;
     virtual result_t ref(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
 
@@ -75,6 +77,7 @@ public:
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getReader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -96,6 +99,7 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/StreamReader.h"
 
 namespace fibjs {
 inline ClassInfo& Stream_base::class_info()
@@ -112,6 +116,7 @@ inline ClassInfo& Stream_base::class_info()
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
+        { "getReader", s_getReader, false, ClassData::ASYNC_SYNC },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
         { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
@@ -464,6 +469,20 @@ inline void Stream_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->setListener("error", v0);
 
     METHOD_VOID();
+}
+
+inline void Stream_base::s_getReader(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<StreamReader_base> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getReader(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Stream_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)

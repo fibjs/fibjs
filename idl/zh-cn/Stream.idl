@@ -110,6 +110,11 @@ interface Stream : EventEmitter
      */
     event error(Integer code);
 
+    /*! @brief 获取流的读取器，兼容 WHATWG ReadableStreamDefaultReader 接口
+     @return 返回 StreamReader 对象
+    */
+    StreamReader getReader();
+
     /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
      @return 返回当前对象
     */

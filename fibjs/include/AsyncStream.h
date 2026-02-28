@@ -10,6 +10,7 @@
 #include "ifs/io.h"
 #include "TextEncoder.h"
 #include "Buffer.h"
+#include "StreamReader.h"
 #include "Fiber.h"
 #include <list>
 
@@ -378,6 +379,12 @@ public:
             return hr;
 
         return static_cast<T*>(this)->writeBuffer(buf, ac);
+    }
+
+    virtual result_t getReader(obj_ptr<StreamReader_base>& retVal)
+    {
+        retVal = new StreamReader(this);
+        return 0;
     }
 
     virtual result_t ref(obj_ptr<Stream_base>& retVal)

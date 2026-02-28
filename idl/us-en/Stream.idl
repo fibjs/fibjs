@@ -110,6 +110,11 @@ interface Stream : EventEmitter
      */
     event error(Integer code);
 
+    /*! @brief Get a reader for this stream, compatible with WHATWG ReadableStreamDefaultReader interface
+     @return Returns a StreamReader object
+    */
+    StreamReader getReader();
+
     /*! @brief Keep the fibjs process from exiting, prevent fibjs process from exiting during object binding
      @return Returns the current object
     */

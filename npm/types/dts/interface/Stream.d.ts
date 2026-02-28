@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/StreamReader.d.ts" />
 /**
  * @description 流操作对象，用于二进制数据流读写
  * 
@@ -381,6 +382,13 @@ declare class Class_Stream extends Class_EventEmitter {
      *      
      */
     on(event: "error", listener: ()=>void): this;
+
+    /**
+     * @description 获取流的读取器，兼容 WHATWG ReadableStreamDefaultReader 接口
+     *      @return 返回 StreamReader 对象
+     *     
+     */
+    getReader(): Class_StreamReader;
 
     /**
      * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
