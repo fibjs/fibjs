@@ -152,6 +152,43 @@ describe('io', () => {
                 stm.rewind();
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
+
+            it("readAll immediately after construct with begin > 0", () => {
+                // Regression: RangeStream constructed with begin > 0 should be
+                // readable immediately without calling rewind() first.
+                // Previously real_pos was initialized to get_c_pos() (underlying
+                // stream position, typically 0), causing readBuffer to return null
+                // because the check (b_pos > real_pos) was true.
+                var stm = new io.RangeStream(fs.openFile(filePath), 5, 15);
+
+                assert.equal(stm.tell(), 0);
+                assert.equal(stm.size(), 10);
+
+                // This must return data, not null
+                var data = stm.readAll();
+                assert.ok(data !== null, "readAll() returned null for RangeStream with begin > 0");
+                assert.equal(data.length, 10);
+
+                // Verify the data matches the expected range from the file
+                file.seek(5, fs.SEEK_SET);
+                var expected = file.read(10);
+                assert.equal(0, expected.compare(data));
+            });
+
+            it("readBuffer immediately after construct with begin > 0", () => {
+                var stm = new io.RangeStream(fs.openFile(filePath), 10, 20);
+
+                // Reading a few bytes should work without rewind
+                var data = stm.read(5);
+                assert.ok(data !== null, "read() returned null for RangeStream with begin > 0");
+                assert.equal(data.length, 5);
+                assert.equal(stm.tell(), 5);
+
+                // Read remaining
+                var rest = stm.readAll();
+                assert.ok(rest !== null);
+                assert.equal(rest.length, 5);
+            });
         });
 
         describe('robust case', () => {

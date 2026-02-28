@@ -100,7 +100,7 @@ RangeStream::RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end
     b_pos = begin;
     e_pos = end;
 
-    real_pos = get_c_pos();
+    real_pos = b_pos;
 }
 
 RangeStream::RangeStream(Stream_base* stream, int64_t end)
