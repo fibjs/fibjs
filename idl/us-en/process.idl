@@ -66,6 +66,9 @@ module process : EventEmitter
     /*! @brief Query the current platform name, possible results are 'darwin', 'freebsd', 'linux', or 'win32' */
     static readonly String platform;
 
+    /*! @brief Return release metadata for the current build, with name set to 'node' for compatibility */
+    static readonly Object release;
+
     /*! @brief Read the id of the process pointed to by the current object */
     static readonly Integer pid;
 

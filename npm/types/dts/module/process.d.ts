@@ -86,6 +86,11 @@ declare module 'process' {
     const platform: string;
 
     /**
+     * @description 返回当前构建的发布元数据，name 设为 'node' 以兼容 Node.js 生态 
+     */
+    const release: FIBJS.GeneralObject;
+
+    /**
      * @description 读取当前对象指向的进程的 id 
      */
     const pid: number;

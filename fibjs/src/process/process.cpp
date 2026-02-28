@@ -228,6 +228,20 @@ result_t process_base::get_platform(exlib::string& retVal)
     return os_base::platform(retVal);
 }
 
+result_t process_base::get_release(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+
+    obj->Set(context, isolate->NewString("name"), isolate->NewString("node")).IsJust();
+    obj->Set(context, isolate->NewString("sourceUrl"), isolate->NewString("https://github.com/fibjs/fibjs")).IsJust();
+    obj->Set(context, isolate->NewString("venderUrl"), isolate->NewString("https://github.com/fibjs/fibjs_vender")).IsJust();
+
+    retVal = obj;
+    return 0;
+}
+
 result_t process_base::get_pid(int32_t& retVal)
 {
     retVal = uv_os_getpid();

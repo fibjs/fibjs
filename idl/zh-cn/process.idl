@@ -66,6 +66,9 @@ module process : EventEmitter
     /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
     static readonly String platform;
 
+    /*! @brief 返回当前构建的发布元数据，name 设为 'node' 以兼容 Node.js 生态 */
+    static readonly Object release;
+
     /*! @brief 读取当前对象指向的进程的 id */
     static readonly Integer pid;
 

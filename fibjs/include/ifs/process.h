@@ -33,6 +33,7 @@ public:
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
     static result_t get_platform(exlib::string& retVal);
+    static result_t get_release(v8::Local<v8::Object>& retVal);
     static result_t get_pid(int32_t& retVal);
     static result_t get_ppid(int32_t& retVal);
     static result_t get_stdin(obj_ptr<Stream_base>& retVal);
@@ -85,6 +86,7 @@ public:
     static void s_static_get_env(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_release(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_ppid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -151,6 +153,7 @@ inline ClassInfo& process_base::class_info()
         { "env", s_static_get_env, block_set, true },
         { "arch", s_static_get_arch, block_set, true },
         { "platform", s_static_get_platform, block_set, true },
+        { "release", s_static_get_release, block_set, true },
         { "pid", s_static_get_pid, block_set, true },
         { "ppid", s_static_get_ppid, block_set, true },
         { "stdin", s_static_get_stdin, block_set, true },
@@ -271,6 +274,19 @@ inline void process_base::s_static_get_platform(const v8::FunctionCallbackInfo<v
     METHOD_OVER(0, 0);
 
     hr = get_platform(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_get_release(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_release(vr);
 
     METHOD_RETURN();
 }
