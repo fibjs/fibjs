@@ -6,6 +6,7 @@
  */
 
 #include "console.h"
+#include "Isolate.h"
 
 namespace fibjs {
 
@@ -76,6 +77,14 @@ void flushLog()
     }
 
     s_std->flush();
+
+    Isolate* isolate = Isolate::main();
+    if (isolate) {
+        if (isolate->m_stdout)
+            isolate->m_stdout->cc_flush();
+        if (isolate->m_stderr)
+            isolate->m_stderr->cc_flush();
+    }
 }
 
 result_t console_base::get_loglevel(int32_t& retVal)

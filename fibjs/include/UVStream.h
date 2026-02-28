@@ -13,6 +13,7 @@
 #include "AsyncStream.h"
 #include "options.h"
 #include "ifs/console.h"
+#include <vector>
 
 #define STREAM_BLOCK_SIZE 2048
 
@@ -292,13 +293,23 @@ public:
                 int32_t ret = uv_write(&wr->m_req, &pThis->m_stream, &wr->m_buf, 1, on_write);
                 if (ret)
                     post_all_result(pThis, ret);
+            } else {
+                notify_flush_waiters(pThis, 0);
             }
+        }
+
+        static void notify_flush_waiters(UVStream_tmpl* pThis, int32_t status)
+        {
+            for (auto* flush_ac : pThis->m_flush_waiters)
+                flush_ac->apost(status);
+            pThis->m_flush_waiters.clear();
         }
 
         static void post_all_result(UVStream_tmpl* pThis, int32_t status)
         {
             while (pThis->queue_write.count())
                 pThis->queue_write.getHead()->post_result(status);
+            notify_flush_waiters(pThis, status);
         }
 
         void post_result(int32_t status)
@@ -428,7 +439,17 @@ public:
 
     virtual result_t flush(AsyncEvent* ac)
     {
-        return 0;
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        uv_post([this, ac] {
+            if (queue_write.count() == 0)
+                ac->apost(0);
+            else
+                m_flush_waiters.push_back(ac);
+        });
+
+        return CALL_E_PENDDING;
     }
 
     static void on_close(uv_handle_t* handle)
@@ -509,6 +530,7 @@ public:
     };
     exlib::List<AsyncRead> queue_read;
     exlib::List<AsyncWrite> queue_write;
+    std::vector<AsyncEvent*> m_flush_waiters;
     AsyncEvent* ac_close;
 };
 
