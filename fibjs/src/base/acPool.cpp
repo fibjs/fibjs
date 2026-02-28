@@ -260,11 +260,11 @@ int AsyncCallBack::syncFunc()
 
         if (m_v == CALL_RETURN_NULL) {
             args.resize(2);
-            args[0] = v8::Undefined(m_isolate->m_isolate);
+            args[0] = v8::Null(m_isolate->m_isolate);
             args[1] = v8::Null(m_isolate->m_isolate);
         } else if (m_v >= 0) {
             args.resize(1);
-            args[0] = v8::Undefined(m_isolate->m_isolate);
+            args[0] = v8::Null(m_isolate->m_isolate);
             to_args(args);
         } else {
             if (m_v == CALL_E_EXCEPTION)

@@ -344,6 +344,22 @@ module fs
      */
     static NArray glob(String patterns[], Object opts = {}) async;
 
+    /*! @brief Create a readable file stream
+
+     options supports the following options:
+     ```JavaScript
+     {
+         "flags": "r",      // File open mode, default is "r", read-only mode
+         "start": 0,        // Start position to read from
+         "end": undefined    // End position to read to (inclusive), default is end of file
+     }
+     ```
+     @param fname Specify filename
+     @param options Read options
+     @return Return file stream object
+     */
+    static SeekableStream createReadStream(String fname, Object options = {}) async;
+
     /*! @brief Open file for reading, writing, or both reading and writing
 
      The ways supported by parameter flags are as follows:

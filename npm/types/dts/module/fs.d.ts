@@ -1197,6 +1197,62 @@ declare module 'fs' {
     function globAsync(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
 
     /**
+     * @description 创建可读文件流
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "flags": "r",      // 文件打开方式，缺省为 "r"，只读方式
+     *          "start": 0,        // 读取起始位置
+     *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
+     *      }
+     *      ```
+     *      @param fname 指定文件名
+     *      @param options 读取选项
+     *      @return 返回文件流对象
+     *      
+     */
+    function createReadStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+
+    function createReadStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    /**
+     * @description 创建可读文件流
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "flags": "r",      // 文件打开方式，缺省为 "r"，只读方式
+     *          "start": 0,        // 读取起始位置
+     *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
+     *      }
+     *      ```
+     *      @param fname 指定文件名
+     *      @param options 读取选项
+     *      @return 返回文件流对象
+     *      
+     */
+    function createReadStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+
+    /**
+     * @description 创建可读文件流
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "flags": "r",      // 文件打开方式，缺省为 "r"，只读方式
+     *          "start": 0,        // 读取起始位置
+     *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
+     *      }
+     *      ```
+     *      @param fname 指定文件名
+     *      @param options 读取选项
+     *      @return 返回文件流对象
+     *      
+     */
+    function createReadStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStream>;
+
+    /**
      * @description 打开文件，用于读取，写入，或者同时读写
      * 
      *      参数 flags 支持的方式如下：

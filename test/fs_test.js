@@ -260,6 +260,87 @@ describe('fs', () => {
         assert.deepEqual(f.stat().toJSON(), fs.stat(path.join(__dirname, 'fs_test.js')).toJSON());
     });
 
+    describe("createReadStream", () => {
+        var testFile = path.join(__dirname, 'fs_test.js');
+        var testContent = "Hello, createReadStream!";
+        var tmpFile;
+
+        before(() => {
+            tmpFile = path.join(os.tmpdir(), 'test_createReadStream_' + Date.now() + '.txt');
+            fs.writeFile(tmpFile, testContent);
+        });
+
+        after(() => {
+            if (fs.exists(tmpFile))
+                fs.unlink(tmpFile);
+        });
+
+        it("basic read", () => {
+            var stm = fs.createReadStream(tmpFile);
+            assert.equal(stm.readAll().toString(), testContent);
+        });
+
+        it("with start and end (end is inclusive)", () => {
+            var stm = fs.createReadStream(tmpFile, { start: 7, end: 22 });
+            assert.equal(stm.readAll().toString(), "createReadStream");
+        });
+
+        it("with start only", () => {
+            var stm = fs.createReadStream(tmpFile, { start: 7 });
+            assert.equal(stm.readAll().toString(), "createReadStream!");
+        });
+
+        it("with end only", () => {
+            var stm = fs.createReadStream(tmpFile, { end: 4 });
+            assert.equal(stm.readAll().toString(), "Hello");
+        });
+
+        it("start=0, end=0 reads one byte", () => {
+            var stm = fs.createReadStream(tmpFile, { start: 0, end: 0 });
+            assert.equal(stm.readAll().toString(), "H");
+        });
+
+        it("returned stream supports seek/tell/size", () => {
+            var stm = fs.createReadStream(tmpFile, { start: 7, end: 22 });
+            assert.equal(stm.size(), 16);
+            assert.equal(stm.tell(), 0);
+
+            stm.seek(6, fs.SEEK_SET);
+            assert.equal(stm.tell(), 6);
+            assert.equal(stm.readAll().toString(), "ReadStream");
+        });
+
+        it("returned stream without range is a plain file stream", () => {
+            var stm = fs.createReadStream(tmpFile);
+            var sz = stm.size();
+            assert.equal(sz, testContent.length);
+            stm.seek(0, fs.SEEK_SET);
+            assert.equal(stm.tell(), 0);
+        });
+
+        it("async callback", done => {
+            fs.createReadStream(tmpFile, { start: 0, end: 4 }, (err, stm) => {
+                done(() => {
+                    assert.isNull(err);
+                    assert.equal(stm.readAll().toString(), "Hello");
+                });
+            });
+        });
+
+        it("read existing file without options", () => {
+            var stm = fs.createReadStream(testFile);
+            var buf = stm.readAll();
+            assert.ok(buf.length > 0);
+            assert.equal(buf.length, fs.stat(testFile).size);
+        });
+
+        it("error on non-existent file", () => {
+            assert.throws(() => {
+                fs.createReadStream('/tmp/non_existent_file_12345.txt');
+            });
+        });
+    });
+
     it("mkdir", () => {
         fs.mkdir(pathname, 0o755);
         assert.equal(fs.exists(pathname), true);

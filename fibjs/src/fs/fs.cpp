@@ -17,6 +17,7 @@
 #include "Stat.h"
 #include "DirEntry.h"
 #include "FileStream.h"
+#include "RangeStream.h"
 #include "AsyncUV.h"
 #include "utils.h"
 #include "encoding.h"
@@ -1236,6 +1237,51 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
                     paths.append(full_path);
             }
         }
+    }
+
+    return 0;
+}
+
+result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> options,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(3);
+
+        exlib::string flags = "r";
+        GetConfigValue(options, "flags", flags);
+        ac->m_ctx[0] = flags;
+
+        int64_t start = -1;
+        GetConfigValue(options, "start", start);
+        ac->m_ctx[1] = start;
+
+        int64_t end = -1;
+        GetConfigValue(options, "end", end);
+        ac->m_ctx[2] = end;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string flags = ac->m_ctx[0].string();
+    int64_t start = ac->m_ctx[1].longVal();
+    int64_t end = ac->m_ctx[2].longVal();
+
+    obj_ptr<SeekableStream_base> stm;
+    result_t hr = openFile(fname, flags, stm, ac);
+    if (hr < 0)
+        return hr;
+
+    if (start >= 0 || end >= 0) {
+        int64_t sz;
+        stm->size(sz);
+
+        int64_t begin = (start >= 0) ? start : 0;
+        int64_t e = (end >= 0) ? (end + 1) : sz;
+
+        retVal = new RangeStream(stm, begin, e);
+    } else {
+        retVal = stm;
     }
 
     return 0;
