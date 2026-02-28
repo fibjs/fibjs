@@ -1253,6 +1253,35 @@ declare module 'fs' {
     function createReadStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStream>;
 
     /**
+     * @description 打开文件，创建可写流对象
+     *      @param fname 指定文件名
+     *      @param options 写入选项，支持 flags（默认 'w'）
+     *      @return 返回文件流对象
+     *      
+     */
+    function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+
+    function createWriteStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    /**
+     * @description 打开文件，创建可写流对象
+     *      @param fname 指定文件名
+     *      @param options 写入选项，支持 flags（默认 'w'）
+     *      @return 返回文件流对象
+     *      
+     */
+    function createWriteStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+
+    /**
+     * @description 打开文件，创建可写流对象
+     *      @param fname 指定文件名
+     *      @param options 写入选项，支持 flags（默认 'w'）
+     *      @return 返回文件流对象
+     *      
+     */
+    function createWriteStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStream>;
+
+    /**
      * @description 打开文件，用于读取，写入，或者同时读写
      * 
      *      参数 flags 支持的方式如下：

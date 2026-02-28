@@ -1287,4 +1287,29 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
     return 0;
 }
 
+result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> options,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string flags = "w";
+        GetConfigValue(options, "flags", flags);
+        ac->m_ctx[0] = flags;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string flags = ac->m_ctx[0].string();
+
+    obj_ptr<SeekableStream_base> stm;
+    result_t hr = openFile(fname, flags, stm, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = stm;
+
+    return 0;
+}
+
 }

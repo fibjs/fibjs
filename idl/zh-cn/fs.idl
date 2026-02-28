@@ -360,6 +360,13 @@ module fs
      */
     static SeekableStream createReadStream(String fname, Object options = {}) async;
 
+    /*! @brief 打开文件，创建可写流对象
+     @param fname 指定文件名
+     @param options 写入选项，支持 flags（默认 'w'）
+     @return 返回文件流对象
+     */
+    static SeekableStream createWriteStream(String fname, Object options = {}) async;
+
     /*! @brief 打开文件，用于读取，写入，或者同时读写
 
      参数 flags 支持的方式如下：

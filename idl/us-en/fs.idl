@@ -360,6 +360,13 @@ module fs
      */
     static SeekableStream createReadStream(String fname, Object options = {}) async;
 
+    /*! @brief Open a file and create a writable stream object
+     @param fname Specify filename
+     @param options Write options, supports flags (default 'w')
+     @return Return file stream object
+     */
+    static SeekableStream createWriteStream(String fname, Object options = {}) async;
+
     /*! @brief Open file for reading, writing, or both reading and writing
 
      The ways supported by parameter flags are as follows:

@@ -70,6 +70,7 @@ public:
     static result_t glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     static result_t glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     static result_t createReadStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    static result_t createWriteStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac);
     static result_t close(FileHandle_base* fd, AsyncEvent* ac);
@@ -137,6 +138,7 @@ public:
     static void s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createReadStream(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createWriteStream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -189,6 +191,7 @@ public:
     ASYNC_STATICVALUE3(fs_base, glob, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, glob, std::vector<exlib::string>, v8::Local<v8::Object>, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, createReadStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE3(fs_base, createWriteStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, obj_ptr<FileHandle_base>);
     ASYNC_STATIC1(fs_base, close, FileHandle_base*);
@@ -248,6 +251,7 @@ inline ClassInfo& fs_base::class_info()
         { "readdir", s_static_readdir, true, ClassData::ASYNC_ASYNC },
         { "glob", s_static_glob, true, ClassData::ASYNC_ASYNC },
         { "createReadStream", s_static_createReadStream, true, ClassData::ASYNC_ASYNC },
+        { "createWriteStream", s_static_createWriteStream, true, ClassData::ASYNC_ASYNC },
         { "openFile", s_static_openFile, true, ClassData::ASYNC_ASYNC },
         { "open", s_static_open, true, ClassData::ASYNC_ASYNC },
         { "close", s_static_close, true, ClassData::ASYNC_ASYNC },
@@ -837,6 +841,25 @@ inline void fs_base::s_static_createReadStream(const v8::FunctionCallbackInfo<v8
         hr = acb_createReadStream(v0, v1, cb, args);
     else
         hr = ac_createReadStream(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_static_createWriteStream(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SeekableStream_base> vr;
+
+    ASYNC_METHOD_ENTER("fs.createWriteStream");
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_createWriteStream(v0, v1, cb, args);
+    else
+        hr = ac_createWriteStream(v0, v1, vr);
 
     METHOD_RETURN();
 }
