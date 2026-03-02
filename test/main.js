@@ -63,6 +63,7 @@ run("./webcrypto_test.js");
 run("./bbs_test.js");
 run("./tls_test.js");
 run("./string_decoder_test.js");
+run("./readline_test.js");
 run("./url_search_params_test.js");
 run("./blob_test.js");
 run("./formdata_test.js");
