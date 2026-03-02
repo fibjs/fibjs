@@ -150,6 +150,11 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return JSTrigger(this).listeners(ev, retVal);
 }
 
+result_t object_base::rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+{
+    return JSTrigger(this).rawListeners(ev, retVal);
+}
+
 result_t object_base::_emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal)
 {
     return JSTrigger(this)._emit(ev, args, argCount, retVal);
@@ -193,5 +198,22 @@ result_t object_base::listenerCount(v8::Local<v8::Value> o, exlib::string ev, in
 result_t object_base::eventNames(v8::Local<v8::Array>& retVal)
 {
     return JSTrigger(this).eventNames(retVal);
+}
+
+// Static stubs required by IDL-generated code; actual implementations are in JSTrigger
+// and registered via events.cpp override.
+result_t EventEmitter_base::on(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+
+result_t EventEmitter_base::once(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+
+result_t EventEmitter_base::addAbortListener(EventEmitter_base* signal, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+{
+    return CALL_E_INVALID_CALL;
 }
 }

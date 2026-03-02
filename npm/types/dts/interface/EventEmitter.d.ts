@@ -254,6 +254,14 @@ declare class Class_EventEmitter extends Class_object {
     listeners(ev: string): any[];
 
     /**
+     * @description 查询对象指定事件的监听器数组，包含 once 包装函数
+     *     @param ev 指定事件的名称
+     *     @return 返回指定事件的监听器数组
+     *    
+     */
+    rawListeners(ev: string): any[];
+
+    /**
      * @description 查询对象指定事件的监听器数量
      *     @param ev 指定事件的名称
      *     @return 返回指定事件的监听器数量
@@ -285,6 +293,51 @@ declare class Class_EventEmitter extends Class_object {
      *    
      */
     emit(ev: string, ...args: any[]): boolean;
+
+    /**
+     * @description 监听一个 AbortSignal 的 abort 事件，返回一个可释放的对象
+     * 
+     *     返回的对象包含 `[Symbol.dispose]()` 方法，调用后将移除监听器。如果信号已中止，则监听器会被立即调用。
+     * 
+     *     @param signal 要监听的 AbortSignal 对象
+     *     @param func abort 事件的处理函数
+     *     @return 返回一个包含 `[Symbol.dispose]` 方法的 Disposable 对象
+     *    
+     */
+    static addAbortListener(signal: Class_EventEmitter, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    /**
+     * @description 创建一个 Promise，等待指定事件触发一次后解析
+     * 
+     *     返回一个 Promise，当目标事件触发时以事件参数数组解析。如果在此期间触发 'error' 事件（且监听的不是 'error' 事件本身），Promise 将被拒绝。
+     * 
+     *     options 参数可包含：
+     *     - signal: AbortSignal，用于取消等待
+     * 
+     *     @param emitter 要监听的事件触发器对象
+     *     @param ev 指定事件的名称
+     *     @param options 可选参数对象
+     *     @return 返回 Promise，以事件参数数组解析
+     *    
+     */
+    static once(emitter: Class_EventEmitter, ev: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
+     * @description 创建一个异步迭代器，持续监听指定事件
+     * 
+     *     返回一个 AsyncIterator，每次事件触发时产出事件参数数组。如果触发 'error' 事件，迭代器将抛出错误。
+     * 
+     *     options 参数可包含：
+     *     - signal: AbortSignal，用于取消迭代
+     *     - close: 字符串数组，指定结束迭代的事件名称
+     * 
+     *     @param emitter 要监听的事件触发器对象
+     *     @param ev 指定事件的名称
+     *     @param options 可选参数对象
+     *     @return 返回 AsyncIterator 对象
+     *    
+     */
+    static on(emitter: Class_EventEmitter, ev: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 

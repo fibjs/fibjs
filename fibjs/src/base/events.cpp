@@ -40,12 +40,15 @@ RootModule_events::RootModule_events()
         { "getMaxListeners", JSTrigger::s_getMaxListeners, true },
         { "listeners", JSTrigger::s_listeners, false },
         { "listeners", JSTrigger::s_listeners, true },
+        { "rawListeners", JSTrigger::s_rawListeners, false },
+        { "rawListeners", JSTrigger::s_rawListeners, true },
         { "listenerCount", JSTrigger::s_listenerCount, false },
         { "listenerCount", JSTrigger::s_listenerCount, true },
         { "eventNames", JSTrigger::s_eventNames, false },
         { "eventNames", JSTrigger::s_eventNames, true },
         { "emit", JSTrigger::s_emit, false },
         { "emit", JSTrigger::s_emit, true },
+        { "addAbortListener", JSTrigger::s_addAbortListener, true },
     };
 
     static ClassData::ClassProperty s_property[] = {

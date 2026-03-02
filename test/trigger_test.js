@@ -567,5 +567,248 @@ describe("Trigger/EventEmitter", () => {
             assert.isFalse(e.emit('someEvent', 'data'));
         });
     });
+
+    describe("rawListeners", () => {
+        it("should return wrapper for once listeners", () => {
+            var e = new events();
+            var fn = function myFunc() {};
+            e.once('test', fn);
+            e.on('test', fn);
+
+            var raw = e.rawListeners('test');
+            assert.equal(raw.length, 2);
+            assert.equal(typeof raw[0]._func, 'function');
+            assert.equal(raw[0]._func, fn);
+            assert.equal(raw[1], fn);
+        });
+
+        it("listeners should unwrap once wrappers", () => {
+            var e = new events();
+            var fn = function myFunc() {};
+            e.once('test', fn);
+
+            var lis = e.listeners('test');
+            assert.equal(lis.length, 1);
+            assert.equal(lis[0], fn);
+            assert.equal(lis[0].name, 'myFunc');
+        });
+
+        it("rawListeners wrapper should be callable", () => {
+            var e = new events();
+            var called = false;
+            e.once('test', () => { called = true; });
+
+            var raw = e.rawListeners('test');
+            assert.equal(raw.length, 1);
+
+            // Call the wrapper directly - it should fire and auto-remove
+            raw[0]();
+            assert.isTrue(called);
+        });
+    });
+
+    describe("removeListener with once wrapper", () => {
+        it("should remove once listener by original function", () => {
+            var e = new events();
+            var fn = () => {};
+            e.once('test', fn);
+            assert.equal(e.listenerCount('test'), 1);
+            e.removeListener('test', fn);
+            assert.equal(e.listenerCount('test'), 0);
+        });
+
+        it("should remove correct once listener among multiple", () => {
+            var e = new events();
+            var fn1 = () => {};
+            var fn2 = () => {};
+            e.once('test', fn1);
+            e.once('test', fn2);
+            assert.equal(e.listenerCount('test'), 2);
+            e.removeListener('test', fn1);
+            assert.equal(e.listenerCount('test'), 1);
+
+            var remaining = e.listeners('test');
+            assert.equal(remaining[0], fn2);
+        });
+    });
+
+    describe("events.addAbortListener", () => {
+        it("should call listener on abort", () => {
+            var ac = new AbortController();
+            var called = false;
+            events.addAbortListener(ac.signal, () => { called = true; });
+            ac.abort();
+            assert.isTrue(called);
+        });
+
+        it("should return disposable with Symbol.dispose", () => {
+            var ac = new AbortController();
+            var d = events.addAbortListener(ac.signal, () => {});
+            assert.equal(typeof d[Symbol.dispose], 'function');
+        });
+
+        it("should call listener immediately if already aborted", () => {
+            var ac = new AbortController();
+            ac.abort();
+            var called = false;
+            events.addAbortListener(ac.signal, () => { called = true; });
+            assert.isTrue(called);
+        });
+
+        it("should not call listener after dispose", () => {
+            var ac = new AbortController();
+            var called = false;
+            var d = events.addAbortListener(ac.signal, () => { called = true; });
+            d[Symbol.dispose]();
+            ac.abort();
+            assert.isFalse(called);
+        });
+    });
+
+    describe("events.once (static)", () => {
+        it("should resolve with args array on event", async () => {
+            var e = new events();
+            setTimeout(() => e.emit('data', 'hello', 42), 10);
+            var result = await events.once(e, 'data');
+            assert.isTrue(Array.isArray(result));
+            assert.equal(result[0], 'hello');
+            assert.equal(result[1], 42);
+        });
+
+        it("should reject on error event", async () => {
+            var e = new events();
+            setTimeout(() => e.emit('error', new Error('boom')), 10);
+            try {
+                await events.once(e, 'data');
+                assert.ok(false, 'should have rejected');
+            } catch (err) {
+                assert.equal(err.message, 'boom');
+            }
+        });
+
+        it("should resolve when listening for error event itself", async () => {
+            var e = new events();
+            setTimeout(() => e.emit('error', new Error('expected')), 10);
+            var result = await events.once(e, 'error');
+            assert.equal(result[0].message, 'expected');
+        });
+
+        it("should remove error listener after event fires", async () => {
+            var e = new events();
+            setTimeout(() => e.emit('data', 'ok'), 10);
+            await events.once(e, 'data');
+            assert.equal(e.listenerCount('data'), 0);
+            assert.equal(e.listenerCount('error'), 0);
+        });
+
+        it("should reject with AbortError if signal already aborted", async () => {
+            var ac = new AbortController();
+            ac.abort();
+            try {
+                await events.once(new events(), 'data', { signal: ac.signal });
+                assert.ok(false, 'should have rejected');
+            } catch (err) {
+                assert.equal(err.name, 'AbortError');
+            }
+        });
+
+        it("should reject with AbortError when signal fires", async () => {
+            var e = new events();
+            var ac = new AbortController();
+            setTimeout(() => ac.abort(), 10);
+            try {
+                await events.once(e, 'data', { signal: ac.signal });
+                assert.ok(false, 'should have rejected');
+            } catch (err) {
+                assert.equal(err.name, 'AbortError');
+            }
+        });
+    });
+
+    describe("events.on (static)", () => {
+        it("should yield event args as arrays", async () => {
+            var e = new events();
+            setTimeout(() => {
+                e.emit('data', 'a');
+                e.emit('data', 'b');
+                e.emit('data', 'c');
+            }, 10);
+
+            var collected = [];
+            var iter = events.on(e, 'data');
+            for await (var args of iter) {
+                collected.push(args[0]);
+                if (collected.length >= 3) break;
+            }
+            assert.deepEqual(collected, ['a', 'b', 'c']);
+        });
+
+        it("should support close option", async () => {
+            var e = new events();
+            setTimeout(() => {
+                e.emit('data', 'x');
+                e.emit('end');
+            }, 10);
+
+            var collected = [];
+            for await (var args of events.on(e, 'data', { close: ['end'] })) {
+                collected.push(args[0]);
+            }
+            assert.deepEqual(collected, ['x']);
+        });
+
+        it("should reject on error event", async () => {
+            var e = new events();
+            setTimeout(() => e.emit('error', new Error('fail')), 10);
+
+            try {
+                for await (var args of events.on(e, 'data')) {
+                    // should not reach here
+                }
+                assert.ok(false, 'should have thrown');
+            } catch (err) {
+                assert.equal(err.message, 'fail');
+            }
+        });
+
+        it("should reject with AbortError if signal already aborted", async () => {
+            var ac = new AbortController();
+            ac.abort();
+            var iter = events.on(new events(), 'data', { signal: ac.signal });
+            try {
+                await iter.next();
+                assert.ok(false, 'should have rejected');
+            } catch (err) {
+                assert.equal(err.name, 'AbortError');
+            }
+        });
+
+        it("return() should end iteration", async () => {
+            var e = new events();
+            var iter = events.on(e, 'data');
+            var ret = await iter.return();
+            assert.isTrue(ret.done);
+            assert.isUndefined(ret.value);
+        });
+
+        it("throw() should reject", async () => {
+            var e = new events();
+            var iter = events.on(e, 'data');
+            try {
+                await iter.throw(new Error('thrown'));
+                assert.ok(false, 'should have rejected');
+            } catch (err) {
+                assert.equal(err.message, 'thrown');
+            }
+        });
+
+        it("should have Symbol.asyncIterator", () => {
+            var e = new events();
+            var iter = events.on(e, 'data');
+            assert.equal(typeof iter[Symbol.asyncIterator], 'function');
+            assert.equal(iter[Symbol.asyncIterator](), iter);
+            iter.return();
+        });
+    });
 });
 

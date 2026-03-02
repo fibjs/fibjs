@@ -25,6 +25,7 @@ public:
     static result_t set_defaultMaxListeners(int32_t newVal);
     virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    static result_t on(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal) = 0;
@@ -32,6 +33,7 @@ public:
     virtual result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    static result_t once(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     virtual result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
@@ -46,10 +48,12 @@ public:
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t getMaxListeners(int32_t& retVal) = 0;
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t listenerCount(exlib::string ev, int32_t& retVal) = 0;
     virtual result_t listenerCount(v8::Local<v8::Value> o, exlib::string ev, int32_t& retVal) = 0;
     virtual result_t eventNames(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t emit(exlib::string ev, OptArgs args, bool& retVal) = 0;
+    static result_t addAbortListener(EventEmitter_base* signal, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -59,10 +63,12 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_on(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addListener(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addEventListener(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_prependListener(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_once(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_once(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_prependOnceListener(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_off(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,9 +78,11 @@ public:
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_rawListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_addAbortListener(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -83,10 +91,12 @@ inline ClassInfo& EventEmitter_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "on", s_on, false, ClassData::ASYNC_SYNC },
+        { "on", s_static_on, true, ClassData::ASYNC_SYNC },
         { "addListener", s_addListener, false, ClassData::ASYNC_SYNC },
         { "addEventListener", s_addEventListener, false, ClassData::ASYNC_SYNC },
         { "prependListener", s_prependListener, false, ClassData::ASYNC_SYNC },
         { "once", s_once, false, ClassData::ASYNC_SYNC },
+        { "once", s_static_once, true, ClassData::ASYNC_SYNC },
         { "prependOnceListener", s_prependOnceListener, false, ClassData::ASYNC_SYNC },
         { "off", s_off, false, ClassData::ASYNC_SYNC },
         { "removeListener", s_removeListener, false, ClassData::ASYNC_SYNC },
@@ -95,9 +105,11 @@ inline ClassInfo& EventEmitter_base::class_info()
         { "setMaxListeners", s_setMaxListeners, false, ClassData::ASYNC_SYNC },
         { "getMaxListeners", s_getMaxListeners, false, ClassData::ASYNC_SYNC },
         { "listeners", s_listeners, false, ClassData::ASYNC_SYNC },
+        { "rawListeners", s_rawListeners, false, ClassData::ASYNC_SYNC },
         { "listenerCount", s_listenerCount, false, ClassData::ASYNC_SYNC },
         { "eventNames", s_eventNames, false, ClassData::ASYNC_SYNC },
-        { "emit", s_emit, false, ClassData::ASYNC_SYNC }
+        { "emit", s_emit, false, ClassData::ASYNC_SYNC },
+        { "addAbortListener", s_static_addAbortListener, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -171,6 +183,23 @@ inline void EventEmitter_base::s_static_set_defaultMaxListeners(const v8::Functi
     hr = set_defaultMaxListeners(v0);
 
     METHOD_VOID();
+}
+
+inline void EventEmitter_base::s_static_on(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<EventEmitter_base>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = on(v0.get(), v1, v2, vr);
+
+    METHOD_RETURN();
 }
 
 inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -256,6 +285,23 @@ inline void EventEmitter_base::s_prependListener(const v8::FunctionCallbackInfo<
     ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->prependListener(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void EventEmitter_base::s_static_once(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<EventEmitter_base>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = once(v0.get(), v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -448,6 +494,22 @@ inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Va
     METHOD_RETURN();
 }
 
+inline void EventEmitter_base::s_rawListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->rawListeners(v0, vr);
+
+    METHOD_RETURN();
+}
+
 inline void EventEmitter_base::s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
@@ -498,6 +560,22 @@ inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>&
     ARG_LIST(1);
 
     hr = pInst->emit(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void EventEmitter_base::s_static_addAbortListener(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<EventEmitter_base>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = addAbortListener(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

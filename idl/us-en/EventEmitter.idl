@@ -198,6 +198,12 @@ interface EventEmitter : object
    */
     Array listeners(String ev);
 
+    /*! @brief Query the raw listener array for the specified event of the object, including once wrappers
+    @param ev Specifies the event name
+    @return Returns the raw listener array for the specified event
+   */
+    Array rawListeners(String ev);
+
     /*! @brief Query the number of listeners for the specified event of the object
     @param ev Specifies the event name
     @return Returns the number of listeners for the specified event
@@ -222,4 +228,43 @@ interface EventEmitter : object
     @return Returns the event trigger status, returns true if there is a response event, otherwise returns false
    */
     Boolean emit(String ev, ...args);
+
+    /*! @brief Listen to an AbortSignal's abort event, returns a disposable object
+
+    The returned object contains a `[Symbol.dispose]()` method, which removes the listener when called. If the signal is already aborted, the listener will be called immediately.
+
+    @param signal The AbortSignal object to listen to
+    @param func The handler function for the abort event
+    @return Returns a Disposable object with a `[Symbol.dispose]` method
+   */
+    static Object addAbortListener(EventEmitter signal, Function func);
+
+    /*! @brief Create a Promise that resolves when the specified event is emitted once
+
+    Returns a Promise that resolves with the event arguments array when the target event fires. If an 'error' event is emitted (and the listened event is not 'error' itself), the Promise will be rejected.
+
+    options parameter can contain:
+    - signal: AbortSignal, used to cancel the wait
+
+    @param emitter The event emitter object to listen to
+    @param ev Specifies the event name
+    @param options Optional parameters object
+    @return Returns a Promise that resolves with the event arguments array
+   */
+    static Object once(EventEmitter emitter, String ev, Object options = {});
+
+    /*! @brief Create an async iterator that continuously listens for the specified event
+
+    Returns an AsyncIterator that yields event arguments arrays each time the event fires. If an 'error' event is emitted, the iterator will throw the error.
+
+    options parameter can contain:
+    - signal: AbortSignal, used to cancel the iteration
+    - close: Array of strings, specifying event names that end the iteration
+
+    @param emitter The event emitter object to listen to
+    @param ev Specifies the event name
+    @param options Optional parameters object
+    @return Returns an AsyncIterator object
+   */
+    static Object on(EventEmitter emitter, String ev, Object options = {});
 };

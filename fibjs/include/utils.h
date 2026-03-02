@@ -625,6 +625,10 @@ public:                                                                         
     {                                                                                         \
         return object_base::listeners(ev, retVal);                                            \
     }                                                                                         \
+    virtual result_t rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)             \
+    {                                                                                         \
+        return object_base::rawListeners(ev, retVal);                                         \
+    }                                                                                         \
     virtual result_t listenerCount(exlib::string ev, int32_t& retVal)                         \
     {                                                                                         \
         return object_base::listenerCount(ev, retVal);                                        \
