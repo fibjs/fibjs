@@ -1140,10 +1140,20 @@ public:
             _isolate->NewString("unconsumedEvents")))
                                                      .As<v8::Array>();
 
-        // Build args array
-        v8::Local<v8::Array> argsArr = v8::Array::New(_isolate->m_isolate, args.Length());
-        for (int32_t i = 0; i < args.Length(); i++)
-            argsArr->Set(context, i, args[i]).IsJust();
+        // Check if kFirstEventParam is set - yield first arg directly instead of args array
+        v8::Local<v8::Value> firstEventParam = JSValue(_data->Get(context, _isolate->NewString("firstEventParam")));
+        bool useFirstParam = !firstEventParam.IsEmpty() && firstEventParam->IsTrue();
+
+        // Build value: either args[0] (if firstEventParam) or args array
+        v8::Local<v8::Value> value;
+        if (useFirstParam && args.Length() > 0) {
+            value = args[0];
+        } else {
+            v8::Local<v8::Array> argsArr = v8::Array::New(_isolate->m_isolate, args.Length());
+            for (int32_t i = 0; i < args.Length(); i++)
+                argsArr->Set(context, i, args[i]).IsJust();
+            value = argsArr;
+        }
 
         uint32_t pLen = unconsumedPromises->Length();
         if (pLen > 0) {
@@ -1156,9 +1166,9 @@ public:
                 v8::Integer::New(_isolate->m_isolate, pLen - 1))
                 .IsJust();
 
-            // Create { value: argsArr, done: false }
+            // Create { value, done: false }
             v8::Local<v8::Object> iterResult = v8::Object::New(_isolate->m_isolate);
-            iterResult->Set(context, _isolate->NewString("value"), argsArr).IsJust();
+            iterResult->Set(context, _isolate->NewString("value"), value).IsJust();
             iterResult->Set(context, _isolate->NewString("done"), v8::False(_isolate->m_isolate)).IsJust();
 
             v8::Local<v8::Function> resolve = JSValue(p->Get(context, _isolate->NewString("resolve"))).As<v8::Function>();
@@ -1167,7 +1177,7 @@ public:
         } else {
             // Push to unconsumedEvents
             uint32_t eLen = unconsumedEvents->Length();
-            unconsumedEvents->Set(context, eLen, argsArr).IsJust();
+            unconsumedEvents->Set(context, eLen, value).IsJust();
         }
     }
 
@@ -1645,6 +1655,30 @@ public:
         // Handle options
         if (args.Length() > 2 && args[2]->IsObject()) {
             v8::Local<v8::Object> options = args[2].As<v8::Object>();
+
+            // Check for Symbol-keyed kFirstEventParam option
+            v8::Local<v8::Array> ownProps = options->GetOwnPropertyNames(context,
+                static_cast<v8::PropertyFilter>(v8::PropertyFilter::ALL_PROPERTIES),
+                v8::KeyConversionMode::kKeepNumbers).FromMaybe(v8::Local<v8::Array>());
+            if (!ownProps.IsEmpty()) {
+                for (uint32_t i = 0; i < ownProps->Length(); i++) {
+                    v8::Local<v8::Value> key = JSValue(ownProps->Get(context, i));
+                    if (!key.IsEmpty() && key->IsSymbol()) {
+                        v8::Local<v8::Symbol> sym = key.As<v8::Symbol>();
+                        v8::Local<v8::Value> desc = sym->Description(_isolate->m_isolate);
+                        if (!desc.IsEmpty() && desc->IsString()) {
+                            v8::String::Utf8Value descStr(_isolate->m_isolate, desc);
+                            if (strcmp(*descStr, "nodejs.kFirstEventParam") == 0) {
+                                v8::Local<v8::Value> val = JSValue(options->Get(context, sym));
+                                if (!val.IsEmpty() && val->IsTrue()) {
+                                    state->Set(context, _isolate->NewString("firstEventParam"),
+                                        v8::True(_isolate->m_isolate)).IsJust();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // options.close - array of event names that end iteration
             v8::Local<v8::Value> closeVal = JSValue(options->Get(context, _isolate->NewString("close")));

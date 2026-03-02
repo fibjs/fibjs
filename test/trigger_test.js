@@ -809,6 +809,83 @@ describe("Trigger/EventEmitter", () => {
             assert.equal(iter[Symbol.asyncIterator](), iter);
             iter.return();
         });
+
+        describe("kFirstEventParam option", () => {
+            const kFirstEventParam = Symbol('nodejs.kFirstEventParam');
+
+            it("without kFirstEventParam, yields args as array", async () => {
+                var e = new events();
+                setTimeout(() => {
+                    e.emit('data', 'hello');
+                    e.emit('data', 'world');
+                }, 10);
+
+                var collected = [];
+                for await (var args of events.on(e, 'data')) {
+                    assert.isArray(args);
+                    collected.push(args);
+                    if (collected.length >= 2) break;
+                }
+                assert.deepEqual(collected, [['hello'], ['world']]);
+            });
+
+            it("with kFirstEventParam, yields first arg directly", async () => {
+                var e = new events();
+                setTimeout(() => {
+                    e.emit('data', 'hello');
+                    e.emit('data', 'world');
+                }, 10);
+
+                var collected = [];
+                for await (var val of events.on(e, 'data', { [kFirstEventParam]: true })) {
+                    assert.isString(val);
+                    collected.push(val);
+                    if (collected.length >= 2) break;
+                }
+                assert.deepEqual(collected, ['hello', 'world']);
+            });
+
+            it("with kFirstEventParam, multi-arg emit yields only first", async () => {
+                var e = new events();
+                setTimeout(() => {
+                    e.emit('data', 'a', 'b', 'c');
+                    e.emit('data', 1, 2);
+                }, 10);
+
+                var collected = [];
+                for await (var val of events.on(e, 'data', { [kFirstEventParam]: true })) {
+                    collected.push(val);
+                    if (collected.length >= 2) break;
+                }
+                assert.deepEqual(collected, ['a', 1]);
+            });
+
+            it("kFirstEventParam false behaves like default", async () => {
+                var e = new events();
+                setTimeout(() => e.emit('data', 'x'), 10);
+
+                for await (var args of events.on(e, 'data', { [kFirstEventParam]: false })) {
+                    assert.isArray(args);
+                    assert.deepEqual(args, ['x']);
+                    break;
+                }
+            });
+
+            it("kFirstEventParam works with close option", async () => {
+                var e = new events();
+                setTimeout(() => {
+                    e.emit('data', 'first');
+                    e.emit('data', 'second');
+                    e.emit('end');
+                }, 10);
+
+                var collected = [];
+                for await (var val of events.on(e, 'data', { [kFirstEventParam]: true, close: ['end'] })) {
+                    collected.push(val);
+                }
+                assert.deepEqual(collected, ['first', 'second']);
+            });
+        });
     });
 });
 
