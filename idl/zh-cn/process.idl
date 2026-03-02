@@ -274,6 +274,18 @@ module process : EventEmitter
     */
     static emitWarning(Value warning, String type = "Warning", String code = "");
 
+    /*! @brief 向指定的进程发送一个信号
+     @param pid 指定进程的 id
+     @param signal 指定发送的信号编号
+    */
+    static kill(Integer pid, Integer signal);
+
+    /*! @brief 向指定的进程发送一个信号
+     @param pid 指定进程的 id
+     @param signal 指定发送的信号名称，默认为 SIGTERM
+    */
+    static kill(Integer pid, String signal = "SIGTERM");
+
     /*! @brief 查询与父进程的管道是否正常连接 */
     static readonly Boolean connected;
 

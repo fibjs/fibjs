@@ -208,5 +208,61 @@ describe('process', () => {
         assert.isFalse('test_key_1' in process.env);
         delete process.env.test_key;
     });
+
+    describe("kill", () => {
+        it("should be a function", () => {
+            assert.isFunction(process.kill);
+        });
+
+        it("signal 0 to check process existence", () => {
+            process.kill(process.pid, 0);
+        });
+
+        it("signal 0 with string signal name", () => {
+            process.kill(process.pid, 'SIGURG');
+        });
+
+        it("throw on invalid signal name", () => {
+            assert.throws(() => {
+                process.kill(process.pid, 'INVALID_SIGNAL');
+            });
+        });
+
+        it("throw on invalid pid", () => {
+            assert.throws(() => {
+                process.kill(-99999, 0);
+            });
+        });
+
+        it("kill a child process with SIGTERM", () => {
+            var cp = child_process.spawn(cmd, ['-e', 'coroutine.sleep(100000)']);
+            var pid = cp.pid;
+
+            // verify the child is alive
+            process.kill(pid, 0);
+
+            // kill the child
+            process.kill(pid, 'SIGTERM');
+            cp.join();
+
+            // verify the child is gone
+            assert.throws(() => {
+                process.kill(pid, 0);
+            });
+        });
+
+        it("kill a child process with integer signal", () => {
+            var cp = child_process.spawn(cmd, ['-e', 'coroutine.sleep(100000)']);
+            var pid = cp.pid;
+
+            process.kill(pid, 0);
+            process.kill(pid, 15); // SIGTERM
+            cp.join();
+
+            assert.throws(() => {
+                process.kill(pid, 0);
+            });
+        });
+    });
 });
 

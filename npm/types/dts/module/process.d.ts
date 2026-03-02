@@ -350,6 +350,22 @@ declare module 'process' {
     function emitWarning(warning: any, type?: string, code?: string): void;
 
     /**
+     * @description 向指定的进程发送一个信号
+     *      @param pid 指定进程的 id
+     *      @param signal 指定发送的信号编号
+     *     
+     */
+    function kill(pid: number, signal: number): void;
+
+    /**
+     * @description 向指定的进程发送一个信号
+     *      @param pid 指定进程的 id
+     *      @param signal 指定发送的信号名称，默认为 SIGTERM
+     *     
+     */
+    function kill(pid: number, signal?: string): void;
+
+    /**
      * @description 查询与父进程的管道是否正常连接 
      */
     const connected: boolean;

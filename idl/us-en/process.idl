@@ -274,6 +274,18 @@ module process : EventEmitter
     */
     static emitWarning(Value warning, String type = "Warning", String code = "");
 
+    /*! @brief Send a signal to the specified process
+     @param pid Specify the process id
+     @param signal Specify the signal number to send
+    */
+    static kill(Integer pid, Integer signal);
+
+    /*! @brief Send a signal to the specified process
+     @param pid Specify the process id
+     @param signal Specify the signal name, default is SIGTERM
+    */
+    static kill(Integer pid, String signal = "SIGTERM");
+
     /*! @brief Query whether the pipe with the parent process is normally connected */
     static readonly Boolean connected;
 

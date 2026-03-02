@@ -62,6 +62,8 @@ public:
     static result_t setuid(int32_t id);
     static result_t emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::Object> options);
     static result_t emitWarning(v8::Local<v8::Value> warning, exlib::string type, exlib::string code);
+    static result_t kill(int32_t pid, int32_t signal);
+    static result_t kill(int32_t pid, exlib::string signal);
     static result_t get_connected(bool& retVal);
     static result_t disconnect();
     static result_t send(v8::Local<v8::Value> msg);
@@ -111,6 +113,7 @@ public:
     static void s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_emitWarning(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -140,6 +143,7 @@ inline ClassInfo& process_base::class_info()
         { "setgid", s_static_setgid, true, ClassData::ASYNC_SYNC },
         { "setuid", s_static_setuid, true, ClassData::ASYNC_SYNC },
         { "emitWarning", s_static_emitWarning, true, ClassData::ASYNC_SYNC },
+        { "kill", s_static_kill, true, ClassData::ASYNC_SYNC },
         { "disconnect", s_static_disconnect, true, ClassData::ASYNC_SYNC },
         { "send", s_static_send, true, ClassData::ASYNC_SYNC }
     };
@@ -633,6 +637,27 @@ inline void process_base::s_static_emitWarning(const v8::FunctionCallbackInfo<v8
     OPT_ARG(exlib::string, 2, "");
 
     hr = emitWarning(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void process_base::s_static_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    hr = kill(v0, v1);
+
+    METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "SIGTERM");
+
+    hr = kill(v0, v1);
 
     METHOD_VOID();
 }

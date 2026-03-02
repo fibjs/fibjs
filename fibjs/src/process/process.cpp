@@ -615,4 +615,90 @@ result_t process_base::send(v8::Local<v8::Value> msg)
     return ChildProcess::Ipc::send(isolate->m_channel, msg);
 }
 
+static int32_t sig_name_to_number(exlib::string signal)
+{
+    if (signal == "SIGHUP")
+        return 1;
+    else if (signal == "SIGINT")
+        return 2;
+    else if (signal == "SIGQUIT")
+        return 3;
+    else if (signal == "SIGILL")
+        return 4;
+    else if (signal == "SIGTRAP")
+        return 5;
+    else if (signal == "SIGABRT")
+        return 6;
+    else if (signal == "SIGIOT")
+        return 6;
+    else if (signal == "SIGFPE")
+        return 8;
+    else if (signal == "SIGKILL")
+        return 9;
+    else if (signal == "SIGBUS")
+        return 10;
+    else if (signal == "SIGSEGV")
+        return 11;
+    else if (signal == "SIGSYS")
+        return 12;
+    else if (signal == "SIGPIPE")
+        return 13;
+    else if (signal == "SIGALRM")
+        return 14;
+    else if (signal == "SIGTERM")
+        return 15;
+    else if (signal == "SIGURG")
+        return 16;
+    else if (signal == "SIGSTOP")
+        return 17;
+    else if (signal == "SIGTSTP")
+        return 18;
+    else if (signal == "SIGCONT")
+        return 19;
+    else if (signal == "SIGCHLD")
+        return 20;
+    else if (signal == "SIGTTIN")
+        return 21;
+    else if (signal == "SIGTTOU")
+        return 22;
+    else if (signal == "SIGIO")
+        return 23;
+    else if (signal == "SIGXCPU")
+        return 24;
+    else if (signal == "SIGXFSZ")
+        return 25;
+    else if (signal == "SIGVTALRM")
+        return 26;
+    else if (signal == "SIGPROF")
+        return 27;
+    else if (signal == "SIGWINCH")
+        return 28;
+    else if (signal == "SIGINFO")
+        return 29;
+    else if (signal == "SIGUSR1")
+        return 30;
+    else if (signal == "SIGUSR2")
+        return 31;
+    else
+        return -1;
+}
+
+result_t process_base::kill(int32_t pid, int32_t signal)
+{
+    int err = uv_kill(pid, signal);
+    if (err)
+        return CHECK_ERROR(Runtime::setError("process: kill failed with error: " + exlib::string(uv_strerror(err))));
+
+    return 0;
+}
+
+result_t process_base::kill(int32_t pid, exlib::string signal)
+{
+    int32_t signo = sig_name_to_number(signal);
+    if (signo < 0)
+        return CHECK_ERROR(Runtime::setError("process: Unknown signal: " + signal));
+
+    return kill(pid, signo);
+}
+
 }
