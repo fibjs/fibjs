@@ -451,5 +451,88 @@ describe("test", () => {
             ]);
         });
     });
-});
 
+    describe("two-arg callback (t, done)", () => {
+        var results = [];
+
+        it("sync two-arg: first arg is context object", (t, done) => {
+            assert.isObject(t);
+            results.push('sync-two-arg');
+            done();
+        });
+
+        it("async two-arg with delayed done", (t, done) => {
+            assert.isObject(t);
+            setTimeout(() => {
+                results.push('async-two-arg');
+                done();
+            }, 50);
+        });
+
+        it("one-arg done still works", (done) => {
+            assert.isFunction(done);
+            results.push('one-arg-done');
+            done();
+        });
+
+        it("zero-arg sync still works", () => {
+            results.push('zero-arg');
+        });
+
+        it("check all ran", () => {
+            assert.deepEqual(results, [
+                'sync-two-arg',
+                'async-two-arg',
+                'one-arg-done',
+                'zero-arg'
+            ]);
+        });
+
+        describe("two-arg in before/after hooks", () => {
+            var hookOrder = [];
+
+            before((t, done) => {
+                assert.isObject(t);
+                hookOrder.push('before');
+                done();
+            });
+
+            after((t, done) => {
+                assert.isObject(t);
+                hookOrder.push('after');
+                done();
+            });
+
+            beforeEach((t, done) => {
+                assert.isObject(t);
+                hookOrder.push('beforeEach');
+                done();
+            });
+
+            afterEach((t, done) => {
+                assert.isObject(t);
+                hookOrder.push('afterEach');
+                done();
+            });
+
+            it("test 1", (t, done) => {
+                hookOrder.push('test1');
+                done();
+            });
+
+            it("test 2", (t, done) => {
+                hookOrder.push('test2');
+                done();
+            });
+
+            it("check hook order", () => {
+                assert.deepEqual(hookOrder, [
+                    'before',
+                    'beforeEach', 'test1', 'afterEach',
+                    'beforeEach', 'test2', 'afterEach',
+                    'beforeEach',
+                ]);
+            });
+        });
+    });
+});

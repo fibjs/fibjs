@@ -539,14 +539,38 @@ private:
     int32_t m_pos = 0;
 };
 
+static void two_arg_test_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
+
+    int32_t len = args.Length();
+    std::vector<v8::Local<v8::Value>> argv(len + 1);
+    argv[0] = v8::Object::New(isolate->m_isolate);
+    for (int32_t i = 0; i < len; i++)
+        argv[i + 1] = args[i];
+
+    v8::Local<v8::Value> result;
+    if (func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result))
+        args.GetReturnValue().Set(result);
+}
+
 inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
 {
     if (func->IsAsyncFunction())
         util_base::sync(func, true, func);
     {
         Isolate* isolate = Isolate::current();
-        if (isolate->toInt32Value(JSValue(func->Get(isolate->context(), isolate->NewString("length")))) > 0)
+        int32_t length = isolate->toInt32Value(JSValue(func->Get(isolate->context(), isolate->NewString("length"))));
+        if (length >= 2) {
+            // Node.js test style: (t, done) => {}
+            // Create wrapper(done) that calls original(ctx, done)
+            v8::Local<v8::Function> wrapper = isolate->NewFunction("test_wrapper", two_arg_test_wrapper, func);
+            util_base::sync(wrapper, false, func);
+        } else if (length > 0) {
             util_base::sync(func, false, func);
+        }
     }
 
     return func;
