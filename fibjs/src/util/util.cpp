@@ -12,6 +12,7 @@
 #include "parse.h"
 #include "SimpleObject.h"
 #include "ts_strip/ts_strip.h"
+#include "util.h"
 #include <unordered_map>
 
 namespace fibjs {
@@ -990,5 +991,95 @@ result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
     } catch (const std::exception& e) {
         return CHECK_ERROR(Runtime::setError(e.what()));
     }
+}
+
+static int32_t getCharWidth(int32_t ch)
+{
+    const int eaw = u_getIntPropertyValue(ch, UCHAR_EAST_ASIAN_WIDTH);
+    switch (eaw) {
+    case U_EA_FULLWIDTH:
+    case U_EA_WIDE:
+        return 2;
+    case U_EA_AMBIGUOUS:
+    case U_EA_NEUTRAL:
+        if (u_hasBinaryProperty(ch, UCHAR_EMOJI_PRESENTATION)) {
+            return 2;
+        }
+    case U_EA_HALFWIDTH:
+    case U_EA_NARROW:
+    default:
+        const auto zero_width_mask = U_GC_CC_MASK | U_GC_CF_MASK | U_GC_ME_MASK | U_GC_MN_MASK;
+        if (ch != 0x00AD && ((U_MASK(u_charType(ch)) & zero_width_mask) || u_hasBinaryProperty(ch, UCHAR_EMOJI_MODIFIER))) {
+            return 0;
+        }
+        return 1;
+    }
+}
+
+result_t util_base::getStringWidth(exlib::string str, int32_t& retVal)
+{
+    exlib::wstring32 str32 = utf8to32String(str);
+    int32_t sz = 0;
+    size_t len = str32.length();
+    const char32_t* ptr = str32.c_str();
+
+    for (size_t i = 0; i < len; i++) {
+        char32_t ch = ptr[i];
+
+        if (ch == 0x1b) {
+            for (i++; i < len && ptr[i] != 'm'; i++)
+                ;
+        } else
+            sz += getCharWidth(ptr[i]);
+    }
+
+    retVal = sz;
+    return 0;
+}
+
+result_t util_base::stripVTControlCharacters(exlib::string str, exlib::string& retVal)
+{
+    exlib::string result;
+    result.reserve(str.length());
+
+    const char* ptr = str.c_str();
+    size_t len = str.length();
+
+    for (size_t i = 0; i < len; i++) {
+        if (ptr[i] == 0x1b) {
+            // Skip ESC sequences
+            if (i + 1 < len && ptr[i + 1] == '[') {
+                // CSI sequence: ESC [ params... final_byte (0x40-0x7E)
+                i += 2;
+                while (i < len && (unsigned char)ptr[i] < 0x40) {
+                    i++;
+                }
+            } else if (i + 1 < len && ptr[i + 1] == ']') {
+                // OSC sequence: ESC ] ... ST(ESC \) or BEL(0x07)
+                i += 2;
+                while (i < len) {
+                    if (ptr[i] == 0x07)
+                        break;
+                    if (ptr[i] == 0x1b && i + 1 < len && ptr[i + 1] == '\\') {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+            } else if (i + 1 < len) {
+                // ESC sequence with intermediate bytes (e.g., ESC ( B for character set)
+                if (ptr[i + 1] == '(' || ptr[i + 1] == ')' || ptr[i + 1] == '*' || ptr[i + 1] == '+') {
+                    i += 2; // skip ESC + intermediate + final byte
+                } else {
+                    i++; // Two-byte ESC sequence
+                }
+            }
+        } else {
+            result.append(1, ptr[i]);
+        }
+    }
+
+    retVal = result;
+    return 0;
 }
 }

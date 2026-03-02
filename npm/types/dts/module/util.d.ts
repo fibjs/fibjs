@@ -846,5 +846,25 @@ declare module 'util' {
      */
     function stripTypeScript(code: string): string;
 
+    /**
+     * @description 获取字符串的可视宽度，考虑全角字符、emoji 和 ANSI 转义序列
+     *      东亚宽度属性为 Fullwidth (F) 或 Wide (W) 的字符计为 2，大多数其他字符计为 1。
+     *      控制字符和组合标记计为 0。ANSI 转义序列将被跳过。
+     * 
+     *      @param str 要计算宽度的字符串
+     *      @return 返回字符串的可视宽度
+     *      
+     */
+    function getStringWidth(str: string): number;
+
+    /**
+     * @description 从字符串中移除 ANSI 转义序列（VT 控制字符）
+     * 
+     *      @param str 要处理的字符串
+     *      @return 返回移除 ANSI 转义序列后的字符串
+     *      
+     */
+    function stripVTControlCharacters(str: string): string;
+
 }
 

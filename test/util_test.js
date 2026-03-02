@@ -2049,5 +2049,85 @@ describe('util', () => {
     it("FIX: util.format(process.env) will cause fibjs to crash", () => {
         util.format(process.env);
     });
+
+    describe("getStringWidth", () => {
+        it("should return correct width for ASCII strings", () => {
+            assert.strictEqual(util.getStringWidth('hello'), 5);
+            assert.strictEqual(util.getStringWidth(''), 0);
+            assert.strictEqual(util.getStringWidth('a'), 1);
+            assert.strictEqual(util.getStringWidth('abc'), 3);
+        });
+
+        it("should return width 2 for fullwidth CJK characters", () => {
+            assert.strictEqual(util.getStringWidth('你好'), 4);
+            assert.strictEqual(util.getStringWidth('中'), 2);
+            assert.strictEqual(util.getStringWidth('日本語'), 6);
+            assert.strictEqual(util.getStringWidth('한국어'), 6);
+        });
+
+        it("should return width 2 for emoji with presentation", () => {
+            assert.strictEqual(util.getStringWidth('👋'), 2);
+        });
+
+        it("should handle mixed ASCII and fullwidth characters", () => {
+            assert.strictEqual(util.getStringWidth('hello你好'), 9);
+            assert.strictEqual(util.getStringWidth('abc中def'), 8);
+        });
+
+        it("should skip ANSI escape sequences", () => {
+            assert.strictEqual(util.getStringWidth('\x1b[31mhello\x1b[0m'), 5);
+            assert.strictEqual(util.getStringWidth('\x1b[1m\x1b[31mbold red\x1b[0m'), 8);
+            assert.strictEqual(util.getStringWidth('\x1b[32m你好\x1b[0m'), 4);
+        });
+
+        it("should return 0 for control characters", () => {
+            assert.strictEqual(util.getStringWidth('\x00'), 0);
+            assert.strictEqual(util.getStringWidth('\x01'), 0);
+        });
+    });
+
+    describe("stripVTControlCharacters", () => {
+        it("should strip SGR (color) escape sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[31mhello\x1b[0m'), 'hello');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[1m\x1b[31mbold red\x1b[0m'), 'bold red');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[38;5;196mcolor\x1b[0m'), 'color');
+        });
+
+        it("should strip CSI cursor/screen sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[2Jhello'), 'hello');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[Hhello'), 'hello');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[3Aup'), 'up');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[5Bdown'), 'down');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[10Cright'), 'right');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[2Dleft'), 'left');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[Kline'), 'line');
+        });
+
+        it("should strip OSC sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('\x1b]0;title\x07hello'), 'hello');
+            assert.strictEqual(util.stripVTControlCharacters('\x1b]0;title\x1b\\hello'), 'hello');
+        });
+
+        it("should strip two-byte ESC sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('\x1b(Bhello'), 'hello');
+        });
+
+        it("should return string unchanged if no escape sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('hello'), 'hello');
+            assert.strictEqual(util.stripVTControlCharacters(''), '');
+            assert.strictEqual(util.stripVTControlCharacters('no escapes here'), 'no escapes here');
+        });
+
+        it("should handle nested/multiple escape sequences", () => {
+            assert.strictEqual(
+                util.stripVTControlCharacters('\x1b[1m\x1b[31m\x1b[4mhello\x1b[0m world'),
+                'hello world'
+            );
+        });
+
+        it("should handle string with only escape sequences", () => {
+            assert.strictEqual(util.stripVTControlCharacters('\x1b[31m\x1b[0m'), '');
+        });
+    });
 });
 

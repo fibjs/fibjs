@@ -9,49 +9,6 @@
 
 namespace fibjs {
 
-inline int32_t getCharWidth(int32_t ch)
-{
-    const int eaw = u_getIntPropertyValue(ch, UCHAR_EAST_ASIAN_WIDTH);
-    switch (eaw) {
-    case U_EA_FULLWIDTH:
-    case U_EA_WIDE:
-        return 2;
-    case U_EA_AMBIGUOUS:
-    case U_EA_NEUTRAL:
-        if (u_hasBinaryProperty(ch, UCHAR_EMOJI_PRESENTATION)) {
-            return 2;
-        }
-    case U_EA_HALFWIDTH:
-    case U_EA_NARROW:
-    default:
-        const auto zero_width_mask = U_GC_CC_MASK | U_GC_CF_MASK | U_GC_ME_MASK | U_GC_MN_MASK;
-        if (ch != 0x00AD && ((U_MASK(u_charType(ch)) & zero_width_mask) || u_hasBinaryProperty(ch, UCHAR_EMOJI_MODIFIER))) {
-            return 0;
-        }
-        return 1;
-    }
-}
-
-inline int32_t getStringWidth(exlib::string& str)
-{
-    exlib::wstring32 str32 = utf8to32String(str);
-    int32_t sz = 0;
-    size_t len = str32.length();
-    const char32_t* ptr = str32.c_str();
-
-    for (size_t i = 0; i < len; i++) {
-        char32_t ch = ptr[i];
-
-        if (ch == 0x1b) {
-            for (i++; i < len && ptr[i] != 'm'; i++)
-                ;
-        } else
-            sz += getCharWidth(ptr[i]);
-    }
-
-    return sz;
-}
-
 inline bool isSimpleValue(v8::Local<v8::Value> v)
 {
     if (v.IsEmpty() || v->IsUndefined() || v->IsNull() || v->IsDate()
@@ -435,7 +392,8 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
         size_t col_sz = col.size();
 
         for (size_t j = 0; j < col_sz; j++) {
-            int32_t sz1 = getStringWidth(col[j]);
+            int32_t sz1;
+            util_base::getStringWidth(col[j], sz1);
             cell_width[j][i] = sz1;
             if (sz1 > sz)
                 sz = sz1;

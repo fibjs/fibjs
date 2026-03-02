@@ -494,4 +494,20 @@ module util
      @return Return the converted JavaScript code
      */
     static String stripTypeScript(String code);
+
+    /*! @brief Get the visual width of a string, considering full-width characters, emoji, and ANSI escape sequences
+     Characters with East Asian Width property of Fullwidth (F) or Wide (W) count as 2, most others count as 1.
+     Control characters and combining marks count as 0. ANSI escape sequences are skipped.
+
+     @param str The string to measure
+     @return Return the visual width of the string
+     */
+    static Integer getStringWidth(String str);
+
+    /*! @brief Remove ANSI escape sequences (VT control characters) from a string
+
+     @param str The string to strip
+     @return Return the string with ANSI escape sequences removed
+     */
+    static String stripVTControlCharacters(String str);
 };
