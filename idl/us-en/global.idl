@@ -37,6 +37,9 @@ module global
     /*! @brief Controller object, used to abort one or more Web requests when needed, see AbortController object.*/
     static AbortController;
 
+    /*! @brief Signal object, used to communicate with and abort asynchronous operations, see AbortSignal object.*/
+    static AbortSignal;
+
     /*! @brief CryptoKey class to represent symmetric or asymmetric keys, each key exposes different functions */
     static CryptoKey;
 
@@ -251,4 +254,11 @@ module global
      @return Return server response
      */
     static HttpResponse fetch(String url, Object opts = {}) promise;
+
+    /*! @brief Queue a microtask to be executed
+     The callback will be executed after the current task completes but before the next task begins.
+
+     @param callback The function to be queued as a microtask
+     */
+    static queueMicrotask(Function callback);
 };

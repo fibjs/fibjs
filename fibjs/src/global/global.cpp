@@ -47,4 +47,11 @@ result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
     return http_base::request(url, opts, retVal, ac);
 }
 
+result_t global_base::queueMicrotask(v8::Local<v8::Function> callback)
+{
+    Isolate* isolate = Isolate::current();
+    isolate->m_isolate->EnqueueMicrotask(callback);
+    return 0;
+}
+
 }

@@ -27,6 +27,7 @@ class HttpResponse_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
+class AbortSignal_base;
 class CryptoKey_base;
 class DOMParser_base;
 class XMLSerializer_base;
@@ -59,6 +60,7 @@ public:
     static result_t atob(exlib::string data, exlib::string& retVal);
     static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
     static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t queueMicrotask(v8::Local<v8::Function> callback);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -88,6 +90,7 @@ public:
     static void s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_structuredClone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_queueMicrotask(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -106,6 +109,7 @@ public:
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
+#include "ifs/AbortSignal.h"
 #include "ifs/CryptoKey.h"
 #include "ifs/DOMParser.h"
 #include "ifs/XMLSerializer.h"
@@ -134,7 +138,8 @@ inline ClassInfo& global_base::class_info()
         { "btoa", s_static_btoa, true, ClassData::ASYNC_SYNC },
         { "atob", s_static_atob, true, ClassData::ASYNC_SYNC },
         { "structuredClone", s_static_structuredClone, true, ClassData::ASYNC_SYNC },
-        { "fetch", s_static_fetch, true, ClassData::ASYNC_PROMISE }
+        { "fetch", s_static_fetch, true, ClassData::ASYNC_PROMISE },
+        { "queueMicrotask", s_static_queueMicrotask, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -150,6 +155,7 @@ inline ClassInfo& global_base::class_info()
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
+        { "AbortSignal", AbortSignal_base::class_info },
         { "CryptoKey", CryptoKey_base::class_info },
         { "DOMParser", DOMParser_base::class_info },
         { "XMLSerializer", XMLSerializer_base::class_info },
@@ -413,5 +419,18 @@ inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value
         hr = ac_fetch(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void global_base::s_static_queueMicrotask(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = queueMicrotask(v0);
+
+    METHOD_VOID();
 }
 }

@@ -11,6 +11,7 @@
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
+/// <reference path="../interface/AbortSignal.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../interface/DOMParser.d.ts" />
 /// <reference path="../interface/XMLSerializer.d.ts" />
@@ -84,6 +85,11 @@ declare module 'global' {
      * @description 控制器对象，用于在需要时中止一个或多个 Web 请求，参见 AbortController 对象。
      */
     const AbortController: typeof Class_AbortController;
+
+    /**
+     * @description 信号对象，用于与异步操作通信并中止它们，参见 AbortSignal 对象。
+     */
+    const AbortSignal: typeof Class_AbortSignal;
 
     /**
      * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
@@ -407,6 +413,15 @@ declare module 'global' {
      *      
      */
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
+     * @description 将一个微任务排入队列执行
+     *      回调函数将在当前任务完成后、下一个任务开始之前执行。
+     * 
+     *      @param callback 要作为微任务排入队列的函数
+     *      
+     */
+    function queueMicrotask(callback: (...args: any[])=>any): void;
 
 }
 

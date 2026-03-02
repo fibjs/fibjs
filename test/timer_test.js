@@ -512,5 +512,55 @@ describe("timer", () => {
             });
         });
     });
+
+    describe("queueMicrotask", () => {
+        it("should execute microtask callback", () => {
+            var called = false;
+            queueMicrotask(() => {
+                called = true;
+            });
+            coroutine.sleep(10);
+            assert.strictEqual(called, true);
+        });
+
+        it("should execute after synchronous code", () => {
+            var order = [];
+            order.push(1);
+            queueMicrotask(() => {
+                order.push(3);
+            });
+            order.push(2);
+            coroutine.sleep(10);
+            assert.deepStrictEqual(order, [1, 2, 3]);
+        });
+
+        it("should execute multiple microtasks in order", () => {
+            var order = [];
+            queueMicrotask(() => {
+                order.push(1);
+            });
+            queueMicrotask(() => {
+                order.push(2);
+            });
+            queueMicrotask(() => {
+                order.push(3);
+            });
+            coroutine.sleep(10);
+            assert.deepStrictEqual(order, [1, 2, 3]);
+        });
+
+        it("should be a global function", () => {
+            assert.strictEqual(typeof queueMicrotask, 'function');
+        });
+
+        it("should throw on non-function argument", () => {
+            assert.throws(() => {
+                queueMicrotask(123);
+            });
+            assert.throws(() => {
+                queueMicrotask('string');
+            });
+        });
+    });
 });
 
