@@ -46,7 +46,18 @@ interfaceBody
   }
 
 constMember
-  = comments:_* deprecated:deprecatedToken? _* constMode:constToken _* name:Identifier? def:defValue? _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* constMode:constToken _* symbol:Identifier _+ name:Identifier def:defValue? _* ";" {
+    return {
+      memType: "const",
+      comments: comments.join(""),
+      deprecated: deprecated,
+      const: constMode,
+      symbol: symbol,
+      name: name,
+      default: def
+    };
+  }
+  / comments:_* deprecated:deprecatedToken? _* constMode:constToken _* name:Identifier? def:defValue? _* ";" {
     return {
       memType: "const",
       comments: comments.join(""),
