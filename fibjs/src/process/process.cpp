@@ -17,6 +17,7 @@
 #include "BufferedStream.h"
 #include "ChildProcess.h"
 #include <vector>
+#include <signal.h>
 #include "options.h"
 
 #ifdef _WIN32
@@ -617,70 +618,131 @@ result_t process_base::send(v8::Local<v8::Value> msg)
 
 static int32_t sig_name_to_number(exlib::string signal)
 {
+#ifdef SIGHUP
     if (signal == "SIGHUP")
-        return 1;
-    else if (signal == "SIGINT")
-        return 2;
-    else if (signal == "SIGQUIT")
-        return 3;
-    else if (signal == "SIGILL")
-        return 4;
-    else if (signal == "SIGTRAP")
-        return 5;
-    else if (signal == "SIGABRT")
-        return 6;
-    else if (signal == "SIGIOT")
-        return 6;
-    else if (signal == "SIGFPE")
-        return 8;
-    else if (signal == "SIGKILL")
-        return 9;
-    else if (signal == "SIGBUS")
-        return 10;
-    else if (signal == "SIGSEGV")
-        return 11;
-    else if (signal == "SIGSYS")
-        return 12;
-    else if (signal == "SIGPIPE")
-        return 13;
-    else if (signal == "SIGALRM")
-        return 14;
-    else if (signal == "SIGTERM")
-        return 15;
-    else if (signal == "SIGURG")
-        return 16;
-    else if (signal == "SIGSTOP")
-        return 17;
-    else if (signal == "SIGTSTP")
-        return 18;
-    else if (signal == "SIGCONT")
-        return 19;
-    else if (signal == "SIGCHLD")
-        return 20;
-    else if (signal == "SIGTTIN")
-        return 21;
-    else if (signal == "SIGTTOU")
-        return 22;
-    else if (signal == "SIGIO")
-        return 23;
-    else if (signal == "SIGXCPU")
-        return 24;
-    else if (signal == "SIGXFSZ")
-        return 25;
-    else if (signal == "SIGVTALRM")
-        return 26;
-    else if (signal == "SIGPROF")
-        return 27;
-    else if (signal == "SIGWINCH")
-        return 28;
-    else if (signal == "SIGINFO")
-        return 29;
-    else if (signal == "SIGUSR1")
-        return 30;
-    else if (signal == "SIGUSR2")
-        return 31;
-    else
-        return -1;
+        return SIGHUP;
+#endif
+#ifdef SIGINT
+    if (signal == "SIGINT")
+        return SIGINT;
+#endif
+#ifdef SIGQUIT
+    if (signal == "SIGQUIT")
+        return SIGQUIT;
+#endif
+#ifdef SIGILL
+    if (signal == "SIGILL")
+        return SIGILL;
+#endif
+#ifdef SIGTRAP
+    if (signal == "SIGTRAP")
+        return SIGTRAP;
+#endif
+#ifdef SIGABRT
+    if (signal == "SIGABRT")
+        return SIGABRT;
+#endif
+#ifdef SIGIOT
+    if (signal == "SIGIOT")
+        return SIGIOT;
+#endif
+#ifdef SIGFPE
+    if (signal == "SIGFPE")
+        return SIGFPE;
+#endif
+#ifdef SIGKILL
+    if (signal == "SIGKILL")
+        return SIGKILL;
+#endif
+#ifdef SIGBUS
+    if (signal == "SIGBUS")
+        return SIGBUS;
+#endif
+#ifdef SIGSEGV
+    if (signal == "SIGSEGV")
+        return SIGSEGV;
+#endif
+#ifdef SIGSYS
+    if (signal == "SIGSYS")
+        return SIGSYS;
+#endif
+#ifdef SIGPIPE
+    if (signal == "SIGPIPE")
+        return SIGPIPE;
+#endif
+#ifdef SIGALRM
+    if (signal == "SIGALRM")
+        return SIGALRM;
+#endif
+#ifdef SIGTERM
+    if (signal == "SIGTERM")
+        return SIGTERM;
+#endif
+#ifdef SIGURG
+    if (signal == "SIGURG")
+        return SIGURG;
+#endif
+#ifdef SIGSTOP
+    if (signal == "SIGSTOP")
+        return SIGSTOP;
+#endif
+#ifdef SIGTSTP
+    if (signal == "SIGTSTP")
+        return SIGTSTP;
+#endif
+#ifdef SIGCONT
+    if (signal == "SIGCONT")
+        return SIGCONT;
+#endif
+#ifdef SIGCHLD
+    if (signal == "SIGCHLD")
+        return SIGCHLD;
+#endif
+#ifdef SIGTTIN
+    if (signal == "SIGTTIN")
+        return SIGTTIN;
+#endif
+#ifdef SIGTTOU
+    if (signal == "SIGTTOU")
+        return SIGTTOU;
+#endif
+#ifdef SIGIO
+    if (signal == "SIGIO")
+        return SIGIO;
+#endif
+#ifdef SIGXCPU
+    if (signal == "SIGXCPU")
+        return SIGXCPU;
+#endif
+#ifdef SIGXFSZ
+    if (signal == "SIGXFSZ")
+        return SIGXFSZ;
+#endif
+#ifdef SIGVTALRM
+    if (signal == "SIGVTALRM")
+        return SIGVTALRM;
+#endif
+#ifdef SIGPROF
+    if (signal == "SIGPROF")
+        return SIGPROF;
+#endif
+#ifdef SIGWINCH
+    if (signal == "SIGWINCH")
+        return SIGWINCH;
+#endif
+#ifdef SIGINFO
+    if (signal == "SIGINFO")
+        return SIGINFO;
+#endif
+#ifdef SIGUSR1
+    if (signal == "SIGUSR1")
+        return SIGUSR1;
+#endif
+#ifdef SIGUSR2
+    if (signal == "SIGUSR2")
+        return SIGUSR2;
+#endif
+    return -1;
 }
 
 result_t process_base::kill(int32_t pid, int32_t signal)
