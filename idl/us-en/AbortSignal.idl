@@ -5,13 +5,13 @@ interface AbortSignal : EventEmitter
      @param reason An optional string describing the reason for aborting the request
      @return Returns an AbortSignal object
     */
-    AbortSignal abort(String reason = "AbortError");
+    static AbortSignal abort(String reason = "AbortError");
 
     /*! @brief To abort one or more Web requests
      @param reason A value of any type describing the reason for aborting the request
      @return Returns an AbortSignal object
     */
-    AbortSignal abort(Value reason);
+    static AbortSignal abort(Value reason);
 
     /*! @brief If the request has been aborted, throw an exception */
     throwIfAborted();

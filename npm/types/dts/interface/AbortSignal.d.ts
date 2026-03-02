@@ -10,7 +10,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      @return 返回一个 AbortSignal 对象
      *     
      */
-    abort(reason?: string): Class_AbortSignal;
+    static abort(reason?: string): Class_AbortSignal;
 
     /**
      * @description 用于中止一个或多个 Web 请求
@@ -18,7 +18,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      @return 返回一个 AbortSignal 对象
      *     
      */
-    abort(reason: any): Class_AbortSignal;
+    static abort(reason: any): Class_AbortSignal;
 
     /**
      * @description 如果请求已中止，则抛出异常 

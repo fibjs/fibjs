@@ -16,11 +16,14 @@ namespace fibjs {
 class AbortSignal : public AbortSignal_base {
 public:
     // AbortSignal_base
-    virtual result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal);
-    virtual result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal);
     virtual result_t throwIfAborted();
     virtual result_t get_aborted(bool& retVal);
     virtual result_t get_reason(v8::Local<v8::Value>& retVal);
+
+public:
+    // Internal abort methods (called by AbortController)
+    result_t do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal);
+    result_t do_abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal);
 
 public:
     // object_base

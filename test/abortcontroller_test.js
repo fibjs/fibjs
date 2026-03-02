@@ -170,22 +170,61 @@ describe("AbortController API", () => {
         assert.equal(eventCount, 2);
     });
 
-    it("AbortController.abort static method", () => {
-        // Test static abort method if available
-        if (typeof AbortSignal !== 'undefined' && AbortSignal.abort) {
-            const signal = AbortSignal.abort("Static abort reason");
+    it("AbortSignal.abort static method - default reason", () => {
+        const signal = AbortSignal.abort();
 
-            assert.strictEqual(signal.aborted, true);
-            assert.equal(signal.reason, "Static abort reason");
+        assert.strictEqual(signal.aborted, true);
+        assert.strictEqual(signal.reason, "AbortError");
+    });
 
-            // Listeners added to already aborted signal should not be called
-            var callCount = 0;
-            signal.addEventListener('abort', () => {
-                callCount++;
-            });
+    it("AbortSignal.abort static method - string reason", () => {
+        const signal = AbortSignal.abort("Custom reason");
 
-            assert.equal(callCount, 0);
-        }
+        assert.strictEqual(signal.aborted, true);
+        assert.strictEqual(signal.reason, "Custom reason");
+    });
+
+    it("AbortSignal.abort static method - value reason", () => {
+        const signal = AbortSignal.abort(42);
+
+        assert.strictEqual(signal.aborted, true);
+        assert.strictEqual(signal.reason, 42);
+    });
+
+    it("AbortSignal.abort static method - object reason", () => {
+        const err = new Error("test error");
+        const signal = AbortSignal.abort(err);
+
+        assert.strictEqual(signal.aborted, true);
+        assert.strictEqual(signal.reason, err);
+    });
+
+    it("AbortSignal.abort returns distinct signals", () => {
+        const signal1 = AbortSignal.abort();
+        const signal2 = AbortSignal.abort();
+
+        assert.notStrictEqual(signal1, signal2);
+        assert.strictEqual(signal1.aborted, true);
+        assert.strictEqual(signal2.aborted, true);
+    });
+
+    it("AbortSignal.abort signal throwIfAborted", () => {
+        const signal = AbortSignal.abort("test");
+
+        assert.throws(() => {
+            signal.throwIfAborted();
+        });
+    });
+
+    it("AbortSignal.abort listeners not called on already-aborted signal", () => {
+        const signal = AbortSignal.abort("reason");
+
+        var callCount = 0;
+        signal.on('abort', () => {
+            callCount++;
+        });
+
+        assert.strictEqual(callCount, 0);
     });
 
     it("AbortController.timeout static method", () => {

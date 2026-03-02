@@ -24,8 +24,8 @@ class AbortSignal_base : public EventEmitter_base {
 
 public:
     // AbortSignal_base
-    virtual result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal) = 0;
-    virtual result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal) = 0;
+    static result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal);
+    static result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal);
     virtual result_t throwIfAborted() = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
     virtual result_t get_reason(v8::Local<v8::Value>& retVal) = 0;
@@ -42,7 +42,7 @@ public:
     { return CALL_E_TYPEMISMATCH; }
 
 public:
-    static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_throwIfAborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_reason(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -55,7 +55,7 @@ namespace fibjs {
 inline ClassInfo& AbortSignal_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "abort", s_abort, false, ClassData::ASYNC_SYNC },
+        { "abort", s_static_abort, true, ClassData::ASYNC_SYNC },
         { "throwIfAborted", s_throwIfAborted, false, ClassData::ASYNC_SYNC }
     };
 
@@ -76,24 +76,23 @@ inline ClassInfo& AbortSignal_base::class_info()
     return s_ci;
 }
 
-inline void AbortSignal_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void AbortSignal_base::s_static_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<AbortSignal_base> vr;
 
-    METHOD_INSTANCE(AbortSignal_base);
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "AbortError");
 
-    hr = pInst->abort(v0, vr);
+    hr = abort(v0, vr);
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
 
-    hr = pInst->abort(v0, vr);
+    hr = abort(v0, vr);
 
     METHOD_RETURN();
 }
