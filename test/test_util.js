@@ -54,7 +54,9 @@ exports.push = s => ss.push(s);
 
 exports.cleanup = () => {
     ss.forEach(s => {
-        s.close();
+        try {
+            s.close();
+        } catch (e) {}
     });
 }
 

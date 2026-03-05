@@ -16,16 +16,20 @@
 
 namespace fibjs {
 
+class AsyncStreamReader;
+
 // Non-template base class holding readable mode state,
 // so AsyncStreamReader can access it via m_this pointer without templates
 class AsyncStreamBase {
 public:
     bool m_readable = false;
+    bool m_paused = false;
     exlib::spinlock m_lock;
     std::list<obj_ptr<Buffer_base>> m_pendingQueue;
     size_t m_totalBytes = 0;
     size_t m_highWaterMark = 16384;
     obj_ptr<TextDecoder> m_decoder;
+    AsyncStreamReader* reader = nullptr;
 
     static size_t roundUpPow2(size_t n)
     {
@@ -54,6 +58,7 @@ public:
 
     ~AsyncStreamReader()
     {
+        m_base->reader = nullptr;
         m_this->isolate_unref();
     }
 
@@ -75,8 +80,6 @@ public:
             return next();
         }
 
-        AsyncStreamBase* base = m_base;
-
         if (m_base->m_readable) {
             // readable mode: buffer data into pending queue
             exlib::string buf;
@@ -96,12 +99,40 @@ public:
             return next(recv);
         }
 
+        // flowing mode: emit data in JS thread and wait for handler to complete
+        next(data_emitted);
+
+        Variant data;
         if (!m_base->m_decoder) {
-            m_this->_emit("data", m_buf);
+            data = m_buf;
         } else {
             exlib::string str;
             m_base->m_decoder->decode(m_buf, false, str);
-            m_this->_emit("data", str);
+            data = str;
+        }
+
+        obj_ptr<Stream_base> stream = m_this;
+        AsyncStreamReader* self = this;
+        m_isolate->sync([stream, data, self]() mutable -> int32_t {
+            JSFiber::EnterJsScope s;
+
+            v8::Local<v8::Value> arg = data;
+            bool retVal;
+            stream->_emit("data", &arg, 1, retVal);
+
+            self->apost(0);
+            return 0;
+        });
+
+        return CALL_E_PENDDING;
+    }
+
+    ON_STATE(AsyncStreamReader, data_emitted)
+    {
+        // JS data handler completed, check if paused
+        if (m_base->m_paused) {
+            next(recv);
+            return CALL_E_PENDDING;
         }
         return next(recv);
     }
@@ -109,14 +140,15 @@ public:
     ON_STATE(AsyncStreamReader, drain)
     {
         // woken up by read() via apost(0), continue reading
-        return next(recv);
+        next(recv);
+        return CALL_E_PENDDING;
     }
 
     virtual int32_t error(int32_t v)
     {
-        // Like TcpServer, treat socket close errors as normal termination
-        // instead of error events
-        if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL || v == CALL_E_NETNAME_DELETED) {
+        // Treat socket close errors as normal termination
+        if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
+            || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
             m_this->_emit("close");
             return v;
         }
@@ -341,13 +373,25 @@ public:
 
     virtual result_t resume(obj_ptr<Stream_base>& retVal)
     {
-        startRecvStream();
+        if (m_paused) {
+            m_paused = false;
+            if (reader) {
+                object_base::isolate_ref();
+                reader->apost(0);
+            }
+        } else {
+            startRecvStream();
+        }
         retVal = this;
         return 0;
     }
 
     virtual result_t pause(obj_ptr<Stream_base>& retVal)
     {
+        if (!m_paused && reader) {
+            m_paused = true;
+            object_base::isolate_unref();
+        }
         retVal = this;
         return 0;
     }
@@ -445,7 +489,6 @@ public:
     }
 
 protected:
-    AsyncStreamReader* reader = nullptr;
     exlib::string m_encoding;
     // Stream state as counter:
     // 0 = ready to start async read (all conditions met)

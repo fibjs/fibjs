@@ -135,17 +135,18 @@ private:
     void resolve_closed()
     {
         Isolate* isolate = holder();
-        if (!isolate || m_closed_resolver.IsEmpty())
+        if (!isolate)
             return;
 
-        isolate->sync([this, isolate]() -> int32_t {
+        obj_ptr<StreamReader> pThis(this);
+        isolate->sync([pThis, isolate]() -> int32_t {
             JSFiber::EnterJsScope s;
 
-            if (!m_closed_resolver.IsEmpty()) {
-                v8::Local<v8::Promise::Resolver> resolver = m_closed_resolver.Get(isolate->m_isolate);
+            if (!pThis->m_closed_resolver.IsEmpty()) {
+                v8::Local<v8::Promise::Resolver> resolver = pThis->m_closed_resolver.Get(isolate->m_isolate);
                 v8::Local<v8::Context> context = isolate->context();
                 resolver->Resolve(context, v8::Undefined(isolate->m_isolate)).Check();
-                m_closed_resolver.Reset();
+                pThis->m_closed_resolver.Reset();
             }
             return 0;
         });
