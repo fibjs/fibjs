@@ -125,12 +125,40 @@ describe("child_process", () => {
             assert.equal(status, 0);
         });
 
-        it("parallel stdin", () => {
-            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.parallel_stdin.js')]);
+        it("sequential stdin write", () => {
+            // Tests: parent writes 10 chunks with delay between each, child reads all synchronously
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdin_seq_write.js')]);
             var str = "";
             coroutine.sleep(100);
             for (var i = 0; i < 10; i++) {
                 coroutine.sleep(10);
+                var id = test_util.makeid(10);
+                str += id;
+                bs.stdin.write(id);
+            }
+            var str1 = bs.stdout.read(100).toString();
+            assert.equal(str, str1);
+        });
+
+        it("bulk write with parallel read", () => {
+            // Tests: parent writes all data at once, child reads via 10 parallel read(10) calls
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdin_parallel_read.js')]);
+            var str = "";
+            for (var i = 0; i < 10; i++) {
+                str += test_util.makeid(10);
+            }
+            coroutine.sleep(100);
+            bs.stdin.write(str);
+            var str1 = bs.stdout.read(100).toString();
+            assert.equal(str, str1);
+        });
+
+        it("rapid stdin write", () => {
+            // Tests: parent writes 10 chunks without sleep, child reads all synchronously
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdin_seq_write.js')]);
+            var str = "";
+            coroutine.sleep(100);
+            for (var i = 0; i < 10; i++) {
                 var id = test_util.makeid(10);
                 str += id;
                 bs.stdin.write(id);
