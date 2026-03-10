@@ -15,46 +15,6 @@
 
 namespace fibjs {
 
-#ifdef WIN32
-
-inline bool is_atty(int32_t fd)
-{
-    bool _tty;
-    tty_base::isatty(fd, _tty);
-    return _tty;
-}
-
-void std_logger::out(exlib::string& txt, bool is_error)
-{
-    static bool s_tty_out = is_atty(_fileno(stdout));
-    static bool s_tty_err = is_atty(_fileno(stderr));
-
-    obj_ptr<Stream_base> out;
-    Isolate* isolate = Isolate::main();
-
-    if (is_error) {
-        if (!s_tty_err) {
-            fwrite(txt.c_str(), 1, txt.length(), stderr);
-            return;
-        }
-
-        isolate->get_stderr(out);
-    } else {
-        if (!s_tty_out) {
-            fwrite(txt.c_str(), 1, txt.length(), stdout);
-            return;
-        }
-
-        isolate->get_stdout(out);
-    }
-
-    obj_ptr<Buffer_base> data = new Buffer(txt.c_str(), txt.length());
-    bool retVal;
-    out->cc_write(data, retVal);
-}
-
-#else
-
 void std_logger::out(exlib::string& txt, bool is_error)
 {
     obj_ptr<Stream_base> out;
@@ -71,8 +31,6 @@ void std_logger::out(exlib::string& txt, bool is_error)
     bool retVal;
     out->cc_write(data, retVal);
 }
-
-#endif
 
 result_t std_logger::write(AsyncEvent* ac)
 {
