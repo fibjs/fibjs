@@ -877,9 +877,14 @@ setup(cfg);
     describe('Enum Handling', () => {
         // amaro throws different error format for enum
 
-        itThrowsDiff('should throw for const enum (not supported in strip-only mode)',
+        it('should transform const enum with initializers to object literal', () => {
+            const result = strip('const enum Color { Red = 1, Green = 2, Blue = 4 }');
+            assert.strictEqual(result, 'const     Color ={ Red : 1, Green : 2, Blue : 4 }');
+        });
+
+        itThrowsDiff('should throw for const enum member without initializer',
             'const enum Color { Red, Green, Blue }',
-            /enum.*not supported/, // fibjs error message
+            /const enum member without initializer/, // fibjs error message
             /TypeScript enum.*not supported/); // amaro error message
 
         itThrowsDiff('should throw for regular enum (not supported in strip-only mode)',

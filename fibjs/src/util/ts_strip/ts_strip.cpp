@@ -459,7 +459,7 @@ private:
     void parseClassDeclaration();
     void parseInterfaceDeclaration(int start);
     void parseTypeAliasDeclaration(int start);
-    void parseEnumDeclaration(int start, bool isDeclare = false);
+    void parseEnumDeclaration(int start, bool isDeclare = false, bool isConst = false);
     void parseModuleDeclaration(int start, bool isDeclare = false);
     void parseImportDeclaration();
     void parseExportDeclaration();
@@ -1988,7 +1988,7 @@ void TsStrip::parseStatement() {
                 int start = getNodePos();
                 nextToken(); // const
                 nextToken(); // enum
-                parseEnumDeclaration(start);
+                parseEnumDeclaration(start, false, true);
                 return;
             }
             parseVariableStatement();
@@ -3202,22 +3202,111 @@ void TsStrip::parseTypeAliasDeclaration(int start) {
 /**
  * parseEnumDeclaration - handle enum
  * isDeclare: if true, we're in a declare context so just erase it
- *            if false, throw error (enum is not supported in strip-only)
+ * isConst: if true, this is a const enum (transform to object literal)
+ *          if false and not declare, throw error (regular enum not supported)
  */
-void TsStrip::parseEnumDeclaration(int start, bool isDeclare) {
-    if (!isDeclare) {
+void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
+    if (isDeclare) {
+        // declare enum / declare const enum - skip the name and body, then erase
+        if (token() == SyntaxKind::Identifier) {
+            nextToken();
+        }
+        if (token() == SyntaxKind::OpenBraceToken) {
+            skipBlock();
+        }
+        // Use getPrevTokenEnd() to avoid erasing comments after the declaration
+        addReplacement(start, getPrevTokenEnd());
+        fixASI(start, getPrevTokenEnd());
+        return;
+    }
+
+    if (!isConst) {
         throw std::runtime_error("TypeScript 'enum' is not supported in strip-only mode.");
     }
-    // declare enum - skip the name and body, then erase
-    if (token() == SyntaxKind::Identifier) {
-        nextToken();
+
+    // const enum Foo { A = 0, B = 1 }
+    // Transform to: const      Foo={ A : 0, B : 1 }
+    //
+    // Strategy:
+    //   1. Save the enum name
+    //   2. Erase from 'enum' keyword pos to name end (inclusive)
+    //   3. Rewrite name + '=' right-aligned in the erased region
+    //   4. For each member, overwrite '=' with ':'
+
+    if (token() != SyntaxKind::Identifier) {
+        throw std::runtime_error("Expected identifier in const enum declaration.");
     }
-    if (token() == SyntaxKind::OpenBraceToken) {
-        skipBlock();
+
+    // Save name bytes before erasing
+    int nameStart = currentToken().pos;
+    int nameEnd = currentToken().end;
+    int nameLen = nameEnd - nameStart;
+    std::vector<uint8_t> nameBuf(m_src + nameStart, m_src + nameEnd);
+
+    // Get 'enum' keyword position (previous token)
+    int enumPos = m_tokens[m_tokenIndex - 1].pos;
+
+    nextToken(); // skip name, now at '{'
+
+    if (token() != SyntaxKind::OpenBraceToken) {
+        throw std::runtime_error("Expected '{' in const enum declaration.");
     }
-    // Use getPrevTokenEnd() to avoid erasing comments after the declaration
-    addReplacement(start, getPrevTokenEnd());
-    fixASI(start, getPrevTokenEnd());
+    int bracePos = getNodePos();
+
+    // Erase from 'enum' keyword to name end
+    addReplacement(enumPos, nameEnd);
+
+    // Write name + '=' right-aligned so '=' is adjacent to '{'
+    // Available region: [enumPos, nameEnd)
+    // We write: ...spaces... name '='
+    int writePos = nameEnd - nameLen - 1; // start of name in output
+    if (writePos < enumPos) writePos = enumPos;
+    for (int i = 0; i < nameLen; i++) {
+        addOverwrite(writePos + i, nameBuf[i]);
+    }
+    // Place '=' right before '{'
+    if (bracePos > nameEnd) {
+        // There's whitespace between name and '{', overwrite last space
+        addOverwrite(bracePos - 1, '=');
+    } else {
+        // No space: put '=' right after name in the erased region
+        addOverwrite(writePos + nameLen, '=');
+    }
+
+    // Parse enum body and transform members
+    nextToken(); // skip '{'
+
+    while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
+        // Skip member name (identifier, string literal, or keyword used as name)
+        if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+            nextToken();
+        } else if (token() == SyntaxKind::StringLiteral) {
+            nextToken();
+        } else if (token() == SyntaxKind::OpenBracketToken) {
+            // Computed property name [expr]
+            nextToken();
+            parseAssignmentExpressionOrHigher();
+            parseExpected(SyntaxKind::CloseBracketToken);
+        } else {
+            break;
+        }
+
+        if (token() == SyntaxKind::EqualsToken) {
+            // Overwrite '=' with ':'
+            addOverwrite(getNodePos(), ':');
+            nextToken(); // skip '='
+            // Parse value expression
+            parseAssignmentExpressionOrHigher();
+        } else {
+            throw std::runtime_error(
+                "const enum member without initializer is not supported in strip-only mode.");
+        }
+
+        parseOptional(SyntaxKind::CommaToken);
+    }
+
+    parseExpected(SyntaxKind::CloseBraceToken);
+    tryParseSemicolon();
 }
 
 /**
@@ -3294,7 +3383,7 @@ void TsStrip::parseDeclaration() {
                 int start = getNodePos();
                 nextToken(); // const
                 nextToken(); // enum
-                parseEnumDeclaration(start, true);  // In declare context, just erase
+                parseEnumDeclaration(start, true, true);  // In declare context, just erase
             } else {
                 parseVariableStatement();
             }
@@ -3670,7 +3759,7 @@ void TsStrip::parseExportDeclaration() {
                 int enumStart = getNodePos();
                 nextToken(); // const
                 nextToken(); // enum
-                parseEnumDeclaration(enumStart);
+                parseEnumDeclaration(enumStart, false, true);
             } else {
                 parseVariableStatement();
             }
