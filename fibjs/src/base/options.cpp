@@ -39,8 +39,6 @@ bool g_track_native_object = false;
 
 bool g_openssl_legacy_provider = false;
 
-bool g_sync_console = false;
-
 exlib::string g_exec_code;
 
 #ifdef DEBUG
@@ -61,7 +59,6 @@ static void printHelp()
          "\n"
          "  --use-thread                run fibjs in thread mode.\n"
          "  --no-deprecation            silence deprecation warnings.\n"
-         "  --sync-console              use synchronous console output instead of async.\n"
          "  --tcpdump                   print out the contents of the tcp package.\n"
          "  --ssldump                   print out the contents of the ssl package.\n"
          "  --pipedump                  print out the contents of the pipe package.\n"
@@ -128,9 +125,6 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--no-deprecation")) {
             g_no_deprecation = true;
-            df++;
-        } else if (!qstrcmp(arg, "--sync-console")) {
-            g_sync_console = true;
             df++;
         } else if (!qstrcmp(arg, "--tcpdump")) {
             g_tcpdump = true;

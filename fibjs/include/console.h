@@ -162,21 +162,13 @@ public:
     {
         item* i = new item(priority, msg);
 
-        if (g_sync_console) {
-            m_lock.lock();
-            m_acLog.putTail(i);
-            m_lock.unlock();
-
-            post(0);
-        } else {
-            m_lock.lock();
-            m_acLog.putTail(i);
-            if (!m_bWorking) {
-                m_bWorking = true;
-                async(CALL_E_NOSYNC);
-            }
-            m_lock.unlock();
+        m_lock.lock();
+        m_acLog.putTail(i);
+        if (!m_bWorking) {
+            m_bWorking = true;
+            async(CALL_E_NOSYNC);
         }
+        m_lock.unlock();
     }
 
     void log(int32_t priority, exlib::string& msg)
@@ -245,6 +237,7 @@ private:
 class std_logger : public logger {
 public:
     virtual result_t write(AsyncEvent* ac);
+    virtual void putLog(int32_t priority, exlib::string& msg) override;
     static void out(exlib::string& txt, bool is_error = false);
 };
 

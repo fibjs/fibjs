@@ -34,28 +34,30 @@ void std_logger::out(exlib::string& txt, bool is_error)
 
 result_t std_logger::write(AsyncEvent* ac)
 {
-    item* p1;
-
-    while ((p1 = m_workinglogs.getHead()) != 0) {
-        exlib::string txt;
-
-        if (p1->m_priority == console_base::C_NOTICE)
-            txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority == console_base::C_WARN)
-            txt = logger::warn() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority <= console_base::C_ERROR)
-            txt = logger::error() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority == console_base::C_PRINT)
-            txt = p1->m_msg;
-        else
-            txt = p1->m_msg + "\n";
-
-        out(txt, p1->m_priority <= console_base::C_WARN);
-
-        delete p1;
-    }
-    fflush(stdout);
-
     return 0;
 }
+
+// Format a log item into text, same logic as write()
+static exlib::string format_log_msg(int32_t priority, const exlib::string& msg)
+{
+    if (priority == console_base::C_NOTICE)
+        return logger::notice() + msg + COLOR_RESET + "\n";
+    else if (priority == console_base::C_WARN)
+        return logger::warn() + msg + COLOR_RESET + "\n";
+    else if (priority <= console_base::C_ERROR)
+        return logger::error() + msg + COLOR_RESET + "\n";
+    else if (priority == console_base::C_PRINT)
+        return msg;
+    else
+        return msg + "\n";
+}
+
+void std_logger::putLog(int32_t priority, exlib::string& msg)
+{
+    bool is_error = (priority <= console_base::C_WARN);
+    exlib::string txt = format_log_msg(priority, msg);
+
+    return out(txt, is_error);
+}
+
 }

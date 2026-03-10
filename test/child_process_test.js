@@ -385,6 +385,33 @@ describe("child_process", () => {
 
                 bs.join();
             });
+
+            it("console.log and stdout.write ordering", () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdout_console_order.js')], {
+                    stdio: 'pty'
+                });
+                var stdout = new io.BufferedStream(bs.stdout);
+
+                // Strip ANSI escape sequences and trailing \r from pty output
+                function cleanLine(str) {
+                    return str.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '').replace(/\r$/, '');
+                }
+
+                var lines = [];
+                for (var i = 0; i < 40; i++) {
+                    var line = stdout.readLine();
+                    if (line !== null)
+                        lines.push(cleanLine(line));
+                }
+
+                // Verify console.log always appears before its paired stdout.write
+                for (var i = 0; i < 20; i++) {
+                    assert.equal(lines[i * 2], 'console-' + i, 'console-' + i + ' order wrong');
+                    assert.equal(lines[i * 2 + 1], 'stdout-' + i, 'stdout-' + i + ' order wrong');
+                }
+
+                bs.join();
+            });
         });
 
     it("stdin/stdout", () => {
