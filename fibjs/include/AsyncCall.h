@@ -437,7 +437,7 @@ public:
     }
 
 public:
-    int32_t callback(int32_t v)
+    int32_t post_result(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
@@ -450,7 +450,6 @@ public:
         return 0;
     }
 
-    void async_call(int32_t v);
     virtual int32_t post(int32_t v);
 
     virtual Isolate* isolate()

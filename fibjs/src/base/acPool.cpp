@@ -162,19 +162,12 @@ AsyncCallBack::~AsyncCallBack()
     m_async_ctx.Reset();
 }
 
-void AsyncCallBack::async_call(int32_t v)
-{
-    m_v = v;
-    if (m_pThis == NULL || m_pThis->enterTask(this))
-        async(v);
-}
-
 int32_t AsyncCallBack::post(int32_t v)
 {
     if (m_pThis)
         m_pThis->leave(this);
     ex_assert(m_isolate);
-    return callback(v);
+    return post_result(v);
 }
 
 void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_base* obj)
@@ -302,6 +295,7 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
 {
     if (m_is_promise) {
         v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
+        args.GetReturnValue().Set(resolver->GetPromise());
 
         if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
             if (hr == CALL_E_EXCEPTION)
@@ -309,18 +303,30 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
 
             m_v = hr;
             processPromiseResult();
-        } else
-            async_call(hr);
 
-        args.GetReturnValue().Set(resolver->GetPromise());
+            return CALL_RETURN_UNDEFINED;
+        }
     } else {
-        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
-            callback(hr);
-        } else
-            async_call(hr);
-
         if (m_ctxo)
             args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
+
+        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
+            post_result(hr);
+            return CALL_RETURN_UNDEFINED;
+        }
+    }
+
+    m_v = hr;
+    if (m_pThis == NULL || m_pThis->enterTask(this)) {
+        if (hr == CALL_E_NOSYNC) {
+            Isolate::LeaveJsScope _rt(m_isolate);
+            invoke();
+
+            if (_rt.is_terminating())
+                m_v = CALL_E_TIMEOUT;
+        } else {
+            async(hr);
+        }
     }
 
     return CALL_RETURN_UNDEFINED;

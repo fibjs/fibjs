@@ -309,7 +309,7 @@ public:
 
             // if buffer was at/above highWaterMark, wake reader to continue
             if (wasFull && reader)
-                reader->apost(0);
+                reader->post(0);
 
             return 0;
         }

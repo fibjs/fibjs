@@ -217,7 +217,7 @@ public:
                         outLog(console_base::C_NOTICE, clean_string(m_buf.c_str(), m_buf.length()));
                     }
 
-                    m_ac->apost(0);
+                    m_ac->post(0);
                 } else
                     m_ac->apost(CALL_RETURN_NULL);
             }
@@ -348,6 +348,18 @@ public:
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         uv_post(new AsyncRead(this, true, bytes, retVal, ac));
+        return CALL_E_PENDDING;
+    }
+
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
+    {
+        if (this->m_readable || !is_stdio_fd(m_fd))
+            return AsyncStream<T>::read(bytes, retVal, ac);
+
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, ac))->post(0);
         return CALL_E_PENDDING;
     }
 
