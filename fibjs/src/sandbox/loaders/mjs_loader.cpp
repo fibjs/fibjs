@@ -468,24 +468,26 @@ private:
                         try {
                             ts_strip::stripInPlace(data_->data(), data_->length());
                         } catch (const std::exception& e) {
-                            ThrowError(e.what());
-                            return v8::Local<v8::Module>();
+                            exception = e.what();
                         }
                         
                         // Async save to cache (fire and forget, zero copy with ref counting)
-                        ts_cache_set(hash, data_);
+                        if (exception.empty())
+                            ts_cache_set(hash, data_);
                     }
 
-                    v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
-                    pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
-                    v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
-                        -1, v8::Local<v8::Value>(), false, false, true, pargs);
+                    if (exception.empty()) {
+                        v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
+                        pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
+                        v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
+                            -1, v8::Local<v8::Value>(), false, false, true, pargs);
 
-                    v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
-                    module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
-                                 .FromMaybe(v8::Local<v8::Module>());
-                    if (module.IsEmpty())
-                        exception = GetException(try_catch, 0, false, false);
+                        v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
+                        module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
+                                     .FromMaybe(v8::Local<v8::Module>());
+                        if (module.IsEmpty())
+                            exception = GetException(try_catch, 0, false, false);
+                    }
                 } else {
                     v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
                     pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
