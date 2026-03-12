@@ -2099,10 +2099,10 @@ function test_net(eng, use_uv) {
                 c.close();
             });
 
-            it("listen(addr, port) binds to specific address", () => {
+            it("listen(port, addr) binds to specific address", () => {
                 var p = getPort();
                 svr = new net.TcpServer((sock) => { sock.close(); });
-                svr.listen('127.0.0.1', p);
+                svr.listen(p, '127.0.0.1');
                 test_util.push(svr.socket);
 
                 var c = net.connect(p, '127.0.0.1');

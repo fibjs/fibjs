@@ -32,8 +32,7 @@ public:
     static result_t _new(exlib::string addr, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start() = 0;
-    virtual result_t listen(int32_t port, AsyncEvent* ac) = 0;
-    virtual result_t listen(exlib::string addr, int32_t port, AsyncEvent* ac) = 0;
+    virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
@@ -65,8 +64,7 @@ public:
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(TcpServer_base, listen, int32_t);
-    ASYNC_MEMBER2(TcpServer_base, listen, exlib::string, int32_t);
+    ASYNC_MEMBER3(TcpServer_base, listen, int32_t, exlib::string, int32_t);
     ASYNC_MEMBER0(TcpServer_base, stop);
 };
 }
@@ -186,24 +184,16 @@ inline void TcpServer_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(TcpServer_base);
     ASYNC_METHOD_ENTER("TcpServer.listen");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(3, 1);
 
     ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(int32_t, 2, -1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_listen(v0, cb, args);
+        hr = pInst->acb_listen(v0, v1, v2, cb, args);
     else
-        hr = pInst->ac_listen(v0);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_listen(v0, v1, cb, args);
-    else
-        hr = pInst->ac_listen(v0, v1);
+        hr = pInst->ac_listen(v0, v1, v2);
 
     METHOD_VOID();
 }

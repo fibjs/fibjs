@@ -84,51 +84,31 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description 绑定地址和端口并开始侦听连接
      *     @param port 指定 TCP 服务器侦听端口
-     *     
-     */
-    listen(port: number): void;
-
-    listen(port: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param port 指定 TCP 服务器侦听端口
-     *     
-     */
-    listenSync(port: number): void;
-
-    /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param port 指定 TCP 服务器侦听端口
-     *     
-     */
-    listenAsync(port: number): Promise<void>;
-
-    /**
-     * @description 绑定地址和端口并开始侦听连接
      *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-     *     @param port 指定 TCP 服务器侦听端口
+     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
      *     
      */
-    listen(addr: string, port: number): void;
+    listen(port: number, addr?: string, backlog?: number): void;
 
-    listen(addr: string, port: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-     *     @param port 指定 TCP 服务器侦听端口
-     *     
-     */
-    listenSync(addr: string, port: number): void;
+    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 绑定地址和端口并开始侦听连接
-     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
      *     @param port 指定 TCP 服务器侦听端口
+     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
      *     
      */
-    listenAsync(addr: string, port: number): Promise<void>;
+    listenSync(port: number, addr?: string, backlog?: number): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param port 指定 TCP 服务器侦听端口
+     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
+     *     
+     */
+    listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
 
     /**
      * @description 关闭 socket中止正在运行的服务器 

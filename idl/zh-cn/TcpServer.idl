@@ -66,14 +66,10 @@ interface TcpServer : EventEmitter
 
     /*! @brief 绑定地址和端口并开始侦听连接
     @param port 指定 TCP 服务器侦听端口
-    */
-    listen(Integer port) async;
-
-    /*! @brief 绑定地址和端口并开始侦听连接
     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-    @param port 指定 TCP 服务器侦听端口
+    @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
     */
-    listen(String addr, Integer port) async;
+    listen(Integer port, String addr = "", Integer backlog = -1) async;
 
     /*! @brief 关闭 socket中止正在运行的服务器 */
     stop() async;

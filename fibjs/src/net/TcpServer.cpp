@@ -265,7 +265,7 @@ result_t TcpServer::stop(AsyncEvent* ac)
     return m_socket->close(ac);
 }
 
-result_t TcpServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
+result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
     if (m_running || m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -275,11 +275,6 @@ result_t TcpServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
         return hr;
 
     return start();
-}
-
-result_t TcpServer::listen(int32_t port, AsyncEvent* ac)
-{
-    return listen("", port, ac);
 }
 
 result_t TcpServer::get_timeout(int32_t& retVal)
