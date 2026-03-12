@@ -3,6 +3,7 @@
 /// <reference path="../interface/TLSHandler.d.ts" />
 /// <reference path="../interface/TLSServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 tls/ssl 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
@@ -23,6 +24,24 @@ declare module 'tls' {
      * @description tls/ssl 协议转换处理器，参见 TLSServer 
      */
     const Server: typeof Class_TLSServer;
+
+    /**
+     * @description 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+     *      @param context 指定安全上下文
+     *      @param listener 连接处理函数
+     *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(context: Class_SecureContext, listener: Class_Handler): Class_TLSServer;
+
+    /**
+     * @description 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+     *      @param options 创建安全上下文的选项
+     *      @param listener 连接处理函数
+     *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TLSServer;
 
     /**
      * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文

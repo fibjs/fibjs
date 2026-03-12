@@ -3,6 +3,7 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Smtp.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/UrlObject.d.ts" />
 /**
  * @description 网络访问模块
@@ -461,6 +462,14 @@ declare module 'net' {
      * @description 创建一个 TcpServer 对象，参见 TcpServer 
      */
     const TcpServer: typeof Class_TcpServer;
+
+    /**
+     * @description 创建一个 TCP 服务器，兼容 Node.js net.createServer
+     *      @param listener 连接处理函数
+     *      @return 返回未绑定端口的 TcpServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(listener: Class_Handler): Class_TcpServer;
 
     /**
      * @description 创建一个 UrlObject 对象，参见 UrlObject 

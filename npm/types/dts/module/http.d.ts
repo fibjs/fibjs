@@ -6,9 +6,10 @@
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
 /// <reference path="../interface/HttpsServer.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/HttpHandler.d.ts" />
 /// <reference path="../interface/HttpRepeater.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
@@ -79,6 +80,32 @@ declare module 'http' {
      * @description 创建一个 https 服务器，参见 HttpsServer 
      */
     const HttpsServer: typeof Class_HttpsServer;
+
+    /**
+     * @description 创建一个 http 服务器，兼容 Node.js http.createServer
+     *      @param hdlr 请求处理函数，接收 (req, res) 参数
+     *      @return 返回未绑定端口的 HttpServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(hdlr: Class_Handler): Class_HttpServer;
+
+    /**
+     * @description 创建一个 https 服务器，兼容 Node.js https.createServer
+     *      @param context SecureContext 对象，用于 TLS 配置
+     *      @param hdlr 请求处理函数，接收 (req, res) 参数
+     *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_HttpServer;
+
+    /**
+     * @description 创建一个 https 服务器，兼容 Node.js https.createServer
+     *      @param options TLS 选项对象，用于创建 SecureContext
+     *      @param hdlr 请求处理函数，接收 (req, res) 参数
+     *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
+     *      
+     */
+    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler): Class_HttpServer;
 
     /**
      * @description 创建一个 http 协议处理器对象，参见 HttpHandler 

@@ -9,6 +9,7 @@
 #include "ifs/tls.h"
 #include "ifs/crypto.h"
 #include "ifs/Socket.h"
+#include "ifs/TLSServer.h"
 #include "Socket.h"
 #include "TLSSocket.h"
 #include "Url.h"
@@ -298,5 +299,21 @@ result_t tls_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
     int32_t timeout = opts->timeout.value();
     return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, ac))
         ->post(0);
+}
+
+result_t tls_base::createServer(SecureContext_base* context, Handler_base* listener,
+    obj_ptr<TLSServer_base>& retVal)
+{
+    return TLSServer_base::_new(context, listener, retVal);
+}
+
+result_t tls_base::createServer(v8::Local<v8::Object> options, Handler_base* listener,
+    obj_ptr<TLSServer_base>& retVal)
+{
+    obj_ptr<SecureContext_base> ctx;
+    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    if (hr < 0)
+        return hr;
+    return TLSServer_base::_new(ctx, listener, retVal);
 }
 }

@@ -135,6 +135,12 @@ module net
     /*! @brief 创建一个 TcpServer 对象，参见 TcpServer */
     static TcpServer;
 
+    /*! @brief 创建一个 TCP 服务器，兼容 Node.js net.createServer
+     @param listener 连接处理函数
+     @return 返回未绑定端口的 TcpServer 对象，需调用 listen() 启动
+     */
+    static TcpServer createServer(Handler listener);
+
     /*! @brief 创建一个 UrlObject 对象，参见 UrlObject */
     static UrlObject new Url();
 

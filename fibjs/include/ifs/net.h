@@ -19,6 +19,7 @@ class Socket_base;
 class Stream_base;
 class Smtp_base;
 class TcpServer_base;
+class Handler_base;
 class UrlObject_base;
 
 class net_base : public object_base {
@@ -50,6 +51,7 @@ public:
     static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
+    static result_t createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(exlib::string ip, int32_t& retVal);
     static result_t isIPv4(exlib::string ip, bool& retVal);
@@ -75,6 +77,7 @@ public:
     static void s_static_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isIP(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -101,6 +104,7 @@ public:
 #include "ifs/Stream.h"
 #include "ifs/Smtp.h"
 #include "ifs/TcpServer.h"
+#include "ifs/Handler.h"
 #include "ifs/UrlObject.h"
 
 namespace fibjs {
@@ -113,6 +117,7 @@ inline ClassInfo& net_base::class_info()
         { "ipv6", s_static_ipv6, true, ClassData::ASYNC_ASYNC },
         { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC },
         { "openSmtp", s_static_openSmtp, true, ClassData::ASYNC_ASYNC },
+        { "createServer", s_static_createServer, true, ClassData::ASYNC_SYNC },
         { "backend", s_static_backend, true, ClassData::ASYNC_SYNC },
         { "isIP", s_static_isIP, true, ClassData::ASYNC_SYNC },
         { "isIPv4", s_static_isIPv4, true, ClassData::ASYNC_SYNC },
@@ -360,6 +365,21 @@ inline void net_base::s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_openSmtp(v0, v1, cb, args);
     else
         hr = ac_openSmtp(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<TcpServer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = createServer(v0.get(), vr);
 
     METHOD_RETURN();
 }

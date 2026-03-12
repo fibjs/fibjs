@@ -22,9 +22,10 @@ class HttpCookie_base;
 class HttpServer_base;
 class HttpClient_base;
 class HttpsServer_base;
+class Handler_base;
+class SecureContext_base;
 class HttpHandler_base;
 class HttpRepeater_base;
-class Handler_base;
 class Stream_base;
 class SeekableStream_base;
 
@@ -33,6 +34,9 @@ class http_base : public object_base {
 
 public:
     // http_base
+    static result_t createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
+    static result_t createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
+    static result_t createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
     static result_t get_cookies(obj_ptr<NArray>& retVal);
     static result_t get_keepAlive(bool& retVal);
@@ -85,6 +89,7 @@ public:
     { return CALL_E_TYPEMISMATCH; }
 
 public:
+    static void s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -143,9 +148,10 @@ public:
 #include "ifs/HttpServer.h"
 #include "ifs/HttpClient.h"
 #include "ifs/HttpsServer.h"
+#include "ifs/Handler.h"
+#include "ifs/SecureContext.h"
 #include "ifs/HttpHandler.h"
 #include "ifs/HttpRepeater.h"
-#include "ifs/Handler.h"
 #include "ifs/Stream.h"
 #include "ifs/SeekableStream.h"
 
@@ -153,6 +159,7 @@ namespace fibjs {
 inline ClassInfo& http_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "createServer", s_static_createServer, true, ClassData::ASYNC_SYNC },
         { "fileHandler", s_static_fileHandler, true, ClassData::ASYNC_SYNC },
         { "request", s_static_request, true, ClassData::ASYNC_ASYNC },
         { "get", s_static_get, true, ClassData::ASYNC_ASYNC },
@@ -202,6 +209,35 @@ inline ClassInfo& http_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void http_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpServer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = createServer(v0.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = createServer(v0.get(), v1.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = createServer(v0, v1.get(), vr);
+
+    METHOD_RETURN();
 }
 
 inline void http_base::s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<v8::Value>& args)

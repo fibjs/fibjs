@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/tls.h"
 #include "ifs/os.h"
+#include "ifs/TcpServer.h"
 #include "inetAddr.h"
 #include "Url.h"
 #include "options.h"
@@ -325,5 +326,10 @@ result_t net_base::isIPv6(exlib::string ip, bool& retVal)
 {
     retVal = Url::isIPv6(ip);
     return 0;
+}
+
+result_t net_base::createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
+{
+    return TcpServer_base::_new(listener, retVal);
 }
 }

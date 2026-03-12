@@ -19,6 +19,7 @@ class TLSSocket_base;
 class TLSHandler_base;
 class TLSServer_base;
 class SecureContext_base;
+class Handler_base;
 class Stream_base;
 
 class tls_base : public object_base {
@@ -26,6 +27,8 @@ class tls_base : public object_base {
 
 public:
     // tls_base
+    static result_t createServer(SecureContext_base* context, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
+    static result_t createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
     static result_t createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t createSecureContext(bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
@@ -57,6 +60,7 @@ public:
     { return CALL_E_TYPEMISMATCH; }
 
 public:
+    static void s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -84,12 +88,14 @@ public:
 #include "ifs/TLSHandler.h"
 #include "ifs/TLSServer.h"
 #include "ifs/SecureContext.h"
+#include "ifs/Handler.h"
 #include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& tls_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "createServer", s_static_createServer, true, ClassData::ASYNC_SYNC },
         { "createSecureContext", s_static_createSecureContext, true, ClassData::ASYNC_SYNC },
         { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC }
     };
@@ -113,6 +119,29 @@ inline ClassInfo& tls_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void tls_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<TLSServer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = createServer(v0.get(), v1.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = createServer(v0, v1.get(), vr);
+
+    METHOD_RETURN();
 }
 
 inline void tls_base::s_static_createSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args)

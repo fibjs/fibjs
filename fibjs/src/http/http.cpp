@@ -7,6 +7,9 @@
 
 #include "object.h"
 #include "ifs/http.h"
+#include "ifs/HttpServer.h"
+#include "ifs/HttpsServer.h"
+#include "ifs/tls.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "Url.h"
@@ -337,5 +340,31 @@ result_t http_base::head(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return get_httpClient(ac->isolate())->head(url, opts, retVal, ac);
+}
+
+result_t http_base::createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+{
+    return HttpServer_base::_new(hdlr, retVal);
+}
+
+result_t http_base::createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+{
+    obj_ptr<HttpsServer_base> server;
+    result_t hr = HttpsServer_base::_new(context, hdlr, server);
+    if (hr < 0)
+        return hr;
+
+    retVal = server;
+    return 0;
+}
+
+result_t http_base::createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+{
+    obj_ptr<SecureContext_base> ctx;
+    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    if (hr < 0)
+        return hr;
+
+    return createServer(ctx, hdlr, retVal);
 }
 }

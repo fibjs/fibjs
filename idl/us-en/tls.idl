@@ -11,6 +11,20 @@ module tls
     /*! @brief tls/ssl protocol conversion handler, see TLSServer */
     static TLSServer new Server();
 
+    /*! @brief Create a TLS server, compatible with Node.js tls.createServer
+     @param context Specify security context
+     @param listener Connection handler function
+     @return Return an unbound TLSServer object, call listen() to start
+     */
+    static TLSServer createServer(SecureContext context, Handler listener);
+
+    /*! @brief Create a TLS server, compatible with Node.js tls.createServer
+     @param options Options for creating security context
+     @param listener Connection handler function
+     @return Return an unbound TLSServer object, call listen() to start
+     */
+    static TLSServer createServer(Object options, Handler listener);
+
     /*! @brief Create a SecureContext object for maintaining security context in the tls module
 
      Options for creating security context support the following options:

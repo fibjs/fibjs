@@ -135,6 +135,12 @@ module net
     /*! @brief Create a TcpServer object, see TcpServer */
     static TcpServer;
 
+    /*! @brief Create a TCP server, compatible with Node.js net.createServer
+     @param listener Connection handler function
+     @return Return an unbound TcpServer object, call listen() to start
+     */
+    static TcpServer createServer(Handler listener);
+
     /*! @brief Create a UrlObject object, see UrlObject */
     static UrlObject new Url();
 
