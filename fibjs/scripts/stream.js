@@ -35,6 +35,35 @@ Stream.Duplex = require('_stream_duplex');
 Stream.Transform = require('_stream_transform');
 Stream.PassThrough = require('_stream_passthrough');
 
+// Callback-based pipeline
+Stream.pipeline = function pipeline() {
+    var streams = Array.prototype.slice.call(arguments);
+    var callback = streams.pop();
+    if (typeof callback !== 'function') {
+        streams.push(callback);
+        callback = null;
+    }
+    var p = require('stream/promises').pipeline.apply(null, streams);
+    if (callback) {
+        p.then(function () { callback(null); }, callback);
+        return streams[0];
+    }
+    return p;
+};
+
+// Callback-based finished
+Stream.finished = function finished(stream, opts, callback) {
+    if (typeof opts === 'function') { callback = opts; opts = {}; }
+    var p = require('stream/promises').finished(stream, opts);
+    if (callback) {
+        p.then(function () { callback(null); }, callback);
+        return function () {};
+    }
+    return p;
+};
+
+Stream.promises = require('stream/promises');
+
 // Backwards-compat with node 0.4.x
 Stream.Stream = Stream;
 

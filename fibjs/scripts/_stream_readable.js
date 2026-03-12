@@ -935,6 +935,51 @@ Object.defineProperty(Readable.prototype, 'readableHighWaterMark', {
 // exposed for testing purposes only.
 Readable._fromList = fromList;
 
+// Create a Readable stream from an iterable or async iterable
+Readable.from = function from(iterable, opts) {
+  return new ReadableFromIterable(iterable, opts);
+};
+
+// Create a Node.js Readable stream from a Web ReadableStream
+Readable.fromWeb = function fromWeb(readableStream, opts) {
+  return new ReadableFromWebStream(readableStream, opts);
+};
+
+function ReadableFromIterable(iterable, opts) {
+  Readable.call(this, Object.assign({ objectMode: true }, opts));
+  const iter = iterable[Symbol.asyncIterator]
+    ? iterable[Symbol.asyncIterator]()
+    : iterable[Symbol.iterator]
+      ? (function* () { yield* iterable; })()[Symbol.iterator]()
+      : null;
+  if (!iter) throw new TypeError('iterable must be an iterable or async iterable');
+  this._iter = iter;
+}
+util.inherits(ReadableFromIterable, Readable);
+ReadableFromIterable.prototype._read = function () {
+  const self = this;
+  Promise.resolve(self._iter.next()).then(({ value, done }) => {
+    if (done) self.push(null);
+    else self.push(value);
+  }).catch(err => self.destroy(err));
+};
+
+function ReadableFromWebStream(webStream, opts) {
+  Readable.call(this, opts);
+  this._reader = webStream.getReader();
+}
+util.inherits(ReadableFromWebStream, Readable);
+ReadableFromWebStream.prototype._read = function () {
+  const self = this;
+  self._reader.read().then(({ value, done }) => {
+    if (done) self.push(null);
+    else self.push(value instanceof Uint8Array ? Buffer.from(value) : value);
+  }).catch(err => self.destroy(err));
+};
+ReadableFromWebStream.prototype._destroy = function (err, cb) {
+  this._reader.cancel(err).then(() => cb(err), () => cb(err));
+};
+
 // Pluck off n bytes from an array of buffers.
 // Length is the combined lengths of all the buffers in the list.
 // This function is designed to be inlinable, so please take care when making
