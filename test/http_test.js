@@ -4193,5 +4193,72 @@ describe("http", () => {
 
         assert.equal(http.get(u_path).readAll().toString(), "hello, /unix");
     });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 1: JSHandler injects res = req.response as second argument
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("handler res parameter injection", () => {
+        var port = 8898 + base_port;
+        var svr;
+
+        after(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("handler receives (req, res) where res === req.response", () => {
+            var capturedSame = null;
+            svr = new http.Server(port, (req, res) => {
+                capturedSame = (res === req.response);
+                res.write('ok');
+            });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var resp = http.get('http://127.0.0.1:' + port + '/');
+            assert.equal(resp.statusCode, 200);
+            assert.strictEqual(capturedSame, true);
+        });
+
+        it("single-param handler (req) still works — backward compat", () => {
+            svr = new http.Server(port + 1, (req) => {
+                req.response.write('legacy');
+            });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var resp = http.get('http://127.0.0.1:' + (port + 1) + '/');
+            assert.equal(resp.statusCode, 200);
+            assert.equal(resp.body.readAll().toString(), 'legacy');
+        });
+
+        it("res.write() via second param sends correct response body", () => {
+            svr = new http.Server(port + 2, (req, res) => {
+                res.statusCode = 200;
+                res.write('hello from res');
+            });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var resp = http.get('http://127.0.0.1:' + (port + 2) + '/');
+            assert.equal(resp.body.readAll().toString(), 'hello from res');
+        });
+
+        it("res.writeHead() sets status code and headers", () => {
+            svr = new http.Server(port + 3, (req, res) => {
+                res.writeHead(201, { 'X-Custom': 'test-value' });
+                res.write('created');
+            });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var resp = http.get('http://127.0.0.1:' + (port + 3) + '/');
+            assert.equal(resp.statusCode, 201);
+            assert.equal(resp.firstHeader('X-Custom'), 'test-value');
+            assert.equal(resp.body.readAll().toString(), 'created');
+        });
+    });
 });
 

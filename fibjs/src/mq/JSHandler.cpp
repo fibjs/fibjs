@@ -14,6 +14,7 @@
 #include "ifs/mq.h"
 #include "ifs/console.h"
 #include "AsyncWaitHandler.h"
+#include "ifs/HttpRequest.h"
 
 namespace fibjs {
 
@@ -46,6 +47,17 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     v8::Local<v8::Value> a = o;
 
+    // If the message is an HttpRequest, inject res = req.response as extra arg
+    obj_ptr<HttpRequest_base> httpReq = HttpRequest_base::getInstance(v);
+    v8::Local<v8::Value> resArg;
+    if (httpReq != NULL) {
+        obj_ptr<HttpResponse_base> httpResp;
+        httpReq->get_response(httpResp);
+        if (httpResp != NULL)
+            resArg = httpResp->wrap();
+    }
+    bool hasRes = !resArg.IsEmpty();
+
     if (m_async) {
         v8::Local<v8::Value> v1 = GetPrivate("handler");
         if (IsEmpty(v1))
@@ -63,7 +75,9 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             len = params->length();
         }
 
-        argv.resize(len + 2);
+        // argv layout: [req, ...params, res(if HttpRequest), done]
+        int32_t extra = hasRes ? 1 : 0;
+        argv.resize(len + 2 + extra);
 
         argv[0] = a;
         for (i = 0; i < len; i++) {
@@ -71,11 +85,13 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             params->_indexed_getter(i, v);
             argv[i + 1] = v;
         }
-        argv[len + 1] = isolate->NewFunction("done", _done, retVal->wrap());
-        if (argv[len + 1].IsEmpty())
+        if (hasRes)
+            argv[len + 1] = resArg;
+        argv[len + 1 + extra] = isolate->NewFunction("done", _done, retVal->wrap());
+        if (argv[len + 1 + extra].IsEmpty())
             return CHECK_ERROR(Runtime::setError("function alloc error."));
 
-        proc.Call(v8::Undefined(isolate->m_isolate), len + 2, argv.data());
+        proc.Call(v8::Undefined(isolate->m_isolate), len + 2 + extra, argv.data());
         return 0;
     }
 
@@ -93,8 +109,10 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             len = params->length();
         }
 
-        if (len > 0) {
-            argv.resize(len + 1);
+        // argv layout: [req, ...params, res(if HttpRequest)]
+        int32_t extra = hasRes ? 1 : 0;
+        if (len > 0 || hasRes) {
+            argv.resize(len + 1 + extra);
             argv[0] = a;
 
             for (i = 0; i < len; i++) {
@@ -102,6 +120,8 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 params->_indexed_getter(i, v);
                 argv[i + 1] = v;
             }
+            if (hasRes)
+                argv[len + 1] = resArg;
 
             pargv = argv.data();
         } else
@@ -109,7 +129,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         {
             TryCatch try_catch;
-            hdlr = func.Call(v8::Undefined(isolate->m_isolate), len + 1, pargv);
+            hdlr = func.Call(v8::Undefined(isolate->m_isolate), len + 1 + extra, pargv);
             if (try_catch.HasCaught()) {
                 v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
                     isolate->m_isolate, 1, v8::StackTrace::kScriptId);
