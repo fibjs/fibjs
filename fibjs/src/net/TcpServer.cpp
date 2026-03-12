@@ -209,6 +209,7 @@ result_t TcpServer::start()
                     m_pThis->_emit("close");
                     if (m_pThis->m_eventDelegate)
                         m_pThis->m_eventDelegate->_emit("close");
+                    m_pThis->clearEventDelegate();
                 }
                 m_pThis->isolate_unref();
                 return next();
@@ -235,6 +236,9 @@ result_t TcpServer::start()
 
     m_running = true;
 
+    if (m_eventDelegate)
+        m_eventDelegateRef = m_eventDelegate;
+
     obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
     (new asyncAccept(this, holder))->apost(0);
     _emit("listening");
@@ -255,6 +259,7 @@ result_t TcpServer::stop(AsyncEvent* ac)
         _emit("close");
         if (m_eventDelegate)
             m_eventDelegate->_emit("close");
+        clearEventDelegate();
     }
 
     return m_socket->close(ac);

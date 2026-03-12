@@ -46,9 +46,16 @@ public:
     object_base* m_eventDelegate = nullptr;
 
 private:
+    void clearEventDelegate()
+    {
+        m_eventDelegateRef.Release();
+    }
+
+private:
     bool m_running;
     obj_ptr<Socket_base> m_socket;
     obj_ptr<Handler_base> m_hdlr;
+    obj_ptr<object_base> m_eventDelegateRef;
 };
 
 } /* namespace fibjs */
