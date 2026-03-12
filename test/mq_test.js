@@ -1054,6 +1054,9 @@ describe("mq", () => {
                     r = Array.prototype.slice.call(arguments);
                     r[0] = v;
                     assert.equal(v1.value, '/test');
+                    // strip trailing res (HttpResponse injected by JSHandler)
+                    if (r.length > 0 && r[r.length - 1] instanceof http.Response)
+                        r.pop();
                 });
 
                 rt.append("^.*$", () => { });
@@ -1076,6 +1079,64 @@ describe("mq", () => {
 
             for (k in p2r_host_tests)
                 test_one_host(k);
+
+            // Verify res is appended after route params when message is HttpRequest
+            describe("HttpRequest route args include res", () => {
+                it("no capture groups: handler receives (req, res)", () => {
+                    var args;
+                    var rt = new mq.Routing({ "^/foo$": function () {
+                        args = Array.prototype.slice.call(arguments);
+                    }});
+                    var m = new http.Request();
+                    m.value = '/foo';
+                    mq.invoke(rt, m);
+                    assert.equal(args.length, 2);
+                    assert.ok(args[0] instanceof http.Request);
+                    assert.ok(args[1] instanceof http.Response);
+                });
+
+                it("one capture group: handler receives (req, p1, res)", () => {
+                    var args;
+                    var rt = new mq.Routing({ "^/api/(.+)$": function () {
+                        args = Array.prototype.slice.call(arguments);
+                    }});
+                    var m = new http.Request();
+                    m.value = '/api/users';
+                    mq.invoke(rt, m);
+                    assert.equal(args.length, 3);
+                    assert.ok(args[0] instanceof http.Request);
+                    assert.equal(args[1], 'users');
+                    assert.ok(args[2] instanceof http.Response);
+                });
+
+                it("two capture groups: handler receives (req, p1, p2, res)", () => {
+                    var args;
+                    var rt = new mq.Routing({ "^/api/([^/]+)/([^/]+)$": function () {
+                        args = Array.prototype.slice.call(arguments);
+                    }});
+                    var m = new http.Request();
+                    m.value = '/api/users/123';
+                    mq.invoke(rt, m);
+                    assert.equal(args.length, 4);
+                    assert.ok(args[0] instanceof http.Request);
+                    assert.equal(args[1], 'users');
+                    assert.equal(args[2], '123');
+                    assert.ok(args[3] instanceof http.Response);
+                });
+
+                it("mq.Message has no res injected", () => {
+                    var args;
+                    var rt = new mq.Routing({ "^/api/(.+)$": function () {
+                        args = Array.prototype.slice.call(arguments);
+                    }});
+                    var m = new mq.Message();
+                    m.value = '/api/hello';
+                    mq.invoke(rt, m);
+                    assert.equal(args.length, 2);
+                    assert.ok(args[0] instanceof mq.Message);
+                    assert.equal(args[1], 'hello');
+                });
+            });
         });
 
         describe("order", () => {
