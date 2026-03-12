@@ -34,6 +34,7 @@ public:
     virtual result_t start() = 0;
     virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
@@ -49,6 +50,7 @@ public:
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,6 +68,7 @@ public:
 public:
     ASYNC_MEMBER3(TcpServer_base, listen, int32_t, exlib::string, int32_t);
     ASYNC_MEMBER0(TcpServer_base, stop);
+    ASYNC_MEMBER0(TcpServer_base, close);
 };
 }
 
@@ -78,7 +81,8 @@ inline ClassInfo& TcpServer_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "start", s_start, false, ClassData::ASYNC_SYNC },
         { "listen", s_listen, false, ClassData::ASYNC_ASYNC },
-        { "stop", s_stop, false, ClassData::ASYNC_ASYNC }
+        { "stop", s_stop, false, ClassData::ASYNC_ASYNC },
+        { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -209,6 +213,21 @@ inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& ar
         hr = pInst->acb_stop(cb, args);
     else
         hr = pInst->ac_stop();
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(TcpServer_base);
+    ASYNC_METHOD_ENTER("TcpServer.close");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_close(cb, args);
+    else
+        hr = pInst->ac_close();
 
     METHOD_VOID();
 }

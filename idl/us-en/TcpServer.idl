@@ -74,6 +74,9 @@ interface TcpServer : EventEmitter
     /*! @brief Close socket to stop the running server */
     stop() async;
 
+    /*! @brief Close socket to stop the running server, alias for stop() */
+    close() async;
+
     /*! @brief The Socket object currently listened by the server */
     readonly Socket socket;
 

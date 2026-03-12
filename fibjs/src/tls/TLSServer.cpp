@@ -126,6 +126,11 @@ result_t TLSServer::stop(AsyncEvent* ac)
     return m_server->stop(ac);
 }
 
+result_t TLSServer::close(AsyncEvent* ac)
+{
+    return stop(ac);
+}
+
 result_t TLSServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
     return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, ac);

@@ -132,6 +132,11 @@ result_t HttpsServer::stop(AsyncEvent* ac)
     return m_server->stop(ac);
 }
 
+result_t HttpsServer::close(AsyncEvent* ac)
+{
+    return stop(ac);
+}
+
 result_t HttpsServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
     return static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, ac);

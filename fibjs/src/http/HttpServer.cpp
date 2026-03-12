@@ -109,6 +109,11 @@ result_t HttpServer::stop(AsyncEvent* ac)
     return m_server->stop(ac);
 }
 
+result_t HttpServer::close(AsyncEvent* ac)
+{
+    return stop(ac);
+}
+
 result_t HttpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
     return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, ac);

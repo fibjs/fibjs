@@ -128,6 +128,23 @@ declare class Class_TcpServer extends Class_EventEmitter {
     stopAsync(): Promise<void>;
 
     /**
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     */
+    close(): void;
+
+    close(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     */
+    closeSync(): void;
+
+    /**
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     */
+    closeAsync(): Promise<void>;
+
+    /**
      * @description 服务器当前侦听的 Socket 对象  
      */
     readonly socket: Class_Socket;

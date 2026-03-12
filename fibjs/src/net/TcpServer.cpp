@@ -265,6 +265,11 @@ result_t TcpServer::stop(AsyncEvent* ac)
     return m_socket->close(ac);
 }
 
+result_t TcpServer::close(AsyncEvent* ac)
+{
+    return stop(ac);
+}
+
 result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
     if (m_running || m_socket)

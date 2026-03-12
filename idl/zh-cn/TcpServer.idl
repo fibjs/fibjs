@@ -74,6 +74,9 @@ interface TcpServer : EventEmitter
     /*! @brief 关闭 socket中止正在运行的服务器 */
     stop() async;
 
+    /*! @brief 关闭 socket中止正在运行的服务器，stop() 的别名 */
+    close() async;
+
     /*! @brief 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
 

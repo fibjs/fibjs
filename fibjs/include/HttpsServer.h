@@ -20,6 +20,7 @@ public:
     // TcpServer_base
     virtual result_t start();
     virtual result_t stop(AsyncEvent* ac);
+    virtual result_t close(AsyncEvent* ac);
     virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
