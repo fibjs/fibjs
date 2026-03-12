@@ -1,4 +1,4 @@
-var { describe, it, xit, before, after } = require('node:test');
+var { describe, it, xit, before, after, afterEach } = require('node:test');
 var assert = require('assert');
 
 var test_util = require('./test_util');
@@ -2014,6 +2014,68 @@ function test_net(eng, use_uv) {
         it("FIX: net.Smtp results in a segmentation fault", () => {
             new net.Smtp().socket;
         })
+
+        // ─────────────────────────────────────────────────────────────────────
+        // TcpServer EventEmitter events
+        // ─────────────────────────────────────────────────────────────────────
+        describe("TcpServer EventEmitter events", () => {
+            var svr;
+
+            afterEach(() => {
+                if (svr) {
+                    svr.stop();
+                    svr = null;
+                }
+            });
+
+            it("emits 'listening' after start()", () => {
+                var fired = false;
+                svr = new net.TcpServer(getPort(), (sock) => { sock.close(); });
+                svr.on('listening', () => { fired = true; });
+                svr.start();
+                test_util.push(svr.socket);
+                coroutine.sleep(0);
+                assert.strictEqual(fired, true);
+            });
+
+            it("onlistening shorthand works", () => {
+                var fired = false;
+                svr = new net.TcpServer(getPort(), (sock) => { sock.close(); });
+                svr.onlistening = () => { fired = true; };
+                svr.start();
+                test_util.push(svr.socket);
+                coroutine.sleep(0);
+                assert.strictEqual(fired, true);
+            });
+
+            it("emits 'connection' when a client connects", () => {
+                var conns = 0;
+                var p = getPort();
+                svr = new net.TcpServer(p, (sock) => { sock.close(); });
+                svr.on('connection', () => { conns++; });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                c.close();
+                for (var i = 0; i < 10 && conns < 1; i++)
+                    coroutine.sleep(0);
+                assert.ok(conns >= 1);
+            });
+
+            it("emits 'close' after stop()", () => {
+                var closed = false;
+                svr = new net.TcpServer(getPort(), (sock) => { sock.close(); });
+                svr.on('close', () => { closed = true; });
+                svr.start();
+                test_util.push(svr.socket);
+                svr.stop();
+                for (var i = 0; i < 10 && !closed; i++)
+                    coroutine.sleep(0);
+                svr = null;
+                assert.strictEqual(closed, true);
+            });
+        });
     });
 }
 

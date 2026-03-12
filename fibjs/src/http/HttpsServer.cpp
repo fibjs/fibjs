@@ -10,6 +10,7 @@
 #include "ifs/http.h"
 #include "ifs/tls.h"
 #include "ifs/TLSServer.h"
+#include "TLSServer.h"
 
 namespace fibjs {
 
@@ -74,6 +75,8 @@ result_t HttpsServer::create(SecureContext_base* context, exlib::string addr, in
 
     SetPrivate("server", _server->wrap());
     m_server = _server;
+    // override inner TcpServer's delegate to forward events to HttpsServer
+    static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
 
     return 0;
 }

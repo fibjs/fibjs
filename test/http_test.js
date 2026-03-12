@@ -4260,5 +4260,128 @@ describe("http", () => {
             assert.equal(resp.body.readAll().toString(), 'created');
         });
     });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 2: TcpServer/HttpServer inherit EventEmitter — on/emit events
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("EventEmitter events", () => {
+        var port = 8902 + base_port;
+        var svr;
+
+        after(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("server emits 'listening' on start()", () => {
+            var fired = false;
+            svr = new http.Server(port, (req) => { req.response.write('ok'); });
+            svr.on('listening', () => { fired = true; });
+            svr.start();
+            test_util.push(svr.socket);
+
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+
+        it("server emits 'connection' for each accepted connection", () => {
+            var conns = 0;
+            svr = new http.Server(port + 1, (req) => { req.response.write('ok'); });
+            svr.on('connection', () => { conns++; });
+            svr.start();
+            test_util.push(svr.socket);
+
+            http.get('http://127.0.0.1:' + (port + 1) + '/');
+            coroutine.sleep(0);
+            assert.ok(conns >= 1);
+        });
+
+        it("server emits 'close' after stop()", () => {
+            var closed = false;
+            svr = new http.Server(port + 2, (req) => { req.response.write('ok'); });
+            svr.on('close', () => { closed = true; });
+            svr.start();
+            test_util.push(svr.socket);
+            svr.stop();
+            for (var i = 0; i < 10 && !closed; i++)
+                coroutine.sleep(0);
+            svr = null;
+
+            assert.strictEqual(closed, true);
+        });
+
+        it("onlistening shorthand property works", () => {
+            var fired = false;
+            svr = new http.Server(port + 3, (req) => { req.response.write('ok'); });
+            svr.onlistening = () => { fired = true; };
+            svr.start();
+            test_util.push(svr.socket);
+
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+    });
+
+    // HttpsServer inherits HttpServer which inherits TcpServer (EventEmitter)
+    describe("HttpsServer EventEmitter events", () => {
+        var port = 8906 + base_port;
+        var svr;
+
+        after(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("server emits 'listening' on start()", () => {
+            var fired = false;
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: port }, (req) => { req.response.write('ok'); });
+            svr.on('listening', () => { fired = true; });
+            svr.start();
+            test_util.push(svr.socket);
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+
+        it("server emits 'connection' for each accepted connection", () => {
+            var conns = 0;
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: port + 1 }, (req) => { req.response.write('ok'); });
+            svr.on('connection', () => { conns++; });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            hc.get('https://localhost:' + (port + 1) + '/');
+            for (var i = 0; i < 10 && conns < 1; i++)
+                coroutine.sleep(0);
+            assert.ok(conns >= 1);
+        });
+
+        it("server emits 'close' after stop()", () => {
+            var closed = false;
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: port + 2 }, (req) => { req.response.write('ok'); });
+            svr.on('close', () => { closed = true; });
+            svr.start();
+            test_util.push(svr.socket);
+            svr.stop();
+            for (var i = 0; i < 10 && !closed; i++)
+                coroutine.sleep(0);
+            svr = null;
+            assert.strictEqual(closed, true);
+        });
+
+        it("onlistening shorthand property works", () => {
+            var fired = false;
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: port + 3 }, (req) => { req.response.write('ok'); });
+            svr.onlistening = () => { fired = true; };
+            svr.start();
+            test_util.push(svr.socket);
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+    });
 });
 

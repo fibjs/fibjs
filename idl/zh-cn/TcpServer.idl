@@ -24,7 +24,7 @@ console.log('server is running on port: 8080');
 
 当启动这个服务时，它将监听 `8080` 端口上面的所有 IP 地址和请求，当你通过 `telnet` 或者其他客户端工具连接到该服务时，你将会看到服务打印连接信息，并将你发送来的每一条请求原样发送回去。
  */
-interface TcpServer : object
+interface TcpServer : EventEmitter
 {
     /*! @brief TcpServer 构造函数，在所有本机地址侦听
     @param port 指定 tcp 服务器侦听端口
@@ -59,4 +59,18 @@ interface TcpServer : object
 
     /*! @brief 服务器当前事件处理接口对象 */
     Handler handler;
+
+    /*! @brief 调用 start() 并完成绑定后触发 */
+    event listening();
+
+    /*! @brief 建立新 TCP 连接时触发
+     @param socket 新建立的 Socket 连接对象
+    */
+    event connection(Socket socket);
+
+    /*! @brief 发生错误时触发 */
+    event error();
+
+    /*! @brief 服务器关闭后触发 */
+    event close();
 };

@@ -24,7 +24,7 @@ In the above code, we create a `TcpServer` object and use the callback function 
 
 When starting this service, it will listen on all IP addresses and requests on port `8080`. When you connect to this service using `telnet` or other client tools, you will see the service print connection information and send back every request you send as is.
  */
-interface TcpServer : object
+interface TcpServer : EventEmitter
 {
     /*! @brief TcpServer constructor, listening on all local addresses
     @param port specifies the TCP server listening port
@@ -59,4 +59,18 @@ interface TcpServer : object
 
     /*! @brief Current event handler interface object of the server */
     Handler handler;
+
+    /*! @brief emitted when the server has been bound after calling start() */
+    event listening();
+
+    /*! @brief emitted when a new TCP connection is made
+     @param socket the newly accepted Socket object
+    */
+    event connection(Socket socket);
+
+    /*! @brief emitted when an error occurs */
+    event error();
+
+    /*! @brief emitted after the server has been closed */
+    event close();
 };

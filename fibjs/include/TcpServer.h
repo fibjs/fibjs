@@ -41,6 +41,7 @@ public:
 
 public:
     int32_t m_timeout = 0;
+    object_base* m_eventDelegate = nullptr;
 
 private:
     bool m_running;

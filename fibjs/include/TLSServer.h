@@ -35,6 +35,11 @@ public:
 public:
     result_t create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener);
 
+    void set_event_delegate(object_base* delegate)
+    {
+        static_cast<TcpServer*>(m_server.get())->m_eventDelegate = delegate;
+    }
+
 private:
     obj_ptr<TcpServer_base> m_server;
     obj_ptr<TLSHandler_base> m_handler;

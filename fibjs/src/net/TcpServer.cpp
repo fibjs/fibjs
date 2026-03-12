@@ -152,6 +152,12 @@ result_t TcpServer::start()
         ON_STATE(asyncAccept, invoke)
         {
             if (m_accept) {
+                // emit 'connection' with the accepted socket
+                Variant sockArg = m_accept;
+                m_pThis->_emit("connection", &sockArg, 1);
+                if (m_pThis->m_eventDelegate)
+                    m_pThis->m_eventDelegate->_emit("connection", &sockArg, 1);
+
                 (new asyncInvoke(m_pThis, m_accept, m_holder))->apost(0);
                 m_accept.Release();
             }
@@ -163,11 +169,21 @@ result_t TcpServer::start()
         {
             if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
                 || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
+                // only emit 'close' if stop() hasn't already done so
+                if (m_pThis->m_running) {
+                    m_pThis->m_running = false;
+                    m_pThis->_emit("close");
+                    if (m_pThis->m_eventDelegate)
+                        m_pThis->m_eventDelegate->_emit("close");
+                }
                 m_pThis->isolate_unref();
                 return next();
             }
 
-            errorLog("TcpServer: " + getResultMessage(v));
+            Variant errArg = getResultMessage(v);
+            m_pThis->_emit("error", &errArg, 1);
+            if (m_pThis->m_eventDelegate)
+                m_pThis->m_eventDelegate->_emit("error", &errArg, 1);
             return 0;
         }
 
@@ -187,6 +203,9 @@ result_t TcpServer::start()
 
     obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
     (new asyncAccept(this, holder))->apost(0);
+    _emit("listening");
+    if (m_eventDelegate)
+        m_eventDelegate->_emit("listening");
     return 0;
 }
 
@@ -194,6 +213,15 @@ result_t TcpServer::stop(AsyncEvent* ac)
 {
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    // emit 'close' immediately when m_running transitions to false,
+    // so JS listeners fire on next yield regardless of asyncAccept timing
+    if (m_running) {
+        m_running = false;
+        _emit("close");
+        if (m_eventDelegate)
+            m_eventDelegate->_emit("close");
+    }
 
     return m_socket->close(ac);
 }

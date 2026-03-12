@@ -1,5 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
 /**
@@ -30,7 +30,7 @@
  * 当启动这个服务时，它将监听 `8080` 端口上面的所有 IP 地址和请求，当你通过 `telnet` 或者其他客户端工具连接到该服务时，你将会看到服务打印连接信息，并将你发送来的每一条请求原样发送回去。
  *  
  */
-declare class Class_TcpServer extends Class_object {
+declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description TcpServer 构造函数，在所有本机地址侦听
      *     @param port 指定 tcp 服务器侦听端口
@@ -92,6 +92,28 @@ declare class Class_TcpServer extends Class_object {
      * @description 服务器当前事件处理接口对象 
      */
     handler: Class_Handler;
+
+    /**
+     * @description 调用 start() 并完成绑定后触发 
+     */
+    on(event: "listening", listener: ()=>void): this;
+
+    /**
+     * @description 建立新 TCP 连接时触发
+     *      @param socket 新建立的 Socket 连接对象
+     *     
+     */
+    on(event: "connection", listener: ()=>void): this;
+
+    /**
+     * @description 发生错误时触发 
+     */
+    on(event: "error", listener: ()=>void): this;
+
+    /**
+     * @description 服务器关闭后触发 
+     */
+    on(event: "close", listener: ()=>void): this;
 
 }
 

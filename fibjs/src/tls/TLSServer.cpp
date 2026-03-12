@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/tls.h"
 #include "TLSServer.h"
+#include "TcpServer.h"
 
 namespace fibjs {
 
@@ -72,6 +73,7 @@ result_t TLSServer::create(SecureContext_base* context, exlib::string addr, int3
 
     SetPrivate("server", _server->wrap());
     m_server = _server;
+    static_cast<TcpServer*>(_server.get())->m_eventDelegate = this;
 
     return 0;
 }

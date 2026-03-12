@@ -12,14 +12,17 @@
  */
 
 #include "../object.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
+class EventEmitter_base;
 class Handler_base;
 class Socket_base;
 
-class TcpServer_base : public object_base {
+class TcpServer_base : public EventEmitter_base {
     DECLARE_CLASS(TcpServer_base);
+    EVENT_SUPPORT();
 
 public:
     // TcpServer_base
@@ -47,6 +50,14 @@ public:
     static void s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_handler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_handler(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onconnection(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onconnection(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER0(TcpServer_base, stop);
@@ -67,13 +78,17 @@ inline ClassInfo& TcpServer_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "socket", s_get_socket, block_set, false },
         { "timeout", s_get_timeout, s_set_timeout, false },
-        { "handler", s_get_handler, s_set_handler, false }
+        { "handler", s_get_handler, s_set_handler, false },
+        { "onlistening", s_get_onlistening, s_set_onlistening, false },
+        { "onconnection", s_get_onconnection, s_set_onconnection, false },
+        { "onerror", s_get_onerror, s_set_onerror, false },
+        { "onclose", s_get_onclose, s_set_onclose, false }
     };
 
     static ClassData s_cd = {
         "TcpServer", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info(),
+        &EventEmitter_base::class_info(),
         true
     };
 
@@ -220,6 +235,118 @@ inline void TcpServer_base::s_set_handler(const v8::FunctionCallbackInfo<v8::Val
     ARG(obj_ptr<Handler_base>, 0);
 
     hr = pInst->set_handler(v0);
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_get_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("listening", vr);
+
+    METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_set_onlistening(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("listening", v0);
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_get_onconnection(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("connection", vr);
+
+    METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_set_onconnection(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("connection", v0);
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("error", vr);
+
+    METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("error", v0);
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("close", vr);
+
+    METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("close", v0);
 
     METHOD_VOID();
 }

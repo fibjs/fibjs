@@ -1,4 +1,4 @@
-var { describe, odescribe, it, after } = require('node:test');
+var { describe, odescribe, it, after, afterEach } = require('node:test');
 var assert = require('assert');
 
 var test_util = require('./test_util');
@@ -1028,6 +1028,70 @@ describe('tls', () => {
                 });
 
                 cs1.close();
+            });
+
+            // TLSServer inherits TcpServer which inherits EventEmitter
+            describe("TLSServer EventEmitter events", () => {
+                var svr;
+
+                afterEach(() => {
+                    if (svr) {
+                        svr.stop();
+                        svr = null;
+                    }
+                });
+
+                it("emits 'listening' after start()", () => {
+                    var fired = false;
+                    svr = new tls.Server(ctx_svr, 9088 + base_port, (s) => { s.close(); });
+                    svr.on('listening', () => { fired = true; });
+                    svr.start();
+                    test_util.push(svr.socket);
+                    coroutine.sleep(0);
+                    assert.strictEqual(fired, true);
+                });
+
+                it("emits 'connection' when a client connects", () => {
+                    var conns = 0;
+                    svr = new tls.Server(ctx_svr, 9089 + base_port, (s) => { s.close(); });
+                    svr.on('connection', () => { conns++; });
+                    svr.start();
+                    test_util.push(svr.socket);
+
+                    var s1 = new net.Socket();
+                    s1.connect(9089 + base_port, '127.0.0.1');
+                    var cs = new tls.TLSSocket(ctx);
+                    try { cs.connect(s1); } catch (e) { }
+                    cs.close();
+                    s1.close();
+
+                    for (var i = 0; i < 10 && conns < 1; i++)
+                        coroutine.sleep(0);
+                    assert.ok(conns >= 1);
+                });
+
+                it("emits 'close' after stop()", () => {
+                    var closed = false;
+                    svr = new tls.Server(ctx_svr, 9090 + base_port, (s) => { s.close(); });
+                    svr.on('close', () => { closed = true; });
+                    svr.start();
+                    test_util.push(svr.socket);
+                    svr.stop();
+                    for (var i = 0; i < 10 && !closed; i++)
+                        coroutine.sleep(0);
+                    svr = null;
+                    assert.strictEqual(closed, true);
+                });
+
+                it("onlistening shorthand works", () => {
+                    var fired = false;
+                    svr = new tls.Server(ctx_svr, 9091 + base_port, (s) => { s.close(); });
+                    svr.onlistening = () => { fired = true; };
+                    svr.start();
+                    test_util.push(svr.socket);
+                    coroutine.sleep(0);
+                    assert.strictEqual(fired, true);
+                });
             });
         });
     }

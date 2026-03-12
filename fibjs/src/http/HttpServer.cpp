@@ -60,6 +60,7 @@ result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr
 
     SetPrivate("server", _server->wrap());
     m_server = _server;
+    _server->m_eventDelegate = this;
 
     return _server->create(addr, port, _handler);
 }
