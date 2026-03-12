@@ -52,6 +52,13 @@ declare class Class_HttpServer extends Class_TcpServer {
     constructor(addr: string, hdlr: Class_Handler);
 
     /**
+     * @description HttpServer 构造函数，不绑定端口，需调用 listen() 启动
+     *     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *    
+     */
+    constructor(hdlr: Class_Handler);
+
+    /**
      * @description 允许跨域请求
      *      @param allowHeaders 指定接受的 http 头字段
      *      

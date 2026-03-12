@@ -51,6 +51,17 @@ result_t TcpServer_base::_new(exlib::string addr, Handler_base* listener,
     return _new_tcpServer(addr, 0, listener, retVal, This);
 }
 
+result_t TcpServer_base::_new(Handler_base* listener,
+    obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
+{
+    // no-port constructor: store handler only, call listen() to bind
+    obj_ptr<TcpServer> svr = new TcpServer();
+    svr->wrap(This);
+    svr->set_handler(listener);
+    retVal = svr;
+    return 0;
+}
+
 TcpServer::TcpServer()
 {
     m_running = false;
@@ -224,6 +235,23 @@ result_t TcpServer::stop(AsyncEvent* ac)
     }
 
     return m_socket->close(ac);
+}
+
+result_t TcpServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
+{
+    if (m_running || m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    result_t hr = create(addr, port, m_hdlr);
+    if (hr < 0)
+        return hr;
+
+    return start();
+}
+
+result_t TcpServer::listen(int32_t port, AsyncEvent* ac)
+{
+    return listen("", port, ac);
 }
 
 result_t TcpServer::get_timeout(int32_t& retVal)

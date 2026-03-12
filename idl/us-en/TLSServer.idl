@@ -43,6 +43,12 @@ interface TLSServer : TcpServer
      */
     TLSServer(Object options, Handler listener);
 
+    /*! @brief Create a new TLSServer object, no port — call listen() to bind and start
+     @param context Specify the secure context used to create the TLSServer
+     @param listener Event handler interface object
+     */
+    TLSServer(SecureContext context, Handler listener);
+
     /*! @brief Query the SecureContext used by the current TLSServer */
     readonly SecureContext secureContext;
 

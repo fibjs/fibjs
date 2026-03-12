@@ -4383,5 +4383,89 @@ describe("http", () => {
             assert.strictEqual(fired, true);
         });
     });
+
+    // Phase 3: listen() mode — no-port constructor + listen()
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("HttpServer listen() mode", () => {
+        var listenPort = 8910 + base_port;
+        var svr;
+
+        afterEach(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("new http.Server(handler) + listen(port) serves requests", () => {
+            svr = new http.Server((req) => { req.response.write('listen-ok'); });
+            svr.listen(listenPort);
+            test_util.push(svr.socket);
+
+            var r = http.get('http://127.0.0.1:' + listenPort + '/');
+            assert.strictEqual(r.data.toString(), 'listen-ok');
+        });
+
+        it("listen() emits 'listening' event", () => {
+            var fired = false;
+            svr = new http.Server((req) => { req.response.write('ok'); });
+            svr.on('listening', () => { fired = true; });
+            svr.listen(listenPort + 1);
+            test_util.push(svr.socket);
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+
+        it("double listen() throws", () => {
+            svr = new http.Server((req) => { req.response.write('ok'); });
+            svr.listen(listenPort + 2);
+            test_util.push(svr.socket);
+            assert.throws(() => { svr.listen(listenPort + 3); });
+        });
+    });
+
+    // HttpsServer listen() mode — no-port constructor + listen()
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("HttpsServer listen() mode", () => {
+        var listenPort = 8914 + base_port;
+        var svr;
+
+        afterEach(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("new https.Server(ctx, handler) + listen(port) serves requests", () => {
+            var ctx = tls.createSecureContext({ cert: crt, key: pk1.privateKey }, true);
+            svr = new http.HttpsServer(ctx, (req) => { req.response.write('https-listen-ok'); });
+            svr.listen(listenPort);
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + listenPort + '/');
+            assert.strictEqual(r.data.toString(), 'https-listen-ok');
+        });
+
+        it("listen() emits 'listening' event", () => {
+            var ctx = tls.createSecureContext({ cert: crt, key: pk1.privateKey }, true);
+            var fired = false;
+            svr = new http.HttpsServer(ctx, (req) => { req.response.write('ok'); });
+            svr.on('listening', () => { fired = true; });
+            svr.listen(listenPort + 1);
+            test_util.push(svr.socket);
+            coroutine.sleep(0);
+            assert.strictEqual(fired, true);
+        });
+
+        it("double listen() throws", () => {
+            var ctx = tls.createSecureContext({ cert: crt, key: pk1.privateKey }, true);
+            svr = new http.HttpsServer(ctx, (req) => { req.response.write('ok'); });
+            svr.listen(listenPort + 2);
+            test_util.push(svr.socket);
+            assert.throws(() => { svr.listen(listenPort + 3); });
+        });
+    });
 });
 

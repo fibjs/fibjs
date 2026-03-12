@@ -2076,6 +2076,57 @@ function test_net(eng, use_uv) {
                 assert.strictEqual(closed, true);
             });
         });
+
+        // TcpServer listen() mode — no-port constructor + listen()
+        // ─────────────────────────────────────────────────────────
+        describe("TcpServer listen() mode", () => {
+            var svr;
+
+            afterEach(() => {
+                if (svr) {
+                    svr.stop();
+                    svr = null;
+                }
+            });
+
+            it("listen(port) binds and starts the server", () => {
+                var p = getPort();
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                c.close();
+            });
+
+            it("listen(addr, port) binds to specific address", () => {
+                var p = getPort();
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                svr.listen('127.0.0.1', p);
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                c.close();
+            });
+
+            it("emits 'listening' event after listen()", () => {
+                var fired = false;
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                svr.on('listening', () => { fired = true; });
+                svr.listen(getPort());
+                test_util.push(svr.socket);
+                coroutine.sleep(0);
+                assert.strictEqual(fired, true);
+            });
+
+            it("double listen() throws CALL_E_INVALID_CALL", () => {
+                var p = getPort();
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                svr.listen(p);
+                test_util.push(svr.socket);
+                assert.throws(() => { svr.listen(getPort()); });
+            });
+        });
     });
 }
 

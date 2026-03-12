@@ -45,8 +45,24 @@ interface TcpServer : EventEmitter
    */
     TcpServer(String addr, Handler listener);
 
+    /*! @brief TcpServer constructor, no port — call listen() to bind and start
+    @param listener specifies the built-in message handler for received connections, handler function, chain processing array, routing object, see mq.Handler for details
+   */
+    TcpServer(Handler listener);
+
     /*! @brief Start the current server */
     start();
+
+    /*! @brief Bind to address and port, then start accepting connections
+    @param port specifies the TCP server listening port
+    */
+    listen(Integer port) async;
+
+    /*! @brief Bind to address and port, then start accepting connections
+    @param addr specifies the TCP server listening address, "" means listen on all local addresses
+    @param port specifies the TCP server listening port
+    */
+    listen(String addr, Integer port) async;
 
     /*! @brief Close socket to stop the running server */
     stop() async;

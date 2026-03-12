@@ -41,6 +41,11 @@ interface HttpServer : TcpServer
    */
     HttpServer(String addr, Handler hdlr);
 
+    /*! @brief HttpServer constructor, no port — call listen() to bind and start
+    @param hdlr http built-in message processor, processing function, chain processing array, routing object, see mq.Handler for details
+   */
+    HttpServer(Handler hdlr);
+
     /*! @brief Allow cross-origin requests
      @param allowHeaders specifies accepted http header fields
      */

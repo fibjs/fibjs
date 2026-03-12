@@ -1093,6 +1093,49 @@ describe('tls', () => {
                     assert.strictEqual(fired, true);
                 });
             });
+
+            // TLSServer listen() mode — no-port constructor + listen()
+            describe("TLSServer listen() mode", () => {
+                var svr;
+
+                afterEach(() => {
+                    if (svr) {
+                        svr.stop();
+                        svr = null;
+                    }
+                });
+
+                it("listen(port) binds and accepts TLS connections", () => {
+                    var p = 9092 + base_port;
+                    svr = new tls.Server(ctx_svr, (s) => { s.close(); });
+                    svr.listen(p);
+                    test_util.push(svr.socket);
+
+                    var s1 = new net.Socket();
+                    s1.connect(p, '127.0.0.1');
+                    var cs = new tls.TLSSocket(ctx);
+                    try { cs.connect(s1); } catch (e) { }
+                    cs.close();
+                    s1.close();
+                });
+
+                it("listen() emits 'listening' event", () => {
+                    var fired = false;
+                    svr = new tls.Server(ctx_svr, (s) => { s.close(); });
+                    svr.on('listening', () => { fired = true; });
+                    svr.listen(9093 + base_port);
+                    test_util.push(svr.socket);
+                    coroutine.sleep(0);
+                    assert.strictEqual(fired, true);
+                });
+
+                it("double listen() throws", () => {
+                    svr = new tls.Server(ctx_svr, (s) => { s.close(); });
+                    svr.listen(9094 + base_port);
+                    test_util.push(svr.socket);
+                    assert.throws(() => { svr.listen(9095 + base_port); });
+                });
+            });
         });
     }
 

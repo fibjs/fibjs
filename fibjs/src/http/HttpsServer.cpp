@@ -56,6 +56,43 @@ result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Handler_base* hdl
     return _new(ctx, address, port, hdlr, retVal, This);
 }
 
+result_t HttpsServer_base::_new(SecureContext_base* context, Handler_base* hdlr,
+    obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This)
+{
+    // no-port constructor: store handler and context, call listen() to bind
+    obj_ptr<HttpsServer> svr = new HttpsServer();
+    svr->wrap(This);
+
+    result_t hr = svr->setup(context, hdlr);
+    if (hr < 0)
+        return hr;
+
+    retVal = svr;
+    return 0;
+}
+
+result_t HttpsServer::setup(SecureContext_base* context, Handler_base* hdlr)
+{
+    // initialize handler and server objects without binding a socket
+    result_t hr;
+    obj_ptr<HttpHandler_base> _handler;
+    hr = HttpHandler_base::_new(hdlr, _handler);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<TLSServer_base> _server;
+    hr = TLSServer_base::_new(context, _handler, _server);
+    if (hr < 0)
+        return hr;
+
+    SetPrivate("handler", _handler->wrap());
+    m_handler = _handler;
+    SetPrivate("server", _server->wrap());
+    m_server = _server;
+    static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
+    return 0;
+}
+
 result_t HttpsServer::create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* hdlr)
 {
     result_t hr;
@@ -89,6 +126,16 @@ result_t HttpsServer::start()
 result_t HttpsServer::stop(AsyncEvent* ac)
 {
     return m_server->stop(ac);
+}
+
+result_t HttpsServer::listen(int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TLSServer*>(m_server.get())->listen(port, ac);
+}
+
+result_t HttpsServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TLSServer*>(m_server.get())->listen(addr, port, ac);
 }
 
 result_t HttpsServer::get_timeout(int32_t& retVal)

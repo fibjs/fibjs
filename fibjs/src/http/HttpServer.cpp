@@ -43,6 +43,40 @@ result_t HttpServer_base::_new(exlib::string addr, Handler_base* hdlr,
     return _new(addr, 0, hdlr, retVal, This);
 }
 
+result_t HttpServer_base::_new(Handler_base* hdlr,
+    obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
+{
+    // no-port constructor: store handler only, call listen() to bind
+    obj_ptr<HttpServer> svr = new HttpServer();
+    svr->wrap(This);
+
+    result_t hr = svr->setup(hdlr);
+    if (hr < 0)
+        return hr;
+
+    retVal = svr;
+    return 0;
+}
+
+result_t HttpServer::setup(Handler_base* hdlr)
+{
+    // initialize handler and server objects without binding a socket
+    result_t hr;
+    obj_ptr<HttpHandler_base> _handler;
+    hr = HttpHandler_base::_new(hdlr, _handler);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<TcpServer> _server = new TcpServer();
+    SetPrivate("handler", _handler->wrap());
+    m_hdlr = _handler;
+    SetPrivate("server", _server->wrap());
+    m_server = _server;
+    _server->m_eventDelegate = this;
+    _server->set_handler(_handler);
+    return 0;
+}
+
 result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr)
 {
     result_t hr;
@@ -73,6 +107,16 @@ result_t HttpServer::start()
 result_t HttpServer::stop(AsyncEvent* ac)
 {
     return m_server->stop(ac);
+}
+
+result_t HttpServer::listen(int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TcpServer*>(m_server.get())->listen(port, ac);
+}
+
+result_t HttpServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TcpServer*>(m_server.get())->listen(addr, port, ac);
 }
 
 result_t HttpServer::get_timeout(int32_t& retVal)

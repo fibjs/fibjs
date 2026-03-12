@@ -56,6 +56,12 @@ interface HttpsServer : HttpServer
     */
     HttpsServer(Object options, Handler hdlr);
 
+    /*! @brief HttpsServer 构造函数，不绑定端口，需调用 listen() 启动
+     @param context SecureContext 安全上下文
+     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+    */
+    HttpsServer(SecureContext context, Handler hdlr);
+
     /*! @brief 查询当前 HttpsServer 使用的 SecureContext */
     readonly SecureContext secureContext;
 

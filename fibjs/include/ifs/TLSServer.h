@@ -28,6 +28,7 @@ public:
     static result_t _new(SecureContext_base* context, int32_t port, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal) = 0;
     virtual result_t setSecureContext(SecureContext_base* context) = 0;
     virtual result_t setSecureContext(v8::Local<v8::Object> options) = 0;
@@ -103,6 +104,13 @@ inline void TLSServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Handler_base>, 1);
 
     hr = _new(v0, v1.get(), vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = _new(v0.get(), v1.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }

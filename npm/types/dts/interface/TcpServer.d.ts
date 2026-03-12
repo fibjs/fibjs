@@ -57,9 +57,65 @@ declare class Class_TcpServer extends Class_EventEmitter {
     constructor(addr: string, listener: Class_Handler);
 
     /**
+     * @description TcpServer 构造函数，不绑定端口，需调用 listen() 启动
+     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *    
+     */
+    constructor(listener: Class_Handler);
+
+    /**
      * @description 启动当前服务器 
      */
     start(): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listen(port: number): void;
+
+    listen(port: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listenSync(port: number): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listenAsync(port: number): Promise<void>;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listen(addr: string, port: number): void;
+
+    listen(addr: string, port: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listenSync(addr: string, port: number): void;
+
+    /**
+     * @description 绑定地址和端口并开始侦听连接
+     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+     *     @param port 指定 TCP 服务器侦听端口
+     *     
+     */
+    listenAsync(addr: string, port: number): Promise<void>;
 
     /**
      * @description 关闭 socket中止正在运行的服务器 

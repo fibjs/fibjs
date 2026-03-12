@@ -55,6 +55,14 @@ declare class Class_TLSServer extends Class_TcpServer {
     constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
 
     /**
+     * @description 创建一个新的 TLSServer 对象，不绑定端口，需调用 listen() 启动
+     *      @param context 指定创建 TLSServer 使用的安全上下文
+     *      @param listener 事件处理接口对象
+     *      
+     */
+    constructor(context: Class_SecureContext, listener: Class_Handler);
+
+    /**
      * @description 查询当前 TLSServer 使用的 SecureContext 
      */
     readonly secureContext: Class_SecureContext;

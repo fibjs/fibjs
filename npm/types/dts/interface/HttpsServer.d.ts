@@ -68,6 +68,14 @@ declare class Class_HttpsServer extends Class_HttpServer {
     constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler);
 
     /**
+     * @description HttpsServer 构造函数，不绑定端口，需调用 listen() 启动
+     *      @param context SecureContext 安全上下文
+     *      @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+     *     
+     */
+    constructor(context: Class_SecureContext, hdlr: Class_Handler);
+
+    /**
      * @description 查询当前 HttpsServer 使用的 SecureContext 
      */
     readonly secureContext: Class_SecureContext;

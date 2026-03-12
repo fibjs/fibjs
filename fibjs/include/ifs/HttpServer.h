@@ -27,6 +27,7 @@ public:
     static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
@@ -121,6 +122,12 @@ inline void HttpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     hr = _new(v0, v1.get(), vr, args.This());
 
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = _new(v0.get(), vr, args.This());
+
     CONSTRUCT_RETURN();
 }
 
@@ -129,6 +136,12 @@ inline result_t HttpServer_base::load(v8::Local<v8::Value> v, obj_ptr<HttpServer
     obj_ptr<HttpServer_base> vr;
 
     LOAD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }

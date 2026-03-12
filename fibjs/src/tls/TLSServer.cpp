@@ -54,6 +54,40 @@ result_t TLSServer_base::_new(v8::Local<v8::Object> options, Handler_base* liste
     return _new(ctx, address, port, listener, retVal, This);
 }
 
+result_t TLSServer_base::_new(SecureContext_base* context, Handler_base* listener,
+    obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This)
+{
+    // no-port constructor: store handler and context, call listen() to bind
+    obj_ptr<TLSServer> svr = new TLSServer();
+    svr->wrap(This);
+
+    result_t hr = svr->setup(context, listener);
+    if (hr < 0)
+        return hr;
+
+    retVal = svr;
+    return 0;
+}
+
+result_t TLSServer::setup(SecureContext_base* context, Handler_base* listener)
+{
+    // initialize handler and server objects without binding a socket
+    result_t hr;
+    obj_ptr<TLSHandler_base> _handler;
+    hr = TLSHandler_base::_new(context, listener, _handler);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<TcpServer> _server = new TcpServer();
+    SetPrivate("handler", _handler->wrap());
+    m_handler = _handler;
+    SetPrivate("server", _server->wrap());
+    m_server = _server;
+    _server->m_eventDelegate = this;
+    _server->set_handler(_handler);
+    return 0;
+}
+
 result_t TLSServer::create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener)
 {
     result_t hr;
@@ -86,6 +120,16 @@ result_t TLSServer::start()
 result_t TLSServer::stop(AsyncEvent* ac)
 {
     return m_server->stop(ac);
+}
+
+result_t TLSServer::listen(int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TcpServer*>(m_server.get())->listen(port, ac);
+}
+
+result_t TLSServer::listen(exlib::string addr, int32_t port, AsyncEvent* ac)
+{
+    return static_cast<TcpServer*>(m_server.get())->listen(addr, port, ac);
 }
 
 result_t TLSServer::get_timeout(int32_t& retVal)

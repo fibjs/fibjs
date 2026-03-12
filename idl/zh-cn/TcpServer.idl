@@ -45,8 +45,24 @@ interface TcpServer : EventEmitter
    */
     TcpServer(String addr, Handler listener);
 
+    /*! @brief TcpServer 构造函数，不绑定端口，需调用 listen() 启动
+    @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   */
+    TcpServer(Handler listener);
+
     /*! @brief 启动当前服务器 */
     start();
+
+    /*! @brief 绑定地址和端口并开始侦听连接
+    @param port 指定 TCP 服务器侦听端口
+    */
+    listen(Integer port) async;
+
+    /*! @brief 绑定地址和端口并开始侦听连接
+    @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
+    @param port 指定 TCP 服务器侦听端口
+    */
+    listen(String addr, Integer port) async;
 
     /*! @brief 关闭 socket中止正在运行的服务器 */
     stop() async;

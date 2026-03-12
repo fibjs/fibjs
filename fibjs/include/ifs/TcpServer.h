@@ -29,7 +29,10 @@ public:
     static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start() = 0;
+    virtual result_t listen(int32_t port, AsyncEvent* ac) = 0;
+    virtual result_t listen(exlib::string addr, int32_t port, AsyncEvent* ac) = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
@@ -44,6 +47,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -60,6 +64,8 @@ public:
     static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    ASYNC_MEMBER1(TcpServer_base, listen, int32_t);
+    ASYNC_MEMBER2(TcpServer_base, listen, exlib::string, int32_t);
     ASYNC_MEMBER0(TcpServer_base, stop);
 };
 }
@@ -72,6 +78,7 @@ inline ClassInfo& TcpServer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "start", s_start, false, ClassData::ASYNC_SYNC },
+        { "listen", s_listen, false, ClassData::ASYNC_ASYNC },
         { "stop", s_stop, false, ClassData::ASYNC_ASYNC }
     };
 
@@ -130,6 +137,12 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     hr = _new(v0, v1.get(), vr, args.This());
 
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = _new(v0.get(), vr, args.This());
+
     CONSTRUCT_RETURN();
 }
 
@@ -138,6 +151,12 @@ inline result_t TcpServer_base::load(v8::Local<v8::Value> v, obj_ptr<TcpServer_b
     obj_ptr<TcpServer_base> vr;
 
     LOAD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+
+    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }
@@ -150,6 +169,33 @@ inline void TcpServer_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(0, 0);
 
     hr = pInst->start();
+
+    METHOD_VOID();
+}
+
+inline void TcpServer_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(TcpServer_base);
+    ASYNC_METHOD_ENTER("TcpServer.listen");
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_listen(v0, cb, args);
+    else
+        hr = pInst->ac_listen(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_listen(v0, v1, cb, args);
+    else
+        hr = pInst->ac_listen(v0, v1);
 
     METHOD_VOID();
 }
