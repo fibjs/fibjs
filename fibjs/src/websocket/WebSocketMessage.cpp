@@ -118,9 +118,24 @@ result_t WebSocketMessage::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t WebSocketMessage::end()
+result_t WebSocketMessage::end(int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end();
+    return m_message->end(retVal, ac);
+}
+
+result_t WebSocketMessage::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, retVal, ac);
+}
+
+result_t WebSocketMessage::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
+}
+
+result_t WebSocketMessage::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
 }
 
 result_t WebSocketMessage::isEnded(bool& retVal)

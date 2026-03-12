@@ -277,10 +277,38 @@ result_t Message_base::_new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object>
     return 0;
 }
 
-result_t Message::end()
+result_t Message::end(int32_t& retVal, AsyncEvent* ac)
 {
     m_end = true;
+    retVal = 0;
     return 0;
+}
+
+result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    m_end = true;
+    return m_body->end(data, retVal, ac);
+}
+
+result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    m_end = true;
+    return m_body->end(data, encoding, retVal, ac);
+}
+
+result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    m_end = true;
+    return m_body->end(data, encoding, retVal, ac);
 }
 
 result_t Message::isEnded(bool& retVal)

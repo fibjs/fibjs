@@ -184,9 +184,111 @@ declare class Class_Message extends Class_object {
     readonly length: number;
 
     /**
-     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务 
+     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
+     *      @return 成功返回 0
+     *      
      */
-    end(): void;
+    end(): number;
+
+    end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
+     *      @return 成功返回 0
+     *      
+     */
+    endSync(): number;
+
+    /**
+     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
+     *      @return 成功返回 0
+     *      
+     */
+    endAsync(): Promise<number>;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @return 成功返回 0
+     *      
+     */
+    end(data: Class_Buffer): number;
+
+    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @return 成功返回 0
+     *      
+     */
+    endSync(data: Class_Buffer): number;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @return 成功返回 0
+     *      
+     */
+    endAsync(data: Class_Buffer): Promise<number>;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
+     *      @return 成功返回 0
+     *      
+     */
+    end(data: Class_Buffer, encoding: string): number;
+
+    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
+     *      @return 成功返回 0
+     *      
+     */
+    endSync(data: Class_Buffer, encoding: string): number;
+
+    /**
+     * @description 写入给定的数据并设置当前消息处理结束
+     *      @param data 给定要写入的数据
+     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
+     *      @return 成功返回 0
+     *      
+     */
+    endAsync(data: Class_Buffer, encoding: string): Promise<number>;
+
+    /**
+     * @description 写入给定的字符串数据并设置当前消息处理结束
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
+     *      @return 成功返回 0
+     *      
+     */
+    end(data: string, encoding?: string): number;
+
+    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 写入给定的字符串数据并设置当前消息处理结束
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
+     *      @return 成功返回 0
+     *      
+     */
+    endSync(data: string, encoding?: string): number;
+
+    /**
+     * @description 写入给定的字符串数据并设置当前消息处理结束
+     *      @param data 给定要写入的字符串数据
+     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
+     *      @return 成功返回 0
+     *      
+     */
+    endAsync(data: string, encoding?: string): Promise<number>;
 
     /**
      * @description 查询当前消息是否结束

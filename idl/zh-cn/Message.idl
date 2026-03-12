@@ -93,8 +93,30 @@ interface Message : object
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
 
-    /*! @brief 设置当前消息处理结束，Chain 处理器不再继续后面的事务 */
-    end();
+    /*! @brief 设置当前消息处理结束，Chain 处理器不再继续后面的事务
+     @return 成功返回 0
+     */
+    Integer end() async;
+
+    /*! @brief 写入给定的数据并设置当前消息处理结束
+     @param data 给定要写入的数据
+     @return 成功返回 0
+     */
+    Integer end(Buffer data) async;
+
+    /*! @brief 写入给定的数据并设置当前消息处理结束
+     @param data 给定要写入的数据
+     @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
+     @return 成功返回 0
+     */
+    Integer end(Buffer data, String encoding) async;
+
+    /*! @brief 写入给定的字符串数据并设置当前消息处理结束
+     @param data 给定要写入的字符串数据
+     @param encoding 指定字符串的编码方式，默认为 "utf8"
+     @return 成功返回 0
+     */
+    Integer end(String data, String encoding = "utf8") async;
 
     /*! @brief 查询当前消息是否结束
      @return 结束则返回 true

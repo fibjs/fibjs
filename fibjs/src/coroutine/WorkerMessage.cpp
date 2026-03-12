@@ -106,9 +106,24 @@ result_t WorkerMessage::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t WorkerMessage::end()
+result_t WorkerMessage::end(int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end();
+    return m_message->end(retVal, ac);
+}
+
+result_t WorkerMessage::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, retVal, ac);
+}
+
+result_t WorkerMessage::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
+}
+
+result_t WorkerMessage::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
 }
 
 result_t WorkerMessage::isEnded(bool& retVal)

@@ -51,7 +51,10 @@ public:
     virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t pack(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
-    virtual result_t end() = 0;
+    virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t isEnded(bool& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac) = 0;
@@ -98,6 +101,10 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Message_base, write, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE1(Message_base, end, int32_t);
+    ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE3(Message_base, end, exlib::string, exlib::string, int32_t);
     ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, v8::Local<v8::Object>);
     ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, v8::Local<v8::Object>);
 };
@@ -118,7 +125,7 @@ inline ClassInfo& Message_base::class_info()
         { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_SYNC },
         { "json", s_json, false, ClassData::ASYNC_SYNC },
         { "pack", s_pack, false, ClassData::ASYNC_SYNC },
-        { "end", s_end, false, ClassData::ASYNC_SYNC },
+        { "end", s_end, false, ClassData::ASYNC_ASYNC },
         { "isEnded", s_isEnded, false, ClassData::ASYNC_SYNC },
         { "clear", s_clear, false, ClassData::ASYNC_SYNC },
         { "sendTo", s_sendTo, false, ClassData::ASYNC_ASYNC },
@@ -453,14 +460,48 @@ inline void Message_base::s_get_length(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Message_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    int32_t vr;
+
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.end");
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->end();
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(cb, args);
+    else
+        hr = pInst->ac_end(vr);
 
-    METHOD_VOID();
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0.get(), cb, args);
+    else
+        hr = pInst->ac_end(v0.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(exlib::string, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0.get(), v1, cb, args);
+    else
+        hr = pInst->ac_end(v0.get(), v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_end(v0, v1, cb, args);
+    else
+        hr = pInst->ac_end(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args)

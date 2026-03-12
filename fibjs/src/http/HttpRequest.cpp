@@ -278,9 +278,24 @@ result_t HttpRequest::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t HttpRequest::end()
+result_t HttpRequest::end(int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end();
+    return m_message->end(retVal, ac);
+}
+
+result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, retVal, ac);
+}
+
+result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
+}
+
+result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return m_message->end(data, encoding, retVal, ac);
 }
 
 result_t HttpRequest::isEnded(bool& retVal)

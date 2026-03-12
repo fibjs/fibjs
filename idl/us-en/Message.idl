@@ -93,8 +93,30 @@ interface Message : object
     /*! @brief Length of the message data part */
     readonly Long length;
 
-    /*! @brief Set the current message processing to end, Chain processor no longer continues subsequent transactions */
-    end();
+    /*! @brief Set the current message processing to end, Chain processor no longer continues subsequent transactions
+     @return Returns 0 if successful
+     */
+    Integer end() async;
+
+    /*! @brief Write the given data and set the current message processing to end
+     @param data Given data to write
+     @return Returns 0 if successful
+     */
+    Integer end(Buffer data) async;
+
+    /*! @brief Write the given data and set the current message processing to end
+     @param data Given data to write
+     @param encoding The specified encoding method, since data is Buffer type, this parameter will be ignored
+     @return Returns 0 if successful
+     */
+    Integer end(Buffer data, String encoding) async;
+
+    /*! @brief Write the given string data and set the current message processing to end
+     @param data Given string data to write
+     @param encoding Specifies the encoding method of the string, default is "utf8"
+     @return Returns 0 if successful
+     */
+    Integer end(String data, String encoding = "utf8") async;
 
     /*! @brief Query whether the current message is ended
      @return Return true if ended
