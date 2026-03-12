@@ -28,6 +28,7 @@ public:
     // TcpServer_base
     static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start() = 0;
@@ -129,6 +130,13 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Handler_base>, 2);
 
     hr = _new(v0, v1, v2.get(), vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = _new(v0, v1.get(), vr, args.This());
 
     METHOD_OVER(2, 2);
 

@@ -135,7 +135,16 @@ module net
     /*! @brief 创建一个 TcpServer 对象，参见 TcpServer */
     static TcpServer;
 
-    /*! @brief 创建一个 TCP 服务器，兼容 Node.js net.createServer
+    /*! @brief 创建一个 TCP 服务器
+     @param options 服务器选项对象，可以包含以下属性：
+      - address: 指定监听地址，默认为所有地址
+      - port: 指定监听端口，可选。不提供时需调用 listen() 启动
+     @param listener 连接处理函数
+     @return 返回 TcpServer 对象
+     */
+    static TcpServer createServer(Object options, Handler listener);
+
+    /*! @brief 创建一个 TCP 服务器
      @param listener 连接处理函数
      @return 返回未绑定端口的 TcpServer 对象，需调用 listen() 启动
      */

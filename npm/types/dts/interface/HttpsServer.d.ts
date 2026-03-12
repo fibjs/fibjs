@@ -57,9 +57,9 @@ declare class Class_HttpsServer extends Class_HttpServer {
     /**
      * @description HttpsServer 构造函数，在所有本机地址侦听
      * 
-     *      options 除用于创建 SecureContext 的属性之外，还需提供以下属性：
+     *      options 除用于创建 SecureContext 的属性之外，还可提供以下属性：
      *      - address: 指定监听的地址，可选，默认在所有地址监听
-     *      - port: 指定监听的端口，必须提供
+     *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
      * 
      *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
      *      @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象

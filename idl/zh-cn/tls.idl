@@ -11,14 +11,14 @@ module tls
     /*! @brief tls/ssl 协议转换处理器，参见 TLSServer */
     static TLSServer new Server();
 
-    /*! @brief 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+    /*! @brief 创建一个 TLS 服务器
      @param context 指定安全上下文
      @param listener 连接处理函数
      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
      */
     static TLSServer createServer(SecureContext context, Handler listener);
 
-    /*! @brief 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+    /*! @brief 创建一个 TLS 服务器
      @param options 创建安全上下文的选项
      @param listener 连接处理函数
      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动

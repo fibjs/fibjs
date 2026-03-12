@@ -360,11 +360,22 @@ result_t http_base::createServer(SecureContext_base* context, Handler_base* hdlr
 
 result_t http_base::createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
 {
-    obj_ptr<SecureContext_base> ctx;
-    result_t hr = tls_base::createSecureContext(options, true, ctx);
-    if (hr < 0)
-        return hr;
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Context> context = isolate->context();
 
-    return createServer(ctx, hdlr, retVal);
+    // detect TLS-related fields to decide http vs https
+    bool hasCert = options->Has(context, isolate->NewString("cert")).FromMaybe(false);
+    bool hasCa = options->Has(context, isolate->NewString("ca")).FromMaybe(false);
+
+    if (hasCert || hasCa) {
+        obj_ptr<SecureContext_base> ctx;
+        result_t hr = tls_base::createSecureContext(options, true, ctx);
+        if (hr < 0)
+            return hr;
+
+        return createServer(ctx, hdlr, retVal);
+    }
+
+    return createServer(hdlr, retVal);
 }
 }

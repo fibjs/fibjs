@@ -50,6 +50,19 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
     /**
      * @description TcpServer 构造函数
+     * 
+     *      options 支持以下属性：
+     *      - address: 指定监听的地址，可选，默认在所有地址监听
+     *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
+     * 
+     *     @param options 服务器选项
+     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *    
+     */
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
+
+    /**
+     * @description TcpServer 构造函数
      *     @param addr 指定 unix socket 或者 Windows pipe 服务器侦听地址
      *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
      *    

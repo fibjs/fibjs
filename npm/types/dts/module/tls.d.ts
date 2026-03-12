@@ -26,7 +26,7 @@ declare module 'tls' {
     const Server: typeof Class_TLSServer;
 
     /**
-     * @description 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+     * @description 创建一个 TLS 服务器
      *      @param context 指定安全上下文
      *      @param listener 连接处理函数
      *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
@@ -35,7 +35,7 @@ declare module 'tls' {
     function createServer(context: Class_SecureContext, listener: Class_Handler): Class_TLSServer;
 
     /**
-     * @description 创建一个 TLS 服务器，兼容 Node.js tls.createServer
+     * @description 创建一个 TLS 服务器
      *      @param options 创建安全上下文的选项
      *      @param listener 连接处理函数
      *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动

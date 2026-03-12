@@ -40,6 +40,17 @@ interface TcpServer : EventEmitter
     TcpServer(String addr, Integer port, Handler listener);
 
     /*! @brief TcpServer constructor
+
+     options supports the following properties:
+     - address: specifies the listening address, optional, default listen on all addresses
+     - port: specifies the listening port, optional, if not provided call listen() to start
+
+    @param options server options
+    @param listener specifies the built-in message handler for received connections, handler function, chain processing array, routing object, see mq.Handler for details
+   */
+    TcpServer(Object options, Handler listener);
+
+    /*! @brief TcpServer constructor
     @param addr specifies the unix socket or Windows pipe server listening address
     @param listener specifies the built-in message handler for received connections, handler function, chain processing array, routing object, see mq.Handler for details
    */

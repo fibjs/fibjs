@@ -135,7 +135,16 @@ module net
     /*! @brief Create a TcpServer object, see TcpServer */
     static TcpServer;
 
-    /*! @brief Create a TCP server, compatible with Node.js net.createServer
+    /*! @brief Create a TCP server
+     @param options Server options object, can contain the following properties:
+      - address: Specify listening address, default is all addresses
+      - port: Specify listening port, optional. If not provided, call listen() to start
+     @param listener Connection handler function
+     @return Return TcpServer object
+     */
+    static TcpServer createServer(Object options, Handler listener);
+
+    /*! @brief Create a TCP server
      @param listener Connection handler function
      @return Return an unbound TcpServer object, call listen() to start
      */

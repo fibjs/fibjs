@@ -82,7 +82,7 @@ declare module 'http' {
     const HttpsServer: typeof Class_HttpsServer;
 
     /**
-     * @description 创建一个 http 服务器，兼容 Node.js http.createServer
+     * @description 创建一个 http 服务器
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpServer 对象，需调用 listen() 启动
      *      
@@ -90,7 +90,7 @@ declare module 'http' {
     function createServer(hdlr: Class_Handler): Class_HttpServer;
 
     /**
-     * @description 创建一个 https 服务器，兼容 Node.js https.createServer
+     * @description 创建一个 https 服务器
      *      @param context SecureContext 对象，用于 TLS 配置
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
@@ -99,7 +99,7 @@ declare module 'http' {
     function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_HttpServer;
 
     /**
-     * @description 创建一个 https 服务器，兼容 Node.js https.createServer
+     * @description 创建一个 https 服务器
      *      @param options TLS 选项对象，用于创建 SecureContext
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动

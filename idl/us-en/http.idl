@@ -52,20 +52,20 @@ module http
     /*! @brief Create an https server, see HttpsServer */
     static HttpsServer new HttpsServer();
 
-    /*! @brief Create an http server, compatible with Node.js http.createServer
+    /*! @brief Create an http server
      @param hdlr Request handler function, receives (req, res) parameters
      @return Return an unbound HttpServer object, call listen() to start
      */
     static HttpServer createServer(Handler hdlr);
 
-    /*! @brief Create an https server, compatible with Node.js https.createServer
+    /*! @brief Create an https server
      @param context SecureContext object for TLS configuration
      @param hdlr Request handler function, receives (req, res) parameters
      @return Return an unbound HttpsServer object, call listen() to start
      */
     static HttpServer createServer(SecureContext context, Handler hdlr);
 
-    /*! @brief Create an https server, compatible with Node.js https.createServer
+    /*! @brief Create an https server
      @param options TLS options object, used to create SecureContext
      @param hdlr Request handler function, receives (req, res) parameters
      @return Return an unbound HttpsServer object, call listen() to start

@@ -47,9 +47,9 @@ interface HttpsServer : HttpServer
 
     /*! @brief HttpsServer constructor, listen on all local addresses
 
-     options in addition to properties used to create SecureContext, also need to provide the following properties:
+     options in addition to properties used to create SecureContext, can also provide the following properties:
      - address: specifies the listening address, optional, default listen on all addresses
-     - port: specifies the listening port, must provide
+     - port: specifies the listening port, optional, if not provided call listen() to start
 
      @param options options needed to create security context using tls.createSecureContext
      @param hdlr http built-in message processor, processing function, chain processing array, routing object

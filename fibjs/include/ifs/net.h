@@ -51,6 +51,7 @@ public:
     static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
+    static result_t createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
     static result_t createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(exlib::string ip, int32_t& retVal);
@@ -374,6 +375,13 @@ inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
     obj_ptr<TcpServer_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = createServer(v0, v1.get(), vr);
 
     METHOD_OVER(1, 1);
 

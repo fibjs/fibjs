@@ -2127,6 +2127,113 @@ function test_net(eng, use_uv) {
                 assert.throws(() => { svr.listen(getPort()); });
             });
         });
+
+        describe("TcpServer Object options constructor", () => {
+            var svr;
+
+            afterEach(() => {
+                if (svr) {
+                    svr.stop();
+                    svr = null;
+                }
+            });
+
+            it("new TcpServer({port}, handler) binds immediately", () => {
+                var p = getPort();
+                svr = new net.TcpServer({ port: p }, (conn) => {
+                    conn.write("opts-port");
+                    conn.close();
+                });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                assert.equal(c.read().toString(), "opts-port");
+                c.close();
+            });
+
+            it("new TcpServer({address, port}, handler) binds to specific address", () => {
+                var p = getPort();
+                svr = new net.TcpServer({ address: net_config.address, port: p }, (conn) => {
+                    conn.write("opts-addr-port");
+                    conn.close();
+                });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var s = new net.Socket(net_config.family);
+                s.connect(p, net_config.address);
+                assert.equal(s.read().toString(), "opts-addr-port");
+                s.close();
+            });
+
+            it("new TcpServer({}, handler) defers — requires listen()", () => {
+                var p = getPort();
+                svr = new net.TcpServer({}, (conn) => {
+                    conn.write("opts-deferred");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                assert.equal(c.read().toString(), "opts-deferred");
+                c.close();
+            });
+        });
+
+        describe("net.createServer", () => {
+            var svr;
+
+            afterEach(() => {
+                if (svr) {
+                    svr.stop();
+                    svr = null;
+                }
+            });
+
+            it("createServer(handler) returns unbound TcpServer", () => {
+                var p = getPort();
+                svr = net.createServer((conn) => {
+                    conn.write("cs-handler");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                assert.equal(c.read().toString(), "cs-handler");
+                c.close();
+            });
+
+            it("createServer({port}, handler) binds immediately", () => {
+                var p = getPort();
+                svr = net.createServer({ port: p }, (conn) => {
+                    conn.write("cs-opts-port");
+                    conn.close();
+                });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                assert.equal(c.read().toString(), "cs-opts-port");
+                c.close();
+            });
+
+            it("createServer({}, handler) defers — requires listen()", () => {
+                var p = getPort();
+                svr = net.createServer({}, (conn) => {
+                    conn.write("cs-opts-deferred");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var c = net.connect(p, '127.0.0.1');
+                assert.equal(c.read().toString(), "cs-opts-deferred");
+                c.close();
+            });
+        });
     });
 }
 

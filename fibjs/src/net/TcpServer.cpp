@@ -62,6 +62,29 @@ result_t TcpServer_base::_new(Handler_base* listener,
     return 0;
 }
 
+result_t TcpServer_base::_new(v8::Local<v8::Object> options, Handler_base* listener,
+    obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
+{
+    exlib::string address;
+    result_t hr = GetConfigValue(options, "address", address, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    int32_t port;
+    hr = GetConfigValue(options, "port", port, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    // if port is provided, bind immediately; otherwise deferred mode
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        if (!address.empty())
+            return _new(address, listener, retVal, This);
+        return _new(listener, retVal, This);
+    }
+
+    return _new(address, port, listener, retVal, This);
+}
+
 TcpServer::TcpServer()
 {
     m_running = false;

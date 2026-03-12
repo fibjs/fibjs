@@ -52,20 +52,20 @@ module http
     /*! @brief 创建一个 https 服务器，参见 HttpsServer */
     static HttpsServer new HttpsServer();
 
-    /*! @brief 创建一个 http 服务器，兼容 Node.js http.createServer
+    /*! @brief 创建一个 http 服务器
      @param hdlr 请求处理函数，接收 (req, res) 参数
      @return 返回未绑定端口的 HttpServer 对象，需调用 listen() 启动
      */
     static HttpServer createServer(Handler hdlr);
 
-    /*! @brief 创建一个 https 服务器，兼容 Node.js https.createServer
+    /*! @brief 创建一个 https 服务器
      @param context SecureContext 对象，用于 TLS 配置
      @param hdlr 请求处理函数，接收 (req, res) 参数
      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
      */
     static HttpServer createServer(SecureContext context, Handler hdlr);
 
-    /*! @brief 创建一个 https 服务器，兼容 Node.js https.createServer
+    /*! @brief 创建一个 https 服务器
      @param options TLS 选项对象，用于创建 SecureContext
      @param hdlr 请求处理函数，接收 (req, res) 参数
      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动

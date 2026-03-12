@@ -4467,5 +4467,117 @@ describe("http", () => {
             assert.throws(() => { svr.listen(listenPort + 3); });
         });
     });
+
+    describe("createServer", () => {
+        var svr;
+        var csPort = 8920 + base_port;
+
+        afterEach(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("http.createServer(handler) returns HttpServer", () => {
+            svr = http.createServer((req) => {
+                req.response.write('plain');
+            });
+            assert.equal(svr.constructor.name, 'HttpServer');
+            svr.listen(csPort);
+            test_util.push(svr.socket);
+
+            var r = http.get('http://127.0.0.1:' + csPort + '/');
+            assert.equal(r.data.toString(), 'plain');
+        });
+
+        it("http.createServer({}, handler) without cert returns HttpServer", () => {
+            svr = http.createServer({}, (req) => {
+                req.response.write('plain-opts');
+            });
+            assert.equal(svr.constructor.name, 'HttpServer');
+            svr.listen(csPort + 1);
+            test_util.push(svr.socket);
+
+            var r = http.get('http://127.0.0.1:' + (csPort + 1) + '/');
+            assert.equal(r.data.toString(), 'plain-opts');
+        });
+
+        it("http.createServer({cert, key}, handler) returns HttpsServer", () => {
+            svr = http.createServer({ cert: crt, key: pk1.privateKey }, (req) => {
+                req.response.write('auto-https');
+            });
+            assert.equal(svr.constructor.name, 'HttpsServer');
+            svr.listen(csPort + 2);
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + (csPort + 2) + '/');
+            assert.equal(r.data.toString(), 'auto-https');
+        });
+
+        it("http.createServer({ca, cert, key}, handler) returns HttpsServer", () => {
+            svr = http.createServer({ ca: ca, cert: crt, key: pk1.privateKey }, (req) => {
+                req.response.write('auto-https-ca');
+            });
+            assert.equal(svr.constructor.name, 'HttpsServer');
+            svr.listen(csPort + 3);
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + (csPort + 3) + '/');
+            assert.equal(r.data.toString(), 'auto-https-ca');
+        });
+
+        it("https.createServer({cert, key}, handler) returns HttpsServer", () => {
+            var https = require('https');
+            svr = https.createServer({ cert: crt, key: pk1.privateKey }, (req) => {
+                req.response.write('https-direct');
+            });
+            assert.equal(svr.constructor.name, 'HttpsServer');
+            svr.listen(csPort + 4);
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + (csPort + 4) + '/');
+            assert.equal(r.data.toString(), 'https-direct');
+        });
+    });
+
+    describe("HttpsServer Object options without port", () => {
+        var svr;
+        var hsPort = 8930 + base_port;
+
+        afterEach(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("new HttpsServer({cert, key}, handler) defers — requires listen()", () => {
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey }, (req) => {
+                req.response.write('https-deferred');
+            });
+            svr.listen(hsPort);
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + hsPort + '/');
+            assert.equal(r.data.toString(), 'https-deferred');
+        });
+
+        it("new HttpsServer({cert, key, port}, handler) binds immediately", () => {
+            svr = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: hsPort + 1 }, (req) => {
+                req.response.write('https-immediate');
+            });
+            svr.start();
+            test_util.push(svr.socket);
+
+            var hc = new http.Client({ ca: ca });
+            var r = hc.get('https://localhost:' + (hsPort + 1) + '/');
+            assert.equal(r.data.toString(), 'https-immediate');
+        });
+    });
 });
 

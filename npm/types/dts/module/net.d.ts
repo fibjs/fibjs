@@ -464,7 +464,18 @@ declare module 'net' {
     const TcpServer: typeof Class_TcpServer;
 
     /**
-     * @description 创建一个 TCP 服务器，兼容 Node.js net.createServer
+     * @description 创建一个 TCP 服务器
+     *      @param options 服务器选项对象，可以包含以下属性：
+     *       - address: 指定监听地址，默认为所有地址
+     *       - port: 指定监听端口，可选。不提供时需调用 listen() 启动
+     *      @param listener 连接处理函数
+     *      @return 返回 TcpServer 对象
+     *      
+     */
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TcpServer;
+
+    /**
+     * @description 创建一个 TCP 服务器
      *      @param listener 连接处理函数
      *      @return 返回未绑定端口的 TcpServer 对象，需调用 listen() 启动
      *      

@@ -48,8 +48,12 @@ result_t TLSServer_base::_new(v8::Local<v8::Object> options, Handler_base* liste
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (hr < 0)
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
+
+    // if port is provided, bind immediately; otherwise deferred mode
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return _new(ctx, listener, retVal, This);
 
     return _new(ctx, address, port, listener, retVal, This);
 }

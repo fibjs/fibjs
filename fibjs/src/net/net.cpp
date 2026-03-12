@@ -328,6 +328,11 @@ result_t net_base::isIPv6(exlib::string ip, bool& retVal)
     return 0;
 }
 
+result_t net_base::createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
+{
+    return TcpServer_base::_new(options, listener, retVal);
+}
+
 result_t net_base::createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
 {
     return TcpServer_base::_new(listener, retVal);

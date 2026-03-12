@@ -1136,6 +1136,88 @@ describe('tls', () => {
                     assert.throws(() => { svr.listen(9095 + base_port); });
                 });
             });
+
+            describe("createServer", () => {
+                var svr;
+
+                afterEach(() => {
+                    if (svr) {
+                        svr.stop();
+                        svr = null;
+                    }
+                });
+
+                it("tls.createServer(options, handler) returns TLSServer", () => {
+                    svr = tls.createServer({ key: pk1.privateKey, cert: crt }, (s) => {
+                        var buf = s.read();
+                        s.write(buf);
+                        s.close();
+                    });
+                    svr.listen(9096 + base_port);
+                    test_util.push(svr.socket);
+
+                    var ss = tls.connect('ssl://localhost:' + (9096 + base_port), ctx);
+                    ss.write('tls-cs');
+                    assert.equal(ss.read().toString(), 'tls-cs');
+                    ss.close();
+                });
+
+                it("tls.createServer(context, handler) returns TLSServer", () => {
+                    svr = tls.createServer(ctx_svr, (s) => {
+                        var buf = s.read();
+                        s.write(buf);
+                        s.close();
+                    });
+                    svr.listen(9097 + base_port);
+                    test_util.push(svr.socket);
+
+                    var ss = tls.connect('ssl://localhost:' + (9097 + base_port), ctx);
+                    ss.write('tls-ctx');
+                    assert.equal(ss.read().toString(), 'tls-ctx');
+                    ss.close();
+                });
+            });
+
+            describe("TLSServer Object options without port", () => {
+                var svr;
+
+                afterEach(() => {
+                    if (svr) {
+                        svr.stop();
+                        svr = null;
+                    }
+                });
+
+                it("new TLSServer({key, cert}, handler) defers — requires listen()", () => {
+                    svr = new tls.Server({ key: pk1.privateKey, cert: crt }, (s) => {
+                        var buf = s.read();
+                        s.write(buf);
+                        s.close();
+                    });
+                    svr.listen(9098 + base_port);
+                    test_util.push(svr.socket);
+
+                    var ss = tls.connect('ssl://localhost:' + (9098 + base_port), ctx);
+                    ss.write('tls-deferred');
+                    assert.equal(ss.read().toString(), 'tls-deferred');
+                    ss.close();
+                });
+
+                it("new TLSServer({key, cert, port}, handler) binds immediately", () => {
+                    svr = new tls.Server({ key: pk1.privateKey, cert: crt, port: 9099 + base_port }, (s) => {
+                        var buf = s.read();
+                        s.write(buf);
+                        s.close();
+                    });
+                    svr.start();
+                    test_util.push(svr.socket);
+
+                    var ss = tls.connect('ssl://localhost:' + (9099 + base_port), ctx);
+                    ss.write('tls-immediate');
+                    assert.equal(ss.read().toString(), 'tls-immediate');
+                    ss.close();
+                });
+            });
         });
     }
 

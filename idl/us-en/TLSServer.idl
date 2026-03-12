@@ -34,9 +34,9 @@ interface TLSServer : TcpServer
 
     /*! @brief Create a new TLSServer object
 
-     In addition to the properties used to create SecureContext, options also need to provide the following properties:
+     In addition to the properties used to create SecureContext, options can also provide the following properties:
      - address: Specify the address to listen on, optional, default listen on all addresses
-     - port: Specify the port to listen on, must be provided
+     - port: Specify the port to listen on, optional, if not provided call listen() to start
 
      @param options Options needed to create secure context using tls.createSecureContext
      @param listener Event handler interface object
