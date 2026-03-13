@@ -5,6 +5,7 @@
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
+/// <reference path="../interface/WebResponse.d.ts" />
 /**
  * @description HttpClient 是针对 HTTP 客户端功能设计的类库，提供了基本的 HTTP/HTTPS 请求、代理访问、cookie 管理等功能
  * 
@@ -1015,6 +1016,35 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     headAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回 WebResponse 对象
+     *      
+     */
+    fetch(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回 WebResponse 对象
+     *      
+     */
+    fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回 WebResponse 对象
+     *      
+     */
+    fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
 
 }
 

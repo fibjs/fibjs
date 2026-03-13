@@ -101,6 +101,9 @@ function union_method_for_class(def, allDefs) {
         if (fn.memType == "event")
             fname = "event " + fname;
 
+        if (fn.static)
+            fname = "static " + fname;
+
         if (!method_defs.hasOwnProperty(fname)) {
             fn1 = JSON.parse(JSON.stringify(fn));
             fn1.overs = [fn];

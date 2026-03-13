@@ -71,6 +71,7 @@ run("./url_test.js");
 run("./querystring_test.js");
 run("./mime_test.js");
 run("./http_test.js");
+run("./fetch_test.js");
 run("./sse_test.js");
 run("./mq_test.js");
 run("./rtc_test.js");

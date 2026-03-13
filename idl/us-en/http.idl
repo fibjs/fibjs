@@ -398,4 +398,11 @@ module http
      @return A function that can be called to restore the original proxy configuration
      */
     static Function setGlobalProxyFromEnv(Object proxyEnv = {});
+
+    /*! @brief Send a request using Web Fetch standard and return a WebResponse
+     @param url The request target URL
+     @param opts Request options, supports method, headers, body, etc.
+     @return Returns a WebResponse object
+    */
+    static WebResponse fetch(String url, Object opts = {}) async;
 };

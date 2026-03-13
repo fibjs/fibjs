@@ -78,6 +78,7 @@ public:
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     result_t init(v8::Local<v8::Object> options);

@@ -23,7 +23,7 @@ class File_base;
 class Headers_base;
 class FormData_base;
 class HttpRequest_base;
-class HttpResponse_base;
+class WebResponse_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
@@ -59,7 +59,7 @@ public:
     static result_t btoa(exlib::string data, exlib::string& retVal);
     static result_t atob(exlib::string data, exlib::string& retVal);
     static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
-    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
     static result_t queueMicrotask(v8::Local<v8::Function> callback);
 
 public:
@@ -93,7 +93,7 @@ public:
     static void s_static_queueMicrotask(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
 };
 }
 
@@ -105,7 +105,7 @@ public:
 #include "ifs/Headers.h"
 #include "ifs/FormData.h"
 #include "ifs/HttpRequest.h"
-#include "ifs/HttpResponse.h"
+#include "ifs/WebResponse.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
@@ -151,7 +151,7 @@ inline ClassInfo& global_base::class_info()
         { "Headers", Headers_base::class_info },
         { "FormData", FormData_base::class_info },
         { "Request", HttpRequest_base::class_info },
-        { "Response", HttpResponse_base::class_info },
+        { "Response", WebResponse_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
@@ -404,7 +404,7 @@ inline void global_base::s_static_structuredClone(const v8::FunctionCallbackInfo
 
 inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<HttpResponse_base> vr;
+    obj_ptr<WebResponse_base> vr;
 
     ASYNC_METHOD_ENTER("global.fetch");
 

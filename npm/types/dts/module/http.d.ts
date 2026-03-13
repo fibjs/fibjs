@@ -12,6 +12,7 @@
 /// <reference path="../interface/HttpRepeater.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
+/// <reference path="../interface/WebResponse.d.ts" />
 /**
  * @description http 模块封装了 HTTP 请求和响应的处理，让我们可以轻松地创建一个 http 服务器，也可以模拟客户端发起 http 请求。使用 http 模块，开发者可以很方便地编写和处理 HTTP 协议相关的代码
  * 
@@ -1075,6 +1076,35 @@ declare module 'http' {
      *      
      */
     function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): (...args: any[])=>any;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 请求目标 URL
+     *      @param opts 请求选项，支持 method、headers、body 等属性
+     *      @return 返回 WebResponse 对象
+     *     
+     */
+    function fetch(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    function fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 请求目标 URL
+     *      @param opts 请求选项，支持 method、headers、body 等属性
+     *      @return 返回 WebResponse 对象
+     *     
+     */
+    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     *      @param url 请求目标 URL
+     *      @param opts 请求选项，支持 method、headers、body 等属性
+     *      @return 返回 WebResponse 对象
+     *     
+     */
+    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
 
 }
 

@@ -15,6 +15,7 @@
 #include "Url.h"
 #include "HttpRequest.h"
 #include "HttpClient.h"
+#include "WebResponse.h"
 #include "BufferedStream.h"
 #include <unordered_map>
 #include "Isolate.h"
@@ -377,5 +378,11 @@ result_t http_base::createServer(v8::Local<v8::Object> options, Handler_base* hd
     }
 
     return createServer(hdlr, retVal);
+}
+
+result_t http_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
+    obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
+{
+    return get_httpClient(ac->isolate())->fetch(url, opts, retVal, ac);
 }
 }

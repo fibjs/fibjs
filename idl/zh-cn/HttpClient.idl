@@ -367,4 +367,11 @@ interface HttpClient : object
      @return 返回服务器响应
      */
     HttpResponse head(String url, Object opts = {}) async;
+
+    /*! @brief 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @return 返回 WebResponse 对象
+     */
+    WebResponse fetch(String url, Object opts = {}) async;
 };

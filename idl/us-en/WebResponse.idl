@@ -1,0 +1,101 @@
+/*! @brief Web Fetch API standard Response object
+
+ WebResponse implements the Web Fetch API standard Response interface for representing HTTP responses.
+ It wraps HttpResponse and provides a browser-compatible standard interface.
+
+ Usage:
+ ```JavaScript
+ // Via fetch
+ const resp = await fetch('http://example.com');
+ console.log(resp.status);        // 200
+ console.log(resp.statusText);    // "OK"
+ const text = await resp.text();
+
+ // Direct construction
+ const resp2 = new Response('Hello', { status: 200, statusText: 'OK' });
+ ```
+*/
+interface WebResponse : object
+{
+    /*! @brief WebResponse constructor
+     @param body Response body content, can be a string, Buffer, Blob, or null
+     @param options Options object, supports status, statusText, headers properties
+    */
+    WebResponse(Value body = null, Object options = {});
+
+    /*! @brief The HTTP status code of the response */
+    readonly Integer status;
+
+    /*! @brief The HTTP status message of the response */
+    readonly String statusText;
+
+    /*! @brief Whether the response was successful (status 200-299) */
+    readonly Boolean ok;
+
+    /*! @brief The type of the response */
+    readonly String type;
+
+    /*! @brief The URL of the response */
+    readonly String url;
+
+    /*! @brief Whether the response was redirected */
+    readonly Boolean redirected;
+
+    /*! @brief Whether the response body has been consumed */
+    readonly Boolean bodyUsed;
+
+    /*! @brief The Headers object of the response */
+    readonly Headers headers;
+
+    /*! @brief The body stream object of the response */
+    readonly Stream body;
+
+    /*! @brief Read the response body as text
+     @return The text content
+    */
+    String text() promise;
+
+    /*! @brief Read the response body as JSON
+     @return The parsed JSON value
+    */
+    Variant json() promise;
+
+    /*! @brief Read the response body as ArrayBuffer
+     @return The ArrayBuffer object
+    */
+    ArrayBuffer arrayBuffer() promise;
+
+    /*! @brief Read the response body as Blob
+     @return The Blob object
+    */
+    Blob blob() promise;
+
+    /*! @brief Read the response body as Uint8Array
+     @return The Buffer (Uint8Array) object
+    */
+    Buffer bytes() promise;
+
+    /*! @brief Clone the response object
+     @return A new WebResponse object
+    */
+    WebResponse clone();
+
+    /*! @brief Create a JSON response
+     @param data The data to serialize as JSON
+     @param options Options object, supports status, statusText, headers properties
+     @return A new WebResponse object
+    */
+    static WebResponse json(Value data, Object options = {});
+
+    /*! @brief Create a redirect response
+     @param url The redirect target URL
+     @param status The redirect status code, defaults to 302
+     @return A new WebResponse object
+    */
+    static WebResponse redirect(String url, Integer status = 302);
+
+    /*! @brief Create an error response
+     @return A new WebResponse object
+    */
+    static WebResponse error();
+};

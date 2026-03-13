@@ -20,6 +20,7 @@ class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
 class SeekableStream_base;
+class WebResponse_base;
 
 class HttpClient_base : public object_base {
     DECLARE_CLASS(HttpClient_base);
@@ -67,6 +68,7 @@ public:
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -108,6 +110,7 @@ public:
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_head(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -121,6 +124,7 @@ public:
     ASYNC_MEMBERVALUE3(HttpClient_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
 };
 }
 
@@ -129,6 +133,7 @@ public:
 #include "ifs/Stream.h"
 #include "ifs/HttpRequest.h"
 #include "ifs/SeekableStream.h"
+#include "ifs/WebResponse.h"
 
 namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
@@ -140,7 +145,8 @@ inline ClassInfo& HttpClient_base::class_info()
         { "del", s_del, false, ClassData::ASYNC_ASYNC },
         { "put", s_put, false, ClassData::ASYNC_ASYNC },
         { "patch", s_patch, false, ClassData::ASYNC_ASYNC },
-        { "head", s_head, false, ClassData::ASYNC_ASYNC }
+        { "head", s_head, false, ClassData::ASYNC_ASYNC },
+        { "fetch", s_fetch, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -778,6 +784,26 @@ inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->acb_head(v0, v1, cb, args);
     else
         hr = pInst->ac_head(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_fetch(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebResponse_base> vr;
+
+    ASYNC_METHOD_INSTANCE(HttpClient_base);
+    ASYNC_METHOD_ENTER("HttpClient.fetch");
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_fetch(v0, v1, cb, args);
+    else
+        hr = pInst->ac_fetch(v0, v1, vr);
 
     METHOD_RETURN();
 }

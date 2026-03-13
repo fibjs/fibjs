@@ -25,8 +25,8 @@ module global
     /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
     static HttpRequest new Request();
 
-    /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
-    static HttpResponse new Response();
+    /*! @brief 创建一个 Fetch API 响应对象，参见 WebResponse */
+    static WebResponse new Response();
 
     /*! @brief TextDecoder 解码对象，参见 TextDecoder 对象。*/
     static TextDecoder;
@@ -253,7 +253,7 @@ module global
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse fetch(String url, Object opts = {}) promise;
+    static WebResponse fetch(String url, Object opts = {}) promise;
 
     /*! @brief 将一个微任务排入队列执行
      回调函数将在当前任务完成后、下一个任务开始之前执行。

@@ -195,7 +195,15 @@ void AsyncCallBack::processPromiseResult()
     else if (m_v >= 0) {
         std::vector<v8::Local<v8::Value>> args;
 
-        to_args(args);
+        {
+            v8::TryCatch try_catch(m_isolate->m_isolate);
+            to_args(args);
+            if (try_catch.HasCaught()) {
+                resolver->Reject(m_isolate->context(), try_catch.Exception()).IsJust();
+                delete this;
+                return;
+            }
+        }
 
         v8::Local<v8::Value> result;
         if (m_result)

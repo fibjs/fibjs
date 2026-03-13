@@ -398,4 +398,11 @@ module http
      @return 可调用的函数，用于恢复原始代理配置
      */
     static Function setGlobalProxyFromEnv(Object proxyEnv = {});
+
+    /*! @brief 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     @param url 请求目标 URL
+     @param opts 请求选项，支持 method、headers、body 等属性
+     @return 返回 WebResponse 对象
+    */
+    static WebResponse fetch(String url, Object opts = {}) async;
 };

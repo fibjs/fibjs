@@ -367,4 +367,11 @@ interface HttpClient : object
      @return return server response
      */
     HttpResponse head(String url, Object opts = {}) async;
+
+    /*! @brief Send request using Web Fetch standard, return WebResponse object
+     @param url specify url, must be complete url including host
+     @param opts specify additional information
+     @return return WebResponse object
+     */
+    WebResponse fetch(String url, Object opts = {}) async;
 };

@@ -46,7 +46,6 @@ public:
     static result_t byteLength(v8::Local<v8::Uint8Array> str, int32_t& retVal);
     static result_t byteLength(Buffer_base* str, int32_t& retVal);
     static result_t compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
-    virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal) = 0;
@@ -107,6 +106,7 @@ public:
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
+    virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
@@ -130,7 +130,6 @@ public:
     static void s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -180,6 +179,7 @@ public:
     static void s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -201,7 +201,6 @@ inline ClassInfo& Buffer_base::class_info()
         { "isBuffer", s_static_isBuffer, true, ClassData::ASYNC_SYNC },
         { "isEncoding", s_static_isEncoding, true, ClassData::ASYNC_SYNC },
         { "byteLength", s_static_byteLength, true, ClassData::ASYNC_SYNC },
-        { "compare", s_compare, false, ClassData::ASYNC_SYNC },
         { "compare", s_static_compare, true, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_SYNC },
         { "fill", s_fill, false, ClassData::ASYNC_SYNC },
@@ -251,6 +250,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "lastIndexOf", s_lastIndexOf, false, ClassData::ASYNC_SYNC },
         { "slice", s_slice, false, ClassData::ASYNC_SYNC },
         { "equals", s_equals, false, ClassData::ASYNC_SYNC },
+        { "compare", s_compare, false, ClassData::ASYNC_SYNC },
         { "toString", s_toString, false, ClassData::ASYNC_SYNC },
         { "toArray", s_toArray, false, ClassData::ASYNC_SYNC },
         { "hex", s_hex, false, ClassData::ASYNC_SYNC },
@@ -571,22 +571,6 @@ inline void Buffer_base::s_static_compare(const v8::FunctionCallbackInfo<v8::Val
     ARG(obj_ptr<Buffer_base>, 1);
 
     hr = compare(v0.get(), v1.get(), vr);
-
-    METHOD_RETURN();
-}
-
-inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->compare(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -1490,6 +1474,22 @@ inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<object_base>, 0);
 
     hr = pInst->equals(v0.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = pInst->compare(v0.get(), vr);
 
     METHOD_RETURN();
 }

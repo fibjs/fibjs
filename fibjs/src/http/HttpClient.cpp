@@ -6,6 +6,7 @@
 
 #include "object.h"
 #include "HttpClient.h"
+#include "WebResponse.h"
 #include "HttpMessage.h"
 #include "Buffer.h"
 #include "Blob.h"
@@ -1393,5 +1394,80 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return request("HEAD", url, opts, retVal, ac);
+}
+
+result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
+    obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
+{
+    // Async state machine: first run request(), then wrap the HttpResponse as WebResponse.
+    class asyncFetch : public AsyncState {
+    public:
+        asyncFetch(HttpClient* hc, exlib::string url, exlib::string method,
+            obj_ptr<Url> u, obj_ptr<SeekableStream_base> body,
+            obj_ptr<SeekableStream_base> rsp_stm, bool keepAlive,
+            obj_ptr<Headers_base> headers,
+            obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_hc(hc)
+            , m_url(url)
+            , m_method(method)
+            , m_u(u)
+            , m_body(body)
+            , m_rsp_stm(rsp_stm)
+            , m_keepAlive(keepAlive)
+            , m_headers(headers)
+            , m_retVal(retVal)
+        {
+            next(do_request);
+        }
+
+        ON_STATE(asyncFetch, do_request)
+        {
+            return m_hc->request(m_method, m_u, m_body, m_rsp_stm,
+                m_keepAlive, m_headers, m_httpResp, next(do_wrap), false);
+        }
+
+        ON_STATE(asyncFetch, do_wrap)
+        {
+            exlib::string finalUrl;
+            m_u->toString(finalUrl);
+
+            obj_ptr<WebResponse> resp = new WebResponse();
+            result_t hr = resp->initFromHttpResponse(m_httpResp, finalUrl, false);
+            if (hr < 0)
+                return hr;
+
+            m_retVal = resp;
+            return next();
+        }
+
+    private:
+        obj_ptr<HttpClient> m_hc;
+        exlib::string m_url;
+        exlib::string m_method;
+        obj_ptr<Url> m_u;
+        obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<SeekableStream_base> m_rsp_stm;
+        bool m_keepAlive;
+        obj_ptr<Headers_base> m_headers;
+        obj_ptr<HttpResponse_base> m_httpResp;
+        obj_ptr<WebResponse_base>& m_retVal;
+    };
+
+    // Sync phase: parse v8::Local opts into ac->m_ctx (same as request() does).
+    if (ac->isSync())
+        return get_request_opts("GET", url, opts, ac);
+
+    exlib::string _method = ac->m_ctx[0].string();
+    obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
+    obj_ptr<Headers_base> headers = (Headers_base*)ac->m_ctx[2].object();
+    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
+    obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
+    bool keepAlive = ac->m_ctx[5].boolVal();
+
+    exlib::string resolvedUrl;
+    u->toString(resolvedUrl);
+
+    return (new asyncFetch(this, resolvedUrl, _method, u, stm, rsp_stm, keepAlive, headers, retVal, ac))->post(0);
 }
 }

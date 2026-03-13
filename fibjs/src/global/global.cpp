@@ -4,6 +4,7 @@
 #include "ifs/process.h"
 #include "ifs/base64.h"
 #include "ifs/http.h"
+#include "WebResponse.h"
 #include "SandBox.h"
 #include "Runtime.h"
 #include <vector>
@@ -42,9 +43,9 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 }
 
 result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
 {
-    return http_base::request(url, opts, retVal, ac);
+    return http_base::fetch(url, opts, retVal, ac);
 }
 
 result_t global_base::queueMicrotask(v8::Local<v8::Function> callback)
