@@ -25,6 +25,7 @@ public:
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
     virtual result_t set_body(SeekableStream_base* newVal);
+    virtual result_t get_bodyUsed(bool& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
@@ -80,6 +81,7 @@ public:
     obj_ptr<SeekableStream_base> m_body;
     exlib::string m_lastError;
     bool m_end;
+    bool m_bodyUsed = false;
 };
 
 } /* namespace fibjs */

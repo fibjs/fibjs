@@ -103,6 +103,12 @@ result_t Message::set_body(SeekableStream_base* newVal)
     return 0;
 }
 
+result_t Message::get_bodyUsed(bool& retVal)
+{
+    retVal = m_bodyUsed;
+    return 0;
+}
+
 result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
@@ -141,6 +147,7 @@ result_t Message::text(exlib::string data, exlib::string& retVal)
 result_t Message::text(exlib::string& retVal)
 {
     if (m_body == NULL) {
+        m_bodyUsed = true;
         retVal = "";
         return 0;
     }
@@ -152,6 +159,8 @@ result_t Message::text(exlib::string& retVal)
     hr = m_body->ac_readAll(data);
     if (hr < 0)
         return hr;
+
+    m_bodyUsed = true;
 
     if (hr == CALL_RETURN_NULL) {
         retVal = "";
@@ -164,6 +173,7 @@ result_t Message::text(exlib::string& retVal)
 result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
 {
     if (m_body == NULL) {
+        m_bodyUsed = true;
         retVal = NewBackingStore(0);
         return 0;
     }
@@ -175,6 +185,8 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
     hr = m_body->ac_readAll(data);
     if (hr < 0)
         return hr;
+
+    m_bodyUsed = true;
 
     if (hr == CALL_RETURN_NULL) {
         retVal = NewBackingStore(0);
@@ -220,6 +232,8 @@ result_t Message::json(v8::Local<v8::Value>& retVal)
     hr = m_body->ac_readAll(data);
     if (hr < 0)
         return hr;
+
+    m_bodyUsed = true;
 
     if (hr == CALL_RETURN_NULL)
         return CALL_RETURN_NULL;

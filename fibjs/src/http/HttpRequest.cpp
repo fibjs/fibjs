@@ -12,6 +12,11 @@
 #include "FormData.h"
 #include "URLSearchParams.h"
 #include "Headers.h"
+#include "HttpMessage.h"
+#include "MemoryStream.h"
+#include "Buffer.h"
+#include "ifs/json.h"
+#include "ifs/msgpack.h"
 #include "ifs/TLSSocket.h"
 
 namespace fibjs {
@@ -19,6 +24,118 @@ namespace fibjs {
 result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpRequest();
+    return 0;
+}
+
+result_t HttpRequest::parse_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+    bool urlEncoded_default,
+    exlib::string& out_method, obj_ptr<Headers_base>& out_headers,
+    obj_ptr<SeekableStream_base>& out_body, obj_ptr<SeekableStream_base>& out_rsp_stm)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    result_t hr;
+
+    out_method = default_method;
+    GetConfigValue(opts, "method", out_method, true);
+
+    hr = GetConfigValue(opts, "headers", out_headers);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        out_headers = new Headers();
+    else if (hr < 0)
+        return hr;
+
+    JSValue v = opts->Get(context, isolate->NewString("body", 4));
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    if (!v->IsUndefined()) {
+        hr = body_to_stream(isolate, v, out_body, out_headers.get(), urlEncoded_default);
+        if (hr < 0 && hr != CALL_RETURN_NULL)
+            return hr;
+    } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
+        out_body = new MemoryStream();
+        exlib::string s;
+        hr = json_base::encode(v, s);
+        if (hr < 0)
+            return hr;
+        obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
+        bool wr;
+        out_body->cc_write(buf, wr);
+        Variant ct;
+        if (out_headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            out_headers->set("Content-Type", "application/json");
+    } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
+        out_body = new MemoryStream();
+        obj_ptr<Buffer_base> buf;
+        hr = msgpack_base::encode(v, buf);
+        if (hr < 0)
+            return hr;
+        bool wr;
+        out_body->cc_write(buf, wr);
+        Variant ct;
+        if (out_headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            out_headers->set("Content-Type", "application/msgpack");
+    }
+
+    hr = GetConfigValue(opts, "response_body", out_rsp_stm);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    return 0;
+}
+
+result_t HttpRequest_base::_new(exlib::string url, v8::Local<v8::Object> options,
+    obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
+{
+    exlib::string method;
+    obj_ptr<Headers_base> headers;
+    obj_ptr<SeekableStream_base> stm, rsp_stm;
+
+    result_t hr = HttpRequest::parse_opts("GET", options, false, method, headers, stm, rsp_stm);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<HttpRequest> req = new HttpRequest();
+    req->set_address(url);
+    req->set_method(method);
+    if (headers)
+        req->appendHeader(headers.get());
+    if (stm)
+        req->set_body(stm);
+
+    retVal = req;
+    return 0;
+}
+
+result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object> options,
+    obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<Message_base> cloned;
+    result_t hr = request->clone(cloned);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<HttpRequest> req = static_cast<HttpRequest*>(cloned.get());
+
+    exlib::string cur_method;
+    req->get_method(cur_method);
+
+    exlib::string method;
+    obj_ptr<Headers_base> headers;
+    obj_ptr<SeekableStream_base> stm, rsp_stm;
+
+    hr = HttpRequest::parse_opts(cur_method, options, false, method, headers, stm, rsp_stm);
+    if (hr < 0)
+        return hr;
+
+    req->set_method(method);
+    if (headers)
+        req->appendHeader(headers.get());
+    if (stm)
+        req->set_body(stm);
+
+    retVal = req;
     return 0;
 }
 
@@ -45,6 +162,11 @@ result_t HttpRequest::get_body(obj_ptr<SeekableStream_base>& retVal)
 result_t HttpRequest::set_body(SeekableStream_base* newVal)
 {
     return m_message->set_body(newVal);
+}
+
+result_t HttpRequest::get_bodyUsed(bool& retVal)
+{
+    return m_message->get_bodyUsed(retVal);
 }
 
 result_t HttpRequest::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,

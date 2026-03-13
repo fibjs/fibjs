@@ -40,6 +40,7 @@ public:
     virtual result_t get_data(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
     virtual result_t set_body(SeekableStream_base* newVal) = 0;
+    virtual result_t get_bodyUsed(bool& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -79,6 +80,7 @@ public:
     static void s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_body(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_bodyUsed(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -140,6 +142,7 @@ inline ClassInfo& Message_base::class_info()
         { "type", s_get_type, s_set_type, false },
         { "data", s_get_data, block_set, false },
         { "body", s_get_body, s_set_body, false },
+        { "bodyUsed", s_get_bodyUsed, block_set, false },
         { "length", s_get_length, block_set, false },
         { "stream", s_get_stream, block_set, false },
         { "lastError", s_get_lastError, s_set_lastError, false }
@@ -313,6 +316,20 @@ inline void Message_base::s_set_body(const v8::FunctionCallbackInfo<v8::Value>& 
     hr = pInst->set_body(v0);
 
     METHOD_VOID();
+}
+
+inline void Message_base::s_get_bodyUsed(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_bodyUsed(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)

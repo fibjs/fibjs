@@ -35,6 +35,22 @@ declare class Class_HttpRequest extends Class_HttpMessage {
     constructor();
 
     /**
+     * @description HttpRequest 构造函数，根据 URL 字符串和选项创建请求对象（Fetch API）
+     *      @param url 请求 URL
+     *      @param options 请求选项，可包含 method、headers、body 等字段
+     *     
+     */
+    constructor(url: string, options?: FIBJS.GeneralObject);
+
+    /**
+     * @description HttpRequest 构造函数，从已有 Request 对象复制并可覆盖选项（Fetch API）
+     *      @param request 已有的 HttpRequest 对象
+     *      @param options 覆盖选项，可包含 method、headers、body 等字段
+     *     
+     */
+    constructor(request: Class_HttpRequest, options?: FIBJS.GeneralObject);
+
+    /**
      * @description 获取响应消息对象
      */
     readonly response: Class_HttpResponse;

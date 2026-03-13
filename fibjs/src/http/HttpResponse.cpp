@@ -92,6 +92,11 @@ result_t HttpResponse::set_body(SeekableStream_base* newVal)
     return m_message->set_body(newVal);
 }
 
+result_t HttpResponse::get_bodyUsed(bool& retVal)
+{
+    return m_message->get_bodyUsed(retVal);
+}
+
 result_t HttpResponse::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {

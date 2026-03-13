@@ -25,6 +25,18 @@ interface HttpRequest : HttpMessage
     /*! @brief HttpRequest 构造函数，创建一个新的 HttpRequest 对象 */
     HttpRequest();
 
+    /*! @brief HttpRequest 构造函数，根据 URL 字符串和选项创建请求对象（Fetch API）
+     @param url 请求 URL
+     @param options 请求选项，可包含 method、headers、body 等字段
+    */
+    HttpRequest(String url, Object options = {});
+
+    /*! @brief HttpRequest 构造函数，从已有 Request 对象复制并可覆盖选项（Fetch API）
+     @param request 已有的 HttpRequest 对象
+     @param options 覆盖选项，可包含 method、headers、body 等字段
+    */
+    HttpRequest(HttpRequest request, Object options = {});
+
     /*! @brief 获取响应消息对象*/
     readonly HttpResponse response;
 

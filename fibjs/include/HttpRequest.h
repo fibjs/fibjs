@@ -35,6 +35,7 @@ public:
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
     virtual result_t set_body(SeekableStream_base* newVal);
+    virtual result_t get_bodyUsed(bool& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
@@ -104,6 +105,15 @@ public:
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
     virtual result_t get_form(obj_ptr<FormData_base>& retVal);
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal);
+
+public:
+    // Parse fetch/request init options into out params.
+    // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded
+    //                     false → string body gets text/plain;charset=UTF-8
+    static result_t parse_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+        bool urlEncoded_default,
+        exlib::string& out_method, obj_ptr<Headers_base>& out_headers,
+        obj_ptr<SeekableStream_base>& out_body, obj_ptr<SeekableStream_base>& out_rsp_stm);
 
 public:
     void _appendHeader(exlib::string name, exlib::string value)

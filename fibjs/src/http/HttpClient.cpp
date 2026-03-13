@@ -1230,21 +1230,16 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
 result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    obj_ptr<Headers_base> headers;
-    obj_ptr<SeekableStream_base> stm;
-    v8::Local<v8::Object> o;
-    JSValue v;
-    Variant ct;
-    result_t hr;
-    int32_t len;
-
     ac->m_ctx.resize(6);
 
-    exlib::string _method(method);
-    GetConfigValue(opts, "method", _method, true);
-    ac->m_ctx[0] = _method;
+    exlib::string _method;
+    obj_ptr<Headers_base> headers;
+    obj_ptr<SeekableStream_base> stm, rsp_stm;
+    result_t hr;
+
+    hr = HttpRequest::parse_opts(method, opts, true, _method, headers, stm, rsp_stm);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<Url> u = new Url();
     hr = u->parse(url);
@@ -1260,62 +1255,12 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         return hr;
 
     u = uo.As<Url>();
+
+    ac->m_ctx[0] = _method;
     ac->m_ctx[1] = u;
-
-    hr = GetConfigValue(opts, "headers", headers);
-    if (hr >= 0) {
-        ac->m_ctx[2] = headers;
-    } else if (hr == CALL_E_PARAMNOTOPTIONAL) {
-        headers = new Headers();
-        ac->m_ctx[2] = headers;
-    } else {
-        return hr;
-    }
-
-    v = opts->Get(context, isolate->NewString("body", 4));
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    if (!v->IsUndefined()) {
-        hr = body_to_stream(isolate, v, stm, headers, true);
-        if (hr < 0 && hr != CALL_RETURN_NULL)
-            return hr;
-    } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
-        obj_ptr<Buffer_base> buf;
-        stm = new MemoryStream();
-
-        exlib::string s;
-        hr = json_base::encode(v, s);
-        if (hr < 0)
-            return hr;
-
-        buf = new Buffer(s.c_str(), s.length());
-        bool len;
-        stm->cc_write(buf, len);
-        Variant ct;
-        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            headers->set("Content-Type", "application/json");
-    } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
-        obj_ptr<Buffer_base> buf;
-        stm = new MemoryStream();
-
-        hr = msgpack_base::encode(v, buf);
-        if (hr < 0)
-            return hr;
-
-        bool len;
-        stm->cc_write(buf, len);
-        Variant ct;
-        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            headers->set("Content-Type", "application/msgpack");
-    }
-
+    ac->m_ctx[2] = headers;
     ac->m_ctx[3] = stm;
-
-    obj_ptr<SeekableStream_base> rsp_stm;
-    hr = GetConfigValue(opts, "response_body", rsp_stm);
-    if (hr >= 0)
-        ac->m_ctx[4] = rsp_stm;
+    ac->m_ctx[4] = rsp_stm;
 
     bool keepAlive = m_keepAlive;
     hr = GetConfigValue(opts, "keepAlive", keepAlive);

@@ -52,6 +52,11 @@ declare class Class_Message extends Class_object {
     body: Class_SeekableStream;
 
     /**
+     * @description 查询消息的 body 是否已被消费 
+     */
+    readonly bodyUsed: boolean;
+
+    /**
      * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
      *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
