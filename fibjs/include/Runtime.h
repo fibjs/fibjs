@@ -54,6 +54,16 @@ public:
         return rt->m_code;
     }
 
+    static result_t setTypeError(exlib::string err)
+    {
+        Runtime* rt = Runtime::current();
+
+        rt->m_code = CALL_E_EXCEPTION;
+        rt->m_error = err;
+        rt->m_errorType = 1;
+        return rt->m_code;
+    }
+
     static result_t setError(exlib::string err)
     {
         return setError(CALL_E_EXCEPTION, err);
@@ -70,6 +80,14 @@ public:
         exlib::string msg = rt->m_error;
         rt->m_error.clear();
         return msg;
+    }
+
+    static int errType()
+    {
+        Runtime* rt = Runtime::current();
+        int t = rt->m_errorType;
+        rt->m_errorType = 0;
+        return t;
     }
 
     static result_t errNumber()
@@ -118,6 +136,7 @@ public:
 private:
     result_t m_code;
     exlib::string m_error;
+    int m_errorType = 0;
     Isolate* m_isolate;
 };
 

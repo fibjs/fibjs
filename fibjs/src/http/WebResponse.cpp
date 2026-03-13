@@ -115,7 +115,7 @@ result_t WebResponse::initFromBody(Isolate* isolate, v8::Local<v8::Value> body,
 result_t WebResponse::consumeBody(obj_ptr<Buffer_base>& retVal)
 {
     if (m_bodyUsed)
-        return CHECK_ERROR(Runtime::setError("WebResponse: body already used"));
+        return CHECK_ERROR(Runtime::setTypeError("WebResponse: body already used"));
 
     m_bodyUsed = true;
 

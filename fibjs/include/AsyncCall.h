@@ -106,8 +106,10 @@ public:
 
     virtual int32_t post(int32_t v)
     {
-        if (v == CALL_E_EXCEPTION)
+        if (v == CALL_E_EXCEPTION) {
+            m_error_type = Runtime::errType();
             m_error = Runtime::errMessage();
+        }
 
         m_v = v;
         weak.set();
@@ -139,8 +141,12 @@ public:
         else
             m_v = hr;
 
-        if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error);
+        if (m_v == CALL_E_EXCEPTION) {
+            if (m_error_type)
+                Runtime::setTypeError(m_error);
+            else
+                Runtime::setError(m_error);
+        }
 
         return m_v;
     }
@@ -151,6 +157,7 @@ protected:
 
 private:
     exlib::string m_error;
+    int m_error_type = 0;
     int32_t m_v;
 };
 
@@ -169,8 +176,10 @@ public:
 
     virtual int32_t post(int32_t v)
     {
-        if (v == CALL_E_EXCEPTION)
+        if (v == CALL_E_EXCEPTION) {
+            m_error_type = Runtime::errType();
             m_error = Runtime::errMessage();
+        }
 
         m_v = v;
         weak.set();
@@ -188,8 +197,12 @@ public:
             return hr;
 
         weak.wait();
-        if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error);
+        if (m_v == CALL_E_EXCEPTION) {
+            if (m_error_type)
+                Runtime::setTypeError(m_error);
+            else
+                Runtime::setError(m_error);
+        }
 
         return m_v;
     }
@@ -200,6 +213,7 @@ protected:
 
 private:
     exlib::string m_error;
+    int m_error_type = 0;
     int32_t m_v;
 };
 
@@ -439,8 +453,10 @@ public:
 public:
     int32_t post_result(int32_t v)
     {
-        if (v == CALL_E_EXCEPTION)
+        if (v == CALL_E_EXCEPTION) {
+            m_error_type = Runtime::errType();
             m_error = Runtime::errMessage();
+        }
 
         m_v = v;
         m_isolate->sync([this]() -> int {
@@ -492,6 +508,7 @@ protected:
 
 private:
     exlib::string m_error;
+    int m_error_type = 0;
     v8::Global<v8::StackTrace> m_stack_trace;
     v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     int32_t m_v;

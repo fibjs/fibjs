@@ -151,7 +151,10 @@ exlib::string getResultMessage(result_t hr)
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> v = v8::Exception::Error(isolate->NewString(msg));
+    int et = Runtime::errType();
+    v8::Local<v8::Value> v = et
+        ? v8::Exception::TypeError(isolate->NewString(msg))
+        : v8::Exception::Error(isolate->NewString(msg));
     v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 
@@ -179,7 +182,10 @@ v8::Local<v8::Value> FillError(result_t hr)
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::StackTrace> stack)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> v = v8::Exception::Error(isolate->NewString(msg));
+    int et = Runtime::errType();
+    v8::Local<v8::Value> v = et
+        ? v8::Exception::TypeError(isolate->NewString(msg))
+        : v8::Exception::Error(isolate->NewString(msg));
     v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 

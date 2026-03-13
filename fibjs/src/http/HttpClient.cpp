@@ -1165,7 +1165,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             m_u->toString(m_url);
 
             if (m_urls.find(m_url) != m_urls.end())
-                return CHECK_ERROR(Runtime::setError("HttpClient: redirect cycle"));
+                return CHECK_ERROR(Runtime::setTypeError("HttpClient: redirect cycle"));
 
             if (m_response_body)
                 m_response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
@@ -1419,6 +1419,16 @@ result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
             , m_retVal(retVal)
         {
             next(do_request);
+        }
+
+        virtual int32_t error(int32_t v) override
+        {
+            // Per Fetch spec, all fetch errors are TypeErrors
+            exlib::string msg = (v == CALL_E_EXCEPTION)
+                ? Runtime::errMessage()
+                : getResultMessage(v);
+            Runtime::setTypeError(msg);
+            return CALL_E_EXCEPTION;
         }
 
         ON_STATE(asyncFetch, do_request)

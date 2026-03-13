@@ -356,6 +356,14 @@ describe("web fetch", () => {
             assert.strictEqual(text, '');
         });
 
+        it("body can only be consumed once", async () => {
+            const resp = await fetch(ctx.baseUrl + '/text');
+            await resp.text();
+            await assert.rejects(() => resp.text(), {
+                name: 'TypeError'
+            });
+        });
+
         it("response.bodyUsed tracks consumption", async () => {
             const resp = await fetch(ctx.baseUrl + '/text');
             assert.strictEqual(resp.bodyUsed, false);
@@ -718,5 +726,40 @@ describe("web fetch", () => {
             assert.deepStrictEqual(keys, sorted);
         });
 
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("fetch - error cases", () => {
+    it("connection refused throws TypeError", async () => {
+        await assert.rejects(
+            () => fetch('http://127.0.0.1:1/'),
+            { name: 'TypeError' }
+        );
+    });
+
+    it("invalid URL throws TypeError", async () => {
+        await assert.rejects(
+            () => fetch('not-a-valid-url'),
+            { name: 'TypeError' }
+        );
+    });
+
+    describe("redirect loop throws", () => {
+        let ctx;
+        before(async () => {
+            ctx = await startServer((req, res) => {
+                res.writeHead(302, { Location: req.url });
+                res.end();
+            });
+        });
+        after(() => ctx && ctx.server.close());
+
+        it("redirect loop throws TypeError", async () => {
+            await assert.rejects(
+                () => fetch(ctx.baseUrl + '/loop'),
+                { name: 'TypeError' }
+            );
+        });
     });
 });
