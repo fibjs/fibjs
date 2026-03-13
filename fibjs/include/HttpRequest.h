@@ -13,6 +13,7 @@
 #include "Headers.h"
 #include "HttpCollection.h"
 #include "Url.h"
+#include "AbortController.h"
 
 namespace fibjs {
 
@@ -121,6 +122,11 @@ public:
         bool has_keepAlive = false;
         exlib::string redirect = "follow"; // "follow" | "manual" | "error"
         bool redirected = false;
+        obj_ptr<AbortSignal_base> signal;
+
+        // Cast to concrete AbortSignal for internal C++ use (addAbortCallback / clearAbort).
+        // Safe because AbortSignal is the only concrete implementation.
+        AbortSignal* abort_signal() const { return static_cast<AbortSignal*>((AbortSignal_base*)signal); }
 
         // Parse method/headers/body/response_body/keepAlive from a v8 opts object.
         // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded

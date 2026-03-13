@@ -21,6 +21,14 @@ declare class Class_AbortSignal extends Class_EventEmitter {
     static abort(reason: any): Class_AbortSignal;
 
     /**
+     * @description 创建一个会在超时后自动中止的 AbortSignal
+     *      @param ms 超时时间（毫秒）
+     *      @return 返回一个将在 ms 毫秒后中止的 AbortSignal 对象
+     *     
+     */
+    static timeout(ms: number): Class_AbortSignal;
+
+    /**
      * @description 如果请求已中止，则抛出异常 
      */
     throwIfAborted(): void;

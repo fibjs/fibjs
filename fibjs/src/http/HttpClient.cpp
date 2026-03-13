@@ -24,6 +24,7 @@
 #include "ifs/FormData.h"
 #include "ifs/querystring.h"
 #include <string.h>
+#include <memory>
 
 namespace fibjs {
 
@@ -798,6 +799,12 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
 {
     class asyncRequest : public AsyncState {
     public:
+        ~asyncRequest()
+        {
+            if (m_o && m_o->signal)
+                m_o->abort_signal()->clearAbort();
+        }
+
         asyncRequest(HttpClient* hc, HttpRequest::Options* o,
             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
             : AsyncState(ac)
@@ -809,6 +816,29 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
             m_o->u->toString(m_url);
             if (m_o->response_body)
                 m_o->response_body->tell(m_response_pos);
+
+            // D.3: capture the conn slot by value so the callback never touches
+            // 'this'; the slot is updated in connected/ssl_handshake states
+            if (m_o->signal) {
+                auto conn = m_pconn;
+                m_o->abort_signal()->addAbortCallback([conn]() {
+                    obj_ptr<Stream_base> c = *conn;
+                    if (c) {
+                        Socket_base* sock = Socket_base::getInstance(c);
+                        if (sock) {
+                            sock->abort();
+                        } else {
+                            TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(c);
+                            if (tls && tls->m_stream) {
+                                sock = Socket_base::getInstance(tls->m_stream);
+                                if (sock)
+                                    sock->abort();
+                            }
+                        }
+                    }
+                });
+            }
+
             next(prepare);
         }
 
@@ -1089,12 +1119,14 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
 
             obj_ptr<Stream_base> conn = m_conn;
             m_conn = ss;
+            *m_pconn = m_conn; // sync slot during TLS handshake
 
             return ss->connect(conn, m_sslhost, next(connected));
         }
 
         ON_STATE(asyncRequest, connected)
         {
+            *m_pconn = m_conn; // sync slot so abort callback holds the live connection
             if (!m_ssl)
                 m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
 
@@ -1191,6 +1223,16 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
                 return 0;
             }
 
+            // D.3: if abort was requested, convert the connection error to TypeError
+            if (m_o->signal) {
+                bool aborted;
+                m_o->signal->get_aborted(aborted);
+                if (aborted) {
+                    Runtime::setTypeError("AbortError");
+                    return CALL_E_EXCEPTION;
+                }
+            }
+
             return v;
         }
 
@@ -1204,6 +1246,7 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
         obj_ptr<HttpResponse_base>& m_retVal;
         std::unordered_map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
+        std::shared_ptr<obj_ptr<Stream_base>> m_pconn = std::make_shared<obj_ptr<Stream_base>>();
         obj_ptr<HttpRequest> m_req;
         obj_ptr<HttpRequest> m_reqConn;
         exlib::string m_connUrl;
@@ -1349,6 +1392,15 @@ public:
 
     ON_STATE(asyncFetch, do_request)
     {
+        // D.2: reject immediately if signal is already aborted
+        if (m_o->signal) {
+            bool aborted;
+            m_o->signal->get_aborted(aborted);
+            if (aborted) {
+                Runtime::setTypeError("AbortError");
+                return CALL_E_EXCEPTION;
+            }
+        }
         return m_hc->request(m_o.get(), m_httpResp, next(do_wrap), false);
     }
 

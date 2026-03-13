@@ -100,6 +100,13 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
 
     GetConfigValue(opts, "redirect", redirect, true);
 
+    // Parse signal option; ignore type mismatch or missing key
+    {
+        result_t sig_hr = GetConfigValue(opts, "signal", signal);
+        if (sig_hr < 0 && sig_hr != CALL_E_PARAMNOTOPTIONAL)
+            signal = nullptr; // wrong type - treat as no signal
+    }
+
     return 0;
 }
 

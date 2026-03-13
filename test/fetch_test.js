@@ -1,7 +1,12 @@
-const { describe, it, before, after } = require('node:test');
+const { describe, it, xdescribe, xit, before, after } = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
 const { once } = require('node:events');
+
+// fibjs throws TypeError for abort/timeout; Node.js throws DOMException (AbortError/TimeoutError)
+const isFibjs = !!process.versions?.fibjs;
+const abortErrorName = isFibjs ? 'TypeError' : 'AbortError';
+const timeoutErrorName = isFibjs ? 'TypeError' : 'TimeoutError';
 
 // Helper: start a server with a given handler, returns { server, baseUrl, port }
 async function startServer(handler) {
@@ -727,228 +732,294 @@ describe("web fetch", () => {
         });
 
     });
-});
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Stage C: Redirect tracking and redirect options
-// ─────────────────────────────────────────────────────────────────────────────
-describe("fetch - redirect", () => {
-    let ctx;
 
-    before(async () => {
-        ctx = await startServer((req, res) => {
-            const url = req.url;
-            // /redirect/301 → /target  (permanent redirect)
-            // /redirect/302 → /target  (temporary redirect)
-            // /redirect/303 → /target  (see other: POST→GET)
-            // /redirect/307 → /target  (temporary redirect, preserve method)
-            // /redirect/308 → /target  (permanent redirect, preserve method)
-            // /redirect/chain/1 → /redirect/chain/2 → /target
-            // /redirect/abs  → absolute URL to /target
-            // /target        → echoes "METHOD PATH"
-            if (url === '/target') {
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end(`${req.method} ${req.url}`);
-            } else if (url.startsWith('/redirect/chain/')) {
-                const step = parseInt(url.split('/').pop(), 10);
-                if (step < 3) {
-                    res.writeHead(302, { Location: `/redirect/chain/${step + 1}` });
-                } else {
-                    res.writeHead(302, { Location: '/target' });
-                }
-                res.end();
-            } else if (url === '/redirect/abs') {
-                res.writeHead(302, { Location: `${ctx.baseUrl}/target` });
-                res.end();
-            } else {
-                const code = parseInt(url.split('/').pop(), 10);
-                res.writeHead(code, { Location: '/target' });
-                res.end();
-            }
-        });
-    });
-    after(() => ctx && ctx.server.close());
-
-    it("follows 301 redirect", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/301');
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-    });
-
-    it("follows 302 redirect", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/302');
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-    });
-
-    it("follows 303 redirect (POST becomes GET)", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/303', { method: 'POST', body: 'data' });
-        const text = await resp.text();
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-        assert.ok(text.startsWith('GET'), `expected GET method, got: ${text}`);
-    });
-
-    it("follows 307 redirect (preserves method)", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/307', { method: 'POST', body: 'data' });
-        const text = await resp.text();
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-        assert.ok(text.startsWith('POST'), `expected POST method, got: ${text}`);
-    });
-
-    it("follows 308 redirect (preserves method)", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/308', { method: 'PUT', body: 'data' });
-        const text = await resp.text();
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-        assert.ok(text.startsWith('PUT'), `expected PUT method, got: ${text}`);
-    });
-
-    it("follows redirect chain", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/chain/1');
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-    });
-
-    it("follows absolute redirect URL", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/abs');
-        assert.strictEqual(resp.status, 200);
-        assert.strictEqual(resp.redirected, true);
-    });
-
-    it("redirect: manual returns redirect response", async () => {
-        const resp = await fetch(ctx.baseUrl + '/redirect/302', { redirect: 'manual' });
-        assert.strictEqual(resp.status, 302);
-        assert.strictEqual(resp.redirected, false);
-    });
-
-    it("redirect: error throws on redirect", async () => {
-        await assert.rejects(
-            () => fetch(ctx.baseUrl + '/redirect/302', { redirect: 'error' }),
-            { name: 'TypeError' }
-        );
-    });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-describe("fetch - error cases", () => {
-    it("connection refused throws TypeError", async () => {
-        await assert.rejects(
-            () => fetch('http://127.0.0.1:1/'),
-            { name: 'TypeError' }
-        );
-    });
-
-    it("invalid URL throws TypeError", async () => {
-        await assert.rejects(
-            () => fetch('not-a-valid-url'),
-            { name: 'TypeError' }
-        );
-    });
-
-    describe("redirect loop throws", () => {
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Stage C: Redirect tracking and redirect options
+    // ─────────────────────────────────────────────────────────────────────────────
+    describe("fetch - redirect", () => {
         let ctx;
+
         before(async () => {
             ctx = await startServer((req, res) => {
-                res.writeHead(302, { Location: req.url });
-                res.end();
+                const url = req.url;
+                // /redirect/301 → /target  (permanent redirect)
+                // /redirect/302 → /target  (temporary redirect)
+                // /redirect/303 → /target  (see other: POST→GET)
+                // /redirect/307 → /target  (temporary redirect, preserve method)
+                // /redirect/308 → /target  (permanent redirect, preserve method)
+                // /redirect/chain/1 → /redirect/chain/2 → /target
+                // /redirect/abs  → absolute URL to /target
+                // /target        → echoes "METHOD PATH"
+                if (url === '/target') {
+                    res.writeHead(200, { 'Content-Type': 'text/plain' });
+                    res.end(`${req.method} ${req.url}`);
+                } else if (url.startsWith('/redirect/chain/')) {
+                    const step = parseInt(url.split('/').pop(), 10);
+                    if (step < 3) {
+                        res.writeHead(302, { Location: `/redirect/chain/${step + 1}` });
+                    } else {
+                        res.writeHead(302, { Location: '/target' });
+                    }
+                    res.end();
+                } else if (url === '/redirect/abs') {
+                    res.writeHead(302, { Location: `${ctx.baseUrl}/target` });
+                    res.end();
+                } else {
+                    const code = parseInt(url.split('/').pop(), 10);
+                    res.writeHead(code, { Location: '/target' });
+                    res.end();
+                }
             });
         });
         after(() => ctx && ctx.server.close());
 
-        it("redirect loop throws TypeError", async () => {
+        it("follows 301 redirect", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/301');
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+        });
+
+        it("follows 302 redirect", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/302');
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+        });
+
+        it("follows 303 redirect (POST becomes GET)", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/303', { method: 'POST', body: 'data' });
+            const text = await resp.text();
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+            assert.ok(text.startsWith('GET'), `expected GET method, got: ${text}`);
+        });
+
+        it("follows 307 redirect (preserves method)", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/307', { method: 'POST', body: 'data' });
+            const text = await resp.text();
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+            assert.ok(text.startsWith('POST'), `expected POST method, got: ${text}`);
+        });
+
+        it("follows 308 redirect (preserves method)", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/308', { method: 'PUT', body: 'data' });
+            const text = await resp.text();
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+            assert.ok(text.startsWith('PUT'), `expected PUT method, got: ${text}`);
+        });
+
+        it("follows redirect chain", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/chain/1');
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+        });
+
+        it("follows absolute redirect URL", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/abs');
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.redirected, true);
+        });
+
+        it("redirect: manual returns redirect response", async () => {
+            const resp = await fetch(ctx.baseUrl + '/redirect/302', { redirect: 'manual' });
+            assert.strictEqual(resp.status, 302);
+            assert.strictEqual(resp.redirected, false);
+        });
+
+        it("redirect: error throws on redirect", async () => {
             await assert.rejects(
-                () => fetch(ctx.baseUrl + '/loop'),
+                () => fetch(ctx.baseUrl + '/redirect/302', { redirect: 'error' }),
                 { name: 'TypeError' }
             );
         });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // B. Request constructor API
-    // ─────────────────────────────────────────────────────────────────────────
-    describe("fetch - Request API", () => {
-        it("new Request() with string URL", () => {
-            const req = new Request('http://example.com/path');
-            assert.strictEqual(req.method, 'GET');
-            assert.ok(req.url.includes('example.com/path'));
-        });
-
-        it("new Request() with method", () => {
-            const req = new Request('http://example.com', { method: 'POST' });
-            assert.strictEqual(req.method, 'POST');
-        });
-
-        it("new Request() with headers", () => {
-            const req = new Request('http://example.com', {
-                headers: { 'X-Custom': 'test' }
-            });
-            assert.strictEqual(req.headers.get('x-custom'), 'test');
-        });
-
-        it("new Request() with body", async () => {
-            const req = new Request('http://example.com', {
-                method: 'POST',
-                body: 'request body'
-            });
-            const text = await req.text();
-            assert.strictEqual(text, 'request body');
-        });
-
-        it("Request clone()", async () => {
-            const req = new Request('http://example.com', {
-                method: 'POST',
-                body: 'clone me',
-                headers: { 'X-Test': 'val' }
-            });
-            const clone = req.clone();
-            assert.strictEqual(clone.method, 'POST');
-            assert.strictEqual(clone.headers.get('x-test'), 'val');
-            const text = await clone.text();
-            assert.strictEqual(text, 'clone me');
-        });
-
-        it("new Request() from existing Request", () => {
-            const req1 = new Request('http://example.com', {
-                method: 'PUT',
-                headers: { 'X-From': 'original' }
-            });
-            const req2 = new Request(req1);
-            assert.strictEqual(req2.method, 'PUT');
-            assert.strictEqual(req2.headers.get('x-from'), 'original');
-        });
-
-        it("new Request() from existing Request with overrides", () => {
-            const req1 = new Request('http://example.com', { method: 'PUT' });
-            const req2 = new Request(req1, { method: 'DELETE' });
-            assert.strictEqual(req2.method, 'DELETE');
-        });
-
-        it("GET with body throws TypeError", () => {
-            assert.throws(
-                () => new Request('http://localhost', { method: 'GET', body: 'x' }),
+    // ─────────────────────────────────────────────────────────────────────────────
+    describe("fetch - error cases", () => {
+        it("connection refused throws TypeError", async () => {
+            await assert.rejects(
+                () => fetch('http://127.0.0.1:1/'),
                 { name: 'TypeError' }
             );
         });
 
-        it("HEAD with body throws TypeError", () => {
-            assert.throws(
-                () => new Request('http://localhost', { method: 'HEAD', body: 'x' }),
+        it("invalid URL throws TypeError", async () => {
+            await assert.rejects(
+                () => fetch('not-a-valid-url'),
                 { name: 'TypeError' }
             );
         });
 
-        it("fetch accepts Request object", async () => {
-            const ctx = await startServer((req, res) => {
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end(`${req.method} ${req.url}`);
+        describe("redirect loop throws", () => {
+            let ctx;
+            before(async () => {
+                ctx = await startServer((req, res) => {
+                    res.writeHead(302, { Location: req.url });
+                    res.end();
+                });
+            });
+            after(() => ctx && ctx.server.close());
+
+            it("redirect loop throws TypeError", async () => {
+                await assert.rejects(
+                    () => fetch(ctx.baseUrl + '/loop'),
+                    { name: 'TypeError' }
+                );
+            });
+        });
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // B. Request constructor API
+        // ─────────────────────────────────────────────────────────────────────────
+        describe("fetch - Request API", () => {
+            it("new Request() with string URL", () => {
+                const req = new Request('http://example.com/path');
+                assert.strictEqual(req.method, 'GET');
+                assert.ok(req.url.includes('example.com/path'));
+            });
+
+            it("new Request() with method", () => {
+                const req = new Request('http://example.com', { method: 'POST' });
+                assert.strictEqual(req.method, 'POST');
+            });
+
+            it("new Request() with headers", () => {
+                const req = new Request('http://example.com', {
+                    headers: { 'X-Custom': 'test' }
+                });
+                assert.strictEqual(req.headers.get('x-custom'), 'test');
+            });
+
+            it("new Request() with body", async () => {
+                const req = new Request('http://example.com', {
+                    method: 'POST',
+                    body: 'request body'
+                });
+                const text = await req.text();
+                assert.strictEqual(text, 'request body');
+            });
+
+            it("Request clone()", async () => {
+                const req = new Request('http://example.com', {
+                    method: 'POST',
+                    body: 'clone me',
+                    headers: { 'X-Test': 'val' }
+                });
+                const clone = req.clone();
+                assert.strictEqual(clone.method, 'POST');
+                assert.strictEqual(clone.headers.get('x-test'), 'val');
+                const text = await clone.text();
+                assert.strictEqual(text, 'clone me');
+            });
+
+            it("new Request() from existing Request", () => {
+                const req1 = new Request('http://example.com', {
+                    method: 'PUT',
+                    headers: { 'X-From': 'original' }
+                });
+                const req2 = new Request(req1);
+                assert.strictEqual(req2.method, 'PUT');
+                assert.strictEqual(req2.headers.get('x-from'), 'original');
+            });
+
+            it("new Request() from existing Request with overrides", () => {
+                const req1 = new Request('http://example.com', { method: 'PUT' });
+                const req2 = new Request(req1, { method: 'DELETE' });
+                assert.strictEqual(req2.method, 'DELETE');
+            });
+
+            it("GET with body throws TypeError", () => {
+                assert.throws(
+                    () => new Request('http://localhost', { method: 'GET', body: 'x' }),
+                    { name: 'TypeError' }
+                );
+            });
+
+            it("HEAD with body throws TypeError", () => {
+                assert.throws(
+                    () => new Request('http://localhost', { method: 'HEAD', body: 'x' }),
+                    { name: 'TypeError' }
+                );
+            });
+
+            it("fetch accepts Request object", async () => {
+                const ctx = await startServer((req, res) => {
+                    res.writeHead(200, { 'Content-Type': 'text/plain' });
+                    res.end(`${req.method} ${req.url}`);
+                });
+                try {
+                    const request = new Request(ctx.baseUrl + '/via-request', { method: 'POST', body: 'hi' });
+                    const resp = await fetch(request);
+                    const text = await resp.text();
+                    assert.strictEqual(text, 'POST /via-request');
+                } finally {
+                    ctx.server.close();
+                }
+            });
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Stage D: AbortSignal
+    // ─────────────────────────────────────────────────────────────────────────────
+    describe("fetch - AbortSignal", () => {
+        it("already aborted signal rejects immediately", async () => {
+            const controller = new AbortController();
+            controller.abort();
+            await assert.rejects(
+                () => fetch('http://127.0.0.1:1/', { signal: controller.signal }),
+                { name: abortErrorName }
+            );
+        });
+
+        it("AbortController aborts fetch", async () => {
+            let wakeUp;
+            const ctx = await startServer(async (req, res) => {
+                // Block until woken up from finally
+                await new Promise(resolve => { wakeUp = resolve; });
             });
             try {
-                const request = new Request(ctx.baseUrl + '/via-request', { method: 'POST', body: 'hi' });
-                const resp = await fetch(request);
+                const controller = new AbortController();
+                const fetchPromise = fetch(ctx.baseUrl + '/hang', { signal: controller.signal });
+                // abort after a short delay
+                setTimeout(() => controller.abort(), 20);
+                await assert.rejects(() => fetchPromise, { name: abortErrorName });
+            } finally {
+                wakeUp?.();
+                ctx.server.closeAllConnections?.();
+                ctx.server.close();
+            }
+        });
+
+        it("AbortSignal.timeout() rejects slow request", async () => {
+            let wakeUp;
+            const ctx = await startServer(async (req, res) => {
+                // Block until woken up from finally
+                await new Promise(resolve => { wakeUp = resolve; });
+            });
+            try {
+                await assert.rejects(
+                    () => fetch(ctx.baseUrl + '/slow', { signal: AbortSignal.timeout(30) }),
+                    { name: timeoutErrorName }
+                );
+            } finally {
+                wakeUp?.();
+                ctx.server.closeAllConnections?.();
+                ctx.server.close();
+            }
+        });
+
+        it("AbortSignal.timeout() does not reject fast request", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end('fast');
+            });
+            try {
+                const resp = await fetch(ctx.baseUrl + '/fast', { signal: AbortSignal.timeout(500) });
                 const text = await resp.text();
-                assert.strictEqual(text, 'POST /via-request');
+                assert.strictEqual(text, 'fast');
             } finally {
                 ctx.server.close();
             }

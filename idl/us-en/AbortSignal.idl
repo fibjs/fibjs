@@ -13,6 +13,12 @@ interface AbortSignal : EventEmitter
     */
     static AbortSignal abort(Value reason);
 
+    /*! @brief Create an AbortSignal that will automatically abort after a timeout
+     @param ms Timeout in milliseconds
+     @return Returns an AbortSignal that will abort after ms milliseconds
+    */
+    static AbortSignal timeout(Number ms);
+
     /*! @brief If the request has been aborted, throw an exception */
     throwIfAborted();
 

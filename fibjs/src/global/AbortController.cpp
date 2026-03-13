@@ -10,6 +10,21 @@
 #include "EventInfo.h"
 
 namespace fibjs {
+result_t AbortSignal_base::timeout(double ms, obj_ptr<AbortSignal_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    obj_ptr<AbortSignal> signal = new AbortSignal();
+    signal->holder(isolate);
+
+    int32_t msInt = (ms < 1) ? 1 : (ms > TIMEOUT_MAX) ? TIMEOUT_MAX : (int32_t)ms;
+    obj_ptr<AbortTimer> timer = new AbortTimer(signal, msInt);
+    signal->setTimer(timer);
+    timer->sleep();
+
+    retVal = signal;
+    return 0;
+}
+
 result_t AbortController_base::_new(obj_ptr<AbortController_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new AbortController(Isolate::current(This));
@@ -59,9 +74,7 @@ result_t AbortSignal::do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& 
 
     m_aborted = true;
     m_reason = reason;
-    m_has_value_reason = false; // Reset to false since we are using string reason
-    // Only default to "AbortError" if the reason was not explicitly provided
-    // The string version should preserve empty strings if explicitly passed
+    m_has_value_reason = false;
 
     obj_ptr<EventInfo> info = new EventInfo(this, "abort", 0, m_reason);
     v8::Local<v8::Value> _info;
@@ -86,7 +99,7 @@ result_t AbortSignal::do_abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_
         m_has_value_reason = false;
     } else {
         SetPrivate("reason", reason);
-        m_has_value_reason = true; // Indicate that we are using a v8::Value reason
+        m_has_value_reason = true;
     }
 
     obj_ptr<EventInfo> info = new EventInfo(this, "abort");

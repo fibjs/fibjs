@@ -13,6 +13,12 @@ interface AbortSignal : EventEmitter
     */
     static AbortSignal abort(Value reason);
 
+    /*! @brief 创建一个会在超时后自动中止的 AbortSignal
+     @param ms 超时时间（毫秒）
+     @return 返回一个将在 ms 毫秒后中止的 AbortSignal 对象
+    */
+    static AbortSignal timeout(Number ms);
+
     /*! @brief 如果请求已中止，则抛出异常 */
     throwIfAborted();
 

@@ -26,6 +26,7 @@ public:
     // AbortSignal_base
     static result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal);
     static result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal);
+    static result_t timeout(double ms, obj_ptr<AbortSignal_base>& retVal);
     virtual result_t throwIfAborted() = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
     virtual result_t get_reason(v8::Local<v8::Value>& retVal) = 0;
@@ -43,6 +44,7 @@ public:
 
 public:
     static void s_static_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_throwIfAborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_reason(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -56,6 +58,7 @@ inline ClassInfo& AbortSignal_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "abort", s_static_abort, true, ClassData::ASYNC_SYNC },
+        { "timeout", s_static_timeout, true, ClassData::ASYNC_SYNC },
         { "throwIfAborted", s_throwIfAborted, false, ClassData::ASYNC_SYNC }
     };
 
@@ -93,6 +96,21 @@ inline void AbortSignal_base::s_static_abort(const v8::FunctionCallbackInfo<v8::
     ARG(v8::Local<v8::Value>, 0);
 
     hr = abort(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void AbortSignal_base::s_static_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<AbortSignal_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(double, 0);
+
+    hr = timeout(v0, vr);
 
     METHOD_RETURN();
 }
