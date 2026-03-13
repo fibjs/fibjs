@@ -4499,7 +4499,9 @@ describe("http", () => {
 
         afterEach(() => {
             if (svr) {
-                svr.stop();
+                try {
+                    svr.stop();
+                } catch (e) { }
                 svr = null;
             }
         });

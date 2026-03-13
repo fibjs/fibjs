@@ -1667,17 +1667,17 @@ function test_net(eng, use_uv) {
                         while (true) {
                             var c = s.accept();
                             test_util.push(c);
-                            
+
                             // First request - respond immediately
                             var data1 = c.recv();
                             if (data1)
                                 c.send('fast: ' + data1.toString());
-                            
+
                             // Second request - respond immediately
                             var data2 = c.recv();
                             if (data2)
                                 c.send('fast: ' + data2.toString());
-                            
+
                             c.close();
                         }
                     } catch (e) { }
@@ -2187,7 +2187,9 @@ function test_net(eng, use_uv) {
 
             afterEach(() => {
                 if (svr) {
-                    svr.stop();
+                    try {
+                        svr.stop();
+                    } catch (e) { }
                     svr = null;
                 }
             });
