@@ -31,17 +31,20 @@ public:
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("address"), GetReturnValue(isolate, address)).Check();
+            retVal->Set(context, isolate->NewString("family"), GetReturnValue(isolate, family)).Check();
             retVal->Set(context, isolate->NewString("port"), GetReturnValue(isolate, port)).Check();
         }
 
         virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, address));
+            args.push_back(GetReturnValue(isolate, family));
             args.push_back(GetReturnValue(isolate, port));
         }
 
     public:
         exlib::string address;
+        exlib::string family;
         int32_t port;
     };
 

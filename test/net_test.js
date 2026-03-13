@@ -2182,6 +2182,58 @@ function test_net(eng, use_uv) {
             });
         });
 
+        describe("TcpServer address()", () => {
+            var svr;
+
+            afterEach(() => {
+                if (svr) {
+                    svr.stop();
+                    svr = null;
+                }
+            });
+
+            it("returns {address, family, port} after start()", () => {
+                var p = getPort();
+                svr = new net.TcpServer(p, (sock) => { sock.close(); });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var addr = svr.address();
+                assert.strictEqual(typeof addr.address, 'string');
+                assert.strictEqual(typeof addr.family, 'string');
+                assert.strictEqual(typeof addr.port, 'number');
+                assert.strictEqual(addr.port, p);
+                assert.ok(addr.family === 'IPv4' || addr.family === 'IPv6');
+            });
+
+            it("returns correct port after listen(0)", () => {
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                svr.listen(0);
+                test_util.push(svr.socket);
+
+                var addr = svr.address();
+                assert.ok(addr.port > 0);
+                assert.strictEqual(addr.family, 'IPv4');
+            });
+
+            it("returns bound address for 127.0.0.1", () => {
+                var p = getPort();
+                svr = new net.TcpServer('127.0.0.1', p, (sock) => { sock.close(); });
+                svr.start();
+                test_util.push(svr.socket);
+
+                var addr = svr.address();
+                assert.strictEqual(addr.address, '127.0.0.1');
+                assert.strictEqual(addr.port, p);
+                assert.strictEqual(addr.family, 'IPv4');
+            });
+
+            it("throws before socket is bound", () => {
+                svr = new net.TcpServer((sock) => { sock.close(); });
+                assert.throws(() => { svr.address(); });
+            });
+        });
+
         describe("net.createServer", () => {
             var svr;
 

@@ -77,10 +77,10 @@ interface TcpServer : EventEmitter
     /*! @brief 关闭 socket中止正在运行的服务器，stop() 的别名 */
     close() async;
 
-    /*! @brief 返回一个包含服务器绑定地址和端口的对象。用于获取操作系统分配的地址时查找实际端口。
-     @return 返回服务器绑定的地址和端口
+    /*! @brief 返回一个包含服务器绑定地址、地址族和端口的对象。用于获取操作系统分配的地址时查找实际端口。
+     @return 返回服务器绑定的地址、地址族和端口
     */
-    (String address, Integer port) address();
+    (String address, String family, Integer port) address();
 
     /*! @brief 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;

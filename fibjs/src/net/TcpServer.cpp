@@ -313,6 +313,10 @@ result_t TcpServer::address(obj_ptr<AddressType>& retVal)
     m_socket->get_localAddress(retVal->address);
     m_socket->get_localPort(retVal->port);
 
+    int32_t family;
+    m_socket->get_family(family);
+    retVal->family = family == net_base::C_AF_INET6 ? "IPv6" : "IPv4";
+
     return 0;
 }
 

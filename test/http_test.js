@@ -4493,6 +4493,53 @@ describe("http", () => {
         });
     });
 
+    describe("HttpServer address()", () => {
+        var svr;
+        var addrPort = 8910 + base_port;
+
+        afterEach(() => {
+            if (svr) {
+                svr.stop();
+                svr = null;
+            }
+        });
+
+        it("returns {address, family, port} for HttpServer", () => {
+            svr = http.createServer((req) => {
+                req.response.write('ok');
+            });
+            svr.listen(addrPort);
+            test_util.push(svr.socket);
+
+            var addr = svr.address();
+            assert.strictEqual(addr.port, addrPort);
+            assert.strictEqual(addr.family, 'IPv4');
+            assert.strictEqual(typeof addr.address, 'string');
+        });
+
+        it("returns correct port after listen(0)", () => {
+            svr = http.createServer((req) => {
+                req.response.write('ok');
+            });
+            svr.listen(0);
+            test_util.push(svr.socket);
+
+            var addr = svr.address();
+            assert.ok(addr.port > 0);
+            assert.strictEqual(addr.family, 'IPv4');
+
+            var r = http.get('http://127.0.0.1:' + addr.port + '/');
+            assert.equal(r.data.toString(), 'ok');
+        });
+
+        it("throws before server is bound", () => {
+            svr = http.createServer((req) => {
+                req.response.write('ok');
+            });
+            assert.throws(() => { svr.address(); });
+        });
+    });
+
     describe("createServer", () => {
         var svr;
         var csPort = 8920 + base_port;
