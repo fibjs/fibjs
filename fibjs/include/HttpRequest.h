@@ -119,6 +119,8 @@ public:
         obj_ptr<SeekableStream_base> response_body;
         bool keepAlive = true;
         bool has_keepAlive = false;
+        exlib::string redirect = "follow"; // "follow" | "manual" | "error"
+        bool redirected = false;
 
         // Parse method/headers/body/response_body/keepAlive from a v8 opts object.
         // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded

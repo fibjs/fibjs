@@ -1144,7 +1144,17 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
             if (hr < 0)
                 return hr;
 
-            if (!m_hc->m_autoRedirect || (status != 301 && status != 302 && status != 307))
+            bool isRedirect = (status == 301 || status == 302 || status == 303
+                || status == 307 || status == 308);
+            if (!isRedirect)
+                return next();
+
+            // Fetch API redirect mode takes precedence over HttpClient autoRedirect
+            if (m_o->redirect == "error")
+                return CHECK_ERROR(Runtime::setTypeError("fetch: redirect not allowed"));
+            if (m_o->redirect == "manual")
+                return next(); // return redirect response as-is
+            if (!m_hc->m_autoRedirect)
                 return next();
 
             hr = m_retVal->firstHeader("location", location);
@@ -1158,6 +1168,14 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
 
             if (m_urls.find(m_url) != m_urls.end())
                 return CHECK_ERROR(Runtime::setTypeError("HttpClient: redirect cycle"));
+
+            // 303: per spec force GET and clear request body
+            if (status == 303) {
+                m_o->method = "GET";
+                m_o->body.Release();
+            }
+
+            m_o->redirected = true;
 
             if (m_o->response_body)
                 m_o->response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
@@ -1340,7 +1358,7 @@ public:
         m_o->u->toString(finalUrl);
 
         obj_ptr<WebResponse> resp = new WebResponse();
-        result_t hr = resp->initFromHttpResponse(m_httpResp, finalUrl, false);
+        result_t hr = resp->initFromHttpResponse(m_httpResp, finalUrl, m_o->redirected);
         if (hr < 0)
             return hr;
 

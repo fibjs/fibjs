@@ -98,6 +98,8 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    GetConfigValue(opts, "redirect", redirect, true);
+
     return 0;
 }
 

@@ -730,6 +730,108 @@ describe("web fetch", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Stage C: Redirect tracking and redirect options
+// ─────────────────────────────────────────────────────────────────────────────
+describe("fetch - redirect", () => {
+    let ctx;
+
+    before(async () => {
+        ctx = await startServer((req, res) => {
+            const url = req.url;
+            // /redirect/301 → /target  (permanent redirect)
+            // /redirect/302 → /target  (temporary redirect)
+            // /redirect/303 → /target  (see other: POST→GET)
+            // /redirect/307 → /target  (temporary redirect, preserve method)
+            // /redirect/308 → /target  (permanent redirect, preserve method)
+            // /redirect/chain/1 → /redirect/chain/2 → /target
+            // /redirect/abs  → absolute URL to /target
+            // /target        → echoes "METHOD PATH"
+            if (url === '/target') {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end(`${req.method} ${req.url}`);
+            } else if (url.startsWith('/redirect/chain/')) {
+                const step = parseInt(url.split('/').pop(), 10);
+                if (step < 3) {
+                    res.writeHead(302, { Location: `/redirect/chain/${step + 1}` });
+                } else {
+                    res.writeHead(302, { Location: '/target' });
+                }
+                res.end();
+            } else if (url === '/redirect/abs') {
+                res.writeHead(302, { Location: `${ctx.baseUrl}/target` });
+                res.end();
+            } else {
+                const code = parseInt(url.split('/').pop(), 10);
+                res.writeHead(code, { Location: '/target' });
+                res.end();
+            }
+        });
+    });
+    after(() => ctx && ctx.server.close());
+
+    it("follows 301 redirect", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/301');
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+    });
+
+    it("follows 302 redirect", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/302');
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+    });
+
+    it("follows 303 redirect (POST becomes GET)", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/303', { method: 'POST', body: 'data' });
+        const text = await resp.text();
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+        assert.ok(text.startsWith('GET'), `expected GET method, got: ${text}`);
+    });
+
+    it("follows 307 redirect (preserves method)", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/307', { method: 'POST', body: 'data' });
+        const text = await resp.text();
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+        assert.ok(text.startsWith('POST'), `expected POST method, got: ${text}`);
+    });
+
+    it("follows 308 redirect (preserves method)", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/308', { method: 'PUT', body: 'data' });
+        const text = await resp.text();
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+        assert.ok(text.startsWith('PUT'), `expected PUT method, got: ${text}`);
+    });
+
+    it("follows redirect chain", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/chain/1');
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+    });
+
+    it("follows absolute redirect URL", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/abs');
+        assert.strictEqual(resp.status, 200);
+        assert.strictEqual(resp.redirected, true);
+    });
+
+    it("redirect: manual returns redirect response", async () => {
+        const resp = await fetch(ctx.baseUrl + '/redirect/302', { redirect: 'manual' });
+        assert.strictEqual(resp.status, 302);
+        assert.strictEqual(resp.redirected, false);
+    });
+
+    it("redirect: error throws on redirect", async () => {
+        await assert.rejects(
+            () => fetch(ctx.baseUrl + '/redirect/302', { redirect: 'error' }),
+            { name: 'TypeError' }
+        );
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 describe("fetch - error cases", () => {
     it("connection refused throws TypeError", async () => {
         await assert.rejects(
