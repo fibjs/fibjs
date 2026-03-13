@@ -399,6 +399,85 @@ describe("http", () => {
                 assert.deepEqual(res.allHeader("Set-Cookie"), ["a=1", "b=2", "c=3"]);
             });
         });
+
+        describe("incoming headers", () => {
+            var svr;
+            var port;
+
+            before(() => {
+                svr = new http.Server(0, (req) => {
+                    req.response.json(req.headers);
+                });
+                svr.start();
+                port = svr.socket.localPort;
+            });
+
+            after(() => svr.stop());
+
+            it("parsed header names are lowercase", () => {
+                var resp = http.get(`http://127.0.0.1:${port}/`, {
+                    headers: {
+                        "X-Custom-Header": "hello",
+                        "Authorization": "Bearer token"
+                    }
+                });
+                var hdrs = resp.json();
+                assert.equal(hdrs["x-custom-header"], "hello");
+                assert.equal(hdrs["authorization"], "Bearer token");
+                // original-case keys must not exist
+                assert.strictEqual(hdrs["X-Custom-Header"], undefined);
+                assert.strictEqual(hdrs["Authorization"], undefined);
+            });
+
+            it("set() on incoming headers is also lowercase", () => {
+                var svr2 = new http.Server(0, (req) => {
+                    // add a header with uppercase key via set()
+                    req.headers.set("X-Added-By-Handler", "yes");
+                    req.response.json(req.headers);
+                });
+                svr2.start();
+                var port2 = svr2.socket.localPort;
+
+                try {
+                    var resp = http.get(`http://127.0.0.1:${port2}/`);
+                    var hdrs = resp.json();
+                    assert.equal(hdrs["x-added-by-handler"], "yes");
+                    assert.strictEqual(hdrs["X-Added-By-Handler"], undefined);
+                } finally {
+                    svr2.stop();
+                }
+            });
+
+            it("append() on incoming headers is also lowercase", () => {
+                var svr3 = new http.Server(0, (req) => {
+                    req.headers.append("X-Appended", "val1");
+                    req.headers.append("X-Appended", "val2");
+                    req.response.json(req.headers);
+                });
+                svr3.start();
+                var port3 = svr3.socket.localPort;
+
+                try {
+                    var resp = http.get(`http://127.0.0.1:${port3}/`);
+                    var hdrs = resp.json();
+                    // both appended values should be under lowercase key
+                    assert.strictEqual(hdrs["X-Appended"], undefined);
+                    assert.ok(hdrs["x-appended"] !== undefined);
+                } finally {
+                    svr3.stop();
+                }
+            });
+
+            it("outgoing request headers preserve original case", () => {
+                // A newly constructed HttpRequest (not incoming) must NOT lowercase
+                var req = new http.Request();
+                req.setHeader("X-Outgoing", "value");
+                var v = req.firstHeader("X-Outgoing");
+                assert.equal(v, "value");
+                // key stored with original case
+                assert.ok(req.headers.has("X-Outgoing"));
+            });
+        });
     });
 
     describe("cookie", () => {
@@ -4076,7 +4155,7 @@ describe("http", () => {
             it("header", () => {
                 var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/header');
                 assert.deepEqual(req_header(hr, 'test'), {
-                    "Host": "127.0.0.1:" + (8885 + base_port)
+                    "host": "127.0.0.1:" + (8885 + base_port)
                 });
             });
 
@@ -4084,7 +4163,7 @@ describe("http", () => {
                 var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/cookie');
                 req_cookie(hr, 'test');
                 assert.deepEqual(req_cookie(hr, 'test'), {
-                    "Host": "127.0.0.1:" + (8885 + base_port)
+                    "host": "127.0.0.1:" + (8885 + base_port)
                 });
             });
 
