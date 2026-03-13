@@ -303,6 +303,19 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
     return 0;
 }
 
+result_t TcpServer::address(obj_ptr<AddressType>& retVal)
+{
+    if (!m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = new AddressType();
+
+    m_socket->get_localAddress(retVal->address);
+    m_socket->get_localPort(retVal->port);
+
+    return 0;
+}
+
 result_t TcpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_hdlr;

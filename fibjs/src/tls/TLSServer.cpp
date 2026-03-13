@@ -146,6 +146,11 @@ result_t TLSServer::set_timeout(int32_t newVal)
     return m_server->set_timeout(newVal);
 }
 
+result_t TLSServer::address(obj_ptr<AddressType>& retVal)
+{
+    return m_server->address(retVal);
+}
+
 result_t TLSServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     return m_server->get_socket(retVal);

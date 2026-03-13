@@ -22,6 +22,7 @@ public:
     virtual result_t stop(AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac);
+    virtual result_t address(obj_ptr<AddressType>& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal);

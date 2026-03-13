@@ -152,6 +152,11 @@ result_t HttpsServer::set_timeout(int32_t newVal)
     return m_server->set_timeout(newVal);
 }
 
+result_t HttpsServer::address(obj_ptr<AddressType>& retVal)
+{
+    return m_server->address(retVal);
+}
+
 result_t HttpsServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     return m_server->get_socket(retVal);

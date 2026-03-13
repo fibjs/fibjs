@@ -77,6 +77,11 @@ interface TcpServer : EventEmitter
     /*! @brief Close socket to stop the running server, alias for stop() */
     close() async;
 
+    /*! @brief Return an object containing the bound address and port of the server as reported by the operating system. Useful to find which port was assigned when getting an OS-assigned address.
+     @return Returns the bound address and port of the server
+    */
+    (String address, Integer port) address();
+
     /*! @brief The Socket object currently listened by the server */
     readonly Socket socket;
 

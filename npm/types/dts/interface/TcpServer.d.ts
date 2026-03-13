@@ -145,6 +145,13 @@ declare class Class_TcpServer extends Class_EventEmitter {
     closeAsync(): Promise<void>;
 
     /**
+     * @description 返回一个包含服务器绑定地址和端口的对象。用于获取操作系统分配的地址时查找实际端口。
+     *      @return 返回服务器绑定的地址和端口
+     *     
+     */
+    address(): [address: string, port: number];
+
+    /**
      * @description 服务器当前侦听的 Socket 对象  
      */
     readonly socket: Class_Socket;

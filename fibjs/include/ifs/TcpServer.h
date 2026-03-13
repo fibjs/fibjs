@@ -25,6 +25,27 @@ class TcpServer_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    class AddressType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            retVal->Set(context, isolate->NewString("address"), GetReturnValue(isolate, address)).Check();
+            retVal->Set(context, isolate->NewString("port"), GetReturnValue(isolate, port)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, address));
+            args.push_back(GetReturnValue(isolate, port));
+        }
+
+    public:
+        exlib::string address;
+        int32_t port;
+    };
+
+public:
     // TcpServer_base
     static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -35,6 +56,7 @@ public:
     virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
@@ -51,6 +73,7 @@ public:
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_address(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,7 +105,8 @@ inline ClassInfo& TcpServer_base::class_info()
         { "start", s_start, false, ClassData::ASYNC_SYNC },
         { "listen", s_listen, false, ClassData::ASYNC_ASYNC },
         { "stop", s_stop, false, ClassData::ASYNC_ASYNC },
-        { "close", s_close, false, ClassData::ASYNC_ASYNC }
+        { "close", s_close, false, ClassData::ASYNC_ASYNC },
+        { "address", s_address, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -230,6 +254,20 @@ inline void TcpServer_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->ac_close();
 
     METHOD_VOID();
+}
+
+inline void TcpServer_base::s_address(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<AddressType> vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->address(vr);
+
+    METHOD_RETURN();
 }
 
 inline void TcpServer_base::s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args)
