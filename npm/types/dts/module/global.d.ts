@@ -415,6 +415,33 @@ declare module 'global' {
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
 
     /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+
+    /**
      * @description 将一个微任务排入队列执行
      *      回调函数将在当前任务完成后、下一个任务开始之前执行。
      * 

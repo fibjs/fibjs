@@ -69,6 +69,7 @@ public:
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -125,6 +126,7 @@ public:
     ASYNC_MEMBERVALUE3(HttpClient_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
 };
 }
 
@@ -804,6 +806,16 @@ inline void HttpClient_base::s_fetch(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->acb_fetch(v0, v1, cb, args);
     else
         hr = pInst->ac_fetch(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<HttpRequest_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_fetch(v0.get(), v1, cb, args);
+    else
+        hr = pInst->ac_fetch(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

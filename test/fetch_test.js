@@ -762,4 +762,94 @@ describe("fetch - error cases", () => {
             );
         });
     });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // B. Request constructor API
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("fetch - Request API", () => {
+        it("new Request() with string URL", () => {
+            const req = new Request('http://example.com/path');
+            assert.strictEqual(req.method, 'GET');
+            assert.ok(req.url.includes('example.com/path'));
+        });
+
+        it("new Request() with method", () => {
+            const req = new Request('http://example.com', { method: 'POST' });
+            assert.strictEqual(req.method, 'POST');
+        });
+
+        it("new Request() with headers", () => {
+            const req = new Request('http://example.com', {
+                headers: { 'X-Custom': 'test' }
+            });
+            assert.strictEqual(req.headers.get('x-custom'), 'test');
+        });
+
+        it("new Request() with body", async () => {
+            const req = new Request('http://example.com', {
+                method: 'POST',
+                body: 'request body'
+            });
+            const text = await req.text();
+            assert.strictEqual(text, 'request body');
+        });
+
+        it("Request clone()", async () => {
+            const req = new Request('http://example.com', {
+                method: 'POST',
+                body: 'clone me',
+                headers: { 'X-Test': 'val' }
+            });
+            const clone = req.clone();
+            assert.strictEqual(clone.method, 'POST');
+            assert.strictEqual(clone.headers.get('x-test'), 'val');
+            const text = await clone.text();
+            assert.strictEqual(text, 'clone me');
+        });
+
+        it("new Request() from existing Request", () => {
+            const req1 = new Request('http://example.com', {
+                method: 'PUT',
+                headers: { 'X-From': 'original' }
+            });
+            const req2 = new Request(req1);
+            assert.strictEqual(req2.method, 'PUT');
+            assert.strictEqual(req2.headers.get('x-from'), 'original');
+        });
+
+        it("new Request() from existing Request with overrides", () => {
+            const req1 = new Request('http://example.com', { method: 'PUT' });
+            const req2 = new Request(req1, { method: 'DELETE' });
+            assert.strictEqual(req2.method, 'DELETE');
+        });
+
+        it("GET with body throws TypeError", () => {
+            assert.throws(
+                () => new Request('http://localhost', { method: 'GET', body: 'x' }),
+                { name: 'TypeError' }
+            );
+        });
+
+        it("HEAD with body throws TypeError", () => {
+            assert.throws(
+                () => new Request('http://localhost', { method: 'HEAD', body: 'x' }),
+                { name: 'TypeError' }
+            );
+        });
+
+        it("fetch accepts Request object", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end(`${req.method} ${req.url}`);
+            });
+            try {
+                const request = new Request(ctx.baseUrl + '/via-request', { method: 'POST', body: 'hi' });
+                const resp = await fetch(request);
+                const text = await resp.text();
+                assert.strictEqual(text, 'POST /via-request');
+            } finally {
+                ctx.server.close();
+            }
+        });
+    });
 });

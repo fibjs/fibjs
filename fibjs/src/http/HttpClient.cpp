@@ -794,29 +794,21 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     return request(conn, req, NULL, retVal, ac);
 }
 
-result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-    SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal,
-    AsyncEvent* ac, bool headerOnly)
+result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
 {
     class asyncRequest : public AsyncState {
     public:
-        asyncRequest(HttpClient* hc, exlib::string method, obj_ptr<Url>& u,
-            SeekableStream_base* body, SeekableStream_base* response_body, bool keepAlive,
-            Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
+        asyncRequest(HttpClient* hc, HttpRequest::Options* o,
+            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
             : AsyncState(ac)
-            , m_method(method)
-            , m_u(u)
-            , m_body(body)
-            , m_response_body(response_body)
-            , m_keepAlive(keepAlive)
-            , m_headers(headers)
+            , m_o(o)
             , m_retVal(retVal)
             , m_hc(hc)
             , m_headerOnly(headerOnly)
         {
-            m_u->toString(m_url);
-            if (m_response_body)
-                m_response_body->tell(m_response_pos);
+            m_o->u->toString(m_url);
+            if (m_o->response_body)
+                m_o->response_body->tell(m_response_pos);
             next(prepare);
         }
 
@@ -830,8 +822,8 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             exlib::string cookie;
 
             m_ssl = false;
-            exlib::string protocol = m_u->protocol();
-            exlib::string host = m_u->host();
+            exlib::string protocol = m_o->u->protocol();
+            exlib::string host = m_o->u->host();
             if (protocol == "https:") {
                 m_ssl = true;
                 m_connUrl = "ssl://";
@@ -849,15 +841,15 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
             m_connUrl.append(host);
 
-            if (!_domain && m_u->port().empty())
+            if (!_domain && m_o->u->port().empty())
                 m_connUrl.append(m_ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
 
-            m_req->set_method(m_method);
+            m_req->set_method(m_o->method);
 
-            exlib::string hostname = m_u->hostname();
-            exlib::string portStr = m_u->port();
+            exlib::string hostname = m_o->u->hostname();
+            exlib::string portStr = m_o->u->port();
             int32_t port = portStr.empty() ? (m_ssl ? 443 : 80) : atoi(portStr.c_str());
             if (!m_hc->should_bypass_proxy(hostname, port)) {
                 m_http_proxy = m_hc->m_http_proxy;
@@ -866,7 +858,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             }
 
             if (m_http_proxy.empty() || m_ssl) {
-                m_u->get_path(path);
+                m_o->u->get_path(path);
                 m_req->set_address(path);
             } else
                 m_req->set_address(m_url);
@@ -884,10 +876,10 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                     m_req->appendHeader("Cookie", cookie);
             }
 
-            m_req->set_keepAlive(m_keepAlive);
+            m_req->set_keepAlive(m_o->keepAlive);
 
-            if (m_headers)
-                m_req->appendHeader(m_headers);
+            if (m_o->headers)
+                m_req->appendHeader(m_o->headers);
 
             exlib::string a = m_hc->agent();
             if (!a.empty()) {
@@ -902,11 +894,11 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (!bHost)
                 m_req->appendHeader("Host", host);
 
-            if (m_body)
-                m_req->set_body(m_body);
+            if (m_o->body)
+                m_req->set_body(m_o->body);
 
             if (m_ssl)
-                m_sslhost = m_u->hostname();
+                m_sslhost = m_o->u->hostname();
             else
                 m_sslhost.clear();
 
@@ -1106,7 +1098,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (!m_ssl)
                 m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
 
-            return m_hc->request(m_conn, m_req, m_response_body, m_retVal, next(requested), m_headerOnly);
+            return m_hc->request(m_conn, m_req, m_o->response_body, m_retVal, next(requested), m_headerOnly);
         }
 
         ON_STATE(asyncRequest, requested)
@@ -1159,16 +1151,16 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (hr < 0)
                 return hr;
 
-            m_u->resolve(location, u1);
-            m_u = u1.As<Url>();
+            m_o->u->resolve(location, u1);
+            m_o->u = u1.As<Url>();
             m_url.resize(0);
-            m_u->toString(m_url);
+            m_o->u->toString(m_url);
 
             if (m_urls.find(m_url) != m_urls.end())
                 return CHECK_ERROR(Runtime::setTypeError("HttpClient: redirect cycle"));
 
-            if (m_response_body)
-                m_response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
+            if (m_o->response_body)
+                m_o->response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
 
             return next(prepare);
         }
@@ -1185,17 +1177,12 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         }
 
     private:
-        exlib::string m_method;
-        obj_ptr<Url> m_u;
+        obj_ptr<HttpRequest::Options> m_o;
         exlib::string m_url;
         exlib::string m_sslhost;
         bool m_ssl;
         exlib::string m_http_proxy;
-        obj_ptr<SeekableStream_base> m_body;
-        obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;
-        bool m_keepAlive;
-        obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
         std::unordered_map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
@@ -1211,63 +1198,47 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(this, method, u, body, response_body, keepAlive, headers, retVal, ac, headerOnly))->post(0);
+    return (new asyncRequest(this, o, retVal, ac, headerOnly))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    SeekableStream_base* response_body, bool keepAlive, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    SeekableStream_base* response_body, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
+    o->method = method;
+    o->keepAlive = m_keepAlive;
+    o->headers = headers;
+    o->body = body;
+    o->response_body = response_body;
 
     obj_ptr<Url> u = new Url();
     result_t hr = u->parse(url);
     if (hr < 0)
         return hr;
+    o->u = u;
 
-    return request(method, u, body, response_body, keepAlive, headers, retVal, ac, false);
+    return request(o.get(), retVal, ac, false);
 }
 
 result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    ac->m_ctx.resize(6);
+    ac->m_ctx.resize(1);
 
-    exlib::string _method;
-    obj_ptr<Headers_base> headers;
-    obj_ptr<SeekableStream_base> stm, rsp_stm;
-    result_t hr;
-
-    hr = HttpRequest::parse_opts(method, opts, true, _method, headers, stm, rsp_stm);
+    obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
+    result_t hr = o->from_opts(method, opts, true);
     if (hr < 0)
         return hr;
 
-    obj_ptr<Url> u = new Url();
-    hr = u->parse(url);
+    hr = o->resolve_url(url, opts);
     if (hr < 0)
         return hr;
 
-    obj_ptr<Url> u1 = new Url();
-    u1->format(opts);
+    o->apply_keepalive_default(m_keepAlive);
 
-    obj_ptr<UrlObject_base> uo;
-    hr = u->resolve(u1->href(), uo);
-    if (hr < 0)
-        return hr;
-
-    u = uo.As<Url>();
-
-    ac->m_ctx[0] = _method;
-    ac->m_ctx[1] = u;
-    ac->m_ctx[2] = headers;
-    ac->m_ctx[3] = stm;
-    ac->m_ctx[4] = rsp_stm;
-
-    bool keepAlive = m_keepAlive;
-    hr = GetConfigValue(opts, "keepAlive", keepAlive);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    ac->m_ctx[5] = keepAlive;
-
+    ac->m_ctx[0] = o;
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
@@ -1277,14 +1248,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url, v8::Local<
     if (ac->isSync())
         return get_request_opts(method, url, opts, ac);
 
-    exlib::string _method = ac->m_ctx[0].string();
-    obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
-    obj_ptr<Headers_base> headers = (Headers_base*)ac->m_ctx[2].object();
-    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
-    obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
-    bool keepAlive = ac->m_ctx[5].boolVal();
-
-    return request(_method, u, stm, rsp_stm, keepAlive, headers, retVal, ac, headerOnly);
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    return request(o.get(), retVal, ac, headerOnly);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -1341,88 +1306,91 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     return request("HEAD", url, opts, retVal, ac);
 }
 
+// Async state machine shared by both fetch(url) and fetch(request).
+class asyncFetch : public AsyncState {
+public:
+    asyncFetch(HttpClient* hc, obj_ptr<HttpRequest::Options> o,
+        obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
+        : AsyncState(ac)
+        , m_hc(hc)
+        , m_o(o)
+        , m_retVal(retVal)
+    {
+        next(do_request);
+    }
+
+    virtual int32_t error(int32_t v) override
+    {
+        // Per Fetch spec, all fetch errors are TypeErrors
+        exlib::string msg = (v == CALL_E_EXCEPTION)
+            ? Runtime::errMessage()
+            : getResultMessage(v);
+        Runtime::setTypeError(msg);
+        return CALL_E_EXCEPTION;
+    }
+
+    ON_STATE(asyncFetch, do_request)
+    {
+        return m_hc->request(m_o.get(), m_httpResp, next(do_wrap), false);
+    }
+
+    ON_STATE(asyncFetch, do_wrap)
+    {
+        exlib::string finalUrl;
+        m_o->u->toString(finalUrl);
+
+        obj_ptr<WebResponse> resp = new WebResponse();
+        result_t hr = resp->initFromHttpResponse(m_httpResp, finalUrl, false);
+        if (hr < 0)
+            return hr;
+
+        m_retVal = resp;
+        return next();
+    }
+
+private:
+    obj_ptr<HttpClient> m_hc;
+    obj_ptr<HttpRequest::Options> m_o;
+    obj_ptr<HttpResponse_base> m_httpResp;
+    obj_ptr<WebResponse_base>& m_retVal;
+};
+
 result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
 {
-    // Async state machine: first run request(), then wrap the HttpResponse as WebResponse.
-    class asyncFetch : public AsyncState {
-    public:
-        asyncFetch(HttpClient* hc, exlib::string url, exlib::string method,
-            obj_ptr<Url> u, obj_ptr<SeekableStream_base> body,
-            obj_ptr<SeekableStream_base> rsp_stm, bool keepAlive,
-            obj_ptr<Headers_base> headers,
-            obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
-            : AsyncState(ac)
-            , m_hc(hc)
-            , m_url(url)
-            , m_method(method)
-            , m_u(u)
-            , m_body(body)
-            , m_rsp_stm(rsp_stm)
-            , m_keepAlive(keepAlive)
-            , m_headers(headers)
-            , m_retVal(retVal)
-        {
-            next(do_request);
-        }
-
-        virtual int32_t error(int32_t v) override
-        {
-            // Per Fetch spec, all fetch errors are TypeErrors
-            exlib::string msg = (v == CALL_E_EXCEPTION)
-                ? Runtime::errMessage()
-                : getResultMessage(v);
-            Runtime::setTypeError(msg);
-            return CALL_E_EXCEPTION;
-        }
-
-        ON_STATE(asyncFetch, do_request)
-        {
-            return m_hc->request(m_method, m_u, m_body, m_rsp_stm,
-                m_keepAlive, m_headers, m_httpResp, next(do_wrap), false);
-        }
-
-        ON_STATE(asyncFetch, do_wrap)
-        {
-            exlib::string finalUrl;
-            m_u->toString(finalUrl);
-
-            obj_ptr<WebResponse> resp = new WebResponse();
-            result_t hr = resp->initFromHttpResponse(m_httpResp, finalUrl, false);
-            if (hr < 0)
-                return hr;
-
-            m_retVal = resp;
-            return next();
-        }
-
-    private:
-        obj_ptr<HttpClient> m_hc;
-        exlib::string m_url;
-        exlib::string m_method;
-        obj_ptr<Url> m_u;
-        obj_ptr<SeekableStream_base> m_body;
-        obj_ptr<SeekableStream_base> m_rsp_stm;
-        bool m_keepAlive;
-        obj_ptr<Headers_base> m_headers;
-        obj_ptr<HttpResponse_base> m_httpResp;
-        obj_ptr<WebResponse_base>& m_retVal;
-    };
-
-    // Sync phase: parse v8::Local opts into ac->m_ctx (same as request() does).
+    // Sync phase: parse v8::Local opts into ac->m_ctx as a single Options object.
     if (ac->isSync())
         return get_request_opts("GET", url, opts, ac);
 
-    exlib::string _method = ac->m_ctx[0].string();
-    obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
-    obj_ptr<Headers_base> headers = (Headers_base*)ac->m_ctx[2].object();
-    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
-    obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
-    bool keepAlive = ac->m_ctx[5].boolVal();
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    return (new asyncFetch(this, o, retVal, ac))->post(0);
+}
 
-    exlib::string resolvedUrl;
-    u->toString(resolvedUrl);
+result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
+    obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac)
+{
+    // Sync phase: extract url/method from the request, apply opts overrides.
+    if (ac->isSync()) {
+        exlib::string req_method;
+        request->get_method(req_method);
 
-    return (new asyncFetch(this, resolvedUrl, _method, u, stm, rsp_stm, keepAlive, headers, retVal, ac))->post(0);
+        obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
+        result_t hr = o->from_opts(req_method, opts, true, true);
+        if (hr < 0)
+            return hr;
+
+        hr = o->apply_from_request(request);
+        if (hr < 0)
+            return hr;
+
+        o->apply_keepalive_default(m_keepAlive);
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = o;
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    return (new asyncFetch(this, o, retVal, ac))->post(0);
 }
 }

@@ -60,6 +60,7 @@ public:
     static result_t atob(exlib::string data, exlib::string& retVal);
     static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
     static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
     static result_t queueMicrotask(v8::Local<v8::Function> callback);
 
 public:
@@ -94,6 +95,7 @@ public:
 
 public:
     ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
+    ASYNC_STATICVALUE3(global_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
 };
 }
 
@@ -417,6 +419,16 @@ inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_fetch(v0, v1, cb, args);
     else
         hr = ac_fetch(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<HttpRequest_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_fetch(v0.get(), v1, cb, args);
+    else
+        hr = ac_fetch(v0.get(), v1, vr);
 
     METHOD_RETURN();
 }

@@ -405,4 +405,7 @@ module http
      @return 返回 WebResponse 对象
     */
     static WebResponse fetch(String url, Object opts = {}) async;
+
+    /**/
+    static WebResponse fetch(HttpRequest request, Object opts = {}) async;
 };

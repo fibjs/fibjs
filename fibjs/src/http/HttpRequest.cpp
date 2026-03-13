@@ -27,82 +27,158 @@ result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8:
     return 0;
 }
 
-result_t HttpRequest::parse_opts(exlib::string default_method, v8::Local<v8::Object> opts,
-    bool urlEncoded_default,
-    exlib::string& out_method, obj_ptr<Headers_base>& out_headers,
-    obj_ptr<SeekableStream_base>& out_body, obj_ptr<SeekableStream_base>& out_rsp_stm)
+result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+    bool urlEncoded_default, bool strict)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
     result_t hr;
 
-    out_method = default_method;
-    GetConfigValue(opts, "method", out_method, true);
-
-    hr = GetConfigValue(opts, "headers", out_headers);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
-        out_headers = new Headers();
-    else if (hr < 0)
-        return hr;
+    method = default_method;
+    GetConfigValue(opts, "method", method, true);
 
     JSValue v = opts->Get(context, isolate->NewString("body", 4));
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    if (!v->IsUndefined()) {
-        hr = body_to_stream(isolate, v, out_body, out_headers.get(), urlEncoded_default);
+    // Validate: GET and HEAD must not have a body (Fetch API strict mode)
+    bool has_body = !v->IsUndefined() && !v->IsNull();
+    if (strict && has_body) {
+        exlib::string m_upper = method;
+        for (char& c : m_upper)
+            c = toupper((unsigned char)c);
+        if (m_upper == "GET" || m_upper == "HEAD")
+            return CHECK_ERROR(Runtime::setTypeError("Request: GET/HEAD requests cannot have a body"));
+    }
+
+    hr = GetConfigValue(opts, "headers", headers);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        headers = new Headers();
+    else if (hr < 0)
+        return hr;
+
+    if (has_body) {
+        hr = body_to_stream(isolate, v, body, headers.get(), urlEncoded_default);
         if (hr < 0 && hr != CALL_RETURN_NULL)
             return hr;
     } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
-        out_body = new MemoryStream();
+        body = new MemoryStream();
         exlib::string s;
         hr = json_base::encode(v, s);
         if (hr < 0)
             return hr;
         obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
         bool wr;
-        out_body->cc_write(buf, wr);
+        body->cc_write(buf, wr);
         Variant ct;
-        if (out_headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            out_headers->set("Content-Type", "application/json");
+        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            headers->set("Content-Type", "application/json");
     } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
-        out_body = new MemoryStream();
+        body = new MemoryStream();
         obj_ptr<Buffer_base> buf;
         hr = msgpack_base::encode(v, buf);
         if (hr < 0)
             return hr;
         bool wr;
-        out_body->cc_write(buf, wr);
+        body->cc_write(buf, wr);
         Variant ct;
-        if (out_headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            out_headers->set("Content-Type", "application/msgpack");
+        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            headers->set("Content-Type", "application/msgpack");
     }
 
-    hr = GetConfigValue(opts, "response_body", out_rsp_stm);
+    hr = GetConfigValue(opts, "response_body", response_body);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    bool ka;
+    hr = GetConfigValue(opts, "keepAlive", ka);
+    if (hr == 0) {
+        keepAlive = ka;
+        has_keepAlive = true;
+    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     return 0;
 }
 
+result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Object> opts)
+{
+    obj_ptr<Url> base = new Url();
+    result_t hr = base->parse(url);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Url> override = new Url();
+    override->format(opts);
+
+    obj_ptr<UrlObject_base> resolved;
+    hr = base->resolve(override->href(), resolved);
+    if (hr < 0)
+        return hr;
+
+    u = resolved.As<Url>();
+    return 0;
+}
+
+result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req)
+{
+    // Parse URL from request's address
+    exlib::string url;
+    req->get_url(url);
+    u = new Url();
+    result_t hr = u->parse(url);
+    if (hr < 0)
+        return hr;
+
+    // Body fallback: use request's body if opts didn't provide one
+    if (!body) {
+        obj_ptr<SeekableStream_base> req_body;
+        if (req->get_body(req_body) == 0 && req_body)
+            body = req_body;
+    }
+
+    // Headers: request's headers as base, opts headers override
+    obj_ptr<Headers_base> req_hdrs;
+    req->get_headers(req_hdrs);
+    if (req_hdrs) {
+        Headers* req_h = static_cast<Headers*>(req_hdrs.get());
+        obj_ptr<Headers> merged = new Headers();
+        merged->m_map.insert(merged->m_map.end(), req_h->m_map.begin(), req_h->m_map.end());
+        if (headers) {
+            Headers* opt_h = static_cast<Headers*>(headers.get());
+            for (auto& kv : opt_h->m_map)
+                merged->set(kv.first, kv.second.string());
+        }
+        headers = merged;
+    }
+
+    return 0;
+}
+
+void HttpRequest::set_options(const Options& o)
+{
+    set_method(o.method);
+    if (o.u)
+        set_address(o.u->href());
+    if (o.headers)
+        appendHeader(o.headers.get());
+    if (o.body)
+        set_body(o.body);
+    if (o.has_keepAlive)
+        set_keepAlive(o.keepAlive);
+}
+
 result_t HttpRequest_base::_new(exlib::string url, v8::Local<v8::Object> options,
     obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
-    exlib::string method;
-    obj_ptr<Headers_base> headers;
-    obj_ptr<SeekableStream_base> stm, rsp_stm;
-
-    result_t hr = HttpRequest::parse_opts("GET", options, false, method, headers, stm, rsp_stm);
+    HttpRequest::Options o;
+    result_t hr = o.from_opts("GET", options, false, true);
     if (hr < 0)
         return hr;
 
     obj_ptr<HttpRequest> req = new HttpRequest();
     req->set_address(url);
-    req->set_method(method);
-    if (headers)
-        req->appendHeader(headers.get());
-    if (stm)
-        req->set_body(stm);
+    req->set_options(o);
 
     retVal = req;
     return 0;
@@ -121,19 +197,12 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     exlib::string cur_method;
     req->get_method(cur_method);
 
-    exlib::string method;
-    obj_ptr<Headers_base> headers;
-    obj_ptr<SeekableStream_base> stm, rsp_stm;
-
-    hr = HttpRequest::parse_opts(cur_method, options, false, method, headers, stm, rsp_stm);
+    HttpRequest::Options o;
+    hr = o.from_opts(cur_method, options, false, true);
     if (hr < 0)
         return hr;
 
-    req->set_method(method);
-    if (headers)
-        req->appendHeader(headers.get());
-    if (stm)
-        req->set_body(stm);
+    req->set_options(o);
 
     retVal = req;
     return 0;

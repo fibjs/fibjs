@@ -1106,5 +1106,13 @@ declare module 'http' {
      */
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
 
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+
+    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+
 }
 

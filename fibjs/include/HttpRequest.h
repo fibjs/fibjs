@@ -12,6 +12,7 @@
 #include "HttpResponse.h"
 #include "Headers.h"
 #include "HttpCollection.h"
+#include "Url.h"
 
 namespace fibjs {
 
@@ -107,13 +108,43 @@ public:
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal);
 
 public:
-    // Parse fetch/request init options into out params.
-    // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded
-    //                     false → string body gets text/plain;charset=UTF-8
-    static result_t parse_opts(exlib::string default_method, v8::Local<v8::Object> opts,
-        bool urlEncoded_default,
-        exlib::string& out_method, obj_ptr<Headers_base>& out_headers,
-        obj_ptr<SeekableStream_base>& out_body, obj_ptr<SeekableStream_base>& out_rsp_stm);
+    // Options holds all parsed fetch/request parameters.
+    // Inherits obj_base so it can be stored as a single slot in AsyncEvent::m_ctx.
+    class Options : public obj_base {
+    public:
+        exlib::string method;
+        obj_ptr<Url> u;
+        obj_ptr<Headers_base> headers;
+        obj_ptr<SeekableStream_base> body;
+        obj_ptr<SeekableStream_base> response_body;
+        bool keepAlive = true;
+        bool has_keepAlive = false;
+
+        // Parse method/headers/body/response_body/keepAlive from a v8 opts object.
+        // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded
+        //                     false → string body gets text/plain;charset=UTF-8
+        // strict: true → reject GET/HEAD requests with a body (Fetch API)
+        result_t from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+            bool urlEncoded_default, bool strict = false);
+
+        // Fill u (URL), body fallback, and merged headers from an existing request.
+        // Must be called after from_opts so that opts-supplied values take precedence.
+        result_t apply_from_request(HttpRequest_base* req);
+
+        // Resolve u from a base URL string + URL-override fields in opts.
+        result_t resolve_url(exlib::string url, v8::Local<v8::Object> opts);
+
+        // Apply a fallback keepAlive value when the caller did not specify one.
+        void apply_keepalive_default(bool default_val)
+        {
+            if (!has_keepAlive)
+                keepAlive = default_val;
+        }
+    };
+
+public:
+    // Apply parsed Options to this request (method, headers, body, keepAlive).
+    void set_options(const Options& o);
 
 public:
     void _appendHeader(exlib::string name, exlib::string value)

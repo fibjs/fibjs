@@ -43,7 +43,15 @@ public:
         if (m_es->m_readyState == sse_base::C_CLOSED)
             return next();
 
-        return m_hc->request("POST", "", v8::Local<v8::Object>(), m_es->m_response, next(opened), true);
+        obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
+        o->method = "GET";
+        o->keepAlive = true;
+
+        obj_ptr<Url> u = new Url();
+        u->parse(m_url);
+        o->u = u;
+
+        return m_hc->request(o.get(), m_es->m_response, next(opened), true);
     }
 
     ON_STATE(AsyncEventSource, opened)
@@ -196,12 +204,12 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     AsyncEventSource* ac = new AsyncEventSource(hc.As<HttpClient>(), es, url);
 
-    result_t hr = hc.As<HttpClient>()->get_request_opts("POST", url, options, ac);
+    result_t hr = hc.As<HttpClient>()->get_request_opts("GET", url, options, ac);
     if (hr != CALL_E_NOSYNC)
         return hr;
 
-    obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
-    es->m_url = u->href();
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    es->m_url = o->u->href();
 
     ac->apost(0);
 

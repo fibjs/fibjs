@@ -374,4 +374,11 @@ interface HttpClient : object
      @return 返回 WebResponse 对象
      */
     WebResponse fetch(String url, Object opts = {}) async;
+
+    /*! @brief 发送 Fetch 请求，接受 Request 对象
+     @param request Request 请求对象
+     @param opts 请求选项（可覆盖 request 中的字段）
+     @return 返回服务器响应对象
+    */
+    WebResponse fetch(HttpRequest request, Object opts = {}) async;
 };

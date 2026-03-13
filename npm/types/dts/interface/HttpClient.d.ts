@@ -1046,5 +1046,34 @@ declare class Class_HttpClient extends Class_object {
      */
     fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
 
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+
 }
 
