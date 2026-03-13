@@ -1470,29 +1470,54 @@ describe("http", () => {
     });
 
     describe("Request.url", () => {
-        it("should build url with host and address", () => {
+        it("should return address with queryString", () => {
+            var req = new http.Request();
+            req.address = "/api/search";
+            req.queryString = "q=hello&page=1";
+
+            assert.equal(req.url, "/api/search?q=hello&page=1");
+        });
+
+        it("should return address without queryString", () => {
+            var req = new http.Request();
+            req.address = "/api/test";
+
+            assert.equal(req.url, "/api/test");
+        });
+
+        it("should handle empty queryString", () => {
+            var req = new http.Request();
+            req.address = "/path";
+            req.queryString = "";
+
+            assert.equal(req.url, "/path");
+        });
+    });
+
+    describe("Request.href", () => {
+        it("should build href with host and address", () => {
             var req = new http.Request();
             req.address = "/api/test";
             req.setHeader("Host", "example.com");
 
-            assert.equal(req.url, "http://example.com/api/test");
+            assert.equal(req.href, "http://example.com/api/test");
         });
 
-        it("should build url with host, port and address", () => {
+        it("should build href with host, port and address", () => {
             var req = new http.Request();
             req.address = "/api/test";
             req.setHeader("Host", "example.com:8080");
 
-            assert.equal(req.url, "http://example.com:8080/api/test");
+            assert.equal(req.href, "http://example.com:8080/api/test");
         });
 
-        it("should build url with queryString", () => {
+        it("should build href with queryString", () => {
             var req = new http.Request();
             req.address = "/api/search";
             req.queryString = "q=hello&page=1";
             req.setHeader("Host", "example.com");
 
-            assert.equal(req.url, "http://example.com/api/search?q=hello&page=1");
+            assert.equal(req.href, "http://example.com/api/search?q=hello&page=1");
         });
 
         it("should use X-Forwarded-Proto header for protocol", () => {
@@ -1501,14 +1526,14 @@ describe("http", () => {
             req.setHeader("Host", "api.example.com");
             req.setHeader("X-Forwarded-Proto", "https");
 
-            assert.equal(req.url, "https://api.example.com/secure");
+            assert.equal(req.href, "https://api.example.com/secure");
         });
 
         it("should default host to localhost", () => {
             var req = new http.Request();
             req.address = "/test";
 
-            assert.equal(req.url, "http://localhost/test");
+            assert.equal(req.href, "http://localhost/test");
         });
 
         it("should handle empty queryString", () => {
@@ -1517,7 +1542,7 @@ describe("http", () => {
             req.queryString = "";
             req.setHeader("Host", "example.com");
 
-            assert.equal(req.url, "http://example.com/path");
+            assert.equal(req.href, "http://example.com/path");
         });
     });
 

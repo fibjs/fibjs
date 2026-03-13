@@ -456,7 +456,18 @@ result_t HttpRequest::set_address(exlib::string newVal)
 
 result_t HttpRequest::get_url(exlib::string& retVal)
 {
-    // Determine protocol: check X-Forwarded-Proto header first, then check if socket is TLS
+    retVal = m_address;
+
+    if (!m_queryString.empty()) {
+        retVal.append(1, '?');
+        retVal.append(m_queryString);
+    }
+
+    return 0;
+}
+
+result_t HttpRequest::get_href(exlib::string& retVal)
+{
     exlib::string protocol;
     if (firstHeader("X-Forwarded-Proto", protocol) == CALL_RETURN_NULL || protocol.empty()) {
         obj_ptr<Stream_base> socket;
@@ -470,12 +481,10 @@ result_t HttpRequest::get_url(exlib::string& retVal)
         }
     }
 
-    // Get host from Host header
     exlib::string host;
     if (firstHeader("Host", host) == CALL_RETURN_NULL || host.empty())
         host = "localhost";
 
-    // Build full URL
     retVal = protocol;
     retVal.append("://");
     retVal.append(host);

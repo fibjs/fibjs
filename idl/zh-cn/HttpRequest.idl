@@ -34,8 +34,11 @@ interface HttpRequest : HttpMessage
     /*! @brief 查询和设置请求地址 */
     String address;
 
-    /*! @brief 获取请求的完整 URL，包含协议、主机、路径和查询字符串 */
+    /*! @brief 获取请求的 URL 路径和查询字符串，例如 /path?key=value */
     readonly String url;
+
+    /*! @brief 获取请求的完整 URL，包含协议、主机、路径和查询字符串 */
+    readonly String href;
 
     /*! @brief 查询和设置请求查询字符串 */
     String queryString;

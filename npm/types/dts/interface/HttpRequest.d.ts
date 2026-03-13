@@ -50,9 +50,14 @@ declare class Class_HttpRequest extends Class_HttpMessage {
     address: string;
 
     /**
-     * @description 获取请求的完整 URL，包含协议、主机、路径和查询字符串 
+     * @description 获取请求的 URL 路径和查询字符串，例如 /path?key=value 
      */
     readonly url: string;
+
+    /**
+     * @description 获取请求的完整 URL，包含协议、主机、路径和查询字符串 
+     */
+    readonly href: string;
 
     /**
      * @description 查询和设置请求查询字符串 

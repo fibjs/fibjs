@@ -98,6 +98,7 @@ public:
     virtual result_t get_address(exlib::string& retVal);
     virtual result_t set_address(exlib::string newVal);
     virtual result_t get_url(exlib::string& retVal);
+    virtual result_t get_href(exlib::string& retVal);
     virtual result_t get_queryString(exlib::string& retVal);
     virtual result_t set_queryString(exlib::string newVal);
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
