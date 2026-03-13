@@ -21,6 +21,7 @@ public:
     HttpCollectionTmpl(bool string_only)
         : m_string_only(string_only)
         , m_incoming(false)
+        , m_sorted(true)
     {
         m_map.reserve(16); // reserve space instead of resize
     }
@@ -74,6 +75,11 @@ public:
         return all(name, retVal);
     }
 
+    result_t getSetCookie(obj_ptr<NArray>& retVal)
+    {
+        return all("set-cookie", retVal);
+    }
+
     result_t append(exlib::string name, Variant value)
     {
         if (name.empty())
@@ -92,6 +98,7 @@ public:
         }
 
         m_map.emplace_back(name, value);
+        m_sorted = false;
         return 0;
     }
 
@@ -252,10 +259,12 @@ public:
 
     result_t sort()
     {
-        if (!m_map.empty())
-            std::sort(m_map.begin(), m_map.end(), [](const pair& a, const pair& b) {
+        if (!m_sorted) {
+            std::stable_sort(m_map.begin(), m_map.end(), [](const pair& a, const pair& b) {
                 return a.first < b.first;
             });
+            m_sorted = true;
+        }
 
         return 0;
     }
@@ -270,6 +279,7 @@ public:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
 
+        sort();
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
             v8::Local<v8::Value> key = isolate->NewString(_pair.first);
@@ -286,6 +296,7 @@ public:
 
     result_t keys(obj_ptr<Iterator_base>& retVal)
     {
+        sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(false);
@@ -300,6 +311,7 @@ public:
 
     result_t values(obj_ptr<Iterator_base>& retVal)
     {
+        sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(false);
@@ -314,6 +326,7 @@ public:
 
     result_t entries(obj_ptr<Iterator_base>& retVal)
     {
+        sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(false);
@@ -628,6 +641,7 @@ public:
     std::vector<pair> m_map;
     bool m_string_only;
     bool m_incoming;
+    bool m_sorted;
 };
 
 }

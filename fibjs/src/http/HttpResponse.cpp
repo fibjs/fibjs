@@ -671,7 +671,6 @@ result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
         obj_ptr<NArray> headers;
 
         allHeader("Set-Cookie", headers);
-        removeHeader("Set-Cookie");
 
         len = headers->length();
 

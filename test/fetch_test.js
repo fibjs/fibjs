@@ -269,6 +269,15 @@ describe("web fetch", () => {
             });
             assert.strictEqual(collected['x-response-id'], '12345');
         });
+
+        it("set-cookie via getSetCookie()", async () => {
+            const resp = await fetch(ctx.baseUrl);
+            const cookies = resp.headers.getSetCookie();
+            assert.ok(Array.isArray(cookies));
+            assert.ok(cookies.length >= 2);
+            assert.ok(cookies.some(c => c.includes('cookie1=v1')));
+            assert.ok(cookies.some(c => c.includes('cookie2=v2')));
+        });
     });
     // ─────────────────────────────────────────────────────────────────────────
     // 7. Response body consumption methods
@@ -700,6 +709,13 @@ describe("web fetch", () => {
             const h = new Headers({ 'A': '1', 'B': '2' });
             const entries = [...h.entries()];
             assert.ok(entries.length >= 2);
+        });
+
+        it("headers are sorted in iteration", () => {
+            const h = new Headers({ 'Z-Last': '1', 'A-First': '2', 'M-Mid': '3' });
+            const keys = [...h.keys()];
+            const sorted = [...keys].sort();
+            assert.deepStrictEqual(keys, sorted);
         });
 
     });

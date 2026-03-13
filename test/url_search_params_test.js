@@ -173,7 +173,7 @@ describe("URLSearchParams Test Suite", () => {
             for (const [key, value] of params) {
                 entries.push([key, value]);
             }
-            assert.deepStrictEqual(entries, [['a', '1'], ['b', '2'], ['a', '3']]);
+            assert.deepStrictEqual(entries, [['a', '1'], ['a', '3'], ['b', '2']]);
         });
 
         it("should iterate with forEach", () => {
@@ -182,25 +182,25 @@ describe("URLSearchParams Test Suite", () => {
             params.forEach((value, key) => {
                 collected.push([key, value]);
             });
-            assert.deepStrictEqual(collected, [['foo', 'bar'], ['baz', 'qux']]);
+            assert.deepStrictEqual(collected, [['baz', 'qux'], ['foo', 'bar']]);
         });
 
         it("should iterate keys", () => {
             const params = new URLSearchParams('a=1&b=2&a=3');
             const keys = Array.from(params.keys());
-            assert.deepStrictEqual(keys, ['a', 'b', 'a']);
+            assert.deepStrictEqual(keys, ['a', 'a', 'b']);
         });
 
         it("should iterate values", () => {
             const params = new URLSearchParams('a=1&b=2&a=3');
             const values = Array.from(params.values());
-            assert.deepStrictEqual(values, ['1', '2', '3']);
+            assert.deepStrictEqual(values, ['1', '3', '2']);
         });
 
         it("should iterate entries", () => {
             const params = new URLSearchParams('foo=bar&baz=qux');
             const entries = Array.from(params.entries());
-            assert.deepStrictEqual(entries, [['foo', 'bar'], ['baz', 'qux']]);
+            assert.deepStrictEqual(entries, [['baz', 'qux'], ['foo', 'bar']]);
         });
     });
 

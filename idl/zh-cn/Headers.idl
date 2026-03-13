@@ -106,4 +106,9 @@ interface Headers : HttpCollection
      @param init 初始化用的 HTTP 头部容器
      */
     Headers(Headers init);
+
+    /*! @brief 返回所有 Set-Cookie 头部值组成的数组
+     @return 返回包含所有 Set-Cookie 值的数组
+     */
+    NArray getSetCookie();
 };

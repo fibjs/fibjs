@@ -118,5 +118,12 @@ declare class Class_Headers extends Class_HttpCollection {
      */
     constructor(init: Class_Headers);
 
+    /**
+     * @description 返回所有 Set-Cookie 头部值组成的数组
+     *      @return 返回包含所有 Set-Cookie 值的数组
+     *      
+     */
+    getSetCookie(): any[];
+
 }
 

@@ -204,11 +204,11 @@ describe("http", () => {
         it("keys/values", () => {
             assert.deepEqual(Array.from(d.keys()), [
                 "b",
-                "d",
-                "d",
+                "b",
                 "c",
                 "d",
-                "b",
+                "d",
+                "d",
                 "f",
                 "f",
                 "g",
@@ -218,11 +218,11 @@ describe("http", () => {
             ]);
             assert.deepEqual(Array.from(d.values()), [
                 "200",
+                "1000",
+                "800",
                 "500",
                 "700",
-                "800",
                 "900",
-                "1000",
                 "200",
                 "400",
                 "300",
@@ -235,11 +235,11 @@ describe("http", () => {
         it("sort({})", () => {
             assert.deepEqual(Array.from(d.keys()), [
                 "b",
-                "d",
-                "d",
+                "b",
                 "c",
                 "d",
-                "b",
+                "d",
+                "d",
                 "f",
                 "f",
                 "g",

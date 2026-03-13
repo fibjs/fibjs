@@ -55,17 +55,11 @@ result_t WebResponse::initFromHttpResponse(HttpResponse_base* resp,
     resp->get_statusMessage(m_statusText);
     m_ok = (m_status >= 200 && m_status <= 299);
 
-    // Copy headers with lowercased names (Fetch spec: header names are byte-lowercase).
+    // Copy headers – incoming response headers are already lowercased by the HTTP parser.
     obj_ptr<Headers_base> srcHdrs;
     resp->get_headers(srcHdrs);
     Headers* src = (Headers*)srcHdrs.get();
-    for (auto& pair : src->m_map) {
-        exlib::string lowerName = pair.first;
-        for (size_t i = 0; i < lowerName.length(); i++)
-            if (lowerName[i] >= 'A' && lowerName[i] <= 'Z')
-                lowerName[i] = lowerName[i] - 'A' + 'a';
-        m_headers->append(lowerName, pair.second);
-    }
+    m_headers->m_map.insert(m_headers->m_map.end(), src->m_map.begin(), src->m_map.end());
 
     // body – MemoryStream is already filled after HttpClient::request()
     obj_ptr<SeekableStream_base> bodyStm;
