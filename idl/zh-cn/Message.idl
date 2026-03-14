@@ -33,7 +33,7 @@ interface Message : object
     readonly Value data;
 
     /*! @brief 包含消息数据部分的流对象 */
-    SeekableStream body;
+    Stream body;
 
     /*! @brief 查询消息的 body 是否已被消费 */
     readonly Boolean bodyUsed;

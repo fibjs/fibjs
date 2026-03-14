@@ -42,12 +42,12 @@ result_t WebSocketMessage::get_params(obj_ptr<NArray>& retVal)
     return m_message->get_params(retVal);
 }
 
-result_t WebSocketMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t WebSocketMessage::get_body(obj_ptr<Stream_base>& retVal)
 {
     return m_message->get_body(retVal);
 }
 
-result_t WebSocketMessage::set_body(SeekableStream_base* newVal)
+result_t WebSocketMessage::set_body(Stream_base* newVal)
 {
     return m_message->set_body(newVal);
 }
@@ -234,7 +234,9 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
             , m_mask(0)
             , m_take_over(false)
         {
-            m_pThis->get_body(m_body);
+            obj_ptr<Stream_base> _body_stream;
+            m_pThis->get_body(_body_stream);
+            m_body = _body_stream ? SeekableStream_base::getInstance(_body_stream) : nullptr;
 
             if (m_pThis->m_compress && m_body) {
                 m_data = new MemoryStream();

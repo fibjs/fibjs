@@ -203,7 +203,10 @@ public:
         if (!m_pThis->body())
             return next();
 
-        m_pThis->body()->rewind();
+        obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_pThis->body());
+        if (!seekable)
+            return CHECK_ERROR(Runtime::setError("HttpMessage: request body must be seekable."));
+        seekable->rewind();
         return m_pThis->body()->copyTo(m_stm, m_contentLength, m_copySize, next(body_ok));
     }
 

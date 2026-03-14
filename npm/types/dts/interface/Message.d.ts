@@ -1,8 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
-/// <reference path="../interface/SeekableStream.d.ts" />
-/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description 基础消息对象
  * 
@@ -49,7 +48,7 @@ declare class Class_Message extends Class_object {
     /**
      * @description 包含消息数据部分的流对象 
      */
-    body: Class_SeekableStream;
+    body: Class_Stream;
 
     /**
      * @description 查询消息的 body 是否已被消费 

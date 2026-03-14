@@ -62,9 +62,9 @@ result_t WebResponse::initFromHttpResponse(HttpResponse_base* resp,
     m_headers->m_map.insert(m_headers->m_map.end(), src->m_map.begin(), src->m_map.end());
 
     // body – MemoryStream is already filled after HttpClient::request()
-    obj_ptr<SeekableStream_base> bodyStm;
+    obj_ptr<Stream_base> bodyStm;
     resp->get_body(bodyStm);
-    m_body = bodyStm; // may be null for empty / HEAD responses
+    m_body = bodyStm ? SeekableStream_base::getInstance(bodyStm) : nullptr; // may be null for empty / HEAD responses
 
     m_bodyUsed = false;
     return 0;

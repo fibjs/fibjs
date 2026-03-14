@@ -33,7 +33,7 @@ interface Message : object
     readonly Value data;
 
     /*! @brief Stream object containing the message data part */
-    SeekableStream body;
+    Stream body;
 
     /*! @brief Read data of specified size from the stream, this method is an alias for the corresponding method of body
      @param bytes Specify the amount of data to read, default is to read a random size data block, the size of the read data depends on the device

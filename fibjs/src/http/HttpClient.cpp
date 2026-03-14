@@ -768,7 +768,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
         HttpRequest_base* m_req;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
-        obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<Stream_base> m_body;
         obj_ptr<HttpResponse> m_response;
         obj_ptr<SeekableStream_base> m_response_body;
         obj_ptr<HttpResponse_base>& m_retVal;

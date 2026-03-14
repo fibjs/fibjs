@@ -82,8 +82,14 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t Message::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t Message::get_body(obj_ptr<Stream_base>& retVal)
 {
+    // Streaming body takes precedence over buffered body
+    if (m_bodyStream) {
+        retVal = m_bodyStream;
+        return 0;
+    }
+
     if (m_body == NULL)
         return CALL_RETURN_NULL;
 
@@ -97,9 +103,21 @@ result_t Message::get_body(obj_ptr<SeekableStream_base>& retVal)
     return 0;
 }
 
-result_t Message::set_body(SeekableStream_base* newVal)
+result_t Message::set_body(Stream_base* newVal)
 {
-    m_body = newVal;
+    if (newVal) {
+        obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(newVal);
+        if (seekable) {
+            m_body = seekable;
+            m_bodyStream.Release();
+        } else {
+            m_bodyStream = newVal;
+            m_body.Release();
+        }
+    } else {
+        m_body.Release();
+        m_bodyStream.Release();
+    }
     return 0;
 }
 
@@ -337,6 +355,7 @@ result_t Message::clear()
     m_params.Release();
     m_value.clear();
     m_body.Release();
+    m_bodyStream.Release();
 
     return 0;
 }

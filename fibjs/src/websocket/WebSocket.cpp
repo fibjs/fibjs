@@ -152,10 +152,10 @@ public:
     ON_STATE(asyncSend, ok)
     {
         if (m_type == ws_base::C_CLOSE) {
-            obj_ptr<SeekableStream_base> body;
+            obj_ptr<Stream_base> body;
 
             m_msg->get_body(body);
-            m_this->endConnect(body);
+            m_this->endConnect(SeekableStream_base::getInstance(body));
         }
         return next();
     }
@@ -443,19 +443,19 @@ void WebSocket::startRecv(Isolate* isolate)
 
             switch (type) {
             case ws_base::C_PING: {
-                obj_ptr<SeekableStream_base> body;
+                obj_ptr<Stream_base> body;
                 m_msg->get_body(body);
-                (new asyncSend(m_this, body, ws_base::C_PONG))->post(0);
+                (new asyncSend(m_this, SeekableStream_base::getInstance(body), ws_base::C_PONG))->post(0);
                 break;
             }
             case ws_base::C_CLOSE: {
-                obj_ptr<SeekableStream_base> body;
+                obj_ptr<Stream_base> body;
                 m_msg->get_body(body);
 
                 if (m_this->m_closeState.CompareAndSwap(ws_base::C_OPEN, ws_base::C_CLOSING) == ws_base::C_OPEN)
-                    (new asyncSend(m_this, body, ws_base::C_CLOSE))->post(0);
+                    (new asyncSend(m_this, SeekableStream_base::getInstance(body), ws_base::C_CLOSE))->post(0);
                 else
-                    m_this->endConnect(body);
+                    m_this->endConnect(SeekableStream_base::getInstance(body));
 
                 return next(0);
             }

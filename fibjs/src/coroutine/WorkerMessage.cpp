@@ -30,12 +30,12 @@ result_t WorkerMessage::get_params(obj_ptr<NArray>& retVal)
     return m_message->get_params(retVal);
 }
 
-result_t WorkerMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t WorkerMessage::get_body(obj_ptr<Stream_base>& retVal)
 {
     return m_message->get_body(retVal);
 }
 
-result_t WorkerMessage::set_body(SeekableStream_base* newVal)
+result_t WorkerMessage::set_body(Stream_base* newVal)
 {
     return m_message->set_body(newVal);
 }

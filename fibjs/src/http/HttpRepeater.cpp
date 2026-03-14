@@ -154,7 +154,11 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             u->toString(m_url);
 
             req->get_method(m_method);
-            req->get_body(m_body);
+            {
+                obj_ptr<Stream_base> _body_stream;
+                req->get_body(_body_stream);
+                m_body = _body_stream ? SeekableStream_base::getInstance(_body_stream) : nullptr;
+            }
 
             req->get_headers(m_headers);
 
@@ -177,7 +181,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             int32_t code;
             exlib::string msg;
             obj_ptr<Headers_base> headers;
-            obj_ptr<SeekableStream_base> body;
+            obj_ptr<Stream_base> body;
 
             m_ret->get_statusCode(code);
             m_rep->set_statusCode(code);

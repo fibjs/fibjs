@@ -37,8 +37,8 @@ public:
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
-    virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-    virtual result_t set_body(SeekableStream_base* newVal);
+    virtual result_t get_body(obj_ptr<Stream_base>& retVal);
+    virtual result_t set_body(Stream_base* newVal);
     virtual result_t get_bodyUsed(bool& retVal) { return m_message->get_bodyUsed(retVal); }
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);

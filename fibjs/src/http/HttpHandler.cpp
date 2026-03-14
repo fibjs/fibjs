@@ -770,7 +770,10 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
 
                         if (m_rep->get_body(m_body) != CALL_RETURN_NULL && m_body) {
-                            m_body->rewind();
+                            obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);
+                            if (!seekable)
+                                return CHECK_ERROR(Runtime::setError("HttpHandler: response body must be seekable for compression."));
+                            seekable->rewind();
 
                             m_zip = new MemoryStream();
 
@@ -836,7 +839,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<HttpRequest_base> m_req;
         obj_ptr<HttpResponse_base> m_rep;
         obj_ptr<MemoryStream> m_zip;
-        obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<Stream_base> m_body;
         date_t m_d;
         bool m_options;
     };

@@ -15,9 +15,8 @@
 
 namespace fibjs {
 
-class SeekableStream_base;
-class Buffer_base;
 class Stream_base;
+class Buffer_base;
 
 class Message_base : public object_base {
     DECLARE_CLASS(Message_base);
@@ -38,8 +37,8 @@ public:
     virtual result_t get_type(int32_t& retVal) = 0;
     virtual result_t set_type(int32_t newVal) = 0;
     virtual result_t get_data(v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
-    virtual result_t set_body(SeekableStream_base* newVal) = 0;
+    virtual result_t get_body(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t set_body(Stream_base* newVal) = 0;
     virtual result_t get_bodyUsed(bool& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -112,9 +111,8 @@ public:
 };
 }
 
-#include "ifs/SeekableStream.h"
-#include "ifs/Buffer.h"
 #include "ifs/Stream.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& Message_base::class_info()
@@ -292,7 +290,7 @@ inline void Message_base::s_get_data(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void Message_base::s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<SeekableStream_base> vr;
+    obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
@@ -311,7 +309,7 @@ inline void Message_base::s_set_body(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<SeekableStream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 0);
 
     hr = pInst->set_body(v0);
 

@@ -141,9 +141,12 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req)
 
     // Body fallback: use request's body if opts didn't provide one
     if (!body) {
-        obj_ptr<SeekableStream_base> req_body;
-        if (req->get_body(req_body) == 0 && req_body)
-            body = req_body;
+        obj_ptr<Stream_base> req_body_stream;
+        if (req->get_body(req_body_stream) == 0 && req_body_stream) {
+            body = SeekableStream_base::getInstance(req_body_stream);
+            if (!body)
+                return CHECK_ERROR(Runtime::setError("HttpRequest: request body must be seekable."));
+        }
     }
 
     // Headers: request's headers as base, opts headers override
@@ -232,12 +235,12 @@ result_t HttpRequest::get_headers(obj_ptr<Headers_base>& retVal)
     return m_message->get_headers(retVal);
 }
 
-result_t HttpRequest::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t HttpRequest::get_body(obj_ptr<Stream_base>& retVal)
 {
     return m_message->get_body(retVal);
 }
 
-result_t HttpRequest::set_body(SeekableStream_base* newVal)
+result_t HttpRequest::set_body(Stream_base* newVal)
 {
     return m_message->set_body(newVal);
 }
@@ -757,10 +760,13 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: unknown form format: " + strType));
 
             obj_ptr<Buffer_base> buf;
-            obj_ptr<SeekableStream_base> _body;
+            obj_ptr<Stream_base> _body_stream;
 
-            if (get_body(_body) == CALL_RETURN_NULL || !_body)
+            if (get_body(_body_stream) == CALL_RETURN_NULL || !_body_stream)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: body is empty."));
+            obj_ptr<SeekableStream_base> _body = SeekableStream_base::getInstance(_body_stream);
+            if (!_body)
+                return CHECK_ERROR(Runtime::setError("HttpRequest: body must be seekable."));
             _body->rewind();
             result_t hr = _body->cc_readBuffer((int32_t)len, buf);
             if (hr < 0)

@@ -23,8 +23,8 @@ public:
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
-    virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-    virtual result_t set_body(SeekableStream_base* newVal);
+    virtual result_t get_body(obj_ptr<Stream_base>& retVal);
+    virtual result_t set_body(Stream_base* newVal);
     virtual result_t get_bodyUsed(bool& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -78,7 +78,8 @@ public:
     int32_t m_type;
     obj_ptr<NArray> m_params;
     exlib::string m_value;
-    obj_ptr<SeekableStream_base> m_body;
+    obj_ptr<SeekableStream_base> m_body;    // buffered (seekable) body
+    obj_ptr<Stream_base> m_bodyStream;      // streaming (non-seekable) body
     exlib::string m_lastError;
     bool m_end;
     bool m_bodyUsed = false;

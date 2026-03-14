@@ -82,12 +82,12 @@ result_t HttpResponse::get_headers(obj_ptr<Headers_base>& retVal)
     return m_message->get_headers(retVal);
 }
 
-result_t HttpResponse::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t HttpResponse::get_body(obj_ptr<Stream_base>& retVal)
 {
     return m_message->get_body(retVal);
 }
 
-result_t HttpResponse::set_body(SeekableStream_base* newVal)
+result_t HttpResponse::set_body(Stream_base* newVal)
 {
     return m_message->set_body(newVal);
 }
