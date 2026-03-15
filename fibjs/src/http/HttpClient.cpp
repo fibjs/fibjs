@@ -906,12 +906,19 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
             , m_hc(hc)
         {
             m_o->u->toString(m_url);
-            // D.3: capture the conn slot by value so the callback never touches
-            // 'this'; the slot is updated in connected/ssl_handshake states
+            // D.3: abort callback closes the socket to cancel any pending
+            // operation (connect, read, or write).  We capture both the
+            // shared pconn slot AND a raw 'this' so we can fall back to
+            // m_conn during the connect phase when *pconn is still null.
+            // Capturing 'this' is safe because ~asyncRequest calls
+            // clearAbort() before member destruction.
             if (m_o->signal) {
                 auto conn = m_pconn;
-                m_o->abort_signal()->addAbortCallback([conn]() {
+                auto pthis = this;
+                m_o->abort_signal()->addAbortCallback([conn, pthis]() {
                     obj_ptr<Stream_base> c = *conn;
+                    if (!c)
+                        c = pthis->m_conn;
                     if (c) {
                         Socket_base* sock = Socket_base::getInstance(c);
                         if (sock) {
@@ -1023,9 +1030,14 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
             }
 
             if (m_http_proxy.empty()) {
-                if (m_ssl)
-                    return tls_base::connect(m_connUrl, m_hc->m_context, m_hc->m_timeout, m_conn, next(connected));
-                else
+                if (m_ssl) {
+                    // Split into TCP connect + TLS handshake so m_conn holds
+                    // the TCP socket during connect, enabling abort callbacks
+                    // to find and cancel the pending connection.
+                    exlib::string tcpUrl = "tcp://";
+                    tcpUrl.append(m_connUrl.substr(6));
+                    return net_base::connect(tcpUrl, m_hc->m_timeout, m_conn, next(ssl_handshake));
+                } else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
                 bool socks = m_http_proxy[0] == 's';
