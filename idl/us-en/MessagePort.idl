@@ -1,0 +1,53 @@
+/*! @brief MessagePort represents one end of a message channel
+
+ MessagePort allows sending and receiving messages between different parts of an application.
+ It is created via the MessageChannel constructor, which creates a pair of connected ports.
+
+ Messages are delivered asynchronously. When using addEventListener, call start() to begin
+ receiving messages. Setting onmessage implicitly calls start().
+
+ ```JavaScript
+ const { port1, port2 } = new MessageChannel();
+ port2.onmessage = (ev) => {
+     console.log(ev.data);
+ };
+ port1.postMessage('hello');
+ ```
+ */
+interface MessagePort : EventEmitter
+{
+    /*! @brief Send a message to the connected port
+     @param data The data to send. The data is cloned using structured clone algorithm.
+     */
+    postMessage(Value data);
+
+    /*! @brief Send a message with transferable objects
+     @param data The data to send
+     @param transfer Array of transferable objects (e.g. ArrayBuffer) to transfer ownership
+     */
+    postMessage(Value data, Array transfer);
+
+    /*! @brief Start receiving messages queued on this port
+
+     When using addEventListener to listen for messages, you must call start() to begin
+     dispatching queued messages. This is called automatically when onmessage is set.
+     */
+    start();
+
+    /*! @brief Close the port. No more messages can be sent or received after closing.
+     Fires the 'close' event.
+     */
+    close();
+
+    /*! @brief Mark the port as active to keep the event loop alive */
+    ref();
+
+    /*! @brief Mark the port as inactive so it doesn't keep the event loop alive */
+    unref();
+
+    /*! @brief Event handler for message events. Setting this automatically calls start(). */
+    Value onmessage;
+
+    /*! @brief Event handler for message deserialization errors */
+    Value onmessageerror;
+};

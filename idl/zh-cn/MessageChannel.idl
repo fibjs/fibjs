@@ -1,0 +1,25 @@
+/*! @brief MessageChannel provides a pair of connected MessagePort objects
+
+ The MessageChannel constructor creates a new channel with two ports (port1 and port2).
+ Messages sent on one port are delivered to the other port, enabling bidirectional
+ communication.
+
+ ```JavaScript
+ const mc = new MessageChannel();
+ mc.port1.postMessage('hello');
+ mc.port2.onmessage = (ev) => {
+     console.log(ev.data); // 'hello'
+ };
+ ```
+ */
+interface MessageChannel : object
+{
+    /*! @brief MessageChannel constructor. Creates a new channel with two connected ports. */
+    MessageChannel();
+
+    /*! @brief The first port of the channel */
+    readonly MessagePort port1;
+
+    /*! @brief The second port of the channel */
+    readonly MessagePort port2;
+};

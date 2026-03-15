@@ -14,6 +14,7 @@ run("./async_local_storage_test.js");
 run("./async_resource_test.js");
 run("./headers_test.js");
 run("./structuredClone_test.js");
+run("./message_channel_test.js");
 run("./webstream_test.js");
 
 run("./perf_test.js");

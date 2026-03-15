@@ -28,6 +28,9 @@ class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
 class AbortSignal_base;
+class MessageEvent_base;
+class MessagePort_base;
+class MessageChannel_base;
 class CryptoKey_base;
 class DOMParser_base;
 class XMLSerializer_base;
@@ -112,6 +115,9 @@ public:
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
 #include "ifs/AbortSignal.h"
+#include "ifs/MessageEvent.h"
+#include "ifs/MessagePort.h"
+#include "ifs/MessageChannel.h"
 #include "ifs/CryptoKey.h"
 #include "ifs/DOMParser.h"
 #include "ifs/XMLSerializer.h"
@@ -158,6 +164,9 @@ inline ClassInfo& global_base::class_info()
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
         { "AbortSignal", AbortSignal_base::class_info },
+        { "MessageEvent", MessageEvent_base::class_info },
+        { "MessagePort", MessagePort_base::class_info },
+        { "MessageChannel", MessageChannel_base::class_info },
         { "CryptoKey", CryptoKey_base::class_info },
         { "DOMParser", DOMParser_base::class_info },
         { "XMLSerializer", XMLSerializer_base::class_info },

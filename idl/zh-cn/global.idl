@@ -40,6 +40,15 @@ module global
     /*! @brief 信号对象，用于与异步操作通信并中止它们，参见 AbortSignal 对象。*/
     static AbortSignal;
 
+    /*! @brief MessageEvent 对象，表示目标对象接收到的消息 */
+    static MessageEvent;
+
+    /*! @brief MessagePort 对象，表示消息通道的一端 */
+    static MessagePort;
+
+    /*! @brief MessageChannel 对象，提供一对已连接的 MessagePort 对象 */
+    static MessageChannel;
+
     /*! @brief CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 */
     static CryptoKey;
 

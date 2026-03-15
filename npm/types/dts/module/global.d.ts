@@ -12,6 +12,9 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
 /// <reference path="../interface/AbortSignal.d.ts" />
+/// <reference path="../interface/MessageEvent.d.ts" />
+/// <reference path="../interface/MessagePort.d.ts" />
+/// <reference path="../interface/MessageChannel.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../interface/DOMParser.d.ts" />
 /// <reference path="../interface/XMLSerializer.d.ts" />
@@ -90,6 +93,21 @@ declare module 'global' {
      * @description 信号对象，用于与异步操作通信并中止它们，参见 AbortSignal 对象。
      */
     const AbortSignal: typeof Class_AbortSignal;
+
+    /**
+     * @description MessageEvent 对象，表示目标对象接收到的消息 
+     */
+    const MessageEvent: typeof Class_MessageEvent;
+
+    /**
+     * @description MessagePort 对象，表示消息通道的一端 
+     */
+    const MessagePort: typeof Class_MessagePort;
+
+    /**
+     * @description MessageChannel 对象，提供一对已连接的 MessagePort 对象 
+     */
+    const MessageChannel: typeof Class_MessageChannel;
 
     /**
      * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 

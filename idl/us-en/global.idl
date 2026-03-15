@@ -40,6 +40,15 @@ module global
     /*! @brief Signal object, used to communicate with and abort asynchronous operations, see AbortSignal object.*/
     static AbortSignal;
 
+    /*! @brief MessageEvent object, represents a message received by a target object */
+    static MessageEvent;
+
+    /*! @brief MessagePort object, represents one end of a message channel */
+    static MessagePort;
+
+    /*! @brief MessageChannel object, provides a pair of connected MessagePort objects */
+    static MessageChannel;
+
     /*! @brief CryptoKey class to represent symmetric or asymmetric keys, each key exposes different functions */
     static CryptoKey;
 
