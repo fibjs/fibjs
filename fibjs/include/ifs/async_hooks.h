@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class AsyncLocalStorage_base;
+class AsyncResource_base;
 
 class async_hooks_base : public object_base {
     DECLARE_CLASS(async_hooks_base);
@@ -34,12 +35,14 @@ public:
 }
 
 #include "ifs/AsyncLocalStorage.h"
+#include "ifs/AsyncResource.h"
 
 namespace fibjs {
 inline ClassInfo& async_hooks_base::class_info()
 {
     static ClassData::ClassObject s_object[] = {
-        { "AsyncLocalStorage", AsyncLocalStorage_base::class_info }
+        { "AsyncLocalStorage", AsyncLocalStorage_base::class_info },
+        { "AsyncResource", AsyncResource_base::class_info }
     };
 
     static ClassData s_cd = {

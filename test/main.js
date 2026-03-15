@@ -11,6 +11,7 @@ run("./class_test.js");
 
 run("./abortcontroller_test.js");
 run("./async_local_storage_test.js");
+run("./async_resource_test.js");
 run("./headers_test.js");
 run("./structuredClone_test.js");
 run("./webstream_test.js");

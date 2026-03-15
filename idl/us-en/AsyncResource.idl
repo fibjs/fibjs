@@ -1,0 +1,98 @@
+/*! @brief AsyncResource is a class for embedding async context tracking.
+
+ When extending this class, the async context captured at construction time
+ is preserved and restored when `runInAsyncScope` or `bind` is called.
+ This is particularly useful for callback-based APIs where the callback
+ must run within the async context of the resource that initiated the operation.
+
+ Example:
+ ```javascript
+ const { AsyncResource, AsyncLocalStorage } = require('async_hooks');
+ const als = new AsyncLocalStorage();
+
+ class RequestHandler extends AsyncResource {
+     constructor(callback) {
+         super('RequestHandler');
+         this.callback = callback;
+     }
+
+     onComplete(result) {
+         this.runInAsyncScope(this.callback, null, null, result);
+     }
+ }
+
+ als.run({ requestId: '123' }, () => {
+     const handler = new RequestHandler((err, data) => {
+         console.log(als.getStore().requestId); // Output: 123
+     });
+     // Later, outside the async context:
+     handler.onComplete('ok');
+ });
+ ```
+*/
+interface AsyncResource : object
+{
+    /*! @brief Create a new AsyncResource instance
+
+     @param type The type of the async resource, used for diagnostic information
+     @param triggerAsyncId Optional. Either a numeric triggerAsyncId or an options object with properties:
+       - triggerAsyncId: The async ID of the resource that triggered this one
+       - requireManualDestroy: If true, the resource is not automatically destroyed
+    */
+    AsyncResource(String type, Value triggerAsyncId = {});
+
+    /*! @brief Get the unique async ID assigned to this resource
+
+     @return Returns the numeric async ID
+    */
+    Number asyncId();
+
+    /*! @brief Get the trigger async ID of this resource
+
+     @return Returns the numeric trigger async ID
+    */
+    Number triggerAsyncId();
+
+    /*! @brief Execute a function within the async context of this resource
+
+     The callback is called with the async context that was active when this
+     AsyncResource was constructed, allowing AsyncLocalStorage stores to be
+     properly restored.
+
+     @param fn The function to execute
+     @param thisArg The `this` value for the callback. Defaults to undefined.
+     @param args Additional arguments to pass to the callback
+     @return Returns the return value of the callback
+    */
+    Value runInAsyncScope(Function fn, Value thisArg = undefined, ...args);
+
+    /*! @brief Mark this resource as destroyed
+
+     This is a no-op in fibjs but maintained for API compatibility with Node.js.
+
+     @return Returns a reference to this AsyncResource
+    */
+    AsyncResource emitDestroy();
+
+    /*! @brief Bind a function to run within the async scope of this resource
+
+     The returned function will have an `asyncResource` property referencing
+     the AsyncResource instance.
+
+     @param fn The function to bind
+     @param thisArg Optional `this` value for the function
+     @return Returns the bound function
+    */
+    Function bind(Function fn, Value thisArg = undefined);
+
+    /*! @brief Static method to bind a function to the current async context
+
+     Creates an internal AsyncResource and binds the function to it.
+
+     @param fn The function to bind
+     @param type Optional type string for the internal AsyncResource. Defaults to "bound-anonymous-fn".
+     @param thisArg Optional `this` value for the function
+     @return Returns the bound function
+    */
+    static Function bind(Function fn, String type = "bound-anonymous-fn", Value thisArg = undefined);
+};
