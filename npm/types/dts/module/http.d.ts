@@ -11,8 +11,6 @@
 /// <reference path="../interface/HttpHandler.d.ts" />
 /// <reference path="../interface/HttpRepeater.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
-/// <reference path="../interface/SeekableStream.d.ts" />
-/// <reference path="../interface/WebResponse.d.ts" />
 /**
  * @description http 模块封装了 HTTP 请求和响应的处理，让我们可以轻松地创建一个 http 服务器，也可以模拟客户端发起 http 请求。使用 http 模块，开发者可以很方便地编写和处理 HTTP 协议相关的代码
  * 
@@ -230,38 +228,6 @@ declare module 'http' {
     function requestAsync(conn: Class_Stream, req: Class_HttpRequest): Promise<Class_HttpResponse>;
 
     /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    function request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
-
-    function request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
-
-    /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    function requestSync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
-
-    /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    function requestAsync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Promise<Class_HttpResponse>;
-
-    /**
      * @description 请求指定的 url，并返回结果
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -279,8 +245,7 @@ declare module 'http' {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -312,8 +277,7 @@ declare module 'http' {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -343,8 +307,7 @@ declare module 'http' {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -1078,41 +1041,50 @@ declare module 'http' {
     function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): (...args: any[])=>any;
 
     /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
-     *      @return 返回 WebResponse 对象
+     *      @return 返回 HttpResponse 对象
      *     
      */
-    function fetch(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    function fetch(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+    function fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
-     *      @return 返回 WebResponse 对象
+     *      @return 返回 HttpResponse 对象
      *     
      */
-    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
-     *      @return 返回 WebResponse 对象
+     *      @return 返回 HttpResponse 对象
      *     
      */
-    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    /**
+     * *
+     */
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
-    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    /**
+     * *
+     */
+    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    /**
+     * *
+     */
+    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
 }
 

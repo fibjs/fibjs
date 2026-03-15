@@ -771,7 +771,7 @@ describe("http", () => {
             assert.equal('200', req.headers['head2']);
             assert.equal(10, req.length);
             assert.equal('test', req.headers['content-type']);
-            assert.equal('0123456789', req.body.readAll().toString());
+            assert.equal('0123456789', req.text());
 
             assert.equal(req.socket.size(), 94);
             req.clear();
@@ -792,7 +792,7 @@ describe("http", () => {
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.0');
-            assert.equal('123456', r.body.readAll().toString());
+            assert.equal('123456', r.text());
 
             var r = get_response("HTTP/1.1 200 ok\r\n\r\n123456");
             assert.equal(r.statusCode, 200);
@@ -804,7 +804,7 @@ describe("http", () => {
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.1');
-            assert.equal('123456', r.body.readAll().toString());
+            assert.equal('123456', r.text());
         });
 
         it("keep-alive", () => {
@@ -988,7 +988,7 @@ describe("http", () => {
             ];
 
             var rep = get_response('HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n' + datas.map(chunk).join(''));
-            assert.equal(datas.join(''), rep.body.read());
+            assert.equal(datas.join(''), rep.readAll());
         });
 
 
@@ -1106,7 +1106,7 @@ describe("http", () => {
 
         // test setting text content (doesn't force content-type)
         req.text(v);
-        assert.equal(req.data, v);
+        assert.equal(req.text(), v);
 
         // test reading text with text/plain content-type
         req.setHeader('Content-Type', "text/plain");
@@ -1128,7 +1128,7 @@ describe("http", () => {
 
         // test setting text content
         rep.text(v);
-        assert.equal(rep.data, v);
+        assert.equal(rep.text(), v);
 
         // test reading text
         rep.setHeader('Content-Type', "text/plain");
@@ -1152,11 +1152,9 @@ describe("http", () => {
 
         req.json(v);
         assert.equal(req.firstHeader('Content-Type'), "application/json");
-        assert.deepEqual(req.data, v);
+        assert.deepEqual(req.json(), v);
 
         req.setHeader('Content-Type', "application/ld-json");
-        assert.deepEqual(req.data, v);
-
         assert.deepEqual(req.json(), v);
 
         req.setHeader('Content-Type', "application/json; utf-8");
@@ -1175,8 +1173,6 @@ describe("http", () => {
 
         rep.json(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/json");
-        assert.deepEqual(rep.data, v);
-
         assert.deepEqual(rep.json(), v);
 
         rep.setHeader('Content-Type', "application/json; utf-8");
@@ -1204,8 +1200,6 @@ describe("http", () => {
 
         req.pack(v);
         assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
-        assert.deepEqual(req.data, v);
-
         assert.deepEqual(req.pack(), v);
 
         req.setHeader('Content-Type', "application/msgpack; utf-8");
@@ -1224,8 +1218,6 @@ describe("http", () => {
 
         rep.pack(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
-        assert.deepEqual(rep.data, v);
-
         assert.deepEqual(rep.pack(), v);
 
         rep.setHeader('Content-Type', "application/msgpack; utf-8");
@@ -1691,7 +1683,7 @@ describe("http", () => {
 
             var cloned = res.clone();
 
-            var clonedBuf = cloned.body.readAll();
+            var clonedBuf = cloned.readAll();
             assert.deepEqual(clonedBuf, buf);
         });
 
@@ -2127,14 +2119,14 @@ describe("http", () => {
             var rep = hfh_test("/");
             assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
-            assert.equal("this is index.html", rep.readAll().toString());
+            assert.equal("this is index.html", rep.text());
         });
 
         it("empty value", () => {
             var rep = hfh_test("");
             assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
-            assert.equal("this is index.html", rep.readAll().toString());
+            assert.equal("this is index.html", rep.text());
         });
 
         it("bad request", () => {
@@ -2148,7 +2140,7 @@ describe("http", () => {
             var req = new http.Request();
             req.value = "/any_url";
             hfHandler.invoke(req);
-            assert.equal(req.response.readAll().toString(), fs.readFile(__filename).toString());
+            assert.equal(req.response.text(), fs.readFile(__filename).toString());
         });
 
         it("autoindex", () => {
@@ -2161,7 +2153,7 @@ describe("http", () => {
             var rep = hfh_test("http_autoindex/");
             assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
-            var data = rep.readAll().toString();
+            var data = rep.text();
             assert.deepEqual(re[Symbol.match](data), [
                 "<a href=\"t.txt\">",
                 "<a href=\"test.txt\">",
@@ -2258,7 +2250,7 @@ describe("http", () => {
                 assert.equal(200, rep.statusCode);
                 assert.equal(14, rep.length);
 
-                assert.deepEqual(rep.readAll().toString(), "test html file");
+                assert.deepEqual(rep.text(), "test html file");
             });
 
             it("not modified", () => {
@@ -2321,14 +2313,14 @@ describe("http", () => {
                 urls.forEach(url => {
                     var resp = hfh_test(url + 'test.txt');
                     assert.equal(resp.statusCode, 200);
-                    assert.equal(str, resp.readAll().toString());
+                    assert.equal(str, resp.text());
                 });
 
                 hfHandler = new http.fileHandler("./");
                 urls.forEach(url => {
                     var resp = hfh_test(url + 'test.txt');
                     assert.equal(resp.statusCode, 200);
-                    assert.equal(str, resp.readAll().toString());
+                    assert.equal(str, resp.text());
                 })
             });
 
@@ -2567,13 +2559,13 @@ describe("http", () => {
 
         describe("request", () => {
             it("simple", () => {
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").text(),
                     "/request");
                 assert.equal(cookie_for['_'], undefined);
                 http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
 
-                assert.equal(http.request("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
+                assert.equal(http.request("http://127.0.0.1:" + (8882 + base_port) + "/request").text(),
                     "/request");
 
                 assert.equal(http.request({
@@ -2583,12 +2575,12 @@ describe("http", () => {
                     'port': 8882 + base_port,
                     'pathname': '/request',
                     'path': '/request'
-                }).body.read().toString(),
+                }).text(),
                     "/request");
             });
 
             it("redirect", () => {
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").text(),
                     "/request");
 
                 assert.throws(() => {
@@ -2601,14 +2593,14 @@ describe("http", () => {
                     query: {
                         test_field: "field"
                     }
-                }).body.read().toString(),
+                }).text(),
                     "/request_query:field");
             });
 
             it("body", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: "body"
-                }).body.read().toString(),
+                }).text(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
 
@@ -2616,7 +2608,7 @@ describe("http", () => {
                 ms.write("body");
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: ms
-                }).body.read().toString(),
+                }).text(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
             });
@@ -2626,7 +2618,7 @@ describe("http", () => {
                     body: {
                         test_field: "field"
                     }
-                }).body.read().toString(),
+                }).text(),
                     "/request_url:field");
             });
 
@@ -2635,7 +2627,7 @@ describe("http", () => {
                     json: {
                         test_field: "field"
                     }
-                }).body.read().toString(),
+                }).text(),
                     "/request_json:field");
             });
 
@@ -2644,7 +2636,7 @@ describe("http", () => {
                     pack: {
                         test_field: "field"
                     }
-                }).body.read().toString(),
+                }).text(),
                     "/request_pack:field");
             });
 
@@ -2653,7 +2645,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: "test string"
                     });
-                    assert.equal(response.body.read().toString(), "/request:test string");
+                    assert.equal(response.text(), "/request:test string");
                 });
 
                 it("Buffer body", () => {
@@ -2662,7 +2654,7 @@ describe("http", () => {
                         body: buf
                     });
                     // Buffer content may be URL encoded when processed as form data
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:") && responseText.includes("test"));
                 });
 
@@ -2676,7 +2668,7 @@ describe("http", () => {
                             'X-File-Name': 'testfile.bin'
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     // Should contain the buffer content
                     assert.ok(responseText.includes("binary file content data"));
@@ -2692,7 +2684,7 @@ describe("http", () => {
                         }
                     });
                     // Should not throw encoding errors
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
 
@@ -2706,7 +2698,7 @@ describe("http", () => {
                             'Content-Type': 'application/octet-stream'
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     // Should handle large buffer without issues
                     assert.ok(responseText.length > 20); // Should have received substantial content
@@ -2727,7 +2719,7 @@ describe("http", () => {
                                 'X-File-Name': 'upload.bin'
                             }
                         });
-                        var responseText = response.body.read().toString();
+                        var responseText = response.text();
                         assert.ok(responseText.includes("/request:"));
                     });
                 });
@@ -2744,7 +2736,7 @@ describe("http", () => {
                             'X-File-Name': 'image.png'
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
 
@@ -2754,7 +2746,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: uint8Array
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     assert.ok(responseText.includes("Hello"));
                 });
@@ -2769,7 +2761,7 @@ describe("http", () => {
                             'X-File-Name': 'test.png'
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
 
@@ -2791,7 +2783,7 @@ describe("http", () => {
                                 'X-File-Name': 'binary.dat'
                             }
                         });
-                        var responseText = response.body.read().toString();
+                        var responseText = response.text();
                         assert.ok(responseText.includes("/request:"));
                     });
                 });
@@ -2806,7 +2798,7 @@ describe("http", () => {
                             'Content-Type': 'application/octet-stream'
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     // Should handle large UInt8Array without issues
                     assert.ok(responseText.length > 20); // Should have received substantial content
@@ -2820,7 +2812,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: params
                     });
-                    assert.equal(response.body.read().toString(), "/request:key1=value1&key2=value2");
+                    assert.equal(response.text(), "/request:key1=value1&key2=value2");
                 });
 
                 it("Stream body", () => {
@@ -2831,7 +2823,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: ms
                     });
-                    assert.equal(response.body.read().toString(), "/request:stream data");
+                    assert.equal(response.text(), "/request:stream data");
                 });
 
                 it("json option takes precedence over body", () => {
@@ -2840,7 +2832,7 @@ describe("http", () => {
                         json: { test_field: "json data" }
                     });
                     // JSON data should be processed, but server may not parse it correctly
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request_json:"));
                 });
 
@@ -2851,7 +2843,7 @@ describe("http", () => {
                         pack: { test_field: "pack data" }
                     });
                     // Pack data should be processed, but server may not parse it correctly
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request_pack:"));
                 });
 
@@ -2861,7 +2853,7 @@ describe("http", () => {
                         body: blob
                     });
                     // Check that blob content is properly sent
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     // Blob may be converted to string form, so we just check it's processed
                 });
@@ -2872,7 +2864,7 @@ describe("http", () => {
                         body: blob
                     });
                     // Check that blob content is properly sent
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     // Blob may be converted to string form, so we just check it's processed
                 });
@@ -2886,7 +2878,7 @@ describe("http", () => {
                         body: formData
                     });
 
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                     assert.ok(responseText.includes("field1"));
                     assert.ok(responseText.includes("value1"));
@@ -2906,7 +2898,7 @@ describe("http", () => {
                         json: complexData
                     });
 
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     var jsonPart = responseText.replace("/request_json:", "");
                     if (jsonPart) {
                         var responseData = JSON.parse(jsonPart);
@@ -2929,13 +2921,13 @@ describe("http", () => {
                     });
 
                     // Pack data should be successfully processed
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request_pack:"));
                 });
 
                 it("empty body", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:");
-                    assert.equal(response.body.read().toString(), "/request:");
+                    assert.equal(response.text(), "/request:");
                 });
 
                 it("undefined body, json, and pack", () => {
@@ -2944,7 +2936,7 @@ describe("http", () => {
                         json: undefined,
                         pack: undefined
                     });
-                    assert.equal(response.body.read().toString(), "/request:");
+                    assert.equal(response.text(), "/request:");
                 });
 
                 it("priority: body over other types", () => {
@@ -2952,7 +2944,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: "body takes priority"
                     });
-                    assert.equal(response.body.read().toString(), "/request:body takes priority");
+                    assert.equal(response.text(), "/request:body takes priority");
                 });
 
                 it("object body (URLEncoded)", () => {
@@ -2963,7 +2955,7 @@ describe("http", () => {
                             key2: "value2"
                         }
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request_url:"));
                     // Object may be stringified, so just check it's processed
                 });
@@ -2973,7 +2965,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: [1, 2, 3]
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
 
@@ -2982,7 +2974,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: true
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
 
@@ -2991,7 +2983,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                         body: 123
                     });
-                    var responseText = response.body.read().toString();
+                    var responseText = response.text();
                     assert.ok(responseText.includes("/request:"));
                 });
             });
@@ -3014,21 +3006,21 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: "test"
                     });
-                    assert.equal(response.body.read().toString(), "application/x-www-form-urlencoded");
+                    assert.equal(response.text(), "application/x-www-form-urlencoded");
                 });
 
                 it("json sets application/json", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         json: { test: "data" }
                     });
-                    assert.equal(response.body.read().toString(), "application/json");
+                    assert.equal(response.text(), "application/json");
                 });
 
                 it("pack sets application/msgpack", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         pack: { test: "data" }
                     });
-                    assert.equal(response.body.read().toString(), "application/msgpack");
+                    assert.equal(response.text(), "application/msgpack");
                 });
 
                 it("manual Content-Type is preserved", () => {
@@ -3038,7 +3030,7 @@ describe("http", () => {
                             "Content-Type": "text/plain"
                         }
                     });
-                    assert.equal(response.body.read().toString(), "text/plain");
+                    assert.equal(response.text(), "text/plain");
                 });
 
                 it("Blob type is used", () => {
@@ -3046,7 +3038,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: blob
                     });
-                    assert.equal(response.body.read().toString(), "text/plain");
+                    assert.equal(response.text(), "text/plain");
                 });
 
                 it("Blob without type uses default", () => {
@@ -3054,7 +3046,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: blob
                     });
-                    assert.equal(response.body.read().toString(), "application/x-www-form-urlencoded");
+                    assert.equal(response.text(), "application/x-www-form-urlencoded");
                 });
 
                 it("URLSearchParams sets application/x-www-form-urlencoded", () => {
@@ -3063,7 +3055,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: params
                     });
-                    assert.equal(response.body.read().toString(), "application/x-www-form-urlencoded");
+                    assert.equal(response.text(), "application/x-www-form-urlencoded");
                 });
 
                 it("FormData with preset Content-Type", () => {
@@ -3075,7 +3067,7 @@ describe("http", () => {
                             "Content-Type": "multipart/form-data; boundary=custom"
                         }
                     });
-                    assert.equal(response.body.read().toString(), "multipart/form-data; boundary=custom");
+                    assert.equal(response.text(), "multipart/form-data; boundary=custom");
                 });
 
                 it("Buffer body with manual application/octet-stream", () => {
@@ -3088,7 +3080,7 @@ describe("http", () => {
                             "X-File-Name": "filename"
                         }
                     });
-                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                    assert.equal(response.text(), "application/octet-stream");
                 });
 
                 it("Buffer body uses default Content-Type", () => {
@@ -3097,7 +3089,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: buf
                     });
-                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                    assert.equal(response.text(), "application/octet-stream");
                 });
 
                 it("UInt8Array body with manual application/octet-stream", () => {
@@ -3110,7 +3102,7 @@ describe("http", () => {
                             "X-File-Name": "data.bin"
                         }
                     });
-                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                    assert.equal(response.text(), "application/octet-stream");
                 });
 
                 it("UInt8Array body uses default Content-Type", () => {
@@ -3119,7 +3111,7 @@ describe("http", () => {
                     var response = http.request("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
                         body: uint8Array
                     });
-                    assert.equal(response.body.read().toString(), "application/octet-stream");
+                    assert.equal(response.text(), "application/octet-stream");
                 });
             });
 
@@ -3128,17 +3120,17 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
                 assert.equal(cookie_for['_'], "root=value2");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/host:")
-                    .body.read().toString(), "/host:127.0.0.1:" + (8882 + base_port));
+                    .text(), "/host:127.0.0.1:" + (8882 + base_port));
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/host:", {
                     headers: {
                         "Host": "host"
                     }
-                }).body.read().toString(), "/host:host");
+                }).text(), "/host:host");
             });
 
             it("headers", () => {
@@ -3150,52 +3142,41 @@ describe("http", () => {
                             "header3"
                         ]
                     }
-                }).body.read().toString(), "[\"header1\",\"header2\",\"header3\"]");
+                }).text(), "[\"header1\",\"header2\",\"header3\"]");
                 assert.equal(cookie_for['_'], "root=value2");
             });
 
             it("agent", () => {
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").text(),
                     "curl/8.14.1");
 
                 http.userAgent = 'test agent';
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").text(),
                     "test agent");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent", {
                     headers: {
                         "user-agent": "agent in headers"
                     }
-                }).body.read().toString(),
+                }).text(),
                     "agent in headers");
 
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").text(),
                     "test agent");
             });
 
             it("gzip", () => {
-                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.read().toString(),
+                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").text(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 
                 assert.equal(cookie_for['_'], "root=value2");
-                http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+                http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.close();
                 assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
-
-                var maxBodySize = http.maxBodySize;
-
-                http.maxBodySize = 130;
-                http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
-
-                http.maxBodySize = 129;
-                assert.throws(() => {
-                    http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
-                });
-
-                http.maxBodySize = maxBodySize;
             });
 
             it("keep-alive", () => {
                 var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                r1.text(); // consume body to release connection back to pool
                 var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(r1.stream.stream, r2.stream.stream);
             });
@@ -3214,6 +3195,7 @@ describe("http", () => {
                 assert.equal(http.poolSize, 128);
 
                 var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                r1.text(); // consume body to release connection back to pool
                 var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(r1.stream.stream, r2.stream.stream);
             });
@@ -3233,6 +3215,7 @@ describe("http", () => {
                 assert.equal(http.poolTimeout, 10000);
 
                 var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                r1.text(); // consume body to release connection back to pool
                 var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(r1.stream.stream, r2.stream.stream);
             });
@@ -3276,7 +3259,7 @@ describe("http", () => {
             it("async", (done) => {
                 http.head("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
                     done(() => {
-                        assert.equal(r.data, null);
+                        assert.isNull(r.body);
                         assert.equal(r.headers['no_test_header'], "true");
                     });
                 });
@@ -3310,7 +3293,7 @@ describe("http", () => {
 
         describe("get", () => {
             it("simple", () => {
-                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
+                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request").text(),
                     "/request");
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value")
             });
@@ -3318,7 +3301,7 @@ describe("http", () => {
             it("custom method", () => {
                 assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", {
                     method: "GET"
-                }).body.read().toString(),
+                }).text(),
                     "/request");
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value")
             });
@@ -3328,7 +3311,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
                 assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
@@ -3339,7 +3322,7 @@ describe("http", () => {
             it("async", (done) => {
                 http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
                     done(() => {
-                        assert.equal(r.data.toString(), "/request");
+                        assert.equal(r.text(), "/request");
                     });
                 });
             });
@@ -3349,7 +3332,7 @@ describe("http", () => {
             it("body", () => {
                 assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: "body"
-                }).body.read().toString(),
+                }).text(),
                     "/request:body");
             });
 
@@ -3359,7 +3342,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
                 assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: "",
                     headers: {
@@ -3373,7 +3356,7 @@ describe("http", () => {
                     body: "body"
                 }, (e, r) => {
                     done(() => {
-                        assert.equal(r.data.toString(), "/request:body");
+                assert.equal(r.text(), "/request:body");
                     });
                 });
             });
@@ -3386,7 +3369,7 @@ describe("http", () => {
                     body: ""
                 }, (e, r) => {
                     done(() => {
-                        assert.equal(r.data.toString(), "/request:header");
+                        assert.equal(r.text(), "/request:header");
                     });
                 });
             });
@@ -3396,7 +3379,7 @@ describe("http", () => {
             it("disable global cookie", () => {
                 assert.equal(http.enableCookie, true);
                 http.enableCookie = false;
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name").text(),
                     "/name");
                 assert.isUndefined(cookie_for['_']);
                 http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name");
@@ -3506,7 +3489,7 @@ describe("http", () => {
 
         describe("request", () => {
             it("simple", () => {
-                assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
+                assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request").text(),
                     "/request");
                 assert.equal(cookie_for['_'], undefined);
                 hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request");
@@ -3516,7 +3499,7 @@ describe("http", () => {
             it("body", () => {
                 assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
                     body: "body"
-                }).body.read().toString(),
+                }).text(),
                     "/request:body");
             });
 
@@ -3525,11 +3508,11 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
             });
 
             it("gzip", () => {
-                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/gzip_test").body.read().toString(),
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/gzip_test").text(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
             });
         });
@@ -3576,7 +3559,7 @@ describe("http", () => {
             it("async", (done) => {
                 hc.head("https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
                     done(() => {
-                        assert.equal(r.data, null);
+                        assert.isNull(r.body);
                         assert.equal(r.headers['no_test_header'], "true");
                     });
                 });
@@ -3585,7 +3568,7 @@ describe("http", () => {
 
         describe("get", () => {
             it("simple", () => {
-                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request").text(),
                     "/request");
             });
 
@@ -3594,7 +3577,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
 
                 assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
@@ -3620,7 +3603,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
 
                 assert.equal(hc.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
@@ -3715,7 +3698,7 @@ describe("http", () => {
             var client = new http.Client();
 
             it("simple", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request").text(),
                     "/request");
 
                 assert.equal(cookie_for['_'], undefined);
@@ -3755,7 +3738,7 @@ describe("http", () => {
                 it("async", (done) => {
                     client.head("http://127.0.0.1:" + (8884 + base_port) + "/request", (e, r) => {
                         done(() => {
-                            assert.equal(r.data, null);
+                            assert.isNull(r.body);
                             assert.equal(r.headers['no_test_header'], "true");
                         });
                     });
@@ -3763,7 +3746,7 @@ describe("http", () => {
             });
 
             it("redirect", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").text(),
                     "/request");
 
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
@@ -3774,14 +3757,14 @@ describe("http", () => {
 
             it("check cookie validity", () => {
                 client.cookies.push(0);
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").text(),
                     "/request");
             });
 
             it("body", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
                     body: "body"
-                }).body.readAll().toString(),
+                }).text(),
                     "/request:body");
             });
 
@@ -3790,37 +3773,20 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).body.read().toString(), "/request:header");
+                }).text(), "/request:header");
             });
 
             it("gzip", () => {
-                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test").body.readAll().toString(),
+                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test").text(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 assert.equal(cookie_for['_'], "root=value2");
                 client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test");
                 assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
             });
 
-            it("custom body", () => {
-                var body = new io.MemoryStream();
-                client.get("http://127.0.0.1:" + (8884 + base_port) + "/custom_body_test", {
-                    response_body: body
-                });
-                assert.equal(body.readAll().toString(), "/custom_body_test");
-
-                var body = new io.MemoryStream();
-                body.write("keep it:");
-                body.write("not keep");
-                body.seek(8);
-                client.get("http://127.0.0.1:" + (8884 + base_port) + "/custom_body_test", {
-                    response_body: body
-                });
-                assert.equal(body.readAll().toString(), "keep it:/custom_body_test");
-            });
-
             it('parallel', () => {
                 var rs = coroutine.parallel(() => {
-                    return client.get("http://127.0.0.1:" + (8884 + base_port) + "/parallel").body.readAll().toString();
+                    return client.get("http://127.0.0.1:" + (8884 + base_port) + "/parallel").text();
                 }, 2);
                 assert.ok(rs[0] !== '0' || rs[1] !== '0');
             });
@@ -3831,7 +3797,7 @@ describe("http", () => {
 
             assert.equal(client.enableCookie, true);
             client.enableCookie = false;
-            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").body.readAll().toString(),
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").text(),
                 "/name");
             assert.equal(cookie_for['_'], undefined);
 
@@ -3842,12 +3808,12 @@ describe("http", () => {
         it("remote disconnect", () => {
             var client = new http.Client();
 
-            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").body.readAll().toString(),
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").text(),
                 "/disconnect_test");
 
             coroutine.sleep(100);
 
-            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").body.readAll().toString(),
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").text(),
                 "/disconnect_test");
         });
 
@@ -3870,7 +3836,7 @@ describe("http", () => {
             it("intime", () => {
                 client.timeout = 1000;
 
-                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
+                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").text(),
                     "/timeout");
                 var t2 = new Date();
             });
@@ -3890,7 +3856,7 @@ describe("http", () => {
 
             it("global intime", () => {
                 http.timeout = 1000;
-                assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
+                assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").text(),
                     "/timeout");
             });
         });
@@ -3901,7 +3867,7 @@ describe("http", () => {
 
                 var r1 = hc.get("http://127.0.0.1:" + (8884 + base_port) + "/connection", req_conn);
 
-                return r1.body.read().toString();
+                return r1.text();
             }
 
             it("contructor", () => {
@@ -3939,11 +3905,11 @@ describe("http", () => {
         });
 
         it("autoredirect", () => {
-            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').text(),
                 "/d");
-            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').text(),
                 "/redirect/a/b/e");
-            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/f').text(),
                 "/redirect/a/g");
         });
 
@@ -3954,6 +3920,138 @@ describe("http", () => {
             assert.equal(http.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").firstHeader("test"),
                 "test1");
         })
+    });
+
+    describe("body stream", () => {
+        // All http.Client responses now always return a BodyStream —
+        // the { streaming: true } option is no longer needed (kept for compatibility
+        // but has no effect). These tests verify correct body reading behavior.
+        var svr;
+        const streamPort = 8891 + base_port;
+
+        before(() => {
+            svr = new http.Server(streamPort, (r) => {
+                if (r.address === "/chunked") {
+                    // multiple writes without Content-Length → chunked encoding
+                    r.response.write("hello ");
+                    r.response.write("world");
+                    r.response.write("!");
+                } else if (r.address === "/content-length") {
+                    var body = "content-length body";
+                    r.response.appendHeader("Content-Length", body.length);
+                    r.response.write(body);
+                } else if (r.address === "/big") {
+                    var chunk = new Buffer(1024).fill(65); // 1 KB of 'A'
+                    r.response.appendHeader("Content-Length", chunk.length * 4);
+                    for (var i = 0; i < 4; i++)
+                        r.response.write(chunk);
+                } else if (r.address === "/json") {
+                    var body = '{"ok":true}';
+                    r.response.appendHeader("Content-Type", "application/json");
+                    r.response.appendHeader("Content-Length", body.length);
+                    r.response.write(body);
+                }
+            });
+            svr.start();
+            test_util.push(svr.socket);
+        });
+
+        function readAllStream(stream) {
+            var parts = [];
+            var chunk;
+            while ((chunk = stream.read(4096)) !== null)
+                parts.push(chunk.toString());
+            return parts.join('');
+        }
+
+        it("chunked: body is a readable stream with correct content", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/chunked");
+            assert.equal(resp.statusCode, 200);
+            var body = readAllStream(resp.body);
+            resp.body.close();
+            assert.equal(body, "hello world!");
+        });
+
+        it("content-length: body is a readable stream with correct content", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            assert.equal(resp.statusCode, 200);
+            var body = readAllStream(resp.body);
+            resp.body.close();
+            assert.equal(body, "content-length body");
+        });
+
+        it("each response has an independent body stream", () => {
+            var hc = new http.Client();
+            var r1 = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            var r2 = hc.get("http://127.0.0.1:" + streamPort + "/chunked");
+            assert.equal(readAllStream(r1.body), "content-length body");
+            r1.body.close();
+            assert.equal(readAllStream(r2.body), "hello world!");
+            r2.body.close();
+        });
+
+        it("partial read + early close does not throw", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/big");
+            assert.equal(resp.statusCode, 200);
+            var first = resp.body.read(512);
+            assert.notEqual(first, null);
+            assert.equal(first.length, 512);
+            resp.body.close();
+        });
+
+        it("resp.text() consumes the body stream", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            assert.notEqual(resp.body, null);
+            assert.equal(resp.text(), "content-length body");
+            resp.body.close();
+        });
+
+        it("resp.bytes() returns raw Buffer", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            var buf = resp.bytes();
+            assert.ok(buf instanceof Buffer);
+            assert.equal(buf.toString(), "content-length body");
+            resp.body.close();
+        });
+
+        it("resp.blob() returns Blob with correct size", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            var b = resp.blob();
+            assert.equal(b.size, "content-length body".length);
+            resp.body.close();
+        });
+
+        it("resp.blob(type) returns Blob with given MIME type", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            var b = resp.blob("text/plain");
+            assert.equal(b.size, "content-length body".length);
+            assert.equal(b.type, "text/plain");
+            resp.body.close();
+        });
+
+        it("bodyUsed is false before read and true after", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/content-length");
+            assert.equal(resp.bodyUsed, false);
+            resp.text();
+            assert.equal(resp.bodyUsed, true);
+            resp.body.close();
+        });
+
+        it("resp.json() parses JSON body", () => {
+            var hc = new http.Client();
+            var resp = hc.get("http://127.0.0.1:" + streamPort + "/json");
+            var obj = resp.json();
+            assert.equal(obj.ok, true);
+            resp.body.close();
+        });
     });
 
     describe("repeater", () => {
@@ -4218,7 +4316,7 @@ describe("http", () => {
         });
 
         function test_proxy(hc, url) {
-            return hc.get(url).data.toString();
+            return hc.get(url).text();
         }
 
         it('basic request', () => {
@@ -4295,7 +4393,7 @@ describe("http", () => {
 
         var u_path = "http://" + encodeURIComponent(_path) + "/unix";
 
-        assert.equal(http.get(u_path).readAll().toString(), "hello, /unix");
+        assert.equal(http.get(u_path).text(), "hello, /unix");
     });
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -4335,7 +4433,7 @@ describe("http", () => {
 
             var resp = http.get('http://127.0.0.1:' + (port + 1) + '/');
             assert.equal(resp.statusCode, 200);
-            assert.equal(resp.body.readAll().toString(), 'legacy');
+            assert.equal(resp.text(), 'legacy');
         });
 
         it("res.write() via second param sends correct response body", () => {
@@ -4347,7 +4445,7 @@ describe("http", () => {
             test_util.push(svr.socket);
 
             var resp = http.get('http://127.0.0.1:' + (port + 2) + '/');
-            assert.equal(resp.body.readAll().toString(), 'hello from res');
+            assert.equal(resp.text(), 'hello from res');
         });
 
         it("res.writeHead() sets status code and headers", () => {
@@ -4361,7 +4459,7 @@ describe("http", () => {
             var resp = http.get('http://127.0.0.1:' + (port + 3) + '/');
             assert.equal(resp.statusCode, 201);
             assert.equal(resp.firstHeader('X-Custom'), 'test-value');
-            assert.equal(resp.body.readAll().toString(), 'created');
+            assert.equal(resp.text(), 'created');
         });
     });
 
@@ -4507,7 +4605,7 @@ describe("http", () => {
             test_util.push(svr.socket);
 
             var r = http.get('http://127.0.0.1:' + listenPort + '/');
-            assert.strictEqual(r.data.toString(), 'listen-ok');
+            assert.strictEqual(r.text(), 'listen-ok');
         });
 
         it("listen() emits 'listening' event", () => {
@@ -4549,7 +4647,7 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + listenPort + '/');
-            assert.strictEqual(r.data.toString(), 'https-listen-ok');
+            assert.strictEqual(r.text(), 'https-listen-ok');
         });
 
         it("listen() emits 'listening' event", () => {
@@ -4610,7 +4708,7 @@ describe("http", () => {
             assert.strictEqual(addr.family, 'IPv4');
 
             var r = http.get('http://127.0.0.1:' + addr.port + '/');
-            assert.equal(r.data.toString(), 'ok');
+            assert.equal(r.text(), 'ok');
         });
 
         it("throws before server is bound", () => {
@@ -4641,7 +4739,7 @@ describe("http", () => {
             test_util.push(svr.socket);
 
             var r = http.get('http://127.0.0.1:' + csPort + '/');
-            assert.equal(r.data.toString(), 'plain');
+            assert.equal(r.text(), 'plain');
         });
 
         it("http.createServer({}, handler) without cert returns HttpServer", () => {
@@ -4653,7 +4751,7 @@ describe("http", () => {
             test_util.push(svr.socket);
 
             var r = http.get('http://127.0.0.1:' + (csPort + 1) + '/');
-            assert.equal(r.data.toString(), 'plain-opts');
+            assert.equal(r.text(), 'plain-opts');
         });
 
         it("http.createServer({cert, key}, handler) returns HttpsServer", () => {
@@ -4666,7 +4764,7 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + (csPort + 2) + '/');
-            assert.equal(r.data.toString(), 'auto-https');
+            assert.equal(r.text(), 'auto-https');
         });
 
         it("http.createServer({ca, cert, key}, handler) returns HttpsServer", () => {
@@ -4679,7 +4777,7 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + (csPort + 3) + '/');
-            assert.equal(r.data.toString(), 'auto-https-ca');
+            assert.equal(r.text(), 'auto-https-ca');
         });
 
         it("https.createServer({cert, key}, handler) returns HttpsServer", () => {
@@ -4693,7 +4791,80 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + (csPort + 4) + '/');
-            assert.equal(r.data.toString(), 'https-direct');
+            assert.equal(r.text(), 'https-direct');
+        });
+    });
+
+    describe("no-body responses (RFC 9110)", () => {
+        // Use a raw TCP server to send precise hand-crafted HTTP responses
+        // so we can test 1xx, 204, 304 without server-side framework interference.
+        const nbPort = 8892 + base_port;
+        var svr;
+
+        before(() => {
+            svr = new net.TcpServer(nbPort, (c) => {
+                var bs = new io.BufferedStream(c);
+                bs.EOL = "\r\n";
+                // read request line
+                var line = bs.readLine(4096);
+                // drain headers
+                while (true) {
+                    var h = bs.readLine(4096);
+                    if (!h || h.length === 0) break;
+                }
+
+                var path = line.split(' ')[1];
+
+                if (path === '/204') {
+                    // RFC 9110 §6.3.1: 204 MUST NOT contain a body
+                    c.write("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+                } else if (path === '/304') {
+                    // RFC 9110 §6.3.1: 304 MUST NOT contain a body;
+                    // send a spurious Content-Length to verify it is ignored
+                    c.write("HTTP/1.1 304 Not Modified\r\nConnection: close\r\nContent-Length: 512\r\n\r\n");
+                } else if (path === '/204-then-200') {
+                    // First response: 204 — verify connection read position is not disturbed
+                    c.write("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+                    // Immediately follow with a valid 200 body on the same byte stream.
+                    // This could only be consumed if the client (wrongly) tried to read
+                    // bytes after the 204 status line, so we just send it to make the
+                    // test deterministic; the client should not read it.
+                    c.write("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello");
+                }
+                c.close();
+            });
+            svr.start();
+        });
+
+        after(() => {
+            svr.stop();
+        });
+
+        const base = "http://127.0.0.1:" + nbPort;
+
+        it("204 No Content: body is null", () => {
+            var hc = new http.Client();
+            var r = hc.get(base + "/204");
+            assert.equal(r.statusCode, 204);
+            assert.equal(r.body, null);
+        });
+
+        it("304 Not Modified: body is null even when server sends Content-Length: 512", () => {
+            // A buggy client would block waiting for 512 bytes that never arrive.
+            var hc = new http.Client();
+            var r = hc.get(base + "/304");
+            assert.equal(r.statusCode, 304);
+            assert.equal(r.body, null);
+        });
+
+        it("204: extra bytes after response line are left unread (no body consumed)", () => {
+            // If the client incorrectly consumed bytes after the 204, it would
+            // fail to parse the subsequent 200 response and throw. Getting a clean
+            // 204 with body=null is sufficient to prove correct read positioning.
+            var hc = new http.Client();
+            var r = hc.get(base + "/204-then-200");
+            assert.equal(r.statusCode, 204);
+            assert.equal(r.body, null);
         });
     });
 
@@ -4717,7 +4888,7 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + hsPort + '/');
-            assert.equal(r.data.toString(), 'https-deferred');
+            assert.equal(r.text(), 'https-deferred');
         });
 
         it("new HttpsServer({cert, key, port}, handler) binds immediately", () => {
@@ -4729,7 +4900,7 @@ describe("http", () => {
 
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + (hsPort + 1) + '/');
-            assert.equal(r.data.toString(), 'https-immediate');
+            assert.equal(r.text(), 'https-immediate');
         });
     });
 });

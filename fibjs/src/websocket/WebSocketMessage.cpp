@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include <stdio.h>
 #include "ifs/io.h"
 #include "ifs/zlib.h"
 #include "WebSocketMessage.h"
@@ -68,39 +69,49 @@ result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncEvent*
     return m_message->write(data, retVal, ac);
 }
 
-result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal)
+result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(data, retVal);
+    return m_message->text(data, retVal, ac);
 }
 
-result_t WebSocketMessage::text(exlib::string& retVal)
+result_t WebSocketMessage::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(retVal);
+    return m_message->text(retVal, ac);
 }
 
-result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    return m_message->arrayBuffer(retVal);
+    return m_message->arrayBuffer(retVal, ac);
 }
 
-result_t WebSocketMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t WebSocketMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(data, retVal);
+    return m_message->json(data, retVal, ac);
 }
 
-result_t WebSocketMessage::json(v8::Local<v8::Value>& retVal)
+result_t WebSocketMessage::json(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(retVal);
+    return m_message->json(retVal, ac);
 }
 
-result_t WebSocketMessage::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t WebSocketMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(data, retVal);
+    return m_message->pack(data, retVal, ac);
 }
 
-result_t WebSocketMessage::pack(v8::Local<v8::Value>& retVal)
+result_t WebSocketMessage::pack(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(retVal);
+    return m_message->pack(retVal, ac);
+}
+
+result_t WebSocketMessage::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->blob(type, retVal, ac);
+}
+
+result_t WebSocketMessage::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->bytes(retVal, ac);
 }
 
 result_t WebSocketMessage::get_length(int64_t& retVal)
@@ -581,7 +592,31 @@ result_t WebSocketMessage::set_type(int32_t newVal)
 
 result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
 {
-    return m_message->get_data(retVal);
+    // TEXT type: return as string; BINARY type: return as Buffer
+    int32_t type;
+    m_message->get_type(type);
+
+    auto& body = m_message->body();
+    if (!body)
+        return CALL_RETURN_NULL;
+
+    body->rewind();
+
+    obj_ptr<Buffer_base> data;
+    result_t hr = body->readAll(data, NULL);
+    if (hr == CALL_RETURN_NULL || !data)
+        return CALL_RETURN_NULL;
+    if (hr < 0)
+        return hr;
+
+    if (type == 1 /* ws.TEXT */) {
+        exlib::string txt;
+        data->toString(txt);
+        retVal = holder()->NewString(txt);
+        return 0;
+    }
+
+    return data->valueOf(retVal);
 }
 
 result_t WebSocketMessage::get_masked(bool& retVal)

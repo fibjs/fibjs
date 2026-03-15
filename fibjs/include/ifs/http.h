@@ -27,8 +27,6 @@ class SecureContext_base;
 class HttpHandler_base;
 class HttpRepeater_base;
 class Stream_base;
-class SeekableStream_base;
-class WebResponse_base;
 
 class http_base : public object_base {
     DECLARE_CLASS(http_base);
@@ -66,7 +64,6 @@ public:
     static result_t set_poolTimeout(int32_t newVal);
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    static result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -77,8 +74,8 @@ public:
     static result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal);
-    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
-    static result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -132,7 +129,6 @@ public:
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE4(http_base, request, Stream_base*, HttpRequest_base*, SeekableStream_base*, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE4(http_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, request, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE2(http_base, request, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -142,8 +138,8 @@ public:
     ASYNC_STATICVALUE3(http_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE3(http_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
-    ASYNC_STATICVALUE3(http_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
+    ASYNC_STATICVALUE3(http_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(http_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -159,8 +155,6 @@ public:
 #include "ifs/HttpHandler.h"
 #include "ifs/HttpRepeater.h"
 #include "ifs/Stream.h"
-#include "ifs/SeekableStream.h"
-#include "ifs/WebResponse.h"
 
 namespace fibjs {
 inline ClassInfo& http_base::class_info()
@@ -618,17 +612,6 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_request(v0.get(), v1.get(), vr);
 
-    METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<HttpRequest_base>, 1);
-    ARG(obj_ptr<SeekableStream_base>, 2);
-
-    if (!cb.IsEmpty())
-        hr = acb_request(v0.get(), v1.get(), v2.get(), cb, args);
-    else
-        hr = ac_request(v0.get(), v1.get(), v2.get(), vr);
-
     METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
@@ -793,7 +776,7 @@ inline void http_base::s_static_setGlobalProxyFromEnv(const v8::FunctionCallback
 
 inline void http_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<WebResponse_base> vr;
+    obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_ENTER("http.fetch");
 

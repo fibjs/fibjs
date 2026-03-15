@@ -116,14 +116,6 @@ interface HttpClient : object
      */
     HttpResponse request(Stream conn, HttpRequest req) async;
 
-    /*! @brief 发送 http 请求到指定的流对象，并返回结果
-     @param conn 指定处理请求的流对象
-     @param req 要发送的 HttpRequest 对象
-     @param response_body 指定 response.body 的流
-     @return 返回服务器响应
-     */
-    HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
-
     /*! @brief 请求指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
@@ -141,8 +133,7 @@ interface HttpClient : object
          "body": SeekableStream | Buffer | String | {},
          "json": {},
          "pack": {},
-         "headers": {},
-         "response_body": SeekableStream // specify the response.body stream
+         "headers": {}
      }
      ```
      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -368,17 +359,17 @@ interface HttpClient : object
      */
     HttpResponse head(String url, Object opts = {}) async;
 
-    /*! @brief 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
-     @param url 指定 url，必须是包含主机的完整 url
+    /*! @brief 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
+     @param url 指定 url，必须是包含 host 的完整 url
      @param opts 指定附加信息
-     @return 返回 WebResponse 对象
+     @return 返回 HttpResponse 对象
      */
-    WebResponse fetch(String url, Object opts = {}) async;
+    HttpResponse fetch(String url, Object opts = {}) async;
 
     /*! @brief 发送 Fetch 请求，接受 Request 对象
      @param request Request 请求对象
      @param opts 请求选项（可覆盖 request 中的字段）
      @return 返回服务器响应对象
     */
-    WebResponse fetch(HttpRequest request, Object opts = {}) async;
+    HttpResponse fetch(HttpRequest request, Object opts = {}) async;
 };

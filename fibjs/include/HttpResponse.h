@@ -53,20 +53,21 @@ public:
     virtual result_t get_params(obj_ptr<NArray>& retVal);
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
-    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<Stream_base>& retVal);
     virtual result_t set_body(Stream_base* newVal);
     virtual result_t get_bodyUsed(bool& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t text(exlib::string data, exlib::string& retVal);
-    virtual result_t text(exlib::string& retVal);
-    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal);
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
-    virtual result_t json(v8::Local<v8::Value>& retVal);
-    virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
-    virtual result_t pack(v8::Local<v8::Value>& retVal);
+    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
+    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
+    virtual result_t json(Variant& retVal, AsyncEvent* ac);
+    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
+    virtual result_t pack(Variant& retVal, AsyncEvent* ac);
+    virtual result_t blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac);
+    virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t get_length(int64_t& retVal);
     virtual result_t end(int32_t& retVal, AsyncEvent* ac);
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
@@ -118,6 +119,8 @@ public:
     virtual result_t set_statusCode(int32_t newVal);
     virtual result_t get_statusMessage(exlib::string& retVal);
     virtual result_t set_statusMessage(exlib::string newVal);
+    virtual result_t get_statusText(exlib::string& retVal);
+    virtual result_t set_statusText(exlib::string newVal);
     virtual result_t get_status(int32_t& retVal);
     virtual result_t set_status(int32_t newVal);
     virtual result_t get_ok(bool& retVal);
@@ -127,6 +130,12 @@ public:
     virtual result_t addCookie(HttpCookie_base* cookie);
     virtual result_t redirect(exlib::string url);
     virtual result_t redirect(int32_t statusCode, exlib::string url);
+    virtual result_t get_url(exlib::string& retVal);
+    virtual result_t get_redirected(bool& retVal);
+    virtual result_t get_type(exlib::string& retVal);
+    static result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal);
+    static result_t redirect(exlib::string url, int32_t status, obj_ptr<HttpResponse_base>& retVal);
+    static result_t error(obj_ptr<HttpResponse_base>& retVal);
 
 public:
     result_t sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac);
@@ -148,6 +157,10 @@ public:
     int32_t m_statusCode;
     exlib::string m_statusMessage;
     obj_ptr<NArray> m_cookies;
+    // Fetch API metadata
+    exlib::string m_fetchUrl;
+    bool m_redirected = false;
+    exlib::string m_fetchType = "basic";
 };
 
 } /* namespace fibjs */

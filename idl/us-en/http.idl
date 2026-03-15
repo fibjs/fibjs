@@ -137,14 +137,6 @@ module http
      */
     static HttpResponse request(Stream conn, HttpRequest req) async;
 
-    /*! @brief Send http request to the specified stream object and return the result
-     @param conn Specify the stream object that handles the request
-     @param req The HttpRequest object to send
-     @param response_body Specify the stream for response.body
-     @return Return server response
-     */
-    static HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
-
     /*! @brief Request the specified url and return the result
      opts contains additional options for the request, supports the following content:
      ```JavaScript
@@ -162,8 +154,7 @@ module http
          "body": SeekableStream | Buffer | String | {},
          "json": {},
          "pack": {},
-         "headers": {},
-         "response_body": SeekableStream // specify response.body stream
+         "headers": {}
      }
      ```
      body, json, pack must not appear at the same time. Default is {}, no additional information
@@ -399,10 +390,10 @@ module http
      */
     static Function setGlobalProxyFromEnv(Object proxyEnv = {});
 
-    /*! @brief Send a request using Web Fetch standard and return a WebResponse
+    /*! @brief Send a request using Web Fetch standard and return an HttpResponse
      @param url The request target URL
      @param opts Request options, supports method, headers, body, etc.
-     @return Returns a WebResponse object
+     @return Returns an HttpResponse object
     */
-    static WebResponse fetch(String url, Object opts = {}) async;
+    static HttpResponse fetch(String url, Object opts = {}) async;
 };

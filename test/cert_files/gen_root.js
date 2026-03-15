@@ -39,7 +39,7 @@ function fetchMozillaCertData() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         console.log('Download complete');
-        return response.data.toString();
+        return response.text();
     } catch (err) {
         console.error('Download failed');
         throw err;

@@ -19,8 +19,6 @@ class SecureContext_base;
 class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
-class SeekableStream_base;
-class WebResponse_base;
 
 class HttpClient_base : public object_base {
     DECLARE_CLASS(HttpClient_base);
@@ -58,7 +56,6 @@ public:
     virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -68,8 +65,8 @@ public:
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -115,7 +112,6 @@ public:
 
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
-    ASYNC_MEMBERVALUE4(HttpClient_base, request, Stream_base*, HttpRequest_base*, SeekableStream_base*, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, request, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE2(HttpClient_base, request, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -125,8 +121,8 @@ public:
     ASYNC_MEMBERVALUE3(HttpClient_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
-    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<WebResponse_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -134,8 +130,6 @@ public:
 #include "ifs/HttpResponse.h"
 #include "ifs/Stream.h"
 #include "ifs/HttpRequest.h"
-#include "ifs/SeekableStream.h"
-#include "ifs/WebResponse.h"
 
 namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
@@ -626,17 +620,6 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_request(v0.get(), v1.get(), vr);
 
-    METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<HttpRequest_base>, 1);
-    ARG(obj_ptr<SeekableStream_base>, 2);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_request(v0.get(), v1.get(), v2.get(), cb, args);
-    else
-        hr = pInst->ac_request(v0.get(), v1.get(), v2.get(), vr);
-
     METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
@@ -792,7 +775,7 @@ inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void HttpClient_base::s_fetch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<WebResponse_base> vr;
+    obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.fetch");

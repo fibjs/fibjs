@@ -109,6 +109,7 @@ public:
 
         v8::Global<v8::FunctionTemplate> m_pclass;
         v8::Global<v8::Object> m_pcache;
+        v8::Global<v8::Function> m_pfunction;
     };
 
 public:
@@ -144,6 +145,12 @@ public:
     {
         ex_assert(!m_cd.module);
         return _init(isolate)->m_cache.Get(isolate->m_isolate)->Clone();
+    }
+
+    v8::Local<v8::Object> getAsyncModule(Isolate* isolate)
+    {
+        ex_assert(!m_cd.module);
+        return _init(isolate)->m_pfunction.Get(isolate->m_isolate);
     }
 
     v8::Local<v8::Value> GetAsyncPrototype(Isolate* isolate)
@@ -564,8 +571,12 @@ private:
 
                 po->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_pcache.Reset(isolate->m_isolate, po);
-            } else
+                _cache->m_pfunction.Reset(isolate->m_isolate, _pfunction);
+                Attach(isolate, _pfunction);
+            } else {
                 _cache->m_pcache.Reset(isolate->m_isolate, o);
+                _cache->m_pfunction.Reset(isolate->m_isolate, _function);
+            }
 
         } else {
             v8::Local<v8::Object> o;

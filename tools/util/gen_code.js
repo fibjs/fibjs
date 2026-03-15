@@ -1153,7 +1153,19 @@ function gen_code(cls, def, baseFolder, allDefs) {
         var object_count = 0;
         var prop_count = 0;
         var const_count = 0;
-        var has_async = false;
+
+        // Check if any ancestor class has async methods (so prototype chain is inherited)
+        function base_has_async(extendName) {
+            if (!extendName || extendName === 'object') return false;
+            var baseDef = allDefs[extendName];
+            if (!baseDef) return false;
+            var hasIt = baseDef.members.some(fn =>
+                fn.memType === 'method' && fn.overs && fn.overs.some(ov => ov.async === 'async' || ov.async === 'promise')
+            );
+            return hasIt || base_has_async(baseDef.declare && baseDef.declare.extend);
+        }
+
+        var has_async = base_has_async(def.declare && def.declare.extend);
 
         function async_type(async_) {
             switch (async_) {

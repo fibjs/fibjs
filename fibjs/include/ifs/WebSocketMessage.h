@@ -31,6 +31,7 @@ public:
     virtual result_t set_compress(bool newVal) = 0;
     virtual result_t get_maxSize(int32_t& retVal) = 0;
     virtual result_t set_maxSize(int32_t newVal) = 0;
+    virtual result_t get_data(v8::Local<v8::Value>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,6 +45,7 @@ public:
     static void s_set_compress(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -55,14 +57,15 @@ inline ClassInfo& WebSocketMessage_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "masked", s_get_masked, s_set_masked, false },
         { "compress", s_get_compress, s_set_compress, false },
-        { "maxSize", s_get_maxSize, s_set_maxSize, false }
+        { "maxSize", s_get_maxSize, s_set_maxSize, false },
+        { "data", s_get_data, block_set, false }
     };
 
     static ClassData s_cd = {
         "WebSocketMessage", false, s__new, NULL,
         0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &Message_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -193,5 +196,19 @@ inline void WebSocketMessage_base::s_set_maxSize(const v8::FunctionCallbackInfo<
     hr = pInst->set_maxSize(v0);
 
     METHOD_VOID();
+}
+
+inline void WebSocketMessage_base::s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(WebSocketMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_data(vr);
+
+    METHOD_RETURN();
 }
 }

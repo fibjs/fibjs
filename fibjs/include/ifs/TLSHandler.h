@@ -63,7 +63,7 @@ inline ClassInfo& TLSHandler_base::class_info()
         "TLSHandler", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &Handler_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);

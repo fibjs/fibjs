@@ -9,7 +9,6 @@
 #include "HttpClient.h"
 #include "HttpResponse.h"
 #include "EventInfo.h"
-#include "ChunkedStream.h"
 #include "BufferedStream.h"
 #include "Buffer.h"
 #include "ifs/console.h"
@@ -51,7 +50,7 @@ public:
         u->parse(m_url);
         o->u = u;
 
-        return m_hc->request(o.get(), m_es->m_response, next(opened), true);
+        return m_hc->request(o.get(), m_es->m_response, next(opened));
     }
 
     ON_STATE(AsyncEventSource, opened)
@@ -62,18 +61,19 @@ public:
         int32_t status;
         m_es->m_response->get_status(status);
         if (status != 200)
-            return next(read_body);
+            return next(close_body);
 
         exlib::string contentType;
         m_es->m_response->firstHeader("Content-Type", contentType);
         if (qstricmp(contentType.c_str(), "text/event-stream", 17))
-            return next(read_body);
+            return next(close_body);
 
+        // The streaming path in asyncRequest has already assembled the transport
+        // decode chain (ChunkedStream / RangeStream → BodyStream) and stored it
+        // in m_bodyStream.  Just retrieve it and wrap with BufferedStream for
+        // line-oriented SSE parsing.
         obj_ptr<Stream_base> stm;
-        m_es->m_response->get_stream(stm);
-
-        if (m_es->m_response.As<HttpResponse>()->m_message->m_bChunked)
-            stm = new ChunkedStream(stm.As<BufferedStream_base>(), m_hc->m_maxChunkSize, m_hc->m_maxBodySize);
+        m_es->m_response->get_body(stm);
 
         m_sse_stm = new BufferedStream(stm);
         m_sse_stm->set_EOL("\n");
@@ -84,10 +84,14 @@ public:
         return m_sse_stm->readLine(4096, strLine, next(read_message));
     }
 
-    ON_STATE(AsyncEventSource, read_body)
+    ON_STATE(AsyncEventSource, close_body)
     {
-        m_response = m_es->m_response.As<HttpResponse>();
-        return m_response->readBody(next(read_body_done));
+        // Error path: close the BodyStream to release the TCP connection.
+        obj_ptr<Stream_base> stm;
+        m_es->m_response->get_body(stm);
+        if (stm)
+            return stm->close(next(read_body_done));
+        return next(read_body_done);
     }
 
     ON_STATE(AsyncEventSource, read_body_done)
@@ -176,7 +180,6 @@ public:
 
 private:
     obj_ptr<HttpClient> m_hc;
-    obj_ptr<HttpResponse> m_response;
     obj_ptr<EventSource> m_es;
     obj_ptr<ValueHolder> m_holder;
     exlib::string m_url;

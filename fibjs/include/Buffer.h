@@ -125,6 +125,11 @@ public:
         m_store.resize(length);
     }
 
+    std::shared_ptr<v8::BackingStore> backingStore()
+    {
+        return m_store.m_store;
+    }
+
     static Buffer* Cast(Buffer_base* buf)
     {
         return static_cast<Buffer*>(buf);

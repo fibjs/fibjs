@@ -4,8 +4,6 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
-/// <reference path="../interface/SeekableStream.d.ts" />
-/// <reference path="../interface/WebResponse.d.ts" />
 /**
  * @description HttpClient 是针对 HTTP 客户端功能设计的类库，提供了基本的 HTTP/HTTPS 请求、代理访问、cookie 管理等功能
  * 
@@ -182,38 +180,6 @@ declare class Class_HttpClient extends Class_object {
     requestAsync(conn: Class_Stream, req: Class_HttpRequest): Promise<Class_HttpResponse>;
 
     /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
-
-    request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
-
-    /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    requestSync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
-
-    /**
-     * @description 发送 http 请求到指定的流对象，并返回结果
-     *      @param conn 指定处理请求的流对象
-     *      @param req 要发送的 HttpRequest 对象
-     *      @param response_body 指定 response.body 的流
-     *      @return 返回服务器响应
-     *      
-     */
-    requestAsync(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Promise<Class_HttpResponse>;
-
-    /**
      * @description 请求指定的 url，并返回结果
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -231,8 +197,7 @@ declare class Class_HttpClient extends Class_object {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify the response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -264,8 +229,7 @@ declare class Class_HttpClient extends Class_object {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify the response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -295,8 +259,7 @@ declare class Class_HttpClient extends Class_object {
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "response_body": SeekableStream // specify the response.body stream
+     *          "headers": {}
      *      }
      *      ```
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -1018,33 +981,33 @@ declare class Class_HttpClient extends Class_object {
     headAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
-     *      @param url 指定 url，必须是包含主机的完整 url
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
+     *      @param url 指定 url，必须是包含 host 的完整 url
      *      @param opts 指定附加信息
-     *      @return 返回 WebResponse 对象
+     *      @return 返回 HttpResponse 对象
      *      
      */
-    fetch(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    fetch(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
-
-    /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
-     *      @param url 指定 url，必须是包含主机的完整 url
-     *      @param opts 指定附加信息
-     *      @return 返回 WebResponse 对象
-     *      
-     */
-    fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
-     * @description 使用 Web Fetch 标准发送请求，返回 WebResponse 对象
-     *      @param url 指定 url，必须是包含主机的完整 url
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
+     *      @param url 指定 url，必须是包含 host 的完整 url
      *      @param opts 指定附加信息
-     *      @return 返回 WebResponse 对象
+     *      @return 返回 HttpResponse 对象
      *      
      */
-    fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
+     *      @param url 指定 url，必须是包含 host 的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回 HttpResponse 对象
+     *      
+     */
+    fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 发送 Fetch 请求，接受 Request 对象
@@ -1053,18 +1016,9 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应对象
      *     
      */
-    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_WebResponse)=>any): void;
-
-    /**
-     * @description 发送 Fetch 请求，接受 Request 对象
-     *      @param request Request 请求对象
-     *      @param opts 请求选项（可覆盖 request 中的字段）
-     *      @return 返回服务器响应对象
-     *     
-     */
-    fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 发送 Fetch 请求，接受 Request 对象
@@ -1073,7 +1027,16 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应对象
      *     
      */
-    fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 发送 Fetch 请求，接受 Request 对象
+     *      @param request Request 请求对象
+     *      @param opts 请求选项（可覆盖 request 中的字段）
+     *      @return 返回服务器响应对象
+     *     
+     */
+    fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
 }
 

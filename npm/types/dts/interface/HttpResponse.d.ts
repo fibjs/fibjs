@@ -57,6 +57,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     statusMessage: string;
 
     /**
+     * @description 查询和设置响应消息的返回消息，等同于 statusMessage（Web API 兼容） 
+     */
+    statusText: string;
+
+    /**
      * @description 查询和设置响应消息的返回状态，等同于 statusCode 
      */
     status: number;
@@ -109,6 +114,46 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      
      */
     redirect(statusCode: number, url: string): void;
+
+    /**
+     * @description Fetch API 响应的最终 URL（经过重定向后的地址）
+     */
+    readonly url: string;
+
+    /**
+     * @description 是否经过重定向 
+     */
+    readonly redirected: boolean;
+
+    /**
+     * @description 响应类型（"basic"、"cors"、"error" 等），覆盖 Message.type 
+     */
+    readonly type: string;
+
+    /**
+     * @description 创建一个 JSON 响应（静态工厂）
+     *      @param data 要序列化为 JSON 的数据
+     *      @param options 选项对象，支持 status、statusText、headers
+     *      @return 返回新的 HttpResponse 对象
+     *      
+     */
+    static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description 创建一个重定向响应（静态工厂）
+     *      @param url 重定向目标 URL
+     *      @param status 重定向状态码，默认 302
+     *      @return 返回新的 HttpResponse 对象
+     *      
+     */
+    static redirect(url: string, status?: number): Class_HttpResponse;
+
+    /**
+     * @description 创建一个错误响应（静态工厂）
+     *      @return 返回 type="error" 的新的 HttpResponse 对象
+     *      
+     */
+    static error(): Class_HttpResponse;
 
 }
 

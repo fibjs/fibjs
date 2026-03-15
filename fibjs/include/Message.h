@@ -9,6 +9,7 @@
 
 #include "ifs/Message.h"
 #include "ifs/SeekableStream.h"
+#include "ifs/Blob.h"
 #include "MemoryStream.h"
 
 namespace fibjs {
@@ -22,20 +23,21 @@ public:
     virtual result_t get_params(obj_ptr<NArray>& retVal);
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
-    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<Stream_base>& retVal);
     virtual result_t set_body(Stream_base* newVal);
     virtual result_t get_bodyUsed(bool& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t text(exlib::string data, exlib::string& retVal);
-    virtual result_t text(exlib::string& retVal);
-    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal);
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
-    virtual result_t json(v8::Local<v8::Value>& retVal);
-    virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
-    virtual result_t pack(v8::Local<v8::Value>& retVal);
+    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
+    virtual result_t blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac);
+    virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
+    virtual result_t json(Variant& retVal, AsyncEvent* ac);
+    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
+    virtual result_t pack(Variant& retVal, AsyncEvent* ac);
     virtual result_t get_length(int64_t& retVal);
     virtual result_t end(int32_t& retVal, AsyncEvent* ac);
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);

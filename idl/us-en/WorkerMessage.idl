@@ -1,0 +1,7 @@
+/*! @brief WorkerMessage is the message object used in Worker thread communication. It is passed as the event argument when a `message` event is received via `postMessage`. The `.data` property contains the transferred value. */
+
+interface WorkerMessage : Message
+{
+    /*! @brief Query the data carried by the message, which is the value passed to postMessage(). */
+    readonly Value data;
+};

@@ -261,7 +261,7 @@ async function install_addon() {
         throw new Error(`Failed to download ${url}`);
     }
 
-    let tgz = res.arrayBuffer ? new Uint8Array(await res.arrayBuffer()) : res.data;
+    let tgz = res.arrayBuffer ? new Uint8Array(await res.arrayBuffer()) : new Uint8Array(await res.body.readAll());
 
     let t;
     if (tgz[0] === 0x1f && tgz[1] === 0x8b)

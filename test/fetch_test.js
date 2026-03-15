@@ -377,7 +377,10 @@ describe("web fetch", () => {
         });
 
         it("response.clone() allows multiple reads", async () => {
-            const resp = await fetch(ctx.baseUrl + '/json');
+            // clone() works on non-streaming (local) responses
+            const resp = new Response(JSON.stringify({ key: 'value', num: 123 }), {
+                headers: { 'Content-Type': 'application/json' }
+            });
             const clone = resp.clone();
             const data1 = await resp.json();
             const data2 = await clone.json();
@@ -385,13 +388,20 @@ describe("web fetch", () => {
         });
 
         it("clone is independent from original", async () => {
-            const resp = await fetch(ctx.baseUrl + '/text');
+            // clone() works on non-streaming (local) responses
+            const resp = new Response('plain text response');
             const clone = resp.clone();
             await resp.text();
             assert.strictEqual(resp.bodyUsed, true);
             assert.strictEqual(clone.bodyUsed, false);
             const text = await clone.text();
             assert.strictEqual(text, 'plain text response');
+        });
+
+        it("clone() throws on streaming fetch response", async () => {
+            const resp = await fetch(ctx.baseUrl + '/text');
+            assert.throws(() => resp.clone(), /streaming/);
+            await resp.text(); // consume to release connection
         });
     });
 

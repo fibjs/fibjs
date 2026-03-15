@@ -116,14 +116,6 @@ interface HttpClient : object
      */
     HttpResponse request(Stream conn, HttpRequest req) async;
 
-    /*! @brief Send http request to the specified stream object and return result
-     @param conn specify the stream object that handles the request
-     @param req HttpRequest object to send
-     @param response_body specify response.body stream
-     @return return server response
-     */
-    HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
-
     /*! @brief Request the specified url and return result
      opts contains additional options for the request, supported content is as follows:
      ```JavaScript
@@ -141,8 +133,7 @@ interface HttpClient : object
          "body": SeekableStream | Buffer | String | {},
          "json": {},
          "pack": {},
-         "headers": {},
-         "response_body": SeekableStream // specify the response.body stream
+         "headers": {}
      }
      ```
      Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
@@ -368,10 +359,18 @@ interface HttpClient : object
      */
     HttpResponse head(String url, Object opts = {}) async;
 
-    /*! @brief Send request using Web Fetch standard, return WebResponse object
+    /*! @brief Send request using Web Fetch standard, return HttpResponse object
      @param url specify url, must be complete url including host
      @param opts specify additional information
-     @return return WebResponse object
+     @return return HttpResponse object
      */
-    WebResponse fetch(String url, Object opts = {}) async;
+    HttpResponse fetch(String url, Object opts = {}) async;
+
+    /*! @brief Send Fetch request with a Request object
+     @param request Request object
+     @param opts Request options (may override fields in request)
+     @return return server response object
+    */
+    HttpResponse fetch(HttpRequest request, Object opts = {}) async;
+};
 };

@@ -55,7 +55,7 @@ inline ClassInfo& RangeStream_base::class_info()
         "RangeStream", false, s__new, NULL,
         0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &SeekableStream_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);

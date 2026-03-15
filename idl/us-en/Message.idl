@@ -29,9 +29,6 @@ interface Message : object
     /*! @brief Message type */
     Integer type;
 
-    /*! @brief Query the data of the message, this property returns different data according to content-type, returns text when text, returns json when json, otherwise returns binary */
-    readonly Value data;
-
     /*! @brief Stream object containing the message data part */
     Stream body;
 
@@ -56,39 +53,50 @@ interface Message : object
      @param data Given data to write
      @return This method does not return data
      */
-    String text(String data);
+    String text(String data) async;
 
     /*! @brief Parse the data in the message with text encoding
      @return Return the parsing result
      */
-    String text();
+    String text() async;
 
     /*! @brief Return the data part of the message in binary form
      @return Return the ArrayBuffer object containing the message data part
      */
-    ArrayBuffer arrayBuffer();
+    ArrayBuffer arrayBuffer() async;
+
+    /*! @brief Return the data part of the message as a Blob object
+     @param type MIME type for the Blob, defaults to empty string
+     @return Return the Blob object containing the message data part
+     */
+    Blob blob(String type = "") async;
+
+    /*! @brief Return the data part of the message as a Buffer
+     @return Return the Buffer containing the message data part, empty Buffer if no body
+     */
+    Buffer bytes() async;
 
     /*! @brief Write the given data with JSON encoding
      @param data Given data to write
      @return This method does not return data
      */
-    Value json(Value data);
+    Variant json(Value data) async;
 
     /*! @brief Parse the data in the message with JSON encoding
      @return Return the parsing result
      */
-    Value json();
+    Variant json() async;
 
     /*! @brief Write the given data with msgpack encoding
      @param data Given data to write
      @return This method does not return data
      */
-    Value pack(Value data);
+    Variant pack(Value data) async;
 
     /*! @brief Parse the data in the message with msgpack encoding
      @return Return the parsing result
      */
-    Value pack();
+    Variant pack() async;
 
     /*! @brief Length of the message data part */
     readonly Long length;

@@ -8,6 +8,7 @@
 #include <math.h>
 #include "object.h"
 #include "ifs/json.h"
+#include "ifs/msgpack.h"
 #include "Buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,6 +113,13 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_JSON: {
         v8::Local<v8::Value> v;
         json_base::decode(strVal(), v);
+        return v;
+    }
+    case VT_MSGPACK: {
+        v8::Local<v8::Value> v;
+        const exlib::string& s = strVal();
+        obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
+        msgpack_base::decode(buf, v);
         return v;
     }
     case VT_String: {

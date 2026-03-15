@@ -2,6 +2,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/Blob.d.ts" />
 /**
  * @description 基础消息对象
  * 
@@ -39,11 +40,6 @@ declare class Class_Message extends Class_object {
      * @description 消息类型 
      */
     type: number;
-
-    /**
-     * @description 查询消息的数据，此属性会根据 content-type 返回不同数据，为 text 时，返回文本，为 json 时返回 json，其它时候返回二进制 
-     */
-    readonly data: any;
 
     /**
      * @description 包含消息数据部分的流对象 
@@ -138,6 +134,24 @@ declare class Class_Message extends Class_object {
      */
     text(data: string): string;
 
+    text(data: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 写入给定的文本数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    textSync(data: string): string;
+
+    /**
+     * @description 写入给定的文本数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    textAsync(data: string): Promise<string>;
+
     /**
      * @description 以文本编码解析消息中的数据
      *      @return 返回解析的结果
@@ -145,12 +159,93 @@ declare class Class_Message extends Class_object {
      */
     text(): string;
 
+    text(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 以文本编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    textSync(): string;
+
+    /**
+     * @description 以文本编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    textAsync(): Promise<string>;
+
     /**
      * @description 以二进制形式返回消息的数据部分
      *      @return 返回包含消息数据部分的 ArrayBuffer 对象
      *      
      */
     arrayBuffer(): ArrayBuffer;
+
+    arrayBuffer(callback: (err: Error | undefined | null, retVal: ArrayBuffer)=>any): void;
+
+    /**
+     * @description 以二进制形式返回消息的数据部分
+     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     *      
+     */
+    arrayBufferSync(): ArrayBuffer;
+
+    /**
+     * @description 以二进制形式返回消息的数据部分
+     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     *      
+     */
+    arrayBufferAsync(): Promise<ArrayBuffer>;
+
+    /**
+     * @description 以 Blob 形式返回消息中的数据部分
+     *      @param type Blob 的 MIME 类型，默认为空字符串
+     *      @return 返回包含消息数据部分的 Blob 对象
+     *      
+     */
+    blob(type?: string): Class_Blob;
+
+    blob(type?: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
+
+    /**
+     * @description 以 Blob 形式返回消息中的数据部分
+     *      @param type Blob 的 MIME 类型，默认为空字符串
+     *      @return 返回包含消息数据部分的 Blob 对象
+     *      
+     */
+    blobSync(type?: string): Class_Blob;
+
+    /**
+     * @description 以 Blob 形式返回消息中的数据部分
+     *      @param type Blob 的 MIME 类型，默认为空字符串
+     *      @return 返回包含消息数据部分的 Blob 对象
+     *      
+     */
+    blobAsync(type?: string): Promise<Class_Blob>;
+
+    /**
+     * @description 以 Buffer 形式返回消息中的数据部分
+     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     *      
+     */
+    bytes(): Class_Buffer;
+
+    bytes(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 以 Buffer 形式返回消息中的数据部分
+     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     *      
+     */
+    bytesSync(): Class_Buffer;
+
+    /**
+     * @description 以 Buffer 形式返回消息中的数据部分
+     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     *      
+     */
+    bytesAsync(): Promise<Class_Buffer>;
 
     /**
      * @description 以 JSON 编码写入给定的数据
@@ -160,12 +255,46 @@ declare class Class_Message extends Class_object {
      */
     json(data: any): any;
 
+    json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 JSON 编码写入给定的数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    jsonSync(data: any): any;
+
+    /**
+     * @description 以 JSON 编码写入给定的数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    jsonAsync(data: any): Promise<any>;
+
     /**
      * @description 以 JSON 编码解析消息中的数据
      *      @return 返回解析的结果
      *      
      */
     json(): any;
+
+    json(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    jsonSync(): any;
+
+    /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    jsonAsync(): Promise<any>;
 
     /**
      * @description 以 msgpack 编码写入给定的数据
@@ -175,12 +304,46 @@ declare class Class_Message extends Class_object {
      */
     pack(data: any): any;
 
+    pack(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 msgpack 编码写入给定的数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    packSync(data: any): any;
+
+    /**
+     * @description 以 msgpack 编码写入给定的数据
+     *      @param data 给定要写入的数据
+     *      @return 此方法不会返回数据
+     *      
+     */
+    packAsync(data: any): Promise<any>;
+
     /**
      * @description 以 msgpack 编码解析消息中的数据
      *      @return 返回解析的结果
      *      
      */
     pack(): any;
+
+    pack(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 msgpack 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    packSync(): any;
+
+    /**
+     * @description 以 msgpack 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    packAsync(): Promise<any>;
 
     /**
      * @description 消息数据部分的长度 

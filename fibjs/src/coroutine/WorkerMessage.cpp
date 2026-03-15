@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "WorkerMessage.h"
+#include "ifs/WorkerMessage.h"
 
 namespace fibjs {
 
@@ -56,39 +57,39 @@ result_t WorkerMessage::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac
     return m_message->write(data, retVal, ac);
 }
 
-result_t WorkerMessage::text(exlib::string data, exlib::string& retVal)
+result_t WorkerMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(data, retVal);
+    return m_message->text(data, retVal, ac);
 }
 
-result_t WorkerMessage::text(exlib::string& retVal)
+result_t WorkerMessage::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(retVal);
+    return m_message->text(retVal, ac);
 }
 
-result_t WorkerMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+result_t WorkerMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    return m_message->arrayBuffer(retVal);
+    return m_message->arrayBuffer(retVal, ac);
 }
 
-result_t WorkerMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t WorkerMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(data, retVal);
+    return m_message->json(data, retVal, ac);
 }
 
-result_t WorkerMessage::json(v8::Local<v8::Value>& retVal)
+result_t WorkerMessage::json(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(retVal);
+    return m_message->json(retVal, ac);
 }
 
-result_t WorkerMessage::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t WorkerMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(data, retVal);
+    return m_message->pack(data, retVal, ac);
 }
 
-result_t WorkerMessage::pack(v8::Local<v8::Value>& retVal)
+result_t WorkerMessage::pack(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(retVal);
+    return m_message->pack(retVal, ac);
 }
 
 result_t WorkerMessage::get_length(int64_t& retVal)
@@ -173,6 +174,16 @@ result_t WorkerMessage::clone(obj_ptr<Message_base>& retVal)
     // WorkerMessage contains a Variant which may reference complex V8 objects
     // that cannot be safely cloned. Return an error for now.
     return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t WorkerMessage::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->blob(type, retVal, ac);
+}
+
+result_t WorkerMessage::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->bytes(retVal, ac);
 }
 
 } /* namespace fibjs */

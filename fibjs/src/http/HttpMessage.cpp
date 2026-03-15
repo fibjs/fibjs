@@ -238,55 +238,28 @@ result_t HttpMessage::get_sent(bool& retVal)
     return 0;
 }
 
-result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
+result_t HttpMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    exlib::string strType;
-
-    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
-        return Message::get_data(retVal);
-
-    size_t pos = strType.find(';');
-    if (pos != exlib::string::npos)
-        strType = strType.substr(0, pos);
-
-    if (strType.find("json") != exlib::string::npos)
-        return Message::json(retVal);
-
-    if (strType == "application/msgpack")
-        return Message::pack(retVal);
-
-    return Message::get_data(retVal);
+    return Message::text(data, retVal, ac);
 }
 
-result_t HttpMessage::text(exlib::string data, exlib::string& retVal)
+result_t HttpMessage::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    return Message::text(data, retVal);
+    return Message::text(retVal, ac);
 }
 
-result_t HttpMessage::text(exlib::string& retVal)
+result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    // exlib::string strType;
-
-    // if (firstHeader("Content-Type", strType) != CALL_RETURN_NULL) {
-    //     if (strType.find("text") == exlib::string::npos)
-    //         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
-    // }
-
-    return Message::text(retVal);
+    return Message::arrayBuffer(retVal, ac);
 }
 
-result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
-{
-    return Message::arrayBuffer(retVal);
-}
-
-result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
     setHeader("Content-Type", "application/json");
-    return Message::json(data, retVal);
+    return Message::json(data, retVal, ac);
 }
 
-result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
+result_t HttpMessage::json(Variant& retVal, AsyncEvent* ac)
 {
     exlib::string strType;
 
@@ -296,16 +269,16 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
     if (strType.find("json") == exlib::string::npos)
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
-    return Message::json(retVal);
+    return Message::json(retVal, ac);
 }
 
-result_t HttpMessage::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
     setHeader("Content-Type", "application/msgpack");
-    return Message::pack(data, retVal);
+    return Message::pack(data, retVal, ac);
 }
 
-result_t HttpMessage::pack(v8::Local<v8::Value>& retVal)
+result_t HttpMessage::pack(Variant& retVal, AsyncEvent* ac)
 {
     exlib::string strType;
 
@@ -319,7 +292,7 @@ result_t HttpMessage::pack(v8::Local<v8::Value>& retVal)
     if (strType != "application/msgpack")
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
-    return Message::pack(retVal);
+    return Message::pack(retVal, ac);
 }
 
 result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,

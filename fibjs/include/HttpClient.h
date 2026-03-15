@@ -69,7 +69,6 @@ public:
     virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal);
     virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -79,17 +78,17 @@ public:
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
-    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<WebResponse_base>& retVal, AsyncEvent* ac);
+    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     result_t init(v8::Local<v8::Object> options);
     bool should_bypass_proxy(exlib::string hostname, int32_t port);
     result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac);
-    result_t request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly = false);
+    result_t request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
-        SeekableStream_base* response_body, Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
+        Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool streaming);
     result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
 
     result_t update_cookies(exlib::string url, NArray* cookies);

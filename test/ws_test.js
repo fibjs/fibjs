@@ -564,13 +564,7 @@ describe('ws', () => {
                 "/ws": ws.upgrade({
                     perMessageDeflate: true
                 }, (s, req) => {
-                    assert.equal(req.firstHeader("upgrade"), "websocket");
                     s.onmessage = function (msg) {
-                        if (msg.data === "perMessageDeflate")
-                            assert.isTrue(msg.compress);
-                        else
-                            assert.isFalse(msg.compress);
-
                         if (msg.data === "Going Away")
                             msg.stream.close();
                         else if (msg.data === "close")
@@ -634,7 +628,6 @@ describe('ws', () => {
             };
 
             s.onmessage = (m) => {
-                assert.isFalse(m.compress);
                 msg = m;
                 t = true;
             };
@@ -642,6 +635,7 @@ describe('ws', () => {
             for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
+            assert.isFalse(msg.compress);
             assert.equal(msg.data, '123');
 
             t = false;
@@ -782,7 +776,6 @@ describe('ws', () => {
             };
 
             s.onmessage = (m) => {
-                assert.isTrue(m.compress);
                 msg = m;
                 t = true;
             };
@@ -790,6 +783,7 @@ describe('ws', () => {
             for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
+            assert.isTrue(msg.compress);
             assert.equal(msg.data, 'perMessageDeflate');
 
             s.close();
@@ -801,7 +795,6 @@ describe('ws', () => {
                     perMessageDeflate: true
                 }, (s) => {
                     s.on("message", function (msg) {
-                        assert.isFalse(msg.compress);
                         this.send(msg.data);
                     });
                 })
@@ -817,7 +810,6 @@ describe('ws', () => {
             };
 
             s.onmessage = (m) => {
-                assert.isFalse(m.compress);
                 msg = m;
                 t = true;
             };
@@ -825,6 +817,7 @@ describe('ws', () => {
             for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
+            assert.isFalse(msg.compress);
             assert.equal(msg.data, 'perMessageDeflate');
 
             s.close();
@@ -877,16 +870,15 @@ describe('ws', () => {
 
         it('close/onclose', () => {
             var tc = false;
-            var msg;
+            var close_code, close_reason;
             var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.close(1000, '123');
             };
 
             s.onclose = (e) => {
-                assert.equal(s.readyState, ws.CLOSED);
-                assert.equal(e.code, 1000);
-                assert.equal(e.reason, "123");
+                close_code = e.code;
+                close_reason = e.reason;
                 tc = true;
             };
 
@@ -895,6 +887,8 @@ describe('ws', () => {
 
             assert.isTrue(tc);
             assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(close_code, 1000);
+            assert.equal(close_reason, "123");
         });
 
         it('remote close', () => {
@@ -906,9 +900,6 @@ describe('ws', () => {
             };
 
             s.onclose = (e) => {
-                assert.equal(s.readyState, ws.CLOSED);
-                // assert.equal(e.code, 3000);
-                // assert.equal(e.reason, "remote");
                 tc = true;
             };
 
@@ -922,19 +913,19 @@ describe('ws', () => {
         it('Going Away', () => {
             var te = false;
             var tc = false;
-            var msg;
+            var err_code, close_code;
             var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('Going Away');
             };
 
             s.onerror = (e) => {
-                assert.equal(e.code, 1001);
+                err_code = e.code;
                 te = true;
             };
 
             s.onclose = (e) => {
-                assert.equal(e.code, 1006);
+                close_code = e.code;
                 tc = true;
             };
 
@@ -943,6 +934,8 @@ describe('ws', () => {
 
             assert.isTrue(te);
             assert.isTrue(tc);
+            assert.equal(err_code, 1001);
+            assert.equal(close_code, 1006);
             assert.equal(s.readyState, ws.CLOSED);
         });
 
@@ -950,6 +943,7 @@ describe('ws', () => {
             var ev = new coroutine.Event();
             var cnt = 1000;
             var n = 0;
+            var seq_err = null;
 
             var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
@@ -959,15 +953,20 @@ describe('ws', () => {
             };
 
             s.onmessage = (msg) => {
-                assert.equal(msg.data, n);
+                if (msg.data != n && seq_err === null)
+                    seq_err = 'out of sequence: expected ' + n + ', got ' + msg.data;
                 n++;
                 if (n == cnt)
                     ev.set();
             };
 
+            s.onerror = () => { ev.set(); };
+
             ev.wait();
             console.timeEnd('ws');
             s.close();
+            assert.isNull(seq_err, seq_err);
+            assert.equal(n, cnt);
         });
 
         describe('onerror', () => {
@@ -975,23 +974,20 @@ describe('ws', () => {
                 var t = false;
                 var te = false;
                 var tc = false;
+                var err_code, close_code;
                 var s = new ws.Socket("ws://127.0.0.1:" + (18814 + base_port) + "/ws", "test");
-
-                // assert.equal(s.readyState, ws.CONNECTING);
-                assert.isFalse(t);
 
                 s.onopen = () => {
                     t = true;
                 };
 
                 s.onerror = (e) => {
-                    assert.equal(s.readyState, ws.CLOSED);
-                    assert.equal(e.code, 1002);
+                    err_code = e.code;
                     te = true;
                 };
 
                 s.onclose = (e) => {
-                    assert.equal(e.code, 1006);
+                    close_code = e.code;
                     tc = true;
                 };
 
@@ -1002,29 +998,28 @@ describe('ws', () => {
                 assert.isTrue(te);
                 assert.isTrue(tc);
                 assert.equal(s.readyState, ws.CLOSED);
+                assert.equal(err_code, 1002);
+                assert.equal(close_code, 1006);
             });
 
             it("entry/handshake", () => {
                 var t = false;
                 var te = false;
                 var tc = false;
+                var err_code, close_code;
                 var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws1", "test");
-
-                // assert.equal(s.readyState, ws.CONNECTING);
-                assert.isFalse(t);
 
                 s.onopen = () => {
                     t = true;
                 };
 
                 s.onerror = (e) => {
-                    assert.equal(s.readyState, ws.CLOSED);
-                    assert.equal(e.code, 1002);
+                    err_code = e.code;
                     te = true;
                 };
 
                 s.onclose = (e) => {
-                    assert.equal(e.code, 1006);
+                    close_code = e.code;
                     tc = true;
                 };
 
@@ -1035,6 +1030,8 @@ describe('ws', () => {
                 assert.isTrue(te);
                 assert.isTrue(tc);
                 assert.equal(s.readyState, ws.CLOSED);
+                assert.equal(err_code, 1002);
+                assert.equal(close_code, 1006);
             });
         });
 

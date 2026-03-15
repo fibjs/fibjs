@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/http.h"
+#include "ifs/json.h"
 #include "HttpResponse.h"
 #include "HttpCookie.h"
 #include "HttpMessage.h"
@@ -113,39 +114,52 @@ result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return m_message->write(data, retVal, ac);
 }
 
-result_t HttpResponse::text(exlib::string data, exlib::string& retVal)
+result_t HttpResponse::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(data, retVal);
+    return m_message->text(data, retVal, ac);
 }
 
-result_t HttpResponse::text(exlib::string& retVal)
+result_t HttpResponse::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(retVal);
+    return m_message->text(retVal, ac);
 }
 
-result_t HttpResponse::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+result_t HttpResponse::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    return m_message->arrayBuffer(retVal);
+    return m_message->arrayBuffer(retVal, ac);
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpResponse::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(data, retVal);
+    return m_message->json(data, retVal, ac);
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value>& retVal)
+result_t HttpResponse::json(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(retVal);
+    return m_message->json(retVal, ac);
 }
 
-result_t HttpResponse::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpResponse::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(data, retVal);
+    return m_message->pack(data, retVal, ac);
 }
 
-result_t HttpResponse::pack(v8::Local<v8::Value>& retVal)
+result_t HttpResponse::pack(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(retVal);
+    return m_message->pack(retVal, ac);
+}
+
+result_t HttpResponse::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+{
+    // If no explicit type given, use the response Content-Type header
+    if (type.empty())
+        m_message->firstHeader("Content-Type", type);
+    return m_message->blob(type, retVal, ac);
+}
+
+result_t HttpResponse::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->bytes(retVal, ac);
 }
 
 result_t HttpResponse::get_length(int64_t& retVal)
@@ -306,11 +320,6 @@ result_t HttpResponse::get_type(int32_t& retVal)
 result_t HttpResponse::set_type(int32_t newVal)
 {
     return m_message->set_type(newVal);
-}
-
-result_t HttpResponse::get_data(v8::Local<v8::Value>& retVal)
-{
-    return m_message->get_data(retVal);
 }
 
 result_t HttpResponse::get_lastError(exlib::string& retVal)
@@ -636,6 +645,17 @@ result_t HttpResponse::set_statusMessage(exlib::string newVal)
     return 0;
 }
 
+// statusText is a Web API alias for statusMessage
+result_t HttpResponse::get_statusText(exlib::string& retVal)
+{
+    return get_statusMessage(retVal);
+}
+
+result_t HttpResponse::set_statusText(exlib::string newVal)
+{
+    return set_statusMessage(newVal);
+}
+
 result_t HttpResponse::get_status(int32_t& retVal)
 {
     return get_statusCode(retVal);
@@ -726,6 +746,90 @@ result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
     return 0;
 }
 
+result_t HttpResponse::get_url(exlib::string& retVal)
+{
+    retVal = m_fetchUrl;
+    return 0;
+}
+
+result_t HttpResponse::get_redirected(bool& retVal)
+{
+    retVal = m_redirected;
+    return 0;
+}
+
+result_t HttpResponse::get_type(exlib::string& retVal)
+{
+    retVal = m_fetchType;
+    return 0;
+}
+
+result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options,
+    obj_ptr<HttpResponse_base>& retVal)
+{
+    Isolate* isolate = Isolate::current(options);
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+    result_t hr;
+
+    // Load options
+    obj_ptr<HttpResponse::ResponseOptions> opts;
+    hr = HttpResponse::ResponseOptions::load(options, opts);
+    if (hr < 0)
+        return hr;
+
+    if (opts->status.has_value())
+        resp->set_statusCode(opts->status.value());
+    if (opts->statusText.has_value())
+        resp->set_statusMessage(opts->statusText.value());
+    if (opts->headers.has_value()) {
+        auto& hv = opts->headers.value();
+        if (std::holds_alternative<v8::Local<v8::Object>>(hv))
+            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(hv));
+        else
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(hv).get());
+        if (hr < 0)
+            return hr;
+    }
+
+    // Serialize to JSON and set Content-Type
+    exlib::string jsonStr;
+    hr = json_base::encode(data, jsonStr);
+    if (hr < 0)
+        return hr;
+
+    resp->setHeader("Content-Type", "application/json");
+
+    // Set body as MemoryStream
+    obj_ptr<Buffer> buf = new Buffer((const uint8_t*)jsonStr.c_str(), jsonStr.length());
+    obj_ptr<MemoryStream> ms = new MemoryStream();
+    bool ok;
+    ms->ac_write(buf, ok);
+    ms->rewind();
+    resp->set_body(ms);
+
+    retVal = resp;
+    return 0;
+}
+
+result_t HttpResponse_base::redirect(exlib::string url, int32_t status,
+    obj_ptr<HttpResponse_base>& retVal)
+{
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+    resp->set_statusCode(status);
+    resp->setHeader("Location", url);
+    retVal = resp;
+    return 0;
+}
+
+result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
+{
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+    resp->set_statusCode(0);
+    resp->m_fetchType = "error";
+    retVal = resp;
+    return 0;
+}
+
 result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -737,6 +841,10 @@ result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncEv
 
 result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
 {
+    // Streaming responses cannot be cloned (body is a live socket stream)
+    if (m_message->m_bodyStream)
+        return CHECK_ERROR(Runtime::setError("Response body is a streaming body and cannot be cloned."));
+
     obj_ptr<HttpResponse> resp = new HttpResponse();
 
     // Copy HttpMessage properties
@@ -745,6 +853,10 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
     // Copy HttpResponse specific properties
     resp->m_statusCode = m_statusCode;
     resp->m_statusMessage = m_statusMessage;
+    // Copy fetch metadata
+    resp->m_fetchUrl = m_fetchUrl;
+    resp->m_redirected = m_redirected;
+    resp->m_fetchType = m_fetchType;
 
     // Clone cookies array
     if (m_cookies) {

@@ -86,10 +86,6 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
             headers->set("Content-Type", "application/msgpack");
     }
 
-    hr = GetConfigValue(opts, "response_body", response_body);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     bool ka;
     hr = GetConfigValue(opts, "keepAlive", ka);
     if (hr == 0) {
@@ -105,6 +101,13 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
         result_t sig_hr = GetConfigValue(opts, "signal", signal);
         if (sig_hr < 0 && sig_hr != CALL_E_PARAMNOTOPTIONAL)
             signal = nullptr; // wrong type - treat as no signal
+    }
+
+    {
+        bool s;
+        result_t s_hr = GetConfigValue(opts, "streaming", s);
+        if (s_hr == 0)
+            streaming = s;
     }
 
     return 0;
@@ -266,39 +269,49 @@ result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     return m_message->write(data, retVal, ac);
 }
 
-result_t HttpRequest::text(exlib::string data, exlib::string& retVal)
+result_t HttpRequest::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(data, retVal);
+    return m_message->text(data, retVal, ac);
 }
 
-result_t HttpRequest::text(exlib::string& retVal)
+result_t HttpRequest::text(exlib::string& retVal, AsyncEvent* ac)
 {
-    return m_message->text(retVal);
+    return m_message->text(retVal, ac);
 }
 
-result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal)
+result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
-    return m_message->arrayBuffer(retVal);
+    return m_message->arrayBuffer(retVal, ac);
 }
 
-result_t HttpRequest::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpRequest::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(data, retVal);
+    return m_message->json(data, retVal, ac);
 }
 
-result_t HttpRequest::json(v8::Local<v8::Value>& retVal)
+result_t HttpRequest::json(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->json(retVal);
+    return m_message->json(retVal, ac);
 }
 
-result_t HttpRequest::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+result_t HttpRequest::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(data, retVal);
+    return m_message->pack(data, retVal, ac);
 }
 
-result_t HttpRequest::pack(v8::Local<v8::Value>& retVal)
+result_t HttpRequest::pack(Variant& retVal, AsyncEvent* ac)
 {
-    return m_message->pack(retVal);
+    return m_message->pack(retVal, ac);
+}
+
+result_t HttpRequest::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->blob(type, retVal, ac);
+}
+
+result_t HttpRequest::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->bytes(retVal, ac);
 }
 
 result_t HttpRequest::get_length(int64_t& retVal)
@@ -464,11 +477,6 @@ result_t HttpRequest::get_type(int32_t& retVal)
 result_t HttpRequest::set_type(int32_t newVal)
 {
     return m_message->set_type(newVal);
-}
-
-result_t HttpRequest::get_data(v8::Local<v8::Value>& retVal)
-{
-    return m_message->get_data(retVal);
 }
 
 result_t HttpRequest::get_lastError(exlib::string& retVal)

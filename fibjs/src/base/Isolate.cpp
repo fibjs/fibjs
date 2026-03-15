@@ -11,6 +11,7 @@
 #include "options.h"
 #include "ifs/v8.h"
 #include "ifs/global.h"
+#include "ifs/HttpResponse.h"
 #include "SecureContext.h"
 #include "HttpClient.h"
 #include "SandBox.h"
@@ -355,6 +356,10 @@ void Isolate::init()
 
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(m_isolate)->GetPrototype());
     _context->SetEmbedderData(kSandboxObject, global_base::class_info().getModule(this));
+
+    // Override global.Response with async constructor so instanceof works for fetch() results.
+    global_base::class_info().getModule(this)->Set(_context, NewString("Response"),
+        HttpResponse_base::class_info().getAsyncModule(this)).IsJust();
 
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);

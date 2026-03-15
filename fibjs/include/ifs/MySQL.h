@@ -59,7 +59,7 @@ inline ClassInfo& MySQL_base::class_info()
         "MySQL", false, s__new, NULL,
         0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &DbConnection_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);

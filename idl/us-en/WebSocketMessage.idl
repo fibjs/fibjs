@@ -51,4 +51,7 @@ interface WebSocketMessage : Message
 
     /*! @brief Query and set maximum packet size in bytes, default is 67108864(64M) */
     Integer maxSize;
+
+    /*! @brief Query the data of the message. Returns a String for text messages, or a Buffer for binary messages. This is a Web API standard property. */
+    readonly Value data;
 };

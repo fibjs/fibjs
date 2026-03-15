@@ -63,5 +63,10 @@ declare class Class_WebSocketMessage extends Class_Message {
      */
     maxSize: number;
 
+    /**
+     * @description 查询消息的数据。文本消息返回 String，二进制消息返回 Buffer。这是 Web API 标准属性。 
+     */
+    readonly data: any;
+
 }
 

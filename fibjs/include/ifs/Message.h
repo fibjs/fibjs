@@ -17,6 +17,7 @@ namespace fibjs {
 
 class Stream_base;
 class Buffer_base;
+class Blob_base;
 
 class Message_base : public object_base {
     DECLARE_CLASS(Message_base);
@@ -36,20 +37,21 @@ public:
     virtual result_t get_params(obj_ptr<NArray>& retVal) = 0;
     virtual result_t get_type(int32_t& retVal) = 0;
     virtual result_t set_type(int32_t newVal) = 0;
-    virtual result_t get_data(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_body(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t set_body(Stream_base* newVal) = 0;
     virtual result_t get_bodyUsed(bool& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t text(exlib::string data, exlib::string& retVal) = 0;
-    virtual result_t text(exlib::string& retVal) = 0;
-    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal) = 0;
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t json(v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t pack(v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t text(exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t json(Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t pack(Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
     virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -76,7 +78,6 @@ public:
     static void s_get_params(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_type(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_body(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_bodyUsed(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -85,6 +86,8 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_text(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_blob(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_bytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -102,6 +105,15 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Message_base, write, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE2(Message_base, text, exlib::string, exlib::string);
+    ASYNC_MEMBERVALUE1(Message_base, text, exlib::string);
+    ASYNC_MEMBERVALUE1(Message_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
+    ASYNC_MEMBERVALUE2(Message_base, blob, exlib::string, obj_ptr<Blob_base>);
+    ASYNC_MEMBERVALUE1(Message_base, bytes, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE2(Message_base, json, v8::Local<v8::Value>, Variant);
+    ASYNC_MEMBERVALUE1(Message_base, json, Variant);
+    ASYNC_MEMBERVALUE2(Message_base, pack, v8::Local<v8::Value>, Variant);
+    ASYNC_MEMBERVALUE1(Message_base, pack, Variant);
     ASYNC_MEMBERVALUE1(Message_base, end, int32_t);
     ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, int32_t);
     ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, int32_t);
@@ -113,6 +125,7 @@ public:
 
 #include "ifs/Stream.h"
 #include "ifs/Buffer.h"
+#include "ifs/Blob.h"
 
 namespace fibjs {
 inline ClassInfo& Message_base::class_info()
@@ -121,10 +134,12 @@ inline ClassInfo& Message_base::class_info()
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
-        { "text", s_text, false, ClassData::ASYNC_SYNC },
-        { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_SYNC },
-        { "json", s_json, false, ClassData::ASYNC_SYNC },
-        { "pack", s_pack, false, ClassData::ASYNC_SYNC },
+        { "text", s_text, false, ClassData::ASYNC_ASYNC },
+        { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_ASYNC },
+        { "blob", s_blob, false, ClassData::ASYNC_ASYNC },
+        { "bytes", s_bytes, false, ClassData::ASYNC_ASYNC },
+        { "json", s_json, false, ClassData::ASYNC_ASYNC },
+        { "pack", s_pack, false, ClassData::ASYNC_ASYNC },
         { "end", s_end, false, ClassData::ASYNC_ASYNC },
         { "isEnded", s_isEnded, false, ClassData::ASYNC_SYNC },
         { "clear", s_clear, false, ClassData::ASYNC_SYNC },
@@ -138,7 +153,6 @@ inline ClassInfo& Message_base::class_info()
         { "value", s_get_value, s_set_value, false },
         { "params", s_get_params, block_set, false },
         { "type", s_get_type, s_set_type, false },
-        { "data", s_get_data, block_set, false },
         { "body", s_get_body, s_set_body, false },
         { "bodyUsed", s_get_bodyUsed, block_set, false },
         { "length", s_get_length, block_set, false },
@@ -274,20 +288,6 @@ inline void Message_base::s_set_type(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void Message_base::s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
-
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->get_data(vr);
-
-    METHOD_RETURN();
-}
-
 inline void Message_base::s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
@@ -389,18 +389,24 @@ inline void Message_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.text");
 
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
-    hr = pInst->text(v0, vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_text(v0, cb, args);
+    else
+        hr = pInst->ac_text(v0, vr);
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->text(vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_text(cb, args);
+    else
+        hr = pInst->ac_text(vr);
 
     METHOD_RETURN();
 }
@@ -409,52 +415,103 @@ inline void Message_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value
 {
     std::shared_ptr<v8::BackingStore> vr;
 
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.arrayBuffer");
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->arrayBuffer(vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_arrayBuffer(cb, args);
+    else
+        hr = pInst->ac_arrayBuffer(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_blob(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Blob_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.blob");
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_blob(v0, cb, args);
+    else
+        hr = pInst->ac_blob(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_bytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.bytes");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_bytes(cb, args);
+    else
+        hr = pInst->ac_bytes(vr);
 
     METHOD_RETURN();
 }
 
 inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> vr;
+    Variant vr;
 
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.json");
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
 
-    hr = pInst->json(v0, vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_json(v0, cb, args);
+    else
+        hr = pInst->ac_json(v0, vr);
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->json(vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_json(cb, args);
+    else
+        hr = pInst->ac_json(vr);
 
     METHOD_RETURN();
 }
 
 inline void Message_base::s_pack(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> vr;
+    Variant vr;
 
-    METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_INSTANCE(Message_base);
+    ASYNC_METHOD_ENTER("Message.pack");
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
 
-    hr = pInst->pack(v0, vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_pack(v0, cb, args);
+    else
+        hr = pInst->ac_pack(v0, vr);
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->pack(vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_pack(cb, args);
+    else
+        hr = pInst->ac_pack(vr);
 
     METHOD_RETURN();
 }

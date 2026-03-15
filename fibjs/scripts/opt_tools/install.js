@@ -91,7 +91,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 }
 
 function json_parse_response(http_response) {
-    return JSON.parse(http_response.body.readAll().toString())
+    return JSON.parse(http_response.text())
 }
 
 function find_version(m, v, parent) {
@@ -592,7 +592,7 @@ function download_module() {
                         process.exit();
                     }
 
-                    let tgz = r.data;
+                    let tgz = r.bytes();
                     r = null;
 
                     if (sha1(tgz) !== mvm.dist.shasum) {
@@ -641,7 +641,7 @@ function download_module() {
                         console.error('download error::', mvm.dist.tarball);
                         process.exit();
                     }
-                    var git_zip_file = zip.open(git_r.body.readAll());
+                    var git_zip_file = zip.open(git_r.bytes());
                     const namelist = git_zip_file.namelist();
                     git_r = null;
 
@@ -686,7 +686,7 @@ function download_module() {
                     process.exit();
                 }
 
-                var tgz = binary_r.data;
+                var tgz = binary_r.bytes();
                 binary_r = null;
 
                 let t;

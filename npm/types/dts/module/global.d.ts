@@ -7,7 +7,7 @@
 /// <reference path="../interface/Headers.d.ts" />
 /// <reference path="../interface/FormData.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
-/// <reference path="../interface/WebResponse.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
@@ -67,9 +67,9 @@ declare module 'global' {
     const Request: typeof Class_HttpRequest;
 
     /**
-     * @description 创建一个 Fetch API 响应对象，参见 WebResponse 
+     * @description 创建一个 Fetch API 响应对象，参见 HttpResponse 
      */
-    const Response: typeof Class_WebResponse;
+    const Response: typeof Class_HttpResponse;
 
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。
@@ -354,7 +354,7 @@ declare module 'global' {
      *      @return 返回服务器响应
      *      
      */
-    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 请求指定的 url，并返回结果，等同于 http.request(url, ...)
@@ -383,7 +383,7 @@ declare module 'global' {
      *      @return 返回服务器响应
      *      
      */
-    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 请求指定的 url，并返回结果，等同于 http.request(url, ...)
@@ -412,7 +412,7 @@ declare module 'global' {
      *      @return 返回服务器响应
      *      
      */
-    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 发送 Fetch 请求，接受 Request 对象
@@ -421,7 +421,7 @@ declare module 'global' {
      *      @return 返回服务器响应对象
      *     
      */
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 发送 Fetch 请求，接受 Request 对象
@@ -430,7 +430,7 @@ declare module 'global' {
      *      @return 返回服务器响应对象
      *     
      */
-    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_WebResponse;
+    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 发送 Fetch 请求，接受 Request 对象
@@ -439,7 +439,7 @@ declare module 'global' {
      *      @return 返回服务器响应对象
      *     
      */
-    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_WebResponse>;
+    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 将一个微任务排入队列执行

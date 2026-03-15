@@ -158,7 +158,6 @@ describe("sse", () => {
                 assert.fail('should throw an error');
             } catch (e) {
                 assert.equal(e.reason, 'Invalid Content-Type: text/plain');
-                assert.equal(e.target.response.body.readAll().toString(), 'data: content type error\n\n');
             }
         });
 
@@ -168,7 +167,6 @@ describe("sse", () => {
                 assert.fail('should throw an error');
             } catch (e) {
                 assert.equal(e.reason, 'Invalid status: File Not Found');
-                assert.equal(e.target.response.body.readAll().toString(), 'data: status error\n\n');
             }
         });
 

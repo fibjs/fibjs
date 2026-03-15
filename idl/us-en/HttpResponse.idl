@@ -44,6 +44,9 @@ interface HttpResponse : HttpMessage
     /*! @brief Query and set the response message return message */
     String statusMessage;
 
+    /*! @brief Query and set the response message return message, same as statusMessage (Web API compatible) */
+    String statusText;
+
     /*! @brief Query and set the response message return status, same as statusCode */
     Integer status;
 
@@ -81,4 +84,32 @@ interface HttpResponse : HttpMessage
      @param url redirect address
      */
     redirect(Integer statusCode, String url);
+
+    /*! @brief Final URL of the Fetch API response (after redirects) */
+    readonly String url;
+
+    /*! @brief Whether the response was redirected */
+    readonly Boolean redirected;
+
+    /*! @brief Response type ("basic", "cors", "error", etc.), overrides Message.type */
+    readonly String type;
+
+    /*! @brief Create a JSON response (static factory)
+     @param data The data to serialize as JSON
+     @param options Options object, supports status, statusText, headers
+     @return A new HttpResponse object
+     */
+    static HttpResponse json(Value data, Object options = {});
+
+    /*! @brief Create a redirect response (static factory)
+     @param url The redirect target URL
+     @param status The redirect status code, defaults to 302
+     @return A new HttpResponse object
+     */
+    static HttpResponse redirect(String url, Integer status = 302);
+
+    /*! @brief Create an error response (static factory)
+     @return A new HttpResponse object with type="error"
+     */
+    static HttpResponse error();
 };

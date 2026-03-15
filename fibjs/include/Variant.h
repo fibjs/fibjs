@@ -62,6 +62,7 @@ public:
         VT_ArrayBuffer,
         VT_JSValue,
         VT_JSON,
+        VT_MSGPACK,
         VT_UNBOUND_ARRAY,
         VT_UNBOUND_OBJECT,
         VT_Type = 255
@@ -169,7 +170,7 @@ public:
 
         if (_t == VT_UNBOUND_ARRAY || _t == VT_UNBOUND_OBJECT)
             clearUnbind();
-        else if (_t == VT_String || _t == VT_JSON)
+        else if (_t == VT_String || _t == VT_JSON || _t == VT_MSGPACK)
             strVal().~basic_string();
         else if (_t == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
@@ -192,6 +193,11 @@ public:
 
         if (_t == VT_JSON) {
             setJSON(v.strVal());
+            return *this;
+        }
+
+        if (_t == VT_MSGPACK) {
+            setMsgpack(v.strVal());
             return *this;
         }
 
@@ -507,6 +513,16 @@ public:
         if (type() != VT_JSON) {
             clear();
             set_type(VT_JSON);
+            new (m_Val.strVal) exlib::string(v);
+        } else
+            strVal() = v;
+    }
+
+    void setMsgpack(const exlib::string& v)
+    {
+        if (type() != VT_MSGPACK) {
+            clear();
+            set_type(VT_MSGPACK);
             new (m_Val.strVal) exlib::string(v);
         } else
             strVal() = v;

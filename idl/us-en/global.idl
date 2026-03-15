@@ -25,8 +25,8 @@ module global
     /*! @brief Create an http request object, see HttpRequest */
     static HttpRequest new Request();
 
-    /*! @brief Create a Fetch API response object, see WebResponse */
-    static WebResponse new Response();
+    /*! @brief Create a Fetch API response object, see HttpResponse */
+    static HttpResponse new Response();
 
     /*! @brief TextDecoder decoding object, see TextDecoder object.*/
     static TextDecoder;
@@ -253,7 +253,7 @@ module global
      @param opts Specify additional information
      @return Return server response
      */
-    static WebResponse fetch(String url, Object opts = {}) promise;
+    static HttpResponse fetch(String url, Object opts = {}) promise;
 
     /*! @brief Queue a microtask to be executed
      The callback will be executed after the current task completes but before the next task begins.

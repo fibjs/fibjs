@@ -29,9 +29,6 @@ interface Message : object
     /*! @brief 消息类型 */
     Integer type;
 
-    /*! @brief 查询消息的数据，此属性会根据 content-type 返回不同数据，为 text 时，返回文本，为 json 时返回 json，其它时候返回二进制 */
-    readonly Value data;
-
     /*! @brief 包含消息数据部分的流对象 */
     Stream body;
 
@@ -59,39 +56,50 @@ interface Message : object
      @param data 给定要写入的数据
      @return 此方法不会返回数据
      */
-    String text(String data);
+    String text(String data) async;
 
     /*! @brief 以文本编码解析消息中的数据
      @return 返回解析的结果
      */
-    String text();
+    String text() async;
 
     /*! @brief 以二进制形式返回消息的数据部分
      @return 返回包含消息数据部分的 ArrayBuffer 对象
      */
-    ArrayBuffer arrayBuffer();
+    ArrayBuffer arrayBuffer() async;
+
+    /*! @brief 以 Blob 形式返回消息中的数据部分
+     @param type Blob 的 MIME 类型，默认为空字符串
+     @return 返回包含消息数据部分的 Blob 对象
+     */
+    Blob blob(String type = "") async;
+
+    /*! @brief 以 Buffer 形式返回消息中的数据部分
+     @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     */
+    Buffer bytes() async;
 
     /*! @brief 以 JSON 编码写入给定的数据
      @param data 给定要写入的数据
      @return 此方法不会返回数据
      */
-    Value json(Value data);
+    Variant json(Value data) async;
 
     /*! @brief 以 JSON 编码解析消息中的数据
      @return 返回解析的结果
      */
-    Value json();
+    Variant json() async;
 
     /*! @brief 以 msgpack 编码写入给定的数据
      @param data 给定要写入的数据
      @return 此方法不会返回数据
      */
-    Value pack(Value data);
+    Variant pack(Value data) async;
 
     /*! @brief 以 msgpack 编码解析消息中的数据
      @return 返回解析的结果
      */
-    Value pack();
+    Variant pack() async;
 
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
