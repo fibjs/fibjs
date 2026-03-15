@@ -123,7 +123,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
     if (fd < 0)
-        return CHECK_ERROR(LastError());
+        return LastError();
 
 #ifndef _WIN32
     struct stat64 st;

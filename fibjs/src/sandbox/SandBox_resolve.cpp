@@ -675,7 +675,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
     }
 
-    return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+    return CALL_E_FILE_NOT_FOUND;
 }
 
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
