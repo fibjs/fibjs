@@ -6,6 +6,7 @@
  */
 
 #include "addons/js_native_api_internal.h"
+#include <queue>
 
 node_napi_env__::node_napi_env__(v8::Local<v8::Context> context,
     const std::string& module_filename,
@@ -110,6 +111,300 @@ void node_napi_env__::CallbackIntoModule(T&& call)
 }
 
 namespace v8impl {
+
+class ThreadSafeFunction : public node::AsyncResource {
+public:
+    ThreadSafeFunction(v8::Local<v8::Function> func,
+        v8::Local<v8::Object> resource,
+        v8::Local<v8::String> name,
+        size_t thread_count_,
+        void* context_,
+        size_t max_queue_size_,
+        node_napi_env env_,
+        void* finalize_data_,
+        napi_finalize finalize_cb_,
+        napi_threadsafe_function_call_js call_js_cb_)
+        : AsyncResource(env_->isolate, resource,
+            *v8::String::Utf8Value(env_->isolate, name))
+        , thread_count(thread_count_)
+        , is_closing(false)
+        , dispatch_state(kDispatchIdle)
+        , context(context_)
+        , max_queue_size(max_queue_size_)
+        , env(env_)
+        , finalize_data(finalize_data_)
+        , finalize_cb(finalize_cb_)
+        , call_js_cb(call_js_cb_ == nullptr ? CallJs : call_js_cb_)
+        , handles_closing(false)
+        , isolate_(env_->node_env())
+    {
+        ref.Reset(env->isolate, func);
+        env->Ref();
+    }
+
+    // Thread-safe: callable from any thread
+    napi_status Push(void* data, napi_threadsafe_function_call_mode mode)
+    {
+        exlib::AutoLock lock(mutex);
+
+        while (queue.size() >= max_queue_size && max_queue_size > 0 && !is_closing) {
+            if (mode == napi_tsfn_nonblocking) {
+                return napi_queue_full;
+            }
+            cond->Wait();
+        }
+
+        if (is_closing) {
+            if (thread_count == 0) {
+                return napi_invalid_arg;
+            } else {
+                thread_count--;
+                return napi_closing;
+            }
+        } else {
+            queue.push(data);
+            Send();
+            return napi_ok;
+        }
+    }
+
+    napi_status Acquire()
+    {
+        exlib::AutoLock lock(mutex);
+
+        if (is_closing) {
+            return napi_closing;
+        }
+
+        thread_count++;
+        return napi_ok;
+    }
+
+    napi_status Release(napi_threadsafe_function_release_mode mode)
+    {
+        exlib::AutoLock lock(mutex);
+
+        if (thread_count == 0) {
+            return napi_invalid_arg;
+        }
+
+        thread_count--;
+
+        if (thread_count == 0 || mode == napi_tsfn_abort) {
+            if (!is_closing) {
+                is_closing = (mode == napi_tsfn_abort);
+                if (is_closing && max_queue_size > 0) {
+                    cond->Signal();
+                }
+                Send();
+            }
+        }
+
+        return napi_ok;
+    }
+
+    void* Context() { return context; }
+
+    napi_status Init()
+    {
+        if (max_queue_size > 0) {
+            cond.reset(new exlib::OSCondVar(&mutex));
+        }
+        return napi_ok;
+    }
+
+    napi_status Unref()
+    {
+        return napi_ok;
+    }
+
+    napi_status Ref()
+    {
+        return napi_ok;
+    }
+
+protected:
+    void Dispatch()
+    {
+        bool has_more = true;
+        unsigned int iterations_left = kMaxIterationCount;
+
+        while (has_more && --iterations_left != 0) {
+            dispatch_state = kDispatchRunning;
+            has_more = DispatchOne();
+
+            if (dispatch_state.exchange(kDispatchIdle) != kDispatchRunning) {
+                has_more = true;
+            }
+        }
+
+        if (has_more) {
+            Send();
+        }
+    }
+
+    bool DispatchOne()
+    {
+        void* data = nullptr;
+        bool popped_value = false;
+        bool has_more = false;
+
+        {
+            exlib::AutoLock lock(mutex);
+            if (is_closing) {
+                CloseHandlesAndMaybeDelete();
+            } else {
+                size_t size = queue.size();
+                if (size > 0) {
+                    data = queue.front();
+                    queue.pop();
+                    popped_value = true;
+                    if (size == max_queue_size && max_queue_size > 0) {
+                        cond->Signal();
+                    }
+                    size--;
+                }
+
+                if (size == 0) {
+                    if (thread_count == 0) {
+                        is_closing = true;
+                        if (max_queue_size > 0) {
+                            cond->Signal();
+                        }
+                        CloseHandlesAndMaybeDelete();
+                    }
+                } else {
+                    has_more = true;
+                }
+            }
+        }
+
+        if (popped_value) {
+            v8::HandleScope scope(env->isolate);
+            CallbackScope cb_scope(this);
+            napi_value js_callback = nullptr;
+            if (!ref.IsEmpty()) {
+                v8::Local<v8::Function> js_cb = v8::Local<v8::Function>::New(env->isolate, ref);
+                js_callback = v8impl::JsValueFromV8LocalValue(js_cb);
+            }
+            env->CallbackIntoModule<false>(
+                [&](napi_env env) { call_js_cb(env, js_callback, context, data); });
+        }
+
+        return has_more;
+    }
+
+    void Finalize()
+    {
+        v8::HandleScope scope(env->isolate);
+        if (finalize_cb) {
+            CallbackScope cb_scope(this);
+            env->CallFinalizer<false>(finalize_cb, finalize_data, context);
+        }
+        EmptyQueueAndDelete();
+    }
+
+    void EmptyQueueAndDelete()
+    {
+        for (;;) {
+            void* data;
+            {
+                exlib::AutoLock lock(mutex);
+                if (queue.empty())
+                    break;
+                data = queue.front();
+                queue.pop();
+            }
+            call_js_cb(nullptr, nullptr, context, data);
+        }
+        env->Unref();
+        delete this;
+    }
+
+    void CloseHandlesAndMaybeDelete(bool set_closing = false)
+    {
+        if (set_closing) {
+            exlib::AutoLock lock(mutex);
+            is_closing = true;
+            if (cond) {
+                cond->Signal();
+            }
+        }
+        if (handles_closing) {
+            return;
+        }
+        handles_closing = true;
+
+        isolate_->sync([this]() -> int {
+            fibjs::JSFiber::EnterJsScope s;
+            Finalize();
+            return 0;
+        });
+    }
+
+    void Send()
+    {
+        unsigned char current_state = dispatch_state.fetch_or(kDispatchPending);
+        if ((current_state & kDispatchRunning) == kDispatchRunning) {
+            return;
+        }
+
+        isolate_->sync([this]() -> int {
+            fibjs::JSFiber::EnterJsScope s;
+            Dispatch();
+            return 0;
+        });
+    }
+
+    static void CallJs(napi_env env, napi_value cb, void* context, void* data)
+    {
+        if (!(env == nullptr || cb == nullptr)) {
+            napi_value recv;
+            napi_status status;
+
+            status = napi_get_undefined(env, &recv);
+            if (status != napi_ok) {
+                napi_throw_error(env, "ERR_NAPI_TSFN_GET_UNDEFINED",
+                    "Failed to retrieve undefined value");
+                return;
+            }
+
+            status = napi_call_function(env, recv, cb, 0, nullptr, nullptr);
+            if (status != napi_ok && status != napi_pending_exception) {
+                napi_throw_error(env, "ERR_NAPI_TSFN_CALL_JS",
+                    "Failed to call JS callback");
+                return;
+            }
+        }
+    }
+
+private:
+    static const unsigned char kDispatchIdle = 0;
+    static const unsigned char kDispatchRunning = 1 << 0;
+    static const unsigned char kDispatchPending = 1 << 1;
+    static const unsigned int kMaxIterationCount = 1000;
+
+    // Mutex-protected
+    exlib::OSMutex mutex;
+    std::unique_ptr<exlib::OSCondVar> cond;
+    std::queue<void*> queue;
+    size_t thread_count;
+    bool is_closing;
+    std::atomic_uchar dispatch_state;
+
+    // Read-only after creation
+    void* context;
+    size_t max_queue_size;
+
+    // Main thread only
+    v8impl::Persistent<v8::Function> ref;
+    node_napi_env env;
+    void* finalize_data;
+    napi_finalize finalize_cb;
+    napi_threadsafe_function_call_js call_js_cb;
+    bool handles_closing;
+    fibjs::Isolate* isolate_;
+};
 
 namespace {
 
@@ -818,4 +1113,114 @@ napi_status NAPI_CDECL node_api_get_module_file_name(napi_env env,
 
     *result = static_cast<node_napi_env>(env)->GetFilename();
     return napi_clear_last_error(env);
+}
+
+napi_status NAPI_CDECL
+napi_create_threadsafe_function(napi_env env,
+    napi_value func,
+    napi_value async_resource,
+    napi_value async_resource_name,
+    size_t max_queue_size,
+    size_t initial_thread_count,
+    void* thread_finalize_data,
+    napi_finalize thread_finalize_cb,
+    void* context,
+    napi_threadsafe_function_call_js call_js_cb,
+    napi_threadsafe_function* result)
+{
+    CHECK_ENV(env);
+    CHECK_ARG(env, async_resource_name);
+    RETURN_STATUS_IF_FALSE(env, initial_thread_count > 0, napi_invalid_arg);
+    CHECK_ARG(env, result);
+
+    napi_status status = napi_ok;
+
+    v8::Local<v8::Function> v8_func;
+    if (func == nullptr) {
+        CHECK_ARG(env, call_js_cb);
+    } else {
+        CHECK_TO_FUNCTION(env, v8_func, func);
+    }
+
+    v8::Local<v8::Context> v8_context = env->context();
+
+    v8::Local<v8::Object> v8_resource;
+    if (async_resource == nullptr) {
+        v8_resource = v8::Object::New(env->isolate);
+    } else {
+        CHECK_TO_OBJECT(env, v8_context, v8_resource, async_resource);
+    }
+
+    v8::Local<v8::String> v8_name;
+    CHECK_TO_STRING(env, v8_context, v8_name, async_resource_name);
+
+    v8impl::ThreadSafeFunction* ts_fn = new v8impl::ThreadSafeFunction(v8_func,
+        v8_resource,
+        v8_name,
+        initial_thread_count,
+        context,
+        max_queue_size,
+        reinterpret_cast<node_napi_env>(env),
+        thread_finalize_data,
+        thread_finalize_cb,
+        call_js_cb);
+
+    if (ts_fn == nullptr) {
+        status = napi_generic_failure;
+    } else {
+        status = ts_fn->Init();
+        if (status == napi_ok) {
+            *result = reinterpret_cast<napi_threadsafe_function>(ts_fn);
+        }
+    }
+
+    return napi_set_last_error(env, status);
+}
+
+napi_status NAPI_CDECL napi_get_threadsafe_function_context(
+    napi_threadsafe_function func, void** result)
+{
+    CHECK_NOT_NULL(func);
+    CHECK_NOT_NULL(result);
+
+    *result = reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Context();
+    return napi_ok;
+}
+
+napi_status NAPI_CDECL
+napi_call_threadsafe_function(napi_threadsafe_function func,
+    void* data,
+    napi_threadsafe_function_call_mode is_blocking)
+{
+    CHECK_NOT_NULL(func);
+    return reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Push(data, is_blocking);
+}
+
+napi_status NAPI_CDECL
+napi_acquire_threadsafe_function(napi_threadsafe_function func)
+{
+    CHECK_NOT_NULL(func);
+    return reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Acquire();
+}
+
+napi_status NAPI_CDECL napi_release_threadsafe_function(
+    napi_threadsafe_function func,
+    napi_threadsafe_function_release_mode mode)
+{
+    CHECK_NOT_NULL(func);
+    return reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Release(mode);
+}
+
+napi_status NAPI_CDECL
+napi_unref_threadsafe_function(napi_env env, napi_threadsafe_function func)
+{
+    CHECK_NOT_NULL(func);
+    return reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Unref();
+}
+
+napi_status NAPI_CDECL
+napi_ref_threadsafe_function(napi_env env, napi_threadsafe_function func)
+{
+    CHECK_NOT_NULL(func);
+    return reinterpret_cast<v8impl::ThreadSafeFunction*>(func)->Ref();
 }

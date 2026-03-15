@@ -2272,6 +2272,69 @@ describe('addons api', () => {
             // assert.ok(test_typedarray.IsDetached(buffer));
         }
     });
+
+    it('test_threadsafe_function', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_threadsafe_function.node'));
+        const binding = module.exports;
+
+        // Test 1: blocking mode with JS marshaller - all values received in order
+        {
+            const ev = new coroutine.Event();
+            const array = [];
+            binding.StartThread(
+                function (value) { array.push(value); },
+                function () {
+                    assert.deepStrictEqual(array, [
+                        9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+                    ]);
+                    ev.set();
+                },
+                binding.MAX_QUEUE_SIZE
+            );
+            ev.wait();
+        }
+
+        // Test 2: without native JS marshaller (default call_js)
+        {
+            const ev = new coroutine.Event();
+            let callCount = 0;
+            binding.StartThreadNoNative(
+                function () { callCount++; },
+                function () {
+                    assert.strictEqual(callCount, binding.ARRAY_LENGTH);
+                    ev.set();
+                },
+                binding.MAX_QUEUE_SIZE
+            );
+            ev.wait();
+        }
+
+        // Test 3: get context
+        {
+            const result = binding.TestGetContext(function () {});
+            assert.strictEqual(result, true);
+        }
+
+        // Test 4: abort by releasing with napi_tsfn_abort
+        {
+            const ev = new coroutine.Event();
+            const array = [];
+            binding.StartThread(
+                function (value) { array.push(value); },
+                function () {
+                    assert.ok(array.length <= binding.ARRAY_LENGTH);
+                    ev.set();
+                },
+                binding.MAX_QUEUE_SIZE,
+                2  // initial_thread_count=2: one for StopThread, one for worker
+            );
+            binding.StopThread(true);
+            ev.wait();
+        }
+    });
 });
 
 

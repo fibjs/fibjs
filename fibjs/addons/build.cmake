@@ -39,6 +39,7 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         test_reference
         test_string
         test_symbol
+        test_threadsafe_function
         test_typedarray
     )
 
