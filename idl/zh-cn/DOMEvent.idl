@@ -1,0 +1,52 @@
+/*! @brief DOMEvent 表示一个 W3C DOM 事件对象
+
+ DOMEvent 实现了标准的 Web Event 接口，提供事件类型、冒泡、取消等标准事件属性。
+
+ ```JavaScript
+ const ev = new Event('click', { bubbles: true, cancelable: true });
+ console.log(ev.type);       // 'click'
+ console.log(ev.bubbles);    // true
+ console.log(ev.cancelable); // true
+ ```
+ */
+interface DOMEvent : object
+{
+    /*! @brief DOMEvent 构造函数
+     @param type 事件类型
+     @param eventInitDict 可选的事件初始化字典
+     */
+    DOMEvent(String type, Object eventInitDict = {});
+
+    /*! @brief 事件类型 */
+    readonly String type;
+
+    /*! @brief 事件是否冒泡 */
+    readonly Boolean bubbles;
+
+    /*! @brief 事件是否可取消 */
+    readonly Boolean cancelable;
+
+    /*! @brief 事件是否可穿越 Shadow DOM 边界 */
+    readonly Boolean composed;
+
+    /*! @brief 是否已调用 preventDefault() */
+    readonly Boolean defaultPrevented;
+
+    /*! @brief 事件目标 */
+    readonly Value target;
+
+    /*! @brief 当前事件目标 */
+    readonly Value currentTarget;
+
+    /*! @brief 事件创建时间戳 */
+    readonly Number timeStamp;
+
+    /*! @brief 阻止事件的进一步传播 */
+    stopPropagation();
+
+    /*! @brief 阻止同一事件的其他监听器被调用 */
+    stopImmediatePropagation();
+
+    /*! @brief 如果事件可取消，则取消该事件 */
+    preventDefault();
+};

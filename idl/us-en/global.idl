@@ -40,6 +40,12 @@ module global
     /*! @brief Signal object, used to communicate with and abort asynchronous operations, see AbortSignal object.*/
     static AbortSignal;
 
+    /*! @brief DOM Event object, represents a W3C standard event */
+    static DOMEvent new Event();
+
+    /*! @brief DOM EventTarget object, provides Web standard event listening and dispatching */
+    static EventEmitter new EventTarget();
+
     /*! @brief MessageEvent object, represents a message received by a target object */
     static MessageEvent;
 

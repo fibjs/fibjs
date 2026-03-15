@@ -40,6 +40,12 @@ module global
     /*! @brief 信号对象，用于与异步操作通信并中止它们，参见 AbortSignal 对象。*/
     static AbortSignal;
 
+    /*! @brief DOM 事件对象，表示一个 W3C 标准事件 */
+    static DOMEvent new Event();
+
+    /*! @brief DOM 事件目标对象，提供 Web 标准事件监听和分发机制 */
+    static EventEmitter new EventTarget();
+
     /*! @brief MessageEvent 对象，表示目标对象接收到的消息 */
     static MessageEvent;
 

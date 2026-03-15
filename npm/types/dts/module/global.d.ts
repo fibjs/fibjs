@@ -12,6 +12,8 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
 /// <reference path="../interface/AbortSignal.d.ts" />
+/// <reference path="../interface/DOMEvent.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/MessageEvent.d.ts" />
 /// <reference path="../interface/MessagePort.d.ts" />
 /// <reference path="../interface/MessageChannel.d.ts" />
@@ -93,6 +95,16 @@ declare module 'global' {
      * @description 信号对象，用于与异步操作通信并中止它们，参见 AbortSignal 对象。
      */
     const AbortSignal: typeof Class_AbortSignal;
+
+    /**
+     * @description DOM 事件对象，表示一个 W3C 标准事件 
+     */
+    const Event: typeof Class_DOMEvent;
+
+    /**
+     * @description DOM 事件目标对象，提供 Web 标准事件监听和分发机制 
+     */
+    const EventTarget: typeof Class_EventEmitter;
 
     /**
      * @description MessageEvent 对象，表示目标对象接收到的消息 
