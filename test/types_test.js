@@ -1,11 +1,14 @@
 var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 var assert = require('assert');
 
-var test_util = require('./test_util');
-
 var types = require('util').types;
+var types1 = require('util/types');
 
 describe('types', () => {
+    it('alias modules', () => {
+        assert.strictEqual(types, types1);
+    });
+
     it("isEmpty", () => {
         assert.isTrue(types.isEmpty(null));
         assert.isTrue(types.isEmpty(undefined));

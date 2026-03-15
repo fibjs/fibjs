@@ -185,16 +185,23 @@ result_t SandBox::addBuiltinModules()
 
         if (name == "assert") {
             v8::Local<v8::Object> mod = assert_strict_base::class_info().getModule(isolate);
-            InstallModule(name + PATH_SLASH + "strict", mod);
-            InstallModule("fibjs:" + name + PATH_SLASH + "strict", mod);
-            InstallModule("node:" + name + PATH_SLASH + "strict", mod);
+            InstallModule(name + PATH_SLASH_STR "strict", mod);
+            InstallModule("fibjs:" + name + PATH_SLASH_STR "strict", mod);
+            InstallModule("node:" + name + PATH_SLASH_STR "strict", mod);
         }
 
         v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises")).FromMaybe(v8::Local<v8::Value>());
         if (!promises.IsEmpty() && promises->IsObject()) {
-            InstallModule(name + PATH_SLASH + "promises", promises.As<v8::Object>());
-            InstallModule("fibjs:" + name + PATH_SLASH + "promises", promises.As<v8::Object>());
-            InstallModule("node:" + name + PATH_SLASH + "promises", promises.As<v8::Object>());
+            InstallModule(name + PATH_SLASH_STR "promises", promises.As<v8::Object>());
+            InstallModule("fibjs:" + name + PATH_SLASH_STR "promises", promises.As<v8::Object>());
+            InstallModule("node:" + name + PATH_SLASH_STR "promises", promises.As<v8::Object>());
+        }
+
+        if (name == "util") {
+            v8::Local<v8::Object> types = types_base::class_info().getModule(isolate);
+            InstallModule("util" PATH_SLASH_STR "types", types);
+            InstallModule("fibjs:util" PATH_SLASH_STR "types", types);
+            InstallModule("node:util" PATH_SLASH_STR "types", types);
         }
 
         pModule = pModule->m_next;
