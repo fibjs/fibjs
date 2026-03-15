@@ -509,6 +509,43 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
     return 0;
 }
 
+void HttpClient::setEnvProxy()
+{
+    char buf[4096];
+    size_t sz;
+    exlib::string http_proxy, https_proxy;
+
+    sz = sizeof(buf);
+    if (uv_os_getenv("http_proxy", buf, &sz) == 0)
+        http_proxy = buf;
+    else {
+        sz = sizeof(buf);
+        if (uv_os_getenv("HTTP_PROXY", buf, &sz) == 0)
+            http_proxy = buf;
+    }
+
+    sz = sizeof(buf);
+    if (uv_os_getenv("https_proxy", buf, &sz) == 0)
+        https_proxy = buf;
+    else {
+        sz = sizeof(buf);
+        if (uv_os_getenv("HTTPS_PROXY", buf, &sz) == 0)
+            https_proxy = buf;
+    }
+
+    sz = sizeof(buf);
+    if (uv_os_getenv("no_proxy", buf, &sz) == 0)
+        m_no_proxy = buf;
+    else {
+        sz = sizeof(buf);
+        if (uv_os_getenv("NO_PROXY", buf, &sz) == 0)
+            m_no_proxy = buf;
+    }
+
+    set_http_proxy(http_proxy);
+    set_https_proxy(https_proxy);
+}
+
 result_t HttpClient::update(HttpCookie_base* cookie)
 {
     int32_t length, i;

@@ -94,6 +94,8 @@ public:
     result_t update_cookies(exlib::string url, NArray* cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
+    void setEnvProxy();
+
     exlib::string agent()
     {
         return m_userAgent;

@@ -211,6 +211,9 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
 
     m_httpclient = new HttpClient(m_ctx);
 
+    if (g_use_env_proxy)
+        m_httpclient->setEnvProxy();
+
     exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
 }
 

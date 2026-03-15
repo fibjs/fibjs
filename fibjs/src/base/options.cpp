@@ -39,6 +39,8 @@ bool g_track_native_object = false;
 
 bool g_openssl_legacy_provider = false;
 
+bool g_use_env_proxy = false;
+
 exlib::string g_exec_code;
 
 #ifdef DEBUG
@@ -71,6 +73,10 @@ static void printHelp()
          "    -S, --save                save package config to dependencies.\n"
          "    -D, --save-dev            save package config to devDependencies.\n"
          "    --target                  specify the path of the package.json file.\n"
+         "\n"
+         "  --use-env-proxy             parse proxy settings from\n"
+         "                              HTTP_PROXY/HTTPS_PROXY/NO_PROXY environment\n"
+         "                              variables and use them for connections.\n"
          "\n"
          "  --openssl-legacy-provider   enable OpenSSL 3.0 legacy provider.\n"
          "\n"
@@ -148,6 +154,9 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--track-native-object")) {
             g_track_native_object = true;
+            df++;
+        } else if (!qstrcmp(arg, "--use-env-proxy")) {
+            g_use_env_proxy = true;
             df++;
         } else if (!qstrcmp(arg, "--openssl-legacy-provider")) {
             g_openssl_legacy_provider = true;
