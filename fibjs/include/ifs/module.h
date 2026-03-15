@@ -22,6 +22,7 @@ public:
     // module_base
     static result_t createRequire(exlib::string base, v8::Local<v8::Function>& retVal);
     static result_t get_builtinModules(v8::Local<v8::Array>& retVal);
+    static result_t enableCompileCache(exlib::string cacheDir, v8::Local<v8::Object>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -37,6 +38,7 @@ public:
 public:
     static void s_static_createRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_builtinModules(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_enableCompileCache(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -44,7 +46,8 @@ namespace fibjs {
 inline ClassInfo& module_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createRequire", s_static_createRequire, true, ClassData::ASYNC_SYNC }
+        { "createRequire", s_static_createRequire, true, ClassData::ASYNC_SYNC },
+        { "enableCompileCache", s_static_enableCompileCache, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -86,6 +89,21 @@ inline void module_base::s_static_get_builtinModules(const v8::FunctionCallbackI
     METHOD_OVER(0, 0);
 
     hr = get_builtinModules(vr);
+
+    METHOD_RETURN();
+}
+
+inline void module_base::s_static_enableCompileCache(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    hr = enableCompileCache(v0, vr);
 
     METHOD_RETURN();
 }

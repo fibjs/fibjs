@@ -200,6 +200,19 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     args.GetReturnValue().Set(fn);
 }
 
+// No-op stub for Node.js v22.8+ enableCompileCache compatibility
+static void _enableCompileCache(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> result = v8::Object::New(isolate->m_isolate);
+
+    result->Set(context, isolate->NewString("status"), v8::Integer::New(isolate->m_isolate, 2)).IsJust();
+    result->Set(context, isolate->NewString("message"), isolate->NewString("Compile cache is not supported in fibjs")).IsJust();
+
+    args.GetReturnValue().Set(result);
+}
+
 SandBox::Context::Context(SandBox* sb, exlib::string id)
     : m_sb(sb)
     , m_id(id)
@@ -226,6 +239,9 @@ void SandBox::initModule()
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
     _mod->Set(context, isolate->NewString("createRequire"), isolate->NewFunction("createRequire", _createRequire, wrap(isolate))).IsJust();
+
+    // enableCompileCache is a no-op for compatibility with Node.js v22.8+
+    _mod->Set(context, isolate->NewString("enableCompileCache"), isolate->NewFunction("enableCompileCache", _enableCompileCache)).IsJust();
 
     // Build builtinModules array
     v8::Local<v8::Array> builtinModules;

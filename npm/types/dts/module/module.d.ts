@@ -18,5 +18,14 @@ declare module 'module' {
      */
     const builtinModules: any[];
 
+    /**
+     * !@description 启用模块编译缓存
+     *      Node.js v22.8+ 兼容接口，在 fibjs 中为空操作。Node.js 中该方法用于将 V8 编译字节码缓存到磁盘以加快后续启动速度。
+     *      @param cacheDir 缓存目录路径，可选
+     *      @return 返回包含 status 和 message 的对象，status 为 2 表示不支持
+     *     
+     */
+    function enableCompileCache(cacheDir?: string): FIBJS.GeneralObject;
+
 }
 
