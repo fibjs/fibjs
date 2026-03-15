@@ -98,14 +98,26 @@ void init_argv(int32_t argc, char** argv)
 result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
-    for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_argv[i])).IsJust();
+    if (isolate->m_argv.IsEmpty()) {
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
-    retVal = args;
+        for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
+            args->Set(context, i, isolate->NewString(s_argv[i])).IsJust();
 
+        isolate->m_argv.Reset(isolate->m_isolate, args);
+    }
+
+    retVal = isolate->m_argv.Get(isolate->m_isolate);
+
+    return 0;
+}
+
+result_t process_base::set_argv(v8::Local<v8::Array> newVal)
+{
+    Isolate* isolate = Isolate::current();
+    isolate->m_argv.Reset(isolate->m_isolate, newVal);
     return 0;
 }
 

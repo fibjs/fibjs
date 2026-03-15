@@ -43,7 +43,7 @@
 module process : EventEmitter
 {
     /*! @brief Return the command line arguments of the current process */
-    static readonly Array argv;
+    static Array argv;
 
     /*! @brief Return the special command line arguments of the current process, these arguments are used by fibjs to set the runtime environment */
     static readonly Array execArgv;

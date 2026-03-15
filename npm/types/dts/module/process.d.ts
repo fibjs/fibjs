@@ -48,7 +48,7 @@ declare module 'process' {
     /**
      * @description 返回当前进程的命令行参数 
      */
-    const argv: any[];
+    var argv: any[];
 
     /**
      * @description 返回当前进程的特殊命令行参数，这些参数被 fibjs 用于设置运行环境 

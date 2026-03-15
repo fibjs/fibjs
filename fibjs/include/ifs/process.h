@@ -26,6 +26,7 @@ class process_base : public EventEmitter_base {
 public:
     // process_base
     static result_t get_argv(v8::Local<v8::Array>& retVal);
+    static result_t set_argv(v8::Local<v8::Array> newVal);
     static result_t get_execArgv(v8::Local<v8::Array>& retVal);
     static result_t get_version(exlib::string& retVal);
     static result_t get_versions(v8::Local<v8::Object>& retVal);
@@ -81,6 +82,7 @@ public:
 
 public:
     static void s_static_get_argv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_argv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_version(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_versions(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -149,7 +151,7 @@ inline ClassInfo& process_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "argv", s_static_get_argv, block_set, true },
+        { "argv", s_static_get_argv, s_static_set_argv, true },
         { "execArgv", s_static_get_execArgv, block_set, true },
         { "version", s_static_get_version, block_set, true },
         { "versions", s_static_get_versions, block_set, true },
@@ -189,6 +191,19 @@ inline void process_base::s_static_get_argv(const v8::FunctionCallbackInfo<v8::V
     hr = get_argv(vr);
 
     METHOD_RETURN();
+}
+
+inline void process_base::s_static_set_argv(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = set_argv(v0);
+
+    METHOD_VOID();
 }
 
 inline void process_base::s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args)

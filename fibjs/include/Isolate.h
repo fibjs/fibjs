@@ -298,6 +298,8 @@ public:
     obj_ptr<HttpClient> m_httpclient;
     v8::Global<v8::Object> STATUS_CODES;
 
+    v8::Global<v8::Array> m_argv;
+
     obj_ptr<Stream_base> m_stdio[3];
 
     obj_ptr<Stream_base>& m_stdin = m_stdio[0];
