@@ -267,7 +267,9 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
                     // If shebang contains "node" or "fibjs", run directly with fibjs
                     if (line.find("node") != exlib::string::npos || line.find("fibjs") != exlib::string::npos) {
-                        // Run with fibjs directly, skip shebang check below
+                        // Update argv[1] to the resolved file path
+                        Isolate* isolate = holder();
+                        argv->Set(isolate->context(), 1, isolate->NewString(fname)).IsJust();
                     } else {
                         // Not a node/fibjs script, run via shell
                         return run_shell(fname, s_argv);
