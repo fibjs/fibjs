@@ -34,6 +34,9 @@ function finished(stream, opts) {
             const rs = stream._readableState;
             if ((ws && ws.finished) || (rs && rs.ended)) {
                 resolve();
+            } else if (!ws && !rs) {
+                // Native stream (AsyncStream) — close always follows end/finish
+                resolve();
             } else {
                 reject(new Error('stream was destroyed'));
             }
@@ -55,6 +58,10 @@ function finished(stream, opts) {
                 return process.nextTick(resolve);
             }
             stream.on('end', onend);
+        } else {
+            // Native stream (AsyncStream) — listen for both end and finish
+            stream.on('end', onend);
+            stream.on('finish', onfinish);
         }
 
         stream.on('error', onerror);

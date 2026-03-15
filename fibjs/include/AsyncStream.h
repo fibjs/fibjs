@@ -24,6 +24,9 @@ class AsyncStreamBase {
 public:
     bool m_readable = false;
     bool m_paused = false;
+    bool m_ended = false;
+    bool m_finished = false;
+    bool m_openEmitted = false;
     exlib::spinlock m_lock;
     std::list<obj_ptr<Buffer_base>> m_pendingQueue;
     size_t m_totalBytes = 0;
@@ -76,6 +79,8 @@ public:
     ON_STATE(AsyncStreamReader, event)
     {
         if (n == CALL_RETURN_NULL) {
+            m_base->m_ended = true;
+            m_this->_emit("end");
             m_this->_emit("close");
             return next();
         }
@@ -149,6 +154,8 @@ public:
         // Treat socket close errors as normal termination
         if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
             || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
+            m_base->m_ended = true;
+            m_this->_emit("end");
             m_this->_emit("close");
             return v;
         }
@@ -183,6 +190,16 @@ public:
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
+        // Emit open event on first event registration, queued before any data events
+        if (!m_openEmitted) {
+            int32_t fd = -1;
+            this->get_fd(fd);
+            if (fd >= 0) {
+                m_openEmitted = true;
+                this->_emit("open", Variant(fd));
+            }
+        }
+
         if (ev == "data")
             startRecvStream();
         else if (ev == "readable") {
@@ -396,20 +413,66 @@ public:
         return 0;
     }
 
+    // Async state machine to emit finish + close after optional write
+    class AsyncEndEmitter : public AsyncState {
+    public:
+        AsyncEndEmitter(AsyncStream<T>* pThis, obj_ptr<Buffer_base> data, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_data(data)
+        {
+            if (m_data)
+                next(doWrite);
+            else
+                next(emitEvents);
+        }
+
+        ON_STATE(AsyncEndEmitter, doWrite)
+        {
+            return static_cast<T*>(m_pThis)->writeBuffer(m_data, next(emitEvents));
+        }
+
+        ON_STATE(AsyncEndEmitter, emitEvents)
+        {
+            m_pThis->m_finished = true;
+            m_pThis->_emit("finish");
+            m_pThis->_emit("close");
+            return next(0);
+        }
+
+    private:
+        AsyncStream<T>* m_pThis;
+        obj_ptr<Buffer_base> m_data;
+    };
+
     virtual result_t end(int32_t& retVal, AsyncEvent* ac)
     {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
         retVal = 0;
-        return 0;
+        (new AsyncEndEmitter(this, nullptr, ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     {
-        return static_cast<T*>(this)->writeBuffer(data, ac);
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        retVal = 0;
+        (new AsyncEndEmitter(this, data, ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
     {
-        return static_cast<T*>(this)->writeBuffer(data, ac);
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        retVal = 0;
+        (new AsyncEndEmitter(this, data, ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
@@ -422,7 +485,9 @@ public:
         if (hr < 0)
             return hr;
 
-        return static_cast<T*>(this)->writeBuffer(buf, ac);
+        retVal = 0;
+        (new AsyncEndEmitter(this, buf, ac))->apost(0);
+        return CALL_E_PENDDING;
     }
 
     virtual result_t getReader(obj_ptr<StreamReader_base>& retVal)
