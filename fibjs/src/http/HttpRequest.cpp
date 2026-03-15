@@ -48,7 +48,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
         for (char& c : m_upper)
             c = toupper((unsigned char)c);
         if (m_upper == "GET" || m_upper == "HEAD")
-            return CHECK_ERROR(Runtime::setTypeError("Request: GET/HEAD requests cannot have a body"));
+            return CHECK_ERROR(Runtime::setError(kTypeError, "Request: GET/HEAD requests cannot have a body"));
     }
 
     hr = GetConfigValue(opts, "headers", headers);

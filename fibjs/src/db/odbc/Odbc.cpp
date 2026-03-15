@@ -61,7 +61,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "openOdbc: connection string must start with 'odbc:'."));
 
     obj_ptr<Odbc> conn = new Odbc();
 
@@ -86,7 +86,7 @@ result_t odbc_disconnect(void* conn)
 result_t odbc_close(void*& conn, AsyncEvent* ac)
 {
     if (!conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -306,7 +306,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -510,7 +510,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
 result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -561,7 +561,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);

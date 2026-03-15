@@ -259,7 +259,7 @@ result_t rtc_base::set_loglevel(exlib::string newVal)
     else if (newVal == "none")
         level = rtc::LogLevel::None;
     else
-        return Runtime::setError("Invalid log level");
+        return Runtime::setError("Invalid log level: '%s'.", newVal.c_str());
 
     rtc::InitLogger(level);
     s_level = level;

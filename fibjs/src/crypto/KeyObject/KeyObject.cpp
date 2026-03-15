@@ -244,7 +244,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
         return ExportPrivateKey(param, retVal, false); // Use Buffer for crypto module compatibility
     }
 
-    return Runtime::setError("Invalid key type");
+    return Runtime::setError("Invalid key type: %d.", m_keyType);
 }
 
 result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)

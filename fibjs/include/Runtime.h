@@ -8,6 +8,7 @@
 #pragma once
 
 #include "utils.h"
+#include <cstdarg>
 
 namespace fibjs {
 
@@ -23,45 +24,85 @@ public:
 public:
     static Runtime* current();
 
-    static result_t setError(result_t hr)
-    {
-        Runtime* rt = Runtime::current();
-
-        rt->m_code = hr;
-        return rt->m_code;
-    }
-
     static result_t setError(result_t code, exlib::string err)
     {
         Runtime* rt = Runtime::current();
 
         rt->m_code = code;
         rt->m_error = err;
-        return rt->m_code;
+        return CALL_E_EXCEPTION;
     }
 
-    static result_t setError(result_t code, const char* err)
+    static result_t setError(result_t code, const char* fmt, ...)
     {
         Runtime* rt = Runtime::current();
 
         rt->m_code = code;
 
-        if (err)
-            rt->m_error.assign(err);
-        else
+        if (fmt) {
+            va_list args;
+            va_start(args, fmt);
+            char buf[1024];
+            vsnprintf(buf, sizeof(buf), fmt, args);
+            va_end(args);
+            rt->m_error.assign(buf);
+        } else {
             rt->m_error.clear();
+        }
 
-        return rt->m_code;
+        return CALL_E_EXCEPTION;
     }
 
-    static result_t setTypeError(exlib::string err)
+    static result_t setError(ErrorType type, result_t code, exlib::string err)
     {
         Runtime* rt = Runtime::current();
 
-        rt->m_code = CALL_E_EXCEPTION;
+        rt->m_code = code;
         rt->m_error = err;
-        rt->m_errorType = 1;
-        return rt->m_code;
+        rt->m_errorType = type;
+        return CALL_E_EXCEPTION;
+    }
+
+    static result_t setError(ErrorType type, result_t code, const char* fmt, ...)
+    {
+        Runtime* rt = Runtime::current();
+
+        rt->m_code = code;
+        rt->m_errorType = type;
+
+        if (fmt) {
+            va_list args;
+            va_start(args, fmt);
+            char buf[1024];
+            vsnprintf(buf, sizeof(buf), fmt, args);
+            va_end(args);
+            rt->m_error.assign(buf);
+        } else {
+            rt->m_error.clear();
+        }
+
+        return CALL_E_EXCEPTION;
+    }
+
+    static result_t setParamError(const char* name = nullptr)
+    {
+        Runtime* rt = Runtime::current();
+        rt->m_code = CALL_E_PARAMNOTOPTIONAL;
+        if (name)
+            rt->m_error = name;
+        else
+            rt->m_error.clear();
+        return CALL_E_PARAMNOTOPTIONAL;
+    }
+
+    static result_t setError(ErrorType type, exlib::string err)
+    {
+        return setError(type, CALL_E_EXCEPTION, err);
+    }
+
+    static result_t setError(ErrorType type, const char* err)
+    {
+        return setError(type, CALL_E_EXCEPTION, exlib::string(err));
     }
 
     static result_t setError(exlib::string err)
@@ -69,9 +110,20 @@ public:
         return setError(CALL_E_EXCEPTION, err);
     }
 
-    static result_t setError(const char* err)
+    static result_t setError(const char* fmt, ...)
     {
-        return setError(CALL_E_EXCEPTION, err);
+        Runtime* rt = Runtime::current();
+
+        rt->m_code = CALL_E_EXCEPTION;
+
+        va_list args;
+        va_start(args, fmt);
+        char buf[1024];
+        vsnprintf(buf, sizeof(buf), fmt, args);
+        va_end(args);
+        rt->m_error.assign(buf);
+
+        return CALL_E_EXCEPTION;
     }
 
     static exlib::string errMessage()
@@ -82,11 +134,16 @@ public:
         return msg;
     }
 
-    static int errType()
+    static result_t errCode()
+    {
+        return Runtime::current()->m_code;
+    }
+
+    static ErrorType errType()
     {
         Runtime* rt = Runtime::current();
-        int t = rt->m_errorType;
-        rt->m_errorType = 0;
+        ErrorType t = rt->m_errorType;
+        rt->m_errorType = kError;
         return t;
     }
 
@@ -136,7 +193,7 @@ public:
 private:
     result_t m_code;
     exlib::string m_error;
-    int m_errorType = 0;
+    ErrorType m_errorType = kError;
     Isolate* m_isolate;
 };
 

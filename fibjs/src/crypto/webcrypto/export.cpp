@@ -93,10 +93,10 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
             retVal = store;
             return 0;
         }
-        return Runtime::setError("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats");
+        return Runtime::setError("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
     }
 
-    return Runtime::setError("Invalid key type");
+    return Runtime::setError("Invalid key type: %d.", keyType);
 }
 
 result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, v8::Local<v8::Object> algorithm,

@@ -226,15 +226,11 @@ void AsyncCallBack::processPromiseResult()
 
         resolver->Resolve(m_isolate->context(), result).IsJust();
     } else {
-        if (m_v == CALL_E_EXCEPTION) {
-            if (m_error_type)
-                Runtime::setTypeError(m_error);
-            else
-                Runtime::setError(m_error);
-        }
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error_type, m_error_code, m_error);
 
         v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
-        resolver->Reject(m_isolate->context(), FillError(m_v, getResultMessage(m_v), stack)).IsJust();
+        resolver->Reject(m_isolate->context(), FillError(m_v, stack)).IsJust();
     }
 
     delete this;
@@ -272,16 +268,12 @@ int AsyncCallBack::syncFunc()
             args[0] = v8::Null(m_isolate->m_isolate);
             to_args(args);
         } else {
-            if (m_v == CALL_E_EXCEPTION) {
-                if (m_error_type)
-                    Runtime::setTypeError(m_error);
-                else
-                    Runtime::setError(m_error);
-            }
+            if (m_v == CALL_E_EXCEPTION)
+                Runtime::setError(m_error_type, m_error_code, m_error);
 
             args.resize(1);
             v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
-            args[0] = FillError(m_v, getResultMessage(m_v), stack);
+            args[0] = FillError(m_v, stack);
         }
 
         v8::Local<v8::Value> oThis;
@@ -315,6 +307,7 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
 
         if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
             if (hr == CALL_E_EXCEPTION) {
+                m_error_code = Runtime::errCode();
                 m_error_type = Runtime::errType();
                 m_error = Runtime::errMessage();
             }

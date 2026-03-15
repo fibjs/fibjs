@@ -348,7 +348,7 @@ result_t Cipher::init(const exlib::string& name, Buffer_base* key, v8::Local<v8:
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
-        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher: '%s'.", name.c_str()));
 
     unsigned char key1[EVP_MAX_KEY_LENGTH];
     unsigned char iv1[EVP_MAX_IV_LENGTH];
@@ -364,7 +364,7 @@ result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, siz
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
-        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher: '%s'.", name.c_str()));
 
     result_t hr;
     const int expected_iv_len = EVP_CIPHER_iv_length(cipher);
@@ -629,7 +629,7 @@ result_t Cipher::update(const unsigned char* data, size_t len, exlib::string out
     obj_ptr<Buffer> out = new Buffer(NULL, buf_len);
     if (EVP_CipherUpdate(m_ctx, out->data(), &buf_len, data, len) != 1) {
         if (kind_ != kDecipher || mode != EVP_CIPH_CCM_MODE)
-            return Runtime::setError(openssl_error());
+            return openssl_error();
         pending_auth_failed_ = true;
     }
 
@@ -682,7 +682,7 @@ result_t Cipher::final(exlib::string outputEncoding, v8::Local<v8::Value>& retVa
     }
 
     if (!ok)
-        return CHECK_ERROR(Runtime::setError(openssl_error()));
+        return CHECK_ERROR(openssl_error());
 
     auth_tag_state_ = kAuthTagFinalized;
 

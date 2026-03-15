@@ -76,7 +76,7 @@ result_t KeyObject::generateRsaKey(int nid, generateKeyPairParam* param)
         if (!param->hashAlgorithm.empty()) {
             md = _evp_md_type(param->hashAlgorithm.c_str());
             if (!md)
-                return Runtime::setError("Invalid hashAlgorithm");
+                return Runtime::setError("Invalid hashAlgorithm: '%s'.", param->hashAlgorithm.c_str());
 
             if (EVP_PKEY_CTX_set_rsa_pss_keygen_md(key_ctx, md) <= 0)
                 return openssl_error();
@@ -85,7 +85,7 @@ result_t KeyObject::generateRsaKey(int nid, generateKeyPairParam* param)
         if (!param->mgf1Algorithm.empty()) {
             const EVP_MD* md = _evp_md_type(param->mgf1Algorithm.c_str());
             if (!md)
-                return Runtime::setError("Invalid mgf1Algorithm");
+                return Runtime::setError("Invalid mgf1Algorithm: '%s'.", param->mgf1Algorithm.c_str());
 
             if (EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md(key_ctx, md) <= 0)
                 return openssl_error();
@@ -143,7 +143,7 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
     if (nid == EVP_PKEY_EC) {
         cid = GetCurveFromName(param->namedCurve.c_str());
         if (cid == NID_undef)
-            return Runtime::setError("Invalid curve name");
+            return Runtime::setError("Invalid curve name: '%s'.", param->namedCurve.c_str());
     } else
         cid = NID_sm2;
 
@@ -157,7 +157,7 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
         if (EVP_PKEY_CTX_set_ec_param_enc(param_ctx, OPENSSL_EC_EXPLICIT_CURVE) <= 0)
             return openssl_error();
     } else {
-        return Runtime::setError("Invalid paramEncoding");
+        return Runtime::setError("Invalid paramEncoding: '%s'.", param->paramEncoding.c_str());
     }
 
     m_pkey = genkey_from_param(param_ctx);
@@ -203,7 +203,7 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
 
     int nid = okp_curve_nid(type.c_str());
     if (nid == NID_undef)
-        return Runtime::setError("Invalid key type");
+        return Runtime::setError("Invalid key type: '%s'.", type.c_str());
 
     return generateOKPKey(nid, param);
 }

@@ -175,6 +175,16 @@ typedef int32_t result_t;
 
 #define CALL_E_MIN (CALL_E_MAX - 100)
 
+enum ErrorType {
+    kError = 0,
+    kTypeError,
+    kRangeError,
+    kSyntaxError,
+    kReferenceError,
+    kURIError,
+    kEvalError,
+};
+
 #ifndef _WIN32
 #define CALL_E_FILE_NOT_FOUND (-ENOENT)
 #define CALL_E_PATH_NOT_FOUND (-ENOENT)
@@ -1176,7 +1186,7 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
 
 v8::Local<v8::Value> FillError(result_t hr);
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
-v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::StackTrace> stack);
+v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack);
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 {

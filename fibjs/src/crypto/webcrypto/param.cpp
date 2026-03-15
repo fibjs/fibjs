@@ -200,7 +200,8 @@ result_t CryptoKey::check_ecdsa_import_param()
 {
     const char* namedCurve = m_key->namedCurve();
     if (!namedCurve || qstricmp(namedCurve, m_algorithm->get("namedCurve").string().c_str()) != 0)
-        return Runtime::setError("WebCrypto: invalid key algorithm");
+        return Runtime::setError("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.",
+            namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
 
     return check_asymmetric_import_usage();
 }
@@ -216,7 +217,8 @@ result_t CryptoKey::check_ecdh_import_param()
 {
     const char* namedCurve = m_key->namedCurve();
     if (!namedCurve || qstricmp(namedCurve, m_algorithm->get("namedCurve").string().c_str()) != 0)
-        return Runtime::setError("WebCrypto: invalid key algorithm");
+        return Runtime::setError("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.",
+            namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
 
     // Check ECDH specific import usages
     if (m_key->type() == KeyObject::kKeyTypePrivate) {
@@ -284,16 +286,16 @@ result_t CryptoKey::check_hmac_import_param()
 result_t CryptoKey::check_name(exlib::string name)
 {
     if (m_key_type == kKeyNameECDSA && qstricmp(name.c_str(), "ecdsa"))
-        return Runtime::setError("CryptoKey: invalid key algorithm");
+        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'ECDSA' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameEd25519 && qstricmp(name.c_str(), "ed25519"))
-        return Runtime::setError("CryptoKey: invalid key algorithm");
+        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'Ed25519' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameECDH && qstricmp(name.c_str(), "ecdh"))
-        return Runtime::setError("CryptoKey: invalid key algorithm");
+        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'ECDH' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameHMAC && qstricmp(name.c_str(), "hmac"))
-        return Runtime::setError("CryptoKey: invalid key algorithm");
+        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'HMAC' but got '%s'.", name.c_str());
 
     return 0;
 }

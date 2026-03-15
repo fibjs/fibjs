@@ -379,7 +379,7 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
@@ -416,7 +416,7 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
@@ -997,7 +997,7 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
                 } else
                     m_connUrl = "tcp://";
             } else
-                return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
+                return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
             if (host.empty())
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
@@ -1326,7 +1326,7 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
 
             // Fetch API redirect mode takes precedence over HttpClient autoRedirect
             if (m_o->redirect == "error")
-                return CHECK_ERROR(Runtime::setTypeError("fetch: redirect not allowed"));
+                return CHECK_ERROR(Runtime::setError(kTypeError, "fetch: redirect not allowed"));
             if (m_o->redirect == "manual")
                 return next(); // return redirect response as-is
             if (!m_hc->m_autoRedirect)
@@ -1342,7 +1342,7 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
             m_o->u->toString(m_url);
 
             if (m_urls.find(m_url) != m_urls.end())
-                return CHECK_ERROR(Runtime::setTypeError("HttpClient: redirect cycle"));
+                return CHECK_ERROR(Runtime::setError(kTypeError, "HttpClient: redirect cycle"));
 
             // 303: per spec force GET and clear request body
             if (status == 303) {
@@ -1368,7 +1368,7 @@ result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpResponse_base>
                 bool aborted;
                 m_o->signal->get_aborted(aborted);
                 if (aborted) {
-                    Runtime::setTypeError("AbortError");
+                    Runtime::setError(kTypeError, "AbortError");
                     return CALL_E_EXCEPTION;
                 }
             }
@@ -1527,7 +1527,7 @@ public:
         exlib::string msg = (v == CALL_E_EXCEPTION)
             ? Runtime::errMessage()
             : getResultMessage(v);
-        Runtime::setTypeError(msg);
+        Runtime::setError(kTypeError, msg);
         return CALL_E_EXCEPTION;
     }
 
@@ -1538,7 +1538,7 @@ public:
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted) {
-                Runtime::setTypeError("AbortError");
+                Runtime::setError(kTypeError, "AbortError");
                 return CALL_E_EXCEPTION;
             }
         }

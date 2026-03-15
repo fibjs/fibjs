@@ -25,7 +25,7 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
         if (dsaEncoding == "ieee-p1363")
             enc = kSigEncP1363;
         else if (dsaEncoding != "der")
-            return Runtime::setError("Invalid dsaEncoding");
+            return Runtime::setError("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -409,7 +409,7 @@ result_t crypto_base::createSign(exlib::string algorithm, v8::Local<v8::Object> 
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return Runtime::setError("Invalid algorithm");
+        return Runtime::setError("createSign: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Sign(md);
     return 0;
@@ -419,7 +419,7 @@ result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return Runtime::setError("Invalid algorithm");
+        return Runtime::setError("createVerify: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Verify(md);
     return 0;
@@ -435,7 +435,7 @@ result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::
         return hr;
 
     if (retVal.empty())
-        return Runtime::setError("Invalid algorithm");
+        return Runtime::setError("Invalid algorithm: algorithm must not be empty.");
 
     return 0;
 }
@@ -446,7 +446,7 @@ result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* priva
     if (!algorithm.empty()) {
         md = _evp_md_type(algorithm.c_str());
         if (!md)
-            return Runtime::setError("Invalid algorithm");
+            return Runtime::setError("Invalid algorithm: '%s'.", algorithm.c_str());
     }
 
     EVPMDPointer context = EVP_MD_CTX_new();
@@ -569,7 +569,7 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
     if (!algorithm.empty()) {
         md = _evp_md_type(algorithm.c_str());
         if (!md)
-            return Runtime::setError("Invalid algorithm");
+            return Runtime::setError("Invalid algorithm: '%s'.", algorithm.c_str());
     }
 
     EVPMDPointer context = EVP_MD_CTX_new();

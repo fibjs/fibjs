@@ -510,7 +510,7 @@ result_t Redis::restore(Buffer_base* key, Buffer_base* data, int64_t ttl)
 result_t Redis::close()
 {
     if (!m_sock)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "Redis: connection is closed."));
 
     m_sock->ac_close();
 

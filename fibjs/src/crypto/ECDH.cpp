@@ -40,7 +40,7 @@ result_t ECDH::ensureKey()
     if (!m_ec) {
         int cid = GetCurveFromName(m_curve.c_str());
         if (cid == NID_undef)
-            return Runtime::setError("Invalid curve name");
+            return Runtime::setError("Invalid curve name: '%s'.", m_curve.c_str());
 
         m_ec = EC_KEY_new_by_curve_name(cid);
         if (!m_ec)
@@ -317,7 +317,7 @@ result_t ECDH_base::convertKey(v8::Local<v8::Value> key, exlib::string curve, ex
 
     int cid = GetCurveFromName(curve.c_str());
     if (cid == NID_undef)
-        return Runtime::setError("Invalid EC curve name");
+        return Runtime::setError("Invalid EC curve name: '%s'.", curve.c_str());
 
     // Validate format
     if (!format.empty() && format != "uncompressed" && format != "compressed" && format != "hybrid")

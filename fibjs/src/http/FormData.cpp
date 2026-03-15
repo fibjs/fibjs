@@ -61,7 +61,7 @@ result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal
 result_t FormData::append(exlib::string name, Variant value)
 {
     if (name.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
 
     int32_t vt = value.type();
 
@@ -106,7 +106,7 @@ result_t FormData::append(exlib::string name, Variant value)
 result_t FormData::append(exlib::string name, Blob_base* value)
 {
     if (name.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
 
     obj_ptr<File_base> file = File_base::getInstance(value);
     if (!file) {
@@ -129,7 +129,7 @@ result_t FormData::append(exlib::string name, Blob_base* value)
 result_t FormData::append(exlib::string name, Blob_base* value, exlib::string filename)
 {
     if (name.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
 
     obj_ptr<File> fileObj = new File();
 
@@ -153,7 +153,7 @@ result_t FormData::append(exlib::string name, Blob_base* value, exlib::string fi
 result_t FormData::set(exlib::string name, Blob_base* value)
 {
     if (name.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
 
     remove(name);
     append(name, value);
@@ -164,7 +164,7 @@ result_t FormData::set(exlib::string name, Blob_base* value)
 result_t FormData::set(exlib::string name, Blob_base* value, exlib::string filename)
 {
     if (name.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
 
     remove(name);
     append(name, value, filename);

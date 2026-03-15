@@ -40,7 +40,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     exlib::string& retVal, AsyncEvent* ac)
 {
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "resolve: invalid address family %d.", family));
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
@@ -127,7 +127,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return tls_base::connect(url, timeout, retVal, ac);
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "connect: unknown protocol in url '%s'.", url.c_str()));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -141,7 +141,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
         exlib::string port = u->port();
         if (port.length() == 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "connect: missing port in url '%s'.", url.c_str()));
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;

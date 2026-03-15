@@ -666,7 +666,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (certificateType == "rsa")
             config.certificateType = rtc::CertificateType::Rsa;
         else
-            return CALL_E_INVALIDARG;
+            return Runtime::setError(CALL_E_INVALIDARG, "Invalid certificateType: '%s'.", certificateType.c_str());
     }
 
     exlib::string iceTransportPolicy;
@@ -679,7 +679,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (iceTransportPolicy == "relay")
             config.iceTransportPolicy = rtc::TransportPolicy::Relay;
         else
-            return CALL_E_INVALIDARG;
+            return Runtime::setError(CALL_E_INVALIDARG, "Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str());
     }
 
     v8::Local<v8::Array> iceServers;

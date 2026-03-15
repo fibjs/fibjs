@@ -81,7 +81,7 @@ result_t SQLite::get_type(exlib::string& retVal)
 result_t SQLite::close(AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -136,7 +136,7 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
 result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -277,7 +277,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
 result_t SQLite::get_fileName(exlib::string& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     retVal = m_file;
     return 0;
@@ -286,7 +286,7 @@ result_t SQLite::get_fileName(exlib::string& retVal)
 result_t SQLite::get_timeout(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     retVal = m_nCmdTimeout;
     return 0;
@@ -295,7 +295,7 @@ result_t SQLite::get_timeout(int32_t& retVal)
 result_t SQLite::set_timeout(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     m_nCmdTimeout = newVal;
     return 0;
@@ -304,7 +304,7 @@ result_t SQLite::set_timeout(int32_t newVal)
 result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -348,7 +348,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -361,7 +361,7 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);

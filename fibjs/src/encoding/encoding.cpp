@@ -498,7 +498,7 @@ result_t encoding_base::isEncoding(exlib::string codec, bool& retVal)
 result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "encoding: Unknown codec: '%s'.", codec.c_str()));
 
     Buffer* _data = Buffer::Cast(data);
 
@@ -547,7 +547,7 @@ result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::st
 result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "encoding: Unknown codec: '%s'.", codec.c_str()));
 
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined"))
         retVal = new Buffer(str.c_str(), str.length());
@@ -654,7 +654,7 @@ result_t multibase_base::encode(Buffer_base* data, exlib::string codec, exlib::s
         return 0;
     }
 
-    return CHECK_ERROR(Runtime::setError("multibase: unknown codec."));
+    return CHECK_ERROR(Runtime::setError("multibase: unknown codec: '%s'.", codec.c_str()));
 }
 
 result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -676,7 +676,7 @@ result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal
         return base58Decode(p + 1, (int32_t)sz - 1, retVal);
     }
 
-    return CHECK_ERROR(Runtime::setError("multibase: unknown codec."));
+    return CHECK_ERROR(Runtime::setError("multibase: unknown codec: '%c'.", type));
 }
 
 static const char* URITable = " ! #$ &'()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";

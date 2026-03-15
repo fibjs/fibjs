@@ -472,10 +472,10 @@ static const char* predefine_exts[] = {
 result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {
     if (extname.empty())
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "SandBox: extension name must not be empty.");
 
     if (extname[0] != '.')
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "SandBox: extension name must start with '.', got '%s'.", extname.c_str());
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
         if (extname == predefine_exts[i])

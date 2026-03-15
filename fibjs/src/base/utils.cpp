@@ -47,67 +47,52 @@ static const char* uv_error_name(int err)
 }
 #undef UV_ERR_NAME_GEN
 
+static struct {
+    ErrorType type;
+    const char* message;
+} s_error_info[] = {
+    { kError, "" }, // placeholder (offset 0)
+    { kTypeError, "Invalid number of parameters." }, // CALL_E_BADPARAMCOUNT
+    { kTypeError, "Parameter not optional." }, // CALL_E_PARAMNOTOPTIONAL
+    { kTypeError, "The input parameter is not a valid type." }, // CALL_E_BADVARTYPE
+    { kTypeError, "Invalid argument." }, // CALL_E_INVALIDARG
+    { kTypeError, "The argument could not be coerced to the specified type." }, // CALL_E_TYPEMISMATCH
+    { kRangeError, "Value is out of range." }, // CALL_E_OUTRANGE
+    { kTypeError, "Constructor cannot be called as a function." }, // CALL_E_CONSTRUCTOR
+    { kTypeError, "Object is not an instance of declaring class." }, // CALL_E_NOTINSTANCE
+    { kError, "Invalid procedure call." }, // CALL_E_INVALID_CALL
+    { kError, "Re-entrant calls are not allowed." }, // CALL_E_REENTRANT
+    { kError, "Invalid input data." }, // CALL_E_INVALID_DATA
+    { kRangeError, "Index was out of range." }, // CALL_E_BADINDEX
+    { kRangeError, "Memory overflow error." }, // CALL_E_OVERFLOW
+    { kError, "Collection is empty." }, // CALL_E_EMPTY
+    { kError, "Operation now in progress." }, // CALL_E_PENDDING
+    { kError, "Operation not support asynchronous call." }, // CALL_E_NOASYNC
+    { kError, "Operation not support synchronous call." }, // CALL_E_NOSYNC
+    { kError, "Operation is long synchronous call." }, // CALL_E_LONGSYNC
+    { kError, "Operation is GUI call." }, // CALL_E_GUICALL
+    { kError, "Internal error." }, // CALL_E_INTERNAL
+    { kError, "The maximum amount of time for a script to execute was exceeded." }, // CALL_E_TIMEOUT
+    { kError, "Operation was aborted." }, // CALL_E_ABORT
+    { kTypeError, "Invalid return type." }, // CALL_E_RETURN_TYPE
+    { kError, "Exception occurred." }, // CALL_E_EXCEPTION
+    { kError, "JavaScript error." }, // CALL_E_JAVASCRIPT
+    { kError, "Permission denied." }, // CALL_E_PERMIT
+    { kError, "Object closed." }, // CALL_E_CLOSED
+};
+
+static ErrorType getDefaultErrorType(result_t hr)
+{
+    if (hr > CALL_E_MIN && hr < CALL_E_MAX) {
+        int idx = CALL_E_MAX - hr;
+        if (idx >= 0 && idx < (int)(sizeof(s_error_info) / sizeof(s_error_info[0])))
+            return s_error_info[idx].type;
+    }
+    return kError;
+}
+
 exlib::string getResultMessage(result_t hr)
 {
-    static const char* s_errors[] = {
-        "",
-        // CALL_E_BADPARAMCOUNT
-        "Invalid number of parameters.",
-        // CALL_E_PARAMNOTOPTIONAL
-        "Parameter not optional.",
-        // CALL_E_BADVARTYPE
-        "The input parameter is not a valid type.",
-        // CALL_E_INVALIDARG
-        "Invalid argument.",
-        // CALL_E_TYPEMISMATCH
-        "The argument could not be coerced to the specified type.",
-        // CALL_E_OUTRANGE
-        "Value is out of range.",
-
-        // CALL_E_CONSTRUCTOR
-        "Constructor cannot be called as a function.",
-        // CALL_E_NOTINSTANCE
-        "Object is not an instance of declaring class.",
-        // CALL_E_INVALID_CALL
-        "Invalid procedure call.",
-        // CALL_E_REENTRANT_CALL
-        "Re-entrant calls are not allowed.",
-        // CALL_E_INVALID_DATA
-        "Invalid input data.",
-        // CALL_E_BADINDEX
-        "Index was out of range.",
-        // CALL_E_OVERFLOW
-        "Memory overflow error.",
-        // CALL_E_EMPTY
-        "Collection is empty.",
-        // CALL_E_PENDDING
-        "Operation now in progress.",
-        // CALL_E_NOASYNC
-        "Operation not support asynchronous call.",
-        // CALL_E_NOSYNC
-        "Operation not support synchronous call.",
-        // CALL_E_LONGSYNC
-        "Operation is long synchronous call.",
-        // CALL_E_GUICALL
-        "Operation is GUI call.",
-        // CALL_E_INTERNAL
-        "Internal error.",
-        // CALL_E_TIMEOUT
-        "The maximum amount of time for a script to execute was exceeded.",
-        // CALL_E_ABORT
-        "Operation was aborted.",
-        // CALL_E_RETURN_TYPE
-        "Invalid return type.",
-        // CALL_E_EXCEPTION
-        "Exception occurred.",
-        // CALL_E_JAVASCRIPT
-        "JavaScript error.",
-        // CALL_E_PERMIT
-        "Permission denied.",
-        // CALL_E_CLOSED
-        "Object closed."
-    };
-
     if (hr == CALL_E_EXCEPTION) {
         exlib::string s = Runtime::errMessage();
 
@@ -121,7 +106,7 @@ exlib::string getResultMessage(result_t hr)
     }
 
     if (hr > CALL_E_MIN && hr < CALL_E_MAX)
-        return fmtString(-hr, s_errors[CALL_E_MAX - hr]);
+        return fmtString(-hr, s_error_info[CALL_E_MAX - hr].message);
 
     const char* uv_str = uv_error(hr);
     if (uv_str)
@@ -148,13 +133,40 @@ exlib::string getResultMessage(result_t hr)
 #endif
 }
 
-v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
+static v8::Local<v8::Value> MakeException(Isolate* isolate, ErrorType et, exlib::string msg)
 {
-    Isolate* isolate = Isolate::current();
-    int et = Runtime::errType();
-    v8::Local<v8::Value> v = et
-        ? v8::Exception::TypeError(isolate->NewString(msg))
-        : v8::Exception::Error(isolate->NewString(msg));
+    v8::Local<v8::String> v8msg = isolate->NewString(msg);
+    switch (et) {
+    case kTypeError:
+        return v8::Exception::TypeError(v8msg);
+    case kRangeError:
+        return v8::Exception::RangeError(v8msg);
+    case kSyntaxError:
+        return v8::Exception::SyntaxError(v8msg);
+    case kReferenceError:
+        return v8::Exception::ReferenceError(v8msg);
+    case kURIError: {
+        auto ctx = isolate->context();
+        auto glob = ctx->Global();
+        auto ctor = JSValue(glob->Get(ctx, isolate->NewString("URIError"))).As<v8::Object>();
+        v8::Local<v8::Value> args[] = { v8msg };
+        return ctor->CallAsConstructor(ctx, 1, args).FromMaybe(v8::Local<v8::Value>());
+    }
+    case kEvalError: {
+        auto ctx = isolate->context();
+        auto glob = ctx->Global();
+        auto ctor = JSValue(glob->Get(ctx, isolate->NewString("EvalError"))).As<v8::Object>();
+        v8::Local<v8::Value> args[] = { v8msg };
+        return ctor->CallAsConstructor(ctx, 1, args).FromMaybe(v8::Local<v8::Value>());
+    }
+    default:
+        return v8::Exception::Error(v8msg);
+    }
+}
+
+static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, ErrorType et, exlib::string msg)
+{
+    v8::Local<v8::Value> v = MakeException(isolate, et, msg);
     v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 
@@ -162,7 +174,6 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 
     const char* _name = uv_error_name(hr);
     if (!_name) {
-        // Try to translate system error code to UV error code for proper naming
         int uv_err = uv_translate_sys_error(-hr);
         if (uv_err != UV_UNKNOWN)
             _name = uv_error_name(uv_err);
@@ -174,36 +185,51 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
     return e;
 }
 
-v8::Local<v8::Value> FillError(result_t hr)
+static void resolveException(result_t& hr, ErrorType& et, exlib::string& msg)
 {
-    return FillError(hr, getResultMessage(hr));
+    if (hr == CALL_E_EXCEPTION) {
+        hr = Runtime::errCode();
+        et = Runtime::errType();
+        msg = Runtime::errMessage();
+    }
+    if (et == kError)
+        et = getDefaultErrorType(hr);
 }
 
-v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::StackTrace> stack)
+v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 {
+    ErrorType et = kError;
+    exlib::string rt_msg;
+    resolveException(hr, et, rt_msg);
+    return BuildError(Isolate::current(), hr, et, msg);
+}
+
+v8::Local<v8::Value> FillError(result_t hr)
+{
+    ErrorType et = kError;
+    exlib::string msg;
+    resolveException(hr, et, msg);
+    if (msg.empty())
+        msg = getResultMessage(hr);
+    return BuildError(Isolate::current(), hr, et, msg);
+}
+
+v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack)
+{
+    ErrorType et = kError;
+    exlib::string msg;
+    resolveException(hr, et, msg);
+    if (msg.empty())
+        msg = getResultMessage(hr);
+
     Isolate* isolate = Isolate::current();
-    int et = Runtime::errType();
-    v8::Local<v8::Value> v = et
-        ? v8::Exception::TypeError(isolate->NewString(msg))
-        : v8::Exception::Error(isolate->NewString(msg));
-    v8::Local<v8::Object> e = v.As<v8::Object>();
-    v8::Local<v8::Context> context = isolate->context();
-
-    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
-
-    const char* _name = uv_error_name(hr);
-    if (!_name) {
-        // Try to translate system error code to UV error code for proper naming
-        int uv_err = uv_translate_sys_error(-hr);
-        if (uv_err != UV_UNKNOWN)
-            _name = uv_error_name(uv_err);
-    }
-
-    if (_name)
-        e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
+    v8::Local<v8::Value> v = BuildError(isolate, hr, et, msg);
 
     // Set custom stack trace if provided
     if (!stack.IsEmpty()) {
+        v8::Local<v8::Object> e = v.As<v8::Object>();
+        v8::Local<v8::Context> context = isolate->context();
+
         // Build stack trace string from frames
         exlib::string stack_str = msg + "\n";
         int frame_count = stack->GetFrameCount();
@@ -235,7 +261,7 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg, v8::Local<v8::Sta
         e->Set(context, isolate->NewString("stack"), isolate->NewString(stack_str)).IsJust();
     }
 
-    return e;
+    return v;
 }
 
 v8::Local<v8::Value> ThrowResult(result_t hr)

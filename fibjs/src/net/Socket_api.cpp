@@ -31,7 +31,7 @@ namespace socket {
     int32_t c_connect(void* sock, const char* host, int32_t port)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            Runtime::setError(CALL_E_INVALID_CALL, (const char*)nullptr);
             return 0;
         }
 
@@ -40,7 +40,7 @@ namespace socket {
         obj_ptr<Stream_base> retVal;
         result_t hr = ((Socket_base*)sock)->cc_connect(port, host, 0, retVal);
         if (hr < 0) {
-            Runtime::setError(hr);
+            Runtime::setError(hr, (const char*)nullptr);
             return 0;
         }
 
@@ -63,7 +63,7 @@ namespace socket {
     int32_t c_recv(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            Runtime::setError(CALL_E_INVALID_CALL, (const char*)nullptr);
             return -1;
         }
 
@@ -73,7 +73,7 @@ namespace socket {
 
         result_t hr = ((Socket_base*)sock)->cc_recv(cbBuffer, retVal);
         if (hr < 0) {
-            Runtime::setError(hr);
+            Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }
 
@@ -89,7 +89,7 @@ namespace socket {
     int32_t c_read(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            Runtime::setError(CALL_E_INVALID_CALL, (const char*)nullptr);
             return -1;
         }
 
@@ -102,7 +102,7 @@ namespace socket {
 
         result_t hr = ((Socket_base*)sock)->cc_readBuffer(cbBuffer, retVal);
         if (hr < 0) {
-            Runtime::setError(hr);
+            Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }
 
@@ -121,7 +121,7 @@ namespace socket {
     int32_t c_send(void* sock, const void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            Runtime::setError(CALL_E_INVALID_CALL, (const char*)nullptr);
             return -1;
         }
 
@@ -135,7 +135,7 @@ namespace socket {
         int32_t len;
         result_t hr = ((Socket_base*)sock)->cc_send(buf, len);
         if (hr < 0) {
-            Runtime::setError(hr);
+            Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }
 

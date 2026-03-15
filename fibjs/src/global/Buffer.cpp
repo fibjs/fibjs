@@ -835,7 +835,7 @@ result_t Buffer_base::compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& ret
 result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t max_length = 0;
     int32_t buffer_length = (int32_t)Buffer::length();
@@ -929,7 +929,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
@@ -978,7 +978,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
@@ -1039,7 +1039,7 @@ result_t Buffer::set(Buffer_base* src, int32_t start, int32_t& retVal)
     Buffer* buf = Buffer::Cast(src);
     int32_t len = buf->length();
     if (len + start > (int32_t)length())
-        return CHECK_ERROR(Runtime::setError("Buffer: Source is too large."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Source is too large: %d bytes at offset %d exceeds buffer size %d.", len, start, (int32_t)length()));
 
     return src->copy(this, start, 0, -1, retVal);
 }
@@ -1638,7 +1638,7 @@ result_t Buffer::toString(exlib::string& retVal)
 result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t sz = (int32_t)length();
 
@@ -1660,7 +1660,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t sz = (int32_t)length();
 

@@ -26,7 +26,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (size < 1)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "randomBytes: size must be >= 1, got %d.", size));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -48,12 +48,12 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
     int32_t len = Buffer::Cast(buffer)->length();
 
     if (offset < 0 || offset > len)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "randomFill: offset %d is out of range [0, %d].", offset, len));
 
     if (size < 0)
         size = len - offset;
     else if (size + offset > len)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "randomFill: offset(%d) + size(%d) exceeds buffer length %d.", offset, size, len));
 
     if (size == 0) {
         retVal = buffer;

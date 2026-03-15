@@ -44,6 +44,6 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, A
     if (!qstrcmp(connString.c_str(), "leveldb:", 8))
         return openLevelDB(connString, (obj_ptr<LevelDB_base>&)retVal, ac);
 
-    return CHECK_ERROR(CALL_E_INVALIDARG);
+    return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "db.open: unknown protocol in connection string '%s'.", connString.c_str()));
 }
 }

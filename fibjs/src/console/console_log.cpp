@@ -103,7 +103,7 @@ result_t console_base::add(exlib::string type)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     o->Set(isolate->context(), isolate->NewString("type", 4), isolate->NewString(type)).IsJust();
@@ -114,7 +114,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
 
     JSValue type;
 
@@ -168,7 +168,7 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
 
     int32_t sz = cfg->Length();
     int32_t i;
@@ -216,7 +216,7 @@ result_t console_base::reset()
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.reset is not available in worker threads."));
 
     int32_t i;
 

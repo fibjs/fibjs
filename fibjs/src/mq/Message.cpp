@@ -182,7 +182,7 @@ public:
     // Body already consumed path: throw TypeError
     ON_STATE(asyncConsumeBody, alreadyUsed)
     {
-        return next(CHECK_ERROR(Runtime::setTypeError("body has already been consumed")));
+        return next(CHECK_ERROR(Runtime::setError(kTypeError, "body has already been consumed")));
     }
 
 private:

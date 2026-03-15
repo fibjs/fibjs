@@ -32,7 +32,7 @@ result_t dgram_base::createSocket(exlib::string type, obj_ptr<DgramSocket_base>&
 {
     int32_t family = get_family(type);
     if (family < 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "dgram: unknown socket type: '%s'.", type.c_str()));
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     result_t hr = s->create(family, 0);
@@ -77,7 +77,7 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocke
 
     int32_t family = get_family(type);
     if (family < 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "dgram: unknown socket type: '%s'.", type.c_str()));
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));
@@ -162,7 +162,7 @@ void DgramSocket::stop_bind()
 result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 {
     if (m_bound)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
 
     if (ac->isSync()) {
         m_holder = new ValueHolder(wrap());
@@ -204,7 +204,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     if (m_bound)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
 
     if (ac->isSync()) {
         m_holder = new ValueHolder(wrap());
@@ -361,7 +361,7 @@ static void on_close(uv_handle_t* handle)
 result_t DgramSocket::close()
 {
     if (uv_is_closing(&m_handle))
-        return CALL_E_INVALID_CALL;
+        return Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already closing.");
 
     return uv_call([&] {
         uv_close(&m_handle, on_close);

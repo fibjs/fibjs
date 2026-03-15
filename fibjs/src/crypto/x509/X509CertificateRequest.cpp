@@ -97,7 +97,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
 
     md_ = _evp_md_type(hashAlgorithm.c_str());
     if (md_ == nullptr)
-        return Runtime::setError("unknown digest");
+        return Runtime::setError("unknown digest algorithm: '%s'.", hashAlgorithm.c_str());
 
     return 0;
 }

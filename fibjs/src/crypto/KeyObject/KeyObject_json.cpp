@@ -185,7 +185,7 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
 
     int nid = GetCurveFromName(crv_name.c_str());
     if (nid == NID_undef)
-        return Runtime::setError("Invalid JWK EC key");
+        return Runtime::setError("Invalid JWK EC key: unsupported curve '%s'.", crv_name.c_str());
 
     BignumPointer x;
     BignumPointer y;
@@ -246,7 +246,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
 
     int nid = okp_curve_nid(crv_name.c_str());
     if (nid == NID_undef)
-        return Runtime::setError("Invalid JWK OKP key");
+        return Runtime::setError("Invalid JWK OKP key: unsupported curve '%s'.", crv_name.c_str());
 
     if (type == kKeyTypeUnknown) {
         exlib::string d;
@@ -471,7 +471,7 @@ result_t KeyObject::export_json(Variant& retVal)
             return ExportJWKEcKey(retVal);
         }
 
-    return Runtime::setError("Not supported key type");
+    return Runtime::setError("Not supported key type: %d.", EVP_PKEY_id(m_pkey));
 }
 
 }

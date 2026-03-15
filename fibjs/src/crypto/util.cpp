@@ -18,7 +18,7 @@ result_t crypto_base::timingSafeEqual(Buffer_base* a, Buffer_base* b, bool& retV
     Buffer* _b = (Buffer*)b;
 
     if (_a->length() != _b->length())
-        return Runtime::setError("Buffer lengths must be equal");
+        return Runtime::setError("Buffer lengths must be equal, got %d and %d.", (int)_a->length(), (int)_b->length());
 
     retVal = CRYPTO_memcmp(_a->data(), _b->data(), _a->length()) == 0;
 

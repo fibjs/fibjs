@@ -75,7 +75,7 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
     v8::Local<v8::Context> context = isolate->context();
 
     if (len == 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "HttpRepeater: urls must not be empty."));
 
     for (int32_t i = 0; i < len; i++) {
         hr = add_url(_urls, urls[i]);

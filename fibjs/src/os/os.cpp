@@ -144,7 +144,7 @@ result_t os_base::dateAdd(date_t d, int32_t num, exlib::string part, date_t& ret
     else if (part == "second")
         retVal.add(num, date_t::_SECOND);
     else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid date part: '%s'.", part.c_str()));
 
     return 0;
 }

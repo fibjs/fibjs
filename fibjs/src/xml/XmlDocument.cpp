@@ -28,7 +28,7 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
 
     obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
     retVal = doc;
@@ -44,7 +44,7 @@ result_t xml_base::parse(exlib::string source, exlib::string type, obj_ptr<XmlDo
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
 
     retVal = new XmlDocument(isXml);
 
@@ -56,7 +56,7 @@ result_t xml_base::parse(Buffer_base* source, exlib::string type, obj_ptr<XmlDoc
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
 
     retVal = new XmlDocument(isXml);
 

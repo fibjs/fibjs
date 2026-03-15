@@ -128,7 +128,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
     if (whence < fs_base::C_SEEK_SET || whence > fs_base::C_SEEK_END)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "seek: invalid whence value %d.", whence));
 
     int64_t p = m_buffer.tellg();
     m_buffer.seekg(0, std::ios::end);

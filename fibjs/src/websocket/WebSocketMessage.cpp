@@ -652,7 +652,7 @@ result_t WebSocketMessage::get_maxSize(int32_t& retVal)
 result_t WebSocketMessage::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "maxSize must be non-negative, received %d.", newVal));
 
     m_maxSize = newVal;
     return 0;

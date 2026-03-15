@@ -590,7 +590,7 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
     else if (subject == "never")
         flags = X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
     else if (subject != "default")
-        return Runtime::setError("Invalid subject option");
+        return Runtime::setError("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
 
     switch (X509_check_email(m_cert, email.c_str(), email.length(), flags)) {
     case 1:
@@ -620,7 +620,7 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
     else if (subject == "never")
         flags = X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
     else if (subject != "default")
-        return Runtime::setError("Invalid subject option");
+        return Runtime::setError("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
 
     bool wildcards = true;
     hr = GetConfigValue(options, "wildcards", wildcards, true);
@@ -697,7 +697,7 @@ result_t X509Certificate::checkPrivateKey(KeyObject_base* privateKey, bool& retV
 {
     KeyObject* key = (KeyObject*)privateKey;
     if (key->type() != KeyObject::kKeyTypePrivate)
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "checkPrivateKey: key must be a private key.");
 
     retVal = X509_check_private_key(m_cert, key->pkey()) != 0;
     return 0;
@@ -707,7 +707,7 @@ result_t X509Certificate::verify(KeyObject_base* publicKey, bool& retVal)
 {
     KeyObject* key = (KeyObject*)publicKey;
     if (key->type() != KeyObject::kKeyTypePublic)
-        return CALL_E_INVALIDARG;
+        return Runtime::setError(CALL_E_INVALIDARG, "verify: key must be a public key.");
 
     retVal = X509_verify(m_cert, key->pkey()) == 1;
     return 0;

@@ -63,7 +63,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
         return 0;
     }
 
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHash: unknown algorithm '%s'.", algo.c_str()));
 }
 
 result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
@@ -72,14 +72,14 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
     const EVP_MD* md = _evp_md_type(algo.c_str());
     if (md) {
         if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHmac: XOF hash '%s' is not supported.", algo.c_str()));
 
         Buffer* buf = Buffer::Cast(key);
         retVal = new Digest(md, (const char*)buf->data(), buf->length());
         return 0;
     }
 
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHmac: unknown algorithm '%s'.", algo.c_str()));
 }
 
 result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,
@@ -87,7 +87,7 @@ result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hash: unknown algorithm '%s'.", algorithm.c_str()));
 
     Buffer* buf = Buffer::Cast(data);
     obj_ptr<Buffer> ret = new Buffer(NULL, EVP_MD_size(md));
@@ -101,14 +101,14 @@ result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer
     int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (size < 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: size must be positive, received %d.", size));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: unknown algorithm '%s'.", algoName.c_str()));
 
     Buffer* buf = Buffer::Cast(password);
     Buffer* saltBuf = Buffer::Cast(salt);
@@ -136,14 +136,14 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     AsyncEvent* ac)
 {
     if (iterations < 1 || size < 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "pbkdf2: iterations and size must be positive."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "pbkdf2: unknown algorithm '%s'.", algoName.c_str()));
 
     Buffer* buf = Buffer::Cast(password);
     Buffer* saltBuf = Buffer::Cast(salt);
@@ -163,7 +163,7 @@ result_t crypto_base::scrypt(Buffer_base* password, Buffer_base* salt, int32_t k
     v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (keylen < 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: keylen must be positive, received %d.", keylen));
 
     class ScryptOptions : public obj_base {
     public:
@@ -186,11 +186,11 @@ result_t crypto_base::scrypt(Buffer_base* password, Buffer_base* salt, int32_t k
         // Validate N is a power of 2 and greater than 1
         uint64_t N = opt->N.value();
         if (N < 2 || (N & (N - 1)) != 0)
-            return CHECK_ERROR(Runtime::setError("Invalid scrypt params"));
+            return CHECK_ERROR(Runtime::setError("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N));
 
         // Validate r and p are not zero
         if (opt->r.value() == 0 || opt->p.value() == 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: r and p must be positive."));
 
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = opt;

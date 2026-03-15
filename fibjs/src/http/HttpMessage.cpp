@@ -669,7 +669,7 @@ result_t HttpMessage::get_maxHeadersCount(int32_t& retVal)
 result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "maxHeadersCount must be non-negative, received %d.", newVal));
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -684,7 +684,7 @@ result_t HttpMessage::get_maxHeaderSize(int32_t& retVal)
 result_t HttpMessage::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "maxHeaderSize must be non-negative, received %d.", newVal));
 
     m_maxHeaderSize = newVal;
     return 0;

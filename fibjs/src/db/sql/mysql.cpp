@@ -167,7 +167,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "openMySQL: connection string must start with 'mysql:'."));
 
     obj_ptr<Url> u = new Url();
 
@@ -255,7 +255,7 @@ result_t mysql::close(AsyncEvent* ac)
 result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -289,7 +289,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
 result_t mysql::get_rxBufferSize(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     retVal = UMConnection_GetRxBufferSize(m_conn);
     return 0;
@@ -298,7 +298,7 @@ result_t mysql::get_rxBufferSize(int32_t& retVal)
 result_t mysql::set_rxBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     UMConnection_SetRxBufferSize(m_conn, newVal);
     return 0;
@@ -307,7 +307,7 @@ result_t mysql::set_rxBufferSize(int32_t newVal)
 result_t mysql::get_txBufferSize(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     retVal = UMConnection_GetTxBufferSize(m_conn);
     return 0;
@@ -316,7 +316,7 @@ result_t mysql::get_txBufferSize(int32_t& retVal)
 result_t mysql::set_txBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     UMConnection_SetTxBufferSize(m_conn, newVal);
     return 0;
@@ -325,7 +325,7 @@ result_t mysql::set_txBufferSize(int32_t newVal)
 result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -338,7 +338,7 @@ result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);

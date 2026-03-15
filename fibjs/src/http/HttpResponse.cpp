@@ -739,7 +739,7 @@ result_t HttpResponse::redirect(exlib::string url)
 result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 {
     if (statusCode != 301 && statusCode != 302 && statusCode != 307)
-        return CHECK_ERROR(Runtime::setError("HttpResponse: Invalid statusCode"));
+        return CHECK_ERROR(Runtime::setError("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
 
     m_statusCode = statusCode;
     setHeader("Location", url);

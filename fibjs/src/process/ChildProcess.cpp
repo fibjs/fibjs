@@ -582,7 +582,7 @@ result_t ChildProcess::disconnect()
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
 {
     if (m_ipc < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "send: IPC channel is not available."));
 
     return Ipc::send(m_stdio[3], msg);
 }
@@ -644,7 +644,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
         return CHECK_ERROR(Runtime::setError("resize() only available in PTY mode"));
 
     if (cols <= 0 || rows <= 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "resize: cols and rows must be positive, received %d x %d.", cols, rows));
 
     if (m_stdinfd == -1 && m_stdoutfd == -1)
         return CHECK_ERROR(Runtime::setError("PTY not available"));
