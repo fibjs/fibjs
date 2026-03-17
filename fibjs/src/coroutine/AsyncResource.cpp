@@ -10,7 +10,7 @@
 
 namespace fibjs {
 
-static std::atomic<double> s_nextAsyncId { 1 };
+static std::atomic<int64_t> s_nextAsyncId { 1 };
 
 result_t AsyncResource_base::_new(exlib::string type, v8::Local<v8::Value> triggerAsyncId,
     obj_ptr<AsyncResource_base>& retVal, v8::Local<v8::Object> This)
