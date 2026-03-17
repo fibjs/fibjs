@@ -42,13 +42,8 @@ public:
         if (m_es->m_readyState == sse_base::C_CLOSED)
             return next();
 
-        obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
-        o->method = "GET";
+        obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)m_ctx[0].object();
         o->keepAlive = true;
-
-        obj_ptr<Url> u = new Url();
-        u->parse(m_url);
-        o->u = u;
 
         return m_hc->request(o.get(), m_es->m_response, next(opened));
     }
@@ -207,7 +202,22 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     AsyncEventSource* ac = new AsyncEventSource(hc.As<HttpClient>(), es, url);
 
-    result_t hr = hc.As<HttpClient>()->get_request_opts("GET", url, options, ac);
+    // Default to POST when a request body is implied by body/json/pack options,
+    // mirroring the behaviour of http.post(). The caller can still override with
+    // an explicit method option (e.g. method:'GET').
+    exlib::string default_method = "GET";
+    {
+        Isolate* iso = Isolate::current();
+        v8::Local<v8::Context> ctx = iso->context();
+        auto has_key = [&](const char* key, int len) -> bool {
+            JSValue v = options->Get(ctx, iso->NewString(key, len));
+            return !v.IsEmpty() && !v->IsUndefined() && !v->IsNull();
+        };
+        if (has_key("body", 4) || has_key("json", 4) || has_key("pack", 4))
+            default_method = "POST";
+    }
+
+    result_t hr = hc.As<HttpClient>()->get_request_opts(default_method, url, options, ac);
     if (hr != CALL_E_NOSYNC)
         return hr;
 

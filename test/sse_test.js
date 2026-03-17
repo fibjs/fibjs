@@ -58,6 +58,23 @@ describe("sse", () => {
                     case '/properties':
                         req.response.write('data: test properties\n\n');
                         break;
+
+                    case '/post-only':
+                        // Simulate an endpoint that only accepts POST (like OpenAI chat/completions).
+                        // A GET request should receive 405, a POST request should receive the SSE stream.
+                        if (req.method !== 'POST') {
+                            req.response.status = 405;
+                            req.response.setHeader('Content-Type', 'application/json');
+                            req.response.write('{"error":{"message":"Method Not Allowed","type":"invalid_request_error"}}');
+                        } else {
+                            req.response.write('data: post-received\n\n');
+                        }
+                        break;
+
+                    case '/echo-method':
+                        // Echo the HTTP method back as SSE data so the client can assert it.
+                        req.response.write('data: ' + req.method + '\n\n');
+                        break;
                 }
             });
 
@@ -195,6 +212,49 @@ describe("sse", () => {
             }, Error);
             
             es.close();
+        });
+
+        it('default method is GET without body options', async () => {
+            // No body/json/pack in options → GET.
+            const data = await get_event(`http://127.0.0.1:${8887 + base_port}/echo-method`);
+            assert.equal(data, 'GET');
+        });
+
+        it('json option alone defaults method to POST', async () => {
+            // When {json: ...} is provided without an explicit method, EventSource
+            // should default to POST, mirroring http.post() behaviour.
+            const data = await new Promise((resolve, reject) => {
+                const es = new sse.EventSource(
+                    `http://127.0.0.1:${8887 + base_port}/post-only`,
+                    { json: { model: 'test', messages: [] } }
+                );
+
+                es.onmessage = (e) => { resolve(e.data); };
+                es.onerror = (e) => { reject(new Error('unexpected error status: ' + e.target.response.status)); };
+            });
+
+            assert.equal(data, 'post-received');
+        });
+
+        it('explicit method:GET overrides body-implied POST', async () => {
+            // Caller can still force GET even when json is present.
+            const result = await new Promise((resolve) => {
+                const es = new sse.EventSource(
+                    `http://127.0.0.1:${8887 + base_port}/post-only`,
+                    { method: 'GET', json: { model: 'test', messages: [] } }
+                );
+
+                es.onerror = (e) => {
+                    resolve({ ok: false, status: e.target.response.status });
+                };
+
+                es.onmessage = (e) => {
+                    resolve({ ok: true, data: e.data });
+                };
+            });
+
+            assert.equal(result.ok, false);
+            assert.equal(result.status, 405);
         });
     });
 
