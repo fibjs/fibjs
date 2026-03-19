@@ -3,6 +3,7 @@ var assert = require('assert');
 
 var fs = require('fs');
 var path = require('path');
+var url = require('url');
 var coroutine = require('coroutine');
 var a, b;
 
@@ -29,6 +30,38 @@ describe("module", () => {
 
         assert.equal(require.resolve('./module/d1'),
             path.join(__dirname, 'module', 'd1'));
+    });
+
+    describe("file: URL", () => {
+        it("require with file: URL", () => {
+            var fileUrl = url.pathToFileURL(path.join(__dirname, 'module', 'file_url_mod.js')).href;
+            var m = require(fileUrl);
+            assert.equal(m.value, 'file_url_test');
+        });
+
+        it("require.resolve with file: URL", () => {
+            var filePath = path.join(__dirname, 'module', 'file_url_mod.js');
+            var fileUrl = url.pathToFileURL(filePath).href;
+            assert.equal(require.resolve(fileUrl), filePath);
+        });
+
+        it("dynamic import with file: URL", async () => {
+            var fileUrl = url.pathToFileURL(path.join(__dirname, 'esm_files', 'file_url_mod.mjs')).href;
+            var m = await import(fileUrl);
+            assert.equal(m.value, 'file_url_esm');
+        });
+
+        it("require with file: URL without extension", () => {
+            var fileUrl = url.pathToFileURL(path.join(__dirname, 'module', 'file_url_mod')).href;
+            var m = require(fileUrl);
+            assert.equal(m.value, 'file_url_test');
+        });
+
+        it("require with invalid file: URL should throw", () => {
+            assert.throws(() => {
+                require('file:///nonexistent/path/module.js');
+            });
+        });
     });
 
     it("circular dependency", () => {

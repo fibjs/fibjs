@@ -9,6 +9,7 @@
 #include "SandBox.h"
 #include "ifs/encoding.h"
 #include "ifs/fs.h"
+#include "ifs/url.h"
 #include "ifs/util.h"
 #include "Event.h"
 #include "path.h"
@@ -685,6 +686,14 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     v8::Local<v8::Context> _context = isolate->context();
     exlib::string orig_id = id;
     exlib::string orig_base = base;
+
+    if (!qstrcmp(id.c_str(), "file:", 5)) {
+        exlib::string path;
+        result_t hr = url_base::fileURLToPath(id, v8::Local<v8::Object>(), path);
+        if (hr < 0)
+            return hr;
+        id = path;
+    }
 
     if (is_relative(id)) {
         resolvePath(base, id);
