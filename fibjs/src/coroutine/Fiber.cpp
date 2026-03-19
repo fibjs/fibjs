@@ -239,7 +239,7 @@ JSFiber::EnterJsScope::~EnterJsScope()
     Runtime* rt = Runtime::current();
     Isolate* isolate = m_pFiber->holder();
 
-    isolate->RunMicrotasks();
+    isolate->RunMicrotasks(true);
 
     m_pFiber->m_message = ReportException(try_catch, m_hr, false);
 

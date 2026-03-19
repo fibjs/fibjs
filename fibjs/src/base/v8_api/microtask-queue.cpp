@@ -28,7 +28,7 @@ using namespace v8;
 
 namespace fibjs {
 
-void Isolate::RunMicrotasks()
+void Isolate::RunMicrotasks(bool allow_nested)
 {
     if (m_module_evaluating > 0)
         return;
@@ -37,7 +37,8 @@ void Isolate::RunMicrotasks()
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
 
     do {
-        for (intptr_t i = 0, p = 0; i < queue->size_; i++) {
+        // Dispatch tasks from index 1 onwards to fibers first
+        for (intptr_t i = allow_nested ? 1 : 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
             sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
                 JSFiber::EnterJsScope s;
@@ -55,7 +56,15 @@ void Isolate::RunMicrotasks()
             });
         }
 
-        queue->size_ = 0;
+        if (allow_nested) {
+            // Run the first microtask directly in the current context
+            if (queue->size_ > 0) {
+                queue->size_ = 1;
+                queue->RunMicrotasks(_isolate);
+            }
+        } else
+            queue->size_ = 0;
+
     } while (m_isolate->HasPendingBackgroundTasks()
         && v8::platform::PumpMessageLoop(g_default_platform, m_isolate, v8::platform::MessageLoopBehavior::kWaitForWork));
 }

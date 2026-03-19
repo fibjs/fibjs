@@ -144,7 +144,7 @@ public:
 
 public:
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
-    void RunMicrotasks();
+    void RunMicrotasks(bool allow_nested = false);
     void PerformMicrotaskCheckpoint();
 
     v8::Local<v8::String> NewString(const char* data, int length = -1)
