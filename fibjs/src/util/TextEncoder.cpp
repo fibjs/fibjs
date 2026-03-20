@@ -219,10 +219,6 @@ result_t TextDecoder::decode(Buffer_base* data, v8::Local<v8::Object> opts, exli
 
 result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVal)
 {
-    result_t hr = ensureConverter();
-    if (hr < 0)
-        return hr;
-
     Buffer* buf = Buffer::Cast(data);
     const char* src = (const char*)buf->data();
     size_t srcLen = buf->length();
@@ -231,6 +227,45 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
         retVal.clear();
         return 0;
     }
+
+    // Fast path for UTF-8: input is already UTF-8, skip ICU double conversion.
+    // Only when no ICU converter has buffered streaming state.
+    if (flush && !m_cnv && (m_codec == "utf-8" || m_codec == "utf8" || m_codec == "UTF-8")) {
+        size_t startOffset = 0;
+
+        // Handle BOM stripping
+        if (!m_bomSeen && !m_ignoreBOM && srcLen >= 3
+            && (uint8_t)src[0] == 0xEF && (uint8_t)src[1] == 0xBB && (uint8_t)src[2] == 0xBF) {
+            startOffset = 3;
+        }
+        if (srcLen > 0)
+            m_bomSeen = true;
+
+        if (m_fatal) {
+            // Validate UTF-8 using ICU
+            UErrorCode err = U_ZERO_ERROR;
+            int32_t destLen = 0;
+            u_strFromUTF8(nullptr, 0, &destLen, src + startOffset, (int32_t)(srcLen - startOffset), &err);
+            if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR) {
+                m_bomSeen = false;
+                Isolate* isolate = Isolate::current();
+                if (isolate) {
+                    isolate->m_isolate->ThrowException(v8::Exception::TypeError(
+                        isolate->NewString("The encoded data was not valid.")));
+                    return CALL_E_JAVASCRIPT;
+                }
+                return CHECK_ERROR(Runtime::setError("The encoded data was not valid."));
+            }
+        }
+
+        retVal.assign(src + startOffset, srcLen - startOffset);
+        m_bomSeen = false;
+        return 0;
+    }
+
+    result_t hr = ensureConverter();
+    if (hr < 0)
+        return hr;
 
     // Allocate UChar buffer: worst case each byte becomes one UChar
     size_t ucharBufSize = srcLen + 1;
