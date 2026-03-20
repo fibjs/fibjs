@@ -337,6 +337,14 @@ static void PromiseHookCallback(v8::PromiseHookType type, v8::Local<v8::Promise>
     }
 }
 
+void Isolate::EnsurePromiseHook()
+{
+    if (!m_promise_hook_installed) {
+        m_promise_hook_installed = true;
+        m_isolate->SetPromiseHook(PromiseHookCallback);
+    }
+}
+
 void Isolate::init()
 {
     v8::Locker locker(m_isolate);
@@ -391,9 +399,9 @@ void Isolate::init()
 
     m_isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
 
-    // Initialize Promise Hook for AsyncLocalStorage context propagation
+    // Initialize symbol for AsyncLocalStorage context propagation.
+    // PromiseHook is installed lazily on first AsyncLocalStorage usage.
     m_async_context_symbol.Reset(m_isolate, v8::Private::New(m_isolate, NewString("asyncContext")));
-    m_isolate->SetPromiseHook(PromiseHookCallback);
 
     init_process_ipc(this);
 }

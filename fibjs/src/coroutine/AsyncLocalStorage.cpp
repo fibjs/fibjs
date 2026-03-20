@@ -211,6 +211,7 @@ result_t AsyncLocalStorage::enterWith(v8::Local<v8::Value> store)
         m_disabled = false;
 
     Isolate* isolate = holder();
+    isolate->EnsurePromiseHook();
     v8::Local<v8::Context> context = isolate->context();
 
     // Clone the current context and add/update the store
@@ -232,6 +233,7 @@ result_t AsyncLocalStorage::run(v8::Local<v8::Value> store, v8::Local<v8::Functi
         m_disabled = false;
 
     Isolate* isolate = holder();
+    isolate->EnsurePromiseHook();
     v8::Local<v8::Context> context = isolate->context();
 
     // Save the current context in a Global to prevent GC issues

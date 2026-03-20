@@ -146,6 +146,7 @@ public:
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks(bool allow_nested = false);
     void PerformMicrotaskCheckpoint();
+    void EnsurePromiseHook();
 
     v8::Local<v8::String> NewString(const char* data, int length = -1)
     {
@@ -286,6 +287,7 @@ public:
 
     // Private symbol for storing async context on Promise objects
     v8::Global<v8::Private> m_async_context_symbol;
+    bool m_promise_hook_installed = false;
 
     obj_ptr<SandBox> m_topSandbox;
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
