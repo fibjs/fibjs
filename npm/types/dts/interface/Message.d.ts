@@ -1,5 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
@@ -13,7 +13,7 @@
  *  ```
  * 
  */
-declare class Class_Message extends Class_object {
+declare class Class_Message extends Class_EventEmitter {
 
 
     /**

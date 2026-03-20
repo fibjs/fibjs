@@ -6,7 +6,7 @@
  var m = new mq.Message();
  ```
 */
-interface Message : object
+interface Message : EventEmitter
 {
     /*! @brief 指定消息类型 1，代表一个文本类型 */
     const TEXT = 1;

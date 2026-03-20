@@ -135,7 +135,7 @@ module http
      @param req The HttpRequest object to send
      @return Return server response
      */
-    static HttpResponse request(Stream conn, HttpRequest req) async;
+    static HttpMessage request(Stream conn, HttpRequest req) async;
 
     /*! @brief Request the specified url and return the result
      opts contains additional options for the request, supports the following content:
@@ -163,7 +163,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse request(String method, String url, Object opts = {}) async;
+    static HttpMessage request(String method, String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
      opts contains additional options for the request, supports the following content:
@@ -190,7 +190,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse request(String url, Object opts = {}) async;
+    static HttpMessage request(String url, Object opts = {}) async;
 
     /*! @brief Request the url specified by opts and return the result
      opts contains additional options for the request, supports the following content:
@@ -216,7 +216,38 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse request(Object opts) async;
+    static HttpMessage request(Object opts) async;
+
+    /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
+     @param method Specify http request method: GET, POST, etc
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage request(String method, String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage request(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage request(String url, Function callback) async;
+
+    /*! @brief Request the url specified by opts, register callback to receive response, return HttpRequest object
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
      opts contains additional options for the request, supports the following content:
@@ -243,7 +274,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse get(String url, Object opts = {}) async;
+    static HttpMessage get(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with GET method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage get(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with GET method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage get(String url, Function callback) async;
 
     /*! @brief Request the specified url with POST method and return the result, equivalent to request("POST", ...)
      opts contains additional options for the request, supports the following content:
@@ -270,7 +316,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse post(String url, Object opts = {}) async;
+    static HttpMessage post(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with POST method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage post(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with POST method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage post(String url, Function callback) async;
 
     /*! @brief Request the specified url with DELETE method and return the result, equivalent to request("DELETE", ...)
      opts contains additional options for the request, supports the following content:
@@ -297,7 +358,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse del(String url, Object opts = {}) async;
+    static HttpMessage del(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with DELETE method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage del(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with DELETE method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage del(String url, Function callback) async;
 
     /*! @brief Request the specified url with PUT method and return the result, equivalent to request("PUT", ...)
      opts contains additional options for the request, supports the following content:
@@ -324,7 +400,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse put(String url, Object opts = {}) async;
+    static HttpMessage put(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PUT method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage put(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with PUT method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage put(String url, Function callback) async;
 
     /*! @brief Request the specified url with PATCH method and return the result, equivalent to request("PATCH", ...)
      opts contains additional options for the request, supports the following content:
@@ -351,7 +442,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse patch(String url, Object opts = {}) async;
+    static HttpMessage patch(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with PATCH method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage patch(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with PATCH method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage patch(String url, Function callback) async;
 
     /*! @brief Request the specified url with HEAD method and return the result, equivalent to request("HEAD", ...)
      opts contains additional options for the request, supports the following content:
@@ -378,7 +484,22 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse head(String url, Object opts = {}) async;
+    static HttpMessage head(String url, Object opts = {}) async;
+
+    /*! @brief Request the specified url with HEAD method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage head(String url, Object opts, Function callback) async;
+
+    /*! @brief Request the specified url with HEAD method, register callback to receive response, return HttpRequest object
+     @param url Specify url, must be a complete url containing the host
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage head(String url, Function callback) async;
 
     /*! @brief Dynamically configure proxy support from environment variables for http and https requests
      When invoked, reads proxy configuration from environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase variants)

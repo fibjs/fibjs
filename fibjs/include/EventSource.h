@@ -38,7 +38,7 @@ public:
 public:
     exlib::string m_url;
     int32_t m_readyState = sse_base::C_CONNECTING;
-    obj_ptr<HttpResponse_base> m_response;
+    obj_ptr<HttpMessage_base> m_response;
     obj_ptr<Stream_base> m_stream;
     AsyncEvent* m_ac = nullptr;
 };

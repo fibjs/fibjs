@@ -3257,7 +3257,7 @@ describe("http", () => {
             });
 
             it("async", (done) => {
-                http.head("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
+                http.head("http://127.0.0.1:" + (8882 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.isNull(r.body);
                         assert.equal(r.headers['no_test_header'], "true");
@@ -3320,7 +3320,7 @@ describe("http", () => {
             });
 
             it("async", (done) => {
-                http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
+                http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.equal(r.text(), "/request");
                     });
@@ -3354,7 +3354,7 @@ describe("http", () => {
             it("async body", (done) => {
                 http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     body: "body"
-                }, (e, r) => {
+                }, (r) => {
                     done(() => {
                 assert.equal(r.text(), "/request:body");
                     });
@@ -3367,7 +3367,7 @@ describe("http", () => {
                         "test_header": "header"
                     },
                     body: ""
-                }, (e, r) => {
+                }, (r) => {
                     done(() => {
                         assert.equal(r.text(), "/request:header");
                     });
@@ -3557,7 +3557,7 @@ describe("http", () => {
             });
 
             it("async", (done) => {
-                hc.head("https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
+                hc.head("https://localhost:" + (8883 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.isNull(r.body);
                         assert.equal(r.headers['no_test_header'], "true");
@@ -3736,7 +3736,7 @@ describe("http", () => {
                 });
 
                 it("async", (done) => {
-                    client.head("http://127.0.0.1:" + (8884 + base_port) + "/request", (e, r) => {
+                    client.head("http://127.0.0.1:" + (8884 + base_port) + "/request", (r) => {
                         done(() => {
                             assert.isNull(r.body);
                             assert.equal(r.headers['no_test_header'], "true");
@@ -4901,6 +4901,239 @@ describe("http", () => {
             var hc = new http.Client({ ca: ca });
             var r = hc.get('https://localhost:' + (hsPort + 1) + '/');
             assert.equal(r.text(), 'https-immediate');
+        });
+    });
+
+    describe("callback API (Node.js style)", () => {
+        var svr;
+        var cbPort = 8940 + base_port;
+
+        before(() => {
+            svr = new http.Server(cbPort, (r) => {
+                if (r.address == "/redirect-to-final") {
+                    r.response.redirect("http://127.0.0.1:" + cbPort + "/final");
+                } else if (r.address == "/redirect-chain") {
+                    r.response.redirect("http://127.0.0.1:" + cbPort + "/redirect-to-final");
+                } else if (r.address == "/final") {
+                    r.response.write("final:" + r.method);
+                } else if (r.address == "/echo-method") {
+                    r.response.write(r.method);
+                } else if (r.address == "/echo-body") {
+                    r.response.write(r.address);
+                    if (r.body)
+                        r.body.copyTo(r.response.body);
+                } else if (r.address == "/echo-header") {
+                    if (r.hasHeader("x-custom"))
+                        r.response.write(r.firstHeader("x-custom"));
+                    else
+                        r.response.write("(none)");
+                } else {
+                    r.response.write(r.address);
+                }
+            });
+            svr.start();
+            test_util.push(svr.socket);
+        });
+
+        var base_url = "http://127.0.0.1:";
+
+        function url(path) {
+            return base_url + cbPort + path;
+        }
+
+        describe("http.request(url, callback)", () => {
+            it("returns HttpRequest and callback receives response", (done) => {
+                var req = http.request(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+                assert.ok(req);
+            });
+
+            it("request is an EventEmitter", (done) => {
+                var req = http.request(url("/hello"), (r) => {
+                    done();
+                });
+                assert.equal(typeof req.on, 'function');
+                assert.equal(typeof req.once, 'function');
+                assert.equal(typeof req.off, 'function');
+            });
+        });
+
+        describe("http.request(method, url, opts, callback)", () => {
+            it("GET with opts", (done) => {
+                http.request("GET", url("/echo-header"), {
+                    headers: { "x-custom": "test-value" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "test-value");
+                    });
+                });
+            });
+
+            it("POST with body", (done) => {
+                http.request("POST", url("/echo-body"), {
+                    body: "post-data"
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/echo-bodypost-data");
+                    });
+                });
+            });
+        });
+
+        describe("http.request(url, opts, callback)", () => {
+            it("with headers", (done) => {
+                http.request(url("/echo-header"), {
+                    headers: { "x-custom": "via-url-opts" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "via-url-opts");
+                    });
+                });
+            });
+        });
+
+        describe("http.request(opts, callback)", () => {
+            it("with url in opts", (done) => {
+                http.request(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+        });
+
+        describe("http.get(url, callback)", () => {
+            it("returns HttpRequest and callback receives response", (done) => {
+                var req = http.get(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+                assert.ok(req);
+            });
+        });
+
+        describe("http.get(url, opts, callback)", () => {
+            it("with custom headers", (done) => {
+                http.get(url("/echo-header"), {
+                    headers: { "x-custom": "get-opts" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "get-opts");
+                    });
+                });
+            });
+        });
+
+        describe("HttpClient callback API", () => {
+            var hc;
+
+            before(() => {
+                hc = new http.Client();
+            });
+
+            it("hc.request(method, url, opts, callback)", (done) => {
+                hc.request("GET", url("/echo-header"), {
+                    headers: { "x-custom": "hc-request" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "hc-request");
+                    });
+                });
+            });
+
+            it("hc.request(url, callback)", (done) => {
+                hc.request(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+
+            it("hc.request(url, opts, callback)", (done) => {
+                hc.request(url("/echo-header"), {
+                    headers: { "x-custom": "hc-url-opts" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "hc-url-opts");
+                    });
+                });
+            });
+
+            it("hc.request(opts, callback)", (done) => {
+                hc.request(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+
+            it("hc.get(url, callback)", (done) => {
+                hc.get(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+
+            it("hc.get(url, opts, callback)", (done) => {
+                hc.get(url("/echo-header"), {
+                    headers: { "x-custom": "hc-get-opts" }
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "hc-get-opts");
+                    });
+                });
+            });
+        });
+
+        describe("redirect with callback", () => {
+            before(() => {
+                http.autoRedirect = true;
+            });
+            it("callback receives final response after redirect", (done) => {
+                http.get(url("/redirect-to-final"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "final:GET");
+                    });
+                });
+            });
+
+            it("multi-hop redirect", (done) => {
+                http.get(url("/redirect-chain"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "final:GET");
+                    });
+                });
+            });
+
+            it("returned request is same object across redirects", (done) => {
+                var req = http.get(url("/redirect-to-final"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                    });
+                });
+                assert.ok(req);
+            });
+        });
+
+        describe("callback with autoRedirect=false", () => {
+            it("returns redirect response without following", (done) => {
+                var hc = new http.Client();
+                hc.autoRedirect = false;
+                hc.get(url("/redirect-to-final"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 302);
+                    });
+                });
+            });
         });
     });
 });

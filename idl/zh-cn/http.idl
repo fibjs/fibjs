@@ -135,7 +135,7 @@ module http
      @param req 要发送的 HttpRequest 对象
      @return 返回服务器响应
      */
-    static HttpResponse request(Stream conn, HttpRequest req) async;
+    static HttpMessage request(Stream conn, HttpRequest req) async;
 
     /*! @brief 请求指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -163,7 +163,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, Object opts = {}) async;
+    static HttpMessage request(String method, String url, Object opts = {}) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -190,7 +190,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse request(String url, Object opts = {}) async;
+    static HttpMessage request(String url, Object opts = {}) async;
 
     /*! @brief 请求 opts 指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -216,7 +216,38 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse request(Object opts) async;
+    static HttpMessage request(Object opts) async;
+
+    /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param method 指定 http 请求方法：GET, POST 等
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage request(String method, String url, Object opts, Function callback) async;
+
+    /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage request(String url, Object opts, Function callback) async;
+
+    /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage request(String url, Function callback) async;
+
+    /*! @brief 请求 opts 指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -243,7 +274,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse get(String url, Object opts = {}) async;
+    static HttpMessage get(String url, Object opts = {}) async;
+
+    /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage get(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage get(String url, Function callback) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -270,7 +316,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, Object opts = {}) async;
+    static HttpMessage post(String url, Object opts = {}) async;
+
+    /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage post(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage post(String url, Function callback) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -297,7 +358,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse del(String url, Object opts = {}) async;
+    static HttpMessage del(String url, Object opts = {}) async;
+
+    /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage del(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage del(String url, Function callback) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -324,7 +400,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse put(String url, Object opts = {}) async;
+    static HttpMessage put(String url, Object opts = {}) async;
+
+    /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage put(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage put(String url, Function callback) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -351,7 +442,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse patch(String url, Object opts = {}) async;
+    static HttpMessage patch(String url, Object opts = {}) async;
+
+    /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage patch(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage patch(String url, Function callback) async;
 
     /*! @brief 用 HEAD 方法请求指定的 url，并返回结果，等同于 request("HEAD", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -378,7 +484,22 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse head(String url, Object opts = {}) async;
+    static HttpMessage head(String url, Object opts = {}) async;
+
+    /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage head(String url, Object opts, Function callback) async;
+
+    /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    static HttpMessage head(String url, Function callback) async;
 
     /*! @brief 根据环境变量动态配置代理支持
      当调用此函数时，会从环境变量（HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式）读取代理配置并全局应用。

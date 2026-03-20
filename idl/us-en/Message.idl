@@ -6,7 +6,7 @@
  var m = new mq.Message();
  ```
 */
-interface Message : object
+interface Message : EventEmitter
 {
     /*! @brief Specify message type 1, representing a text type */
     const TEXT = 1;

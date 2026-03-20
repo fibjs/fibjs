@@ -124,6 +124,8 @@ public:
         bool redirected = false;
         bool streaming = true;
         obj_ptr<AbortSignal_base> signal;
+        obj_ptr<HttpRequest> req;
+        bool is_callback = false;
 
         // Cast to concrete AbortSignal for internal C++ use (addAbortCallback / clearAbort).
         // Safe because AbortSignal is the only concrete implementation.

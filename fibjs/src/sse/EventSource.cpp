@@ -54,7 +54,7 @@ public:
             return next();
 
         int32_t status;
-        m_es->m_response->get_status(status);
+        static_cast<HttpResponse_base*>(m_es->m_response.get())->get_status(status);
         if (status != 200)
             return next(close_body);
 
@@ -92,10 +92,11 @@ public:
     ON_STATE(AsyncEventSource, read_body_done)
     {
         int32_t status;
-        m_es->m_response->get_status(status);
+        HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_es->m_response.get());
+        resp->get_status(status);
         if (status != 200) {
             exlib::string statusMessage;
-            m_es->m_response->get_statusMessage(statusMessage);
+            resp->get_statusMessage(statusMessage);
             m_es->m_readyState = sse_base::C_CLOSED;
             (new EventInfo(m_es, "error", status, "Invalid status: " + statusMessage))->emit();
             return next();
@@ -416,7 +417,7 @@ result_t EventSource::get_response(obj_ptr<HttpResponse_base>& retVal)
     if (!m_response)
         return CALL_RETURN_NULL;
 
-    retVal = m_response;
+    retVal = static_cast<HttpResponse_base*>(m_response.get());
 
     return 0;
 }
