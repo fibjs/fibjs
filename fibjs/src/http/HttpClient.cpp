@@ -171,16 +171,14 @@ bool HttpClient::should_bypass_proxy(exlib::string hostname, int32_t port)
 
             // Check for domain suffix match (e.g., ".example.com" matches "sub.example.com")
             if (pattern[0] == '.') {
-                if (hostname.length() > pattern.length() &&
-                    hostname.substr(hostname.length() - pattern.length()) == pattern)
+                if (hostname.length() > pattern.length() && hostname.substr(hostname.length() - pattern.length()) == pattern)
                     return true;
             }
 
             // Check for wildcard domain match (e.g., "*.example.com")
             if (pattern.length() > 2 && pattern[0] == '*' && pattern[1] == '.') {
                 exlib::string suffix = pattern.substr(1); // ".example.com"
-                if (hostname.length() > suffix.length() &&
-                    hostname.substr(hostname.length() - suffix.length()) == suffix)
+                if (hostname.length() > suffix.length() && hostname.substr(hostname.length() - suffix.length()) == suffix)
                     return true;
                 // Also match exact domain (e.g., "*.example.com" matches "example.com")
                 if (hostname == pattern.substr(2))
@@ -188,9 +186,7 @@ bool HttpClient::should_bypass_proxy(exlib::string hostname, int32_t port)
             }
 
             // Check for suffix match without leading dot
-            if (hostname.length() > pattern.length() &&
-                hostname[hostname.length() - pattern.length() - 1] == '.' &&
-                hostname.substr(hostname.length() - pattern.length()) == pattern)
+            if (hostname.length() > pattern.length() && hostname[hostname.length() - pattern.length() - 1] == '.' && hostname.substr(hostname.length() - pattern.length()) == pattern)
                 return true;
         }
 
@@ -442,17 +438,17 @@ result_t HttpClient::get_proxyEnv(v8::Local<v8::Object>& retVal)
 
     if (!m_http_proxy.empty())
         retVal->Set(context, isolate->NewString("http_proxy"),
-            isolate->NewString(m_http_proxy))
+                  isolate->NewString(m_http_proxy))
             .IsJust();
 
     if (!m_https_proxy.empty())
         retVal->Set(context, isolate->NewString("https_proxy"),
-            isolate->NewString(m_https_proxy))
+                  isolate->NewString(m_https_proxy))
             .IsJust();
 
     if (!m_no_proxy.empty())
         retVal->Set(context, isolate->NewString("no_proxy"),
-            isolate->NewString(m_no_proxy))
+                  isolate->NewString(m_no_proxy))
             .IsJust();
 
     return 0;
@@ -925,498 +921,542 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     return request(conn, req, retVal, ac, true);
 }
 
-result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
-{
-    class asyncRequest : public AsyncState {
-    public:
-        ~asyncRequest()
-        {
-            if (m_o && m_o->signal)
-                m_o->abort_signal()->clearAbort();
-        }
+class asyncRequest : public AsyncState {
+public:
+    ~asyncRequest()
+    {
+        if (m_o && m_o->signal)
+            m_o->abort_signal()->clearAbort();
+    }
 
-        asyncRequest(HttpClient* hc, HttpRequest::Options* o,
-            obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
-            : AsyncState(ac)
-            , m_o(o)
-            , m_retVal(retVal)
-            , m_hc(hc)
-        {
-            m_o->u->toString(m_url);
-            // D.3: abort callback closes the socket to cancel any pending
-            // operation (connect, read, or write).  We capture both the
-            // shared pconn slot AND a raw 'this' so we can fall back to
-            // m_conn during the connect phase when *pconn is still null.
-            // Capturing 'this' is safe because ~asyncRequest calls
-            // clearAbort() before member destruction.
-            if (m_o->signal) {
-                auto conn = m_pconn;
-                auto pthis = this;
-                m_o->abort_signal()->addAbortCallback([conn, pthis]() {
-                    obj_ptr<Stream_base> c = *conn;
-                    if (!c)
-                        c = pthis->m_conn;
-                    if (c) {
-                        Socket_base* sock = Socket_base::getInstance(c);
-                        if (sock) {
-                            sock->abort();
-                        } else {
-                            TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(c);
-                            if (tls && tls->m_stream) {
-                                sock = Socket_base::getInstance(tls->m_stream);
-                                if (sock)
-                                    sock->abort();
-                            }
+    asyncRequest(HttpClient* hc, HttpRequest::Options* o,
+        obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
+        : AsyncState(ac)
+        , m_o(o)
+        , m_retVal(retVal)
+        , m_hc(hc)
+    {
+        init();
+    }
+
+    asyncRequest(HttpClient* hc, HttpRequest::Options* o, AsyncEvent* ac)
+        : AsyncState(ac)
+        , m_o(o)
+        , m_retVal(m_tempRetVal)
+        , m_hc(hc)
+    {
+        init();
+    }
+
+    void init()
+    {
+        m_o->u->toString(m_url);
+        // D.3: abort callback closes the socket to cancel any pending
+        // operation (connect, read, or write).  We capture both the
+        // shared pconn slot AND a raw 'this' so we can fall back to
+        // m_conn during the connect phase when *pconn is still null.
+        // Capturing 'this' is safe because ~asyncRequest calls
+        // clearAbort() before member destruction.
+        if (m_o->signal) {
+            auto conn = m_pconn;
+            auto pthis = this;
+            m_o->abort_signal()->addAbortCallback([conn, pthis]() {
+                obj_ptr<Stream_base> c = *conn;
+                if (!c)
+                    c = pthis->m_conn;
+                if (c) {
+                    Socket_base* sock = Socket_base::getInstance(c);
+                    if (sock) {
+                        sock->abort();
+                    } else {
+                        TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(c);
+                        if (tls && tls->m_stream) {
+                            sock = Socket_base::getInstance(tls->m_stream);
+                            if (sock)
+                                sock->abort();
                         }
                     }
-                });
-            }
-
-            next(prepare);
+                }
+            });
         }
 
-        ON_STATE(asyncRequest, prepare)
-        {
-            bool _domain = false;
+        next(prepare);
+    }
 
-            m_urls[m_url] = true;
+    ON_STATE(asyncRequest, prepare)
+    {
+        bool _domain = false;
 
-            exlib::string path;
-            exlib::string cookie;
+        m_urls[m_url] = true;
 
-            m_ssl = false;
-            exlib::string protocol = m_o->u->protocol();
-            exlib::string host = m_o->u->host();
-            if (protocol == "https:") {
-                m_ssl = true;
-                m_connUrl = "ssl://";
-            } else if (protocol == "http:") {
-                if (host[0] == '/') {
-                    _domain = true;
-                    m_connUrl = "unix:";
-                } else
-                    m_connUrl = "tcp://";
+        exlib::string path;
+        exlib::string cookie;
+
+        m_ssl = false;
+        exlib::string protocol = m_o->u->protocol();
+        exlib::string host = m_o->u->host();
+        if (protocol == "https:") {
+            m_ssl = true;
+            m_connUrl = "ssl://";
+        } else if (protocol == "http:") {
+            if (host[0] == '/') {
+                _domain = true;
+                m_connUrl = "unix:";
             } else
-                return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+                m_connUrl = "tcp://";
+        } else
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
-            if (host.empty())
-                return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+        if (host.empty())
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-            m_connUrl.append(host);
+        m_connUrl.append(host);
 
-            if (!_domain && m_o->u->port().empty())
-                m_connUrl.append(m_ssl ? ":443" : ":80");
+        if (!_domain && m_o->u->port().empty())
+            m_connUrl.append(m_ssl ? ":443" : ":80");
 
-            if (!m_req) {
-                if (m_o->req)
-                    m_req = m_o->req;
-                else
-                    m_req = new HttpRequest();
-            } else
-                m_req->clear();
-
-            m_req->set_method(m_o->method);
-
-            exlib::string hostname = m_o->u->hostname();
-            exlib::string portStr = m_o->u->port();
-            int32_t port = portStr.empty() ? (m_ssl ? 443 : 80) : atoi(portStr.c_str());
-            if (!m_hc->should_bypass_proxy(hostname, port)) {
-                m_http_proxy = m_hc->m_http_proxy;
-                if (m_ssl && !m_hc->m_https_proxy.empty())
-                    m_http_proxy = m_hc->m_https_proxy;
-            }
-
-            if (m_http_proxy.empty() || m_ssl) {
-                m_o->u->get_path(path);
-                m_req->set_address(path);
-            } else
-                m_req->set_address(m_url);
-
-            bool enableCookie = false;
-            m_hc->get_enableCookie(enableCookie);
-            if (enableCookie) {
-                m_hc->get_cookie(m_url, cookie);
-                if (cookie.length() > 0)
-                    m_req->appendHeader("Cookie", cookie);
-            }
-
-            m_req->set_keepAlive(m_o->keepAlive);
-
-            if (m_o->headers)
-                m_req->appendHeader(m_o->headers);
-
-            exlib::string a = m_hc->agent();
-            if (!a.empty()) {
-                bool bCheck = false;
-                m_req->hasHeader("User-Agent", bCheck);
-                if (!bCheck)
-                    m_req->appendHeader("User-Agent", a);
-            }
-
-            bool bHost = false;
-            m_req->hasHeader("Host", bHost);
-            if (!bHost)
-                m_req->appendHeader("Host", host);
-
-            if (m_o->body)
-                m_req->set_body(m_o->body);
-
-            if (m_ssl)
-                m_sslhost = m_o->u->hostname();
+        if (!m_req) {
+            if (m_o->req)
+                m_req = m_o->req;
             else
-                m_sslhost.clear();
+                m_req = new HttpRequest();
+        } else
+            m_req->clear();
 
-            m_reuse = false;
-            if (m_hc->get_conn(m_connUrl, m_conn)) {
+        m_req->set_method(m_o->method);
+
+        exlib::string hostname = m_o->u->hostname();
+        exlib::string portStr = m_o->u->port();
+        int32_t port = portStr.empty() ? (m_ssl ? 443 : 80) : atoi(portStr.c_str());
+        if (!m_hc->should_bypass_proxy(hostname, port)) {
+            m_http_proxy = m_hc->m_http_proxy;
+            if (m_ssl && !m_hc->m_https_proxy.empty())
+                m_http_proxy = m_hc->m_https_proxy;
+        }
+
+        if (m_http_proxy.empty() || m_ssl) {
+            m_o->u->get_path(path);
+            m_req->set_address(path);
+        } else
+            m_req->set_address(m_url);
+
+        bool enableCookie = false;
+        m_hc->get_enableCookie(enableCookie);
+        if (enableCookie) {
+            m_hc->get_cookie(m_url, cookie);
+            if (cookie.length() > 0)
+                m_req->appendHeader("Cookie", cookie);
+        }
+
+        m_req->set_keepAlive(m_o->keepAlive);
+
+        if (m_o->headers)
+            m_req->appendHeader(m_o->headers);
+
+        exlib::string a = m_hc->agent();
+        if (!a.empty()) {
+            bool bCheck = false;
+            m_req->hasHeader("User-Agent", bCheck);
+            if (!bCheck)
+                m_req->appendHeader("User-Agent", a);
+        }
+
+        bool bHost = false;
+        m_req->hasHeader("Host", bHost);
+        if (!bHost)
+            m_req->appendHeader("Host", host);
+
+        if (m_o->body)
+            m_req->set_body(m_o->body);
+
+        if (m_ssl)
+            m_sslhost = m_o->u->hostname();
+        else
+            m_sslhost.clear();
+
+        m_reuse = false;
+        if (m_hc->get_conn(m_connUrl, m_conn)) {
+            m_reuse = true;
+            return next(connected);
+        }
+
+        if (m_http_proxy.empty()) {
+            if (m_ssl) {
+                // Split into TCP connect + TLS handshake so m_conn holds
+                // the TCP socket during connect, enabling abort callbacks
+                // to find and cancel the pending connection.
+                exlib::string tcpUrl = "tcp://";
+                tcpUrl.append(m_connUrl.substr(6));
+                return net_base::connect(tcpUrl, m_hc->m_timeout, m_conn, next(ssl_handshake));
+            } else
+                return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
+        } else {
+            bool socks = m_http_proxy[0] == 's';
+
+            if (m_ssl && !socks) {
+                exlib::string host = m_connUrl.substr(6);
+                m_reqConn = new HttpRequest();
+
+                m_reqConn->set_method("CONNECT");
+                m_reqConn->set_address(host);
+                m_reqConn->appendHeader("Host", host);
+
+                exlib::string a = m_hc->agent();
+                if (!a.empty())
+                    m_reqConn->appendHeader("User-Agent", a);
+            }
+
+            if (m_hc->get_conn(m_http_proxy, m_conn)) {
                 m_reuse = true;
-                return next(connected);
+                return next(m_ssl ? ssl_connect : connected);
             }
-
-            if (m_http_proxy.empty()) {
-                if (m_ssl) {
-                    // Split into TCP connect + TLS handshake so m_conn holds
-                    // the TCP socket during connect, enabling abort callbacks
-                    // to find and cancel the pending connection.
-                    exlib::string tcpUrl = "tcp://";
-                    tcpUrl.append(m_connUrl.substr(6));
-                    return net_base::connect(tcpUrl, m_hc->m_timeout, m_conn, next(ssl_handshake));
-                } else
-                    return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
-            } else {
-                bool socks = m_http_proxy[0] == 's';
-
-                if (m_ssl && !socks) {
-                    exlib::string host = m_connUrl.substr(6);
-                    m_reqConn = new HttpRequest();
-
-                    m_reqConn->set_method("CONNECT");
-                    m_reqConn->set_address(host);
-                    m_reqConn->appendHeader("Host", host);
-
-                    exlib::string a = m_hc->agent();
-                    if (!a.empty())
-                        m_reqConn->appendHeader("User-Agent", a);
-                }
-
-                if (m_hc->get_conn(m_http_proxy, m_conn)) {
-                    m_reuse = true;
-                    return next(m_ssl ? ssl_connect : connected);
-                }
-
-                obj_ptr<Url> u = new Url();
-                exlib::string connUrl;
-                const char* def_port;
-
-                u->parse(m_http_proxy);
-
-                exlib::string protocol = u->protocol();
-                if (protocol == "https:") {
-                    connUrl = "ssl://";
-                    def_port = "443";
-                } else if (protocol == "http:") {
-                    connUrl = "tcp://";
-                    def_port = "80";
-                } else if (protocol == "socks5:") {
-                    connUrl = "tcp://";
-                    def_port = "1080";
-                }
-
-                connUrl.append(u->host());
-
-                if (u->port().empty())
-                    connUrl.append(def_port);
-
-                return net_base::connect(connUrl, m_hc->m_timeout, m_conn,
-                    next(socks
-                            ? socks_hello
-                            : m_ssl
-                            ? ssl_connect
-                            : connected));
-            }
-        }
-
-        ON_STATE(asyncRequest, socks_hello)
-        {
-            obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
-
-            m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-            return m_conn->writeBuffer(buf, next(socks_hello_response));
-        }
-
-        ON_STATE(asyncRequest, socks_hello_response)
-        {
-            return m_conn->readBuffer(2, m_buffer, next(socks_connect));
-        }
-
-        ON_STATE(asyncRequest, socks_connect)
-        {
-            if (n == CALL_RETURN_NULL)
-                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
-
-            exlib::string strBuffer;
-
-            m_buffer->toString(strBuffer);
-            if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
-                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 handshake failed."));
 
             obj_ptr<Url> u = new Url();
-            u->parse(m_connUrl);
+            exlib::string connUrl;
+            const char* def_port;
 
-            sockaddr_in dst;
-            sockaddr_in6 dst6;
+            u->parse(m_http_proxy);
 
-            exlib::string hostname = u->hostname();
-            if (!uv_ip4_addr(hostname.c_str(), 0, &dst)) {
-                strBuffer.assign("\5\1\0\1", 4);
-                strBuffer.append((char*)&dst.sin_addr, 4);
-            } else if (!uv_ip6_addr(hostname.c_str(), 0, &dst6)) {
-                strBuffer.assign("\5\1\0\4", 4);
-                strBuffer.append((char*)&dst6.sin6_addr, 16);
-            } else {
-                strBuffer.assign("\5\1\0\3", 4);
-                strBuffer.append(1, (char)hostname.length());
-                strBuffer.append(hostname);
+            exlib::string protocol = u->protocol();
+            if (protocol == "https:") {
+                connUrl = "ssl://";
+                def_port = "443";
+            } else if (protocol == "http:") {
+                connUrl = "tcp://";
+                def_port = "80";
+            } else if (protocol == "socks5:") {
+                connUrl = "tcp://";
+                def_port = "1080";
             }
 
-            int16_t port = htons(atoi(u->port().c_str()));
-            strBuffer.append((char*)&port, 2);
+            connUrl.append(u->host());
 
-            obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
-            return m_conn->writeBuffer(buf, next(socks_connect_req_5_bytes));
+            if (u->port().empty())
+                connUrl.append(def_port);
+
+            return net_base::connect(connUrl, m_hc->m_timeout, m_conn,
+                next(socks
+                        ? socks_hello
+                        : m_ssl
+                        ? ssl_connect
+                        : connected));
+        }
+    }
+
+    ON_STATE(asyncRequest, socks_hello)
+    {
+        obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
+
+        m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
+        return m_conn->writeBuffer(buf, next(socks_hello_response));
+    }
+
+    ON_STATE(asyncRequest, socks_hello_response)
+    {
+        return m_conn->readBuffer(2, m_buffer, next(socks_connect));
+    }
+
+    ON_STATE(asyncRequest, socks_connect)
+    {
+        if (n == CALL_RETURN_NULL)
+            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+
+        exlib::string strBuffer;
+
+        m_buffer->toString(strBuffer);
+        if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
+            return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 handshake failed."));
+
+        obj_ptr<Url> u = new Url();
+        u->parse(m_connUrl);
+
+        sockaddr_in dst;
+        sockaddr_in6 dst6;
+
+        exlib::string hostname = u->hostname();
+        if (!uv_ip4_addr(hostname.c_str(), 0, &dst)) {
+            strBuffer.assign("\5\1\0\1", 4);
+            strBuffer.append((char*)&dst.sin_addr, 4);
+        } else if (!uv_ip6_addr(hostname.c_str(), 0, &dst6)) {
+            strBuffer.assign("\5\1\0\4", 4);
+            strBuffer.append((char*)&dst6.sin6_addr, 16);
+        } else {
+            strBuffer.assign("\5\1\0\3", 4);
+            strBuffer.append(1, (char)hostname.length());
+            strBuffer.append(hostname);
         }
 
-        ON_STATE(asyncRequest, socks_connect_req_5_bytes)
-        {
-            return m_conn->readBuffer(5, m_buffer, next(socks_connect_res_5_bytes));
+        int16_t port = htons(atoi(u->port().c_str()));
+        strBuffer.append((char*)&port, 2);
+
+        obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
+        return m_conn->writeBuffer(buf, next(socks_connect_req_5_bytes));
+    }
+
+    ON_STATE(asyncRequest, socks_connect_req_5_bytes)
+    {
+        return m_conn->readBuffer(5, m_buffer, next(socks_connect_res_5_bytes));
+    }
+
+    ON_STATE(asyncRequest, socks_connect_res_5_bytes)
+    {
+        if (n == CALL_RETURN_NULL)
+            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+
+        Buffer* buf = Buffer::Cast(m_buffer);
+        const uint8_t* p = buf->data();
+        if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
+            return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+
+        uint8_t len = 0;
+
+        if (p[3] == 1) {
+            len = 4 - 1 + 2; // ipv4
+        } else if (p[3] == 4) {
+            len = 16 - 1 + 2; // ipv6
+        } else {
+            len = (uint8_t)p[4] + 2; // domain
         }
 
-        ON_STATE(asyncRequest, socks_connect_res_5_bytes)
-        {
-            if (n == CALL_RETURN_NULL)
-                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+        return m_conn->readBuffer(len, m_buffer, next(socks_connected));
+    }
 
-            Buffer* buf = Buffer::Cast(m_buffer);
-            const uint8_t* p = buf->data();
-            if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
-                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+    ON_STATE(asyncRequest, socks_connected)
+    {
+        if (n == CALL_RETURN_NULL)
+            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
-            uint8_t len = 0;
+        // discard socks server response
 
-            if (p[3] == 1) {
-                len = 4 - 1 + 2; // ipv4
-            } else if (p[3] == 4) {
-                len = 16 - 1 + 2; // ipv6
-            } else {
-                len = (uint8_t)p[4] + 2; // domain
-            }
+        return next(m_ssl ? ssl_handshake : connected);
+    }
 
-            return m_conn->readBuffer(len, m_buffer, next(socks_connected));
+    ON_STATE(asyncRequest, ssl_connect)
+    {
+        m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
+        return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
+    }
+
+    ON_STATE(asyncRequest, ssl_connected)
+    {
+        int32_t status;
+        result_t hr;
+
+        HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
+        hr = resp->get_statusCode(status);
+        if (hr < 0)
+            return hr;
+
+        if (status != 200) {
+            exlib::string msg;
+
+            resp->get_statusMessage(msg);
+            return CHECK_ERROR(Runtime::setError("HttpClient: " + msg));
         }
 
-        ON_STATE(asyncRequest, socks_connected)
-        {
-            if (n == CALL_RETURN_NULL)
-                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+        m_reqConn.Release();
+        m_retVal.Release();
 
-            // discard socks server response
+        return next(ssl_handshake);
+    }
 
-            return next(m_ssl ? ssl_handshake : connected);
-        }
+    ON_STATE(asyncRequest, ssl_handshake)
+    {
+        obj_ptr<TLSSocket> ss = new TLSSocket();
+        ss->init(m_hc->m_context);
 
-        ON_STATE(asyncRequest, ssl_connect)
-        {
+        obj_ptr<Stream_base> conn = m_conn;
+        m_conn = ss;
+        *m_pconn = m_conn; // sync slot during TLS handshake
+
+        return ss->connect(conn, m_sslhost, next(connected));
+    }
+
+    ON_STATE(asyncRequest, connected)
+    {
+        *m_pconn = m_conn; // sync slot so abort callback holds the live connection
+        if (!m_ssl)
             m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-            return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
+
+        return m_hc->request(m_conn, m_req, m_retVal, next(requested));
+    }
+
+    ON_STATE(asyncRequest, requested)
+    {
+        HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
+
+        bool enableCookie;
+        m_hc->get_enableCookie(enableCookie);
+        if (enableCookie) {
+            obj_ptr<NArray> cookies;
+            resp->get_cookies(cookies);
+            m_hc->update_cookies(m_url, cookies);
         }
 
-        ON_STATE(asyncRequest, ssl_connected)
-        {
-            int32_t status;
-            result_t hr;
-
-            HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
-            hr = resp->get_statusCode(status);
-            if (hr < 0)
-                return hr;
-
-            if (status != 200) {
-                exlib::string msg;
-
-                resp->get_statusMessage(msg);
-                return CHECK_ERROR(Runtime::setError("HttpClient: " + msg));
-            }
-
-            m_reqConn.Release();
-            m_retVal.Release();
-
-            return next(ssl_handshake);
-        }
-
-        ON_STATE(asyncRequest, ssl_handshake)
-        {
-            obj_ptr<TLSSocket> ss = new TLSSocket();
-            ss->init(m_hc->m_context);
-
-            obj_ptr<Stream_base> conn = m_conn;
-            m_conn = ss;
-            *m_pconn = m_conn; // sync slot during TLS handshake
-
-            return ss->connect(conn, m_sslhost, next(connected));
-        }
-
-        ON_STATE(asyncRequest, connected)
-        {
-            *m_pconn = m_conn; // sync slot so abort callback holds the live connection
-            if (!m_ssl)
-                m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-
-            return m_hc->request(m_conn, m_req, m_retVal, next(requested));
-        }
-
-        ON_STATE(asyncRequest, requested)
-        {
-            HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
-
-            bool enableCookie;
-            m_hc->get_enableCookie(enableCookie);
-            if (enableCookie) {
-                obj_ptr<NArray> cookies;
-                resp->get_cookies(cookies);
-                m_hc->update_cookies(m_url, cookies);
-            }
-
-            bool upgrade;
-            m_retVal->get_upgrade(upgrade);
-            if (upgrade)
-                return next(end);
-
-            // Inner asyncRequest always returns a BodyStream (streaming path).
-            // Wire up EOF-triggered connection pool return on the BodyStream.
-            bool keepAlive;
-            m_retVal->get_keepAlive(keepAlive);
-            if (keepAlive) {
-                obj_ptr<Stream_base> bodyStream;
-                if (m_retVal->get_body(bodyStream) == 0 && bodyStream) {
-                    BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
-                    auto hc = m_hc;
-                    // Proxy connections are pooled under proxy URL; direct under connUrl.
-                    exlib::string connUrl = (!m_http_proxy.empty() && m_http_proxy[0] != 's' && m_sslhost.empty())
-                        ? m_http_proxy : m_connUrl;
-                    auto conn = m_conn;
-                    bs->setCleanup([hc, connUrl, conn](bool eof) {
-                        if (eof)
-                            hc->save_conn(connUrl, conn);
-                    });
-                } else {
-                    // Empty body (e.g. Content-Length: 0): return connection immediately.
-                    exlib::string connUrl = (!m_http_proxy.empty() && m_http_proxy[0] != 's' && m_sslhost.empty())
-                        ? m_http_proxy : m_connUrl;
-                    m_hc->save_conn(connUrl, m_conn);
-                }
-            }
+        bool upgrade;
+        m_retVal->get_upgrade(upgrade);
+        if (upgrade)
             return next(end);
+
+        // Inner asyncRequest always returns a BodyStream (streaming path).
+        // Wire up EOF-triggered connection pool return on the BodyStream.
+        bool keepAlive;
+        m_retVal->get_keepAlive(keepAlive);
+        if (keepAlive) {
+            obj_ptr<Stream_base> bodyStream;
+            if (m_retVal->get_body(bodyStream) == 0 && bodyStream) {
+                BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
+                auto hc = m_hc;
+                // Proxy connections are pooled under proxy URL; direct under connUrl.
+                exlib::string connUrl = (!m_http_proxy.empty() && m_http_proxy[0] != 's' && m_sslhost.empty())
+                    ? m_http_proxy
+                    : m_connUrl;
+                auto conn = m_conn;
+                bs->setCleanup([hc, connUrl, conn](bool eof) {
+                    if (eof)
+                        hc->save_conn(connUrl, conn);
+                });
+            } else {
+                // Empty body (e.g. Content-Length: 0): return connection immediately.
+                exlib::string connUrl = (!m_http_proxy.empty() && m_http_proxy[0] != 's' && m_sslhost.empty())
+                    ? m_http_proxy
+                    : m_connUrl;
+                m_hc->save_conn(connUrl, m_conn);
+            }
+        }
+        return next(end);
+    }
+
+    ON_STATE(asyncRequest, end)
+    {
+        result_t hr;
+        int32_t status;
+        exlib::string location;
+        obj_ptr<UrlObject_base> u1;
+
+        HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
+        hr = resp->get_statusCode(status);
+        if (hr < 0)
+            return hr;
+
+        bool isRedirect = (status == 301 || status == 302 || status == 303
+            || status == 307 || status == 308);
+        if (!isRedirect)
+            return complete();
+
+        // Fetch API redirect mode takes precedence over HttpClient autoRedirect
+        if (m_o->redirect == "error")
+            return CHECK_ERROR(Runtime::setError(kTypeError, "fetch: redirect not allowed"));
+        if (m_o->redirect == "manual")
+            return complete(); // return redirect response as-is
+        if (!m_hc->m_autoRedirect)
+            return complete();
+
+        hr = m_retVal->firstHeader("location", location);
+        if (hr < 0)
+            return hr;
+
+        m_o->u->resolve(location, u1);
+        m_o->u = u1.As<Url>();
+        m_url.resize(0);
+        m_o->u->toString(m_url);
+
+        if (m_urls.find(m_url) != m_urls.end())
+            return CHECK_ERROR(Runtime::setError(kTypeError, "HttpClient: redirect cycle"));
+
+        // 303: per spec force GET and clear request body
+        if (status == 303) {
+            m_o->method = "GET";
+            m_o->body.Release();
         }
 
-        ON_STATE(asyncRequest, end)
-        {
-            result_t hr;
-            int32_t status;
-            exlib::string location;
-            obj_ptr<UrlObject_base> u1;
+        m_o->redirected = true;
 
-            HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
-            hr = resp->get_statusCode(status);
-            if (hr < 0)
-                return hr;
+        return next(prepare);
+    }
 
-            bool isRedirect = (status == 301 || status == 302 || status == 303
-                || status == 307 || status == 308);
-            if (!isRedirect)
-                return complete();
-
-            // Fetch API redirect mode takes precedence over HttpClient autoRedirect
-            if (m_o->redirect == "error")
-                return CHECK_ERROR(Runtime::setError(kTypeError, "fetch: redirect not allowed"));
-            if (m_o->redirect == "manual")
-                return complete(); // return redirect response as-is
-            if (!m_hc->m_autoRedirect)
-                return complete();
-
-            hr = m_retVal->firstHeader("location", location);
-            if (hr < 0)
-                return hr;
-
-            m_o->u->resolve(location, u1);
-            m_o->u = u1.As<Url>();
-            m_url.resize(0);
-            m_o->u->toString(m_url);
-
-            if (m_urls.find(m_url) != m_urls.end())
-                return CHECK_ERROR(Runtime::setError(kTypeError, "HttpClient: redirect cycle"));
-
-            // 303: per spec force GET and clear request body
-            if (status == 303) {
-                m_o->method = "GET";
-                m_o->body.Release();
-            }
-
-            m_o->redirected = true;
-
-            return next(prepare);
+    virtual int32_t error(int32_t v)
+    {
+        if (m_reuse && (at(ssl_connect) || at(connected))) {
+            m_reuse = false;
+            next(prepare);
+            return 0;
         }
 
-        virtual int32_t error(int32_t v)
-        {
-            if (m_reuse && (at(ssl_connect) || at(connected))) {
-                m_reuse = false;
-                next(prepare);
-                return 0;
+        // D.3: if abort was requested, convert the connection error to TypeError
+        if (m_o->signal) {
+            bool aborted;
+            m_o->signal->get_aborted(aborted);
+            if (aborted) {
+                Runtime::setError(kTypeError, "AbortError");
+                return CALL_E_EXCEPTION;
             }
-
-            // D.3: if abort was requested, convert the connection error to TypeError
-            if (m_o->signal) {
-                bool aborted;
-                m_o->signal->get_aborted(aborted);
-                if (aborted) {
-                    Runtime::setError(kTypeError, "AbortError");
-                    return CALL_E_EXCEPTION;
-                }
-            }
-
-            return v;
         }
 
-        int32_t complete()
-        {
-            if (m_o->is_callback) {
-                m_req->_emit("response", m_retVal);
-                m_retVal = m_req;
-            }
-            return next();
+        return v;
+    }
+
+    int32_t complete()
+    {
+        if (m_o->is_callback) {
+            m_req->_emit("response", m_retVal);
+            m_retVal = m_req;
         }
+        return next();
+    }
 
-    private:
-        obj_ptr<HttpRequest::Options> m_o;
-        exlib::string m_url;
-        exlib::string m_sslhost;
-        bool m_ssl;
-        exlib::string m_http_proxy;
-        obj_ptr<HttpMessage_base>& m_retVal;
-        std::unordered_map<exlib::string, bool> m_urls;
-        obj_ptr<Stream_base> m_conn;
-        std::shared_ptr<obj_ptr<Stream_base>> m_pconn = std::make_shared<obj_ptr<Stream_base>>();
-        obj_ptr<HttpRequest> m_req;
-        obj_ptr<HttpRequest> m_reqConn;
-        exlib::string m_connUrl;
-        obj_ptr<HttpClient> m_hc;
-        obj_ptr<Buffer_base> m_buffer;
-        bool m_reuse;
-    };
+private:
+    obj_ptr<HttpRequest::Options> m_o;
+    exlib::string m_url;
+    exlib::string m_sslhost;
+    bool m_ssl;
+    exlib::string m_http_proxy;
+    obj_ptr<HttpMessage_base> m_tempRetVal;
+    obj_ptr<HttpMessage_base>& m_retVal;
+    std::unordered_map<exlib::string, bool> m_urls;
+    obj_ptr<Stream_base> m_conn;
+    std::shared_ptr<obj_ptr<Stream_base>> m_pconn = std::make_shared<obj_ptr<Stream_base>>();
+    obj_ptr<HttpRequest> m_req;
+    obj_ptr<HttpRequest> m_reqConn;
+    exlib::string m_connUrl;
+    obj_ptr<HttpClient> m_hc;
+    obj_ptr<Buffer_base> m_buffer;
+    bool m_reuse;
+};
 
+result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
+{
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRequest(this, o, retVal, ac))->post(0);
+}
+
+// Lightweight event that silently absorbs async completion,
+// used by callback-mode HTTP methods to fire-and-forget.
+class FireAndForgetEvent : public AsyncEvent {
+public:
+    FireAndForgetEvent(Isolate* isolate)
+        : AsyncEvent(isolate)
+    {
+        setAsync();
+        isolate->Ref();
+    }
+
+    virtual int32_t post(int32_t v) override
+    {
+        m_isolate->Unref();
+        delete this;
+        return 0;
+    }
+};
+
+result_t HttpClient::request(HttpRequest::Options* o, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new asyncRequest(this, o, ac))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
@@ -1506,15 +1546,28 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     return request("GET", url, opts, retVal, ac);
 }
 
+result_t HttpClient::fire_callback_request(exlib::string method, exlib::string url,
+    v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
+    obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = get_request_opts(method, url, opts, ac, callback);
+    if (hr != CALL_E_NOSYNC)
+        return hr;
+
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    retVal = o->req;
+
+    (new asyncRequest(this, o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
+    return 0;
+}
+
 result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
     obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return get_request_opts(method, url, opts, ac, callback);
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+        return fire_callback_request(method, url, opts, callback, retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
@@ -1528,11 +1581,9 @@ result_t HttpClient::request(exlib::string url, v8::Local<v8::Function> callback
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("GET", url, opts, ac, callback);
+        return fire_callback_request("GET", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
@@ -1570,11 +1621,9 @@ result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("POST", url, opts, ac, callback);
+        return fire_callback_request("POST", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> opts,
@@ -1594,11 +1643,9 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("DELETE", url, opts, ac, callback);
+        return fire_callback_request("DELETE", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> opts,
@@ -1618,11 +1665,9 @@ result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("PUT", url, opts, ac, callback);
+        return fire_callback_request("PUT", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> opts,
@@ -1642,11 +1687,9 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("PATCH", url, opts, ac, callback);
+        return fire_callback_request("PATCH", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
@@ -1666,11 +1709,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
-        return get_request_opts("HEAD", url, opts, ac, callback);
+        return fire_callback_request("HEAD", url, opts, callback, retVal, ac);
     }
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return request(o.get(), retVal, ac);
+    return 0;
 }
 
 // Async state machine shared by both fetch(url) and fetch(request).

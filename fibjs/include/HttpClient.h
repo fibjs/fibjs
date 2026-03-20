@@ -103,6 +103,9 @@ public:
     result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac,
         v8::Local<v8::Function> callback = v8::Local<v8::Function>());
     result_t request(HttpRequest::Options* o, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
+    result_t request(HttpRequest::Options* o, AsyncEvent* ac);
+    result_t fire_callback_request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
+        v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
         Headers_base* headers, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
     result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac, bool streaming);
@@ -202,6 +205,8 @@ private:
     std::vector<obj_ptr<Conn>> m_conns;
     int32_t m_poolSize;
     int32_t m_poolTimeout;
+
+public:    
     exlib::string m_http_proxy;
     exlib::string m_https_proxy;
     exlib::string m_no_proxy;
