@@ -5135,6 +5135,75 @@ describe("http", () => {
                 });
             });
         });
+
+        describe("response streaming events", () => {
+            it("res.on('data') receives body chunks", (done) => {
+                http.get(url("/hello"), (res) => {
+                    var chunks = [];
+                    res.on("data", (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    res.on("end", () => {
+                        done(() => {
+                            assert.equal(Buffer.concat(chunks).toString(), "/hello");
+                        });
+                    });
+                });
+            });
+
+            it("res.on('close') fires after end", (done) => {
+                http.get(url("/hello"), (res) => {
+                    res.on("data", () => {});
+                    res.on("close", () => {
+                        done();
+                    });
+                });
+            });
+
+            it("sync mode res.on('data') works", (done) => {
+                var resp = http.get(url("/hello"));
+                var chunks = [];
+                resp.on("data", (chunk) => {
+                    chunks.push(chunk);
+                });
+                resp.on("end", () => {
+                    done(() => {
+                        assert.equal(Buffer.concat(chunks).toString(), "/hello");
+                    });
+                });
+            });
+
+            it("res.on('data') with callback + opts", (done) => {
+                http.post(url("/echo-body"), {
+                    body: "streaming-test"
+                }, (res) => {
+                    var chunks = [];
+                    res.on("data", (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    res.on("end", () => {
+                        done(() => {
+                            assert.ok(Buffer.concat(chunks).toString().includes("streaming-test"));
+                        });
+                    });
+                });
+            });
+
+            it("HttpClient res.on('data') works", (done) => {
+                var hc = new http.Client();
+                hc.get(url("/hello"), (res) => {
+                    var chunks = [];
+                    res.on("data", (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    res.on("end", () => {
+                        done(() => {
+                            assert.equal(Buffer.concat(chunks).toString(), "/hello");
+                        });
+                    });
+                });
+            });
+        });
     });
 });
 

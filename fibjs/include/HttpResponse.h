@@ -138,6 +138,10 @@ public:
     static result_t error(obj_ptr<HttpResponse_base>& retVal);
 
 public:
+    // Proxy stream events (data/end/close/error/readable) to body stream
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
+
+public:
     result_t sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac);
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
     {

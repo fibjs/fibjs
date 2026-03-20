@@ -874,4 +874,29 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
     return 0;
 }
 
+static bool is_stream_event(exlib::string& ev)
+{
+    return ev == "data" || ev == "end" || ev == "close"
+        || ev == "error" || ev == "readable";
+}
+
+result_t HttpResponse::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+{
+    if (type == "newListener" && is_stream_event(ev)) {
+        obj_ptr<Stream_base> body;
+        if (get_body(body) == 0 && body) {
+            v8::Local<v8::Object> retVal;
+            body->on(ev, func, retVal);
+        }
+    } else if (type == "removeListener" && is_stream_event(ev)) {
+        obj_ptr<Stream_base> body;
+        if (get_body(body) == 0 && body) {
+            v8::Local<v8::Object> retVal;
+            body->off(ev, func, retVal);
+        }
+    }
+
+    return 0;
+}
+
 } /* namespace fibjs */
