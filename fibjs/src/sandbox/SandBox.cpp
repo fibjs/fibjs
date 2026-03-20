@@ -125,6 +125,24 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     v8::Local<v8::Object> _global = _context->Global();
 
+    // Copy sandbox properties to the real global object so that kNonMasking
+    // interceptor can be bypassed for V8 builtins while sandbox overrides
+    // (console, require, etc.) are visible as real properties on the global.
+    {
+        v8::TryCatch try_catch(isolate->m_isolate);
+        v8::Local<v8::Array> keys;
+        if (global->GetOwnPropertyNames(_context).ToLocal(&keys)) {
+            for (uint32_t i = 0; i < keys->Length(); i++) {
+                v8::Local<v8::Value> key = keys->Get(_context, i).ToLocalChecked();
+                v8::Local<v8::Value> val = global->Get(_context, key).ToLocalChecked();
+                if (val == global)
+                    val = _global;
+                if (!_global->Set(_context, key, val).FromMaybe(false))
+                    try_catch.Reset();
+            }
+        }
+    }
+
     if (!global->HasRealNamedProperty(_context, isolate->NewString("console")).FromMaybe(false))
         _global->Delete(_context, isolate->NewString("console")).IsJust();
     _global->Set(_context, isolate->NewString("global"), _global).IsJust();

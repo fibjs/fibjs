@@ -144,7 +144,9 @@ void Isolate::init_global_template()
         PropertyEnumeratorCallback,
         PropertyDefinerCallback,
         {},
-        v8::PropertyHandlerFlags::kHasNoSideEffect));
+        static_cast<v8::PropertyHandlerFlags>(
+            static_cast<int>(v8::PropertyHandlerFlags::kNonMasking)
+            | static_cast<int>(v8::PropertyHandlerFlags::kHasNoSideEffect))));
 
     m_global_template.Reset(m_isolate, global_object_template);
 }

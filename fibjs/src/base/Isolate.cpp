@@ -358,11 +358,32 @@ void Isolate::init()
         beginCoverage(m_isolate);
 
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(m_isolate)->GetPrototype());
-    _context->SetEmbedderData(kSandboxObject, global_base::class_info().getModule(this));
+    v8::Local<v8::Object> sandbox = global_base::class_info().getModule(this);
+    _context->SetEmbedderData(kSandboxObject, sandbox);
 
     // Override global.Response with async constructor so instanceof works for fetch() results.
-    global_base::class_info().getModule(this)->Set(_context, NewString("Response"),
+    sandbox->Set(_context, NewString("Response"),
         HttpResponse_base::class_info().getAsyncModule(this)).IsJust();
+
+    // Copy sandbox properties to the real global object so that the kNonMasking
+    // interceptor finds them as real properties, enabling TurboFan optimization
+    // for global variable access (String, console, process, etc.).
+    {
+        v8::TryCatch try_catch(m_isolate);
+        v8::Local<v8::Object> _global = _context->Global();
+        v8::Local<v8::Array> keys;
+        if (sandbox->GetOwnPropertyNames(_context).ToLocal(&keys)) {
+            for (uint32_t i = 0; i < keys->Length(); i++) {
+                v8::Local<v8::Value> key = keys->Get(_context, i).ToLocalChecked();
+                v8::Local<v8::Value> val = sandbox->Get(_context, key).ToLocalChecked();
+                if (val == sandbox)
+                    val = _global;
+                // Silently skip read-only built-in properties (Infinity, NaN, undefined)
+                if (!_global->Set(_context, key, val).FromMaybe(false))
+                    try_catch.Reset();
+            }
+        }
+    }
 
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);
