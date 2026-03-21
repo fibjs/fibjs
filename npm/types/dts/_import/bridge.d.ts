@@ -61,6 +61,7 @@
 /// <reference path="../module/zlib_constants.d.ts" />
 /// <reference path="../module/assert_strict.d.ts" />
 /// <reference path="../module/async_hooks.d.ts" />
+/// <reference path="../module/http2_constants.d.ts" />
 /// <reference path="../module/sse.d.ts" />
 declare module '@fibjs/types/bridge' {
 }

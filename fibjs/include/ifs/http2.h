@@ -20,6 +20,7 @@ class Handler_base;
 class SecureContext_base;
 class Http2Session_base;
 class Http2Stream_base;
+class http2_constants_base;
 
 class http2_base : public object_base {
     DECLARE_CLASS(http2_base);
@@ -57,6 +58,7 @@ public:
 #include "ifs/SecureContext.h"
 #include "ifs/Http2Session.h"
 #include "ifs/Http2Stream.h"
+#include "ifs/http2_constants.h"
 
 namespace fibjs {
 inline ClassInfo& http2_base::class_info()
@@ -70,7 +72,8 @@ inline ClassInfo& http2_base::class_info()
     static ClassData::ClassObject s_object[] = {
         { "Server", Http2Server_base::class_info },
         { "Http2Stream", Http2Stream_base::class_info },
-        { "Http2Session", Http2Session_base::class_info }
+        { "Http2Session", Http2Session_base::class_info },
+        { "constants", http2_constants_base::class_info }
     };
 
     static ClassData s_cd = {

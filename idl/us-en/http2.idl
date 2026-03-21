@@ -64,4 +64,7 @@ module http2
 
     /*! @brief Http2Session object, see Http2Session */
     static Http2Session;
+
+    /*! @brief Constants object of http2 module, see http2_constants */
+    static http2_constants new constants();
 };

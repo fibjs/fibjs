@@ -4,6 +4,7 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/Http2Session.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
+/// <reference path="../module/http2_constants.d.ts" />
 /**
  * @description http2 模块提供 HTTP/2 协议支持
  * 
@@ -117,6 +118,11 @@ declare module 'http2' {
      * @description Http2Session 对象，参见 Http2Session 
      */
     const Http2Session: typeof Class_Http2Session;
+
+    /**
+     * @description http2 模块的常量对象，参见 http2_constants 
+     */
+    const constants: typeof import ('http2_constants');
 
 }
 

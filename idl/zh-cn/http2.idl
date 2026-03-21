@@ -64,4 +64,7 @@ module http2
 
     /*! @brief Http2Session 对象，参见 Http2Session */
     static Http2Session;
+
+    /*! @brief http2 模块的常量对象，参见 http2_constants */
+    static http2_constants new constants();
 };

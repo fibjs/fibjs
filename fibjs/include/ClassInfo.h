@@ -36,7 +36,8 @@ struct ClassData {
     enum ConstType {
         CONST_Integer = 0,
         CONST_Boolean = 1,
-        CONST_String = 2
+        CONST_String = 2,
+        CONST_Long = 3
     };
 
     struct ClassConst {
@@ -44,6 +45,7 @@ struct ClassData {
         ConstType type;
         union {
             int32_t intValue;
+            int64_t longValue;
             bool boolValue;
             const char* stringValue;
         };
@@ -310,6 +312,9 @@ public:
             case ClassData::CONST_Integer:
                 constVal = v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].intValue);
                 break;
+            case ClassData::CONST_Long:
+                constVal = v8::Number::New(isolate->m_isolate, (double)m_cd.ccs[i].longValue);
+                break;
             case ClassData::CONST_Boolean:
                 constVal = v8::Boolean::New(isolate->m_isolate, m_cd.ccs[i].boolValue);
                 break;
@@ -497,6 +502,9 @@ private:
                 switch (m_cd.ccs[i].type) {
                 case ClassData::CONST_Integer:
                     constVal = v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].intValue);
+                    break;
+                case ClassData::CONST_Long:
+                    constVal = v8::Number::New(isolate->m_isolate, (double)m_cd.ccs[i].longValue);
                     break;
                 case ClassData::CONST_Boolean:
                     constVal = v8::Boolean::New(isolate->m_isolate, m_cd.ccs[i].boolValue);

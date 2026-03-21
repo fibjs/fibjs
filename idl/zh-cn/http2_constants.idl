@@ -1,0 +1,729 @@
+/*! @brief http2 模块常用常量定义模块
+
+ 引用方法：
+ ```JavaScript
+ var constants = require('http2').constants
+ ```
+ */
+module http2_constants
+{
+    /*! @brief 默认是否启用 CONNECT 协议扩展 */
+    const DEFAULT_SETTINGS_ENABLE_CONNECT_PROTOCOL = 0;
+
+    /*! @brief 默认是否启用服务端推送 */
+    const DEFAULT_SETTINGS_ENABLE_PUSH = 1;
+
+    /*! @brief 默认头部表大小（字节） */
+    const DEFAULT_SETTINGS_HEADER_TABLE_SIZE = 4096;
+
+    /*! @brief 默认初始流窗口大小（字节） */
+    const DEFAULT_SETTINGS_INITIAL_WINDOW_SIZE = 65535;
+
+    /*! @brief 默认最大并发流数（无限制） */
+    const DEFAULT_SETTINGS_MAX_CONCURRENT_STREAMS = 4294967295;
+
+    /*! @brief 默认最大帧大小（字节） */
+    const DEFAULT_SETTINGS_MAX_FRAME_SIZE = 16384;
+
+    /*! @brief 默认最大头部列表大小（字节） */
+    const DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE = 65535;
+
+    /*! @brief HTTP 状态码：Continue */
+    const HTTP_STATUS_CONTINUE = 100;
+
+    /*! @brief HTTP 状态码：Switching Protocols */
+    const HTTP_STATUS_SWITCHING_PROTOCOLS = 101;
+
+    /*! @brief HTTP 状态码：Processing */
+    const HTTP_STATUS_PROCESSING = 102;
+
+    /*! @brief HTTP 状态码：Early Hints */
+    const HTTP_STATUS_EARLY_HINTS = 103;
+
+    /*! @brief HTTP 状态码：OK */
+    const HTTP_STATUS_OK = 200;
+
+    /*! @brief HTTP 状态码：Created */
+    const HTTP_STATUS_CREATED = 201;
+
+    /*! @brief HTTP 状态码：Accepted */
+    const HTTP_STATUS_ACCEPTED = 202;
+
+    /*! @brief HTTP 状态码：Non-Authoritative Information */
+    const HTTP_STATUS_NON_AUTHORITATIVE_INFORMATION = 203;
+
+    /*! @brief HTTP 状态码：No Content */
+    const HTTP_STATUS_NO_CONTENT = 204;
+
+    /*! @brief HTTP 状态码：Reset Content */
+    const HTTP_STATUS_RESET_CONTENT = 205;
+
+    /*! @brief HTTP 状态码：Partial Content */
+    const HTTP_STATUS_PARTIAL_CONTENT = 206;
+
+    /*! @brief HTTP 状态码：Multi-Status */
+    const HTTP_STATUS_MULTI_STATUS = 207;
+
+    /*! @brief HTTP 状态码：Already Reported */
+    const HTTP_STATUS_ALREADY_REPORTED = 208;
+
+    /*! @brief HTTP 状态码：IM Used */
+    const HTTP_STATUS_IM_USED = 226;
+
+    /*! @brief HTTP 状态码：Multiple Choices */
+    const HTTP_STATUS_MULTIPLE_CHOICES = 300;
+
+    /*! @brief HTTP 状态码：Moved Permanently */
+    const HTTP_STATUS_MOVED_PERMANENTLY = 301;
+
+    /*! @brief HTTP 状态码：Found */
+    const HTTP_STATUS_FOUND = 302;
+
+    /*! @brief HTTP 状态码：See Other */
+    const HTTP_STATUS_SEE_OTHER = 303;
+
+    /*! @brief HTTP 状态码：Not Modified */
+    const HTTP_STATUS_NOT_MODIFIED = 304;
+
+    /*! @brief HTTP 状态码：Use Proxy */
+    const HTTP_STATUS_USE_PROXY = 305;
+
+    /*! @brief HTTP 状态码：Temporary Redirect */
+    const HTTP_STATUS_TEMPORARY_REDIRECT = 307;
+
+    /*! @brief HTTP 状态码：Permanent Redirect */
+    const HTTP_STATUS_PERMANENT_REDIRECT = 308;
+
+    /*! @brief HTTP 状态码：Bad Request */
+    const HTTP_STATUS_BAD_REQUEST = 400;
+
+    /*! @brief HTTP 状态码：Unauthorized */
+    const HTTP_STATUS_UNAUTHORIZED = 401;
+
+    /*! @brief HTTP 状态码：Payment Required */
+    const HTTP_STATUS_PAYMENT_REQUIRED = 402;
+
+    /*! @brief HTTP 状态码：Forbidden */
+    const HTTP_STATUS_FORBIDDEN = 403;
+
+    /*! @brief HTTP 状态码：Not Found */
+    const HTTP_STATUS_NOT_FOUND = 404;
+
+    /*! @brief HTTP 状态码：Method Not Allowed */
+    const HTTP_STATUS_METHOD_NOT_ALLOWED = 405;
+
+    /*! @brief HTTP 状态码：Not Acceptable */
+    const HTTP_STATUS_NOT_ACCEPTABLE = 406;
+
+    /*! @brief HTTP 状态码：Proxy Authentication Required */
+    const HTTP_STATUS_PROXY_AUTHENTICATION_REQUIRED = 407;
+
+    /*! @brief HTTP 状态码：Request Timeout */
+    const HTTP_STATUS_REQUEST_TIMEOUT = 408;
+
+    /*! @brief HTTP 状态码：Conflict */
+    const HTTP_STATUS_CONFLICT = 409;
+
+    /*! @brief HTTP 状态码：Gone */
+    const HTTP_STATUS_GONE = 410;
+
+    /*! @brief HTTP 状态码：Length Required */
+    const HTTP_STATUS_LENGTH_REQUIRED = 411;
+
+    /*! @brief HTTP 状态码：Precondition Failed */
+    const HTTP_STATUS_PRECONDITION_FAILED = 412;
+
+    /*! @brief HTTP 状态码：Payload Too Large */
+    const HTTP_STATUS_PAYLOAD_TOO_LARGE = 413;
+
+    /*! @brief HTTP 状态码：URI Too Long */
+    const HTTP_STATUS_URI_TOO_LONG = 414;
+
+    /*! @brief HTTP 状态码：Unsupported Media Type */
+    const HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE = 415;
+
+    /*! @brief HTTP 状态码：Range Not Satisfiable */
+    const HTTP_STATUS_RANGE_NOT_SATISFIABLE = 416;
+
+    /*! @brief HTTP 状态码：Expectation Failed */
+    const HTTP_STATUS_EXPECTATION_FAILED = 417;
+
+    /*! @brief HTTP 状态码：I'm a Teapot */
+    const HTTP_STATUS_TEAPOT = 418;
+
+    /*! @brief HTTP 状态码：Misdirected Request */
+    const HTTP_STATUS_MISDIRECTED_REQUEST = 421;
+
+    /*! @brief HTTP 状态码：Unprocessable Entity */
+    const HTTP_STATUS_UNPROCESSABLE_ENTITY = 422;
+
+    /*! @brief HTTP 状态码：Locked */
+    const HTTP_STATUS_LOCKED = 423;
+
+    /*! @brief HTTP 状态码：Failed Dependency */
+    const HTTP_STATUS_FAILED_DEPENDENCY = 424;
+
+    /*! @brief HTTP 状态码：Too Early */
+    const HTTP_STATUS_TOO_EARLY = 425;
+
+    /*! @brief HTTP 状态码：Upgrade Required */
+    const HTTP_STATUS_UPGRADE_REQUIRED = 426;
+
+    /*! @brief HTTP 状态码：Precondition Required */
+    const HTTP_STATUS_PRECONDITION_REQUIRED = 428;
+
+    /*! @brief HTTP 状态码：Too Many Requests */
+    const HTTP_STATUS_TOO_MANY_REQUESTS = 429;
+
+    /*! @brief HTTP 状态码：Request Header Fields Too Large */
+    const HTTP_STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
+
+    /*! @brief HTTP 状态码：Unavailable For Legal Reasons */
+    const HTTP_STATUS_UNAVAILABLE_FOR_LEGAL_REASONS = 451;
+
+    /*! @brief HTTP 状态码：Internal Server Error */
+    const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+
+    /*! @brief HTTP 状态码：Not Implemented */
+    const HTTP_STATUS_NOT_IMPLEMENTED = 501;
+
+    /*! @brief HTTP 状态码：Bad Gateway */
+    const HTTP_STATUS_BAD_GATEWAY = 502;
+
+    /*! @brief HTTP 状态码：Service Unavailable */
+    const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
+
+    /*! @brief HTTP 状态码：Gateway Timeout */
+    const HTTP_STATUS_GATEWAY_TIMEOUT = 504;
+
+    /*! @brief HTTP 状态码：HTTP Version Not Supported */
+    const HTTP_STATUS_HTTP_VERSION_NOT_SUPPORTED = 505;
+
+    /*! @brief HTTP 状态码：Variant Also Negotiates */
+    const HTTP_STATUS_VARIANT_ALSO_NEGOTIATES = 506;
+
+    /*! @brief HTTP 状态码：Insufficient Storage */
+    const HTTP_STATUS_INSUFFICIENT_STORAGE = 507;
+
+    /*! @brief HTTP 状态码：Loop Detected */
+    const HTTP_STATUS_LOOP_DETECTED = 508;
+
+    /*! @brief HTTP 状态码：Bandwidth Limit Exceeded */
+    const HTTP_STATUS_BANDWIDTH_LIMIT_EXCEEDED = 509;
+
+    /*! @brief HTTP 状态码：Not Extended */
+    const HTTP_STATUS_NOT_EXTENDED = 510;
+
+    /*! @brief HTTP 状态码：Network Authentication Required */
+    const HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED = 511;
+
+    /*! @brief HTTP/2 伪头部：:authority */
+    const HTTP2_HEADER_AUTHORITY = ":authority";
+
+    /*! @brief HTTP/2 头部：accept */
+    const HTTP2_HEADER_ACCEPT = "accept";
+
+    /*! @brief HTTP/2 头部：accept-charset */
+    const HTTP2_HEADER_ACCEPT_CHARSET = "accept-charset";
+
+    /*! @brief HTTP/2 头部：accept-encoding */
+    const HTTP2_HEADER_ACCEPT_ENCODING = "accept-encoding";
+
+    /*! @brief HTTP/2 头部：accept-language */
+    const HTTP2_HEADER_ACCEPT_LANGUAGE = "accept-language";
+
+    /*! @brief HTTP/2 头部：accept-ranges */
+    const HTTP2_HEADER_ACCEPT_RANGES = "accept-ranges";
+
+    /*! @brief HTTP/2 头部：access-control-allow-credentials */
+    const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "access-control-allow-credentials";
+
+    /*! @brief HTTP/2 头部：access-control-allow-headers */
+    const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "access-control-allow-headers";
+
+    /*! @brief HTTP/2 头部：access-control-allow-methods */
+    const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_METHODS = "access-control-allow-methods";
+
+    /*! @brief HTTP/2 头部：access-control-allow-origin */
+    const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
+
+    /*! @brief HTTP/2 头部：access-control-expose-headers */
+    const HTTP2_HEADER_ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
+
+    /*! @brief HTTP/2 头部：access-control-max-age */
+    const HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
+
+    /*! @brief HTTP/2 头部：access-control-request-headers */
+    const HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
+
+    /*! @brief HTTP/2 头部：access-control-request-method */
+    const HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
+
+    /*! @brief HTTP/2 头部：age */
+    const HTTP2_HEADER_AGE = "age";
+
+    /*! @brief HTTP/2 头部：allow */
+    const HTTP2_HEADER_ALLOW = "allow";
+
+    /*! @brief HTTP/2 头部：alt-svc */
+    const HTTP2_HEADER_ALT_SVC = "alt-svc";
+
+    /*! @brief HTTP/2 头部：authorization */
+    const HTTP2_HEADER_AUTHORIZATION = "authorization";
+
+    /*! @brief HTTP/2 头部：cache-control */
+    const HTTP2_HEADER_CACHE_CONTROL = "cache-control";
+
+    /*! @brief HTTP/2 头部：connection */
+    const HTTP2_HEADER_CONNECTION = "connection";
+
+    /*! @brief HTTP/2 头部：content-disposition */
+    const HTTP2_HEADER_CONTENT_DISPOSITION = "content-disposition";
+
+    /*! @brief HTTP/2 头部：content-encoding */
+    const HTTP2_HEADER_CONTENT_ENCODING = "content-encoding";
+
+    /*! @brief HTTP/2 头部：content-language */
+    const HTTP2_HEADER_CONTENT_LANGUAGE = "content-language";
+
+    /*! @brief HTTP/2 头部：content-length */
+    const HTTP2_HEADER_CONTENT_LENGTH = "content-length";
+
+    /*! @brief HTTP/2 头部：content-location */
+    const HTTP2_HEADER_CONTENT_LOCATION = "content-location";
+
+    /*! @brief HTTP/2 头部：content-md5 */
+    const HTTP2_HEADER_CONTENT_MD5 = "content-md5";
+
+    /*! @brief HTTP/2 头部：content-range */
+    const HTTP2_HEADER_CONTENT_RANGE = "content-range";
+
+    /*! @brief HTTP/2 头部：content-security-policy */
+    const HTTP2_HEADER_CONTENT_SECURITY_POLICY = "content-security-policy";
+
+    /*! @brief HTTP/2 头部：content-type */
+    const HTTP2_HEADER_CONTENT_TYPE = "content-type";
+
+    /*! @brief HTTP/2 头部：cookie */
+    const HTTP2_HEADER_COOKIE = "cookie";
+
+    /*! @brief HTTP/2 头部：date */
+    const HTTP2_HEADER_DATE = "date";
+
+    /*! @brief HTTP/2 头部：dnt */
+    const HTTP2_HEADER_DNT = "dnt";
+
+    /*! @brief HTTP/2 头部：early-data */
+    const HTTP2_HEADER_EARLY_DATA = "early-data";
+
+    /*! @brief HTTP/2 头部：etag */
+    const HTTP2_HEADER_ETAG = "etag";
+
+    /*! @brief HTTP/2 伪头部：:method */
+    const HTTP2_HEADER_METHOD = ":method";
+
+    /*! @brief HTTP/2 头部：expect */
+    const HTTP2_HEADER_EXPECT = "expect";
+
+    /*! @brief HTTP/2 头部：expect-ct */
+    const HTTP2_HEADER_EXPECT_CT = "expect-ct";
+
+    /*! @brief HTTP/2 头部：expires */
+    const HTTP2_HEADER_EXPIRES = "expires";
+
+    /*! @brief HTTP/2 头部：forwarded */
+    const HTTP2_HEADER_FORWARDED = "forwarded";
+
+    /*! @brief HTTP/2 头部：from */
+    const HTTP2_HEADER_FROM = "from";
+
+    /*! @brief HTTP/2 头部：host */
+    const HTTP2_HEADER_HOST = "host";
+
+    /*! @brief HTTP/2 头部：http2-settings */
+    const HTTP2_HEADER_HTTP2_SETTINGS = "http2-settings";
+
+    /*! @brief HTTP/2 头部：if-match */
+    const HTTP2_HEADER_IF_MATCH = "if-match";
+
+    /*! @brief HTTP/2 头部：if-modified-since */
+    const HTTP2_HEADER_IF_MODIFIED_SINCE = "if-modified-since";
+
+    /*! @brief HTTP/2 头部：if-none-match */
+    const HTTP2_HEADER_IF_NONE_MATCH = "if-none-match";
+
+    /*! @brief HTTP/2 头部：if-range */
+    const HTTP2_HEADER_IF_RANGE = "if-range";
+
+    /*! @brief HTTP/2 头部：if-unmodified-since */
+    const HTTP2_HEADER_IF_UNMODIFIED_SINCE = "if-unmodified-since";
+
+    /*! @brief HTTP/2 头部：keep-alive */
+    const HTTP2_HEADER_KEEP_ALIVE = "keep-alive";
+
+    /*! @brief HTTP/2 头部：last-modified */
+    const HTTP2_HEADER_LAST_MODIFIED = "last-modified";
+
+    /*! @brief HTTP/2 头部：link */
+    const HTTP2_HEADER_LINK = "link";
+
+    /*! @brief HTTP/2 头部：location */
+    const HTTP2_HEADER_LOCATION = "location";
+
+    /*! @brief HTTP/2 头部：max-forwards */
+    const HTTP2_HEADER_MAX_FORWARDS = "max-forwards";
+
+    /*! @brief HTTP/2 头部：origin */
+    const HTTP2_HEADER_ORIGIN = "origin";
+
+    /*! @brief HTTP/2 伪头部：:path */
+    const HTTP2_HEADER_PATH = ":path";
+
+    /*! @brief HTTP/2 头部：prefer */
+    const HTTP2_HEADER_PREFER = "prefer";
+
+    /*! @brief HTTP/2 头部：priority */
+    const HTTP2_HEADER_PRIORITY = "priority";
+
+    /*! @brief HTTP/2 伪头部：:protocol */
+    const HTTP2_HEADER_PROTOCOL = ":protocol";
+
+    /*! @brief HTTP/2 头部：proxy-authenticate */
+    const HTTP2_HEADER_PROXY_AUTHENTICATE = "proxy-authenticate";
+
+    /*! @brief HTTP/2 头部：proxy-authorization */
+    const HTTP2_HEADER_PROXY_AUTHORIZATION = "proxy-authorization";
+
+    /*! @brief HTTP/2 头部：proxy-connection */
+    const HTTP2_HEADER_PROXY_CONNECTION = "proxy-connection";
+
+    /*! @brief HTTP/2 头部：purpose */
+    const HTTP2_HEADER_PURPOSE = "purpose";
+
+    /*! @brief HTTP/2 头部：range */
+    const HTTP2_HEADER_RANGE = "range";
+
+    /*! @brief HTTP/2 头部：referer */
+    const HTTP2_HEADER_REFERER = "referer";
+
+    /*! @brief HTTP/2 头部：refresh */
+    const HTTP2_HEADER_REFRESH = "refresh";
+
+    /*! @brief HTTP/2 头部：retry-after */
+    const HTTP2_HEADER_RETRY_AFTER = "retry-after";
+
+    /*! @brief HTTP/2 伪头部：:scheme */
+    const HTTP2_HEADER_SCHEME = ":scheme";
+
+    /*! @brief HTTP/2 头部：server */
+    const HTTP2_HEADER_SERVER = "server";
+
+    /*! @brief HTTP/2 头部：set-cookie */
+    const HTTP2_HEADER_SET_COOKIE = "set-cookie";
+
+    /*! @brief HTTP/2 伪头部：:status */
+    const HTTP2_HEADER_STATUS = ":status";
+
+    /*! @brief HTTP/2 头部：strict-transport-security */
+    const HTTP2_HEADER_STRICT_TRANSPORT_SECURITY = "strict-transport-security";
+
+    /*! @brief HTTP/2 头部：te */
+    const HTTP2_HEADER_TE = "te";
+
+    /*! @brief HTTP/2 头部：timing-allow-origin */
+    const HTTP2_HEADER_TIMING_ALLOW_ORIGIN = "timing-allow-origin";
+
+    /*! @brief HTTP/2 头部：tk */
+    const HTTP2_HEADER_TK = "tk";
+
+    /*! @brief HTTP/2 头部：trailer */
+    const HTTP2_HEADER_TRAILER = "trailer";
+
+    /*! @brief HTTP/2 头部：transfer-encoding */
+    const HTTP2_HEADER_TRANSFER_ENCODING = "transfer-encoding";
+
+    /*! @brief HTTP/2 头部：upgrade */
+    const HTTP2_HEADER_UPGRADE = "upgrade";
+
+    /*! @brief HTTP/2 头部：upgrade-insecure-requests */
+    const HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS = "upgrade-insecure-requests";
+
+    /*! @brief HTTP/2 头部：user-agent */
+    const HTTP2_HEADER_USER_AGENT = "user-agent";
+
+    /*! @brief HTTP/2 头部：vary */
+    const HTTP2_HEADER_VARY = "vary";
+
+    /*! @brief HTTP/2 头部：via */
+    const HTTP2_HEADER_VIA = "via";
+
+    /*! @brief HTTP/2 头部：warning */
+    const HTTP2_HEADER_WARNING = "warning";
+
+    /*! @brief HTTP/2 头部：www-authenticate */
+    const HTTP2_HEADER_WWW_AUTHENTICATE = "www-authenticate";
+
+    /*! @brief HTTP/2 头部：x-content-type-options */
+    const HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS = "x-content-type-options";
+
+    /*! @brief HTTP/2 头部：x-forwarded-for */
+    const HTTP2_HEADER_X_FORWARDED_FOR = "x-forwarded-for";
+
+    /*! @brief HTTP/2 头部：x-frame-options */
+    const HTTP2_HEADER_X_FRAME_OPTIONS = "x-frame-options";
+
+    /*! @brief HTTP/2 头部：x-xss-protection */
+    const HTTP2_HEADER_X_XSS_PROTECTION = "x-xss-protection";
+
+    /*! @brief HTTP/2 方法：ACL */
+    const HTTP2_METHOD_ACL = "ACL";
+
+    /*! @brief HTTP/2 方法：BASELINE-CONTROL */
+    const HTTP2_METHOD_BASELINE_CONTROL = "BASELINE-CONTROL";
+
+    /*! @brief HTTP/2 方法：BIND */
+    const HTTP2_METHOD_BIND = "BIND";
+
+    /*! @brief HTTP/2 方法：CHECKIN */
+    const HTTP2_METHOD_CHECKIN = "CHECKIN";
+
+    /*! @brief HTTP/2 方法：CHECKOUT */
+    const HTTP2_METHOD_CHECKOUT = "CHECKOUT";
+
+    /*! @brief HTTP/2 方法：CONNECT */
+    const HTTP2_METHOD_CONNECT = "CONNECT";
+
+    /*! @brief HTTP/2 方法：COPY */
+    const HTTP2_METHOD_COPY = "COPY";
+
+    /*! @brief HTTP/2 方法：DELETE */
+    const HTTP2_METHOD_DELETE = "DELETE";
+
+    /*! @brief HTTP/2 方法：GET */
+    const HTTP2_METHOD_GET = "GET";
+
+    /*! @brief HTTP/2 方法：HEAD */
+    const HTTP2_METHOD_HEAD = "HEAD";
+
+    /*! @brief HTTP/2 方法：LABEL */
+    const HTTP2_METHOD_LABEL = "LABEL";
+
+    /*! @brief HTTP/2 方法：LINK */
+    const HTTP2_METHOD_LINK = "LINK";
+
+    /*! @brief HTTP/2 方法：LOCK */
+    const HTTP2_METHOD_LOCK = "LOCK";
+
+    /*! @brief HTTP/2 方法：MERGE */
+    const HTTP2_METHOD_MERGE = "MERGE";
+
+    /*! @brief HTTP/2 方法：MKACTIVITY */
+    const HTTP2_METHOD_MKACTIVITY = "MKACTIVITY";
+
+    /*! @brief HTTP/2 方法：MKCALENDAR */
+    const HTTP2_METHOD_MKCALENDAR = "MKCALENDAR";
+
+    /*! @brief HTTP/2 方法：MKCOL */
+    const HTTP2_METHOD_MKCOL = "MKCOL";
+
+    /*! @brief HTTP/2 方法：MKREDIRECTREF */
+    const HTTP2_METHOD_MKREDIRECTREF = "MKREDIRECTREF";
+
+    /*! @brief HTTP/2 方法：MKWORKSPACE */
+    const HTTP2_METHOD_MKWORKSPACE = "MKWORKSPACE";
+
+    /*! @brief HTTP/2 方法：MOVE */
+    const HTTP2_METHOD_MOVE = "MOVE";
+
+    /*! @brief HTTP/2 方法：OPTIONS */
+    const HTTP2_METHOD_OPTIONS = "OPTIONS";
+
+    /*! @brief HTTP/2 方法：ORDERPATCH */
+    const HTTP2_METHOD_ORDERPATCH = "ORDERPATCH";
+
+    /*! @brief HTTP/2 方法：PATCH */
+    const HTTP2_METHOD_PATCH = "PATCH";
+
+    /*! @brief HTTP/2 方法：POST */
+    const HTTP2_METHOD_POST = "POST";
+
+    /*! @brief HTTP/2 方法：PRI */
+    const HTTP2_METHOD_PRI = "PRI";
+
+    /*! @brief HTTP/2 方法：PROPFIND */
+    const HTTP2_METHOD_PROPFIND = "PROPFIND";
+
+    /*! @brief HTTP/2 方法：PROPPATCH */
+    const HTTP2_METHOD_PROPPATCH = "PROPPATCH";
+
+    /*! @brief HTTP/2 方法：PUT */
+    const HTTP2_METHOD_PUT = "PUT";
+
+    /*! @brief HTTP/2 方法：REBIND */
+    const HTTP2_METHOD_REBIND = "REBIND";
+
+    /*! @brief HTTP/2 方法：REPORT */
+    const HTTP2_METHOD_REPORT = "REPORT";
+
+    /*! @brief HTTP/2 方法：SEARCH */
+    const HTTP2_METHOD_SEARCH = "SEARCH";
+
+    /*! @brief HTTP/2 方法：TRACE */
+    const HTTP2_METHOD_TRACE = "TRACE";
+
+    /*! @brief HTTP/2 方法：UNBIND */
+    const HTTP2_METHOD_UNBIND = "UNBIND";
+
+    /*! @brief HTTP/2 方法：UNCHECKOUT */
+    const HTTP2_METHOD_UNCHECKOUT = "UNCHECKOUT";
+
+    /*! @brief HTTP/2 方法：UNLINK */
+    const HTTP2_METHOD_UNLINK = "UNLINK";
+
+    /*! @brief HTTP/2 方法：UNLOCK */
+    const HTTP2_METHOD_UNLOCK = "UNLOCK";
+
+    /*! @brief HTTP/2 方法：UPDATE */
+    const HTTP2_METHOD_UPDATE = "UPDATE";
+
+    /*! @brief HTTP/2 方法：UPDATEREDIRECTREF */
+    const HTTP2_METHOD_UPDATEREDIRECTREF = "UPDATEREDIRECTREF";
+
+    /*! @brief HTTP/2 方法：VERSION-CONTROL */
+    const HTTP2_METHOD_VERSION_CONTROL = "VERSION-CONTROL";
+
+    /*! @brief 初始窗口大小最大值 */
+    const MAX_INITIAL_WINDOW_SIZE = 2147483647;
+
+    /*! @brief 帧大小最大值 */
+    const MAX_MAX_FRAME_SIZE = 16777215;
+
+    /*! @brief 帧大小最小值 */
+    const MIN_MAX_FRAME_SIZE = 16384;
+
+    /*! @brief NGHTTP2 错误：无错误 */
+    const NGHTTP2_NO_ERROR = 0;
+
+    /*! @brief NGHTTP2 错误：协议错误 */
+    const NGHTTP2_PROTOCOL_ERROR = 1;
+
+    /*! @brief NGHTTP2 错误：内部错误 */
+    const NGHTTP2_INTERNAL_ERROR = 2;
+
+    /*! @brief NGHTTP2 错误：流量控制错误 */
+    const NGHTTP2_FLOW_CONTROL_ERROR = 3;
+
+    /*! @brief NGHTTP2 错误：流已关闭 */
+    const NGHTTP2_STREAM_CLOSED = 5;
+
+    /*! @brief NGHTTP2 错误：帧大小错误 */
+    const NGHTTP2_FRAME_SIZE_ERROR = 6;
+
+    /*! @brief NGHTTP2 错误：流被拒绝 */
+    const NGHTTP2_REFUSED_STREAM = 7;
+
+    /*! @brief NGHTTP2 错误：取消 */
+    const NGHTTP2_CANCEL = 8;
+
+    /*! @brief NGHTTP2 错误：压缩错误 */
+    const NGHTTP2_COMPRESSION_ERROR = 9;
+
+    /*! @brief NGHTTP2 错误：连接错误 */
+    const NGHTTP2_CONNECT_ERROR = 10;
+
+    /*! @brief NGHTTP2 错误：请降速 */
+    const NGHTTP2_ENHANCE_YOUR_CALM = 11;
+
+    /*! @brief NGHTTP2 错误：安全性不足 */
+    const NGHTTP2_INADEQUATE_SECURITY = 12;
+
+    /*! @brief NGHTTP2 错误：需要 HTTP/1.1 */
+    const NGHTTP2_HTTP_1_1_REQUIRED = 13;
+
+    /*! @brief NGHTTP2 内部错误：帧大小错误 */
+    const NGHTTP2_ERR_FRAME_SIZE_ERROR = -522;
+
+    /*! @brief NGHTTP2 Flag：无标志 */
+    const NGHTTP2_FLAG_NONE = 0;
+
+    /*! @brief NGHTTP2 Flag：ACK */
+    const NGHTTP2_FLAG_ACK = 1;
+
+    /*! @brief NGHTTP2 Flag：END_STREAM */
+    const NGHTTP2_FLAG_END_STREAM = 1;
+
+    /*! @brief NGHTTP2 Flag：END_HEADERS */
+    const NGHTTP2_FLAG_END_HEADERS = 4;
+
+    /*! @brief NGHTTP2 Flag：PADDED */
+    const NGHTTP2_FLAG_PADDED = 8;
+
+    /*! @brief NGHTTP2 Flag：PRIORITY */
+    const NGHTTP2_FLAG_PRIORITY = 32;
+
+    /*! @brief NGHTTP2 默认权重 */
+    const NGHTTP2_DEFAULT_WEIGHT = 16;
+
+    /*! @brief NGHTTP2 会话类型：服务端 */
+    const NGHTTP2_SESSION_SERVER = 0;
+
+    /*! @brief NGHTTP2 会话类型：客户端 */
+    const NGHTTP2_SESSION_CLIENT = 1;
+
+    /*! @brief NGHTTP2 设置：头部表大小 */
+    const NGHTTP2_SETTINGS_HEADER_TABLE_SIZE = 1;
+
+    /*! @brief NGHTTP2 设置：是否启用推送 */
+    const NGHTTP2_SETTINGS_ENABLE_PUSH = 2;
+
+    /*! @brief NGHTTP2 设置：最大并发流 */
+    const NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS = 3;
+
+    /*! @brief NGHTTP2 设置：初始窗口大小 */
+    const NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE = 4;
+
+    /*! @brief NGHTTP2 设置：超时 */
+    const NGHTTP2_SETTINGS_TIMEOUT = 4;
+
+    /*! @brief NGHTTP2 设置：最大帧大小 */
+    const NGHTTP2_SETTINGS_MAX_FRAME_SIZE = 5;
+
+    /*! @brief NGHTTP2 设置：最大头部列表大小 */
+    const NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE = 6;
+
+    /*! @brief NGHTTP2 设置：启用 CONNECT 协议扩展 */
+    const NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL = 8;
+
+    /*! @brief NGHTTP2 流状态：idle */
+    const NGHTTP2_STREAM_STATE_IDLE = 1;
+
+    /*! @brief NGHTTP2 流状态：open */
+    const NGHTTP2_STREAM_STATE_OPEN = 2;
+
+    /*! @brief NGHTTP2 流状态：reserved local */
+    const NGHTTP2_STREAM_STATE_RESERVED_LOCAL = 3;
+
+    /*! @brief NGHTTP2 流状态：reserved remote */
+    const NGHTTP2_STREAM_STATE_RESERVED_REMOTE = 4;
+
+    /*! @brief NGHTTP2 流状态：half closed local */
+    const NGHTTP2_STREAM_STATE_HALF_CLOSED_LOCAL = 5;
+
+    /*! @brief NGHTTP2 流状态：half closed remote */
+    const NGHTTP2_STREAM_STATE_HALF_CLOSED_REMOTE = 6;
+
+    /*! @brief NGHTTP2 流状态：closed */
+    const NGHTTP2_STREAM_STATE_CLOSED = 7;
+
+    /*! @brief 填充策略：不填充 */
+    const PADDING_STRATEGY_NONE = 0;
+
+    /*! @brief 填充策略：对齐 */
+    const PADDING_STRATEGY_ALIGNED = 1;
+
+    /*! @brief 填充策略：回调（等同于 ALIGNED） */
+    const PADDING_STRATEGY_CALLBACK = 1;
+
+    /*! @brief 填充策略：最大填充 */
+    const PADDING_STRATEGY_MAX = 2;
+};

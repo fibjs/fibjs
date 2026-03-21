@@ -150,6 +150,9 @@ function gen_code(cls, def, baseFolder, allDefs) {
         var value = fn.default.value;
         if (value === 'true' || value === 'false') return 'Boolean';
         if (value.startsWith('"') && value.endsWith('"')) return 'String';
+        // Detect integers outside int32 range
+        var num = Number(value);
+        if (!isNaN(num) && (num > 2147483647 || num < -2147483648)) return 'Long';
         return 'Integer';
     }
 
@@ -937,18 +940,28 @@ function gen_code(cls, def, baseFolder, allDefs) {
         }
 
         function gen_cls_consts() {
-            var consts = [];
+            var int_consts = [];
+            var long_consts = [];
 
             def.members.forEach(fn => {
-                // Only Integer consts go into enum
-                if (fn.memType === "const" && inferConstType(fn) === 'Integer')
-                    consts.push(`        C_${fn.name} = ${fn.default.value}`);
+                if (fn.memType !== "const") return;
+                var ctype = inferConstType(fn);
+                // Integer consts go into enum (int32_t)
+                if (ctype === 'Integer')
+                    int_consts.push(`        C_${fn.name} = ${fn.default.value}`);
+                // Long consts go into a static int64_t declaration
+                else if (ctype === 'Long')
+                    long_consts.push(`    static const int64_t C_${fn.name} = ${fn.default.value}LL;`);
             });
 
-            if (consts.length) {
+            if (int_consts.length) {
                 txts.push("\npublic:\n    enum {");
-                txts.push(consts.join(",\n"));
+                txts.push(int_consts.join(",\n"));
                 txts.push("    };");
+            }
+            if (long_consts.length) {
+                txts.push("\npublic:");
+                long_consts.forEach(l => txts.push(l));
             }
         }
 
@@ -1279,6 +1292,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                     if (constType === 'Integer') {
                         valueExpr = `{ .intValue = C_${fname} }`;
+                    } else if (constType === 'Long') {
+                        valueExpr = `{ .longValue = C_${fname} }`;
                     } else if (constType === 'Boolean') {
                         valueExpr = `{ .boolValue = ${fn.default.value} }`;
                     } else if (constType === 'String') {
