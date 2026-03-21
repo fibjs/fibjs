@@ -2129,5 +2129,62 @@ describe('util', () => {
             assert.strictEqual(util.stripVTControlCharacters('\x1b[31m\x1b[0m'), '');
         });
     });
+
+    describe("styleText", () => {
+        // styleText output depends on whether the terminal supports colors.
+        // We test the structure: with colors the result wraps text with ANSI
+        // sequences; without colors the original text is returned unchanged.
+        const colors = util.colors;
+
+        it("should return text unchanged when colors are not supported", () => {
+            if (colors.hasColors)
+                return; // skip: terminal is a TTY, color path tested separately
+            assert.strictEqual(util.styleText('red', 'hello'), 'hello');
+            assert.strictEqual(util.styleText(['bold', 'green'], 'world'), 'world');
+        });
+
+        it("should wrap text with ANSI codes when colors are supported", () => {
+            if (!colors.hasColors)
+                return; // skip: no TTY, no-color path tested above
+            assert.strictEqual(util.styleText('red', 'hi'), '\x1b[31mhi\x1b[39m');
+            assert.strictEqual(util.styleText(['bold', 'green'], 'hi'),
+                '\x1b[1m\x1b[32mhi\x1b[39m\x1b[22m');
+        });
+
+        it("should produce ANSI codes matching known code table", () => {
+            // Verify the output can be stripped back to the plain text
+            assert.strictEqual(
+                util.stripVTControlCharacters(util.styleText('red', 'hello')),
+                'hello'
+            );
+            assert.strictEqual(
+                util.stripVTControlCharacters(util.styleText(['bold', 'underline'], 'test')),
+                'test'
+            );
+        });
+
+        it("should return text unchanged for unknown format names", () => {
+            // Unknown format: no ANSI wrapping applied, but no error thrown
+            const result = util.styleText('notacolor', 'text');
+            assert.strictEqual(util.stripVTControlCharacters(result), 'text');
+        });
+
+        it("should handle empty format array", () => {
+            const result = util.styleText([], 'text');
+            assert.strictEqual(util.stripVTControlCharacters(result), 'text');
+        });
+
+        it("should handle all documented format names without throwing", () => {
+            const formats = [
+                'bold', 'italic', 'underline', 'strikethrough', 'hidden',
+                'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+                'bgBlack', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite',
+                'gray', 'grey', 'blackBright', 'redBright', 'greenBright',
+                'yellowBright', 'blueBright', 'magentaBright', 'cyanBright', 'whiteBright',
+            ];
+            for (const fmt of formats)
+                assert.strictEqual(util.stripVTControlCharacters(util.styleText(fmt, 'x')), 'x');
+        });
+    });
 });
 

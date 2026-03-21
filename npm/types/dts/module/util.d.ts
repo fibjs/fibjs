@@ -131,6 +131,34 @@ declare module 'util' {
     function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
+     * @description 为文本应用 ANSI 颜色/样式格式化（兼容 Node.js v20.12+）
+     * 
+     *      当不支持颜色输出时（如非 TTY 环境、设置了 NO_COLOR），原样返回文本。
+     * 
+     *      支持的格式：bold、italic、underline、strikethrough、hidden、
+     *      black、red、green、yellow、blue、magenta、cyan、white、
+     *      bgBlack、bgRed、bgGreen、bgYellow、bgBlue、bgMagenta、bgCyan、bgWhite、
+     *      gray/grey、blackBright、redBright、greenBright、yellowBright、blueBright、
+     *      magentaBright、cyanBright、whiteBright
+     * 
+     *      @param format 格式名称数组
+     *      @param text 要格式化的文本
+     *      @return 返回格式化后的字符串
+     *      
+     */
+    function styleText(format: string[], text: string): string;
+
+    /**
+     * @description 为文本应用 ANSI 颜色/样式格式化（兼容 Node.js v20.12+）
+     * 
+     *      @param format 格式名称
+     *      @param text 要格式化的文本
+     *      @return 返回格式化后的字符串
+     *      
+     */
+    function styleText(format: string, text: string): string;
+
+    /**
      * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
      *      
      *      @param section 指定的调试区域

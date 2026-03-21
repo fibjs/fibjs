@@ -106,6 +106,30 @@ module util
      */
     static String inspect(Value obj, Object options = {});
 
+    /*! @brief Apply ANSI color/style formatting to a text string (Node.js v20.12+ compatible)
+
+     When color output is not supported (e.g. non-TTY, NO_COLOR set), the text is returned unmodified.
+
+     Supported formats: bold, italic, underline, strikethrough, hidden,
+     black, red, green, yellow, blue, magenta, cyan, white,
+     bgBlack, bgRed, bgGreen, bgYellow, bgBlue, bgMagenta, bgCyan, bgWhite,
+     gray/grey, blackBright, redBright, greenBright, yellowBright, blueBright,
+     magentaBright, cyanBright, whiteBright
+
+     @param format Array of format names to apply
+     @param text Text to style
+     @return Return the styled string
+     */
+    static String styleText(String format[], String text);
+
+    /*! @brief Apply ANSI color/style formatting to a text string (Node.js v20.12+ compatible)
+
+     @param format Format name to apply
+     @param text Text to style
+     @return Return the styled string
+     */
+    static String styleText(String format, String text);
+
     /*! @brief Create a ConsoleObject object that conditionally outputs debug information based on the NODE_DEBUG environment variable
      
      @param section Specified debug area
