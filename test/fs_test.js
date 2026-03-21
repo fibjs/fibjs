@@ -783,6 +783,29 @@ describe('fs', () => {
         });
     });
 
+    it("mkdtemp creates unique temp directory", () => {
+        var dir = fs.mkdtempSync(path.join(homedir, 'fibjs-mkdtemp-test-'));
+        try {
+            assert.ok(fs.exists(dir), "temp dir should exist");
+            assert.ok(dir.startsWith(path.join(homedir, 'fibjs-mkdtemp-test-')), "dir should start with prefix");
+            var stat = fs.stat(dir);
+            assert.ok(stat.isDirectory(), "should be a directory");
+        } finally {
+            fs.rmdir(dir);
+        }
+    });
+
+    it("mkdtemp creates unique directories each call", () => {
+        var dir1 = fs.mkdtempSync(path.join(homedir, 'fibjs-mkdtemp-'));
+        var dir2 = fs.mkdtempSync(path.join(homedir, 'fibjs-mkdtemp-'));
+        try {
+            assert.notEqual(dir1, dir2, "each call should return a unique path");
+        } finally {
+            fs.rmdir(dir1);
+            fs.rmdir(dir2);
+        }
+    });
+
     it("file.size", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
         var st = fs.stat(path.join(__dirname, 'fs_test.js'));

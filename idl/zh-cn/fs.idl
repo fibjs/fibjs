@@ -105,6 +105,12 @@ module fs
      */
     static mkdir(String path, Object opt) async;
 
+    /*! @brief 创建一个唯一的临时目录
+     @param prefix 指定临时目录名称的前缀
+     @return 返回创建的临时目录的路径
+     */
+    static String mkdtemp(String prefix) async;
+
     /*! @brief 删除一个目录
 
      删除参数可以包含以下值：

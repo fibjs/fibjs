@@ -998,6 +998,22 @@ private:
     std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
 };
 
+result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    // Append XXXXXX template suffix as required by mkdtemp()
+    exlib::string tpl = prefix + "XXXXXX";
+    AutoReq req;
+    int32_t ret = uv_fs_mkdtemp(NULL, &req, tpl.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    retVal = uv_fs_get_path(&req);
+    return 0;
+}
+
 result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
 {
     if (ac->isSync()) {

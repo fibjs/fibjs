@@ -105,6 +105,12 @@ module fs
      */
     static mkdir(String path, Object opt) async;
 
+    /*! @brief Create a unique temporary directory
+     @param prefix Specify the prefix for the name of the temp directory
+     @return Return the path of the created temp directory
+     */
+    static String mkdtemp(String prefix) async;
+
     /*! @brief Delete a directory
 
      Deletion parameters can include the following values:
