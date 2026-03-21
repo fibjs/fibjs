@@ -38,6 +38,7 @@ public:
     virtual result_t get_remotePort(int32_t& retVal);
     virtual result_t get_localAddress(exlib::string& retVal);
     virtual result_t get_localPort(int32_t& retVal);
+    virtual result_t get_alpnProtocol(exlib::string& retVal);
 
 public:
     // Stream_base

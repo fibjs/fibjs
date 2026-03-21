@@ -36,6 +36,7 @@ public:
     result_t SetRootCerts();
     result_t init(v8::Local<v8::Object> options, bool isServer);
     SSL_CTX* ctx() { return m_ctx; }
+    bool hasAlpn() const { return !m_alpnProtos.empty(); }
 
 private:
     void init_ctx(const SSL_METHOD* method);
@@ -48,9 +49,13 @@ private:
     result_t set_verify(v8::Local<v8::Object> options, bool isServer);
     result_t set_sessionTimeout(v8::Local<v8::Object> options);
     result_t set_sn_callback(v8::Local<v8::Object> options);
+    result_t set_alpnProtocols(v8::Local<v8::Object> options, bool isServer);
 
     static int s_sn_callback(SSL* ssl, int* ad, void* arg);
     int sn_callback(SSL* ssl, int* ad);
+
+    static int alpn_select_callback(SSL* ssl, const unsigned char** out, unsigned char* outlen,
+        const unsigned char* in, unsigned int inlen, void* arg);
 
 private:
     SSLCtxPointer m_ctx;
@@ -60,6 +65,7 @@ private:
 
     LruCache<obj_ptr<SecureContext>> m_sniContexts;
     v8::Global<v8::Function> m_sn_callback;
+    std::vector<unsigned char> m_alpnProtos;
 };
 
 }

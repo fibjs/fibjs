@@ -1,0 +1,59 @@
+/*! @brief Http2Server is a high-concurrency HTTP/2 server
+
+Http2Server handles HTTP/2 connections over TLS (h2). When a client connects, the server creates an Http2Session for each connection and emits 'stream' events for each request.
+
+```JavaScript
+const http2 = require('http2');
+
+const server = http2.createServer({
+    key: ...,
+    cert: ...
+}, function(req) {
+    req.response.write('Hello, HTTP/2!');
+});
+server.listen(8443);
+server.start();
+```
+*/
+interface Http2Server : TcpServer
+{
+    /*! @brief Http2Server constructor
+     @param context SecureContext security context
+     @param hdlr http built-in message processor
+    */
+    Http2Server(SecureContext context, Handler hdlr);
+
+    /*! @brief Http2Server constructor
+     @param context SecureContext security context
+     @param port Listening port
+     @param hdlr http built-in message processor
+    */
+    Http2Server(SecureContext context, Integer port, Handler hdlr);
+
+    /*! @brief Http2Server constructor
+     @param context SecureContext security context
+     @param addr Listening address
+     @param port Listening port
+     @param hdlr http built-in message processor
+    */
+    Http2Server(SecureContext context, String addr, Integer port, Handler hdlr);
+
+    /*! @brief Http2Server constructor, creates SecureContext from options
+     @param options Options to create SecureContext, may include address and port
+     @param hdlr http built-in message processor
+    */
+    Http2Server(Object options, Handler hdlr);
+
+    /*! @brief Query the SecureContext used by the current Http2Server */
+    readonly SecureContext secureContext;
+
+    /*! @brief Set the SecureContext used by the current Http2Server
+     @param context Specify the new SecureContext
+    */
+    setSecureContext(SecureContext context);
+
+    /*! @brief Set the SecureContext used by the current Http2Server
+     @param options Options to create the new SecureContext
+    */
+    setSecureContext(Object options);
+};

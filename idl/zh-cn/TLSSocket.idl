@@ -77,4 +77,7 @@ interface TLSSocket : Stream
 
     /*! @brief 查询当前连接的本地端口 */
     readonly Integer localPort;
+
+    /*! @brief 查询当前连接协商的 ALPN 协议，如果没有协商则返回 undefined */
+    readonly String alpnProtocol;
 };

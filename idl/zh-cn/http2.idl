@@ -1,0 +1,67 @@
+/*! @brief http2 模块提供 HTTP/2 协议支持
+
+http2 模块允许创建 HTTP/2 服务器和客户端，完整支持流多路复用、头部压缩和流量控制。
+
+```JavaScript
+const http2 = require('http2');
+
+// 客户端示例
+const session = http2.connect('https://example.com');
+const stream = session.request({ ':path': '/' });
+const response = stream.read();
+session.close();
+
+// 服务端示例
+const server = http2.createServer({
+    key: ...,
+    cert: ...
+}, function(req) {
+    req.response.write('Hello, HTTP/2!');
+});
+server.listen(8443);
+server.start();
+```
+*/
+module http2
+{
+    /*! @brief 创建 Http2Server 对象，参见 Http2Server */
+    static Http2Server new Server();
+
+    /*! @brief 创建 Http2 服务器
+     @param options TLS 选项对象或 SecureContext 配置
+     @param hdlr 请求处理函数
+     @return 返回 Http2Server 对象，调用 listen() 然后 start() 开始服务
+    */
+    static Http2Server createServer(Object options, Handler hdlr);
+
+    /*! @brief 创建 Http2 服务器
+     @param context SecureContext 对象用于 TLS 配置
+     @param hdlr 请求处理函数
+     @return 返回 Http2Server 对象，调用 listen() 然后 start() 开始服务
+    */
+    static Http2Server createServer(SecureContext context, Handler hdlr);
+
+    /*! @brief 创建到指定目标的 HTTP/2 客户端会话
+
+     authority 应为 URL 字符串，如 'https://example.com' 或 'https://example.com:8443'。
+
+     options 可包含：
+     - 所有 SecureContext 选项（key、cert、ca 等）
+
+     @param authority 要连接的服务器 URL
+     @param options 连接选项
+     @return 返回 Http2Session 客户端会话
+    */
+    static Http2Session connect(String authority, Object options = {}) async;
+
+    /*! @brief 返回默认的 HTTP/2 设置对象
+     @return 返回包含默认设置的对象
+    */
+    static Object getDefaultSettings();
+
+    /*! @brief Http2Stream 对象，参见 Http2Stream */
+    static Http2Stream;
+
+    /*! @brief Http2Session 对象，参见 Http2Session */
+    static Http2Session;
+};

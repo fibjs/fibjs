@@ -66,6 +66,10 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool isServer)
     if (hr < 0)
         return hr;
 
+    hr = set_alpnProtocols(options, isServer);
+    if (hr < 0)
+        return hr;
+
     if (isServer) {
         hr = set_sn_callback(options);
         if (hr < 0)
@@ -619,6 +623,70 @@ result_t SecureContext::removeSNIContext(exlib::string servername)
 result_t SecureContext::clearSNIContexts()
 {
     m_sniContexts.clear();
+    return 0;
+}
+
+int SecureContext::alpn_select_callback(SSL* ssl, const unsigned char** out, unsigned char* outlen,
+    const unsigned char* in, unsigned int inlen, void* arg)
+{
+    SecureContext* ctx = static_cast<SecureContext*>(arg);
+    const std::vector<unsigned char>& alpn = ctx->m_alpnProtos;
+
+    if (alpn.empty())
+        return SSL_TLSEXT_ERR_NOACK;
+
+    if (SSL_select_next_proto(const_cast<unsigned char**>(out), outlen,
+            alpn.data(), alpn.size(), in, inlen)
+        != OPENSSL_NPN_NEGOTIATED)
+        return SSL_TLSEXT_ERR_NOACK;
+
+    return SSL_TLSEXT_ERR_OK;
+}
+
+result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool isServer)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    result_t hr;
+
+    v8::Local<v8::Value> val;
+    hr = GetConfigValue(options, "alpnProtocols", val);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return 0;
+    if (hr < 0)
+        return hr;
+
+    if (!val->IsArray())
+        return Runtime::setError("SecureContext: alpnProtocols must be an array of strings.");
+
+    v8::Local<v8::Array> arr = val.As<v8::Array>();
+    uint32_t len = arr->Length();
+    if (len == 0)
+        return 0;
+
+    // Build wire-format ALPN protocol list: each protocol prefixed by its length byte
+    m_alpnProtos.clear();
+    for (uint32_t i = 0; i < len; i++) {
+        v8::Local<v8::Value> item = arr->Get(context, i).FromMaybe(v8::Local<v8::Value>());
+        if (item.IsEmpty() || !item->IsString())
+            return Runtime::setError("SecureContext: alpnProtocols must be an array of strings.");
+
+        v8::String::Utf8Value proto(isolate->m_isolate, item);
+        int proto_len = proto.length();
+        if (proto_len == 0 || proto_len > 255)
+            return Runtime::setError("SecureContext: ALPN protocol length must be 1-255.");
+
+        m_alpnProtos.push_back(static_cast<unsigned char>(proto_len));
+        m_alpnProtos.insert(m_alpnProtos.end(), *proto, *proto + proto_len);
+    }
+
+    if (isServer) {
+        SSL_CTX_set_alpn_select_cb(m_ctx, alpn_select_callback, this);
+    } else {
+        if (SSL_CTX_set_alpn_protos(m_ctx, m_alpnProtos.data(), m_alpnProtos.size()) != 0)
+            return Runtime::setError("SecureContext: failed to set ALPN protocols.");
+    }
+
     return 0;
 }
 

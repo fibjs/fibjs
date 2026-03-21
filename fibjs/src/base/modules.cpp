@@ -30,6 +30,7 @@ void importBuiltinModule()
     IMPORT_MODULE(gui);
     IMPORT_MODULE(hex);
     IMPORT_MODULE(http);
+    IMPORT_MODULE(http2);
     IMPORT_MODULE(https);
     IMPORT_MODULE(io);
     IMPORT_MODULE(json);

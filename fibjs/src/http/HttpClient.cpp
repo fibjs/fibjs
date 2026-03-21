@@ -29,6 +29,10 @@
 #include "ifs/querystring.h"
 #include <string.h>
 #include <memory>
+#include "Http2Session.h"
+#include "Http2Stream.h"
+#include "SecureContext.h"
+#include <openssl/ssl.h>
 
 namespace fibjs {
 
@@ -1075,6 +1079,17 @@ public:
             m_sslhost.clear();
 
         m_reuse = false;
+
+        // Check for existing H2 session before creating a new TCP connection
+        if (m_ssl) {
+            m_h2session = m_hc->get_h2session(m_connUrl);
+            if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
+                m_conn = m_h2session->m_conn;
+                return next(h2_request);
+            }
+            m_h2session.Release();
+        }
+
         if (m_hc->get_conn(m_connUrl, m_conn)) {
             m_reuse = true;
             return next(connected);
@@ -1265,6 +1280,17 @@ public:
         obj_ptr<TLSSocket> ss = new TLSSocket();
         ss->init(m_hc->m_context);
 
+        // Auto-negotiate ALPN: if user hasn't set ALPN on the context,
+        // set ["h2", "http/1.1"] on this SSL connection for HTTP/2 upgrade
+        SecureContext* ctx = static_cast<SecureContext*>(m_hc->m_context.get());
+        if (!ctx->hasAlpn()) {
+            static const unsigned char alpn[] = {
+                2, 'h', '2',
+                8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+            };
+            SSL_set_alpn_protos(ss->m_tls, alpn, sizeof(alpn));
+        }
+
         obj_ptr<Stream_base> conn = m_conn;
         m_conn = ss;
         *m_pconn = m_conn; // sync slot during TLS handshake
@@ -1278,7 +1304,188 @@ public:
         if (!m_ssl)
             m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
 
+        // Check ALPN negotiation result for HTTP/2 auto-upgrade
+        if (m_ssl && !m_reuse) {
+            TLSSocket* tls = static_cast<TLSSocket*>(TLSSocket_base::getInstance(m_conn));
+            if (tls) {
+                exlib::string alpn;
+                tls->get_alpnProtocol(alpn);
+                if (alpn == "h2")
+                    return next(h2_init_session);
+            }
+        }
+
         return m_hc->request(m_conn, m_req, m_retVal, next(requested));
+    }
+
+    ON_STATE(asyncRequest, h2_init_session)
+    {
+        // Try to reuse existing H2 session from pool
+        m_h2session = m_hc->get_h2session(m_connUrl);
+        if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
+            return next(h2_request);
+        }
+
+        // Create new H2 session (internal mode: no V8 access)
+        m_h2session = new Http2Session(false);
+        m_h2session->m_internal = true;
+        m_h2session->m_scheme = "https";
+        m_h2session->m_authority = m_sslhost;
+
+        result_t hr = m_h2session->init(m_conn);
+        if (hr < 0)
+            return hr;
+
+        // Build and submit request immediately (before starting readLoop)
+        return next(h2_request);
+    }
+
+    ON_STATE(asyncRequest, h2_request)
+    {
+        // Build headers for H2 request from HttpRequest
+        exlib::string method, path, host;
+        m_req->get_method(method);
+        m_req->get_address(path);
+        m_req->firstHeader("Host", host);
+
+        std::vector<std::pair<exlib::string, exlib::string>> hdrs;
+        hdrs.push_back({ ":method", method });
+        hdrs.push_back({ ":path", path });
+        hdrs.push_back({ ":scheme", "https" });
+        hdrs.push_back({ ":authority", host.empty() ? m_sslhost : host });
+
+        // Copy regular headers from request (skip Host, it's in :authority)
+        obj_ptr<Headers_base> req_headers;
+        m_req->get_headers(req_headers);
+        Headers* hc = static_cast<Headers*>(req_headers.get());
+        for (size_t i = 0; i < hc->m_map.size(); i++) {
+            auto& p = hc->m_map[i];
+            exlib::string name = p.first;
+            // Skip pseudo-headers and Host (already in :authority)
+            if (name.length() > 0 && name[0] != ':'
+                && qstricmp(name.c_str(), "Host")) {
+                // HTTP/2 requires lowercase header names
+                for (size_t j = 0; j < name.length(); j++)
+                    name[j] = tolower(name[j]);
+                hdrs.push_back({ name, p.second.string() });
+            }
+        }
+
+        bool endStream = (method == "GET" || method == "HEAD");
+        if (!endStream) {
+            obj_ptr<Stream_base> bodyStream;
+            m_req->get_body(bodyStream);
+            if (!bodyStream)
+                endStream = true;
+        }
+
+        result_t hr = m_h2session->request(hdrs, endStream, m_h2stream);
+        if (hr < 0)
+            return hr;
+
+        // If request has body, read it before collecting pending data
+        if (!endStream) {
+            obj_ptr<Stream_base> bodyStream;
+            m_req->get_body(bodyStream);
+            obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(bodyStream);
+            if (seekable) {
+                seekable->rewind();
+                return seekable->readAll(m_buffer, next(h2_send_body));
+            }
+        }
+
+        // GET/HEAD: collect and send HEADERS only
+        hr = m_h2session->collectPendingData(m_h2buf);
+        if (hr < 0)
+            return hr;
+
+        if (m_h2buf)
+            return m_conn->writeBuffer(m_h2buf, next(h2_request_sent));
+
+        return next(h2_request_sent);
+    }
+
+    ON_STATE(asyncRequest, h2_send_body)
+    {
+        // Store body data on stream's send buffer
+        if (n != CALL_RETURN_NULL && m_buffer) {
+            Buffer* buf = Buffer::Cast(m_buffer);
+            m_h2stream->m_send_lock.lock();
+            m_h2stream->m_send_data.append((const char*)buf->data(), buf->length());
+            m_h2stream->m_send_lock.unlock();
+            m_buffer.Release();
+        }
+        m_h2stream->m_send_end = true;
+
+        // Collect pending data (HEADERS + DATA frames)
+        result_t hr = m_h2session->collectPendingData(m_h2buf);
+        if (hr < 0)
+            return hr;
+
+        if (m_h2buf)
+            return m_conn->writeBuffer(m_h2buf, next(h2_request_sent));
+
+        return next(h2_request_sent);
+    }
+
+    ON_STATE(asyncRequest, h2_request_sent)
+    {
+        m_h2buf.Release();
+
+        // Start readLoop only for a NEW session (not already saved in pool)
+        if (!m_hc->get_h2session(m_connUrl)) {
+            m_h2session->startLoops();
+            m_hc->save_h2session(m_connUrl, m_h2session);
+        }
+
+        // IMPORTANT: Break out of the TLS writeBuffer callback chain before
+        // waiting for headers. The TLS socket's m_write_lock is still held
+        // by the AsyncWrite that delivered us here. If we call waitHeaders
+        // directly, the fiber suspends with the lock held, deadlocking the
+        // readLoop's writes. Re-posting via apost yields control so the
+        // AsyncWrite destructor releases the lock first.
+        next(h2_wait_headers);
+        apost(0);
+        return CALL_E_PENDDING;
+    }
+
+    ON_STATE(asyncRequest, h2_wait_headers)
+    {
+        // Wait for response headers
+        return m_h2stream->waitHeaders(next(h2_response));
+    }
+
+    ON_STATE(asyncRequest, h2_response)
+    {
+        // Build HttpResponse from H2 stream headers and body
+        obj_ptr<HttpResponse> resp = new HttpResponse();
+
+        // Get response headers from the H2 stream
+        obj_ptr<NObject> h2_headers = m_h2stream->m_headers;
+        if (h2_headers) {
+            // Extract :status
+            Variant status_var;
+            if (h2_headers->get(":status", status_var) == 0) {
+                exlib::string status_str = status_var.string();
+                resp->set_statusCode(atoi(status_str.c_str()));
+            }
+
+            // Copy regular headers to HttpResponse
+            for (auto& kv : h2_headers->m_keys) {
+                const exlib::string& key = kv.first;
+                if (key.length() > 0 && key[0] != ':') {
+                    int32_t idx = kv.second;
+                    resp->appendHeader(key, h2_headers->m_values[idx].m_val.string());
+                }
+            }
+        }
+
+        // Set body stream to H2 stream for subsequent reads
+        resp->set_keepAlive(true);
+        resp->m_message->m_bodyStream = m_h2stream;
+
+        m_retVal = resp;
+        return next(requested);
     }
 
     ON_STATE(asyncRequest, requested)
@@ -1300,9 +1507,10 @@ public:
 
         // Inner asyncRequest always returns a BodyStream (streaming path).
         // Wire up EOF-triggered connection pool return on the BodyStream.
+        // For H2, session pooling is managed separately - skip BodyStream cleanup.
         bool keepAlive;
         m_retVal->get_keepAlive(keepAlive);
-        if (keepAlive) {
+        if (keepAlive && !m_h2session) {
             obj_ptr<Stream_base> bodyStream;
             if (m_retVal->get_body(bodyStream) == 0 && bodyStream) {
                 BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
@@ -1422,6 +1630,11 @@ private:
     obj_ptr<HttpClient> m_hc;
     obj_ptr<Buffer_base> m_buffer;
     bool m_reuse;
+
+    // HTTP/2 auto-upgrade state
+    obj_ptr<Http2Session> m_h2session;
+    obj_ptr<Http2Stream> m_h2stream;
+    obj_ptr<Buffer_base> m_h2buf;
 };
 
 result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)

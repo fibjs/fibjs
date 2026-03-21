@@ -41,6 +41,7 @@ public:
     virtual result_t get_remotePort(int32_t& retVal) = 0;
     virtual result_t get_localAddress(exlib::string& retVal) = 0;
     virtual result_t get_localPort(int32_t& retVal) = 0;
+    virtual result_t get_alpnProtocol(exlib::string& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -59,6 +60,7 @@ public:
     static void s_get_remotePort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_localAddress(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_localPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_alpnProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER2(TLSSocket_base, connect, Stream_base*, exlib::string);
@@ -88,7 +90,8 @@ inline ClassInfo& TLSSocket_base::class_info()
         { "remoteAddress", s_get_remoteAddress, block_set, false },
         { "remotePort", s_get_remotePort, block_set, false },
         { "localAddress", s_get_localAddress, block_set, false },
-        { "localPort", s_get_localPort, block_set, false }
+        { "localPort", s_get_localPort, block_set, false },
+        { "alpnProtocol", s_get_alpnProtocol, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -334,6 +337,20 @@ inline void TLSSocket_base::s_get_localPort(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(0, 0);
 
     hr = pInst->get_localPort(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TLSSocket_base::s_get_alpnProtocol(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(TLSSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_alpnProtocol(vr);
 
     METHOD_RETURN();
 }

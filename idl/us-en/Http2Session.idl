@@ -1,0 +1,69 @@
+/*! @brief Http2Session represents an active HTTP/2 session, managing the connection and all streams
+
+Http2Session instances should not be directly constructed by the user. For server-side, Http2Session instances are created when a new HTTP/2 connection is received. For client-side, use http2.connect() to create a session.
+*/
+interface Http2Session : EventEmitter
+{
+    /*! @brief Query the remote settings for this session */
+    readonly Object remoteSettings;
+
+    /*! @brief Query the local settings for this session */
+    readonly Object localSettings;
+
+    /*! @brief Query whether the session has been destroyed */
+    readonly Boolean destroyed;
+
+    /*! @brief Query whether the session has been closed */
+    readonly Boolean closed;
+
+    /*! @brief Query the ALPN protocol negotiated for this session */
+    readonly String alpnProtocol;
+
+    /*! @brief Query the underlying TLSSocket of this session */
+    readonly Stream socket;
+
+    /*! @brief Initiate a new HTTP/2 stream to send a request (client-side only)
+     @param headers An Object containing request headers, must include :method and :path pseudo-headers
+     @param options Optional stream creation options
+     @return Returns an Http2Stream object for the new request
+    */
+    Http2Stream request(Object headers, Object options = {});
+
+    /*! @brief Send a GOAWAY frame to the remote peer and gracefully close the session
+     @param code The HTTP/2 error code, default is NGHTTP2_NO_ERROR (0)
+     @param lastStreamId The last stream ID the local peer processed, default is 0
+    */
+    goaway(Integer code = 0, Integer lastStreamId = 0);
+
+    /*! @brief Send a PING frame to the remote peer
+     @return Returns the round-trip time in milliseconds
+    */
+    Integer ping() async;
+
+    /*! @brief Update the local settings for this session
+     @param settings An Object containing settings to update
+    */
+    settings(Object settings);
+
+    /*! @brief Gracefully close the session, allowing existing streams to complete
+    */
+    close() async;
+
+    /*! @brief Immediately destroy the session, aborting all streams
+    */
+    destroy();
+
+    /*! @brief emitted when a new stream is created (server-side)
+     @param stream The newly created Http2Stream
+     @param headers The request headers object
+    */
+    event stream(Http2Stream stream, Object headers);
+
+    /*! @brief emitted when the session receives a GOAWAY frame */
+    event goaway();
+
+    /*! @brief emitted when an error occurs on the session
+     @param err The error object
+    */
+    event error(Object err);
+};

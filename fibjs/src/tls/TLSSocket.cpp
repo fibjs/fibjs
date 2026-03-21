@@ -348,6 +348,19 @@ result_t TLSSocket::get_localPort(int32_t& retVal)
     return sock->get_localPort(retVal);
 }
 
+result_t TLSSocket::get_alpnProtocol(exlib::string& retVal)
+{
+    const unsigned char* proto = nullptr;
+    unsigned int proto_len = 0;
+
+    SSL_get0_alpn_selected(m_tls, &proto, &proto_len);
+    if (proto == nullptr || proto_len == 0)
+        return CALL_RETURN_UNDEFINED;
+
+    retVal.assign(reinterpret_cast<const char*>(proto), proto_len);
+    return 0;
+}
+
 result_t TLSSocket::get_fd(int32_t& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);

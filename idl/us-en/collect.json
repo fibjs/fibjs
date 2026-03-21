@@ -24,6 +24,7 @@
         "dgram",
         "dns",
         "http",
+        "http2",
         "mime",
         "mq",
         "net",

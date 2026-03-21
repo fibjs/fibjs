@@ -10,6 +10,8 @@
 #include "HttpCookie.h"
 #include "Url.h"
 #include "HttpRequest.h"
+#include "Http2Session.h"
+#include "LruCache.h"
 
 namespace fibjs {
 
@@ -205,6 +207,28 @@ private:
     std::vector<obj_ptr<Conn>> m_conns;
     int32_t m_poolSize;
     int32_t m_poolTimeout;
+
+public:
+    // HTTP/2 session pool (keyed by "ssl://host:port")
+    void save_h2session(exlib::string url, Http2Session* session)
+    {
+        m_h2sessions.set(url, session);
+    }
+
+    obj_ptr<Http2Session> get_h2session(exlib::string url)
+    {
+        obj_ptr<Http2Session> session;
+        m_h2sessions.lookup(url, session);
+        return session;
+    }
+
+    void remove_h2session(exlib::string url)
+    {
+        m_h2sessions.erase(url);
+    }
+
+private:
+    LruCache<obj_ptr<Http2Session>> m_h2sessions;
 
 public:    
     exlib::string m_http_proxy;

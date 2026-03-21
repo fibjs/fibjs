@@ -18,6 +18,7 @@
 /// <reference path="../module/dgram.d.ts" />
 /// <reference path="../module/dns.d.ts" />
 /// <reference path="../module/http.d.ts" />
+/// <reference path="../module/http2.d.ts" />
 /// <reference path="../module/mime.d.ts" />
 /// <reference path="../module/mq.d.ts" />
 /// <reference path="../module/net.d.ts" />

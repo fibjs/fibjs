@@ -187,5 +187,10 @@ declare class Class_TLSSocket extends Class_Stream {
      */
     readonly localPort: number;
 
+    /**
+     * @description 查询当前连接协商的 ALPN 协议，如果没有协商则返回 undefined 
+     */
+    readonly alpnProtocol: string;
+
 }
 

@@ -77,4 +77,9 @@ interface TLSSocket : Stream
 
     /*! @brief Query the local port of the current connection */
     readonly Integer localPort;
+
+    /*! @brief Query the ALPN protocol negotiated by the current connection, returns undefined if no protocol was negotiated
+     @return Return the negotiated ALPN protocol string
+    */
+    readonly String alpnProtocol;
 };
