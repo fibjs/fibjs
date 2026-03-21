@@ -180,9 +180,9 @@ void SandBox::installBuffer()
     InstallModule("fibjs:buffer", _buffer);
     InstallModule("node:buffer", _buffer);
 
-    v8::Local<v8::Value> _stream;
+    v8::Local<v8::Value> _init;
     TryCatch try_catch;
-    require("internal/webstream", "/builtin", _stream);
+    require("internal/sandbox_init", "/builtin", _init);
     if (try_catch.HasCaught())
         ReportException(try_catch, 0, false);
 }
