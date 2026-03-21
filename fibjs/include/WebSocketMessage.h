@@ -21,7 +21,7 @@ public:
         , m_maxSize(maxSize)
         , m_error(0)
     {
-        if (type != ws_base::C_TEXT && type != ws_base::C_BINARY)
+        if (type != WebSocket_base::C_TEXT && type != WebSocket_base::C_BINARY)
             m_compress = false;
 
         m_message = new Message();

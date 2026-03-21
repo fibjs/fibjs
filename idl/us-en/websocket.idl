@@ -4,11 +4,10 @@ The WebSocket support module is just an implementation of the WebSocket protocol
 
 Start WebSocket server example:
 ```JavaScript
-var ws = require('ws');
 var http = require('http');
 
 var svr = new http.Server(80, {
-    '/ws': ws.upgrade(conn => {
+    '/ws': WebSocket.upgrade(conn => {
         conn.onmessage = e => {
             conn.send('fibjs:' + e.data);
         };
@@ -18,9 +17,7 @@ svr.start();
 ```
 Example of establishing connection with the above server in client:
 ```JavaScript
-var ws = require("ws");
-
-var conn = new ws.Socket("ws://127.0.0.1/ws");
+var conn = new WebSocket("ws://127.0.0.1/ws");
 // emit open event
 conn.onopen = () => {
     console.log("websocket connected");
@@ -57,6 +54,36 @@ interface WebSocket : EventEmitter
      @param opts connection options, default is {}
     */
     WebSocket(String url, Object opts);
+
+    /*! @brief Specify WebSocket message type 0, representing a continuation frame */
+    const CONTINUE = 0;
+
+    /*! @brief Specify WebSocket message type 1, representing a text frame */
+    const TEXT = 1;
+
+    /*! @brief Specify WebSocket message type 2, representing a binary frame */
+    const BINARY = 2;
+
+    /*! @brief Specify WebSocket message type 8, connection close */
+    const CLOSE = 8;
+
+    /*! @brief Specify WebSocket message type 9, representing a ping frame */
+    const PING = 9;
+
+    /*! @brief Specify WebSocket message type 10, representing a pong frame */
+    const PONG = 10;
+
+    /*! @brief Specify WebSocket state, indicating connecting */
+    const CONNECTING = 0;
+
+    /*! @brief Specify WebSocket state, indicating open */
+    const OPEN = 1;
+
+    /*! @brief Specify WebSocket state, indicating closing after sending CLOSE message */
+    const CLOSING = 2;
+
+    /*! @brief Specify WebSocket state, indicating closed */
+    const CLOSED = 3;
 
     /*! @brief Query the server currently connected by the object */
     readonly String url;
@@ -107,4 +134,20 @@ interface WebSocket : EventEmitter
      @return return current object
     */
     WebSocket unref();
+
+    /*! @brief WebSocketMessage class for creating WebSocket protocol messages, see WebSocketMessage object */
+    static WebSocketMessage new Message();
+
+    /*! @brief Create a WebSocket protocol handler, receive upgrade request from http and handshake, generate WebSocket object
+     @param accept Connection success handler function, callback will pass two parameters, first is the received WebSocket object, second is the HttpRequest object during handshake
+     @return Returns protocol handler, can be connected with HttpServer, Chain, Routing, etc.
+     */
+    static Handler upgrade(Function accept);
+
+    /*! @brief Create a WebSocket protocol handler, receive upgrade request from http and handshake, generate WebSocket object
+     @param opts Connection options, default is {}
+     @param accept Connection success handler function, callback will pass two parameters, first is the received WebSocket object, second is the HttpRequest object during handshake
+     @return Returns protocol handler, can be connected with HttpServer, Chain, Routing, etc.
+     */
+    static Handler upgrade(Object opts, Function accept);
 };

@@ -67,6 +67,9 @@ module global
     /*! @brief XMLDocument 接口，代表 XML 文档，等同于 XmlDocument */
     static XmlDocument new XMLDocument();
 
+    /*! @brief WebSocket 类，用于创建和管理 WebSocket 连接，参见 WebSocket 对象 */
+    static WebSocket;
+
     /*! @brief 控制台访问对象 */
     static console;
 

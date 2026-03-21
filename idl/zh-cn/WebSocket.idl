@@ -4,11 +4,10 @@ WebSocket 支持模块只是 WebSocket 协议的一个实现，需要在 HTTP �
 
 启动WebSocket服务器示例：
 ```JavaScript
-var ws = require('ws');
 var http = require('http');
 
 var svr = new http.Server(80, {
-    '/ws': ws.upgrade(conn => {
+    '/ws': WebSocket.upgrade(conn => {
         conn.onmessage = e => {
             conn.send('fibjs:' + e.data);
         };
@@ -18,9 +17,7 @@ svr.start();
 ```
 在客户端中与上述服务器建立连接的示例：
 ```JavaScript
-var ws = require("ws");
-
-var conn = new ws.Socket("ws://127.0.0.1/ws");
+var conn = new WebSocket("ws://127.0.0.1/ws");
 // emit open event
 conn.onopen = () => {
     console.log("websocket connected");
@@ -57,6 +54,36 @@ interface WebSocket : EventEmitter
      @param opts 连接选项，缺省是 {}
     */
     WebSocket(String url, Object opts);
+
+    /*! @brief 指定 WebSocket 消息类型 0，表示一个 continuation 帧 */
+    const CONTINUE = 0;
+
+    /*! @brief 指定 WebSocket 消息类型 1，表示一个 text 帧 */
+    const TEXT = 1;
+
+    /*! @brief 指定 WebSocket 消息类型 2，表示一个 binary 帧 */
+    const BINARY = 2;
+
+    /*! @brief 指定 WebSocket 消息类型 8，连接关闭 */
+    const CLOSE = 8;
+
+    /*! @brief 指定 WebSocket 消息类型 9，表示一个 ping 帧 */
+    const PING = 9;
+
+    /*! @brief 指定 WebSocket 消息类型 10，表示一个 pong 帧 */
+    const PONG = 10;
+
+    /*! @brief 指定 WebSocket 状态，表示正在连接 */
+    const CONNECTING = 0;
+
+    /*! @brief 指定 WebSocket 状态，表示已连接 */
+    const OPEN = 1;
+
+    /*! @brief 指定 WebSocket 状态，表示正在关闭 */
+    const CLOSING = 2;
+
+    /*! @brief 指定 WebSocket 状态，表示已关闭 */
+    const CLOSED = 3;
 
     /*! @brief 查询当前对象连接的服务器 */
     readonly String url;
@@ -107,4 +134,20 @@ interface WebSocket : EventEmitter
      @return 返回当前对象
     */
     WebSocket unref();
+
+    /*! @brief WebSocketMessage 类，用于创建 WebSocket 协议消息，参见 WebSocketMessage 对象 */
+    static WebSocketMessage;
+
+    /*! @brief 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
+     @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
+     @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     */
+    static Handler upgrade(Function accept);
+
+    /*! @brief 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
+     @param opts 连接选项，缺省为 {}
+     @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
+     @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     */
+    static Handler upgrade(Object opts, Function accept);
 };

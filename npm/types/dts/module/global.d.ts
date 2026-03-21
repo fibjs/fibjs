@@ -21,6 +21,7 @@
 /// <reference path="../interface/DOMParser.d.ts" />
 /// <reference path="../interface/XMLSerializer.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
+/// <reference path="../interface/WebSocket.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
@@ -140,6 +141,11 @@ declare module 'global' {
      * @description XMLDocument 接口，代表 XML 文档，等同于 XmlDocument 
      */
     const XMLDocument: typeof Class_XmlDocument;
+
+    /**
+     * @description WebSocket 类，用于创建和管理 WebSocket 连接，参见 WebSocket 对象 
+     */
+    const WebSocket: typeof Class_WebSocket;
 
     /**
      * @description 控制台访问对象 

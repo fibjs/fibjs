@@ -37,6 +37,7 @@ class CryptoKey_base;
 class DOMParser_base;
 class XMLSerializer_base;
 class XmlDocument_base;
+class WebSocket_base;
 class console_base;
 class process_base;
 class performance_base;
@@ -126,6 +127,7 @@ public:
 #include "ifs/DOMParser.h"
 #include "ifs/XMLSerializer.h"
 #include "ifs/XmlDocument.h"
+#include "ifs/WebSocket.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
@@ -177,6 +179,7 @@ inline ClassInfo& global_base::class_info()
         { "DOMParser", DOMParser_base::class_info },
         { "XMLSerializer", XMLSerializer_base::class_info },
         { "XMLDocument", XmlDocument_base::class_info },
+        { "WebSocket", WebSocket_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info },
         { "performance", performance_base::class_info },

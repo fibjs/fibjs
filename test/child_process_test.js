@@ -7,7 +7,6 @@ const child_process = require('child_process');
 var coroutine = require("coroutine");
 var path = require('path');
 var json = require('json');
-var ws = require('ws');
 var net = require('net');
 var http = require('http');
 var io = require('io');
@@ -749,7 +748,7 @@ describe("child_process", () => {
 
         it("websocket disconnect", () => {
             var httpd = new http.Server(8899, {
-                "/ws": ws.upgrade((s) => {
+                "/ws": WebSocket.upgrade((s) => {
                     s.onmessage = function (msg) {
                         s.send(msg);
                     };

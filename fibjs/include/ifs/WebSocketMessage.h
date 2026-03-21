@@ -17,7 +17,7 @@
 namespace fibjs {
 
 class Message_base;
-class ws_base;
+class WebSocket_base;
 
 class WebSocketMessage_base : public Message_base {
     DECLARE_CLASS(WebSocketMessage_base);
@@ -49,7 +49,7 @@ public:
 };
 }
 
-#include "ifs/ws.h"
+#include "ifs/WebSocket.h"
 
 namespace fibjs {
 inline ClassInfo& WebSocketMessage_base::class_info()
@@ -86,7 +86,7 @@ inline void WebSocketMessage_base::__new(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(4, 0);
 
-    OPT_ARG(int32_t, 0, ws_base::C_BINARY);
+    OPT_ARG(int32_t, 0, WebSocket_base::C_BINARY);
     OPT_ARG(bool, 1, true);
     OPT_ARG(bool, 2, false);
     OPT_ARG(int32_t, 3, 67108864);
@@ -104,7 +104,7 @@ inline result_t WebSocketMessage_base::load(v8::Local<v8::Value> v, obj_ptr<WebS
 
     METHOD_OVER(4, 0);
 
-    OPT_ARG(int32_t, 0, ws_base::C_BINARY);
+    OPT_ARG(int32_t, 0, WebSocket_base::C_BINARY);
     OPT_ARG(bool, 1, true);
     OPT_ARG(bool, 2, false);
     OPT_ARG(int32_t, 3, 67108864);

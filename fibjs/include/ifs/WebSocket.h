@@ -18,10 +18,26 @@ namespace fibjs {
 
 class EventEmitter_base;
 class Buffer_base;
+class WebSocketMessage_base;
+class Handler_base;
 
 class WebSocket_base : public EventEmitter_base {
     DECLARE_CLASS(WebSocket_base);
     EVENT_SUPPORT();
+
+public:
+    enum {
+        C_CONTINUE = 0,
+        C_TEXT = 1,
+        C_BINARY = 2,
+        C_CLOSE = 8,
+        C_PING = 9,
+        C_PONG = 10,
+        C_CONNECTING = 0,
+        C_OPEN = 1,
+        C_CLOSING = 2,
+        C_CLOSED = 3
+    };
 
 public:
     // WebSocket_base
@@ -36,6 +52,8 @@ public:
     virtual result_t send(Buffer_base* data) = 0;
     virtual result_t ref(obj_ptr<WebSocket_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<WebSocket_base>& retVal) = 0;
+    static result_t upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
+    static result_t upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -59,10 +77,13 @@ public:
     static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/WebSocketMessage.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 inline ClassInfo& WebSocket_base::class_info()
@@ -71,7 +92,12 @@ inline ClassInfo& WebSocket_base::class_info()
         { "close", s_close, false, ClassData::ASYNC_SYNC },
         { "send", s_send, false, ClassData::ASYNC_SYNC },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
-        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC },
+        { "upgrade", s_static_upgrade, true, ClassData::ASYNC_SYNC }
+    };
+
+    static ClassData::ClassObject s_object[] = {
+        { "Message", WebSocketMessage_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -85,9 +111,22 @@ inline ClassInfo& WebSocket_base::class_info()
         { "onerror", s_get_onerror, s_set_onerror, false }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "CONTINUE", ClassData::CONST_Integer, { .intValue = C_CONTINUE } },
+        { "TEXT", ClassData::CONST_Integer, { .intValue = C_TEXT } },
+        { "BINARY", ClassData::CONST_Integer, { .intValue = C_BINARY } },
+        { "CLOSE", ClassData::CONST_Integer, { .intValue = C_CLOSE } },
+        { "PING", ClassData::CONST_Integer, { .intValue = C_PING } },
+        { "PONG", ClassData::CONST_Integer, { .intValue = C_PONG } },
+        { "CONNECTING", ClassData::CONST_Integer, { .intValue = C_CONNECTING } },
+        { "OPEN", ClassData::CONST_Integer, { .intValue = C_OPEN } },
+        { "CLOSING", ClassData::CONST_Integer, { .intValue = C_CLOSING } },
+        { "CLOSED", ClassData::CONST_Integer, { .intValue = C_CLOSED } }
+    };
+
     static ClassData s_cd = {
         "WebSocket", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &EventEmitter_base::class_info(),
         false
     };
@@ -370,6 +409,28 @@ inline void WebSocket_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(0, 0);
 
     hr = pInst->unref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebSocket_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = upgrade(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = upgrade(v0, v1, vr);
 
     METHOD_RETURN();
 }

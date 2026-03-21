@@ -67,6 +67,9 @@ module global
     /*! @brief XMLDocument interface representing an XML document, equivalent to XmlDocument */
     static XmlDocument new XMLDocument();
 
+    /*! @brief WebSocket class for creating and managing WebSocket connections, see WebSocket object */
+    static WebSocket;
+
     /*! @brief Console access object */
     static console;
 

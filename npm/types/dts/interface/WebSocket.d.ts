@@ -1,6 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/WebSocketMessage.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /**
  * @description WebSocket 是一种基于 TCP 协议的全双工通信协议，在浏览器和服务器之间建立起一个不断开的连接，可以实现实时双向数据传输，并且可以支持任意格式的数据传输。在 fibjs 中，WebSocket 支持模块提供了相应的 API 接口，可以实现 WebSocket 服务器端和客户端的开发
  * 
@@ -8,11 +10,10 @@
  * 
  * 启动WebSocket服务器示例：
  * ```JavaScript
- * var ws = require('ws');
  * var http = require('http');
  * 
  * var svr = new http.Server(80, {
- *     '/ws': ws.upgrade(conn => {
+ *     '/ws': WebSocket.upgrade(conn => {
  *         conn.onmessage = e => {
  *             conn.send('fibjs:' + e.data);
  *         };
@@ -22,9 +23,7 @@
  * ```
  * 在客户端中与上述服务器建立连接的示例：
  * ```JavaScript
- * var ws = require("ws");
- * 
- * var conn = new ws.Socket("ws://127.0.0.1/ws");
+ * var conn = new WebSocket("ws://127.0.0.1/ws");
  * // emit open event
  * conn.onopen = () => {
  *     console.log("websocket connected");
@@ -65,6 +64,16 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *     
      */
     constructor(url: string, opts: FIBJS.GeneralObject);
+
+
+
+
+
+
+
+
+
+
 
     /**
      * @description 查询当前对象连接的服务器 
@@ -141,6 +150,28 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *     
      */
     unref(): Class_WebSocket;
+
+    /**
+     * @description WebSocketMessage 类，用于创建 WebSocket 协议消息，参见 WebSocketMessage 对象 
+     */
+    static WebSocketMessage: Class_WebSocketMessage;
+
+    /**
+     * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
+     *      @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
+     *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     *      
+     */
+    static upgrade(accept: (...args: any[])=>any): Class_Handler;
+
+    /**
+     * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
+     *      @param opts 连接选项，缺省为 {}
+     *      @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
+     *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     *      
+     */
+    static upgrade(opts: FIBJS.GeneralObject, accept: (...args: any[])=>any): Class_Handler;
 
 }
 

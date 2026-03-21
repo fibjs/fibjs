@@ -2,21 +2,20 @@
 
 The class constructor `WebSocketMessage` supports the specified message type parameter `type`, which has three optional values:
 
-- `ws.TEXT`: Represents text type message, content is string.
-- `ws.BINARY`: Represents binary type message, content is binary data.
+- `WebSocket.TEXT`: Represents text type message, content is string.
+- `WebSocket.BINARY`: Represents binary type message, content is binary data.
 
 Additionally, you can specify whether to apply mask by modifying the `WebSocketMessage.masked` property, and specify whether to compress by the `WebSocketMessage.compress` property.
 
 The following code is an example of a websocket server, when a client connects, the server will echo back the received message to the client:
 ```JavaScript
-var ws = require('ws');
 var http = require('http');
 
 var svr = new http.Server(8080, {
-    '/websocket': ws.upgrade((conn, req) => {
+    '/websocket': WebSocket.upgrade((conn, req) => {
         // emit message event
         conn.onmessage = e => {
-            if (e.data.type == ws.TEXT) {
+            if (e.data.type == WebSocket.TEXT) {
                 console.log(`Received message from client ${e.data}`);
                 conn.send(e.data);
             } else {
@@ -28,8 +27,8 @@ var svr = new http.Server(8080, {
 });
 svr.start();
 ```
-In this program, first load the websocket support module and built-in http module, then create the http service object, specify the request path to handle, call the ws.upgrade function to upgrade the request of the corresponding path to websocket connection.
-After creating the websocket connection, the server will automatically create a ws.Socket object for each connection, and provide APIs such as onopen, onmessage, onclose to handle when clients connect, receive messages, and close events.
+In this program, first load the built-in http module, then create the http service object, specify the request path to handle, call the WebSocket.upgrade function to upgrade the request of the corresponding path to websocket connection.
+After creating the websocket connection, the server will automatically create a WebSocket object for each connection, and provide APIs such as onopen, onmessage, onclose to handle when clients connect, receive messages, and close events.
 When receiving a message, the server will judge the message type, if it is text type, it will echo back the received message.
 The above is a simple websocket server processing flow, modify appropriately according to actual needs.
 */
@@ -41,7 +40,7 @@ interface WebSocketMessage : Message
     @param compress flag whether message is compressed, default is false
 	@param maxSize maximum packet size in MB, default is 67108864(64M)
 	 */
-    WebSocketMessage(Integer type = ws.BINARY, Boolean masked = true, Boolean compress = false, Integer maxSize = 67108864);
+    WebSocketMessage(Integer type = WebSocket.BINARY, Boolean masked = true, Boolean compress = false, Integer maxSize = 67108864);
 
     /*! @brief Query and read websocket mask flag, default is true */
     Boolean masked;

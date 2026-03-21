@@ -19,7 +19,7 @@
 
 namespace fibjs {
 
-result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
+result_t WebSocket_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
     bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
@@ -31,7 +31,7 @@ result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> ac
     return 0;
 }
 
-result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
+result_t WebSocket_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
     Isolate* isolate = Isolate::current(accept);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);

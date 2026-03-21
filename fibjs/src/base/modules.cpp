@@ -59,7 +59,6 @@ void importBuiltinModule()
     IMPORT_MODULE(v8);
     IMPORT_MODULE(vm);
     IMPORT_MODULE(worker_threads);
-    IMPORT_MODULE(ws);
     IMPORT_MODULE(xml);
     IMPORT_MODULE(zip);
     IMPORT_MODULE(zlib);

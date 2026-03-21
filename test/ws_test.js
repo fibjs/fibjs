@@ -1,7 +1,6 @@
 var { describe, it, xit, after } = require('node:test');
 var assert = require('assert');
 
-var ws = require('ws');
 var io = require('io');
 var http = require('http');
 var mq = require('mq');
@@ -19,7 +18,7 @@ describe('ws', () => {
             ms.write(data);
             ms.rewind();
 
-            var msg = new ws.Message();
+            var msg = new WebSocket.Message();
             msg.readFrom(ms);
 
             return {
@@ -34,7 +33,7 @@ describe('ws', () => {
             it("simple", () => {
                 assert.deepEqual(load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": false,
                     "data": "Hello"
                 });
@@ -43,7 +42,7 @@ describe('ws', () => {
             it("mask", () => {
                 assert.deepEqual(load_msg([0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
                     "masked": true,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": false,
                     "data": "Hello"
                 });
@@ -52,7 +51,7 @@ describe('ws', () => {
             it("ping", () => {
                 assert.deepEqual(load_msg([0x89, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
                     "masked": false,
-                    "type": ws.PING,
+                    "type": WebSocket.PING,
                     "compress": false,
                     "data": "Hello"
                 });
@@ -61,7 +60,7 @@ describe('ws', () => {
             it("pong", () => {
                 assert.deepEqual(load_msg([0x8a, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
                     "masked": true,
-                    "type": ws.PONG,
+                    "type": WebSocket.PONG,
                     "compress": false,
                     "data": "Hello"
                 });
@@ -70,7 +69,7 @@ describe('ws', () => {
             it("split", () => {
                 assert.deepEqual(load_msg([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": false,
                     "data": "Hello"
                 });
@@ -79,7 +78,7 @@ describe('ws', () => {
             it("compress", () => {
                 assert.deepEqual(load_msg([0xc1, 0x07, 0xf2, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": true,
                     "data": "Hello"
                 });
@@ -88,7 +87,7 @@ describe('ws', () => {
             it("split compress", () => {
                 assert.deepEqual(load_msg([0x41, 0x03, 0xf2, 0x48, 0xcd, 0x80, 0x04, 0xc9, 0xc9, 0x07, 0x00]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": true,
                     "data": "Hello"
                 });
@@ -97,7 +96,7 @@ describe('ws', () => {
             it("no compress", () => {
                 assert.deepEqual(load_msg([0xc1, 0x0b, 0x00, 0x05, 0x00, 0xfa, 0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": true,
                     "data": "Hello"
                 });
@@ -106,7 +105,7 @@ describe('ws', () => {
             it("BFINAL compress", () => {
                 assert.deepEqual(load_msg([0xc1, 0x08, 0xf3, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x00]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": true,
                     "data": "Hello"
                 });
@@ -115,7 +114,7 @@ describe('ws', () => {
             it("2 blocks compress", () => {
                 assert.deepEqual(load_msg([0xc1, 0x0d, 0xf2, 0x48, 0x05, 0x00, 0x00, 0x00, 0xff, 0xff, 0xca, 0xc9, 0xc9, 0x07, 0x00]), {
                     "masked": false,
-                    "type": ws.TEXT,
+                    "type": WebSocket.TEXT,
                     "compress": true,
                     "data": "Hello"
                 });
@@ -132,7 +131,7 @@ describe('ws', () => {
 
                 assert.deepEqual(load_msg(buf), {
                     "masked": false,
-                    "type": ws.BINARY,
+                    "type": WebSocket.BINARY,
                     "compress": false,
                     "data": s
                 });
@@ -147,7 +146,7 @@ describe('ws', () => {
 
                 assert.deepEqual(load_msg(buf), {
                     "masked": false,
-                    "type": ws.BINARY,
+                    "type": WebSocket.BINARY,
                     "compress": false,
                     "data": s
                 });
@@ -166,8 +165,8 @@ describe('ws', () => {
 
         it("sendTo", () => {
             function test_msg(n, masked, compress) {
-                var msg = new ws.Message();
-                msg.type = ws.TEXT;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.TEXT;
                 msg.masked = masked;
                 msg.compress = compress;
 
@@ -182,7 +181,7 @@ describe('ws', () => {
                 msg.sendTo(ms);
                 ms.rewind();
 
-                var msg = new ws.Message();
+                var msg = new WebSocket.Message();
                 msg.readFrom(ms);
 
                 assert.equal(msg.body.readAll().toString(), buf.toString());
@@ -205,15 +204,15 @@ describe('ws', () => {
 
         describe("clone", () => {
             it("should clone basic WebSocketMessage", () => {
-                var msg = new ws.Message();
-                msg.type = ws.TEXT;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.TEXT;
                 msg.masked = true;
                 msg.compress = false;
                 msg.write(Buffer.from("Hello WebSocket"));
 
                 var cloned = msg.clone();
 
-                assert.equal(cloned.type, ws.TEXT);
+                assert.equal(cloned.type, WebSocket.TEXT);
                 assert.equal(cloned.masked, true);
                 assert.equal(cloned.compress, false);
                 cloned.body.rewind();
@@ -221,15 +220,15 @@ describe('ws', () => {
             });
 
             it("should clone WebSocketMessage with compress", () => {
-                var msg = new ws.Message();
-                msg.type = ws.BINARY;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.BINARY;
                 msg.masked = false;
                 msg.compress = true;
                 msg.write(Buffer.from([0x01, 0x02, 0x03, 0x04]));
 
                 var cloned = msg.clone();
 
-                assert.equal(cloned.type, ws.BINARY);
+                assert.equal(cloned.type, WebSocket.BINARY);
                 assert.equal(cloned.masked, false);
                 assert.equal(cloned.compress, true);
                 cloned.body.rewind();
@@ -237,8 +236,8 @@ describe('ws', () => {
             });
 
             it("original should not be affected by clone modification", () => {
-                var msg = new ws.Message();
-                msg.type = ws.TEXT;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.TEXT;
                 msg.masked = true;
                 msg.maxSize = 1024;
                 msg.write(Buffer.from("original"));
@@ -252,25 +251,25 @@ describe('ws', () => {
             });
 
             it("should clone PING message", () => {
-                var msg = new ws.Message();
-                msg.type = ws.PING;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.PING;
                 msg.write(Buffer.from("ping data"));
 
                 var cloned = msg.clone();
 
-                assert.equal(cloned.type, ws.PING);
+                assert.equal(cloned.type, WebSocket.PING);
                 cloned.body.rewind();
                 assert.equal(cloned.body.readAll().toString(), "ping data");
             });
 
             it("should clone PONG message", () => {
-                var msg = new ws.Message();
-                msg.type = ws.PONG;
+                var msg = new WebSocket.Message();
+                msg.type = WebSocket.PONG;
                 msg.write(Buffer.from("pong data"));
 
                 var cloned = msg.clone();
 
-                assert.equal(cloned.type, ws.PONG);
+                assert.equal(cloned.type, WebSocket.PONG);
                 cloned.body.rewind();
                 assert.equal(cloned.body.readAll().toString(), "pong data");
             });
@@ -303,8 +302,8 @@ describe('ws', () => {
         }
 
         function test_msg(s, n, compress) {
-            var msg = new ws.Message();
-            msg.type = ws.TEXT;
+            var msg = new WebSocket.Message();
+            msg.type = WebSocket.TEXT;
             msg.compress = compress;
             msg.masked = true;
 
@@ -317,7 +316,7 @@ describe('ws', () => {
 
             msg.sendTo(s);
 
-            var msg = new ws.Message();
+            var msg = new WebSocket.Message();
             msg.readFrom(s);
 
             if (compress)
@@ -328,7 +327,7 @@ describe('ws', () => {
 
         it("server", () => {
             var httpd = new http.Server(8813 + base_port, {
-                "/ws": ws.upgrade((s) => {
+                "/ws": WebSocket.upgrade((s) => {
                     s.onmessage = function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -453,15 +452,15 @@ describe('ws', () => {
             var s = connect();
 
             var body = "hello";
-            var msg = new ws.Message();
-            msg.type = ws.PING;
+            var msg = new WebSocket.Message();
+            msg.type = WebSocket.PING;
             msg.write(Buffer.from(body));
             msg.sendTo(s);
 
-            var msg = new ws.Message();
+            var msg = new WebSocket.Message();
             msg.readFrom(s);
 
-            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.type, WebSocket.PONG);
             assert.equal(msg.body.readAll().toString(), body);
 
             s.close();
@@ -471,12 +470,12 @@ describe('ws', () => {
         it("close", () => {
             var s = connect();
 
-            var msg = new ws.Message();
-            msg.type = ws.CLOSE;
+            var msg = new WebSocket.Message();
+            msg.type = WebSocket.CLOSE;
 
             msg.sendTo(s);
 
-            var msg = new ws.Message();
+            var msg = new WebSocket.Message();
             var closed = false;
 
             try {
@@ -486,7 +485,7 @@ describe('ws', () => {
             }
 
             if (!closed)
-                assert.equal(msg.type, ws.CLOSE);
+                assert.equal(msg.type, WebSocket.CLOSE);
 
             assert.throws(() => {
                 msg.readFrom(s);
@@ -499,19 +498,19 @@ describe('ws', () => {
             var s = connect();
 
             var body = "hello";
-            var msg = new ws.Message();
+            var msg = new WebSocket.Message();
             msg.type = 5;
             msg.sendTo(s);
 
-            msg = new ws.Message();
-            msg.type = ws.PING;
+            msg = new WebSocket.Message();
+            msg.type = WebSocket.PING;
             msg.write(Buffer.from(body));
             msg.sendTo(s);
 
-            msg = new ws.Message();
+            msg = new WebSocket.Message();
             msg.readFrom(s);
 
-            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.type, WebSocket.PONG);
             assert.equal(msg.body.readAll().toString(), body);
 
             s.close();
@@ -521,19 +520,19 @@ describe('ws', () => {
             var s = connect();
 
             var body = "hello";
-            var msg = new ws.Message();
-            msg.type = ws.PONG;
+            var msg = new WebSocket.Message();
+            msg.type = WebSocket.PONG;
             msg.sendTo(s);
 
-            msg = new ws.Message();
-            msg.type = ws.PING;
+            msg = new WebSocket.Message();
+            msg.type = WebSocket.PING;
             msg.write(Buffer.from(body));
             msg.sendTo(s);
 
-            msg = new ws.Message();
+            msg = new WebSocket.Message();
             msg.readFrom(s);
 
-            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.type, WebSocket.PONG);
             msg.body.rewind();
             assert.equal(msg.body.readAll().toString(), body);
 
@@ -561,7 +560,7 @@ describe('ws', () => {
                     return req.end();
                 }
             }, {
-                "/ws": ws.upgrade({
+                "/ws": WebSocket.upgrade({
                     perMessageDeflate: true
                 }, (s, req) => {
                     s.onmessage = function (msg) {
@@ -589,10 +588,10 @@ describe('ws', () => {
         });
 
         it('init property', () => {
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
             assert.equal(s.protocol, "test");
-            // assert.equal(s.readyState, ws.CONNECTING);
+            // assert.equal(s.readyState, WebSocket.CONNECTING);
 
             s.onopen = () => {
                 s.close();
@@ -601,19 +600,19 @@ describe('ws', () => {
 
         it('onopen', () => {
             var t = false;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 t = true;
             };
 
-            // assert.equal(s.readyState, ws.CONNECTING);
+            // assert.equal(s.readyState, WebSocket.CONNECTING);
             assert.isFalse(t);
 
             for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(t);
-            assert.equal(s.readyState, ws.OPEN);
+            assert.equal(s.readyState, WebSocket.OPEN);
 
             s.close();
             s.close();
@@ -622,7 +621,7 @@ describe('ws', () => {
         it('send/onmessage', () => {
             var t = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('123');
             };
@@ -651,7 +650,7 @@ describe('ws', () => {
         });
 
         it('header authority', () => {
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 protocol: "test",
                 headers: {
                     "api-token": "valid"
@@ -671,10 +670,10 @@ describe('ws', () => {
                 coroutine.sleep(5);
             }
 
-            assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(s.readyState, WebSocket.CLOSED);
             assert.isTrue(opened);
 
-            var s1 = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+            var s1 = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 protocol: "test",
                 headers: {
                     "api-token": "invalid"
@@ -691,7 +690,7 @@ describe('ws', () => {
             for (var i = 0; i < 2000 && !errored; i++)
                 coroutine.sleep(5);
 
-            assert.equal(s1.readyState, ws.CLOSED);
+            assert.equal(s1.readyState, WebSocket.CLOSED);
             assert.isTrue(errored);
         });
 
@@ -702,7 +701,7 @@ describe('ws', () => {
                     value: "valid"
                 }
             })
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 protocol: "test",
                 httpClient: hc
             });
@@ -715,7 +714,7 @@ describe('ws', () => {
                 s.close();
             };
             coroutine.sleep(100);
-            assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(s.readyState, WebSocket.CLOSED);
             assert.isTrue(opened);
 
             hc.post("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
@@ -723,7 +722,7 @@ describe('ws', () => {
                     value: "invalid"
                 }
             })
-            var s1 = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+            var s1 = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 protocol: "test",
                 httpClient: hc
             });
@@ -735,7 +734,7 @@ describe('ws', () => {
                 s1.close();
             };
             coroutine.sleep(100);
-            assert.equal(s1.readyState, ws.CLOSED);
+            assert.equal(s1.readyState, WebSocket.CLOSED);
             assert.isFalse(opened1);
         })
 
@@ -743,7 +742,7 @@ describe('ws', () => {
             var cnt = 0;
             var sz = 0;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('many');
             };
@@ -768,7 +767,7 @@ describe('ws', () => {
         it('perMessageDeflate', () => {
             var t = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 perMessageDeflate: true
             });
             s.onopen = () => {
@@ -791,7 +790,7 @@ describe('ws', () => {
 
         it('upgrade perMessageDeflate', () => {
             var httpd = new http.Server(8819 + base_port, {
-                "/ws": ws.upgrade({
+                "/ws": WebSocket.upgrade({
                     perMessageDeflate: true
                 }, (s) => {
                     s.on("message", function (msg) {
@@ -804,7 +803,7 @@ describe('ws', () => {
 
             var t = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8819 + base_port) + "/ws");
+            var s = new WebSocket("ws://127.0.0.1:" + (8819 + base_port) + "/ws");
             s.onopen = () => {
                 s.send('perMessageDeflate');
             };
@@ -825,7 +824,7 @@ describe('ws', () => {
 
         it('send/on("message")', () => {
             var httpd = new http.Server(8815 + base_port, {
-                "/ws": ws.upgrade((s) => {
+                "/ws": WebSocket.upgrade((s) => {
                     s.on("message", function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -841,7 +840,7 @@ describe('ws', () => {
 
             var t = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8815 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8815 + base_port) + "/ws", "test");
             s.on("open", () => {
                 s.send('123');
             });
@@ -871,7 +870,7 @@ describe('ws', () => {
         it('close/onclose', () => {
             var tc = false;
             var close_code, close_reason;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.close(1000, '123');
             };
@@ -886,7 +885,7 @@ describe('ws', () => {
                 coroutine.sleep(5);
 
             assert.isTrue(tc);
-            assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(s.readyState, WebSocket.CLOSED);
             assert.equal(close_code, 1000);
             assert.equal(close_reason, "123");
         });
@@ -894,7 +893,7 @@ describe('ws', () => {
         it('remote close', () => {
             var tc = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('close');
             };
@@ -907,14 +906,14 @@ describe('ws', () => {
                 coroutine.sleep(5);
 
             assert.isTrue(tc);
-            assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(s.readyState, WebSocket.CLOSED);
         });
 
         it('Going Away', () => {
             var te = false;
             var tc = false;
             var err_code, close_code;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('Going Away');
             };
@@ -936,7 +935,7 @@ describe('ws', () => {
             assert.isTrue(tc);
             assert.equal(err_code, 1001);
             assert.equal(close_code, 1006);
-            assert.equal(s.readyState, ws.CLOSED);
+            assert.equal(s.readyState, WebSocket.CLOSED);
         });
 
         it('keep the sequence', () => {
@@ -945,7 +944,7 @@ describe('ws', () => {
             var n = 0;
             var seq_err = null;
 
-            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             s.onopen = () => {
                 console.time('ws');
                 for (var i = 0; i < cnt; i++)
@@ -975,7 +974,7 @@ describe('ws', () => {
                 var te = false;
                 var tc = false;
                 var err_code, close_code;
-                var s = new ws.Socket("ws://127.0.0.1:" + (18814 + base_port) + "/ws", "test");
+                var s = new WebSocket("ws://127.0.0.1:" + (18814 + base_port) + "/ws", "test");
 
                 s.onopen = () => {
                     t = true;
@@ -997,7 +996,7 @@ describe('ws', () => {
                 assert.isFalse(t);
                 assert.isTrue(te);
                 assert.isTrue(tc);
-                assert.equal(s.readyState, ws.CLOSED);
+                assert.equal(s.readyState, WebSocket.CLOSED);
                 assert.equal(err_code, 1002);
                 assert.equal(close_code, 1006);
             });
@@ -1007,7 +1006,7 @@ describe('ws', () => {
                 var te = false;
                 var tc = false;
                 var err_code, close_code;
-                var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws1", "test");
+                var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws1", "test");
 
                 s.onopen = () => {
                     t = true;
@@ -1029,7 +1028,7 @@ describe('ws', () => {
                 assert.isFalse(t);
                 assert.isTrue(te);
                 assert.isTrue(tc);
-                assert.equal(s.readyState, ws.CLOSED);
+                assert.equal(s.readyState, WebSocket.CLOSED);
                 assert.equal(err_code, 1002);
                 assert.equal(close_code, 1006);
             });
@@ -1043,7 +1042,7 @@ describe('ws', () => {
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8816 + base_port, {
-                    "/ws": ws.upgrade((s, req) => {
+                    "/ws": WebSocket.upgrade((s, req) => {
                         s.onmessage = e => { }
                     })
                 });
@@ -1053,7 +1052,7 @@ describe('ws', () => {
 
                 assert.equal(test_util.countObject('WebSocket'), no1);
 
-                var s = new ws.Socket("ws://127.0.0.1:" + (8816 + base_port) + "/ws", "test");
+                var s = new WebSocket("ws://127.0.0.1:" + (8816 + base_port) + "/ws", "test");
 
                 s.onopen = () => {
                     t = true;
@@ -1081,7 +1080,7 @@ describe('ws', () => {
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8817 + base_port, {
-                    "/ws": ws.upgrade((s, req) => {
+                    "/ws": WebSocket.upgrade((s, req) => {
                         test_util.push(s);
                         s.send(new Date());
                     })
@@ -1096,7 +1095,7 @@ describe('ws', () => {
                 var s;
 
                 function test() {
-                    s = new ws.Socket("ws://127.0.0.1:" + (8817 + base_port) + "/ws", "test");
+                    s = new WebSocket("ws://127.0.0.1:" + (8817 + base_port) + "/ws", "test");
                     s.onmessage = e => {
                         t = true;
                         s.close();
@@ -1121,7 +1120,7 @@ describe('ws', () => {
                 test_util.gc();
 
                 var httpd = new http.Server(8818 + base_port, {
-                    "/ws": ws.upgrade((s, req) => { })
+                    "/ws": WebSocket.upgrade((s, req) => { })
                 });
 
                 test_util.push(httpd.socket);
@@ -1129,7 +1128,7 @@ describe('ws', () => {
 
                 var no1 = test_util.countObject('WebSocket');
 
-                var s = new ws.Socket("ws://127.0.0.1:" + (8818 + base_port) + "/ws", "test");
+                var s = new WebSocket("ws://127.0.0.1:" + (8818 + base_port) + "/ws", "test");
 
                 s.onopen = () => {
                     s.close();

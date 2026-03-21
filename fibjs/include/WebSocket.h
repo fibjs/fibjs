@@ -8,7 +8,6 @@
 #pragma once
 
 #include "ifs/WebSocket.h"
-#include "ifs/ws.h"
 #include "ifs/Stream.h"
 #include "ZlibStream.h"
 
@@ -27,8 +26,8 @@ public:
         , m_compress(false)
         , m_enableCompress(enableCompress)
         , m_maxSize(maxSize)
-        , m_readyState(ws_base::C_CONNECTING)
-        , m_closeState(ws_base::C_OPEN)
+        , m_readyState(WebSocket_base::C_CONNECTING)
+        , m_closeState(WebSocket_base::C_OPEN)
         , m_ioState(1)
     {
     }
@@ -41,8 +40,8 @@ public:
         , m_compress(false)
         , m_enableCompress(enableCompress)
         , m_maxSize(maxSize)
-        , m_readyState(ws_base::C_OPEN)
-        , m_closeState(ws_base::C_OPEN)
+        , m_readyState(WebSocket_base::C_OPEN)
+        , m_closeState(WebSocket_base::C_OPEN)
         , m_ioState(1)
     {
     }
@@ -59,8 +58,8 @@ public:
 
     virtual result_t onEventEmit(exlib::string ev)
     {
-        if (m_closeState == ws_base::C_CLOSED)
-            m_readyState.xchg(ws_base::C_CLOSED);
+        if (m_closeState == WebSocket_base::C_CLOSED)
+            m_readyState.xchg(WebSocket_base::C_CLOSED);
         return 0;
     }
 

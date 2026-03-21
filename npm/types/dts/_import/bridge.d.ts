@@ -27,7 +27,6 @@
 /// <reference path="../module/rtc.d.ts" />
 /// <reference path="../module/tls.d.ts" />
 /// <reference path="../module/url.d.ts" />
-/// <reference path="../module/ws.d.ts" />
 /// <reference path="../module/base32.d.ts" />
 /// <reference path="../module/base64.d.ts" />
 /// <reference path="../module/base58.d.ts" />
