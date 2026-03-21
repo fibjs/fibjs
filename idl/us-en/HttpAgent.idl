@@ -1,0 +1,54 @@
+/*! @brief HttpAgent is a Node.js-compatible HTTP agent class for managing
+ connection options. It serves as a base class for proxy agents and other
+ connection pool managers.
+
+ ```JavaScript
+ const http = require('http');
+ const agent = new http.Agent({ keepAlive: true });
+ ```
+ */
+interface HttpAgent : EventEmitter
+{
+    /*! @brief HttpAgent constructor
+     @param options Agent options:
+       - keepAlive: keep sockets around even when there are no outstanding requests (default: false)
+       - maxSockets: maximum number of sockets per host (default: Infinity)
+       - maxTotalSockets: maximum total number of sockets (default: Infinity)
+       - maxFreeSockets: maximum free sockets per host (default: 256)
+       - timeout: socket timeout in milliseconds
+     */
+    HttpAgent(Object options = {});
+
+    /*! @brief Return a unique key for the given request options, used for connection pooling */
+    String getName(Object options = {});
+
+    /*! @brief Destroy any sockets that are currently in use by the agent */
+    destroy();
+
+    /*! @brief Query and set whether to keep sockets around for future requests */
+    Boolean keepAlive;
+
+    /*! @brief Query and set the maximum number of sockets per host */
+    Integer maxSockets;
+
+    /*! @brief Query and set the maximum total number of sockets across all hosts */
+    Integer maxTotalSockets;
+
+    /*! @brief Query and set the maximum number of free sockets per host */
+    Integer maxFreeSockets;
+
+    /*! @brief Query and set the default port used in getName() */
+    Integer defaultPort;
+
+    /*! @brief Query and set the default protocol used in getName() */
+    String protocol;
+
+    /*! @brief Return a map of free sockets keyed by host:port */
+    readonly Object freeSockets;
+
+    /*! @brief Return a map of in-use sockets keyed by host:port */
+    readonly Object sockets;
+
+    /*! @brief Return the total number of in-use sockets across all hosts */
+    readonly Integer totalSocketCount;
+};

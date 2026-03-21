@@ -49,6 +49,9 @@ module http
     /*! @brief Create an http client, see HttpClient */
     static HttpClient new Client();
 
+    /*! @brief Create an http agent, see HttpAgent */
+    static HttpAgent new Agent();
+
     /*! @brief Create an https server, see HttpsServer */
     static HttpsServer new HttpsServer();
 

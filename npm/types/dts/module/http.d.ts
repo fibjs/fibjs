@@ -5,6 +5,7 @@
 /// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
+/// <reference path="../interface/HttpAgent.d.ts" />
 /// <reference path="../interface/HttpsServer.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
@@ -75,6 +76,11 @@ declare module 'http' {
      * @description 创建一个 http 客户端，参见 HttpClient 
      */
     const Client: typeof Class_HttpClient;
+
+    /**
+     * @description 创建一个 http 代理，参见 HttpAgent 
+     */
+    const Agent: typeof Class_HttpAgent;
 
     /**
      * @description 创建一个 https 服务器，参见 HttpsServer 

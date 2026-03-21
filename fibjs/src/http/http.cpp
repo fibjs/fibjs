@@ -9,6 +9,7 @@
 #include "ifs/http.h"
 #include "ifs/HttpServer.h"
 #include "ifs/HttpsServer.h"
+#include "ifs/HttpAgent.h"
 #include "ifs/tls.h"
 #include "Buffer.h"
 #include "MemoryStream.h"

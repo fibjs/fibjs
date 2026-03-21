@@ -49,6 +49,9 @@ module http
     /*! @brief 创建一个 http 客户端，参见 HttpClient */
     static HttpClient new Client();
 
+    /*! @brief 创建一个 http 代理，参见 HttpAgent */
+    static HttpAgent new Agent();
+
     /*! @brief 创建一个 https 服务器，参见 HttpsServer */
     static HttpsServer new HttpsServer();
 
