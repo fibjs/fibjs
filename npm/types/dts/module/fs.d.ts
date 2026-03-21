@@ -78,6 +78,11 @@ declare module 'fs' {
     const constants: typeof import ('fs_constants');
 
     /**
+     * @description Stat 类的别名，与 Node.js fs.Stats 兼容，参见 Stat 
+     */
+    const Stats: typeof Class_Stat;
+
+    /**
      * @description 查询指定的文件或目录是否存在
      *      @param path 指定要查询的路径
      *      @return 返回 True 表示文件或目录存在

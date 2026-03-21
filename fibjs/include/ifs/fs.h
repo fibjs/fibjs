@@ -271,7 +271,8 @@ inline ClassInfo& fs_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "constants", fs_constants_base::class_info }
+        { "constants", fs_constants_base::class_info },
+        { "Stats", Stat_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {
