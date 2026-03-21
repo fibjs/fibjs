@@ -481,4 +481,26 @@ result_t http_base::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
 {
     return get_httpClient(ac->isolate())->fetch(request, opts, retVal, ac);
 }
+
+result_t http_base::get_METHODS(v8::Local<v8::Array>& retVal)
+{
+    static const char* http_methods[] = {
+        "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD",
+        "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR",
+        "MKCOL", "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PROPFIND",
+        "PROPPATCH", "PURGE", "PUT", "REBIND", "REPORT", "SEARCH", "SOURCE",
+        "SUBSCRIBE", "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE"
+    };
+    static const int http_methods_count = sizeof(http_methods) / sizeof(http_methods[0]);
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, http_methods_count);
+    for (int i = 0; i < http_methods_count; i++)
+        arr->Set(context, i, isolate->NewString(http_methods[i])).IsJust();
+
+    retVal = arr;
+    return 0;
+}
 }

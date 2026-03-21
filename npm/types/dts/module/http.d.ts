@@ -123,6 +123,11 @@ declare module 'http' {
     const STATUS_CODES: FIBJS.GeneralObject;
 
     /**
+     * @description 返回 Node.js HTTP 模块支持的所有 HTTP 方法名称（大写）的数组。 
+     */
+    const METHODS: any[];
+
+    /**
      * @description 返回http客户端的 HttpCookie 对象列表 
      */
     const cookies: any[];

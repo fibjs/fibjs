@@ -38,6 +38,7 @@ public:
     static result_t createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
+    static result_t get_METHODS(v8::Local<v8::Array>& retVal);
     static result_t get_cookies(obj_ptr<NArray>& retVal);
     static result_t get_keepAlive(bool& retVal);
     static result_t set_keepAlive(bool newVal);
@@ -108,6 +109,7 @@ public:
 public:
     static void s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_METHODS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -221,6 +223,7 @@ inline ClassInfo& http_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "STATUS_CODES", s_static_get_STATUS_CODES, block_set, true },
+        { "METHODS", s_static_get_METHODS, block_set, true },
         { "cookies", s_static_get_cookies, block_set, true },
         { "keepAlive", s_static_get_keepAlive, s_static_set_keepAlive, true },
         { "timeout", s_static_get_timeout, s_static_set_timeout, true },
@@ -285,6 +288,19 @@ inline void http_base::s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<
     METHOD_OVER(0, 0);
 
     hr = get_STATUS_CODES(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_get_METHODS(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_METHODS(vr);
 
     METHOD_RETURN();
 }

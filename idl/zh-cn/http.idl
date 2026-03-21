@@ -81,6 +81,9 @@ module http
     /*! @brief 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 */
     static readonly Object STATUS_CODES;
 
+    /*! @brief 返回 Node.js HTTP 模块支持的所有 HTTP 方法名称（大写）的数组。 */
+    static readonly Array METHODS;
+
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
     static readonly NArray cookies;
 

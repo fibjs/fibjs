@@ -81,6 +81,9 @@ module http
     /*! @brief Return the collection of standard HTTP response status codes, and their short descriptions. */
     static readonly Object STATUS_CODES;
 
+    /*! @brief Return an array of the HTTP method names (uppercase) supported by the Node.js HTTP module. */
+    static readonly Array METHODS;
+
     /*! @brief Return the HttpCookie object list of the http client */
     static readonly NArray cookies;
 
