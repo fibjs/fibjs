@@ -229,6 +229,7 @@ public:
                     for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_BEFORE][i].Get(isolate->m_isolate);
                         if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            process_base::set_exitCode(1);
                             clear();
                             return 0;
                         }
@@ -250,6 +251,7 @@ public:
                             for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
                                 v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
                                 if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                    process_base::set_exitCode(1);
                                     clear();
                                     return 0;
                                 }
@@ -373,6 +375,7 @@ public:
                             for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
                                 v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
                                 if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                    process_base::set_exitCode(1);
                                     clear();
                                     return 0;
                                 }
@@ -408,6 +411,7 @@ public:
                     for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
                         if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            process_base::set_exitCode(1);
                             clear();
                             return 0;
                         }
