@@ -379,6 +379,17 @@ describe('ECMAScript modules', () => {
         assert.equal(result.value, 42);
     });
 
+    it("BUGFIX: circular dynamic+static import should not deadlock", () => {
+        const child_process = require('child_process');
+        const testFile = path.join(__dirname, 'esm_files', 'esm26_deadlock_a.mjs');
+        // Run in subprocess with timeout to detect deadlock
+        child_process.execFileSync(process.execPath, [testFile], {
+            timeout: 5000,
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+    });
+
     describe('require in ES module', () => {
         const child_process = require('child_process');
         const cmd = process.execPath;

@@ -312,6 +312,18 @@ private:
             bool isESM = !isModuleVal->IsUndefined() && isModuleVal->IsTrue();
             isCJS = !isESM;
 
+            // For ESM modules still being evaluated (has pendding promise),
+            // skip wait_module if v8::Module is already in module_map.
+            // V8 handles ESM circular dependencies via live bindings natively;
+            // blocking here would deadlock when a dynamic import triggers
+            // a static import back to the evaluating module.
+            if (isESM) {
+                v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
+                JSValue p = mod->GetPrivate(_context, strPendding);
+                if (p->IsPromise() && m_sb->module_map.find(id) != m_sb->module_map.end())
+                    return 0;
+            }
+
             hr = m_sb->wait_module(mod, exports);
             if (hr < 0)
                 return hr;
