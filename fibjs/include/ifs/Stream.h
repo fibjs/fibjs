@@ -36,6 +36,7 @@ public:
     virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t resume(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t pause(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t unpipe(Stream_base* destination) = 0;
     virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -67,6 +68,7 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -112,6 +114,7 @@ inline ClassInfo& Stream_base::class_info()
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "resume", s_resume, false, ClassData::ASYNC_SYNC },
         { "pause", s_pause, false, ClassData::ASYNC_SYNC },
+        { "unpipe", s_unpipe, false, ClassData::ASYNC_SYNC },
         { "end", s_end, false, ClassData::ASYNC_ASYNC },
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
@@ -289,6 +292,20 @@ inline void Stream_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& args
     hr = pInst->pause(vr);
 
     METHOD_RETURN();
+}
+
+inline void Stream_base::s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+
+    hr = pInst->unpipe(v0.get());
+
+    METHOD_VOID();
 }
 
 inline void Stream_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)

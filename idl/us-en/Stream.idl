@@ -59,6 +59,11 @@ interface Stream : EventEmitter
      */
     Stream pause();
 
+    /*! @brief Remove all pipe destinations, or only the specified destination. This method is for compatibility, calling it currently has no effect
+     @param destination The specific writable destination to unpipe
+     */
+    unpipe(Stream destination = null);
+
     /*! @brief End the stream operation, optionally write the final data
      @return Returns an asynchronous object
      */

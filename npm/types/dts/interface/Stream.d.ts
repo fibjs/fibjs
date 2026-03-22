@@ -195,6 +195,13 @@ declare class Class_Stream extends Class_EventEmitter {
     pause(): Class_Stream;
 
     /**
+     * @description 移除所有管道目标，或仅移除指定的目标。此方法仅为兼容，目前调用此方法不会有任何效果
+     *      @param destination 要取消管道的特定可写目标
+     *      
+     */
+    unpipe(destination?: Class_Stream): void;
+
+    /**
      * @description 结束流操作，可选择性地写入最后的数据
      *      @return 返回一个异步对象
      *      

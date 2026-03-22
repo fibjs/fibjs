@@ -413,6 +413,11 @@ public:
         return 0;
     }
 
+    virtual result_t unpipe(Stream_base* destination)
+    {
+        return 0;
+    }
+
     // Async state machine to emit finish + close after optional write
     class AsyncEndEmitter : public AsyncState {
     public:
