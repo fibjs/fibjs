@@ -226,17 +226,24 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
     m_read_lock.lock(ac);
 
     while (true) {
+        m_recv_lock.lock();
+
         if (!m_recv_queue.empty()) {
             retVal = m_recv_queue.front();
             m_recv_queue.pop_front();
+            m_recv_lock.unlock();
             m_read_lock.unlock(ac);
             return 0;
         }
 
         if (m_recv_end || m_closed || m_destroyed) {
+            m_recv_lock.unlock();
             m_read_lock.unlock(ac);
             return CALL_RETURN_NULL;
         }
+
+        m_recv_event.reset();
+        m_recv_lock.unlock();
 
         m_recv_event.wait();
     }
@@ -277,9 +284,12 @@ result_t Http2Stream::close(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_closed) {
+        m_recv_lock.lock();
         m_closed = true;
         m_recv_end = true;
+        m_recv_lock.unlock();
         m_recv_event.set();
+        m_headers_event.set();
     }
 
     return 0;
@@ -288,7 +298,9 @@ result_t Http2Stream::close(AsyncEvent* ac)
 void Http2Stream::onData(const uint8_t* data, size_t len)
 {
     obj_ptr<Buffer_base> buf = new Buffer(data, len);
+    m_recv_lock.lock();
     m_recv_queue.push_back(buf);
+    m_recv_lock.unlock();
     m_recv_event.set();
 }
 
@@ -304,14 +316,21 @@ result_t Http2Stream::waitHeaders(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_headers_event.wait();
+
+    if ((m_closed || m_destroyed) && !m_headers)
+        return CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received"));
+
     return 0;
 }
 
 void Http2Stream::onClose(uint32_t error_code)
 {
+    m_recv_lock.lock();
     m_closed = true;
     m_recv_end = true;
+    m_recv_lock.unlock();
     m_recv_event.set();
+    m_headers_event.set();
 
     if (m_session)
         m_session->removeStream(m_stream_id);

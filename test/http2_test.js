@@ -36,7 +36,7 @@ var crt = crypto.createCertificateRequest({
 
 // Write certs to temp files for Node.js helper server
 var tmpDir = os.tmpdir() + '/fibjs_h2test_' + process.pid;
-fs.mkdir(tmpDir);
+try { fs.mkdir(tmpDir); } catch (e) { }
 var keyFile = tmpDir + '/key.pem';
 var certFile = tmpDir + '/cert.pem';
 fs.writeFile(keyFile, pk1.privateKey.export());
@@ -54,24 +54,34 @@ describe('http2', () => {
         var helperScript = path.join(__dirname, 'http2_server_helper.mjs');
         serverProc = child_process.spawn('node', [helperScript, h2_port, keyFile, certFile]);
 
-        // Wait for server ready signal
+        // Wait for server ready signal by reading stdout directly
         var ready = false;
-        serverProc.stdout.on('data', (data) => {
-            if (data.toString().indexOf('H2_READY:') >= 0)
-                ready = true;
-        });
+        var buf = '';
+        var deadline = new Date().getTime() + 5000;
+        while (!ready && new Date().getTime() < deadline) {
+            var chunk = serverProc.stdout.read();
+            if (chunk) {
+                buf += chunk.toString();
+                if (buf.indexOf('H2_READY:') >= 0)
+                    ready = true;
+            } else {
+                coroutine.sleep(50);
+            }
+        }
 
-        // Wait up to 5 seconds for server to start
-        for (var i = 0; i < 50 && !ready; i++)
-            coroutine.sleep(100);
-
-        if (!ready)
+        if (!ready) {
+            // Clean up the server process before throwing
+            try { serverProc.kill(); } catch (e) { }
+            try { serverProc.join(); } catch (e) { }
+            serverProc = null;
             throw new Error('HTTP/2 test server failed to start');
+        }
     });
 
     after(() => {
         if (serverProc) {
             serverProc.kill();
+            serverProc.join();
             serverProc = null;
         }
         // Cleanup temp files

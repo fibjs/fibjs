@@ -218,6 +218,9 @@ public:
     // Add stream to map
     void addStream(int32_t stream_id, Http2Stream* stream);
 
+    // Close all streams (notify waiting readers)
+    void closeAllStreams();
+
 private:
     // Setup nghttp2 callbacks
     void setupCallbacks(nghttp2_session_callbacks* callbacks);

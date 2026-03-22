@@ -236,6 +236,19 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
     m_stream_lock.unlock();
 }
 
+void Http2Session::closeAllStreams()
+{
+    m_stream_lock.lock();
+    for (auto& pair : m_streams) {
+        pair.second->m_recv_lock.lock();
+        pair.second->m_recv_end = true;
+        pair.second->m_recv_lock.unlock();
+        pair.second->m_recv_event.set();
+        pair.second->m_headers_event.set();
+    }
+    m_stream_lock.unlock();
+}
+
 // -- I/O loops --
 
 result_t Http2Session::collectPendingData(obj_ptr<Buffer_base>& buf)
@@ -284,7 +297,8 @@ void Http2Session::startLoops()
     public:
         ON_STATE(asyncReadLoop, read)
         {
-            if (m_session->m_destroyed || m_session->m_closed) {
+            if (m_session->m_destroyed) {
+                m_session->closeAllStreams();
                 if (!m_session->m_internal)
                     m_session->isolate_unref();
                 return next(CALL_RETURN_NULL);
@@ -298,6 +312,7 @@ void Http2Session::startLoops()
             if (n == CALL_RETURN_NULL || !m_buf || m_session->m_destroyed) {
                 m_session->m_closed = true;
                 m_session->m_close_event.set();
+                m_session->closeAllStreams();
                 if (!m_session->m_internal)
                     m_session->isolate_unref();
                 return next(CALL_RETURN_NULL);
@@ -310,6 +325,7 @@ void Http2Session::startLoops()
             if (rv < 0) {
                 m_session->m_destroyed = true;
                 m_session->m_close_event.set();
+                m_session->closeAllStreams();
                 if (!m_session->m_internal)
                     m_session->isolate_unref();
                 return next(CALL_RETURN_NULL);
@@ -320,6 +336,7 @@ void Http2Session::startLoops()
             if (hr < 0) {
                 m_session->m_destroyed = true;
                 m_session->m_close_event.set();
+                m_session->closeAllStreams();
                 if (!m_session->m_internal)
                     m_session->isolate_unref();
                 return next(CALL_RETURN_NULL);
@@ -341,6 +358,7 @@ void Http2Session::startLoops()
         {
             m_session->m_destroyed = true;
             m_session->m_close_event.set();
+            m_session->closeAllStreams();
             if (!m_session->m_internal)
                 m_session->isolate_unref();
             return next(CALL_RETURN_NULL);
@@ -715,12 +733,9 @@ result_t Http2Session::destroy()
     m_closed = true;
 
     // Close all streams
+    closeAllStreams();
+
     m_stream_lock.lock();
-    for (auto& pair : m_streams) {
-        pair.second->m_closed = true;
-        pair.second->m_recv_end = true;
-        pair.second->m_recv_event.set();
-    }
     m_streams.clear();
     m_stream_lock.unlock();
 

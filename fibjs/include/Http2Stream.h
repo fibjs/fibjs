@@ -72,6 +72,7 @@ public:
     // Read buffer management (receiving DATA frames)
     exlib::Locker m_read_lock;
     exlib::Locker m_write_lock;
+    exlib::spinlock m_recv_lock;
     std::list<obj_ptr<Buffer_base>> m_recv_queue;
     exlib::Event m_recv_event;
     bool m_recv_end = false;
