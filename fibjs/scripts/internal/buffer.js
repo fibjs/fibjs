@@ -1325,4 +1325,8 @@ Buffer.compare = function (buf1, buf2) {
 };
 
 Buffer.Buffer = Buffer;
+Buffer.constants = {
+    MAX_LENGTH: 2147483647,
+    MAX_STRING_LENGTH: 536870888
+};
 module.exports = Buffer;
