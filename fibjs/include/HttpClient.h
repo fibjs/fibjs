@@ -26,6 +26,7 @@ public:
         , m_enableCookie(true)
         , m_autoRedirect(true)
         , m_enableEncoding(true)
+        , m_enableH2(false)
         , m_maxHeadersCount(128)
         , m_maxHeaderSize(8192)
         , m_maxChunkSize(2)
@@ -54,6 +55,8 @@ public:
     virtual result_t set_autoRedirect(bool newVal);
     virtual result_t get_enableEncoding(bool& retVal);
     virtual result_t set_enableEncoding(bool newVal);
+    virtual result_t get_enableH2(bool& retVal);
+    virtual result_t set_enableH2(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxHeaderSize(int32_t& retVal);
@@ -205,6 +208,7 @@ public:
     bool m_enableCookie;
     bool m_autoRedirect;
     bool m_enableEncoding;
+    bool m_enableH2;
     int32_t m_maxHeadersCount;
     int32_t m_maxHeaderSize;
     int32_t m_maxChunkSize;

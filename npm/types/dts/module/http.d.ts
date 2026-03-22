@@ -173,6 +173,11 @@ declare module 'http' {
     var enableEncoding: boolean;
 
     /**
+     * @description HTTP/2 自动升级开关，默认关闭 
+     */
+    var enableH2: boolean;
+
+    /**
      * @description 查询和设置最大请求头个数，缺省为 128 
      */
     var maxHeadersCount: number;

@@ -88,6 +88,10 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    hr = GetConfigValue(options, "enableH2", m_enableH2);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     hr = GetConfigValue(options, "maxHeadersCount", m_maxHeadersCount);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
@@ -259,6 +263,18 @@ result_t HttpClient::get_enableEncoding(bool& retVal)
 result_t HttpClient::set_enableEncoding(bool newVal)
 {
     m_enableEncoding = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_enableH2(bool& retVal)
+{
+    retVal = m_enableH2;
+    return 0;
+}
+
+result_t HttpClient::set_enableH2(bool newVal)
+{
+    m_enableH2 = newVal;
     return 0;
 }
 
@@ -1376,14 +1392,21 @@ public:
         ss->init(m_hc->m_context);
 
         // Auto-negotiate ALPN: if user hasn't set ALPN on the context,
-        // set ["h2", "http/1.1"] on this SSL connection for HTTP/2 upgrade
+        // set ["h2", "http/1.1"] or ["http/1.1"] based on enableH2
         SecureContext* ctx = static_cast<SecureContext*>(m_hc->m_context.get());
         if (!ctx->hasAlpn()) {
-            static const unsigned char alpn[] = {
-                2, 'h', '2',
-                8, 'h', 't', 't', 'p', '/', '1', '.', '1'
-            };
-            SSL_set_alpn_protos(ss->m_tls, alpn, sizeof(alpn));
+            if (m_hc->m_enableH2) {
+                static const unsigned char alpn[] = {
+                    2, 'h', '2',
+                    8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+                };
+                SSL_set_alpn_protos(ss->m_tls, alpn, sizeof(alpn));
+            } else {
+                static const unsigned char alpn[] = {
+                    8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+                };
+                SSL_set_alpn_protos(ss->m_tls, alpn, sizeof(alpn));
+            }
         }
 
         obj_ptr<Stream_base> conn = m_conn;

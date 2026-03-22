@@ -43,6 +43,8 @@ public:
     virtual result_t set_autoRedirect(bool newVal) = 0;
     virtual result_t get_enableEncoding(bool& retVal) = 0;
     virtual result_t set_enableEncoding(bool newVal) = 0;
+    virtual result_t get_enableH2(bool& retVal) = 0;
+    virtual result_t set_enableH2(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxHeaderSize(int32_t& retVal) = 0;
@@ -118,6 +120,8 @@ public:
     static void s_set_autoRedirect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_enableEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_enableEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -217,6 +221,7 @@ inline ClassInfo& HttpClient_base::class_info()
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
         { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, false },
+        { "enableH2", s_get_enableH2, s_set_enableH2, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxHeaderSize", s_get_maxHeaderSize, s_set_maxHeaderSize, false },
         { "maxChunkSize", s_get_maxChunkSize, s_set_maxChunkSize, false },
@@ -447,6 +452,34 @@ inline void HttpClient_base::s_set_enableEncoding(const v8::FunctionCallbackInfo
     ARG(bool, 0);
 
     hr = pInst->set_enableEncoding(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_enableH2(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = pInst->set_enableH2(v0);
 
     METHOD_VOID();
 }

@@ -111,6 +111,9 @@ module http
     /*! @brief 自动解压缩功能开关，默认开启 */
     static Boolean enableEncoding;
 
+    /*! @brief HTTP/2 自动升级开关，默认关闭 */
+    static Boolean enableH2;
+
     /*! @brief 查询和设置最大请求头个数，缺省为 128 */
     static Integer maxHeadersCount;
 

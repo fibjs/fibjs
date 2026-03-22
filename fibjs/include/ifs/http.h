@@ -50,6 +50,8 @@ public:
     static result_t set_autoRedirect(bool newVal);
     static result_t get_enableEncoding(bool& retVal);
     static result_t set_enableEncoding(bool newVal);
+    static result_t get_enableH2(bool& retVal);
+    static result_t set_enableH2(bool newVal);
     static result_t get_maxHeadersCount(int32_t& retVal);
     static result_t set_maxHeadersCount(int32_t newVal);
     static result_t get_maxHeaderSize(int32_t& retVal);
@@ -119,6 +121,8 @@ public:
     static void s_static_set_autoRedirect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_enableEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_enableEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -229,6 +233,7 @@ inline ClassInfo& http_base::class_info()
         { "enableCookie", s_static_get_enableCookie, s_static_set_enableCookie, true },
         { "autoRedirect", s_static_get_autoRedirect, s_static_set_autoRedirect, true },
         { "enableEncoding", s_static_get_enableEncoding, s_static_set_enableEncoding, true },
+        { "enableH2", s_static_get_enableH2, s_static_set_enableH2, true },
         { "maxHeadersCount", s_static_get_maxHeadersCount, s_static_set_maxHeadersCount, true },
         { "maxHeaderSize", s_static_get_maxHeaderSize, s_static_set_maxHeaderSize, true },
         { "maxChunkSize", s_static_get_maxChunkSize, s_static_set_maxChunkSize, true },
@@ -442,6 +447,32 @@ inline void http_base::s_static_set_enableEncoding(const v8::FunctionCallbackInf
     ARG(bool, 0);
 
     hr = set_enableEncoding(v0);
+
+    METHOD_VOID();
+}
+
+inline void http_base::s_static_get_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_enableH2(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_set_enableH2(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = set_enableH2(v0);
 
     METHOD_VOID();
 }

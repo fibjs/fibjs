@@ -105,6 +105,16 @@ result_t http_base::set_enableEncoding(bool newVal)
     return get_httpClient()->set_enableEncoding(newVal);
 }
 
+result_t http_base::get_enableH2(bool& retVal)
+{
+    return get_httpClient()->get_enableH2(retVal);
+}
+
+result_t http_base::set_enableH2(bool newVal)
+{
+    return get_httpClient()->set_enableH2(newVal);
+}
+
 result_t http_base::get_maxHeadersCount(int32_t& retVal)
 {
     return get_httpClient()->get_maxHeadersCount(retVal);

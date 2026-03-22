@@ -68,6 +68,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - enableCookie: 指定是否启用 cookie 功能
      *      - autoRedirect: 指定是否启用自动重定向功能
      *      - enableEncoding: 指定是否启用自动解压缩功能
+     *      - enableH2: 指定是否启用 HTTP/2 自动升级
      *      - maxHeadersCount: 指定最大请求头个数
      *      - maxHeaderSize: 指定最大请求头长度
      *      - maxBodySize: 指定 body 最大尺寸
@@ -109,6 +110,11 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description 自动解压缩功能开关，默认开启 
      */
     enableEncoding: boolean;
+
+    /**
+     * @description HTTP/2 自动升级开关，默认关闭 
+     */
+    enableH2: boolean;
 
     /**
      * @description 查询和设置最大请求头个数，缺省为 128 

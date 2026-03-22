@@ -55,6 +55,7 @@ interface HttpClient : object
      - enableCookie: specify whether to enable cookie function
      - autoRedirect: specify whether to enable automatic redirect function
      - enableEncoding: specify whether to enable automatic decompression function
+     - enableH2: specify whether to enable HTTP/2 auto-upgrade via ALPN
      - maxHeadersCount: specify maximum number of request headers
      - maxHeaderSize: specify maximum request header length
      - maxBodySize: specify maximum body size
@@ -83,6 +84,9 @@ interface HttpClient : object
 
     /*! @brief automatic decompression function switch, enabled by default */
     Boolean enableEncoding;
+
+    /*! @brief HTTP/2 auto-upgrade switch, disabled by default */
+    Boolean enableH2;
 
     /*! @brief Query and set maximum number of request headers, default 128 */
     Integer maxHeadersCount;

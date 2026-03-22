@@ -111,6 +111,9 @@ module http
     /*! @brief Auto decompression function switch, enabled by default */
     static Boolean enableEncoding;
 
+    /*! @brief HTTP/2 auto-upgrade switch, disabled by default */
+    static Boolean enableH2;
+
     /*! @brief Query and set the maximum number of request headers, default is 128 */
     static Integer maxHeadersCount;
 
