@@ -81,7 +81,15 @@ public:
 
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
-            sz += _pair.first.length() + _pair.second.string().length() + 4;
+            exlib::string& n = _pair.first;
+
+            // skip headers managed by HttpMessage::getData
+            if (!qstricmp(n.c_str(), "content-length")
+                || !qstricmp(n.c_str(), "transfer-encoding")
+                || !qstricmp(n.c_str(), "connection"))
+                continue;
+
+            sz += n.length() + _pair.second.string().length() + 4;
         }
 
         return sz;
@@ -107,6 +115,13 @@ public:
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
             exlib::string& n = _pair.first;
+
+            // skip headers managed by HttpMessage::getData
+            if (!qstricmp(n.c_str(), "content-length")
+                || !qstricmp(n.c_str(), "transfer-encoding")
+                || !qstricmp(n.c_str(), "connection"))
+                continue;
+
             exlib::string v = _pair.second.string();
 
             cp(buf, sz, pos, n.c_str(), n.length());

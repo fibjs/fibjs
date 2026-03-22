@@ -77,6 +77,9 @@ public:
     result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t setHeader(exlib::string name, exlib::string value);
     result_t removeHeader(exlib::string name);
+    result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
+    result_t getHeaders(obj_ptr<NObject>& retVal);
+    result_t get_headersSent(bool& retVal);
     result_t get_stream(obj_ptr<Stream_base>& retVal);
 
     result_t clear();

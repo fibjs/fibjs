@@ -346,7 +346,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
                                 && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
 
-                    if (m_pThis->m_bNoBody) {
+                    {
                         result_t hr = m_pThis->appendHeader(m_strLine);
                         if (hr < 0)
                             return hr;
@@ -363,6 +363,12 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
                         return CHECK_ERROR(Runtime::setError("HttpMessage: unknown transfer-encoding."));
 
                     m_pThis->m_bChunked = true;
+
+                    result_t hr = m_pThis->appendHeader(m_strLine);
+                    if (hr < 0)
+                        return hr;
+
+                    m_headCount++;
                 } else {
                     result_t hr = m_pThis->appendHeader(m_strLine);
                     if (hr < 0)
@@ -787,6 +793,36 @@ result_t HttpMessage::setHeader(exlib::string name, v8::Local<v8::Array> values)
 result_t HttpMessage::removeHeader(exlib::string name)
 {
     return m_headers->remove(name);
+}
+
+result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal)
+{
+    bool has;
+    result_t hr = m_headers->has(name, has);
+    if (hr < 0)
+        return hr;
+
+    if (!has)
+        return CALL_RETURN_UNDEFINED;
+
+    Variant value;
+    hr = m_headers->first(name, value);
+    if (hr < 0)
+        return hr;
+
+    retVal = value;
+    return 0;
+}
+
+result_t HttpMessage::getHeaders(obj_ptr<NObject>& retVal)
+{
+    return m_headers->all("", retVal);
+}
+
+result_t HttpMessage::get_headersSent(bool& retVal)
+{
+    retVal = m_sent;
+    return 0;
 }
 
 result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)

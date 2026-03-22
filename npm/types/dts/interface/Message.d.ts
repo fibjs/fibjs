@@ -538,5 +538,45 @@ declare class Class_Message extends Class_EventEmitter {
      */
     clone(): Class_Message;
 
+    /**
+     * @description 将消息的 body 流切换到流动读取模式
+     *      @return 返回消息对象
+     *      
+     */
+    resume(): Class_Message;
+
+    /**
+     * @description 暂停消息的 body 流的自动读取模式。此方法仅为兼容，调用后不会有实际效果
+     *      @return 返回消息对象
+     *      
+     */
+    pause(): Class_Message;
+
+    /**
+     * @description 移除消息的 body 流的所有管道目标。此方法仅为兼容，调用后不会有实际效果
+     *      @param destination 要取消管道的特定可写目标
+     *      
+     */
+    unpipe(destination?: Class_Stream): void;
+
+    /**
+     * @description 查询和绑定流数据事件，相当于 on("data", func);
+     *      @param data 读取到的数据
+     *      
+     */
+    on(event: "data", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定流关闭事件，相当于 on("close", func); 
+     */
+    on(event: "close", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定流错误事件，相当于 on("error", func);
+     *      @param code 错误码
+     *      
+     */
+    on(event: "error", listener: ()=>void): this;
+
 }
 

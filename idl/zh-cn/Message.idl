@@ -159,4 +159,32 @@ interface Message : EventEmitter
      @return 返回复制的消息对象
     */
     Message clone();
+
+    /*! @brief 将消息的 body 流切换到流动读取模式
+     @return 返回消息对象
+     */
+    Message resume();
+
+    /*! @brief 暂停消息的 body 流的自动读取模式。此方法仅为兼容，调用后不会有实际效果
+     @return 返回消息对象
+     */
+    Message pause();
+
+    /*! @brief 移除消息的 body 流的所有管道目标。此方法仅为兼容，调用后不会有实际效果
+     @param destination 要取消管道的特定可写目标
+     */
+    unpipe(Stream destination = null);
+
+    /*! @brief 查询和绑定流数据事件，相当于 on("data", func);
+     @param data 读取到的数据
+     */
+    event data(Buffer data);
+
+    /*! @brief 查询和绑定流关闭事件，相当于 on("close", func); */
+    event close();
+
+    /*! @brief 查询和绑定流错误事件，相当于 on("error", func);
+     @param code 错误码
+     */
+    event error(Integer code);
 };

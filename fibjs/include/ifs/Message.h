@@ -68,6 +68,9 @@ public:
     virtual result_t get_lastError(exlib::string& retVal) = 0;
     virtual result_t set_lastError(exlib::string newVal) = 0;
     virtual result_t clone(obj_ptr<Message_base>& retVal) = 0;
+    virtual result_t resume(obj_ptr<Message_base>& retVal) = 0;
+    virtual result_t pause(obj_ptr<Message_base>& retVal) = 0;
+    virtual result_t unpipe(Stream_base* destination) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -103,6 +106,15 @@ public:
     static void s_get_lastError(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_lastError(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -148,7 +160,10 @@ inline ClassInfo& Message_base::class_info()
         { "clear", s_clear, false, ClassData::ASYNC_SYNC },
         { "sendTo", s_sendTo, false, ClassData::ASYNC_ASYNC },
         { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC },
-        { "clone", s_clone, false, ClassData::ASYNC_SYNC }
+        { "clone", s_clone, false, ClassData::ASYNC_SYNC },
+        { "resume", s_resume, false, ClassData::ASYNC_SYNC },
+        { "pause", s_pause, false, ClassData::ASYNC_SYNC },
+        { "unpipe", s_unpipe, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -160,7 +175,10 @@ inline ClassInfo& Message_base::class_info()
         { "bodyUsed", s_get_bodyUsed, block_set, false },
         { "length", s_get_length, block_set, false },
         { "stream", s_get_stream, block_set, false },
-        { "lastError", s_get_lastError, s_set_lastError, false }
+        { "lastError", s_get_lastError, s_set_lastError, false },
+        { "ondata", s_get_ondata, s_set_ondata, false },
+        { "onclose", s_get_onclose, s_set_onclose, false },
+        { "onerror", s_get_onerror, s_set_onerror, false }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -695,5 +713,131 @@ inline void Message_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& arg
     hr = pInst->clone(vr);
 
     METHOD_RETURN();
+}
+
+inline void Message_base::s_resume(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Message_base> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->resume(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Message_base> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->pause(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+
+    hr = pInst->unpipe(v0.get());
+
+    METHOD_VOID();
+}
+
+inline void Message_base::s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("data", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("data", v0);
+
+    METHOD_VOID();
+}
+
+inline void Message_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("close", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("close", v0);
+
+    METHOD_VOID();
+}
+
+inline void Message_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("error", vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->setListener("error", v0);
+
+    METHOD_VOID();
 }
 }

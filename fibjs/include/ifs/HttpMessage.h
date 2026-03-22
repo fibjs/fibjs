@@ -53,6 +53,9 @@ public:
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t setHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t removeHeader(exlib::string name) = 0;
+    virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t getHeaders(obj_ptr<NObject>& retVal) = 0;
+    virtual result_t get_headersSent(bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -88,6 +91,9 @@ public:
     static void s_appendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getHeaders(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_headersSent(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -103,7 +109,9 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "allHeader", s_allHeader, false, ClassData::ASYNC_SYNC },
         { "appendHeader", s_appendHeader, false, ClassData::ASYNC_SYNC },
         { "setHeader", s_setHeader, false, ClassData::ASYNC_SYNC },
-        { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC }
+        { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC },
+        { "getHeader", s_getHeader, false, ClassData::ASYNC_SYNC },
+        { "getHeaders", s_getHeaders, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -115,7 +123,8 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "maxHeaderSize", s_get_maxHeaderSize, s_set_maxHeaderSize, false },
         { "maxChunkSize", s_get_maxChunkSize, s_set_maxChunkSize, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
-        { "socket", s_get_socket, block_set, false }
+        { "socket", s_get_socket, block_set, false },
+        { "headersSent", s_get_headersSent, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -481,5 +490,49 @@ inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::
     hr = pInst->removeHeader(v0);
 
     METHOD_VOID();
+}
+
+inline void HttpMessage_base::s_getHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getHeader(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpMessage_base::s_getHeaders(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NObject> vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getHeaders(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpMessage_base::s_get_headersSent(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_headersSent(vr);
+
+    METHOD_RETURN();
 }
 }

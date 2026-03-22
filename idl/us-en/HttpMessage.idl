@@ -94,4 +94,18 @@ interface HttpMessage : Message
      @param name Specify the key-value to delete
      */
     removeHeader(String name);
+
+    /*! @brief Query the first message header of the specified key, Node.js compatible
+     @param name Specify the key to query
+     @return Return the value corresponding to the key, return undefined if not exists
+     */
+    Value getHeader(String name);
+
+    /*! @brief Query all message headers, Node.js compatible
+     @return Return all message headers as key-value pairs
+     */
+    NObject getHeaders();
+
+    /*! @brief Query whether the message headers have been sent */
+    readonly Boolean headersSent;
 };

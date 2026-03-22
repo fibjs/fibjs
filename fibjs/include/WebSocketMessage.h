@@ -65,6 +65,9 @@ public:
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
     virtual result_t clone(obj_ptr<Message_base>& retVal);
+    virtual result_t resume(obj_ptr<Message_base>& retVal) { return m_message->resume(retVal); }
+    virtual result_t pause(obj_ptr<Message_base>& retVal) { return m_message->pause(retVal); }
+    virtual result_t unpipe(Stream_base* destination) { return m_message->unpipe(destination); }
 
 public:
     // WebSocketMessage_base

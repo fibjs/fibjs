@@ -34,8 +34,8 @@ interface HttpRequest : HttpMessage
     /*! @brief Query and set the request address */
     String address;
 
-    /*! @brief Get the request URL path with query string, e.g. /path?key=value */
-    readonly String url;
+    /*! @brief Get or set the request URL path with query string, e.g. /path?key=value */
+    String url;
 
     /*! @brief Get the complete URL of the request, including protocol, host, path and query string */
     readonly String href;

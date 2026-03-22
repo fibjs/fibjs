@@ -50,6 +50,9 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
+    virtual result_t resume(obj_ptr<Message_base>& retVal);
+    virtual result_t pause(obj_ptr<Message_base>& retVal);
+    virtual result_t unpipe(Stream_base* destination);
 
 public:
     Message()
@@ -71,6 +74,9 @@ public:
             m_body = new MemoryStream();
         return m_body;
     }
+
+    // Proxy stream events (data/end/close/error/readable) to body stream
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
 
     // Clone this message - must be implemented by concrete subclasses
     virtual result_t clone(obj_ptr<Message_base>& retVal);

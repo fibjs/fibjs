@@ -292,6 +292,21 @@ result_t HttpResponse::removeHeader(exlib::string name)
     return m_message->removeHeader(name);
 }
 
+result_t HttpResponse::getHeader(exlib::string name, v8::Local<v8::Value>& retVal)
+{
+    return m_message->getHeader(name, retVal);
+}
+
+result_t HttpResponse::getHeaders(obj_ptr<NObject>& retVal)
+{
+    return m_message->getHeaders(retVal);
+}
+
+result_t HttpResponse::get_headersSent(bool& retVal)
+{
+    return m_message->get_headersSent(retVal);
+}
+
 result_t HttpResponse::get_sent(bool& retVal)
 {
     return m_message->get_sent(retVal);
@@ -874,29 +889,36 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
     return 0;
 }
 
-static bool is_stream_event(exlib::string& ev)
+result_t HttpResponse::resume(obj_ptr<Message_base>& retVal)
 {
-    return ev == "data" || ev == "end" || ev == "close"
-        || ev == "error" || ev == "readable";
+    obj_ptr<Stream_base> body;
+    if (m_message->get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->resume(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t HttpResponse::pause(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (m_message->get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->pause(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t HttpResponse::unpipe(Stream_base* destination)
+{
+    return m_message->unpipe(destination);
 }
 
 result_t HttpResponse::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
 {
-    if (type == "newListener" && is_stream_event(ev)) {
-        obj_ptr<Stream_base> body;
-        if (get_body(body) == 0 && body) {
-            v8::Local<v8::Object> retVal;
-            body->on(ev, func, retVal);
-        }
-    } else if (type == "removeListener" && is_stream_event(ev)) {
-        obj_ptr<Stream_base> body;
-        if (get_body(body) == 0 && body) {
-            v8::Local<v8::Object> retVal;
-            body->off(ev, func, retVal);
-        }
-    }
-
-    return 0;
+    return m_message->onEventChange(type, ev, func);
 }
 
 } /* namespace fibjs */

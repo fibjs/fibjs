@@ -94,21 +94,24 @@ struct ClassData {
 };
 
 // Wrapper for prototype property setters: when 'this' is not a native instance
-// (e.g. Object.create(proto)), fall back to defining a data property on 'this'
-// instead of calling the native setter. This enables Node.js patterns like
+// (e.g. Object.create(proto)), or property is readonly, fall back to defining
+// a data property on 'this'. This enables Node.js patterns like
 // Express's Object.create(http.ServerResponse.prototype).
 inline void prop_setter_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ClassData::ClassProperty* cp = (ClassData::ClassProperty*)v8::Local<v8::External>::Cast(args.Data())->Value();
 
     v8::Local<v8::Object> self = args.This();
-    if (self->InternalFieldCount() > 0) {
-        if (cp->setter)
-            cp->setter(args);
-        return;
+    if (self->InternalFieldCount() > 0 && cp->setter) {
+        v8::TryCatch try_catch(args.GetIsolate());
+        cp->setter(args);
+        if (!try_catch.HasCaught())
+            return;
+        // Native setter failed (e.g. type mismatch), fall through to CreateDataProperty
+        try_catch.Reset();
     }
 
-    // Not a native instance, create a data property on 'this'
+    // Not a native instance, readonly, or native setter failed: create a data property on 'this'
     v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
     v8::Local<v8::String> name = v8::String::NewFromUtf8(args.GetIsolate(), cp->name).ToLocalChecked();
     self->CreateDataProperty(context, name, args[0]).FromMaybe(false);

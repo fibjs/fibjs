@@ -445,10 +445,65 @@ result_t Message::set_lastError(exlib::string newVal)
     return 0;
 }
 
+static bool is_stream_event(exlib::string& ev)
+{
+    return ev == "data" || ev == "end" || ev == "close"
+        || ev == "error" || ev == "readable";
+}
+
+result_t Message::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+{
+    if (type == "newListener" && is_stream_event(ev)) {
+        obj_ptr<Stream_base> body;
+        if (get_body(body) == 0 && body) {
+            v8::Local<v8::Object> retVal;
+            body->on(ev, func, retVal);
+        }
+    } else if (type == "removeListener" && is_stream_event(ev)) {
+        obj_ptr<Stream_base> body;
+        if (get_body(body) == 0 && body) {
+            v8::Local<v8::Object> retVal;
+            body->off(ev, func, retVal);
+        }
+    }
+
+    return 0;
+}
+
 result_t Message::clone(obj_ptr<Message_base>& retVal)
 {
     // Message is an abstract base class, cannot be cloned directly
     return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t Message::resume(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->resume(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t Message::pause(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->pause(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t Message::unpipe(Stream_base* destination)
+{
+    obj_ptr<Stream_base> body;
+    if (get_body(body) == 0 && body)
+        body->unpipe(destination);
+    return 0;
 }
 
 void Message::copyTo(Message* target)

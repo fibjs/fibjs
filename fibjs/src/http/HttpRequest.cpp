@@ -449,6 +449,26 @@ result_t HttpRequest::removeHeader(exlib::string name)
     return m_message->removeHeader(name);
 }
 
+result_t HttpRequest::getHeader(exlib::string name, v8::Local<v8::Value>& retVal)
+{
+    return m_message->getHeader(name, retVal);
+}
+
+result_t HttpRequest::getHeaders(obj_ptr<NObject>& retVal)
+{
+    return m_message->getHeaders(retVal);
+}
+
+result_t HttpRequest::get_headersSent(bool& retVal)
+{
+    return m_message->get_headersSent(retVal);
+}
+
+result_t HttpRequest::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+{
+    return m_message->onEventChange(type, ev, func);
+}
+
 result_t HttpRequest::get_sent(bool& retVal)
 {
     return m_message->get_sent(retVal);
@@ -677,6 +697,20 @@ result_t HttpRequest::get_url(exlib::string& retVal)
     return 0;
 }
 
+result_t HttpRequest::set_url(exlib::string newVal)
+{
+    size_t pos = newVal.find('?');
+    if (pos != exlib::string::npos) {
+        m_address = newVal.substr(0, pos);
+        m_queryString = newVal.substr(pos + 1);
+    } else {
+        m_address = newVal;
+        m_queryString.clear();
+    }
+
+    return 0;
+}
+
 result_t HttpRequest::get_href(exlib::string& retVal)
 {
     exlib::string protocol;
@@ -829,6 +863,33 @@ result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
 
     retVal = req;
     return 0;
+}
+
+result_t HttpRequest::resume(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (m_message->get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->resume(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t HttpRequest::pause(obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (m_message->get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->pause(r);
+    }
+    retVal = this;
+    return 0;
+}
+
+result_t HttpRequest::unpipe(Stream_base* destination)
+{
+    return m_message->unpipe(destination);
 }
 
 } /* namespace fibjs */

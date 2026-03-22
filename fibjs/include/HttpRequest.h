@@ -62,6 +62,9 @@ public:
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
     virtual result_t clone(obj_ptr<Message_base>& retVal);
+    virtual result_t resume(obj_ptr<Message_base>& retVal);
+    virtual result_t pause(obj_ptr<Message_base>& retVal);
+    virtual result_t unpipe(Stream_base* destination);
 
 public:
     // HttpMessage_base
@@ -93,6 +96,13 @@ public:
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t setHeader(exlib::string name, exlib::string value);
     virtual result_t removeHeader(exlib::string name);
+    virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
+    virtual result_t getHeaders(obj_ptr<NObject>& retVal);
+    virtual result_t get_headersSent(bool& retVal);
+
+public:
+    // Proxy stream events to body stream via Message
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
 
 public:
     // HttpRequest_base
@@ -102,6 +112,7 @@ public:
     virtual result_t get_address(exlib::string& retVal);
     virtual result_t set_address(exlib::string newVal);
     virtual result_t get_url(exlib::string& retVal);
+    virtual result_t set_url(exlib::string newVal);
     virtual result_t get_href(exlib::string& retVal);
     virtual result_t get_queryString(exlib::string& retVal);
     virtual result_t set_queryString(exlib::string newVal);

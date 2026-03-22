@@ -156,4 +156,32 @@ interface Message : EventEmitter
      @return Return the copied message object
     */
     Message clone();
+
+    /*! @brief Switch the message body stream to flowing read mode
+     @return Return the message object
+     */
+    Message resume();
+
+    /*! @brief Pause the automatic read mode of the message body stream. This method is for compatibility only and has no actual effect
+     @return Return the message object
+     */
+    Message pause();
+
+    /*! @brief Remove all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect
+     @param destination The specific writable target to unpipe
+     */
+    unpipe(Stream destination = null);
+
+    /*! @brief Query and bindstream data event, equivalent to on("data", func);
+     @param data The data read
+     */
+    event data(Buffer data);
+
+    /*! @brief Query and bind stream close event, equivalent to on("close", func); */
+    event close();
+
+    /*! @brief Query and bind stream error event, equivalent to on("error", func);
+     @param code Error code
+     */
+    event error(Integer code);
 };
