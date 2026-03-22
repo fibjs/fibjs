@@ -34,8 +34,14 @@ module http
     /*! @brief Create an http request object, see HttpRequest */
     static Request = HttpRequest;
 
+    /*! @brief Node.js compatible alias, equivalent to HttpRequest */
+    static IncomingMessage = HttpRequest;
+
     /*! @brief Create an http response object, see HttpResponse */
     static Response = HttpResponse;
+
+    /*! @brief Node.js compatible alias, equivalent to HttpResponse */
+    static ServerResponse = HttpResponse;
 
     /*! @brief Create a Headers object, see Headers */
     static Headers;

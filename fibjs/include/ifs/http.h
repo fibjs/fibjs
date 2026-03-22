@@ -207,7 +207,9 @@ inline ClassInfo& http_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "Request", HttpRequest_base::class_info },
+        { "IncomingMessage", HttpRequest_base::class_info },
         { "Response", HttpResponse_base::class_info },
+        { "ServerResponse", HttpResponse_base::class_info },
         { "Headers", Headers_base::class_info },
         { "Cookie", HttpCookie_base::class_info },
         { "Server", HttpServer_base::class_info },

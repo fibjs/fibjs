@@ -52,9 +52,19 @@ declare module 'http' {
     const Request: typeof Class_HttpRequest;
 
     /**
+     * @description Node.js 兼容别名，等同于 HttpRequest 
+     */
+    const IncomingMessage: typeof Class_HttpRequest;
+
+    /**
      * @description 创建一个 http 响应对象，参见 HttpResponse 
      */
     const Response: typeof Class_HttpResponse;
+
+    /**
+     * @description Node.js 兼容别名，等同于 HttpResponse 
+     */
+    const ServerResponse: typeof Class_HttpResponse;
 
     /**
      * @description 创建一个 Headers 对象，参见 Headers 

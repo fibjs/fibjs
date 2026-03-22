@@ -93,6 +93,27 @@ struct ClassData {
     bool has_async;
 };
 
+// Wrapper for prototype property setters: when 'this' is not a native instance
+// (e.g. Object.create(proto)), fall back to defining a data property on 'this'
+// instead of calling the native setter. This enables Node.js patterns like
+// Express's Object.create(http.ServerResponse.prototype).
+inline void prop_setter_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ClassData::ClassProperty* cp = (ClassData::ClassProperty*)v8::Local<v8::External>::Cast(args.Data())->Value();
+
+    v8::Local<v8::Object> self = args.This();
+    if (self->InternalFieldCount() > 0) {
+        if (cp->setter)
+            cp->setter(args);
+        return;
+    }
+
+    // Not a native instance, create a data property on 'this'
+    v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::String> name = v8::String::NewFromUtf8(args.GetIsolate(), cp->name).ToLocalChecked();
+    self->CreateDataProperty(context, name, args[0]).FromMaybe(false);
+}
+
 class ClassInfo {
 public:
     class cache {
@@ -489,11 +510,13 @@ private:
                 if (!m_cd.cps[i].is_static) {
                     v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cps[i].name);
                     v8::Local<v8::FunctionTemplate> ft_getter = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cps[i].getter);
-                    v8::Local<v8::FunctionTemplate> ft_setter = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cps[i].setter);
 
-                    pt->SetAccessorProperty(name, ft_getter, ft_setter, v8::DontDelete);
+                    v8::Local<v8::External> setter_data = v8::External::New(isolate->m_isolate, (void*)&m_cd.cps[i]);
+                    v8::Local<v8::FunctionTemplate> ft_setter = v8::FunctionTemplate::New(isolate->m_isolate, prop_setter_wrapper, setter_data);
+
+                    pt->SetAccessorProperty(name, ft_getter, ft_setter, v8::None);
                     if (m_cd.has_async)
-                        ppt->SetAccessorProperty(name, ft_getter, ft_setter, v8::DontDelete);
+                        ppt->SetAccessorProperty(name, ft_getter, ft_setter, v8::None);
                 }
 
             for (i = 0; i < m_cd.cc; i++) {

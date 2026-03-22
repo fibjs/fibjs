@@ -34,8 +34,14 @@ module http
     /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
     static Request = HttpRequest;
 
+    /*! @brief Node.js 兼容别名，等同于 HttpRequest */
+    static IncomingMessage = HttpRequest;
+
     /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
     static Response = HttpResponse;
+
+    /*! @brief Node.js 兼容别名，等同于 HttpResponse */
+    static ServerResponse = HttpResponse;
 
     /*! @brief 创建一个 Headers 对象，参见 Headers */
     static Headers;
