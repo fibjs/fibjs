@@ -37,7 +37,7 @@ module dgram
     /*! @brief dgram.Socket object is an EventEmitter that encapsulates datagram functions. See DgramSocket
      dgram.Socket instances are created by dgram.createSocket(). Creating a dgram.Socket instance does not require the new keyword.
     */
-    static DgramSocket new Socket();
+    static Socket = DgramSocket;
 
     /*! @brief Create a dgram.Socket object
 

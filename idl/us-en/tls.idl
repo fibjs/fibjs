@@ -6,10 +6,10 @@ module tls
     static TLSSocket;
 
     /*! @brief tls/ssl protocol conversion handler, see TLSHandler */
-    static TLSHandler new Handler();
+    static Handler = TLSHandler;
 
     /*! @brief tls/ssl protocol conversion handler, see TLSServer */
-    static TLSServer new Server();
+    static Server = TLSServer;
 
     /*! @brief Create a TLS server
      @param context Specify security context

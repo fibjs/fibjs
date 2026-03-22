@@ -25,7 +25,7 @@ server.start();
 module http2
 {
     /*! @brief 创建 Http2Server 对象，参见 Http2Server */
-    static Http2Server new Server();
+    static Server = Http2Server;
 
     /*! @brief 创建 Http2 服务器
      @param options TLS 选项对象或 SecureContext 配置
@@ -66,5 +66,5 @@ module http2
     static Http2Session;
 
     /*! @brief http2 模块的常量对象，参见 http2_constants */
-    static http2_constants new constants();
+    static constants = http2_constants;
 };

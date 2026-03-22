@@ -8,10 +8,10 @@
 module tty
 {
     /*! @brief TTY 输入流对象，参见 TTYInputStream */
-    static TTYInputStream new ReadStream();
+    static ReadStream = TTYInputStream;
 
     /*! @brief TTY 输出流对象，参见 TTYOutputStream */
-    static TTYOutputStream new WriteStream();
+    static WriteStream = TTYOutputStream;
 
     /*! @brief 查询是否是命令交互窗口
     @param fd 文件描述符

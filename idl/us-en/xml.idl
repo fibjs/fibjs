@@ -77,7 +77,7 @@ module xml
     const NOTATION_NODE = 12;
 
     /*! @brief XML document object, see XmlDocument object*/
-    static XmlDocument new Document();
+    static Document = XmlDocument;
 
     /*! @brief DOMParser interface for parsing strings into DOM documents, see DOMParser object */
     static DOMParser;

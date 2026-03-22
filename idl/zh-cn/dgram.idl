@@ -37,7 +37,7 @@ module dgram
     /*! @brief dgram.Socket 对象是一个封装了数据包函数功能的 EventEmitter。参见 DgramSocket
      dgram.Socket 实例是由 dgram.createSocket() 创建的。创建 dgram.Socket 实例不需要使用 new 关键字。
     */
-    static DgramSocket new Socket();
+    static Socket = DgramSocket;
 
     /*! @brief 创建一个 dgram.Socket 对象
 

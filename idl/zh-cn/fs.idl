@@ -57,10 +57,10 @@ module fs
     const SEEK_END = 2;
 
     /*! fs模块的常量对象，参见 fs_constants */
-    static fs_constants new constants();
+    static constants = fs_constants;
 
     /*! @brief Stat 类的别名，与 Node.js fs.Stats 兼容，参见 Stat */
-    static Stat new Stats();
+    static Stats = Stat;
 
     /*! @brief 查询指定的文件或目录是否存在
      @param path 指定要查询的路径

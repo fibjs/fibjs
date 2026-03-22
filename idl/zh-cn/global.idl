@@ -8,7 +8,7 @@ module global
     static URLSearchParams;
 
     /*! @brief 创建一个 UrlObject 请求对象，参见 UrlObject */
-    static UrlObject new URL();
+    static URL = UrlObject;
 
     /*! @brief 创建一个 Blob 请求对象，参见 Blob */
     static Blob;
@@ -23,10 +23,10 @@ module global
     static FormData;
 
     /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
-    static HttpRequest new Request();
+    static Request = HttpRequest;
 
     /*! @brief 创建一个 Fetch API 响应对象，参见 HttpResponse */
-    static HttpResponse new Response();
+    static Response = HttpResponse;
 
     /*! @brief TextDecoder 解码对象，参见 TextDecoder 对象。*/
     static TextDecoder;
@@ -41,10 +41,10 @@ module global
     static AbortSignal;
 
     /*! @brief DOM 事件对象，表示一个 W3C 标准事件 */
-    static DOMEvent new Event();
+    static Event = DOMEvent;
 
     /*! @brief DOM 事件目标对象，提供 Web 标准事件监听和分发机制 */
-    static EventEmitter new EventTarget();
+    static EventTarget = EventEmitter;
 
     /*! @brief MessageEvent 对象，表示目标对象接收到的消息 */
     static MessageEvent;
@@ -65,7 +65,7 @@ module global
     static XMLSerializer;
 
     /*! @brief XMLDocument 接口，代表 XML 文档，等同于 XmlDocument */
-    static XmlDocument new XMLDocument();
+    static XMLDocument = XmlDocument;
 
     /*! @brief WebSocket 类，用于创建和管理 WebSocket 连接，参见 WebSocket 对象 */
     static WebSocket;
@@ -83,7 +83,7 @@ module global
     static PerformanceObserver;
 
     /*! @brief w3c webcrypto 标准的加密模块 */
-    static webcrypto new crypto();
+    static crypto = webcrypto;
 
     /*! @brief 全局对象 */
     static readonly Object global;

@@ -124,12 +124,12 @@ module url
     /*! @brief 创建 URL 对象，参见 UrlObject
      @return 新的 UrlObject 实例
      */
-    static UrlObject new URL();
+    static URL = UrlObject;
 
     /*! @brief 创建 URLSearchParams 对象，参见 URLSearchParams
      @return 新的 URLSearchParams 实例
      */
-    static URLSearchParams new URLSearchParams();
+    static URLSearchParams = URLSearchParams;
 
     /*! @brief 将文件 URL 对象转换为平台相关的文件路径
      @param url 文件 URL 对象（必须是 file: 协议）

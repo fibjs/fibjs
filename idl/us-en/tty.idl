@@ -8,10 +8,10 @@
 module tty
 {
     /*! @brief TTY input stream object, see TTYInputStream */
-    static TTYInputStream new ReadStream();
+    static ReadStream = TTYInputStream;
 
     /*! @brief TTY output stream object, see TTYOutputStream */
-    static TTYOutputStream new WriteStream();
+    static WriteStream = TTYOutputStream;
 
     /*! @brief Query if it is a command interactive window
     @param fd file descriptor

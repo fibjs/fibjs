@@ -26,7 +26,7 @@ module assert_strict
     static Function(Value actual = undefined, String msg = "");
 
     /*! 测试数值为真，为假则断言失败，是 assert 模块的别名 */
-    static assert new ok();
+    static ok = assert;
 
     /*! @brief 测试数值为假，为真则断言失败
      @param actual 要测试的数值

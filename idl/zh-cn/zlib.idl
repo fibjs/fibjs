@@ -49,7 +49,7 @@ module zlib
     const DEFAULT_COMPRESSION = -1;
 
     /*! zlib 模块的常量对象，参见 zlib_constants */
-    static zlib_constants new constants();
+    static constants = zlib_constants;
 
     /*! @brief 创建一个 deflate 流对象 
      @param to 用于存储处理结果的流

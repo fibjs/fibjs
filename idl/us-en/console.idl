@@ -490,5 +490,5 @@ module console
     static assert;
 
     /*! @brief Console constructor, used to create a new Console instance that outputs to specified streams */
-    static ConsoleObject new Console();
+    static Console = ConsoleObject;
 };

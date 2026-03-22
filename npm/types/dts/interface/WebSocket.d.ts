@@ -154,7 +154,7 @@ declare class Class_WebSocket extends Class_EventEmitter {
     /**
      * @description WebSocketMessage 类，用于创建 WebSocket 协议消息，参见 WebSocketMessage 对象 
      */
-    static WebSocketMessage: Class_WebSocketMessage;
+    static Message: Class_WebSocketMessage;
 
     /**
      * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象

@@ -8,7 +8,7 @@ module global
     static URLSearchParams;
 
     /*! @brief Create a UrlObject request object, see UrlObject */
-    static UrlObject new URL();
+    static URL = UrlObject;
 
     /*! @brief Create a Blob request object, see Blob */
     static Blob;
@@ -23,10 +23,10 @@ module global
     static FormData;
 
     /*! @brief Create an http request object, see HttpRequest */
-    static HttpRequest new Request();
+    static Request = HttpRequest;
 
     /*! @brief Create a Fetch API response object, see HttpResponse */
-    static HttpResponse new Response();
+    static Response = HttpResponse;
 
     /*! @brief TextDecoder decoding object, see TextDecoder object.*/
     static TextDecoder;
@@ -41,10 +41,10 @@ module global
     static AbortSignal;
 
     /*! @brief DOM Event object, represents a W3C standard event */
-    static DOMEvent new Event();
+    static Event = DOMEvent;
 
     /*! @brief DOM EventTarget object, provides Web standard event listening and dispatching */
-    static EventEmitter new EventTarget();
+    static EventTarget = EventEmitter;
 
     /*! @brief MessageEvent object, represents a message received by a target object */
     static MessageEvent;
@@ -65,7 +65,7 @@ module global
     static XMLSerializer;
 
     /*! @brief XMLDocument interface representing an XML document, equivalent to XmlDocument */
-    static XmlDocument new XMLDocument();
+    static XMLDocument = XmlDocument;
 
     /*! @brief WebSocket class for creating and managing WebSocket connections, see WebSocket object */
     static WebSocket;
@@ -83,7 +83,7 @@ module global
     static PerformanceObserver;
 
     /*! @brief w3c webcrypto standard encryption module */
-    static webcrypto new crypto();
+    static crypto = webcrypto;
 
     /*! @brief Global object */
     static readonly Object global;

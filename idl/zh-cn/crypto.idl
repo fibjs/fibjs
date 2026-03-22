@@ -2,7 +2,7 @@
 module crypto
 {
     /*! crypto 模块的常量对象，参见 crypto_constants */
-    static crypto_constants new constants();
+    static constants = crypto_constants;
 
     /*! @brief KeyObject 对象，参见 KeyObject */
     static KeyObject;

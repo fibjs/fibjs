@@ -77,7 +77,7 @@ module xml
     const NOTATION_NODE = 12;
 
     /*! @brief xml 文档对象，参见 XmlDocument 对象*/
-    static XmlDocument new Document();
+    static Document = XmlDocument;
 
     /*! @brief DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 */
     static DOMParser;

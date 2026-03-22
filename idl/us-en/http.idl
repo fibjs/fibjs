@@ -32,28 +32,28 @@ The https module is an alias for the http module, using `require('https')` can a
 module http
 {
     /*! @brief Create an http request object, see HttpRequest */
-    static HttpRequest new Request();
+    static Request = HttpRequest;
 
     /*! @brief Create an http response object, see HttpResponse */
-    static HttpResponse new Response();
+    static Response = HttpResponse;
 
     /*! @brief Create a Headers object, see Headers */
     static Headers;
 
     /*! @brief Create an http cookie object, see HttpCookie */
-    static HttpCookie new Cookie();
+    static Cookie = HttpCookie;
 
     /*! @brief Create an http server, see HttpServer */
-    static HttpServer new Server();
+    static Server = HttpServer;
 
     /*! @brief Create an http client, see HttpClient */
-    static HttpClient new Client();
+    static Client = HttpClient;
 
     /*! @brief Create an http agent, see HttpAgent */
-    static HttpAgent new Agent();
+    static Agent = HttpAgent;
 
     /*! @brief Create an https server, see HttpsServer */
-    static HttpsServer new HttpsServer();
+    static HttpsServer = HttpsServer;
 
     /*! @brief Create an http server
      @param hdlr Request handler function, receives (req, res) parameters
@@ -76,10 +76,10 @@ module http
     static HttpServer createServer(Object options, Handler hdlr);
 
     /*! @brief Create an http protocol handler object, see HttpHandler */
-    static HttpHandler new Handler();
+    static Handler = HttpHandler;
 
     /*! @brief Create an http request forwarding handler object, see HttpRepeater */
-    static HttpRepeater new Repeater();
+    static Repeater = HttpRepeater;
 
     /*! @brief Return the collection of standard HTTP response status codes, and their short descriptions. */
     static readonly Object STATUS_CODES;

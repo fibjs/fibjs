@@ -124,12 +124,12 @@ module url
     /*! @brief Create URL object, see UrlObject
      @return New UrlObject instance
      */
-    static UrlObject new URL();
+    static URL = UrlObject;
 
     /*! @brief Create URLSearchParams object, see URLSearchParams
      @return New URLSearchParams instance
      */
-    static URLSearchParams new URLSearchParams();
+    static URLSearchParams = URLSearchParams;
 
     /*! @brief Convert file URL object to platform-related file path
      @param url File URL object (must be file: protocol)

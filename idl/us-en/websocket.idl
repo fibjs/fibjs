@@ -136,7 +136,7 @@ interface WebSocket : EventEmitter
     WebSocket unref();
 
     /*! @brief WebSocketMessage class for creating WebSocket protocol messages, see WebSocketMessage object */
-    static WebSocketMessage new Message();
+    static Message = WebSocketMessage;
 
     /*! @brief Create a WebSocket protocol handler, receive upgrade request from http and handshake, generate WebSocket object
      @param accept Connection success handler function, callback will pass two parameters, first is the received WebSocket object, second is the HttpRequest object during handshake

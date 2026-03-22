@@ -57,10 +57,10 @@ module fs
     const SEEK_END = 2;
 
     /*! fs module's constants object, see fs_constants */
-    static fs_constants new constants();
+    static constants = fs_constants;
 
     /*! @brief Alias for Stat class, compatible with Node.js fs.Stats, see Stat */
-    static Stat new Stats();
+    static Stats = Stat;
 
     /*! @brief Query whether the specified file or directory exists
      @param path Specify the path to query

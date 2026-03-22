@@ -151,7 +151,7 @@ module net
     static TcpServer createServer(Handler listener);
 
     /*! @brief Create a UrlObject object, see UrlObject */
-    static UrlObject new Url();
+    static Url = UrlObject;
 
     /*! @brief Query current system asynchronous network engine
      @return Return network engine name

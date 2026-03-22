@@ -97,7 +97,7 @@ inline ClassInfo& WebSocket_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "WebSocketMessage", WebSocketMessage_base::class_info }
+        { "Message", WebSocketMessage_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

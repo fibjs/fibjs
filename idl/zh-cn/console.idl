@@ -490,5 +490,5 @@ module console
     static assert;
 
     /*! @brief Console 构造函数，用于创建输出到指定流的新 Console 实例 */
-    static ConsoleObject new Console();
+    static Console = ConsoleObject;
 };

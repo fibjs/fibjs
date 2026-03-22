@@ -6,10 +6,10 @@ module tls
     static TLSSocket;
 
     /*! @brief tls/ssl 协议转换处理器，参见 TLSHandler */
-    static TLSHandler new Handler();
+    static Handler = TLSHandler;
 
     /*! @brief tls/ssl 协议转换处理器，参见 TLSServer */
-    static TLSServer new Server();
+    static Server = TLSServer;
 
     /*! @brief 创建一个 TLS 服务器
      @param context 指定安全上下文

@@ -109,7 +109,7 @@ eventDef
   }
 
 object
-  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken _* type:Identifier _* newToken _* name:Identifier "(" _* ")" _*  ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken _* name:Identifier _* "=" _* type:Identifier _*  ";" {
     return {
       memType: "object",
       comments: comments.join(""),
@@ -372,4 +372,4 @@ readonlyToken   = "readonly"
 asyncToken      = "async"
 promiseToken    = "promise"
 constToken      = "const"
-newToken        = "new"
+

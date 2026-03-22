@@ -83,13 +83,13 @@ module test
     static test;
 
     /*! @brief Test framework module, points to this module, can be called as a function */
-    static test new it();
+    static it = test;
 
     /*! @brief Test suite module, can be called as a function, see test_suite */
-    static test_suite new suite();
+    static suite = test_suite;
 
     /*! @brief Test suite module, can be called as a function, see test_suite */
-    static test_suite new describe();
+    static describe = test_suite;
 
     /*! @brief Assertion test module, can be called as a function, if the test value is false, report error, error behavior can be set to continue running or throw error */
     static assert;

@@ -2,7 +2,7 @@
 module crypto
 {
     /*! crypto module's constants object, see crypto_constants */
-    static crypto_constants new constants();
+    static constants = crypto_constants;
 
     /*! @brief KeyObject object, see KeyObject */
     static KeyObject;

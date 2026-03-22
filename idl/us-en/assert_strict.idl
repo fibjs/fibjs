@@ -26,7 +26,7 @@ module assert_strict
     static Function(Value actual = undefined, String msg = "");
 
     /*! Test if value is true, fail assertion if false, alias of assert module */
-    static assert new ok();
+    static ok = assert;
 
     /*! @brief Test if value is false, fail assertion if true
      @param actual value to test

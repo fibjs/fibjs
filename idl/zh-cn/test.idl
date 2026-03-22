@@ -83,13 +83,13 @@ module test
     static test;
 
     /*! @brief 测试框架模块，指向本模块，可作为函数调用 */
-    static test new it();
+    static it = test;
 
     /*! @brief 测试套件模块，可作为函数调用，参见 test_suite */
-    static test_suite new suite();
+    static suite = test_suite;
 
     /*! @brief 测试套件模块，可作为函数调用，参见 test_suite */
-    static test_suite new describe();
+    static describe = test_suite;
 
     /*! @brief 断言测试模块，可作为函数调用，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
     static assert;

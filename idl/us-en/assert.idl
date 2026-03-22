@@ -26,10 +26,10 @@ module assert
     static Function(Value actual = undefined, String msg = "");
 
     /*! Test that the value is true, fail the assertion if false, alias of assert module */
-    static assert new ok();
+    static ok = assert;
 
     /*! Strict test module, see assert_strict module */
-    static assert_strict new strict();
+    static strict = assert_strict;
 
     /*! @brief Assertion fails, throw error directly
      @param msg The prompt message when assertion fails

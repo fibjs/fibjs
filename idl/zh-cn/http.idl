@@ -32,28 +32,28 @@ https 模块是 http 模块的别名，使用 `require('https')` 同样可以得
 module http
 {
     /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
-    static HttpRequest new Request();
+    static Request = HttpRequest;
 
     /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
-    static HttpResponse new Response();
+    static Response = HttpResponse;
 
     /*! @brief 创建一个 Headers 对象，参见 Headers */
     static Headers;
 
     /*! @brief 创建一个 http cookie 对象，参见 HttpCookie */
-    static HttpCookie new Cookie();
+    static Cookie = HttpCookie;
 
     /*! @brief 创建一个 http 服务器，参见 HttpServer */
-    static HttpServer new Server();
+    static Server = HttpServer;
 
     /*! @brief 创建一个 http 客户端，参见 HttpClient */
-    static HttpClient new Client();
+    static Client = HttpClient;
 
     /*! @brief 创建一个 http 代理，参见 HttpAgent */
-    static HttpAgent new Agent();
+    static Agent = HttpAgent;
 
     /*! @brief 创建一个 https 服务器，参见 HttpsServer */
-    static HttpsServer new HttpsServer();
+    static HttpsServer = HttpsServer;
 
     /*! @brief 创建一个 http 服务器
      @param hdlr 请求处理函数，接收 (req, res) 参数
@@ -76,10 +76,10 @@ module http
     static HttpServer createServer(Object options, Handler hdlr);
 
     /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
-    static HttpHandler new Handler();
+    static Handler = HttpHandler;
 
     /*! @brief 创建一个 http 请求转发处理器对象，参见 HttpRepeater */
-    static HttpRepeater new Repeater();
+    static Repeater = HttpRepeater;
 
     /*! @brief 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 */
     static readonly Object STATUS_CODES;

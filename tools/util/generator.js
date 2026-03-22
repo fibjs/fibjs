@@ -64,7 +64,7 @@ const _formatParamTypeName = (param) => {
 }
 
 const _formatConstructorObject = (member) => {
-    return ` new ${member.name}()`;
+    return `${member.name} = ${member.type}`;
 }
 
 const ejs_tpl_module = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/generator_module.idl.ejs'), "utf8"));
@@ -169,7 +169,8 @@ function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
                     }) + lineEOL
                 case 'object':
                     return ejs_tpl_interface_member_object({
-                        ...ctx
+                        ...ctx,
+                        _formatConstructorObject
                     }) + lineEOL
                 case 'method':
                     return ejs_tpl_interface_member_method({
