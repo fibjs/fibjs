@@ -104,10 +104,6 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(options, "poolSize", m_poolSize);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     hr = GetConfigValue(options, "poolTimeout", m_poolTimeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
@@ -335,18 +331,6 @@ result_t HttpClient::set_userAgent(exlib::string newVal)
     return 0;
 }
 
-result_t HttpClient::get_poolSize(int32_t& retVal)
-{
-    retVal = m_poolSize;
-    return 0;
-}
-
-result_t HttpClient::set_poolSize(int32_t newVal)
-{
-    m_poolSize = newVal;
-    return 0;
-}
-
 result_t HttpClient::get_poolTimeout(int32_t& retVal)
 {
     retVal = m_poolTimeout;
@@ -544,6 +528,117 @@ void HttpClient::setEnvProxy()
 
     set_http_proxy(http_proxy);
     set_https_proxy(https_proxy);
+}
+
+result_t HttpClient::get_maxSockets(int32_t& retVal)
+{
+    retVal = m_maxSockets;
+    return 0;
+}
+
+result_t HttpClient::set_maxSockets(int32_t newVal)
+{
+    m_maxSockets = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_maxTotalSockets(int32_t& retVal)
+{
+    retVal = m_maxTotalSockets;
+    return 0;
+}
+
+result_t HttpClient::set_maxTotalSockets(int32_t newVal)
+{
+    m_maxTotalSockets = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_maxFreeSockets(int32_t& retVal)
+{
+    retVal = m_maxFreeSockets;
+    return 0;
+}
+
+result_t HttpClient::set_maxFreeSockets(int32_t newVal)
+{
+    m_maxFreeSockets = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_defaultPort(int32_t& retVal)
+{
+    retVal = m_defaultPort;
+    return 0;
+}
+
+result_t HttpClient::set_defaultPort(int32_t newVal)
+{
+    m_defaultPort = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_protocol(exlib::string& retVal)
+{
+    retVal = m_protocol;
+    return 0;
+}
+
+result_t HttpClient::set_protocol(exlib::string newVal)
+{
+    m_protocol = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_freeSockets(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    retVal = v8::Object::New(isolate->m_isolate);
+    return 0;
+}
+
+result_t HttpClient::get_sockets(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    retVal = v8::Object::New(isolate->m_isolate);
+    return 0;
+}
+
+result_t HttpClient::get_totalSocketCount(int32_t& retVal)
+{
+    retVal = 0;
+    return 0;
+}
+
+result_t HttpClient::getName(v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    Isolate* isolate = holder();
+    exlib::string host, localAddress;
+    int32_t port = m_defaultPort;
+
+    GetConfigValue(options, "host", host);
+    GetConfigValue(options, "port", port);
+    GetConfigValue(options, "localAddress", localAddress);
+
+    retVal = m_protocol;
+    retVal.append("//");
+    retVal.append(host);
+    retVal.append(":");
+    retVal.append(std::to_string(port));
+    if (!localAddress.empty()) {
+        retVal.append(":");
+        retVal.append(localAddress);
+    }
+
+    return 0;
+}
+
+result_t HttpClient::destroy()
+{
+    m_lock.lock();
+    m_conns.clear();
+    m_lock.unlock();
+    return 0;
 }
 
 result_t HttpClient::update(HttpCookie_base* cookie)

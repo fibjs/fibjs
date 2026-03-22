@@ -30,8 +30,12 @@ public:
         , m_maxHeaderSize(8192)
         , m_maxChunkSize(2)
         , m_maxBodySize(-1)
-        , m_poolSize(128)
         , m_poolTimeout(10000)
+        , m_maxSockets(INT32_MAX)
+        , m_maxTotalSockets(INT32_MAX)
+        , m_maxFreeSockets(256)
+        , m_defaultPort(80)
+        , m_protocol("http:")
     {
         m_cookies = new NArray();
         m_userAgent = "curl/8.14.1";
@@ -60,8 +64,6 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_userAgent(exlib::string& retVal);
     virtual result_t set_userAgent(exlib::string newVal);
-    virtual result_t get_poolSize(int32_t& retVal);
-    virtual result_t set_poolSize(int32_t newVal);
     virtual result_t get_poolTimeout(int32_t& retVal);
     virtual result_t set_poolTimeout(int32_t newVal);
     result_t get_http_proxy(exlib::string& retVal);
@@ -70,6 +72,21 @@ public:
     result_t set_https_proxy(exlib::string newVal);
     virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal);
     virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal);
+    virtual result_t get_maxSockets(int32_t& retVal);
+    virtual result_t set_maxSockets(int32_t newVal);
+    virtual result_t get_maxTotalSockets(int32_t& retVal);
+    virtual result_t set_maxTotalSockets(int32_t newVal);
+    virtual result_t get_maxFreeSockets(int32_t& retVal);
+    virtual result_t set_maxFreeSockets(int32_t newVal);
+    virtual result_t get_defaultPort(int32_t& retVal);
+    virtual result_t set_defaultPort(int32_t newVal);
+    virtual result_t get_protocol(exlib::string& retVal);
+    virtual result_t set_protocol(exlib::string newVal);
+    virtual result_t get_freeSockets(v8::Local<v8::Object>& retVal);
+    virtual result_t get_sockets(v8::Local<v8::Object>& retVal);
+    virtual result_t get_totalSocketCount(int32_t& retVal);
+    virtual result_t getName(v8::Local<v8::Object> options, exlib::string& retVal);
+    virtual result_t destroy();
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
@@ -129,7 +146,7 @@ public:
         std::vector<obj_ptr<Conn>> keep_conns;
 
         m_lock.lock();
-        while (((int32_t)m_conns.size() > m_poolSize)
+        while (((int32_t)m_conns.size() > m_maxFreeSockets)
             || (m_conns.size() && d.diff(m_conns[0]->d) >= (double)m_poolTimeout)) {
             keep_conns.push_back(m_conns[0]);
             m_conns.erase(m_conns.begin());
@@ -149,7 +166,7 @@ public:
 
         m_lock.lock();
         m_conns.push_back(conn);
-        if ((int32_t)m_conns.size() > m_poolSize) {
+        if ((int32_t)m_conns.size() > m_maxFreeSockets) {
             conn = m_conns[0];
             m_conns.erase(m_conns.begin());
         }
@@ -205,8 +222,12 @@ private:
     };
 
     std::vector<obj_ptr<Conn>> m_conns;
-    int32_t m_poolSize;
     int32_t m_poolTimeout;
+    int32_t m_maxSockets;
+    int32_t m_maxTotalSockets;
+    int32_t m_maxFreeSockets;
+    int32_t m_defaultPort;
+    exlib::string m_protocol;
 
 public:
     // HTTP/2 session pool (keyed by "ssl://host:port")

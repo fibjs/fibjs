@@ -1,5 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
@@ -46,7 +46,7 @@
  * 在该例子中，首先创建了一个 HttpClient 对象 httpClient，并设置其 userAgent 为浏览器的 User-Agent。然后通过它的 post 方法来发起一个 post 请求，其中参数 name 和 version 来指定请求的主体内容。最后将返回值的主体内容输出。
  *  
  */
-declare class Class_HttpClient extends Class_object {
+declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description HttpClient 构造函数，创建一个新的HttpClient对象 
      */
@@ -72,7 +72,6 @@ declare class Class_HttpClient extends Class_object {
      *      - maxHeaderSize: 指定最大请求头长度
      *      - maxBodySize: 指定 body 最大尺寸
      *      - userAgent: 指定浏览器标识
-     *      - poolSize: 指定 keep-alive 最大缓存连接数
      *      - poolTimeout: 指定 keep-alive 缓存连接超时时间
      *      - proxyEnv: 指定代理配置环境变量，包含 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式
      * 
@@ -137,11 +136,6 @@ declare class Class_HttpClient extends Class_object {
     userAgent: string;
 
     /**
-     * @description 查询和设置 keep-alive 最大缓存连接数，缺省 128 
-     */
-    poolSize: number;
-
-    /**
      * @description 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms 
      */
     poolTimeout: number;
@@ -150,6 +144,59 @@ declare class Class_HttpClient extends Class_object {
      * @description 查询和设置代理配置环境变量，支持 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式 
      */
     proxyEnv: FIBJS.GeneralObject;
+
+    /**
+     * @description 查询和设置每个主机的最大连接数，缺省为无限制 
+     */
+    maxSockets: number;
+
+    /**
+     * @description 查询和设置所有主机的最大连接总数，缺省为无限制 
+     */
+    maxTotalSockets: number;
+
+    /**
+     * @description 查询和设置每个主机的最大空闲连接数，缺省为 256 
+     */
+    maxFreeSockets: number;
+
+    /**
+     * @description 查询和设置 getName() 中使用的默认端口，缺省为 80 
+     */
+    defaultPort: number;
+
+    /**
+     * @description 查询和设置 getName() 中使用的默认协议，缺省为 "http:" 
+     */
+    protocol: string;
+
+    /**
+     * @description 返回以 host:port 为键的空闲连接映射 
+     */
+    readonly freeSockets: FIBJS.GeneralObject;
+
+    /**
+     * @description 返回以 host:port 为键的使用中的连接映射 
+     */
+    readonly sockets: FIBJS.GeneralObject;
+
+    /**
+     * @description 返回所有主机的使用中连接总数 
+     */
+    readonly totalSocketCount: number;
+
+    /**
+     * @description 返回给定请求选项的唯一键，用于连接池
+     *      @param options 请求选项
+     *      @return 返回连接池键字符串
+     *      
+     */
+    getName(options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description 销毁当前正在使用的所有连接 
+     */
+    destroy(): void;
 
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果

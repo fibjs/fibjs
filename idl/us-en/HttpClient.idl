@@ -59,7 +59,6 @@ interface HttpClient : object
      - maxHeaderSize: specify maximum request header length
      - maxBodySize: specify maximum body size
      - userAgent: specify browser identifier
-     - poolSize: specify maximum number of keep-alive cached connections
      - poolTimeout: specify keep-alive cached connection timeout time
      - proxyEnv: specify environment variables for proxy configuration containing HTTP_PROXY, HTTPS_PROXY, NO_PROXY (and their lowercase variants)
 
@@ -99,9 +98,6 @@ interface HttpClient : object
 
     /*! @brief Query and set browser identifier in http request */
     String userAgent;
-
-    /*! @brief Query and set maximum number of keep-alive cached connections, default 128 */
-    Integer poolSize;
 
     /*! @brief Query and set keep-alive cached connection timeout time, default 10000 ms */
     Integer poolTimeout;

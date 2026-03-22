@@ -37,7 +37,7 @@ console.log(res.body.readAll().toString());
 
 在该例子中，首先创建了一个 HttpClient 对象 httpClient，并设置其 userAgent 为浏览器的 User-Agent。然后通过它的 post 方法来发起一个 post 请求，其中参数 name 和 version 来指定请求的主体内容。最后将返回值的主体内容输出。
  */
-interface HttpClient : object
+interface HttpClient : EventEmitter
 {
     /*! @brief HttpClient 构造函数，创建一个新的HttpClient对象 */
     HttpClient();
@@ -59,7 +59,6 @@ interface HttpClient : object
      - maxHeaderSize: 指定最大请求头长度
      - maxBodySize: 指定 body 最大尺寸
      - userAgent: 指定浏览器标识
-     - poolSize: 指定 keep-alive 最大缓存连接数
      - poolTimeout: 指定 keep-alive 缓存连接超时时间
      - proxyEnv: 指定代理配置环境变量，包含 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式
 
@@ -100,14 +99,44 @@ interface HttpClient : object
     /*! @brief 查询和设置 http 请求中的浏览器标识 */
     String userAgent;
 
-    /*! @brief 查询和设置 keep-alive 最大缓存连接数，缺省 128 */
-    Integer poolSize;
-
     /*! @brief 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms */
     Integer poolTimeout;
 
     /*! @brief 查询和设置代理配置环境变量，支持 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式 */
     Object proxyEnv;
+
+    /*! @brief 查询和设置每个主机的最大连接数，缺省为无限制 */
+    Integer maxSockets;
+
+    /*! @brief 查询和设置所有主机的最大连接总数，缺省为无限制 */
+    Integer maxTotalSockets;
+
+    /*! @brief 查询和设置每个主机的最大空闲连接数，缺省为 256 */
+    Integer maxFreeSockets;
+
+    /*! @brief 查询和设置 getName() 中使用的默认端口，缺省为 80 */
+    Integer defaultPort;
+
+    /*! @brief 查询和设置 getName() 中使用的默认协议，缺省为 "http:" */
+    String protocol;
+
+    /*! @brief 返回以 host:port 为键的空闲连接映射 */
+    readonly Object freeSockets;
+
+    /*! @brief 返回以 host:port 为键的使用中的连接映射 */
+    readonly Object sockets;
+
+    /*! @brief 返回所有主机的使用中连接总数 */
+    readonly Integer totalSocketCount;
+
+    /*! @brief 返回给定请求选项的唯一键，用于连接池
+     @param options 请求选项
+     @return 返回连接池键字符串
+     */
+    String getName(Object options = {});
+
+    /*! @brief 销毁当前正在使用的所有连接 */
+    destroy();
 
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象

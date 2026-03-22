@@ -49,8 +49,8 @@ module http
     /*! @brief Create an http client, see HttpClient */
     static Client = HttpClient;
 
-    /*! @brief Create an http agent, see HttpAgent */
-    static Agent = HttpAgent;
+    /*! @brief Create an http agent, see HttpClient */
+    static Agent = HttpClient;
 
     /*! @brief Create an https server, see HttpsServer */
     static HttpsServer = HttpsServer;
@@ -119,9 +119,6 @@ module http
 
     /*! @brief Query and set the browser identifier in http request */
     static String userAgent;
-
-    /*! @brief Query and set the maximum number of keep-alive cached connections, default 128 */
-    static Integer poolSize;
 
     /*! @brief Query and set the keep-alive cached connection timeout time, default 10000 ms */
     static Integer poolTimeout;

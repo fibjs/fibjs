@@ -5,7 +5,6 @@
 /// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
-/// <reference path="../interface/HttpAgent.d.ts" />
 /// <reference path="../interface/HttpsServer.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
@@ -78,9 +77,9 @@ declare module 'http' {
     const Client: typeof Class_HttpClient;
 
     /**
-     * @description 创建一个 http 代理，参见 HttpAgent 
+     * @description 创建一个 http 代理，HttpAgent 是 HttpClient 的别名 
      */
-    const Agent: typeof Class_HttpAgent;
+    const Agent: typeof Class_HttpClient;
 
     /**
      * @description 创建一个 https 服务器，参见 HttpsServer 
@@ -187,11 +186,6 @@ declare module 'http' {
      * @description 查询和设置 http 请求中的浏览器标识 
      */
     var userAgent: string;
-
-    /**
-     * @description 查询和设置 keep-alive 最大缓存连接数，缺省 128 
-     */
-    var poolSize: number;
 
     /**
      * @description 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms 

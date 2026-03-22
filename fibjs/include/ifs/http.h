@@ -21,7 +21,6 @@ class Headers_base;
 class HttpCookie_base;
 class HttpServer_base;
 class HttpClient_base;
-class HttpAgent_base;
 class HttpsServer_base;
 class Handler_base;
 class SecureContext_base;
@@ -61,8 +60,6 @@ public:
     static result_t set_maxBodySize(int32_t newVal);
     static result_t get_userAgent(exlib::string& retVal);
     static result_t set_userAgent(exlib::string newVal);
-    static result_t get_poolSize(int32_t& retVal);
-    static result_t set_poolSize(int32_t newVal);
     static result_t get_poolTimeout(int32_t& retVal);
     static result_t set_poolTimeout(int32_t newVal);
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
@@ -132,8 +129,6 @@ public:
     static void s_static_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -185,7 +180,6 @@ public:
 #include "ifs/HttpCookie.h"
 #include "ifs/HttpServer.h"
 #include "ifs/HttpClient.h"
-#include "ifs/HttpAgent.h"
 #include "ifs/HttpsServer.h"
 #include "ifs/Handler.h"
 #include "ifs/SecureContext.h"
@@ -218,7 +212,7 @@ inline ClassInfo& http_base::class_info()
         { "Cookie", HttpCookie_base::class_info },
         { "Server", HttpServer_base::class_info },
         { "Client", HttpClient_base::class_info },
-        { "Agent", HttpAgent_base::class_info },
+        { "Agent", HttpClient_base::class_info },
         { "HttpsServer", HttpsServer_base::class_info },
         { "Handler", HttpHandler_base::class_info },
         { "Repeater", HttpRepeater_base::class_info }
@@ -238,7 +232,6 @@ inline ClassInfo& http_base::class_info()
         { "maxChunkSize", s_static_get_maxChunkSize, s_static_set_maxChunkSize, true },
         { "maxBodySize", s_static_get_maxBodySize, s_static_set_maxBodySize, true },
         { "userAgent", s_static_get_userAgent, s_static_set_userAgent, true },
-        { "poolSize", s_static_get_poolSize, s_static_set_poolSize, true },
         { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true }
     };
 
@@ -577,32 +570,6 @@ inline void http_base::s_static_set_userAgent(const v8::FunctionCallbackInfo<v8:
     ARG(exlib::string, 0);
 
     hr = set_userAgent(v0);
-
-    METHOD_VOID();
-}
-
-inline void http_base::s_static_get_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_poolSize(vr);
-
-    METHOD_RETURN();
-}
-
-inline void http_base::s_static_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    hr = set_poolSize(v0);
 
     METHOD_VOID();
 }

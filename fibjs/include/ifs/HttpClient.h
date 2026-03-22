@@ -12,17 +12,20 @@
  */
 
 #include "../object.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
+class EventEmitter_base;
 class SecureContext_base;
 class HttpMessage_base;
 class Stream_base;
 class HttpRequest_base;
 class HttpResponse_base;
 
-class HttpClient_base : public object_base {
+class HttpClient_base : public EventEmitter_base {
     DECLARE_CLASS(HttpClient_base);
+    EVENT_SUPPORT();
 
 public:
     // HttpClient_base
@@ -50,12 +53,25 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_userAgent(exlib::string& retVal) = 0;
     virtual result_t set_userAgent(exlib::string newVal) = 0;
-    virtual result_t get_poolSize(int32_t& retVal) = 0;
-    virtual result_t set_poolSize(int32_t newVal) = 0;
     virtual result_t get_poolTimeout(int32_t& retVal) = 0;
     virtual result_t set_poolTimeout(int32_t newVal) = 0;
     virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal) = 0;
+    virtual result_t get_maxSockets(int32_t& retVal) = 0;
+    virtual result_t set_maxSockets(int32_t newVal) = 0;
+    virtual result_t get_maxTotalSockets(int32_t& retVal) = 0;
+    virtual result_t set_maxTotalSockets(int32_t newVal) = 0;
+    virtual result_t get_maxFreeSockets(int32_t& retVal) = 0;
+    virtual result_t set_maxFreeSockets(int32_t newVal) = 0;
+    virtual result_t get_defaultPort(int32_t& retVal) = 0;
+    virtual result_t set_defaultPort(int32_t newVal) = 0;
+    virtual result_t get_protocol(exlib::string& retVal) = 0;
+    virtual result_t set_protocol(exlib::string newVal) = 0;
+    virtual result_t get_freeSockets(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_sockets(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_totalSocketCount(int32_t& retVal) = 0;
+    virtual result_t getName(v8::Local<v8::Object> options, exlib::string& retVal) = 0;
+    virtual result_t destroy() = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
@@ -112,12 +128,25 @@ public:
     static void s_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxTotalSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxTotalSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_defaultPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_defaultPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_freeSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_sockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_totalSocketCount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -169,6 +198,8 @@ namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "getName", s_getName, false, ClassData::ASYNC_SYNC },
+        { "destroy", s_destroy, false, ClassData::ASYNC_SYNC },
         { "request", s_request, false, ClassData::ASYNC_ASYNC },
         { "get", s_get, false, ClassData::ASYNC_ASYNC },
         { "post", s_post, false, ClassData::ASYNC_ASYNC },
@@ -191,15 +222,22 @@ inline ClassInfo& HttpClient_base::class_info()
         { "maxChunkSize", s_get_maxChunkSize, s_set_maxChunkSize, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "userAgent", s_get_userAgent, s_set_userAgent, false },
-        { "poolSize", s_get_poolSize, s_set_poolSize, false },
         { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, false },
-        { "proxyEnv", s_get_proxyEnv, s_set_proxyEnv, false }
+        { "proxyEnv", s_get_proxyEnv, s_set_proxyEnv, false },
+        { "maxSockets", s_get_maxSockets, s_set_maxSockets, false },
+        { "maxTotalSockets", s_get_maxTotalSockets, s_set_maxTotalSockets, false },
+        { "maxFreeSockets", s_get_maxFreeSockets, s_set_maxFreeSockets, false },
+        { "defaultPort", s_get_defaultPort, s_set_defaultPort, false },
+        { "protocol", s_get_protocol, s_set_protocol, false },
+        { "freeSockets", s_get_freeSockets, block_set, false },
+        { "sockets", s_get_sockets, block_set, false },
+        { "totalSocketCount", s_get_totalSocketCount, block_set, false }
     };
 
     static ClassData s_cd = {
         "HttpClient", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info(),
+        &EventEmitter_base::class_info(),
         true
     };
 
@@ -553,34 +591,6 @@ inline void HttpClient_base::s_set_userAgent(const v8::FunctionCallbackInfo<v8::
     METHOD_VOID();
 }
 
-inline void HttpClient_base::s_get_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->get_poolSize(vr);
-
-    METHOD_RETURN();
-}
-
-inline void HttpClient_base::s_set_poolSize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    hr = pInst->set_poolSize(v0);
-
-    METHOD_VOID();
-}
-
 inline void HttpClient_base::s_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
@@ -633,6 +643,216 @@ inline void HttpClient_base::s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::V
     ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->set_proxyEnv(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_maxSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxSockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->set_maxSockets(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_maxTotalSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxTotalSockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxTotalSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->set_maxTotalSockets(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxFreeSockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->set_maxFreeSockets(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_defaultPort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_defaultPort(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_defaultPort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->set_defaultPort(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_protocol(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_protocol(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpClient_base::s_get_freeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_freeSockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_get_sockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_sockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_get_totalSocketCount(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_totalSocketCount(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_getName(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = pInst->getName(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->destroy();
 
     METHOD_VOID();
 }

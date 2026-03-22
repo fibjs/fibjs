@@ -9,7 +9,6 @@
 #include "ifs/http.h"
 #include "ifs/HttpServer.h"
 #include "ifs/HttpsServer.h"
-#include "ifs/HttpAgent.h"
 #include "ifs/tls.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
@@ -154,16 +153,6 @@ result_t http_base::get_userAgent(exlib::string& retVal)
 result_t http_base::set_userAgent(exlib::string newVal)
 {
     return get_httpClient()->set_userAgent(newVal);
-}
-
-result_t http_base::get_poolSize(int32_t& retVal)
-{
-    return get_httpClient()->get_poolSize(retVal);
-}
-
-result_t http_base::set_poolSize(int32_t newVal)
-{
-    return get_httpClient()->set_poolSize(newVal);
 }
 
 result_t http_base::get_poolTimeout(int32_t& retVal)
