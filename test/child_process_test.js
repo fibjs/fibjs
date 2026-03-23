@@ -610,6 +610,87 @@ describe("child_process", () => {
         });
     }
 
+    if (!isWin32 && !process.env.QEMU_LD_PREFIX && !isAndroid) {
+        describe("timeout", () => {
+            it("execFile with timeout", () => {
+                var t = Date.now();
+                var result = child_process.execFile("sleep", ["10"], { timeout: 500 });
+                var elapsed = Date.now() - t;
+                assert.equal(result.exitCode, -15);
+                assert.ok(elapsed < 2000);
+            });
+
+            it("execFile without timeout completes normally", () => {
+                var result = child_process.execFile("echo", ["hello"], { timeout: 0 });
+                assert.equal(result.exitCode, 0);
+                assert.equal(result.stdout.trim(), "hello");
+            });
+
+            it("exec with timeout", () => {
+                var t = Date.now();
+                var result = child_process.exec("sleep 10", { timeout: 500 });
+                var elapsed = Date.now() - t;
+                assert.equal(result.exitCode, -15);
+                assert.ok(elapsed < 2000);
+            });
+
+            it("spawnSync with timeout", () => {
+                var t = Date.now();
+                var result = child_process.spawnSync("sleep", ["10"], { timeout: 500 });
+                var elapsed = Date.now() - t;
+                assert.equal(result.status, -15);
+                assert.ok(elapsed < 2000);
+            });
+
+            it("execSync with timeout throws", () => {
+                assert.throws(() => {
+                    child_process.execSync("sleep 10", { timeout: 500 });
+                });
+            });
+
+            it("execFileSync with timeout throws", () => {
+                assert.throws(() => {
+                    child_process.execFileSync("sleep", ["10"], { timeout: 500 });
+                });
+            });
+
+            it("custom killSignal", () => {
+                var result = child_process.execFile("sleep", ["10"], {
+                    timeout: 500,
+                    killSignal: "SIGKILL"
+                });
+                assert.equal(result.exitCode, -9);
+            });
+
+            it("process completes before timeout", () => {
+                var result = child_process.execFile("echo", ["done"], { timeout: 5000 });
+                assert.equal(result.exitCode, 0);
+                assert.equal(result.stdout.trim(), "done");
+            });
+
+            it("run with timeout", () => {
+                var t = Date.now();
+                var exitCode = child_process.run("sleep", ["10"], { timeout: 500 });
+                var elapsed = Date.now() - t;
+                assert.equal(exitCode, -15);
+                assert.ok(elapsed < 2000);
+            });
+
+            it("run with custom killSignal", () => {
+                var exitCode = child_process.run("sleep", ["10"], {
+                    timeout: 500,
+                    killSignal: "SIGKILL"
+                });
+                assert.equal(exitCode, -9);
+            });
+
+            it("run completes before timeout", () => {
+                var exitCode = child_process.run("echo", ["done"], { timeout: 5000 });
+                assert.equal(exitCode, 0);
+            });
+        });
+    }
+
     xit("stdin/stdout stream", () => {
         var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
         var stdout = new io.BufferedStream(bs.stdout);

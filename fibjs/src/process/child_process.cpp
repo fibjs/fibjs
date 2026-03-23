@@ -18,6 +18,47 @@ namespace fibjs {
 
 DECLARE_MODULE(child_process);
 
+// Timer that kills a child process after a timeout
+struct KillTimer {
+    uv_timer_t timer;
+    obj_ptr<ChildProcess_base> cp;
+    exlib::string killSignal;
+    std::atomic<bool> timedout;
+
+    KillTimer(ChildProcess_base* _cp, const exlib::string& _killSignal)
+        : cp(_cp)
+        , killSignal(_killSignal)
+        , timedout(false)
+    {
+        timer.data = this;
+    }
+
+    void start(int32_t timeout)
+    {
+        uv_post([this, timeout]() {
+            uv_timer_init(s_uv_loop, &timer);
+            uv_timer_start(&timer, on_timer, timeout, 0);
+        });
+    }
+
+    void stop()
+    {
+        uv_post([this]() {
+            uv_timer_stop(&timer);
+            uv_close((uv_handle_t*)&timer, [](uv_handle_t* h) {
+                delete (KillTimer*)h->data;
+            });
+        });
+    }
+
+    static void on_timer(uv_timer_t* handle)
+    {
+        KillTimer* self = (KillTimer*)handle->data;
+        self->timedout.store(true, std::memory_order_release);
+        self->cp->kill(self->killSignal);
+    }
+};
+
 // Helper function to throw execSync/execFileSync error when child process exits with non-zero code
 static void throwExecSyncError(const exlib::string& command, int32_t exitCode,
     const Variant& stdout_val, const Variant& stderr_val, v8::Local<v8::Object> options)
@@ -74,6 +115,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             : m_codec(ac->m_ctx[0].string())
             , m_retVal(retVal)
             , m_ac(ac)
+            , m_killTimer(nullptr)
         {
             setAsync();
             m_cp = ac->m_ctxo.As<ChildProcess_base>();
@@ -98,6 +140,12 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
 
             if (m_stderr)
                 m_stderr->copyTo(m_buferr, -1, m_szerr, this);
+
+            int32_t timeout = ac->m_ctx[1].intVal();
+            if (timeout > 0) {
+                m_killTimer = new KillTimer(m_cp, ac->m_ctx[2].string());
+                m_killTimer->start(timeout);
+            }
         }
 
         static Variant getBuffer(obj_ptr<MemoryStream>& stream, exlib::string codec)
@@ -132,6 +180,11 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         virtual int32_t post(int32_t v)
         {
             if (m_cnt.dec() == 0) {
+                if (m_killTimer) {
+                    m_killTimer->stop();
+                    m_killTimer = nullptr;
+                }
+
                 m_retVal = new ExecFileType();
 
                 m_retVal->stdout = getBuffer(m_bufout, m_codec);
@@ -163,6 +216,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         int64_t m_szerr;
 
         int32_t m_status;
+        KillTimer* m_killTimer;
     };
 
     if (ac->isSync()) {
@@ -178,13 +232,21 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         exlib::string codec("utf8");
         GetConfigValue(opts, "encoding", codec);
 
+        int32_t timeout = 0;
+        GetConfigValue(opts, "timeout", timeout);
+
+        exlib::string killSignal("SIGTERM");
+        GetConfigValue(opts, "killSignal", killSignal);
+
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)
             return hr;
 
         ac->m_ctxo = cp;
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(3);
         ac->m_ctx[0] = codec;
+        ac->m_ctx[1] = timeout;
+        ac->m_ctx[2] = killSignal;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -284,6 +346,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             : m_codec(ac->m_ctx[0].string())
             , m_retVal(retVal)
             , m_ac(ac)
+            , m_killTimer(nullptr)
         {
             setAsync();
             ChildProcess_base* cp = ac->m_ctxo.As<ChildProcess_base>();
@@ -308,6 +371,12 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
 
             if (m_stderr)
                 m_stderr->copyTo(m_buferr, -1, m_szerr, this);
+
+            int32_t timeout = ac->m_ctx[1].intVal();
+            if (timeout > 0) {
+                m_killTimer = new KillTimer(cp, ac->m_ctx[2].string());
+                m_killTimer->start(timeout);
+            }
         }
 
         static Variant getBuffer(obj_ptr<MemoryStream>& stream, exlib::string codec)
@@ -342,6 +411,11 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         virtual int32_t post(int32_t v)
         {
             if (m_cnt.dec() == 0) {
+                if (m_killTimer) {
+                    m_killTimer->stop();
+                    m_killTimer = nullptr;
+                }
+
                 m_retVal = new child_process_base::SpawnSyncType();
 
                 ChildProcess_base* cp = m_ac->m_ctxo.As<ChildProcess_base>();
@@ -379,6 +453,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         int64_t m_szerr;
 
         int32_t m_status;
+        KillTimer* m_killTimer;
     };
 
     if (ac->isSync()) {
@@ -394,6 +469,12 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
 
         exlib::string codec("buffer");
         GetConfigValue(opts, "encoding", codec);
+
+        int32_t timeout = 0;
+        GetConfigValue(opts, "timeout", timeout);
+
+        exlib::string killSignal("SIGTERM");
+        GetConfigValue(opts, "killSignal", killSignal);
 
         result_t hr = child_process_base::spawn(command, args, opts, cp);
         if (hr < 0) {
@@ -417,8 +498,10 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         }
 
         ac->m_ctxo = cp;
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(3);
         ac->m_ctx[0] = codec;
+        ac->m_ctx[1] = timeout;
+        ac->m_ctx[2] = killSignal;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -511,6 +594,48 @@ result_t child_process_base::fork(exlib::string module, v8::Local<v8::Object> op
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> args,
     v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
 {
+    class WaitJoin : public AsyncEvent {
+    public:
+        WaitJoin(int32_t& retVal, AsyncEvent* ac)
+            : m_retVal(retVal)
+            , m_ac(ac)
+            , m_killTimer(nullptr)
+        {
+            setAsync();
+            m_cp = ac->m_ctxo.As<ChildProcess_base>();
+
+            m_cp->join(m_status, this);
+
+            int32_t timeout = ac->m_ctx[0].intVal();
+            if (timeout > 0) {
+                m_killTimer = new KillTimer(m_cp, ac->m_ctx[1].string());
+                m_killTimer->start(timeout);
+            }
+        }
+
+        virtual int32_t post(int32_t v)
+        {
+            if (m_killTimer) {
+                m_killTimer->stop();
+                m_killTimer = nullptr;
+            }
+
+            m_cp->get_exitCode(m_retVal);
+
+            m_ac->post(0);
+            delete this;
+
+            return 0;
+        }
+
+    private:
+        obj_ptr<ChildProcess_base> m_cp;
+        int32_t m_status;
+        int32_t& m_retVal;
+        AsyncEvent* m_ac;
+        KillTimer* m_killTimer;
+    };
+
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
         v8::Local<v8::Context> context = isolate->context();
@@ -524,17 +649,26 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         opts = opts_.As<v8::Object>();
         opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit")).IsJust();
 
+        int32_t timeout = 0;
+        GetConfigValue(opts, "timeout", timeout);
+
+        exlib::string killSignal("SIGTERM");
+        GetConfigValue(opts, "killSignal", killSignal);
+
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)
             return hr;
 
         ac->m_ctxo = cp;
+        ac->m_ctx.resize(2);
+        ac->m_ctx[0] = timeout;
+        ac->m_ctx[1] = killSignal;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    obj_ptr<ChildProcess_base> cp = ac->m_ctxo.As<ChildProcess_base>();
-    return cp->join(retVal, ac);
+    new WaitJoin(retVal, ac);
+    return CALL_E_PENDDING;
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Object> options,

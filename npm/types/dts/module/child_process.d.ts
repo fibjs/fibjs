@@ -109,7 +109,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -135,7 +137,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -159,7 +163,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -183,7 +189,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -210,7 +218,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -235,7 +245,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -260,7 +272,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -286,7 +300,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -310,7 +326,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -334,7 +352,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -359,7 +379,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -383,7 +405,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -407,7 +431,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -432,7 +458,9 @@ declare module 'child_process' {
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
      *      }
      *      ```
      *      @param command 指定要运行的命令
