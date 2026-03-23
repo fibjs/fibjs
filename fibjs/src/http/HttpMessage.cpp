@@ -754,7 +754,9 @@ result_t HttpMessage::appendHeader(Headers_base* headers)
     Headers* hdrs = static_cast<Headers*>(headers);
     for (int32_t i = 0; i < (int32_t)hdrs->m_map.size(); i++) {
         auto& it = hdrs->m_map[i];
-        m_headers->append(it.first, it.second.string());
+        exlib::string value = it.second.string();
+        appendHeader(it.first.c_str(), (int32_t)it.first.length(),
+            value.c_str(), (int32_t)value.length());
     }
     return 0;
 }

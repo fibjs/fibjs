@@ -172,7 +172,11 @@ public:
     void _appendHeader(exlib::string name, exlib::string value)
     {
         if (!qstricmp(name.c_str(), "connection")) {
-            if (qstristr(value.c_str(), "keep-alive")) {
+            if (qstristr(value.c_str(), "upgrade")) {
+                m_message->set_upgrade(true);
+                m_message->set_keepAlive(true);
+                return;
+            } else if (qstristr(value.c_str(), "keep-alive")) {
                 m_message->set_keepAlive(true);
                 return;
             } else if (qstristr(value.c_str(), "close")) {
