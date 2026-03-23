@@ -13,6 +13,7 @@
 #include "Http2Stream.h"
 #include <nghttp2/nghttp2.h>
 #include <map>
+#include <atomic>
 
 namespace fibjs {
 
@@ -130,6 +131,11 @@ public:
 
     ssize_t recv(const uint8_t* data, size_t len)
     {
+        // Lock is required: although recv is only called from readLoop,
+        // its callbacks (_emit) post async tasks to the JS thread, and
+        // those tasks may call submit_*/collect_output concurrently.
+        // All _emit calls in callbacks are fire-and-forget (post_task),
+        // so they never re-acquire m_lock — no deadlock risk.
         m_lock.lock();
         ssize_t rv = nghttp2_session_mem_recv(m_session, data, len);
         m_lock.unlock();
@@ -161,9 +167,28 @@ public:
 
     operator bool() const { return m_session != nullptr; }
 
+    int want_read() { return nghttp2_session_want_read(m_session); }
+    int want_write() { return nghttp2_session_want_write(m_session); }
+
 private:
     nghttp2_session* m_session;
     exlib::spinlock m_lock;
+};
+
+// Write queue item for serializing writes to the connection
+class AsyncFlushItem : public exlib::linkitem {
+public:
+    AsyncFlushItem(obj_ptr<Buffer_base> buf, bool blocking = false)
+        : m_buf(buf)
+        , m_result(0)
+        , m_blocking(blocking)
+    {
+    }
+
+    obj_ptr<Buffer_base> m_buf;
+    exlib::Event m_event;
+    int32_t m_result;
+    bool m_blocking;
 };
 
 class Http2Session : public Http2Session_base {
@@ -209,6 +234,12 @@ public:
     // Send pending data synchronously (JS thread only)
     result_t sendPendingData();
 
+    // Post async flush of pending nghttp2 output (safe from any thread)
+    void asyncFlushOutput();
+
+    // Enqueue a write item (starts writer if queue was empty)
+    void enqueueFlush(AsyncFlushItem* item);
+
     // Get stream by ID
     obj_ptr<Http2Stream> getStream(int32_t stream_id);
 
@@ -253,6 +284,7 @@ public:
     bool m_internal = false; // true when used by HttpClient auto-upgrade (no V8 access)
     bool m_destroyed = false;
     bool m_closed = false;
+    bool m_ref_active = false; // true when readLoop holds isolate_ref
 
     NgHttp2Handler m_nghttp2;
     obj_ptr<Stream_base> m_conn;
@@ -265,6 +297,10 @@ public:
     std::map<int32_t, std::vector<std::pair<exlib::string, exlib::string>>> m_pending_headers;
 
     exlib::Event m_close_event;
+
+    // Serialize all writes to the connection via write queue
+    exlib::spinlock m_write_spinlock;
+    exlib::List<AsyncFlushItem> m_write_queue;
 
     // Connection authority info (for auto-filling pseudo-headers in request())
     exlib::string m_authority;

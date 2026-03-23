@@ -11,6 +11,8 @@
 #include "ifs/mq.h"
 #include "ifs/tls.h"
 #include "TLSServer.h"
+#include <list>
+#include <vector>
 
 namespace fibjs {
 
@@ -19,9 +21,40 @@ class Http2Handler : public Handler_base {
     FIBER_FREE();
 
 public:
-    Http2Handler(Handler_base* hdlr)
+    Http2Handler(Handler_base* hdlr, EventEmitter_base* server)
         : m_hdlr(hdlr)
+        , m_server(server)
     {
+    }
+
+    void addSession(Http2Session* session)
+    {
+        m_session_lock.lock();
+        m_sessions.push_back(session);
+        m_session_lock.unlock();
+    }
+
+    void removeSession(Http2Session* session)
+    {
+        m_session_lock.lock();
+        for (auto it = m_sessions.begin(); it != m_sessions.end(); ++it) {
+            if (*it == session) {
+                m_sessions.erase(it);
+                break;
+            }
+        }
+        m_session_lock.unlock();
+    }
+
+    void destroyAllSessions()
+    {
+        m_session_lock.lock();
+        std::vector<obj_ptr<Http2Session>> sessions(m_sessions.begin(), m_sessions.end());
+        m_sessions.clear();
+        m_session_lock.unlock();
+
+        for (auto& s : sessions)
+            s->destroy();
     }
 
 public:
@@ -42,8 +75,9 @@ public:
                 , m_stm(stm)
             {
                 m_session = new Http2Session(true);
-                m_session->wrap();
-
+                // Pre-set the isolate so _emit works from callbacks.
+                // The V8 wrapper will be created lazily on first JS access.
+                m_session->holder(ac->isolate());
                 next(init_session);
             }
 
@@ -54,10 +88,21 @@ public:
                 if (hr < 0)
                     return hr;
 
-                // The session's readLoop runs asynchronously.
-                // Wait for session to close before returning.
-                m_session->m_close_event.wait();
-                return next(CALL_RETURN_NULL);
+                m_pThis->addSession(m_session);
+
+                // Emit "session" event before starting loops,
+                // so user can register "stream" listener in time.
+                m_pThis->m_server->_emit("session", m_session);
+
+                // startLoops() will send initial SETTINGS in its
+                // initial_write state.
+                m_session->startLoops();
+
+                // Return PENDDING to let the upstream AsyncState chain
+                // (including TLS AsyncHandshake) complete and release locks.
+                // The readLoop keeps the session alive independently.
+                next(CALL_RETURN_NULL);
+                return CALL_E_PENDDING;
             }
 
         private:
@@ -78,6 +123,9 @@ public:
 
 private:
     obj_ptr<Handler_base> m_hdlr;
+    obj_ptr<EventEmitter_base> m_server;
+    exlib::spinlock m_session_lock;
+    std::list<obj_ptr<Http2Session>> m_sessions;
 };
 
 // -- Http2Server_base constructors --
@@ -137,7 +185,8 @@ result_t Http2Server::create(SecureContext_base* context, Handler_base* hdlr)
     m_ctx = context;
     m_handler = hdlr;
 
-    obj_ptr<Http2Handler> h2handler = new Http2Handler(hdlr);
+    obj_ptr<Http2Handler> h2handler = new Http2Handler(hdlr, this);
+    m_h2handler = h2handler;
 
     obj_ptr<TLSServer_base> _server;
     hr = TLSServer_base::_new(context, h2handler, _server);
@@ -160,7 +209,8 @@ result_t Http2Server::create(SecureContext_base* context, exlib::string addr,
     m_ctx = context;
     m_handler = hdlr;
 
-    obj_ptr<Http2Handler> h2handler = new Http2Handler(hdlr);
+    obj_ptr<Http2Handler> h2handler = new Http2Handler(hdlr, this);
+    m_h2handler = h2handler;
 
     obj_ptr<TLSServer_base> _server;
     hr = TLSServer_base::_new(context, addr, port, h2handler, _server);
@@ -182,7 +232,38 @@ result_t Http2Server::start()
 
 result_t Http2Server::stop(AsyncEvent* ac)
 {
-    return m_server->stop(ac);
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    class asyncStop : public AsyncState {
+    public:
+        asyncStop(Http2Server* server, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_server(server)
+        {
+            next(stop_server);
+        }
+
+        ON_STATE(asyncStop, stop_server)
+        {
+            return m_server->m_server->stop(next(destroy_sessions));
+        }
+
+        // Destroy sessions AFTER the server has fully stopped,
+        // so in-flight connections that completed during shutdown
+        // are also cleaned up.
+        ON_STATE(asyncStop, destroy_sessions)
+        {
+            if (m_server->m_h2handler)
+                m_server->m_h2handler->destroyAllSessions();
+            return next();
+        }
+
+    private:
+        obj_ptr<Http2Server> m_server;
+    };
+
+    return (new asyncStop(this, ac))->post(0);
 }
 
 result_t Http2Server::close(AsyncEvent* ac)

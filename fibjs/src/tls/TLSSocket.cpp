@@ -149,8 +149,10 @@ public:
 
     ~AsyncHandshake()
     {
-        m_sock->m_write_lock.unlock(this);
-        m_sock->m_read_lock.unlock(this);
+        if (m_locked) {
+            m_sock->m_write_lock.unlock(this);
+            m_sock->m_read_lock.unlock(this);
+        }
         if (m_isolate)
             m_isolate->Unref();
     }
@@ -177,6 +179,12 @@ public:
             m_sock->on_connected();
             if (m_isolate)
                 (new EventInfo(m_sock, "connect"))->emit();
+            // Release locks before completing, since m_ac->post() runs
+            // synchronously before ~AsyncHandshake, and the next state
+            // may need to acquire these locks.
+            m_sock->m_write_lock.unlock(this);
+            m_sock->m_read_lock.unlock(this);
+            m_locked = false;
             return next();
         case SSL_ERROR_WANT_READ:
             return m_sock->m_stream->readBuffer(-1, m_sock->m_in, next(read_ok));
@@ -211,6 +219,7 @@ public:
     obj_ptr<TLSSocket> m_sock;
     Isolate* m_isolate;
     int32_t m_state;
+    bool m_locked = true;
 };
 
 result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac)
@@ -401,16 +410,35 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
                 m_sock->m_eof = 1;
 
             if (!m_sock->m_eof) {
+                m_sock->m_write_lock.lock();
+
                 ERR_clear_error();
+                m_sock->m_out.Release();
                 int32_t size = SSL_read(m_sock->m_tls, m_data->data() + m_pos, m_data->length() - m_pos);
-                if (size < 0 && m_sock->m_in)
+                int32_t ssl_err = size <= 0 ? SSL_get_error(m_sock->m_tls, size) : SSL_ERROR_NONE;
+
+                if (size < 0 && m_sock->m_in && ssl_err == SSL_ERROR_SSL) {
+                    m_sock->m_write_lock.unlock();
                     return openssl_error();
+                }
 
                 if (size > 0)
                     m_pos += size;
-                if ((size <= 0 && SSL_get_error(m_sock->m_tls, size) != SSL_ERROR_ZERO_RETURN)
-                    || (m_bytes > 0 && size > 0 && m_pos < m_bytes))
-                    return m_sock->m_in ? next(read) : m_sock->m_stream->readBuffer(-1, m_sock->m_in, next(read));
+                if (m_sock->m_out)
+                    m_out = m_sock->m_out;
+
+                m_sock->m_write_lock.unlock();
+
+                if ((size <= 0 && ssl_err != SSL_ERROR_ZERO_RETURN)
+                    || (m_bytes > 0 && size > 0 && m_pos < m_bytes)) {
+                    if (m_sock->m_in)
+                        return next(read);
+
+                    if (m_out)
+                        return m_sock->m_stream->writeBuffer(m_out, next(readBuffer));
+
+                    return next(readBuffer);
+                }
             }
 
             if (m_pos == 0)
@@ -422,7 +450,16 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
             if (g_ssldump)
                 outLog(console_base::C_NOTICE, clean_string((const char*)m_data->data(), m_data->length()));
 
-            return next();
+            if (m_out)
+                return m_sock->m_stream->writeBuffer(m_out, next());
+            else
+                return next();
+        }
+
+        ON_STATE(AsyncRead, readBuffer)
+        {
+            m_out.Release();
+            return m_sock->m_stream->readBuffer(-1, m_sock->m_in, next(read));
         }
 
         result_t lock(exlib::Locker& l, AsyncState* pThis)
@@ -435,6 +472,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
         obj_ptr<Buffer> m_data;
+        obj_ptr<Buffer_base> m_out;
         int32_t m_pos = 0;
     };
 
@@ -457,24 +495,12 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
             , m_sock(sock)
             , m_data(data)
         {
-            next(try_lock);
-        }
-
-        ~AsyncWrite()
-        {
-            m_sock->m_write_lock.unlock(this);
+            next(write);
         }
 
     public:
-        ON_STATE(AsyncWrite, try_lock)
-        {
-            return lock(m_sock->m_write_lock, next(write));
-        }
-
         ON_STATE(AsyncWrite, write)
         {
-            m_sock->m_out.Release();
-
             int32_t len = m_data.As<Buffer>()->length();
             if (len == 0)
                 return next();
@@ -485,14 +511,23 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
                 return next();
             }
 
+            m_sock->m_write_lock.lock();
+
+            m_sock->m_out.Release();
             ERR_clear_error();
             m_state = SSL_get_error(m_sock->m_tls,
                 SSL_write(m_sock->m_tls, m_data.As<Buffer>()->data(), len));
-            if (m_state == SSL_ERROR_SSL)
+            if (m_state == SSL_ERROR_SSL) {
+                m_sock->m_write_lock.unlock();
                 return openssl_error();
+            }
 
-            if (m_sock->m_out)
-                return m_sock->m_stream->writeBuffer(m_sock->m_out, next(write));
+            if (m_sock->m_out) {
+                m_out = m_sock->m_out;
+                m_sock->m_write_lock.unlock();
+                return m_sock->m_stream->writeBuffer(m_out, next(write));
+            } else
+                m_sock->m_write_lock.unlock();
 
             if (m_state == SSL_ERROR_NONE)
                 return next(write);
@@ -508,6 +543,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
     public:
         obj_ptr<TLSSocket> m_sock;
         obj_ptr<Buffer_base> m_data;
+        obj_ptr<Buffer_base> m_out;
         int32_t m_state = SSL_ERROR_WANT_WRITE;
     };
 

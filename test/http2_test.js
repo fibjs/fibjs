@@ -5,11 +5,7 @@ var test_util = require('./test_util');
 var http2 = require('http2');
 var tls = require('tls');
 var crypto = require('crypto');
-var child_process = require('child_process');
 var coroutine = require('coroutine');
-var path = require('path');
-var fs = require('fs');
-var os = require('os');
 
 var base_port = coroutine.vmid * 10000;
 
@@ -34,60 +30,143 @@ var crt = crypto.createCertificateRequest({
     issuer: { CN: "fibjs.org" }
 });
 
-// Write certs to temp files for Node.js helper server
-var tmpDir = os.tmpdir() + '/fibjs_h2test_' + process.pid;
-try { fs.mkdir(tmpDir); } catch (e) { }
-var keyFile = tmpDir + '/key.pem';
-var certFile = tmpDir + '/cert.pem';
-fs.writeFile(keyFile, pk1.privateKey.export());
-fs.writeFile(certFile, crt.pem);
-
 // Common connect options for client (skip cert verification for test)
 var connectOpts = { rejectUnauthorized: false, rejectUnverified: false };
 
 describe('http2', () => {
     var h2_port = 9880 + base_port;
-    var serverProc;
+    var svr;
 
     before(() => {
-        // Start Node.js HTTP/2 test server
-        var helperScript = path.join(__dirname, 'http2_server_helper.mjs');
-        serverProc = child_process.spawn('node', [helperScript, h2_port, keyFile, certFile]);
+        var ctx = tls.createSecureContext({
+            key: pk1.privateKey.export(),
+            cert: crt.pem,
+            requestCert: false,
+            alpnProtocols: ['h2']
+        }, true);
 
-        // Wait for server ready signal by reading stdout directly
-        var ready = false;
-        var buf = '';
-        var deadline = new Date().getTime() + 5000;
-        while (!ready && new Date().getTime() < deadline) {
-            var chunk = serverProc.stdout.read();
-            if (chunk) {
-                buf += chunk.toString();
-                if (buf.indexOf('H2_READY:') >= 0)
-                    ready = true;
-            } else {
-                coroutine.sleep(50);
-            }
+        svr = new http2.Server(ctx, h2_port, function (req) { });
+
+        svr.on('session', function (session) {
+            session.on('stream', function (stream, headers) {
+                try {
+                    handleStream(stream, headers);
+                } catch (e) {
+                    // Ignore errors during server shutdown
+                }
+            });
+        });
+
+        function handleStream(stream, headers) {
+                var method = headers[':method'];
+                var path = headers[':path'];
+
+                if (path === '/hello') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write('Hello HTTP/2');
+                    stream.close();
+                } else if (path === '/echo-headers') {
+                    stream.respond({ ':status': 200, 'content-type': 'application/json' });
+                    stream.write(JSON.stringify(headers));
+                    stream.close();
+                } else if (path === '/echo-body') {
+                    var chunks = [];
+                    var chunk;
+                    while ((chunk = stream.read()) !== null)
+                        chunks.push(chunk);
+                    var body = chunks.length > 0 ? Buffer.concat(chunks) : null;
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    if (body)
+                        stream.write(body);
+                    stream.close();
+                } else if (path === '/large') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write('x'.repeat(1024 * 100));
+                    stream.close();
+                } else if (path === '/empty') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.close();
+                } else if (path === '/multi-headers') {
+                    stream.respond({
+                        ':status': 200,
+                        'x-custom-a': 'val-a',
+                        'x-custom-b': 'val-b',
+                        'content-type': 'text/plain'
+                    });
+                    stream.write('multi-headers-ok');
+                    stream.close();
+                } else if (path.startsWith('/delay/')) {
+                    var ms = parseInt(path.split('/')[2]) || 100;
+                    coroutine.sleep(ms);
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write('delayed:' + ms);
+                    stream.close();
+                } else if (path === '/post-json') {
+                    var body = stream.read();
+                    var bodyStr = body ? body.toString() : '';
+                    var parsed;
+                    try { parsed = JSON.parse(bodyStr); } catch (e) { parsed = null; }
+                    stream.respond({ ':status': parsed ? 200 : 400, 'content-type': 'application/json' });
+                    stream.write(JSON.stringify({ received: parsed, size: bodyStr.length }));
+                    stream.close();
+                } else if (path === '/large-1m') {
+                    stream.respond({ ':status': 200, 'content-type': 'application/octet-stream' });
+                    var chunk = Buffer.alloc(64 * 1024, 0x41);
+                    for (var i = 0; i < 16; i++)
+                        stream.write(chunk);
+                    stream.close();
+                } else if (path === '/rst-stream') {
+                    stream.respond({ ':status': 200 });
+                    stream.rstStream(http2.constants.NGHTTP2_CANCEL);
+                } else if (path === '/method') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write(method);
+                    stream.close();
+                } else if (path === '/no-content') {
+                    stream.respond({ ':status': 204 });
+                    stream.close();
+                } else if (path === '/binary-echo') {
+                    var chunks = [];
+                    var chunk;
+                    while ((chunk = stream.read()) !== null)
+                        chunks.push(chunk);
+                    var body = chunks.length > 0 ? Buffer.concat(chunks) : null;
+                    var bodyLen = body ? body.length : 0;
+                    stream.respond({ ':status': 200, 'content-type': 'application/octet-stream', 'x-body-length': String(bodyLen) });
+                    if (body)
+                        stream.write(body);
+                    stream.close();
+                } else if (path === '/frame-boundary') {
+                    stream.respond({ ':status': 200, 'content-type': 'application/octet-stream' });
+                    stream.write(Buffer.alloc(16384, 0x42));
+                    stream.close();
+                } else if (path === '/status/301') {
+                    stream.respond({ ':status': 301, 'location': '/hello' });
+                    stream.close();
+                } else if (path === '/status/404') {
+                    stream.respond({ ':status': 404 });
+                    stream.write('Not Found');
+                    stream.close();
+                } else if (path === '/status/500') {
+                    stream.respond({ ':status': 500 });
+                    stream.write('Server Error');
+                    stream.close();
+                } else {
+                    stream.respond({ ':status': 200 });
+                    stream.write('ok:' + path);
+                    stream.close();
+                }
         }
 
-        if (!ready) {
-            // Clean up the server process before throwing
-            try { serverProc.kill(); } catch (e) { }
-            try { serverProc.join(); } catch (e) { }
-            serverProc = null;
-            throw new Error('HTTP/2 test server failed to start');
-        }
+        svr.start();
+        coroutine.sleep(50);
     });
 
     after(() => {
-        if (serverProc) {
-            serverProc.kill();
-            serverProc.join();
-            serverProc = null;
+        if (svr) {
+            svr.stop();
+            svr = null;
         }
-        // Cleanup temp files
-        try { fs.unlink(keyFile); } catch (e) { }
-        try { fs.unlink(certFile); } catch (e) { }
-        try { fs.rmdir(tmpDir); } catch (e) { }
     });
 
     describe('getDefaultSettings', () => {

@@ -55,6 +55,8 @@ public:
     void onClose(uint32_t error_code);
     // Called by Http2Session when trailers are received
     void onTrailers(obj_ptr<NObject> headers);
+    // Called by Http2Session when END_STREAM flag is received
+    void onEnd();
 
     // Wait for response headers to arrive (async, blocks fiber)
     result_t waitHeaders(AsyncEvent* ac);

@@ -11,6 +11,8 @@
 #include "Buffer.h"
 #include "Fiber.h"
 #include "ifs/TLSSocket.h"
+#include "TLSSocket.h"
+#include "ifs/Socket.h"
 #include <nghttp2/nghttp2.h>
 
 namespace fibjs {
@@ -67,16 +69,12 @@ int Http2Session::on_begin_headers_callback(nghttp2_session* session,
         int32_t stream_id = frame->hd.stream_id;
 
         if (frame->headers.cat == NGHTTP2_HCAT_REQUEST) {
-            // Server-side: create stream for incoming request in JS thread
-            obj_ptr<Http2Session> pThis(self);
-            self->holder()->sync([pThis, stream_id]() -> int {
-                JSFiber::EnterJsScope s;
-
-                obj_ptr<Http2Stream> stream = new Http2Stream(pThis, stream_id);
-                stream->wrap();
-                pThis->addStream(stream_id, stream);
-                return 0;
-            });
+            // Server-side: create stream for incoming request.
+            // Do not use sync() here because it's non-blocking and the stream
+            // must exist before on_frame_recv_callback calls findStream().
+            obj_ptr<Http2Stream> stream = new Http2Stream(self, stream_id);
+            stream->holder(self->get_holder());
+            self->addStream(stream_id, stream);
         }
         // For NGHTTP2_HCAT_RESPONSE, the stream was already created by request()
 
@@ -135,8 +133,15 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
             stream->onTrailers(hdrs);
         } else {
             stream->onHeaders(hdrs);
-            if (!self->m_internal)
+            if (!self->m_internal) {
                 stream->_emit("headers", hdrs);
+                if (self->m_is_server && frame->headers.cat == NGHTTP2_HCAT_REQUEST) {
+                    Variant args[2];
+                    args[0] = stream;
+                    args[1] = hdrs;
+                    self->_emit("stream", args, 2);
+                }
+            }
         }
     } else if (frame->hd.type == NGHTTP2_GOAWAY) {
         self->m_closed = true;
@@ -144,6 +149,14 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
     } else if (frame->hd.type == NGHTTP2_PING) {
         if (frame->hd.flags & NGHTTP2_FLAG_ACK)
             self->m_close_event.set();
+    }
+
+    // END_STREAM signals no more data from the remote side
+    if ((frame->hd.type == NGHTTP2_HEADERS || frame->hd.type == NGHTTP2_DATA)
+        && (frame->hd.flags & NGHTTP2_FLAG_END_STREAM)) {
+        obj_ptr<Http2Stream> stream = self->getStream(frame->hd.stream_id);
+        if (stream)
+            stream->onEnd();
     }
 
     return 0;
@@ -174,6 +187,18 @@ int Http2Session::on_stream_close_callback(nghttp2_session* session,
     return 0;
 }
 
+static const char* h2_frame_type_name(uint8_t type)
+{
+    static const char* names[] = {
+        "DATA", "HEADERS", "PRIORITY", "RST_STREAM",
+        "SETTINGS", "PUSH_PROMISE", "PING", "GOAWAY",
+        "WINDOW_UPDATE", "CONTINUATION"
+    };
+    if (type < sizeof(names) / sizeof(names[0]))
+        return names[type];
+    return "UNKNOWN";
+}
+
 ssize_t Http2Session::data_source_read_callback(nghttp2_session* session,
     int32_t stream_id, uint8_t* buf, size_t length, uint32_t* data_flags,
     nghttp2_data_source* source, void* user_data)
@@ -194,7 +219,8 @@ ssize_t Http2Session::data_source_read_callback(nghttp2_session* session,
         memcpy(buf, stream->m_send_data.c_str() + stream->m_send_offset, to_copy);
         stream->m_send_offset += to_copy;
 
-        if (stream->m_send_offset >= stream->m_send_data.length() && stream->m_send_end)
+        bool eof = (stream->m_send_offset >= stream->m_send_data.length() && stream->m_send_end);
+        if (eof)
             *data_flags |= NGHTTP2_DATA_FLAG_EOF;
 
         stream->m_send_lock.unlock();
@@ -241,6 +267,7 @@ void Http2Session::closeAllStreams()
     m_stream_lock.lock();
     for (auto& pair : m_streams) {
         pair.second->m_recv_lock.lock();
+        pair.second->m_closed = true;
         pair.second->m_recv_end = true;
         pair.second->m_recv_lock.unlock();
         pair.second->m_recv_event.set();
@@ -269,19 +296,113 @@ result_t Http2Session::collectPendingData(obj_ptr<Buffer_base>& buf)
 
 result_t Http2Session::sendPendingData()
 {
+    if (m_destroyed)
+        return Runtime::setError("Http2Session: session is destroyed.");
+
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
     if (hr < 0)
         return hr;
+    if (!buf) {
+        return 0;
+    }
 
-    if (buf)
-        return m_conn->ac_writeBuffer(buf);
+    AsyncFlushItem item(buf, true);
+    enqueueFlush(&item);
+    item.m_event.wait();
+    return item.m_result;
+}
 
-    return 0;
+void Http2Session::asyncFlushOutput()
+{
+    if (m_destroyed)
+        return;
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = collectPendingData(buf);
+    if (hr < 0 || !buf)
+        return;
+
+    enqueueFlush(new AsyncFlushItem(buf));
+}
+
+void Http2Session::enqueueFlush(AsyncFlushItem* item)
+{
+    class asyncWriter : public AsyncState {
+    public:
+        asyncWriter(Http2Session* session)
+            : AsyncState(NULL)
+            , m_session(session)
+        {
+            next(do_write);
+        }
+
+    public:
+        ON_STATE(asyncWriter, do_write)
+        {
+            m_session->m_write_spinlock.lock();
+            AsyncFlushItem* head = m_session->m_write_queue.head();
+            m_session->m_write_spinlock.unlock();
+
+            return m_session->m_conn->writeBuffer(head->m_buf, next(write_done));
+        }
+
+        ON_STATE(asyncWriter, write_done)
+        {
+            m_session->m_write_spinlock.lock();
+            AsyncFlushItem* item = m_session->m_write_queue.getHead();
+            bool has_more = !m_session->m_write_queue.empty();
+            m_session->m_write_spinlock.unlock();
+
+            if (item->m_blocking) {
+                item->m_result = 0;
+                item->m_event.set();
+            } else {
+                delete item;
+            }
+
+            if (has_more)
+                return next(do_write);
+            return next(CALL_RETURN_NULL);
+        }
+
+        virtual int32_t error(int32_t v)
+        {
+            // Drain entire queue on error
+            m_session->m_write_spinlock.lock();
+            while (m_session->m_write_queue.count()) {
+                AsyncFlushItem* item = m_session->m_write_queue.getHead();
+                m_session->m_write_spinlock.unlock();
+                if (item->m_blocking) {
+                    item->m_result = v;
+                    item->m_event.set();
+                } else {
+                    delete item;
+                }
+                m_session->m_write_spinlock.lock();
+            }
+            m_session->m_write_spinlock.unlock();
+            return next(CALL_RETURN_NULL);
+        }
+
+    private:
+        obj_ptr<Http2Session> m_session;
+    };
+
+    m_write_spinlock.lock();
+    m_write_queue.putTail(item);
+    bool should_start = (m_write_queue.count() == 1);
+    m_write_spinlock.unlock();
+
+    if (should_start)
+        (new asyncWriter(this))->apost(0);
 }
 
 void Http2Session::startLoops()
 {
+    // Flush any pending data (e.g. server initial SETTINGS) before reading
+    asyncFlushOutput();
+
     // Start the read loop as an async state machine
     class asyncReadLoop : public AsyncState {
     public:
@@ -289,18 +410,27 @@ void Http2Session::startLoops()
             : AsyncState(NULL)
             , m_session(session)
         {
-            if (!m_session->m_internal)
+            if (!m_session->m_internal) {
                 m_session->isolate_ref();
+                m_session->m_ref_active = true;
+            }
             next(read);
+        }
+
+        void releaseRef()
+        {
+            if (m_session->m_ref_active) {
+                m_session->m_ref_active = false;
+                m_session->isolate_unref();
+            }
         }
 
     public:
         ON_STATE(asyncReadLoop, read)
         {
-            if (m_session->m_destroyed) {
+            if (m_session->m_destroyed || m_session->m_closed) {
                 m_session->closeAllStreams();
-                if (!m_session->m_internal)
-                    m_session->isolate_unref();
+                releaseRef();
                 return next(CALL_RETURN_NULL);
             }
 
@@ -313,12 +443,12 @@ void Http2Session::startLoops()
                 m_session->m_closed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
-                if (!m_session->m_internal)
-                    m_session->isolate_unref();
+                releaseRef();
                 return next(CALL_RETURN_NULL);
             }
 
             Buffer* buf = Buffer::Cast(m_buf);
+
             ssize_t rv = m_session->m_nghttp2.recv(buf->data(), buf->length());
             m_buf.Release();
 
@@ -326,31 +456,22 @@ void Http2Session::startLoops()
                 m_session->m_destroyed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
-                if (!m_session->m_internal)
-                    m_session->isolate_unref();
+                releaseRef();
                 return next(CALL_RETURN_NULL);
             }
 
-            // Collect pending response data for async write
-            result_t hr = m_session->collectPendingData(m_write_buf);
-            if (hr < 0) {
-                m_session->m_destroyed = true;
+            m_session->asyncFlushOutput();
+
+            // After processing, if nghttp2 no longer wants to read or write
+            // (e.g. after sending/receiving GOAWAY), terminate the loop.
+            if (!m_session->m_nghttp2.want_read() && !m_session->m_nghttp2.want_write()) {
+                m_session->m_closed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
-                if (!m_session->m_internal)
-                    m_session->isolate_unref();
+                releaseRef();
                 return next(CALL_RETURN_NULL);
             }
 
-            if (m_write_buf)
-                return m_session->m_conn->writeBuffer(m_write_buf, next(write_done));
-
-            return next(read);
-        }
-
-        ON_STATE(asyncReadLoop, write_done)
-        {
-            m_write_buf.Release();
             return next(read);
         }
 
@@ -359,15 +480,13 @@ void Http2Session::startLoops()
             m_session->m_destroyed = true;
             m_session->m_close_event.set();
             m_session->closeAllStreams();
-            if (!m_session->m_internal)
-                m_session->isolate_unref();
+            releaseRef();
             return next(CALL_RETURN_NULL);
         }
 
     private:
         obj_ptr<Http2Session> m_session;
         obj_ptr<Buffer_base> m_buf;
-        obj_ptr<Buffer_base> m_write_buf;
     };
 
     (new asyncReadLoop(this))->apost(0);
@@ -570,9 +689,7 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     stream->wrap();
     addStream(stream_id, stream);
 
-    result_t hr = sendPendingData();
-    if (hr < 0)
-        return hr;
+    asyncFlushOutput();
 
     retVal = stream;
     return 0;
@@ -623,7 +740,8 @@ result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Session: submit goaway failed: ") + nghttp2_strerror(rv));
 
-    return sendPendingData();
+    asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Session::ping(int32_t& retVal, AsyncEvent* ac)
@@ -677,7 +795,8 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
 
-    return sendPendingData();
+    asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Session::close(AsyncEvent* ac)
@@ -702,6 +821,13 @@ result_t Http2Session::close(AsyncEvent* ac)
             m_session->m_closed = true;
             m_session->m_close_event.set();
 
+            // Release isolate ref immediately so this session
+            // no longer prevents process exit.
+            if (m_session->m_ref_active) {
+                m_session->m_ref_active = false;
+                m_session->isolate_unref();
+            }
+
             next(m_buf ? write_goaway : close_conn);
         }
 
@@ -713,7 +839,28 @@ result_t Http2Session::close(AsyncEvent* ac)
         ON_STATE(asyncClose, close_conn)
         {
             m_buf.Release();
-            return m_session->m_conn->close(next());
+            return m_session->m_conn->close(next(abort_socket));
+        }
+
+        ON_STATE(asyncClose, abort_socket)
+        {
+            // Abort underlying TCP socket so readLoop unblocks immediately.
+            // TLSSocket::close() only sends close_notify, it does not
+            // close the transport socket.
+            if (m_session->m_conn) {
+                Socket_base* sock = Socket_base::getInstance(m_session->m_conn);
+                if (sock) {
+                    sock->abort();
+                } else {
+                    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_session->m_conn);
+                    if (tls && tls->m_stream) {
+                        sock = Socket_base::getInstance(tls->m_stream);
+                        if (sock)
+                            sock->abort();
+                    }
+                }
+            }
+            return next();
         }
 
     private:
@@ -732,6 +879,13 @@ result_t Http2Session::destroy()
     m_destroyed = true;
     m_closed = true;
 
+    // Release isolate ref immediately so this session
+    // no longer prevents process exit.
+    if (m_ref_active) {
+        m_ref_active = false;
+        isolate_unref();
+    }
+
     // Close all streams
     closeAllStreams();
 
@@ -743,27 +897,19 @@ result_t Http2Session::destroy()
 
     m_close_event.set();
 
-    // Close underlying connection asynchronously so readLoop unblocks
+    // Abort underlying socket so readLoop unblocks immediately
     if (m_conn) {
-        class asyncCloseConn : public AsyncState {
-        public:
-            asyncCloseConn(Stream_base* conn)
-                : AsyncState(NULL)
-                , m_conn(conn)
-            {
-                next(do_close);
+        Socket_base* sock = Socket_base::getInstance(m_conn);
+        if (sock) {
+            sock->abort();
+        } else {
+            TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_conn);
+            if (tls && tls->m_stream) {
+                sock = Socket_base::getInstance(tls->m_stream);
+                if (sock)
+                    sock->abort();
             }
-
-            ON_STATE(asyncCloseConn, do_close)
-            {
-                return m_conn->close(next());
-            }
-
-        private:
-            obj_ptr<Stream_base> m_conn;
-        };
-
-        (new asyncCloseConn(m_conn))->apost(0);
+        }
     }
 
     return 0;

@@ -14,6 +14,8 @@
 
 namespace fibjs {
 
+class Http2Handler;
+
 class Http2Server : public Http2Server_base {
     FIBER_FREE();
 
@@ -44,6 +46,7 @@ private:
     obj_ptr<TLSServer_base> m_server;
     obj_ptr<Handler_base> m_handler;
     obj_ptr<SecureContext_base> m_ctx;
+    Http2Handler* m_h2handler = nullptr;
 };
 
 } /* namespace fibjs */

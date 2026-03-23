@@ -110,7 +110,8 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Stream: submit response failed: ") + nghttp2_strerror(rv));
 
-    return m_session->sendPendingData();
+    m_session->asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
@@ -153,7 +154,8 @@ result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
     if (rv < 0)
         return Runtime::setError(exlib::string("Http2Stream: submit headers failed: ") + nghttp2_strerror(rv));
 
-    return m_session->sendPendingData();
+    m_session->asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
@@ -195,7 +197,8 @@ result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Stream: submit trailers failed: ") + nghttp2_strerror(rv));
 
-    return m_session->sendPendingData();
+    m_session->asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Stream::rstStream(int32_t code)
@@ -210,7 +213,8 @@ result_t Http2Stream::rstStream(int32_t code)
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Stream: submit rst_stream failed: ") + nghttp2_strerror(rv));
 
-    return m_session->sendPendingData();
+    m_session->asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Stream::get_fd(int32_t& retVal)
@@ -268,7 +272,8 @@ result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 
     // Signal nghttp2 that data is available via resume
     m_session->m_nghttp2.resume_data(m_stream_id);
-    return m_session->sendPendingData();
+    m_session->asyncFlushOutput();
+    return 0;
 }
 
 result_t Http2Stream::flush(AsyncEvent* ac)
@@ -290,6 +295,18 @@ result_t Http2Stream::close(AsyncEvent* ac)
         m_recv_lock.unlock();
         m_recv_event.set();
         m_headers_event.set();
+
+        // Signal send-side end so data_source_read_callback returns EOF
+        m_send_lock.lock();
+        m_send_end = true;
+        m_send_lock.unlock();
+
+        // Resume nghttp2 data sending and flush pending data
+        if (m_session && m_session->m_nghttp2) {
+            m_session->m_nghttp2.resume_data(m_stream_id);
+            result_t hr = m_session->sendPendingData();
+            return hr;
+        }
     }
 
     return 0;
@@ -300,6 +317,7 @@ void Http2Stream::onData(const uint8_t* data, size_t len)
     obj_ptr<Buffer_base> buf = new Buffer(data, len);
     m_recv_lock.lock();
     m_recv_queue.push_back(buf);
+    size_t qsz = m_recv_queue.size();
     m_recv_lock.unlock();
     m_recv_event.set();
 }
@@ -339,6 +357,15 @@ void Http2Stream::onClose(uint32_t error_code)
 void Http2Stream::onTrailers(obj_ptr<NObject> headers)
 {
     // Store trailers - can be retrieved later if needed
+}
+
+void Http2Stream::onEnd()
+{
+    m_recv_lock.lock();
+    m_recv_end = true;
+    size_t qsz = m_recv_queue.size();
+    m_recv_lock.unlock();
+    m_recv_event.set();
 }
 
 } /* namespace fibjs */

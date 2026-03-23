@@ -654,6 +654,12 @@ result_t HttpClient::destroy()
     m_lock.lock();
     m_conns.clear();
     m_lock.unlock();
+
+    m_h2sessions.forEach([](exlib::string key, obj_ptr<Http2Session>& session) {
+        session->destroy();
+    });
+    m_h2sessions.clear();
+
     return 0;
 }
 

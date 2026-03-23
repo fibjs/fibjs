@@ -26,7 +26,7 @@ public:
         , m_enableCookie(true)
         , m_autoRedirect(true)
         , m_enableEncoding(true)
-        , m_enableH2(false)
+        , m_enableH2(true)
         , m_maxHeadersCount(128)
         , m_maxHeaderSize(8192)
         , m_maxChunkSize(2)

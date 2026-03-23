@@ -5,7 +5,7 @@ var coroutine = require('coroutine');
 
 process.on('SIGINT', () => {
     coroutine.fibers.forEach(f => console.error("\nFiber %d:\n%s", f.id, f.stack));
-    process.exit();
+    process.exit(1);
 });
 
 var ss = [];

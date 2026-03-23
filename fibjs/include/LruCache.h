@@ -165,6 +165,17 @@ public:
         m_lock.unlock();
     }
 
+    template <typename Fn>
+    void forEach(Fn fn)
+    {
+        m_lock.lock();
+        for (auto& kv : m_map) {
+            if (kv.second->m_value.has_value())
+                fn(kv.first, kv.second->m_value.value());
+        }
+        m_lock.unlock();
+    }
+
 private:
     typename std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator find_map(exlib::string key)
     {
