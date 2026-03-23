@@ -24,6 +24,8 @@ void pty_cleanup(uv_process_t* process);
 
 namespace fibjs {
 
+struct KillTimer;
+
 class ChildProcess : public ChildProcess_base {
 public:
     class Ipc {
@@ -51,6 +53,7 @@ public:
         , m_stdoutfd(-1)
         , m_exited(false)
         , m_stdoutClosed(false)
+        , m_killTimer(nullptr)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -129,6 +132,8 @@ public:
     int32_t m_exitCode;
     bool m_exited;
     bool m_stdoutClosed;
+
+    KillTimer* m_killTimer;
 
     std::vector<char*> envp;
 

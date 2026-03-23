@@ -59,6 +59,8 @@ declare module 'child_process' {
      *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run. If timeout > 0, the process will be killed with killSignal after timeout milliseconds. Default: 0 (no timeout)
+     *         "killSignal": "SIGTERM", // the signal to use when the spawned process is killed by timeout or abort signal. Default: 'SIGTERM'
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
      *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }
@@ -81,9 +83,11 @@ declare module 'child_process' {
      *         "env": {}, // key-value pairs of environment variables to add to the child's environment
      *         "detached": false, // child process will be a leader of a new process group, default to false
      *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
+     *         "gid": 0, // configure the group identity of the process
      *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
      *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run. If timeout > 0, the process will be killed with killSignal after timeout milliseconds. Default: 0 (no timeout)
+     *         "killSignal": "SIGTERM", // the signal to use when the spawned process is killed by timeout or abort signal. Default: 'SIGTERM'
      *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
      *         "rows": 24 // specify the initial number of rows for the PTY (only for stdio: 'pty')
      *      }

@@ -688,6 +688,30 @@ describe("child_process", () => {
                 var exitCode = child_process.run("echo", ["done"], { timeout: 5000 });
                 assert.equal(exitCode, 0);
             });
+
+            it("spawn with timeout", () => {
+                var t = Date.now();
+                var cp = child_process.spawn("sleep", ["10"], { timeout: 500 });
+                cp.join();
+                var elapsed = Date.now() - t;
+                assert.equal(cp.exitCode, -15);
+                assert.ok(elapsed < 2000);
+            });
+
+            it("spawn with custom killSignal", () => {
+                var cp = child_process.spawn("sleep", ["10"], {
+                    timeout: 500,
+                    killSignal: "SIGKILL"
+                });
+                cp.join();
+                assert.equal(cp.exitCode, -9);
+            });
+
+            it("spawn completes before timeout", () => {
+                var cp = child_process.spawn("echo", ["done"], { timeout: 5000 });
+                cp.join();
+                assert.equal(cp.exitCode, 0);
+            });
         });
     }
 

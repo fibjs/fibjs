@@ -20,6 +20,26 @@
 
 namespace fibjs {
 
+// Timer that kills a child process after a timeout
+struct KillTimer {
+    uv_timer_t timer;
+    obj_ptr<ChildProcess_base> cp;
+    exlib::string killSignal;
+
+    KillTimer(ChildProcess_base* _cp, const exlib::string& _killSignal)
+        : cp(_cp)
+        , killSignal(_killSignal)
+    {
+        timer.data = this;
+    }
+
+    static void on_timer(uv_timer_t* handle)
+    {
+        KillTimer* self = (KillTimer*)handle->data;
+        self->cp->kill(self->killSignal);
+    }
+};
+
 void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
@@ -65,6 +85,16 @@ void ChildProcess::emit_close()
 void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_signal)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
+
+    // Stop the kill timer if active (both OnExit and timer run in uv loop)
+    if (cp->m_killTimer) {
+        uv_timer_stop(&cp->m_killTimer->timer);
+        uv_close((uv_handle_t*)&cp->m_killTimer->timer, [](uv_handle_t* h) {
+            delete (KillTimer*)h->data;
+        });
+        cp->m_killTimer = nullptr;
+    }
+
     Variant args[2];
 
     args[0] = (double)exit_status;
@@ -377,6 +407,12 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     if (hr < 0)
         return hr;
 
+    int32_t timeout = 0;
+    GetConfigValue(options, "timeout", timeout);
+
+    exlib::string killSignal("SIGTERM");
+    GetConfigValue(options, "killSignal", killSignal);
+
     isolate_ref();
     m_vholder = new ValueHolder(wrap());
 
@@ -406,6 +442,14 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
             uv_close((uv_handle_t*)&m_process, on_uv_close);
         else {
             _emit("spawn");
+
+            // Start kill timer in the same uv loop iteration as spawn,
+            // so OnExit cannot fire before the timer is initialized.
+            if (timeout > 0) {
+                m_killTimer = new KillTimer(this, killSignal);
+                uv_timer_init(s_uv_loop, &m_killTimer->timer);
+                uv_timer_start(&m_killTimer->timer, KillTimer::on_timer, timeout, 0);
+            }
         }
 
         return err;
