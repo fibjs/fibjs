@@ -208,6 +208,11 @@ declare module 'http' {
     var poolTimeout: number;
 
     /**
+     * @description 查询和设置每个主机的最大空闲连接数，缺省为 256 
+     */
+    var maxFreeSockets: number;
+
+    /**
      * @description 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
      * 
      *      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，

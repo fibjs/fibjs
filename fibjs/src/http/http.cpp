@@ -175,6 +175,16 @@ result_t http_base::set_poolTimeout(int32_t newVal)
     return get_httpClient()->set_poolTimeout(newVal);
 }
 
+result_t http_base::get_maxFreeSockets(int32_t& retVal)
+{
+    return get_httpClient()->get_maxFreeSockets(retVal);
+}
+
+result_t http_base::set_maxFreeSockets(int32_t newVal)
+{
+    return get_httpClient()->set_maxFreeSockets(newVal);
+}
+
 result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal)
 {
     Isolate* isolate = Isolate::current(proxyEnv);

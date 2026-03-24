@@ -132,6 +132,9 @@ module http
     /*! @brief Query and set the keep-alive cached connection timeout time, default 10000 ms */
     static Integer poolTimeout;
 
+    /*! @brief Query and set the maximum number of free sockets per host, default 256 */
+    static Integer maxFreeSockets;
+
     /*! @brief Create an http static file handler to respond to http messages with static files
 
      fileHandler supports gzip pre-compression, when the request accepts gzip encoding, and filename.ext.gz file exists in the same path, it will directly return this file,

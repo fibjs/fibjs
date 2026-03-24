@@ -112,6 +112,10 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    hr = GetConfigValue(options, "maxFreeSockets", m_maxFreeSockets);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     Isolate* isolate = Isolate::current(options);
     v8::Local<v8::Value> v = options->Get(isolate->context(), isolate->NewString("proxyEnv")).FromMaybe(v8::Local<v8::Value>());
     if (!v.IsEmpty() && v->IsObject()) {
@@ -1198,7 +1202,7 @@ public:
         m_reuse = false;
 
         // Check for existing H2 session before creating a new TCP connection
-        if (m_ssl) {
+        if (m_ssl && m_hc->m_enableH2) {
             m_h2session = m_hc->get_h2session(m_connUrl);
             if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
                 m_conn = m_h2session->m_conn;
@@ -1445,12 +1449,14 @@ public:
                 if (alpn == "h2")
                     return next(h2_init_session);
             }
+        }
 
-            // ALPN is not h2; if we are the leader, notify waiters to retry on their own
-            if (m_is_h2_leader) {
-                m_hc->h2_fail(m_connUrl, CALL_E_INVALID_CALL);
-                m_is_h2_leader = false;
-            }
+        // If this fiber is the H2 leader but taking the HTTP/1.1 path
+        // (either ALPN was not h2, or reusing an existing connection),
+        // clean up the pending entry so future requests don't hang as waiters.
+        if (m_is_h2_leader) {
+            m_hc->h2_fail(m_connUrl, CALL_E_INVALID_CALL);
+            m_is_h2_leader = false;
         }
 
         return m_hc->request(m_conn, m_req, m_retVal, next(requested));

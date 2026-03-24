@@ -3181,18 +3181,18 @@ describe("http", () => {
                 assert.equal(r1.stream.stream, r2.stream.stream);
             });
 
-            it("pooSize of keep-alive", () => {
-                assert.equal(http.poolSize, 128);
+            it("maxFreeSockets of keep-alive", () => {
+                assert.equal(http.maxFreeSockets, 256);
 
-                http.poolSize = 0;
-                assert.equal(http.poolSize, 0);
+                http.maxFreeSockets = 0;
+                assert.equal(http.maxFreeSockets, 0);
 
                 var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.notEqual(r1.stream.stream, r2.stream.stream);
 
-                http.poolSize = 128;
-                assert.equal(http.poolSize, 128);
+                http.maxFreeSockets = 256;
+                assert.equal(http.maxFreeSockets, 256);
 
                 var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 r1.text(); // consume body to release connection back to pool
@@ -3316,7 +3316,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).headers['Content-Length'], null);
+                }).headers['Content-Length'], "15");
             });
 
             it("async", (done) => {
@@ -3348,7 +3348,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).headers['Content-Length'], null);
+                }).headers['Content-Length'], "15");
             });
 
             it("async body", (done) => {
@@ -3399,7 +3399,7 @@ describe("http", () => {
             assert.equal(hc.maxHeadersCount, 128);
             assert.equal(hc.maxHeaderSize, 8192);
             assert.equal(hc.maxBodySize, -1);
-            assert.equal(hc.poolSize, 128);
+            assert.equal(hc.maxFreeSockets, 256);
             assert.equal(hc.poolTimeout, 10000);
             assert.equal(hc.userAgent, "curl/8.14.1");
         });
@@ -3414,7 +3414,7 @@ describe("http", () => {
                 maxHeadersCount: 100,
                 maxHeaderSize: 1000,
                 maxBodySize: 100,
-                poolSize: 100,
+                maxFreeSockets: 100,
                 poolTimeout: 1000,
                 userAgent: "test agent",
                 proxyEnv: {
@@ -3431,7 +3431,7 @@ describe("http", () => {
             assert.equal(hc.maxHeadersCount, 100);
             assert.equal(hc.maxHeaderSize, 1000);
             assert.equal(hc.maxBodySize, 100);
-            assert.equal(hc.poolSize, 100);
+            assert.equal(hc.maxFreeSockets, 100);
             assert.equal(hc.poolTimeout, 1000);
             assert.equal(hc.userAgent, "test agent");
             assert.deepEqual(hc.proxyEnv, {
@@ -3583,7 +3583,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).headers['Content-Length'], null);
+                }).headers['Content-Length'], "15");
             });
         });
 
@@ -3611,7 +3611,7 @@ describe("http", () => {
                     headers: {
                         "test_header": "header"
                     }
-                }).headers['Content-Length'], null);
+                }).headers['Content-Length'], "15");
             });
         });
     });

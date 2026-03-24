@@ -64,6 +64,8 @@ public:
     static result_t set_userAgent(exlib::string newVal);
     static result_t get_poolTimeout(int32_t& retVal);
     static result_t set_poolTimeout(int32_t newVal);
+    static result_t get_maxFreeSockets(int32_t& retVal);
+    static result_t set_maxFreeSockets(int32_t newVal);
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
@@ -135,6 +137,8 @@ public:
     static void s_static_set_userAgent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -239,7 +243,8 @@ inline ClassInfo& http_base::class_info()
         { "maxChunkSize", s_static_get_maxChunkSize, s_static_set_maxChunkSize, true },
         { "maxBodySize", s_static_get_maxBodySize, s_static_set_maxBodySize, true },
         { "userAgent", s_static_get_userAgent, s_static_set_userAgent, true },
-        { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true }
+        { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true },
+        { "maxFreeSockets", s_static_get_maxFreeSockets, s_static_set_maxFreeSockets, true }
     };
 
     static ClassData s_cd = {
@@ -629,6 +634,32 @@ inline void http_base::s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v
     ARG(int32_t, 0);
 
     hr = set_poolTimeout(v0);
+
+    METHOD_VOID();
+}
+
+inline void http_base::s_static_get_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_maxFreeSockets(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_set_maxFreeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = set_maxFreeSockets(v0);
 
     METHOD_VOID();
 }
