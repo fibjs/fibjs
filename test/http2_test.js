@@ -151,6 +151,19 @@ describe('http2', () => {
                     stream.respond({ ':status': 500 });
                     stream.write('Server Error');
                     stream.close();
+                } else if (path === '/large-4m') {
+                    stream.respond({ ':status': 200, 'content-type': 'application/octet-stream' });
+                    var chunk = Buffer.alloc(64 * 1024, 0x43);
+                    for (var i = 0; i < 64; i++)
+                        stream.write(chunk);
+                    stream.close();
+                } else if (path === '/goaway-after-headers') {
+                    // Respond, then send GOAWAY - stream should still be readable
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write('goaway-data');
+                    stream.close();
+                    // Send GOAWAY after responding
+                    session.goaway(0, stream.id);
                 } else {
                     stream.respond({ ':status': 200 });
                     stream.write('ok:' + path);
@@ -821,7 +834,7 @@ describe('http2', () => {
             var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
 
             // Start a request to delayed endpoint
-            var stream = session.request({ ':method': 'GET', ':path': '/delay/500' });
+            var stream = session.request({ ':method': 'GET', ':path': '/delay/100' });
 
             // Destroy session immediately before response
             session.destroy();
@@ -867,6 +880,141 @@ describe('http2', () => {
             var stream2 = session2.request({ ':method': 'GET', ':path': '/hello' });
             assert.strictEqual(stream2.read().toString(), 'Hello HTTP/2');
             session2.close();
+        });
+    });
+
+    describe('concurrent session creation via HttpClient', () => {
+        it('should handle concurrent fibers on same HttpClient', () => {
+            var http = require('http');
+            var hc = new http.Client(connectOpts);
+            var fibers = [];
+            var errors = [];
+            var done = new Array(10).fill(false);
+
+            for (var i = 0; i < 10; i++) {
+                (function (idx) {
+                    fibers.push(coroutine.start(() => {
+                        try {
+                            var resp = hc.get(`https://localhost:${h2_port}/conc/${idx}`);
+                            assert.strictEqual(resp.statusCode, 200);
+                            assert.strictEqual(resp.body.read(-1).toString(), `ok:/conc/${idx}`);
+                            done[idx] = true;
+                        } catch (e) {
+                            errors.push(e);
+                            done[idx] = 'error: ' + e.message;
+                        }
+                    }));
+                })(i);
+            }
+
+            var timer = setTimeout(() => {
+                console.error('[DIAG] Timeout! done states:', JSON.stringify(done));
+                fibers.forEach((f, i) => {
+                    if (!done[i])
+                        console.error(`[DIAG] Fiber ${i} (id=${f.id}) stuck, stack:\n${f.stack}`);
+                });
+            }, 5000);
+
+            fibers.forEach(f => f.join());
+            clearTimeout(timer);
+            assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
+        });
+    });
+
+    describe('large response and window size', () => {
+        it('should handle 4MB response body', () => {
+            var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
+
+            var stream = session.request({ ':method': 'GET', ':path': '/large-4m' });
+            var totalLen = 0;
+            var chunk;
+            while ((chunk = stream.read()) !== null) {
+                totalLen += chunk.length;
+            }
+            assert.strictEqual(totalLen, 4 * 1024 * 1024);
+
+            session.close();
+        });
+
+        it('should handle 4MB response via HttpClient', () => {
+            var http = require('http');
+            var hc = new http.Client(connectOpts);
+            var resp = hc.get(`https://localhost:${h2_port}/large-4m`);
+            assert.strictEqual(resp.statusCode, 200);
+            var totalLen = 0;
+            var chunk;
+            while ((chunk = resp.body.read(-1)) !== null) {
+                totalLen += chunk.length;
+            }
+            assert.strictEqual(totalLen, 4 * 1024 * 1024);
+        });
+    });
+
+    describe('GOAWAY handling', () => {
+        it('should still read data after server sends GOAWAY', () => {
+            var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
+
+            var stream = session.request({ ':method': 'GET', ':path': '/goaway-after-headers' });
+            var buf = stream.read();
+            assert.ok(buf !== null);
+            assert.strictEqual(buf.toString(), 'goaway-data');
+
+            session.close();
+        });
+    });
+
+    describe('stream error vs normal close', () => {
+        it('should throw on RST_STREAM with error code', () => {
+            var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
+
+            var stream = session.request({ ':method': 'GET', ':path': '/rst-stream' });
+
+            // Server sends RST_STREAM with CANCEL - read should throw
+            assert.throws(() => {
+                stream.read();
+            });
+
+            session.close();
+        });
+
+        it('should return null on normal session destroy', () => {
+            var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
+
+            var stream = session.request({ ':method': 'GET', ':path': '/delay/100' });
+            session.destroy();
+
+            // Normal destroy (error_code=0) - read returns null
+            var buf = stream.read();
+            assert.strictEqual(buf, null);
+        });
+    });
+
+    describe('concurrent POST via HttpClient', () => {
+        it('should handle concurrent POST requests', () => {
+            var http = require('http');
+            var hc = new http.Client(connectOpts);
+            var fibers = [];
+            var errors = [];
+
+            for (var i = 0; i < 5; i++) {
+                (function (idx) {
+                    fibers.push(coroutine.start(() => {
+                        try {
+                            var body = 'post-data-' + idx;
+                            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+                                body: body
+                            });
+                            assert.strictEqual(resp.statusCode, 200);
+                            assert.strictEqual(resp.body.read(-1).toString(), body);
+                        } catch (e) {
+                            errors.push(e);
+                        }
+                    }));
+                })(i);
+            }
+
+            fibers.forEach(f => f.join());
+            assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
         });
     });
 });

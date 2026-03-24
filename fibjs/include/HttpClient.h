@@ -252,10 +252,88 @@ public:
         m_h2sessions.erase(url);
     }
 
+    // Pending H2 handshake queue: prevents redundant TCP+TLS connections
+    // when multiple fibers request the same H2 host concurrently.
+    struct H2PendingItem {
+        obj_ptr<Http2Session>* session;
+        obj_ptr<Stream_base>* conn;
+        AsyncEvent* ac;
+    };
+
+    struct H2PendingEntry {
+        std::vector<H2PendingItem> waiters;
+    };
+
+    // Try to acquire H2 session creation for the given URL.
+    // Returns true if this fiber is the leader (should perform handshake).
+    // Returns false if queued as a waiter (caller should return CALL_E_PENDDING).
+    bool h2_acquire(exlib::string url,
+        obj_ptr<Http2Session>* retSession,
+        obj_ptr<Stream_base>* retConn,
+        AsyncEvent* ac)
+    {
+        m_h2_pending_lock.lock();
+        auto it = m_h2_pending.find(url);
+        if (it != m_h2_pending.end()) {
+            it->second->waiters.push_back({ retSession, retConn, ac });
+            m_h2_pending_lock.unlock();
+            return false;
+        }
+        m_h2_pending[url] = new H2PendingEntry();
+        m_h2_pending_lock.unlock();
+        return true;
+    }
+
+    // Leader calls this after successful H2 session creation.
+    // Wakes all queued waiters with the session and connection.
+    void h2_complete(exlib::string url, Http2Session* session, Stream_base* conn)
+    {
+        H2PendingEntry* entry = nullptr;
+
+        m_h2_pending_lock.lock();
+        auto it = m_h2_pending.find(url);
+        if (it != m_h2_pending.end()) {
+            entry = it->second;
+            m_h2_pending.erase(it);
+        }
+        m_h2_pending_lock.unlock();
+
+        if (entry) {
+            for (auto& item : entry->waiters) {
+                *item.session = session;
+                *item.conn = conn;
+                item.ac->post(0);
+            }
+            delete entry;
+        }
+    }
+
+    // Leader calls this on failure. Propagates error to all queued waiters.
+    void h2_fail(exlib::string url, int32_t hr)
+    {
+        H2PendingEntry* entry = nullptr;
+
+        m_h2_pending_lock.lock();
+        auto it = m_h2_pending.find(url);
+        if (it != m_h2_pending.end()) {
+            entry = it->second;
+            m_h2_pending.erase(it);
+        }
+        m_h2_pending_lock.unlock();
+
+        if (entry) {
+            for (auto& item : entry->waiters)
+                item.ac->post(hr);
+            delete entry;
+        }
+    }
+
 private:
     LruCache<obj_ptr<Http2Session>> m_h2sessions;
+    std::unordered_map<exlib::string, H2PendingEntry*> m_h2_pending;
+    exlib::spinlock m_h2_pending_lock;
 
-public:    
+public:
     exlib::string m_http_proxy;
     exlib::string m_https_proxy;
     exlib::string m_no_proxy;

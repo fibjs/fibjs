@@ -73,7 +73,7 @@ function read_module(p, parent) {
 function http_get(u, { quit_if_error = true } = {}) {
     let cnt = 0;
 
-    while (cnt++ < 3)
+    while (cnt++ < 10)
         try {
             const res = http.get(u);
             if (!res.body)
@@ -83,6 +83,7 @@ function http_get(u, { quit_if_error = true } = {}) {
         } catch (e) {
             console.log(e);
             console.warn(`[http_get] retry ${cnt}: ${u}`);
+            coroutine.sleep(100 * cnt);
         }
 
     console.error("download error.", u);
@@ -586,14 +587,26 @@ function download_module() {
 
             switch (mvm.pkg_install_typeinfo.type) {
                 case 'registry':
-                    var r = http_get(mvm.dist.tarball);
-                    if (r.statusCode !== 200) {
-                        console.error('download error::', mvm.dist.tarball);
-                        process.exit();
+                    let tgz;
+                    for (let _dl = 0; _dl < 3; _dl++) {
+                        try {
+                            var r = http_get(mvm.dist.tarball);
+                            if (r.statusCode !== 200) {
+                                console.error('download error::', mvm.dist.tarball);
+                                process.exit();
+                            }
+                            tgz = r.bytes();
+                            r = null;
+                            break;
+                        } catch (e) {
+                            console.log(e);
+                            console.warn(`[download] retry ${_dl + 1}: ${mvm.dist.tarball}`);
+                        }
                     }
-
-                    let tgz = r.bytes();
-                    r = null;
+                    if (!tgz) {
+                        console.error('download failed:', mvm.dist.tarball);
+                        process.exit(-1);
+                    }
 
                     if (sha1(tgz) !== mvm.dist.shasum) {
                         console.error('shasum:', mvm.dist.tarball);
@@ -635,15 +648,30 @@ function download_module() {
                     break
                 case 'git':
                     const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
-                    var git_r = http_get(git_archive_url);
-
-                    if (git_r.statusCode !== 200) {
-                        console.error('download error::', mvm.dist.tarball);
-                        process.exit();
+                    var git_r;
+                    var git_zip_file;
+                    for (let _dl = 0; _dl < 3; _dl++) {
+                        try {
+                            git_r = http_get(git_archive_url);
+                            if (git_r.statusCode !== 200) {
+                                console.error('download error::', mvm.dist.tarball);
+                                process.exit();
+                            }
+                            git_zip_file = zip.open(git_r.bytes());
+                            git_r = null;
+                            break;
+                        } catch (e) {
+                            console.log(e);
+                            console.warn(`[download] retry ${_dl + 1}: ${git_archive_url}`);
+                            git_r = null;
+                            git_zip_file = null;
+                        }
                     }
-                    var git_zip_file = zip.open(git_r.bytes());
+                    if (!git_zip_file) {
+                        console.error('download failed:', git_archive_url);
+                        process.exit(-1);
+                    }
                     const namelist = git_zip_file.namelist();
-                    git_r = null;
 
                     archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
                     if (namelist[0].indexOf(archive_root_name) !== 0) {
@@ -679,15 +707,28 @@ function download_module() {
 
             if (mvm.binary) {
                 install_log("[install addon]", mvm.binary.hosted_tarball);
-                var binary_r = http_get(mvm.binary.hosted_tarball);
-
-                if (binary_r.statusCode !== 200) {
-                    console.error('download error::', mvm.binary.hosted_tarball);
-                    process.exit();
+                var binary_tgz;
+                for (let _dl = 0; _dl < 3; _dl++) {
+                    try {
+                        var binary_r = http_get(mvm.binary.hosted_tarball);
+                        if (binary_r.statusCode !== 200) {
+                            console.error('download error::', mvm.binary.hosted_tarball);
+                            process.exit();
+                        }
+                        binary_tgz = binary_r.bytes();
+                        binary_r = null;
+                        break;
+                    } catch (e) {
+                        console.log(e);
+                        console.warn(`[download] retry ${_dl + 1}: ${mvm.binary.hosted_tarball}`);
+                    }
+                }
+                if (!binary_tgz) {
+                    console.error('download failed:', mvm.binary.hosted_tarball);
+                    process.exit(-1);
                 }
 
-                var tgz = binary_r.bytes();
-                binary_r = null;
+                var tgz = binary_tgz;
 
                 let t;
                 if (tgz[0] === 0x1f && tgz[1] === 0x8b)

@@ -1202,9 +1202,17 @@ public:
             m_h2session = m_hc->get_h2session(m_connUrl);
             if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
                 m_conn = m_h2session->m_conn;
-                return next(h2_request);
+                return next(h2_wait_settings);
             }
             m_h2session.Release();
+
+            // Try to become the H2 handshake leader for this URL.
+            // If another fiber is already doing the handshake, queue up and wait.
+            if (!m_hc->h2_acquire(m_connUrl, &m_h2session, &m_conn, this)) {
+                next(h2_wait_settings);
+                return CALL_E_PENDDING;
+            }
+            m_is_h2_leader = true;
         }
 
         if (m_hc->get_conn(m_connUrl, m_conn)) {
@@ -1437,6 +1445,12 @@ public:
                 if (alpn == "h2")
                     return next(h2_init_session);
             }
+
+            // ALPN is not h2; if we are the leader, notify waiters to retry on their own
+            if (m_is_h2_leader) {
+                m_hc->h2_fail(m_connUrl, CALL_E_INVALID_CALL);
+                m_is_h2_leader = false;
+            }
         }
 
         return m_hc->request(m_conn, m_req, m_retVal, next(requested));
@@ -1444,11 +1458,7 @@ public:
 
     ON_STATE(asyncRequest, h2_init_session)
     {
-        // Try to reuse existing H2 session from pool
-        m_h2session = m_hc->get_h2session(m_connUrl);
-        if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
-            return next(h2_request);
-        }
+        // Only the leader fiber reaches here (guarded by h2_acquire in prepare).
 
         // Create new H2 session (internal mode: no V8 access)
         m_h2session = new Http2Session(false);
@@ -1457,10 +1467,29 @@ public:
         m_h2session->m_authority = m_sslhost;
 
         result_t hr = m_h2session->init(m_conn);
-        if (hr < 0)
+        if (hr < 0) {
+            m_hc->h2_fail(m_connUrl, hr);
+            m_is_h2_leader = false;
             return hr;
+        }
 
-        // Build and submit request immediately (before starting readLoop)
+        m_hc->save_h2session(m_connUrl, m_h2session);
+        m_h2session->startLoops();
+
+        // Wake all queued waiters with the new session
+        m_hc->h2_complete(m_connUrl, m_h2session, m_conn);
+        m_is_h2_leader = false;
+
+        return next(h2_wait_settings);
+    }
+
+    ON_STATE(asyncRequest, h2_wait_settings)
+    {
+        m_h2session->m_remote_settings_event.wait();
+
+        if (m_h2session->m_closed || m_h2session->m_destroyed)
+            return CHECK_ERROR(Runtime::setError("Http2Session: session closed during SETTINGS exchange"));
+
         return next(h2_request);
     }
 
@@ -1507,7 +1536,7 @@ public:
         if (hr < 0)
             return hr;
 
-        // If request has body, read it before collecting pending data
+        // If request has body, read it before flushing
         if (!endStream) {
             obj_ptr<Stream_base> bodyStream;
             m_req->get_body(bodyStream);
@@ -1518,14 +1547,8 @@ public:
             }
         }
 
-        // GET/HEAD: collect and send HEADERS only
-        hr = m_h2session->collectPendingData(m_h2buf);
-        if (hr < 0)
-            return hr;
-
-        if (m_h2buf)
-            return m_conn->writeBuffer(m_h2buf, next(h2_request_sent));
-
+        // Flush request headers via the session's async write queue
+        m_h2session->asyncFlushOutput();
         return next(h2_request_sent);
     }
 
@@ -1541,14 +1564,9 @@ public:
         }
         m_h2stream->m_send_end = true;
 
-        // Collect pending data (HEADERS + DATA frames)
-        result_t hr = m_h2session->collectPendingData(m_h2buf);
-        if (hr < 0)
-            return hr;
-
-        if (m_h2buf)
-            return m_conn->writeBuffer(m_h2buf, next(h2_request_sent));
-
+        // Resume data provider and flush via the session's async write queue
+        m_h2session->m_nghttp2.resume_data(m_h2stream->m_stream_id);
+        m_h2session->asyncFlushOutput();
         return next(h2_request_sent);
     }
 
@@ -1556,18 +1574,8 @@ public:
     {
         m_h2buf.Release();
 
-        // Start readLoop only for a NEW session (not already saved in pool)
-        if (!m_hc->get_h2session(m_connUrl)) {
-            m_h2session->startLoops();
-            m_hc->save_h2session(m_connUrl, m_h2session);
-        }
-
-        // IMPORTANT: Break out of the TLS writeBuffer callback chain before
-        // waiting for headers. The TLS socket's m_write_lock is still held
-        // by the AsyncWrite that delivered us here. If we call waitHeaders
-        // directly, the fiber suspends with the lock held, deadlocking the
-        // readLoop's writes. Re-posting via apost yields control so the
-        // AsyncWrite destructor releases the lock first.
+        // Yield before waiting for headers to let the async write queue
+        // deliver pending frames.
         next(h2_wait_headers);
         apost(0);
         return CALL_E_PENDDING;
@@ -1715,6 +1723,22 @@ public:
             return 0;
         }
 
+        // H2 waiter woken with CALL_E_INVALID_CALL means ALPN was not h2.
+        // Fall back to independent connection by retrying from prepare.
+        if (v == CALL_E_INVALID_CALL && at(h2_wait_settings)) {
+            m_h2session.Release();
+            m_conn.Release();
+            next(prepare);
+            return 0;
+        }
+
+        // If this fiber is the H2 leader and hits an error during
+        // TCP connect / TLS / session init, propagate to all waiters.
+        if (m_is_h2_leader) {
+            m_hc->h2_fail(m_connUrl, v);
+            m_is_h2_leader = false;
+        }
+
         // D.3: if abort was requested, convert the connection error to TypeError
         if (m_o->signal) {
             bool aborted;
@@ -1759,6 +1783,7 @@ private:
     obj_ptr<Http2Session> m_h2session;
     obj_ptr<Http2Stream> m_h2stream;
     obj_ptr<Buffer_base> m_h2buf;
+    bool m_is_h2_leader = false;
 };
 
 result_t HttpClient::request(HttpRequest::Options* o, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)

@@ -67,6 +67,7 @@ public:
 
     bool m_closed = false;
     bool m_destroyed = false;
+    uint32_t m_error_code = 0;
 
     obj_ptr<NObject> m_headers;
     exlib::Event m_headers_event;

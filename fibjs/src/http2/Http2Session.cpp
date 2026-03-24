@@ -39,12 +39,22 @@ result_t Http2Session::init(Stream_base* conn)
     // Submit initial SETTINGS frame
     nghttp2_settings_entry iv[] = {
         { NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100 },
-        { NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE, 65535 }
+        { NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE, 1024 * 1024 }
     };
 
     rv = m_nghttp2.submit_settings(iv, sizeof(iv) / sizeof(iv[0]));
     if (rv != 0)
         return Runtime::setError(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
+
+    // Increase the connection-level flow control window (stream 0).
+    // SETTINGS_INITIAL_WINDOW_SIZE only affects per-stream windows;
+    // the connection window defaults to 65535 and must be enlarged
+    // separately via WINDOW_UPDATE.
+    if (!m_is_server) {
+        rv = m_nghttp2.submit_window_update(0, 16 * 1024 * 1024 - 65535);
+        if (rv != 0)
+            return Runtime::setError(exlib::string("Http2Session: submit window_update failed: ") + nghttp2_strerror(rv));
+    }
 
     return 0;
 }
@@ -143,6 +153,11 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
                 }
             }
         }
+    } else if (frame->hd.type == NGHTTP2_SETTINGS) {
+        // Signal that the remote SETTINGS have been received so that
+        // nghttp2 now knows the peer's MAX_CONCURRENT_STREAMS limit.
+        if (!(frame->hd.flags & NGHTTP2_FLAG_ACK))
+            self->m_remote_settings_event.set();
     } else if (frame->hd.type == NGHTTP2_GOAWAY) {
         self->m_closed = true;
         self->m_close_event.set();
@@ -187,17 +202,6 @@ int Http2Session::on_stream_close_callback(nghttp2_session* session,
     return 0;
 }
 
-static const char* h2_frame_type_name(uint8_t type)
-{
-    static const char* names[] = {
-        "DATA", "HEADERS", "PRIORITY", "RST_STREAM",
-        "SETTINGS", "PUSH_PROMISE", "PING", "GOAWAY",
-        "WINDOW_UPDATE", "CONTINUATION"
-    };
-    if (type < sizeof(names) / sizeof(names[0]))
-        return names[type];
-    return "UNKNOWN";
-}
 
 ssize_t Http2Session::data_source_read_callback(nghttp2_session* session,
     int32_t stream_id, uint8_t* buf, size_t length, uint32_t* data_flags,
@@ -259,16 +263,28 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
 {
     m_stream_lock.lock();
     m_streams[stream_id] = stream;
+    // If the session is already closed/destroyed, close the new stream
+    // immediately to prevent hangs in waitHeaders/readBuffer.
+    if (m_closed || m_destroyed) {
+        stream->m_recv_lock.lock();
+        stream->m_closed = true;
+        stream->m_recv_lock.unlock();
+        stream->m_recv_event.set();
+        stream->m_headers_event.set();
+    }
     m_stream_lock.unlock();
 }
 
 void Http2Session::closeAllStreams()
 {
+    // Signal settings event so fibers blocked in h2_wait_settings
+    // are unblocked when the session dies before SETTINGS exchange.
+    m_remote_settings_event.set();
+
     m_stream_lock.lock();
     for (auto& pair : m_streams) {
         pair.second->m_recv_lock.lock();
         pair.second->m_closed = true;
-        pair.second->m_recv_end = true;
         pair.second->m_recv_lock.unlock();
         pair.second->m_recv_event.set();
         pair.second->m_headers_event.set();
@@ -428,10 +444,23 @@ void Http2Session::startLoops()
     public:
         ON_STATE(asyncReadLoop, read)
         {
-            if (m_session->m_destroyed || m_session->m_closed) {
+            if (m_session->m_destroyed) {
                 m_session->closeAllStreams();
                 releaseRef();
                 return next(CALL_RETURN_NULL);
+            }
+
+            // After GOAWAY (m_closed=true), continue reading only while
+            // there are active streams that may still receive data.
+            if (m_session->m_closed) {
+                m_session->m_stream_lock.lock();
+                bool has_streams = !m_session->m_streams.empty();
+                m_session->m_stream_lock.unlock();
+                if (!has_streams) {
+                    m_session->closeAllStreams();
+                    releaseRef();
+                    return next(CALL_RETURN_NULL);
+                }
             }
 
             return m_session->m_conn->readBuffer(-1, m_buf, next(process));
@@ -462,8 +491,6 @@ void Http2Session::startLoops()
 
             m_session->asyncFlushOutput();
 
-            // After processing, if nghttp2 no longer wants to read or write
-            // (e.g. after sending/receiving GOAWAY), terminate the loop.
             if (!m_session->m_nghttp2.want_read() && !m_session->m_nghttp2.want_write()) {
                 m_session->m_closed = true;
                 m_session->m_close_event.set();
@@ -821,8 +848,6 @@ result_t Http2Session::close(AsyncEvent* ac)
             m_session->m_closed = true;
             m_session->m_close_event.set();
 
-            // Release isolate ref immediately so this session
-            // no longer prevents process exit.
             if (m_session->m_ref_active) {
                 m_session->m_ref_active = false;
                 m_session->isolate_unref();
@@ -879,8 +904,6 @@ result_t Http2Session::destroy()
     m_destroyed = true;
     m_closed = true;
 
-    // Release isolate ref immediately so this session
-    // no longer prevents process exit.
     if (m_ref_active) {
         m_ref_active = false;
         isolate_unref();

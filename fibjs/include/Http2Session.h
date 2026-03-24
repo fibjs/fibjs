@@ -121,6 +121,15 @@ public:
         return rv;
     }
 
+    int submit_window_update(int32_t stream_id, int32_t window_size_increment)
+    {
+        m_lock.lock();
+        int rv = nghttp2_submit_window_update(m_session, NGHTTP2_FLAG_NONE,
+            stream_id, window_size_increment);
+        m_lock.unlock();
+        return rv;
+    }
+
     int resume_data(int32_t stream_id)
     {
         m_lock.lock();
@@ -284,7 +293,7 @@ public:
     bool m_internal = false; // true when used by HttpClient auto-upgrade (no V8 access)
     bool m_destroyed = false;
     bool m_closed = false;
-    bool m_ref_active = false; // true when readLoop holds isolate_ref
+    bool m_ref_active = false;
 
     NgHttp2Handler m_nghttp2;
     obj_ptr<Stream_base> m_conn;
@@ -297,6 +306,7 @@ public:
     std::map<int32_t, std::vector<std::pair<exlib::string, exlib::string>>> m_pending_headers;
 
     exlib::Event m_close_event;
+    exlib::Event m_remote_settings_event; // signaled when remote SETTINGS received
 
     // Serialize all writes to the connection via write queue
     exlib::spinlock m_write_spinlock;

@@ -240,9 +240,17 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             return 0;
         }
 
-        if (m_recv_end || m_closed || m_destroyed) {
+        if (m_recv_end) {
             m_recv_lock.unlock();
             m_read_lock.unlock(ac);
+            return CALL_RETURN_NULL;
+        }
+
+        if (m_closed || m_destroyed) {
+            m_recv_lock.unlock();
+            m_read_lock.unlock(ac);
+            if (m_error_code != 0)
+                return CHECK_ERROR(Runtime::setError("Http2Stream: stream reset"));
             return CALL_RETURN_NULL;
         }
 
@@ -345,7 +353,7 @@ void Http2Stream::onClose(uint32_t error_code)
 {
     m_recv_lock.lock();
     m_closed = true;
-    m_recv_end = true;
+    m_error_code = error_code;
     m_recv_lock.unlock();
     m_recv_event.set();
     m_headers_event.set();
