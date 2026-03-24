@@ -845,6 +845,29 @@ public:
 
     void setCleanup(CleanupFn fn) { m_cleanup = std::move(fn); }
 
+    void setAbortSignal(AbortSignal* signal)
+    {
+        if (!signal)
+            return;
+        m_abort_signal = signal;
+        obj_ptr<Stream_base> socket = m_socket;
+        signal->addAbortCallback([socket]() {
+            if (socket) {
+                Socket_base* sock = Socket_base::getInstance(socket);
+                if (sock) {
+                    sock->abort();
+                } else {
+                    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(socket);
+                    if (tls && tls->m_stream) {
+                        sock = Socket_base::getInstance(tls->m_stream);
+                        if (sock)
+                            sock->abort();
+                    }
+                }
+            }
+        });
+    }
+
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal)
@@ -911,6 +934,10 @@ public:
     virtual result_t close(AsyncEvent* ac)
     {
         m_cleanup = nullptr; // abandon: don't return to pool
+        if (m_abort_signal) {
+            m_abort_signal->clearAbort();
+            m_abort_signal = nullptr;
+        }
         obj_ptr<Stream_base> socket = m_socket;
         m_socket.Release();
         m_inner.Release();
@@ -923,6 +950,7 @@ private:
     obj_ptr<Stream_base> m_inner;
     obj_ptr<Stream_base> m_socket; // kept alive until body is consumed or closed
     CleanupFn m_cleanup;
+    AbortSignal* m_abort_signal = nullptr;
 };
 
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
@@ -1050,7 +1078,10 @@ class asyncRequest : public AsyncState {
 public:
     ~asyncRequest()
     {
-        if (m_o && m_o->signal)
+        // Only clear abort callbacks on error paths; on success,
+        // complete() already cleared them before do_wrap could
+        // register new callbacks on the body stream.
+        if (!m_completed && m_o && m_o->signal)
             m_o->abort_signal()->clearAbort();
     }
 
@@ -1760,6 +1791,12 @@ public:
 
     int32_t complete()
     {
+        // Clear request-phase abort callbacks but keep the timer alive,
+        // so AbortSignal.timeout() can still fire during body consumption.
+        if (m_o && m_o->signal)
+            m_o->abort_signal()->clearCallbacks();
+        m_completed = true;
+
         if (m_o->is_callback) {
             m_req->_emit("response", m_retVal);
             m_retVal = m_req;
@@ -1784,6 +1821,7 @@ private:
     obj_ptr<HttpClient> m_hc;
     obj_ptr<Buffer_base> m_buffer;
     bool m_reuse;
+    bool m_completed = false;
 
     // HTTP/2 auto-upgrade state
     obj_ptr<Http2Session> m_h2session;
@@ -2128,6 +2166,27 @@ public:
         resp->m_fetchUrl = finalUrl;
         resp->m_redirected = m_o->redirected;
         resp->m_fetchType = "basic";
+
+        // Transfer abort signal to the body stream so that abort during
+        // body consumption (text/json/arrayBuffer/bytes) still works.
+        if (m_o->signal) {
+            obj_ptr<Stream_base> bodyStream;
+            result_t body_hr = resp->get_body(bodyStream);
+            if (body_hr == 0 && bodyStream) {
+                Http2Stream_base* h2s = Http2Stream_base::getInstance(bodyStream);
+                if (h2s) {
+                    // HTTP/2: register abort callback to reset the stream
+                    obj_ptr<Http2Stream_base> h2ref(h2s);
+                    m_o->abort_signal()->addAbortCallback([h2ref]() {
+                        ((Http2Stream*)h2ref.get())->onClose(NGHTTP2_CANCEL);
+                    });
+                } else {
+                    // HTTP/1.1: register abort callback on BodyStream
+                    BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
+                    bs->setAbortSignal(m_o->abort_signal());
+                }
+            }
+        }
 
         m_retVal = static_cast<HttpResponse_base*>(m_httpMsg.get());
         return next();

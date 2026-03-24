@@ -64,13 +64,21 @@ public:
     }
 
     void setTimer(JSTimer* timer) { m_timer = timer; }
-    void clearAbort()
+
+    // Clear only the C++ abort callbacks, leaving the timer alive.
+    // Used when transitioning from request-phase to body-phase.
+    void clearCallbacks()
     {
         std::vector<std::function<void()>> tmp;
         m_lock.lock();
         m_callbacks.swap(tmp);
         m_lock.unlock();
-        // tmp destructs here, releasing captured objects outside the lock
+    }
+
+    // Clear both callbacks and the timer.
+    void clearAbort()
+    {
+        clearCallbacks();
         if (m_timer) {
             m_timer->clear();
             m_timer.Release();
