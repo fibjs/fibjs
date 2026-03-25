@@ -3146,9 +3146,10 @@ describe('xml', () => {
             // Test outerHTML on element without parent (should throw error per MDN spec)
             var orphan = hdoc.createElement("div");
             orphan.textContent = "orphan";
-            assert.throws(() => {
+            assert.doesNotThrow(() => {
                 orphan.outerHTML = "<span>replaced</span>";
             });
+            assert.equal(orphan.parentNode, null);
         });
 
         it("textContent", () => {

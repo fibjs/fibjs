@@ -550,8 +550,10 @@ describe("sse", () => {
             assert.notEqual(body.indexOf('id: 1'), -1);
             assert.notEqual(body.indexOf('retry: 1000'), -1);
             assert.notEqual(body.indexOf('data: '), -1);
-            // Should end with double newline as per SSE spec
-            assert.match(body, /\n\n$/);
+            // SSE payload should contain event separator. Raw HTTP body may
+            // include chunked framing and terminating chunk.
+            assert.notEqual(body.indexOf('\n\n'), -1);
+            assert.match(body, /\r\n0\r\n\r\n$/);
             // Should be a valid timestamp
             assert.match(body, /data: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         });
