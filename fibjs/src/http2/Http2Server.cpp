@@ -14,6 +14,7 @@
 #include <list>
 #include <vector>
 
+
 namespace fibjs {
 
 // Http2Handler: accepts a TLS stream and creates an Http2Session
@@ -94,15 +95,29 @@ public:
                 // so user can register "stream" listener in time.
                 m_pThis->m_server->_emit("session", m_session);
 
+                // Wait for the session's readLoop to finish before
+                // completing; TcpServer closes the socket after
+                // the handler returns, so we must keep it alive.
+                // Must set state and register m_done_ac BEFORE
+                // startLoops(), because readLoop could finish
+                // immediately and call signalDone().
+                next(wait_done);
+
+                m_session->m_done_lock.lock();
+                m_session->m_done_ac = this;
+                m_session->m_done_lock.unlock();
+
                 // startLoops() will send initial SETTINGS in its
                 // initial_write state.
                 m_session->startLoops();
 
-                // Return PENDDING to let the upstream AsyncState chain
-                // (including TLS AsyncHandshake) complete and release locks.
-                // The readLoop keeps the session alive independently.
-                next(CALL_RETURN_NULL);
                 return CALL_E_PENDDING;
+            }
+
+            ON_STATE(asyncInvoke, wait_done)
+            {
+                m_pThis->removeSession(m_session);
+                return next(CALL_RETURN_NULL);
             }
 
         private:

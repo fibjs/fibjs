@@ -14,6 +14,7 @@
 #include <nghttp2/nghttp2.h>
 #include <map>
 #include <atomic>
+#include <list>
 
 namespace fibjs {
 
@@ -68,6 +69,49 @@ public:
         int32_t rv = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
         m_lock.unlock();
         return rv;
+    }
+
+    // Atomically submit request + collect output.
+    // Prevents readLoop's asyncFlushOutput from stealing HEADERS.
+    int32_t submit_request_and_collect(const nghttp2_nv* nva, size_t nvlen,
+        const nghttp2_data_provider* data_prd, exlib::string& output)
+    {
+        m_lock.lock();
+        int32_t rv = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
+        if (rv > 0) {
+            const uint8_t* data;
+            ssize_t len;
+            while ((len = nghttp2_session_mem_send(m_session, &data)) > 0)
+                output.append((const char*)data, len);
+        }
+        m_lock.unlock();
+        return rv;
+    }
+
+    // Atomically submit request + resume data + collect output.
+    // Prevents readLoop's asyncFlushOutput from stealing HEADERS
+    // before DATA is ready in concurrent scenarios.
+    // on_submit is called after submit succeeds (with stream_id) but
+    // before resume_data, while the lock is still held.
+    template <typename F>
+    int32_t submit_request_with_data(const nghttp2_nv* nva, size_t nvlen,
+        const nghttp2_data_provider* data_prd,
+        int32_t& stream_id, exlib::string& output, F&& on_submit)
+    {
+        m_lock.lock();
+        stream_id = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
+        if (stream_id > 0) {
+            on_submit(stream_id);
+
+            nghttp2_session_resume_data(m_session, stream_id);
+
+            const uint8_t* data;
+            ssize_t len;
+            while ((len = nghttp2_session_mem_send(m_session, &data)) > 0)
+                output.append((const char*)data, len);
+        }
+        m_lock.unlock();
+        return stream_id;
     }
 
     int submit_response(int32_t stream_id, const nghttp2_nv* nva, size_t nvlen,
@@ -146,7 +190,20 @@ public:
         // All _emit calls in callbacks are fire-and-forget (post_task),
         // so they never re-acquire m_lock — no deadlock risk.
         m_lock.lock();
-        ssize_t rv = nghttp2_session_mem_recv(m_session, data, len);
+        size_t off = 0;
+        ssize_t rv = 0;
+
+        while (off < len) {
+            rv = nghttp2_session_mem_recv(m_session, data + off, len - off);
+            if (rv < 0)
+                break;
+            if (rv == 0)
+                break;
+            off += (size_t)rv;
+        }
+
+        if (rv >= 0)
+            rv = (ssize_t)off;
         m_lock.unlock();
         return rv;
     }
@@ -213,6 +270,7 @@ public:
 
 public:
     // Http2Session_base
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
     virtual result_t get_remoteSettings(v8::Local<v8::Object>& retVal);
     virtual result_t get_localSettings(v8::Local<v8::Object>& retVal);
     virtual result_t get_destroyed(bool& retVal);
@@ -237,6 +295,17 @@ public:
     // Start read/write loops
     void startLoops();
 
+    // Signal that session readLoop has finished
+    void signalDone()
+    {
+        m_done_lock.lock();
+        AsyncEvent* ac = m_done_ac;
+        m_done_ac = nullptr;
+        m_done_lock.unlock();
+        if (ac)
+            ac->post(0);
+    }
+
     // Collect pending nghttp2 output into a buffer (no I/O)
     result_t collectPendingData(obj_ptr<Buffer_base>& buf);
 
@@ -248,6 +317,12 @@ public:
 
     // Enqueue a write item (starts writer if queue was empty)
     void enqueueFlush(AsyncFlushItem* item);
+
+    // Queue JS event emissions from nghttp2 callbacks and flush them
+    // outside nghttp2 recv lock to avoid lock inversion and stalls.
+    void enqueueHeaderEvent(Http2Stream* stream, NObject* headers);
+    void enqueueStreamEvent(Http2Stream* stream, NObject* headers);
+    void flushPendingEvents();
 
     // Get stream by ID
     obj_ptr<Http2Stream> getStream(int32_t stream_id);
@@ -307,10 +382,24 @@ public:
 
     exlib::Event m_close_event;
     exlib::Event m_remote_settings_event; // signaled when remote SETTINGS received
+    std::atomic<bool> m_remote_settings_ready { false };
+
+    // Signaled when readLoop finishes; used by Http2Server to keep
+    // the TcpServer handler alive until the session is done.
+    exlib::spinlock m_done_lock;
+    AsyncEvent* m_done_ac = nullptr;
 
     // Serialize all writes to the connection via write queue
     exlib::spinlock m_write_spinlock;
     exlib::List<AsyncFlushItem> m_write_queue;
+    bool m_writer_active = false;
+
+    exlib::spinlock m_pending_event_lock;
+    std::list<std::pair<obj_ptr<Http2Stream>, obj_ptr<NObject>>> m_pending_header_events;
+    std::list<std::pair<obj_ptr<Http2Stream>, obj_ptr<NObject>>> m_pending_stream_events;
+
+    // Keep JS wrapper alive while there are active session-level listeners.
+    obj_ptr<ValueHolder> m_listener_holder;
 
     // Connection authority info (for auto-filling pseudo-headers in request())
     exlib::string m_authority;

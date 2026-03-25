@@ -70,14 +70,16 @@ public:
     uint32_t m_error_code = 0;
 
     obj_ptr<NObject> m_headers;
-    exlib::Event m_headers_event;
+    exlib::spinlock m_headers_lock;
+    AsyncEvent* m_headers_ac = nullptr;
 
     // Read buffer management (receiving DATA frames)
     exlib::Locker m_read_lock;
     exlib::Locker m_write_lock;
     exlib::spinlock m_recv_lock;
     std::list<obj_ptr<Buffer_base>> m_recv_queue;
-    exlib::Event m_recv_event;
+    AsyncEvent* m_recv_ac = nullptr;
+    obj_ptr<Buffer_base>* m_recv_retVal = nullptr;
     bool m_recv_end = false;
 
     // Send buffer management (outgoing body DATA frames)

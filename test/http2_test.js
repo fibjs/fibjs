@@ -49,15 +49,11 @@ describe('http2', () => {
 
         svr.on('session', function (session) {
             session.on('stream', function (stream, headers) {
-                try {
-                    handleStream(stream, headers);
-                } catch (e) {
-                    // Ignore errors during server shutdown
-                }
+                handleStream(session, stream, headers);
             });
         });
 
-        function handleStream(stream, headers) {
+        function handleStream(session, stream, headers) {
                 var method = headers[':method'];
                 var path = headers[':path'];
 
@@ -98,6 +94,8 @@ describe('http2', () => {
                 } else if (path.startsWith('/delay/')) {
                     var ms = parseInt(path.split('/')[2]) || 100;
                     coroutine.sleep(ms);
+                    if (stream.closed || stream.destroyed)
+                        return;
                     stream.respond({ ':status': 200, 'content-type': 'text/plain' });
                     stream.write('delayed:' + ms);
                     stream.close();
@@ -264,18 +262,14 @@ describe('http2', () => {
         it('should receive response headers via event', () => {
             var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
 
-            var responseHeaders;
             var stream = session.request({
                 ':method': 'GET',
                 ':path': '/hello'
             });
 
-            stream.on('headers', (headers) => {
-                responseHeaders = headers;
-            });
-
             stream.read();
 
+            var responseHeaders = stream.headers;
             assert.ok(responseHeaders);
             assert.strictEqual(responseHeaders[':status'], '200');
             assert.strictEqual(responseHeaders['content-type'], 'text/plain');
@@ -291,12 +285,8 @@ describe('http2', () => {
                 ':path': '/status/404'
             });
 
-            var responseHeaders;
-            stream.on('headers', (headers) => {
-                responseHeaders = headers;
-            });
-
             var buf = stream.read();
+            var responseHeaders = stream.headers;
             assert.ok(responseHeaders);
             assert.strictEqual(responseHeaders[':status'], '404');
 
@@ -428,18 +418,14 @@ describe('http2', () => {
         it('should receive multiple custom headers', () => {
             var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
 
-            var responseHeaders;
             var stream = session.request({
                 ':method': 'GET',
                 ':path': '/multi-headers'
             });
 
-            stream.on('headers', (headers) => {
-                responseHeaders = headers;
-            });
-
             stream.read();
 
+            var responseHeaders = stream.headers;
             assert.strictEqual(responseHeaders['x-custom-a'], 'val-a');
             assert.strictEqual(responseHeaders['x-custom-b'], 'val-b');
 
@@ -467,17 +453,13 @@ describe('http2', () => {
         it('should handle status 500', () => {
             var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
 
-            var responseHeaders;
             var stream = session.request({
                 ':method': 'GET',
                 ':path': '/status/500'
             });
 
-            stream.on('headers', (headers) => {
-                responseHeaders = headers;
-            });
-
             stream.read();
+            var responseHeaders = stream.headers;
             assert.strictEqual(responseHeaders[':status'], '500');
 
             session.close();
@@ -780,10 +762,9 @@ describe('http2', () => {
         it('should handle 204 No Content', () => {
             var session = http2.connect(`https://localhost:${h2_port}`, connectOpts);
 
-            var responseHeaders;
             var stream = session.request({ ':method': 'GET', ':path': '/no-content' });
-            stream.on('headers', (headers) => { responseHeaders = headers; });
             var buf = stream.read();
+            var responseHeaders = stream.headers;
             assert.strictEqual(responseHeaders[':status'], '204');
             assert.ok(buf === null || buf.length === 0);
 
@@ -907,16 +888,7 @@ describe('http2', () => {
                 })(i);
             }
 
-            var timer = setTimeout(() => {
-                console.error('[DIAG] Timeout! done states:', JSON.stringify(done));
-                fibers.forEach((f, i) => {
-                    if (!done[i])
-                        console.error(`[DIAG] Fiber ${i} (id=${f.id}) stuck, stack:\n${f.stack}`);
-                });
-            }, 5000);
-
             fibers.forEach(f => f.join());
-            clearTimeout(timer);
             assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
         });
     });

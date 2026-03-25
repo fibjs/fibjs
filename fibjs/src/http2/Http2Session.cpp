@@ -14,8 +14,42 @@
 #include "TLSSocket.h"
 #include "ifs/Socket.h"
 #include <nghttp2/nghttp2.h>
+#include <stdlib.h>
+
 
 namespace fibjs {
+
+static bool h2_trace_enabled()
+{
+    static int s_enabled = -1;
+    if (s_enabled == -1) {
+        const char* p = getenv("FIBJS_H2_TRACE");
+        s_enabled = (p && *p && *p != '0') ? 1 : 0;
+    }
+    return s_enabled == 1;
+}
+
+#define H2_TRACE(fmt, ...) \
+    do { \
+        if (h2_trace_enabled()) \
+            fprintf(stderr, "[H2TRACE][Http2Session:%p] " fmt "\n", (void*)this, ##__VA_ARGS__); \
+    } while (0)
+
+static void abort_transport(Stream_base* conn)
+{
+    Socket_base* sock = Socket_base::getInstance(conn);
+    if (sock) {
+        sock->abort();
+        return;
+    }
+
+    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(conn);
+    if (tls && tls->m_stream) {
+        sock = Socket_base::getInstance(tls->m_stream);
+        if (sock)
+            sock->abort();
+    }
+}
 
 result_t Http2Session::init(Stream_base* conn)
 {
@@ -59,6 +93,72 @@ result_t Http2Session::init(Stream_base* conn)
     return 0;
 }
 
+result_t Http2Session::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+{
+    (void)type;
+    (void)func;
+
+    if (m_internal || ev != "stream")
+        return 0;
+
+    int32_t count = 0;
+    listenerCount("stream", count);
+
+    H2_TRACE("listener_holder onEventChange type=%s ev=%s stream_listeners=%d holder=%p",
+        type.c_str(), ev.c_str(), count, (void*)m_listener_holder.get());
+
+    // EventEmitter triggers "newListener" before insertion, so count is old value.
+    if (type == "newListener") {
+        if (m_listener_holder == NULL) {
+            H2_TRACE("listener_holder create reason=newListener(stream) begin");
+            m_listener_holder = new ValueHolder(wrap());
+            H2_TRACE("listener_holder create done holder=%p", (void*)m_listener_holder.get());
+        }
+    } else if (type == "removeListener") {
+        // "removeListener" is triggered after removal; count is remaining listeners.
+        if (count == 0 && m_listener_holder != NULL) {
+            H2_TRACE("listener_holder release reason=removeListener(stream)_count0 holder=%p", (void*)m_listener_holder.get());
+            m_listener_holder.Release();
+        }
+    }
+
+    return 0;
+}
+
+static const char* frame_type_name(uint8_t type)
+{
+    switch (type) {
+    case NGHTTP2_DATA: return "DATA";
+    case NGHTTP2_HEADERS: return "HEADERS";
+    case NGHTTP2_PRIORITY: return "PRIORITY";
+    case NGHTTP2_RST_STREAM: return "RST_STREAM";
+    case NGHTTP2_SETTINGS: return "SETTINGS";
+    case NGHTTP2_PUSH_PROMISE: return "PUSH_PROMISE";
+    case NGHTTP2_PING: return "PING";
+    case NGHTTP2_GOAWAY: return "GOAWAY";
+    case NGHTTP2_WINDOW_UPDATE: return "WINDOW_UPDATE";
+    case NGHTTP2_CONTINUATION: return "CONTINUATION";
+    default: return "UNKNOWN";
+    }
+}
+
+static int on_frame_send_callback(nghttp2_session* session,
+    const nghttp2_frame* frame, void* user_data)
+{
+    Http2Session* self = static_cast<Http2Session*>(user_data);
+    if (frame->hd.type == NGHTTP2_GOAWAY) {
+    } else if (frame->hd.type == NGHTTP2_RST_STREAM) {
+    }
+    return 0;
+}
+
+static int on_invalid_frame_recv_callback(nghttp2_session* session,
+    const nghttp2_frame* frame, int lib_error_code, void* user_data)
+{
+    Http2Session* self = static_cast<Http2Session*>(user_data);
+    return 0;
+}
+
 void Http2Session::setupCallbacks(nghttp2_session_callbacks* callbacks)
 {
     nghttp2_session_callbacks_set_on_begin_headers_callback(callbacks, on_begin_headers_callback);
@@ -66,6 +166,8 @@ void Http2Session::setupCallbacks(nghttp2_session_callbacks* callbacks)
     nghttp2_session_callbacks_set_on_frame_recv_callback(callbacks, on_frame_recv_callback);
     nghttp2_session_callbacks_set_on_data_chunk_recv_callback(callbacks, on_data_chunk_recv_callback);
     nghttp2_session_callbacks_set_on_stream_close_callback(callbacks, on_stream_close_callback);
+    nghttp2_session_callbacks_set_on_frame_send_callback(callbacks, on_frame_send_callback);
+    nghttp2_session_callbacks_set_on_invalid_frame_recv_callback(callbacks, on_invalid_frame_recv_callback);
 }
 
 // -- nghttp2 callbacks --
@@ -122,11 +224,27 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
 {
     Http2Session* self = static_cast<Http2Session*>(user_data);
 
+    if (h2_trace_enabled())
+        fprintf(stderr, "[H2TRACE][Http2Session:%p] frame_recv type=%s sid=%d flags=0x%x\n",
+            (void*)self, frame_type_name(frame->hd.type), frame->hd.stream_id, frame->hd.flags);
+
+    if (frame->hd.type == NGHTTP2_GOAWAY) {
+    } else if (frame->hd.type == NGHTTP2_RST_STREAM) {
+    }
+
     if (frame->hd.type == NGHTTP2_HEADERS) {
         int32_t stream_id = frame->hd.stream_id;
         obj_ptr<Http2Stream> stream = self->getStream(stream_id);
-        if (!stream)
+        if (!stream) {
+            if (h2_trace_enabled())
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] frame_recv HEADERS sid=%d but stream not found\n",
+                    (void*)self, stream_id);
             return 0;
+        }
+
+        if (h2_trace_enabled())
+            fprintf(stderr, "[H2TRACE][Http2Session:%p] headers sid=%d cat=%d is_server=%d\n",
+                (void*)self, stream_id, (int)frame->headers.cat, (int)self->m_is_server);
 
         // Build NObject from pending headers (pure C++, no V8)
         obj_ptr<NObject> hdrs = new NObject();
@@ -144,20 +262,24 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
         } else {
             stream->onHeaders(hdrs);
             if (!self->m_internal) {
-                stream->_emit("headers", hdrs);
+                self->enqueueHeaderEvent(stream, hdrs);
                 if (self->m_is_server && frame->headers.cat == NGHTTP2_HCAT_REQUEST) {
-                    Variant args[2];
-                    args[0] = stream;
-                    args[1] = hdrs;
-                    self->_emit("stream", args, 2);
+                    if (h2_trace_enabled())
+                        fprintf(stderr, "[H2TRACE][Http2Session:%p] emit stream sid=%d\n", (void*)self, stream_id);
+                    self->enqueueStreamEvent(stream, hdrs);
+                } else if (h2_trace_enabled() && self->m_is_server) {
+                    fprintf(stderr, "[H2TRACE][Http2Session:%p] skip stream emit sid=%d cat=%d\n",
+                        (void*)self, stream_id, (int)frame->headers.cat);
                 }
             }
         }
     } else if (frame->hd.type == NGHTTP2_SETTINGS) {
         // Signal that the remote SETTINGS have been received so that
         // nghttp2 now knows the peer's MAX_CONCURRENT_STREAMS limit.
-        if (!(frame->hd.flags & NGHTTP2_FLAG_ACK))
+        if (!(frame->hd.flags & NGHTTP2_FLAG_ACK)) {
+            self->m_remote_settings_ready.store(true, std::memory_order_release);
             self->m_remote_settings_event.set();
+        }
     } else if (frame->hd.type == NGHTTP2_GOAWAY) {
         self->m_closed = true;
         self->m_close_event.set();
@@ -177,6 +299,43 @@ int Http2Session::on_frame_recv_callback(nghttp2_session* session,
     return 0;
 }
 
+void Http2Session::enqueueHeaderEvent(Http2Stream* stream, NObject* headers)
+{
+    m_pending_event_lock.lock();
+    m_pending_header_events.push_back({ stream, headers });
+    m_pending_event_lock.unlock();
+}
+
+void Http2Session::enqueueStreamEvent(Http2Stream* stream, NObject* headers)
+{
+    m_pending_event_lock.lock();
+    m_pending_stream_events.push_back({ stream, headers });
+    m_pending_event_lock.unlock();
+}
+
+void Http2Session::flushPendingEvents()
+{
+    std::list<std::pair<obj_ptr<Http2Stream>, obj_ptr<NObject>>> header_events;
+    std::list<std::pair<obj_ptr<Http2Stream>, obj_ptr<NObject>>> stream_events;
+
+    m_pending_event_lock.lock();
+    if (!m_pending_header_events.empty())
+        header_events.swap(m_pending_header_events);
+    if (!m_pending_stream_events.empty())
+        stream_events.swap(m_pending_stream_events);
+    m_pending_event_lock.unlock();
+
+    for (auto& ev : header_events)
+        ev.first->_emit("headers", ev.second);
+
+    for (auto& ev : stream_events) {
+        Variant args[2];
+        args[0] = ev.first;
+        args[1] = ev.second;
+        _emit("stream", args, 2);
+    }
+}
+
 int Http2Session::on_data_chunk_recv_callback(nghttp2_session* session,
     uint8_t flags, int32_t stream_id, const uint8_t* data, size_t len,
     void* user_data)
@@ -194,6 +353,11 @@ int Http2Session::on_stream_close_callback(nghttp2_session* session,
     int32_t stream_id, uint32_t error_code, void* user_data)
 {
     Http2Session* self = static_cast<Http2Session*>(user_data);
+
+    if (h2_trace_enabled())
+        fprintf(stderr, "[H2TRACE][Http2Session:%p] stream_close sid=%d err=%u\n",
+            (void*)self, stream_id, error_code);
+
 
     obj_ptr<Http2Stream> stream = self->getStream(stream_id);
     if (stream)
@@ -254,6 +418,7 @@ obj_ptr<Http2Stream> Http2Session::getStream(int32_t stream_id)
 
 void Http2Session::removeStream(int32_t stream_id)
 {
+    H2_TRACE("removeStream sid=%d", stream_id);
     m_stream_lock.lock();
     m_streams.erase(stream_id);
     m_stream_lock.unlock();
@@ -261,6 +426,7 @@ void Http2Session::removeStream(int32_t stream_id)
 
 void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
 {
+    H2_TRACE("addStream sid=%d closed=%d destroyed=%d", stream_id, (int)m_closed, (int)m_destroyed);
     m_stream_lock.lock();
     m_streams[stream_id] = stream;
     // If the session is already closed/destroyed, close the new stream
@@ -268,9 +434,19 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
     if (m_closed || m_destroyed) {
         stream->m_recv_lock.lock();
         stream->m_closed = true;
+        AsyncEvent* rac = stream->m_recv_ac;
+        stream->m_recv_ac = nullptr;
+        stream->m_recv_retVal = nullptr;
         stream->m_recv_lock.unlock();
-        stream->m_recv_event.set();
-        stream->m_headers_event.set();
+        if (rac)
+            rac->apost(CALL_RETURN_NULL);
+
+        stream->m_headers_lock.lock();
+        AsyncEvent* hac = stream->m_headers_ac;
+        stream->m_headers_ac = nullptr;
+        stream->m_headers_lock.unlock();
+        if (hac)
+            hac->apost(CALL_E_INTERNAL);
     }
     m_stream_lock.unlock();
 }
@@ -281,15 +457,20 @@ void Http2Session::closeAllStreams()
     // are unblocked when the session dies before SETTINGS exchange.
     m_remote_settings_event.set();
 
+    std::vector<obj_ptr<Http2Stream>> streams;
+
     m_stream_lock.lock();
-    for (auto& pair : m_streams) {
-        pair.second->m_recv_lock.lock();
-        pair.second->m_closed = true;
-        pair.second->m_recv_lock.unlock();
-        pair.second->m_recv_event.set();
-        pair.second->m_headers_event.set();
-    }
+    streams.reserve(m_streams.size());
+    for (auto& pair : m_streams)
+        streams.push_back(pair.second);
     m_stream_lock.unlock();
+
+    for (auto& stream : streams) {
+        stream->m_destroyed = true;
+        stream->onClose(0);
+    }
+
+    H2_TRACE("closeAllStreams done streams=%zu", streams.size());
 }
 
 // -- I/O loops --
@@ -331,14 +512,19 @@ result_t Http2Session::sendPendingData()
 
 void Http2Session::asyncFlushOutput()
 {
-    if (m_destroyed)
+    if (m_destroyed) {
         return;
+    }
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
-    if (hr < 0 || !buf)
+    if (hr < 0 || !buf) {
+        if (hr < 0)
+            H2_TRACE("asyncFlushOutput collect error hr=%d", hr);
         return;
+    }
 
+    H2_TRACE("asyncFlushOutput enqueue bytes=%d", Buffer::Cast(buf)->length());
     enqueueFlush(new AsyncFlushItem(buf));
 }
 
@@ -360,6 +546,10 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             AsyncFlushItem* head = m_session->m_write_queue.head();
             m_session->m_write_spinlock.unlock();
 
+            if (h2_trace_enabled() && head && head->m_buf)
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] writer do_write bytes=%d blocking=%d\n",
+                    (void*)m_session.get(), Buffer::Cast(head->m_buf)->length(), (int)head->m_blocking);
+
             return m_session->m_conn->writeBuffer(head->m_buf, next(write_done));
         }
 
@@ -368,7 +558,13 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             m_session->m_write_spinlock.lock();
             AsyncFlushItem* item = m_session->m_write_queue.getHead();
             bool has_more = !m_session->m_write_queue.empty();
+            if (!has_more)
+                m_session->m_writer_active = false;
             m_session->m_write_spinlock.unlock();
+
+            if (h2_trace_enabled() && item && item->m_buf)
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] writer write_done bytes=%d blocking=%d has_more=%d\n",
+                    (void*)m_session.get(), Buffer::Cast(item->m_buf)->length(), (int)item->m_blocking, (int)has_more);
 
             if (item->m_blocking) {
                 item->m_result = 0;
@@ -384,6 +580,9 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
 
         virtual int32_t error(int32_t v)
         {
+            if (h2_trace_enabled())
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] writer error v=%d\n", (void*)m_session.get(), v);
+
             // Drain entire queue on error
             m_session->m_write_spinlock.lock();
             while (m_session->m_write_queue.count()) {
@@ -397,7 +596,19 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
                 }
                 m_session->m_write_spinlock.lock();
             }
+            m_session->m_writer_active = false;
             m_session->m_write_spinlock.unlock();
+
+            // Write-path failures (e.g. broken pipe) make the session unusable.
+            // Wake all pending stream waiters to prevent hangs in waitHeaders/read.
+            m_session->m_closed = true;
+            m_session->m_destroyed = true;
+            m_session->m_close_event.set();
+            m_session->closeAllStreams();
+            H2_TRACE("listener_holder release reason=writer_error holder=%p", (void*)m_session->m_listener_holder.get());
+            m_session->m_listener_holder.Release();
+            abort_transport(m_session->m_conn);
+
             return next(CALL_RETURN_NULL);
         }
 
@@ -407,8 +618,15 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
 
     m_write_spinlock.lock();
     m_write_queue.putTail(item);
-    bool should_start = (m_write_queue.count() == 1);
+    bool should_start = false;
+    if (!m_writer_active) {
+        m_writer_active = true;
+        should_start = true;
+    }
+    size_t qlen = m_write_queue.count();
     m_write_spinlock.unlock();
+
+    H2_TRACE("enqueueFlush blocking=%d start=%d qlen=%zu", (int)item->m_blocking, (int)should_start, qlen);
 
     if (should_start)
         (new asyncWriter(this))->apost(0);
@@ -446,7 +664,10 @@ void Http2Session::startLoops()
         {
             if (m_session->m_destroyed) {
                 m_session->closeAllStreams();
+                H2_TRACE("listener_holder release reason=readloop_destroyed holder=%p", (void*)m_session->m_listener_holder.get());
+                m_session->m_listener_holder.Release();
                 releaseRef();
+                m_session->signalDone();
                 return next(CALL_RETURN_NULL);
             }
 
@@ -458,9 +679,30 @@ void Http2Session::startLoops()
                 m_session->m_stream_lock.unlock();
                 if (!has_streams) {
                     m_session->closeAllStreams();
+                    H2_TRACE("listener_holder release reason=readloop_closed_no_streams holder=%p", (void*)m_session->m_listener_holder.get());
+                    m_session->m_listener_holder.Release();
                     releaseRef();
+                    m_session->signalDone();
                     return next(CALL_RETURN_NULL);
                 }
+            }
+
+            // Drain buffered input first. If nghttp2 previously consumed only
+            // part of the bytes, blocking on socket read here can stall forever.
+            if (!m_pending_input.empty()) {
+                if (h2_trace_enabled())
+                    fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop use pending bytes=%zu\n",
+                        (void*)m_session.get(), m_pending_input.length());
+                m_buf.Release();
+                return next(process);
+            }
+
+            if (h2_trace_enabled()) {
+                m_session->m_stream_lock.lock();
+                size_t nstreams = m_session->m_streams.size();
+                m_session->m_stream_lock.unlock();
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop read begin closed=%d destroyed=%d streams=%zu\n",
+                    (void*)m_session.get(), (int)m_session->m_closed, (int)m_session->m_destroyed, nstreams);
             }
 
             return m_session->m_conn->readBuffer(-1, m_buf, next(process));
@@ -468,36 +710,71 @@ void Http2Session::startLoops()
 
         ON_STATE(asyncReadLoop, process)
         {
-            if (n == CALL_RETURN_NULL || !m_buf || m_session->m_destroyed) {
+            if (h2_trace_enabled() && m_buf)
+                fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop process n=%d bytes=%d\n",
+                    (void*)m_session.get(), n, Buffer::Cast(m_buf)->length());
+
+            if (n == CALL_RETURN_NULL || m_session->m_destroyed || (!m_buf && m_pending_input.empty())) {
+                if (h2_trace_enabled())
+                    fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop process exit n=%d has_buf=%d destroyed=%d\n",
+                        (void*)m_session.get(), n, m_buf ? 1 : 0, (int)m_session->m_destroyed);
                 m_session->m_closed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
+                H2_TRACE("listener_holder release reason=readloop_eof_or_destroyed holder=%p", (void*)m_session->m_listener_holder.get());
+                m_session->m_listener_holder.Release();
                 releaseRef();
+                m_session->signalDone();
                 return next(CALL_RETURN_NULL);
             }
 
-            Buffer* buf = Buffer::Cast(m_buf);
+            Buffer* buf = m_buf ? Buffer::Cast(m_buf) : nullptr;
 
-            ssize_t rv = m_session->m_nghttp2.recv(buf->data(), buf->length());
-            m_buf.Release();
+            if (buf)
+                m_pending_input.append((const char*)buf->data(), buf->length());
+
+            const uint8_t* input_data = !m_pending_input.empty()
+                ? (const uint8_t*)m_pending_input.c_str()
+                : (buf ? buf->data() : nullptr);
+            size_t input_len = !m_pending_input.empty()
+                ? m_pending_input.length()
+                : (buf ? buf->length() : 0);
+
+            ssize_t rv = m_session->m_nghttp2.recv(input_data, input_len);
 
             if (rv < 0) {
+                m_buf.Release();
+                if (h2_trace_enabled())
+                    fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop recv error rv=%zd\n",
+                        (void*)m_session.get(), rv);
                 m_session->m_destroyed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
+                H2_TRACE("listener_holder release reason=readloop_recv_error holder=%p", (void*)m_session->m_listener_holder.get());
+                m_session->m_listener_holder.Release();
                 releaseRef();
+                m_session->signalDone();
                 return next(CALL_RETURN_NULL);
             }
+
+            if ((size_t)rv < input_len) {
+                m_pending_input.assign((const char*)input_data + rv, input_len - rv);
+                if (h2_trace_enabled())
+                    fprintf(stderr, "[H2TRACE][Http2Session:%p] readLoop recv partial rv=%zd input=%zu pending=%zu\n",
+                        (void*)m_session.get(), rv, input_len, m_pending_input.length());
+            } else
+                m_pending_input.resize(0);
+
+            m_buf.Release();
+
+            // Emit queued JS events only after recv() returns and nghttp2 lock
+            // is released, so event handlers can safely call submit_* APIs.
+            m_session->flushPendingEvents();
 
             m_session->asyncFlushOutput();
 
-            if (!m_session->m_nghttp2.want_read() && !m_session->m_nghttp2.want_write()) {
-                m_session->m_closed = true;
-                m_session->m_close_event.set();
-                m_session->closeAllStreams();
-                releaseRef();
-                return next(CALL_RETURN_NULL);
-            }
+            if (!m_pending_input.empty())
+                return next(process);
 
             return next(read);
         }
@@ -507,13 +784,17 @@ void Http2Session::startLoops()
             m_session->m_destroyed = true;
             m_session->m_close_event.set();
             m_session->closeAllStreams();
+            H2_TRACE("listener_holder release reason=readloop_state_error holder=%p", (void*)m_session->m_listener_holder.get());
+            m_session->m_listener_holder.Release();
             releaseRef();
+            m_session->signalDone();
             return next(CALL_RETURN_NULL);
         }
 
     private:
         obj_ptr<Http2Session> m_session;
         obj_ptr<Buffer_base> m_buf;
+        exlib::string m_pending_input;
     };
 
     (new asyncReadLoop(this))->apost(0);
@@ -706,8 +987,17 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     data_prd.source.ptr = nullptr;
     data_prd.read_callback = data_source_read_callback;
 
-    int32_t stream_id = m_nghttp2.submit_request(nva.data(), nva.size(),
-        endStream ? nullptr : &data_prd);
+    exlib::string pending;
+    int32_t stream_id;
+
+    if (endStream) {
+        // No body: atomically submit + collect output to prevent
+        // readLoop's asyncFlushOutput from stealing HEADERS data.
+        stream_id = m_nghttp2.submit_request_and_collect(nva.data(), nva.size(),
+            nullptr, pending);
+    } else {
+        stream_id = m_nghttp2.submit_request(nva.data(), nva.size(), &data_prd);
+    }
 
     if (stream_id < 0)
         return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
@@ -716,7 +1006,13 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     stream->wrap();
     addStream(stream_id, stream);
 
-    asyncFlushOutput();
+    // Flush atomically collected output, or do async flush for non-endStream
+    if (!pending.empty()) {
+        obj_ptr<Buffer_base> buf = new Buffer(pending.c_str(), pending.length());
+        enqueueFlush(new AsyncFlushItem(buf));
+    } else if (!endStream) {
+        asyncFlushOutput();
+    }
 
     retVal = stream;
     return 0;
@@ -745,8 +1041,17 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
     data_prd.source.ptr = nullptr;
     data_prd.read_callback = data_source_read_callback;
 
-    int32_t stream_id = m_nghttp2.submit_request(nva.data(), nva.size(),
-        endStream ? nullptr : &data_prd);
+    exlib::string pending;
+    int32_t stream_id;
+
+    if (endStream) {
+        // No body: atomically submit + collect output to prevent
+        // readLoop's asyncFlushOutput from stealing HEADERS data.
+        stream_id = m_nghttp2.submit_request_and_collect(nva.data(), nva.size(),
+            nullptr, pending);
+    } else {
+        stream_id = m_nghttp2.submit_request(nva.data(), nva.size(), &data_prd);
+    }
 
     if (stream_id < 0)
         return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
@@ -754,7 +1059,15 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
     obj_ptr<Http2Stream> stream = new Http2Stream(this, stream_id);
     addStream(stream_id, stream);
 
+
     retVal = stream;
+
+    // Flush atomically collected output (or nothing for non-endStream)
+    if (!pending.empty()) {
+        obj_ptr<Buffer_base> buf = new Buffer(pending.c_str(), pending.length());
+        enqueueFlush(new AsyncFlushItem(buf));
+    }
+
     return 0;
 }
 
@@ -847,6 +1160,8 @@ result_t Http2Session::close(AsyncEvent* ac)
 
             m_session->m_closed = true;
             m_session->m_close_event.set();
+            H2_TRACE("listener_holder release reason=close holder=%p", (void*)m_session->m_listener_holder.get());
+            m_session->m_listener_holder.Release();
 
             if (m_session->m_ref_active) {
                 m_session->m_ref_active = false;
@@ -888,6 +1203,17 @@ result_t Http2Session::close(AsyncEvent* ac)
             return next();
         }
 
+        virtual int32_t error(int32_t v)
+        {
+            // Ignore write errors during close (e.g. broken pipe if the
+            // remote side already closed the connection).
+            if (at(write_goaway))
+                return next(close_conn);
+            if (at(close_conn) || at(abort_socket))
+                return next();
+            return v;
+        }
+
     private:
         obj_ptr<Http2Session> m_session;
         obj_ptr<Buffer_base> m_buf;
@@ -908,6 +1234,9 @@ result_t Http2Session::destroy()
         m_ref_active = false;
         isolate_unref();
     }
+
+    H2_TRACE("listener_holder release reason=destroy holder=%p", (void*)m_listener_holder.get());
+    m_listener_holder.Release();
 
     // Close all streams
     closeAllStreams();

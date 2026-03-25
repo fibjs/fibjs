@@ -32,7 +32,10 @@
 #include "Http2Session.h"
 #include "Http2Stream.h"
 #include "SecureContext.h"
+#include "Fiber.h"
 #include <openssl/ssl.h>
+
+
 
 namespace fibjs {
 
@@ -1522,7 +1525,8 @@ public:
 
     ON_STATE(asyncRequest, h2_wait_settings)
     {
-        m_h2session->m_remote_settings_event.wait();
+        if (!m_h2session->m_remote_settings_ready.load(std::memory_order_acquire))
+            m_h2session->m_remote_settings_event.wait();
 
         if (m_h2session->m_closed || m_h2session->m_destroyed)
             return CHECK_ERROR(Runtime::setError("Http2Session: session closed during SETTINGS exchange"));
@@ -1536,13 +1540,14 @@ public:
         exlib::string method, path, host;
         m_req->get_method(method);
         m_req->get_address(path);
+        m_h2_path = path;
         m_req->firstHeader("Host", host);
 
-        std::vector<std::pair<exlib::string, exlib::string>> hdrs;
-        hdrs.push_back({ ":method", method });
-        hdrs.push_back({ ":path", path });
-        hdrs.push_back({ ":scheme", "https" });
-        hdrs.push_back({ ":authority", host.empty() ? m_sslhost : host });
+        m_h2_hdrs.clear();
+        m_h2_hdrs.push_back({ ":method", method });
+        m_h2_hdrs.push_back({ ":path", path });
+        m_h2_hdrs.push_back({ ":scheme", "https" });
+        m_h2_hdrs.push_back({ ":authority", host.empty() ? m_sslhost : host });
 
         // Copy regular headers from request (skip Host, it's in :authority)
         obj_ptr<Headers_base> req_headers;
@@ -1557,53 +1562,105 @@ public:
                 // HTTP/2 requires lowercase header names
                 for (size_t j = 0; j < name.length(); j++)
                     name[j] = tolower(name[j]);
-                hdrs.push_back({ name, p.second.string() });
+                m_h2_hdrs.push_back({ name, p.second.string() });
             }
         }
 
-        bool endStream = (method == "GET" || method == "HEAD");
-        if (!endStream) {
+        m_h2_endStream = (method == "GET" || method == "HEAD");
+        if (!m_h2_endStream) {
             obj_ptr<Stream_base> bodyStream;
             m_req->get_body(bodyStream);
             if (!bodyStream)
-                endStream = true;
+                m_h2_endStream = true;
         }
 
-        result_t hr = m_h2session->request(hdrs, endStream, m_h2stream);
-        if (hr < 0)
-            return hr;
-
-        // If request has body, read it before flushing
-        if (!endStream) {
+        // Read body BEFORE submitting request to avoid a race where the
+        // readLoop's asyncFlushOutput sends the HEADERS frame before the
+        // DATA frame is ready, causing out-of-order frames if a fiber
+        // switch occurs during readAll.
+        if (!m_h2_endStream) {
             obj_ptr<Stream_base> bodyStream;
             m_req->get_body(bodyStream);
             obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(bodyStream);
             if (seekable) {
                 seekable->rewind();
-                return seekable->readAll(m_buffer, next(h2_send_body));
+                return seekable->readAll(m_buffer, next(h2_submit_with_body));
             }
         }
 
-        // Flush request headers via the session's async write queue
-        m_h2session->asyncFlushOutput();
+        return next(h2_submit_no_body);
+    }
+
+    ON_STATE(asyncRequest, h2_submit_no_body)
+    {
+        result_t hr = m_h2session->request(m_h2_hdrs, m_h2_endStream, m_h2stream);
+        if (hr < 0)
+            return hr;
+
+        // No asyncFlushOutput needed: request() atomically collects
+        // and enqueues output for endStream=true requests.
+        if (!m_h2_endStream)
+            m_h2session->asyncFlushOutput();
         return next(h2_request_sent);
     }
 
-    ON_STATE(asyncRequest, h2_send_body)
+    ON_STATE(asyncRequest, h2_submit_with_body)
     {
-        // Store body data on stream's send buffer
+        // Body data is now in m_buffer. Prepare send buffer BEFORE
+        // submitting request so that submit + resume_data + collect
+        // can happen atomically under one lock.
+        exlib::string body_data;
         if (n != CALL_RETURN_NULL && m_buffer) {
             Buffer* buf = Buffer::Cast(m_buffer);
-            m_h2stream->m_send_lock.lock();
-            m_h2stream->m_send_data.append((const char*)buf->data(), buf->length());
-            m_h2stream->m_send_lock.unlock();
+            body_data.append((const char*)buf->data(), buf->length());
             m_buffer.Release();
         }
-        m_h2stream->m_send_end = true;
 
-        // Resume data provider and flush via the session's async write queue
-        m_h2session->m_nghttp2.resume_data(m_h2stream->m_stream_id);
-        m_h2session->asyncFlushOutput();
+        // Build nghttp2_nv array
+        std::vector<nghttp2_nv> nva(m_h2_hdrs.size());
+        for (size_t i = 0; i < m_h2_hdrs.size(); i++) {
+            nva[i] = {
+                (uint8_t*)m_h2_hdrs[i].first.c_str(), (uint8_t*)m_h2_hdrs[i].second.c_str(),
+                m_h2_hdrs[i].first.length(), m_h2_hdrs[i].second.length(),
+                NGHTTP2_NV_FLAG_NO_COPY_NAME | NGHTTP2_NV_FLAG_NO_COPY_VALUE
+            };
+        }
+
+        nghttp2_data_provider data_prd;
+        data_prd.source.ptr = nullptr;
+        data_prd.read_callback = Http2Session::data_source_read_callback;
+
+        // Pre-create the stream to hold body data
+        obj_ptr<Http2Stream> stream = new Http2Stream(m_h2session, 0);
+        if (!body_data.empty()) {
+            stream->m_send_data = std::move(body_data);
+        }
+        stream->m_send_end = true;
+
+        // Atomically submit + addStream + resume + collect under one lock
+        int32_t stream_id;
+        exlib::string pending;
+
+        m_h2session->m_nghttp2.submit_request_with_data(
+            nva.data(), nva.size(), &data_prd,
+            stream_id, pending,
+            [&](int32_t sid) {
+                stream->m_stream_id = sid;
+                m_h2session->addStream(sid, stream);
+            });
+
+        if (stream_id < 0)
+            return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+
+        m_h2stream = stream;
+
+
+        // Send the atomically collected output
+        if (!pending.empty()) {
+            obj_ptr<Buffer_base> buf = new Buffer(pending.c_str(), pending.length());
+            m_h2session->enqueueFlush(new AsyncFlushItem(buf));
+        }
+
         return next(h2_request_sent);
     }
 
@@ -1611,11 +1668,7 @@ public:
     {
         m_h2buf.Release();
 
-        // Yield before waiting for headers to let the async write queue
-        // deliver pending frames.
-        next(h2_wait_headers);
-        apost(0);
-        return CALL_E_PENDDING;
+        return next(h2_wait_headers);
     }
 
     ON_STATE(asyncRequest, h2_wait_headers)
@@ -1827,6 +1880,9 @@ private:
     obj_ptr<Http2Session> m_h2session;
     obj_ptr<Http2Stream> m_h2stream;
     obj_ptr<Buffer_base> m_h2buf;
+    exlib::string m_h2_path;
+    std::vector<std::pair<exlib::string, exlib::string>> m_h2_hdrs;
+    bool m_h2_endStream = true;
     bool m_is_h2_leader = false;
 };
 
