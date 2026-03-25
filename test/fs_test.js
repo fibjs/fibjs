@@ -266,7 +266,7 @@ describe('fs', () => {
         var tmpFile;
 
         before(() => {
-            tmpFile = path.join(os.tmpdir(), 'test_createReadStream_' + Date.now() + '.txt');
+            tmpFile = path.join(homedir, 'test_createReadStream_' + vmid + '.txt');
             fs.writeFile(tmpFile, testContent);
         });
 
@@ -278,26 +278,31 @@ describe('fs', () => {
         it("basic read", () => {
             var stm = fs.createReadStream(tmpFile);
             assert.equal(stm.readAll().toString(), testContent);
+            stm.close();
         });
 
         it("with start and end (end is inclusive)", () => {
             var stm = fs.createReadStream(tmpFile, { start: 7, end: 22 });
             assert.equal(stm.readAll().toString(), "createReadStream");
+            stm.close();
         });
 
         it("with start only", () => {
             var stm = fs.createReadStream(tmpFile, { start: 7 });
             assert.equal(stm.readAll().toString(), "createReadStream!");
+            stm.close();
         });
 
         it("with end only", () => {
             var stm = fs.createReadStream(tmpFile, { end: 4 });
             assert.equal(stm.readAll().toString(), "Hello");
+            stm.close();
         });
 
         it("start=0, end=0 reads one byte", () => {
             var stm = fs.createReadStream(tmpFile, { start: 0, end: 0 });
             assert.equal(stm.readAll().toString(), "H");
+            stm.close();
         });
 
         it("returned stream supports seek/tell/size", () => {
@@ -308,6 +313,7 @@ describe('fs', () => {
             stm.seek(6, fs.SEEK_SET);
             assert.equal(stm.tell(), 6);
             assert.equal(stm.readAll().toString(), "ReadStream");
+            stm.close();
         });
 
         it("returned stream without range is a plain file stream", () => {
@@ -316,6 +322,7 @@ describe('fs', () => {
             assert.equal(sz, testContent.length);
             stm.seek(0, fs.SEEK_SET);
             assert.equal(stm.tell(), 0);
+            stm.close();
         });
 
         it("async callback", done => {
@@ -323,6 +330,7 @@ describe('fs', () => {
                 done(() => {
                     assert.isNull(err);
                     assert.equal(stm.readAll().toString(), "Hello");
+                    stm.close();
                 });
             });
         });
@@ -332,6 +340,7 @@ describe('fs', () => {
             var buf = stm.readAll();
             assert.ok(buf.length > 0);
             assert.equal(buf.length, fs.stat(testFile).size);
+            stm.close();
         });
 
         it("error on non-existent file", () => {
