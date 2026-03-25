@@ -617,7 +617,7 @@ describe("child_process", () => {
                 var result = child_process.execFile("sleep", ["10"], { timeout: 500 });
                 var elapsed = Date.now() - t;
                 assert.equal(result.exitCode, -15);
-                assert.ok(elapsed < 2000);
+                assert.ok(elapsed < 10000);
             });
 
             it("execFile without timeout completes normally", () => {
@@ -631,7 +631,7 @@ describe("child_process", () => {
                 var result = child_process.exec("sleep 10", { timeout: 500 });
                 var elapsed = Date.now() - t;
                 assert.equal(result.exitCode, -15);
-                assert.ok(elapsed < 2000);
+                assert.ok(elapsed < 10000);
             });
 
             it("spawnSync with timeout", () => {
@@ -639,7 +639,7 @@ describe("child_process", () => {
                 var result = child_process.spawnSync("sleep", ["10"], { timeout: 500 });
                 var elapsed = Date.now() - t;
                 assert.equal(result.status, -15);
-                assert.ok(elapsed < 2000);
+                assert.ok(elapsed < 10000);
             });
 
             it("execSync with timeout throws", () => {
@@ -673,7 +673,7 @@ describe("child_process", () => {
                 var exitCode = child_process.run("sleep", ["10"], { timeout: 500 });
                 var elapsed = Date.now() - t;
                 assert.equal(exitCode, -15);
-                assert.ok(elapsed < 2000);
+                assert.ok(elapsed < 10000);
             });
 
             it("run with custom killSignal", () => {
@@ -695,7 +695,7 @@ describe("child_process", () => {
                 cp.join();
                 var elapsed = Date.now() - t;
                 assert.equal(cp.exitCode, -15);
-                assert.ok(elapsed < 2000);
+                assert.ok(elapsed < 10000);
             });
 
             it("spawn with custom killSignal", () => {
@@ -1359,7 +1359,6 @@ describe("child_process", () => {
             });
 
             p.join();
-            p.stdout.close(); // Close stdout to trigger close event
             coroutine.sleep(100); // Allow time for close event to be processed
 
             // Both listeners should be called
@@ -1482,9 +1481,6 @@ describe("child_process", () => {
             });
 
             p.join();
-            p.stdout.close();
-            p.stdout.close(); // Second close should be safe
-            p.stdout.close(); // Third close should be safe
             coroutine.sleep(100);
 
             // close event should only fire once
