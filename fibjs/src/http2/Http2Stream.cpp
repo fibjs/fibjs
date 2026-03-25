@@ -444,7 +444,7 @@ void Http2Stream::onClose(uint32_t error_code)
     m_headers_ac = nullptr;
     m_headers_lock.unlock();
     if (hac)
-        hac->apost(CALL_E_INTERNAL);
+        hac->apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
 
     if (m_session)
         m_session->removeStream(m_stream_id);
