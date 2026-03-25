@@ -398,6 +398,24 @@ describe('http2', () => {
             }
             assert.strictEqual(totalLen, 1024 * 100);
         });
+
+        it('should abort in-flight HttpClient request via signal', () => {
+            var controller = new AbortController();
+            coroutine.start(() => {
+                coroutine.sleep(100);
+                controller.abort();
+            });
+
+            var t1 = Date.now();
+            assert.throws(() => {
+                hc.get(`https://localhost:${h2_port}/delay/500`, {
+                    signal: controller.signal
+                });
+            }, /AbortError/);
+            var t2 = Date.now();
+
+            assert.ok(t2 - t1 < 500);
+        });
     });
 
     describe('edge cases', () => {

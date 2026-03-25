@@ -3861,6 +3861,66 @@ describe("http", () => {
             });
         });
 
+        describe("abort control", () => {
+            var abortPort = 8932 + base_port;
+            var abortSvr;
+
+            before(() => {
+                abortSvr = new http.Server(abortPort, (r) => {
+                    if (r.address == "/timeout") {
+                        coroutine.sleep(500);
+                        r.response.write("/timeout");
+                        return;
+                    }
+
+                    r.response.write("ok");
+                });
+                abortSvr.start();
+                test_util.push(abortSvr.socket);
+            });
+
+            it("client aborts in-flight request via signal", () => {
+                var client = new http.Client();
+                client.timeout = 5000;
+
+                var controller = new AbortController();
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    controller.abort();
+                });
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    client.get("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: controller.signal
+                    });
+                }, /AbortError/);
+                var t2 = new Date();
+
+                assert.lessThan(t2 - t1, 500);
+            });
+
+            it("global http aborts in-flight request via signal", () => {
+                http.timeout = 5000;
+
+                var controller = new AbortController();
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    controller.abort();
+                });
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    http.get("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: controller.signal
+                    });
+                }, /AbortError/);
+                var t2 = new Date();
+
+                assert.lessThan(t2 - t1, 500);
+            });
+        });
+
         describe("keep-alive", () => {
             function test_keep_alive(def_conn, req_conn) {
                 const hc = new http.Client(def_conn);
