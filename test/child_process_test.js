@@ -1050,6 +1050,18 @@ describe("child_process", () => {
         ]);
     });
 
+    it("argv relative path resolved to absolute", () => {
+        var relPath = path.relative(process.cwd(), path.join(__dirname, "process", "exec2.js"));
+        var absPath = path.join(__dirname, "process", "exec2.js");
+        assert.deepEqual(json.decode(child_process.execFile(cmd, [
+            relPath,
+            "arg1",
+            "arg2"
+        ]).stdout), [
+            cmd, absPath, "arg1", "arg2"
+        ]);
+    });
+
     it("inherit in execFile", () => {
         assert.equal(child_process.execFile(cmd, [
             path.join(__dirname, "process", "exec2.js"),

@@ -221,10 +221,11 @@ static result_t run_shell(exlib::string cmd_str)
     return run_shell(cmd_str, std::vector<char*>());
 }
 
-result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
+result_t SandBox::run_main(exlib::string fname)
 {
     result_t hr;
     obj_ptr<Buffer_base> bin;
+    bool needUpdateArgv = false;
 
     if (fname[0] == '-' && fname[1] == '-') {
         int32_t i;
@@ -241,6 +242,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
         path_base::isAbsolute(fname, isAbs);
         if (!isAbs) {
+            needUpdateArgv = true;
             rname = fname;
             os_resolve(fname);
         } else
@@ -267,9 +269,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
                     // If shebang contains "node" or "fibjs", run directly with fibjs
                     if (line.find("node") != exlib::string::npos || line.find("fibjs") != exlib::string::npos) {
-                        // Update argv[1] to the resolved file path
-                        Isolate* isolate = holder();
-                        argv->Set(isolate->context(), 1, isolate->NewString(fname)).IsJust();
+                        // Run with fibjs directly, argv[1] update handled below
                     } else {
                         // Not a node/fibjs script, run via shell
                         return run_shell(fname, s_argv);
@@ -312,6 +312,17 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
             }
         }
     }
+
+    // Update s_argv[1] with the resolved absolute file path when original was relative
+    if (needUpdateArgv) {
+        static exlib::string s_main_fname;
+        s_main_fname = fname;
+        s_argv[1] = s_main_fname.data();
+        holder()->m_argv.Reset();
+    }
+
+    v8::Local<v8::Array> argv;
+    process_base::get_argv(argv);
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);

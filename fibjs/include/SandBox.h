@@ -214,7 +214,7 @@ public:
     result_t evalModule(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal);
 
     result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);
-    result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
+    result_t run_main(exlib::string fname);
     result_t run_worker(exlib::string fname, Worker_base* worker);
 
     result_t get_loader(exlib::string fname, obj_ptr<ExtLoader>& retVal)

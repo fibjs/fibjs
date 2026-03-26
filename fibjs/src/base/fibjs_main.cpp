@@ -19,10 +19,8 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
     V8_SCOPE(isolate->m_isolate);
-    v8::Local<v8::Array> argv;
 
-    process_base::get_argv(argv);
-    result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
+    result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname);
     if (hr >= 0) {
         run_test(console_base::C_ERROR);
     }
