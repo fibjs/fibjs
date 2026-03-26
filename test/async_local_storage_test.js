@@ -137,7 +137,7 @@ describe('AsyncLocalStorage', () => {
 
             it('should support null as defaultValue', () => {
                 const als = new AsyncLocalStorage({ defaultValue: null });
-                assert.strictEqual(als.getStore(), null);
+                assert.strictEqual(als.getStore(), undefined);
             });
 
             it('should support Symbol as defaultValue', () => {

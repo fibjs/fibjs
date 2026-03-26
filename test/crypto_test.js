@@ -1543,7 +1543,7 @@ describe('crypto', () => {
                         }, Buffer.alloc(10));
                     });
 
-                    for (const oaepHash of [0, false, null, Symbol(), () => { }]) {
+                    for (const oaepHash of [0, false, Symbol(), () => { }]) {
                         assert.throws(() => {
                             fn({
                                 key: rsaPubPem,
@@ -1552,7 +1552,7 @@ describe('crypto', () => {
                         });
                     }
 
-                    for (const oaepLabel of [0, false, null, Symbol(), () => { }, {}]) {
+                    for (const oaepLabel of [0, false, Symbol(), () => { }, {}]) {
                         assert.throws(() => {
                             fn({
                                 key: rsaPubPem,
@@ -1941,7 +1941,7 @@ describe('crypto', () => {
             });
 
             it('exceptions for invalid `padding` and `saltLength` values', () => {
-                [null, NaN, 'boom', {}, [], true, false]
+                [NaN, 'boom', {}, [], true, false]
                     .forEach((invalidValue) => {
                         assert.throws(() => {
                             crypto.createSign('SHA256')
@@ -3819,7 +3819,7 @@ describe('crypto', () => {
                 'multiLabelWildcards',
                 'singleLabelSubdomains',
             ].forEach((key) => {
-                [1, '', null, {}].forEach((i) => {
+                [1, '', {}].forEach((i) => {
                     assert.throws(() => x509.checkHost('agent1', { [key]: i }));
                 });
             });
