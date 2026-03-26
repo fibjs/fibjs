@@ -488,6 +488,10 @@ public:
 
         uv_post([this, ac] {
             if (uv_is_closing(&this->m_handle)) {
+                // Handle is already closing — still need to abort any pending
+                // reads/writes so callers don't block forever.
+                AsyncRead::post_all_result(this, UV_EPIPE);
+                AsyncWrite::post_all_result(this, UV_EPIPE);
                 if (ac)
                     ac->apost(0);
                 return;

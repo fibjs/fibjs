@@ -23,10 +23,10 @@ namespace fibjs {
 // Timer that kills a child process after a timeout
 struct KillTimer {
     uv_timer_t timer;
-    obj_ptr<ChildProcess_base> cp;
+    obj_ptr<ChildProcess> cp;
     exlib::string killSignal;
 
-    KillTimer(ChildProcess_base* _cp, const exlib::string& _killSignal)
+    KillTimer(ChildProcess* _cp, const exlib::string& _killSignal)
         : cp(_cp)
         , killSignal(_killSignal)
     {
@@ -37,6 +37,12 @@ struct KillTimer {
     {
         KillTimer* self = (KillTimer*)handle->data;
         self->cp->kill(self->killSignal);
+        // Close stdout/stderr so copyTo() unblocks even if grandchildren still
+        // hold the write end of the pipe (e.g. "sh -c sleep 10" on Linux).
+        if (self->cp->m_stdio[1])
+            self->cp->m_stdio[1]->close(nullptr);
+        if (self->cp->m_stdio[2])
+            self->cp->m_stdio[2]->close(nullptr);
     }
 };
 
