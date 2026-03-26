@@ -465,8 +465,8 @@ result_t http_base::createServer(v8::Local<v8::Object> options, Handler_base* hd
     v8::Local<v8::Context> context = isolate->context();
 
     // detect TLS-related fields to decide http vs https
-    bool hasCert = options->Has(context, isolate->NewString("cert")).FromMaybe(false);
-    bool hasCa = options->Has(context, isolate->NewString("ca")).FromMaybe(false);
+    bool hasCert = js_obj_has_value(options, context, "cert");
+    bool hasCa = js_obj_has_value(options, context, "ca");
 
     if (hasCert || hasCa) {
         obj_ptr<SecureContext_base> ctx;

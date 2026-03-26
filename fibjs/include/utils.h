@@ -1082,7 +1082,7 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, T& n, bool bSt
 
     Isolate* isolate = Isolate::current(o);
     JSValue v = o->Get(isolate->context(), isolate->NewString(key));
-    if (v->IsUndefined())
+    if (v->IsUndefined() || v->IsNull())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
 
     return GetArgumentValue(isolate, v, n, bStrict);
@@ -1504,5 +1504,16 @@ inline bool is_big_endian()
     } bint = { 0x01020304 };
 
     return bint.c[0] == 1;
+}
+
+// Returns true if the named property exists on obj and is not undefined/null.
+// Prefer this over Has() so that {key: undefined} is treated as absent.
+inline bool js_obj_has_value(v8::Local<v8::Object> obj, v8::Local<v8::Context> context,
+    const char* name)
+{
+    v8::Local<v8::Value> val;
+    Isolate* isolate = Isolate::current(context);
+    return obj->Get(context, isolate->NewString(name)).ToLocal(&val)
+        && !val->IsUndefined() && !val->IsNull();
 }
 }

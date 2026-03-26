@@ -162,10 +162,13 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
     result_t hr;
     obj_ptr<KeyObject_base> key;
 
-    if (options->Has(context, isolate->NewString("key")).FromMaybe(false)) {
-        hr = crypto_base::createPrivateKey(options, key);
-        if (hr < 0)
-            return hr;
+    {
+        // Use js_obj_has_value instead of Has to skip undefined/null values
+        if (js_obj_has_value(options, context, "key")) {
+            hr = crypto_base::createPrivateKey(options, key);
+            if (hr < 0)
+                return hr;
+        }
     }
 
     if (key) {

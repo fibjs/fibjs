@@ -5089,6 +5089,32 @@ describe("http", () => {
             assert.equal(r.text(), 'auto-https');
         });
 
+        it("http.createServer({cert:undefined}, handler) returns plain HttpServer", () => {
+            // property exists but value is undefined — must NOT trigger TLS mode
+            svr = http.createServer({ cert: undefined, ca: undefined, key: undefined }, (req) => {
+                req.response.write('plain-undef');
+            });
+            assert.equal(svr.constructor.name, 'HttpServer');
+            svr.listen(csPort + 8);
+            test_util.push(svr.socket);
+
+            var r = http.get('http://127.0.0.1:' + (csPort + 8) + '/');
+            assert.equal(r.text(), 'plain-undef');
+        });
+
+        it("http.createServer({cert:null}, handler) returns plain HttpServer", () => {
+            // property exists but value is null — must NOT trigger TLS mode
+            svr = http.createServer({ cert: null, ca: null }, (req) => {
+                req.response.write('plain-null');
+            });
+            assert.equal(svr.constructor.name, 'HttpServer');
+            svr.listen(csPort + 9);
+            test_util.push(svr.socket);
+
+            var r = http.get('http://127.0.0.1:' + (csPort + 9) + '/');
+            assert.equal(r.text(), 'plain-null');
+        });
+
         it("http.createServer({ca, cert, key}, handler) returns HttpsServer", () => {
             svr = http.createServer({ ca: ca, cert: crt, key: pk1.privateKey }, (req) => {
                 req.response.write('auto-https-ca');

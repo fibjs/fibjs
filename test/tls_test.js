@@ -119,6 +119,28 @@ describe('tls', () => {
                     assert.ok(ctx.key.equals(pk1.privateKey));
                 });
 
+                it('key/cert undefined — ignored, no error thrown', () => {
+                    // {key: undefined} must be treated as absent (same as Node.js)
+                    var ctx = tls.createSecureContext({
+                        key: undefined,
+                        cert: undefined,
+                        ca: undefined
+                    });
+                    assert.isUndefined(ctx.key);
+                    assert.isUndefined(ctx.cert);
+                });
+
+                it('key/cert null — ignored, no error thrown', () => {
+                    // {key: null} must also be treated as absent
+                    var ctx = tls.createSecureContext({
+                        key: null,
+                        cert: null,
+                        ca: null
+                    });
+                    assert.isUndefined(ctx.key);
+                    assert.isUndefined(ctx.cert);
+                });
+
                 it('requestCert/rejectUnauthorized', () => {
                     var ctx = tls.createSecureContext({
                         requestCert: false,
