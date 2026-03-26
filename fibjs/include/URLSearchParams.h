@@ -12,10 +12,10 @@
 
 namespace fibjs {
 
-class URLSearchParams : public HttpCollectionTmpl<URLSearchParams_base> {
+class URLSearchParams : public HttpCollectionTmpl<URLSearchParams_base, true> {
 public:
     URLSearchParams()
-        : HttpCollectionTmpl<URLSearchParams_base>(true)
+        : HttpCollectionTmpl<URLSearchParams_base, true>(true)
     {
     }
 

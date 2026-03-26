@@ -480,6 +480,232 @@ describe("http", () => {
         });
     });
 
+    describe("HttpCollection case behavior", () => {
+        it("lookup is case-insensitive, keys preserve original case", () => {
+            var d = new http.Request().headers;
+            d.append("Content-Type", "application/json");
+            d.append("X-Custom", "v1");
+            d.append("x-custom", "v2");
+
+            assert.ok(d.has("content-type"));
+            assert.ok(d.has("CONTENT-TYPE"));
+            assert.ok(d.has("Content-Type"));
+            assert.equal(d.first("content-type"), "application/json");
+            assert.equal(d.first("CONTENT-TYPE"), "application/json");
+
+            // original case preserved in storage
+            assert.deepEqual(Array.from(d.keys()), ["Content-Type", "X-Custom", "x-custom"]);
+        });
+
+        it("set() replaces all case-insensitive matches", () => {
+            var d = new http.Request().headers;
+            d.append("X-Value", "old");
+            d.append("x-value", "also-old");
+
+            d.set("X-VALUE", "new");
+            assert.deepEqual(d.all("x-value"), ["new"]);
+            assert.deepEqual(Array.from(d.keys()), ["X-VALUE"]);
+        });
+
+        it("remove() removes all case-insensitive matches", () => {
+            var d = new http.Request().headers;
+            d.append("Accept", "text/html");
+            d.append("accept", "application/json");
+
+            d.remove("ACCEPT");
+            assert.isFalse(d.has("accept"));
+        });
+
+        it("keys/values iterate in sorted order (byte comparison)", () => {
+            var d = new http.Request().headers;
+            d.append("Z-Last", "z");
+            d.append("A-First", "a");
+            d.append("M-Mid", "m");
+
+            assert.deepEqual(Array.from(d.keys()), ["A-First", "M-Mid", "Z-Last"]);
+            assert.deepEqual(Array.from(d.values()), ["a", "m", "z"]);
+        });
+    });
+
+    describe("Fetch API Headers case behavior", () => {
+        it("keys always stored lowercase regardless of input case", () => {
+            var h = new http.Headers();
+            h.append("Content-Type", "application/json");
+            h.append("X-CUSTOM", "v1");
+            h.append("x-custom", "v2");
+
+            // all keys are lowercase; sorted alphabetically
+            assert.deepEqual(Array.from(h.keys()), ["content-type", "x-custom", "x-custom"]);
+        });
+
+        it("has/get are case-insensitive (keys already lowercase)", () => {
+            var h = new http.Headers();
+            h.append("Content-Type", "text/plain");
+
+            assert.ok(h.has("content-type"));
+            assert.ok(h.has("Content-Type"));
+            assert.ok(h.has("CONTENT-TYPE"));
+            assert.equal(h.get("content-type"), "text/plain");
+            assert.equal(h.get("CONTENT-TYPE"), "text/plain");
+        });
+
+        it("set() replaces all lowercased matches", () => {
+            var h = new http.Headers();
+            h.append("Accept", "text/html");
+            h.append("ACCEPT", "application/json");
+
+            h.set("accept", "text/plain");
+            assert.deepEqual(Array.from(h.keys()), ["accept"]);
+            assert.equal(h.get("accept"), "text/plain");
+        });
+
+        it("delete() removes by any case", () => {
+            var h = new http.Headers();
+            h.append("X-Token", "abc");
+            h.append("Content-Type", "text/html");
+
+            h.delete("X-TOKEN");
+            assert.isFalse(h.has("x-token"));
+            assert.ok(h.has("content-type"));
+        });
+
+        it("keys/values/entries iterate in sorted alphabetical order", () => {
+            var h = new http.Headers();
+            h.append("Z-Last", "z");
+            h.append("A-First", "a");
+            h.append("m-mid", "m");
+
+            // all lowercase → a < m < z
+            assert.deepEqual(Array.from(h.keys()), ["a-first", "m-mid", "z-last"]);
+            assert.deepEqual(Array.from(h.values()), ["a", "m", "z"]);
+        });
+
+        it("get() combines multiple values with ', '", () => {
+            var h = new http.Headers();
+            h.append("Accept", "text/html");
+            h.append("ACCEPT", "application/json");
+
+            assert.equal(h.get("accept"), "text/html, application/json");
+        });
+    });
+
+    describe("URLSearchParams case behavior", () => {
+        it("keys stored with original case", () => {
+            var p = new URLSearchParams();
+            p.append("Foo", "bar");
+            p.append("FOO", "baz");
+
+            // case-SENSITIVE: Foo and FOO are different keys
+            assert.ok(p.has("Foo"));
+            assert.ok(p.has("FOO"));
+            assert.isFalse(p.has("foo"));
+        });
+
+        it("get() is case-sensitive", () => {
+            var p = new URLSearchParams();
+            p.append("Foo", "bar");
+            p.append("FOO", "baz");
+
+            assert.equal(p.get("Foo"), "bar");
+            assert.equal(p.get("FOO"), "baz");
+            assert.isNull(p.get("foo"));
+        });
+
+        it("set() only replaces exact-case match", () => {
+            var p = new URLSearchParams();
+            p.append("Foo", "old");
+            p.append("FOO", "other");
+
+            p.set("Foo", "updated");
+            assert.equal(p.get("Foo"), "updated");
+            assert.equal(p.get("FOO"), "other");
+        });
+
+        it("delete() only removes exact-case match", () => {
+            var p = new URLSearchParams();
+            p.append("Foo", "v1");
+            p.append("foo", "v2");
+
+            p.delete("Foo");
+            assert.isFalse(p.has("Foo"));
+            assert.ok(p.has("foo"));
+        });
+
+        it("keys/values/entries iterate in sorted order (uppercase before lowercase)", () => {
+            var p = new URLSearchParams();
+            p.append("foo", "1");
+            p.append("Bar", "2");
+            p.append("Baz", "3");
+            p.append("FOO", "4");
+
+            // ASCII byte order: B(66) < F(70) < b(98) < f(102)
+            // Bar < Baz < FOO < foo
+            assert.deepEqual(Array.from(p.keys()), ["Bar", "Baz", "FOO", "foo"]);
+            assert.deepEqual(Array.from(p.values()), ["2", "3", "4", "1"]);
+        });
+
+        it("toString() preserves original case of keys", () => {
+            var p = new URLSearchParams();
+            p.set("MyKey", "hello");
+            assert.ok(p.toString().includes("MyKey="));
+        });
+    });
+
+    describe("FormData case behavior", () => {
+        it("keys stored with original case", () => {
+            var fd = new FormData();
+            fd.append("MyField", "value1");
+            fd.append("myfield", "value2");
+
+            // case-SENSITIVE: MyField and myfield are different entries
+            assert.ok(fd.has("MyField"));
+            assert.ok(fd.has("myfield"));
+            assert.isFalse(fd.has("MYFIELD"));
+        });
+
+        it("get() is case-sensitive and returns first match", () => {
+            var fd = new FormData();
+            fd.append("Field", "first");
+            fd.append("field", "second");
+
+            assert.equal(fd.get("Field"), "first");
+            assert.equal(fd.get("field"), "second");
+            assert.isNull(fd.get("FIELD"));
+        });
+
+        it("set() only replaces exact-case match", () => {
+            var fd = new FormData();
+            fd.append("Name", "old");
+            fd.append("name", "also-old");
+
+            fd.set("Name", "updated");
+            assert.equal(fd.get("Name"), "updated");
+            assert.equal(fd.get("name"), "also-old");
+        });
+
+        it("delete() only removes exact-case match", () => {
+            var fd = new FormData();
+            fd.append("Field", "v1");
+            fd.append("field", "v2");
+
+            fd.delete("Field");
+            assert.isFalse(fd.has("Field"));
+            assert.ok(fd.has("field"));
+        });
+
+        it("keys/values/entries iterate in insertion order", () => {
+            var fd = new FormData();
+            fd.append("zoo", "z");
+            fd.append("Apple", "a");
+            fd.append("mango", "m");
+            fd.append("Banana", "b");
+
+            // FormData preserves insertion order (Fetch API spec)
+            assert.deepEqual(Array.from(fd.keys()), ["zoo", "Apple", "mango", "Banana"]);
+            assert.deepEqual(Array.from(fd.values()), ["z", "a", "m", "b"]);
+        });
+    });
+
     describe("cookie", () => {
         function build(opt) {
             return new http.Cookie(opt).toString();
@@ -5000,6 +5226,48 @@ describe("http", () => {
         });
     });
 
+    describe("request(Stream conn, HttpRequest req)", () => {
+        var svr;
+        var streamPort = 8970 + base_port;
+
+        before(() => {
+            svr = new http.Server(streamPort, (r) => {
+                r.response.write(r.address);
+            });
+            svr.start();
+            test_util.push(svr.socket);
+        });
+
+        it("sends request over a raw Stream and receives response", () => {
+            var net = require('net');
+            var conn = net.connect(streamPort, '127.0.0.1');
+            var hc = new http.Client();
+            var req = new http.Request();
+            req.method = 'GET';
+            req.address = '/stream-req';
+            req.setHeader('Host', '127.0.0.1:' + streamPort);
+            var resp = hc.request(conn, req);
+            assert.equal(resp.statusCode, 200);
+            assert.equal(resp.text(), '/stream-req');
+            conn.close();
+        });
+
+        it("sends POST with body over a raw Stream", () => {
+            var net = require('net');
+            var conn = net.connect(streamPort, '127.0.0.1');
+            var hc = new http.Client();
+            var req = new http.Request();
+            req.method = 'POST';
+            req.address = '/stream-post';
+            req.setHeader('Host', '127.0.0.1:' + streamPort);
+            req.write('payload');
+            var resp = hc.request(conn, req);
+            assert.equal(resp.statusCode, 200);
+            assert.equal(resp.text(), '/stream-post');
+            conn.close();
+        });
+    });
+
     describe("callback API (Node.js style)", () => {
         var svr;
         var cbPort = 8940 + base_port;
@@ -5056,6 +5324,15 @@ describe("http", () => {
                 assert.equal(typeof req.once, 'function');
                 assert.equal(typeof req.off, 'function');
             });
+
+            it("dispatches by string url without opts", (done) => {
+                http.request(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
         });
 
         describe("http.request(method, url, opts, callback)", () => {
@@ -5093,14 +5370,6 @@ describe("http", () => {
         });
 
         describe("http.request(opts, callback)", () => {
-            it("with url string in opts", (done) => {
-                http.request(url("/hello"), (r) => {
-                    done(() => {
-                        assert.equal(r.text(), "/hello");
-                    });
-                });
-            });
-
             it("with Object opts (hostname/protocol/pathname) — IDL overload dispatch", (done) => {
                 // Regression: passing a plain Object must dispatch to request(Object opts),
                 // NOT toString() it as a URL string ("[object Object]").

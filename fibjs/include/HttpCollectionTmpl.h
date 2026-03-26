@@ -20,7 +20,7 @@ class HttpCollectionTmpl : public BaseType {
 public:
     HttpCollectionTmpl(bool string_only)
         : m_string_only(string_only)
-        , m_incoming(false)
+        , m_lowercase_keys(false)
         , m_sorted(true)
     {
         m_map.reserve(16); // reserve space instead of resize
@@ -85,7 +85,7 @@ public:
         if (name.empty())
             return CALL_E_INVALIDARG;
 
-        if (m_incoming) {
+        if (m_lowercase_keys) {
             for (size_t i = 0; i < name.length(); i++)
                 if (name[i] >= 'A' && name[i] <= 'Z')
                     name[i] = name[i] - 'A' + 'a';
@@ -640,7 +640,7 @@ public:
     using pair = std::pair<exlib::string, Variant>;
     std::vector<pair> m_map;
     bool m_string_only;
-    bool m_incoming;
+    bool m_lowercase_keys;
     bool m_sorted;
 };
 

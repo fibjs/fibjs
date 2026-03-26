@@ -397,7 +397,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    m_headers->m_incoming = true;
+    m_headers->m_lowercase_keys = true;
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
@@ -848,7 +848,7 @@ result_t HttpMessage::clear()
     m_encoding.clear();
 
     m_headers->clear();
-    m_headers->m_incoming = false;
+    m_headers->m_lowercase_keys = false;
 
     m_stm.Release();
     m_socket.Release();

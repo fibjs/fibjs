@@ -17,6 +17,8 @@ public:
     Headers()
         : HttpCollectionTmpl<Headers_base>(true)
     {
+        // Fetch API spec: header names must always be stored lowercase
+        m_lowercase_keys = true;
     }
 
 public:
