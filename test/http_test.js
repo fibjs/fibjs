@@ -2599,6 +2599,22 @@ describe("http", () => {
                 }).text(), "/request");
             });
 
+            it("request(Object opts) — null-prototype headers (node-fetch pattern)", () => {
+                // Regression: IsJSObject rejected Object.create(null) headers, causing
+                // the overload to fall through to request(String url) with url='[object Object]'.
+                // node-fetch's exportNodeCompatibleHeaders() always returns { __proto__: null, ... }.
+                var nullProtoHeaders = Object.assign(Object.create(null), {
+                    'x-test': ['ok']
+                });
+                assert.equal(http.request({
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: 8882 + base_port,
+                    pathname: '/request',
+                    headers: nullProtoHeaders
+                }).text(), "/request");
+            });
+
             it("redirect", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").text(),
                     "/request");

@@ -88,5 +88,36 @@ describe("class test", () => {
             assert.equal(Object.prototype.toString.call(console), "[object console]");
         });
     });
+
+    describe("IsJSObject accepts null-prototype objects", () => {
+        var url = require('url');
+
+        it("Object.create(null) should be accepted where Object is expected", () => {
+            // Regression: IsJSObject previously required proto === Object.prototype,
+            // rejecting Object.create(null) and causing overload dispatch to fail.
+            var opts = Object.create(null);
+            opts.protocol = 'http:';
+            opts.hostname = 'example.com';
+            opts.pathname = '/path';
+            // url.format(Object) — if IsJSObject rejects null-proto, this throws TYPEMISMATCH
+            assert.strictEqual(url.format(opts), 'http://example.com/path');
+        });
+
+        it("null-proto object with all URL fields formats correctly", () => {
+            var opts = Object.create(null);
+            opts.protocol = 'https:';
+            opts.hostname = 'api.example.com';
+            opts.port = '8080';
+            opts.pathname = '/v1/users';
+            opts.search = '?limit=10';
+            assert.strictEqual(url.format(opts), 'https://api.example.com:8080/v1/users?limit=10');
+        });
+
+        it("null-proto and plain-object produce identical url.format output", () => {
+            var fields = { protocol: 'http:', hostname: 'example.com', pathname: '/test' };
+            var nullProto = Object.assign(Object.create(null), fields);
+            assert.strictEqual(url.format(nullProto), url.format(fields));
+        });
+    });
 });
 

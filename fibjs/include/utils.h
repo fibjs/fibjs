@@ -929,13 +929,24 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<obje
 
 inline bool IsJSObject(v8::Local<v8::Value> v)
 {
-    if (!v->IsObject())
+    if (!v->IsObject() || v->IsProxy() || v->IsArrayBuffer() || v->IsArrayBufferView()
+        || v->IsTypedArray() || v->IsStringObject() || v->IsNumberObject()
+        || v->IsBooleanObject() || v->IsSymbolObject())
         return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+    if (o->InternalFieldCount() > 0)
+        return false;
+
+    v8::Local<v8::Value> proto = o->GetPrototype();
+
+    // accept Object.create(null) — null-prototype plain objects
+    if (proto->IsNull())
+        return true;
+
     v8::Local<v8::Context> _context = o->GetCreationContextChecked();
-    JSValue proto = _context->GetEmbedderData(kObjectPrototype);
-    if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
+    JSValue expected = _context->GetEmbedderData(kObjectPrototype);
+    if (!expected->Equals(_context, proto).FromMaybe(false))
         return false;
 
     return true;
