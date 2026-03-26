@@ -144,6 +144,32 @@ interface HttpClient : object
      */
     HttpMessage request(String method, String url, Object opts = {}) async;
 
+    /*! @brief Request the url specified by opts and return result
+     opts contains additional options for the request, supported content is as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
+     @param opts specify additional information
+     @return return server response
+     */
+    HttpMessage request(Object opts) async;
+
     /*! @brief Request the specified url with GET method and return result, equivalent to request("GET", ...)
      opts contains additional options for the request, supported content is as follows:
      ```JavaScript
@@ -171,32 +197,6 @@ interface HttpClient : object
      */
     HttpMessage request(String url, Object opts = {}) async;
 
-    /*! @brief Request the url specified by opts and return result
-     opts contains additional options for the request, supported content is as follows:
-     ```JavaScript
-     {
-         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-         "protocol": "http",
-         "slashes": true,
-         "username": "",
-         "password": "",
-         "hostname": "",
-         "port": "",
-         "pathname": "",
-         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-         "query": {},
-         "body": SeekableStream | Buffer | String | {},
-         "json": {},
-         "pack": {},
-         "headers": {}
-     }
-     ```
-     Among them, body, json, pack cannot appear at the same time. Default is {}, no additional information
-     @param opts specify additional information
-     @return return server response
-     */
-    HttpMessage request(Object opts) async;
-
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param method specify http request method: GET, POST, etc
      @param url specify url, must be complete url including host
@@ -205,6 +205,13 @@ interface HttpClient : object
      @return return HttpRequest object
      */
     HttpMessage request(String method, String url, Object opts, Function callback) async;
+
+    /*! @brief Request the url specified by opts, register callback to receive response, return HttpRequest object
+     @param opts specify additional information
+     @param callback response callback function, receives HttpResponse as parameter
+     @return return HttpRequest object
+     */
+    HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -220,13 +227,6 @@ interface HttpClient : object
      @return return HttpRequest object
      */
     HttpMessage request(String url, Function callback) async;
-
-    /*! @brief Request the url specified by opts, register callback to receive response, return HttpRequest object
-     @param opts specify additional information
-     @param callback response callback function, receives HttpResponse as parameter
-     @return return HttpRequest object
-     */
-    HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief Request the specified url with GET method and return result, equivalent to request("GET", ...)
      opts contains additional options for the request, supported content is as follows:

@@ -2579,6 +2579,26 @@ describe("http", () => {
                     "/request");
             });
 
+            it("request(Object opts) — IDL overload dispatch", () => {
+                // Regression: passing a plain Object must dispatch to request(Object opts),
+                // NOT toString() it as a URL string ("[object Object]").
+                assert.equal(http.request({
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: 8882 + base_port,
+                    pathname: '/request'
+                }).text(), "/request");
+
+                // method field inside opts
+                assert.equal(http.request({
+                    method: 'GET',
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: 8882 + base_port,
+                    pathname: '/request'
+                }).text(), "/request");
+            });
+
             it("redirect", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").text(),
                     "/request");
@@ -5057,9 +5077,25 @@ describe("http", () => {
         });
 
         describe("http.request(opts, callback)", () => {
-            it("with url in opts", (done) => {
+            it("with url string in opts", (done) => {
                 http.request(url("/hello"), (r) => {
                     done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+
+            it("with Object opts (hostname/protocol/pathname) — IDL overload dispatch", (done) => {
+                // Regression: passing a plain Object must dispatch to request(Object opts),
+                // NOT toString() it as a URL string ("[object Object]").
+                http.request({
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    pathname: '/hello'
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
                         assert.equal(r.text(), "/hello");
                     });
                 });
@@ -5125,9 +5161,25 @@ describe("http", () => {
                 });
             });
 
-            it("hc.request(opts, callback)", (done) => {
+            it("hc.request(opts, callback) — string url", (done) => {
                 hc.request(url("/hello"), (r) => {
                     done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+            });
+
+            it("hc.request(opts, callback) — Object opts (IDL overload dispatch)", (done) => {
+                // Regression: plain Object must dispatch to request(Object opts),
+                // NOT be coerced via toString() to \"[object Object]\".
+                hc.request({
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    pathname: '/hello'
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
                         assert.equal(r.text(), "/hello");
                     });
                 });

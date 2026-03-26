@@ -76,12 +76,12 @@ public:
     virtual result_t destroy() = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac) = 0;
@@ -163,12 +163,12 @@ public:
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpMessage_base>);
-    ASYNC_MEMBERVALUE3(HttpClient_base, request, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE2(HttpClient_base, request, v8::Local<v8::Object>, obj_ptr<HttpMessage_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, request, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE5(HttpClient_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, request, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, request, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, request, exlib::string, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
-    ASYNC_MEMBERVALUE3(HttpClient_base, request, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, get, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, get, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, get, exlib::string, v8::Local<v8::Function>, obj_ptr<HttpMessage_base>);
@@ -918,6 +918,15 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_request(v0, v1, v2, vr);
 
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_request(v0, cb, args);
+    else
+        hr = pInst->ac_request(v0, vr);
+
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
@@ -927,15 +936,6 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
         hr = pInst->acb_request(v0, v1, cb, args);
     else
         hr = pInst->ac_request(v0, v1, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_request(v0, cb, args);
-    else
-        hr = pInst->ac_request(v0, vr);
 
     METHOD_OVER(4, 4);
 
@@ -948,6 +948,16 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
         hr = pInst->acb_request(v0, v1, v2, v3, cb, args);
     else
         hr = pInst->ac_request(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_request(v0, v1, cb, args);
+    else
+        hr = pInst->ac_request(v0, v1, vr);
 
     METHOD_OVER(3, 3);
 
@@ -963,16 +973,6 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_request(v0, v1, cb, args);
-    else
-        hr = pInst->ac_request(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     if (!cb.IsEmpty())

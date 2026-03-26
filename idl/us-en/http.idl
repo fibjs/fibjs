@@ -180,6 +180,32 @@ module http
      */
     static HttpMessage request(String method, String url, Object opts = {}) async;
 
+    /*! @brief Request the url specified by opts and return the result
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {}
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
+     @param opts Specify additional information
+     @return Return server response
+     */
+    static HttpMessage request(Object opts) async;
+
     /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
      opts contains additional options for the request, supports the following content:
      ```JavaScript
@@ -207,32 +233,6 @@ module http
      */
     static HttpMessage request(String url, Object opts = {}) async;
 
-    /*! @brief Request the url specified by opts and return the result
-     opts contains additional options for the request, supports the following content:
-     ```JavaScript
-     {
-         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-         "protocol": "http",
-         "slashes": true,
-         "username": "",
-         "password": "",
-         "hostname": "",
-         "port": "",
-         "pathname": "",
-         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-         "query": {},
-         "body": SeekableStream | Buffer | String | {},
-         "json": {},
-         "pack": {},
-         "headers": {}
-     }
-     ```
-     body, json, pack must not appear at the same time. Default is {}, no additional information
-     @param opts Specify additional information
-     @return Return server response
-     */
-    static HttpMessage request(Object opts) async;
-
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param method Specify http request method: GET, POST, etc
      @param url Specify url, must be a complete url containing the host
@@ -241,6 +241,13 @@ module http
      @return Return HttpRequest object
      */
     static HttpMessage request(String method, String url, Object opts, Function callback) async;
+
+    /*! @brief Request the url specified by opts, register callback to receive response, return HttpRequest object
+     @param opts Specify additional information
+     @param callback Response callback function, receives HttpResponse as parameter
+     @return Return HttpRequest object
+     */
+    static HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -256,13 +263,6 @@ module http
      @return Return HttpRequest object
      */
     static HttpMessage request(String url, Function callback) async;
-
-    /*! @brief Request the url specified by opts, register callback to receive response, return HttpRequest object
-     @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
-     */
-    static HttpMessage request(Object opts, Function callback) async;
 
     /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
      opts contains additional options for the request, supports the following content:
