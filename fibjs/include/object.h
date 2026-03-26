@@ -406,14 +406,10 @@ public:
 public:
     static void block_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        v8::Local<v8::Object> self = args.This();
-        if (!args.Data().IsEmpty() && args.Data()->IsExternal()) {
-            ClassData::ClassProperty* cp = (ClassData::ClassProperty*)v8::Local<v8::External>::Cast(args.Data())->Value();
-            v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
-            v8::Local<v8::String> name = v8::String::NewFromUtf8(args.GetIsolate(), cp->name).ToLocalChecked();
-            self->CreateDataProperty(context, name, args[0]).FromMaybe(false);
+        // When called via prop_setter_wrapper (Data is ClassProperty External), the
+        // instance is always native; readonly assignment is a silent no-op (sloppy mode).
+        if (!args.Data().IsEmpty() && args.Data()->IsExternal())
             return;
-        }
         ThrowTypeError("Property is read-only.");
     }
 

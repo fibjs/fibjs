@@ -102,16 +102,16 @@ inline void prop_setter_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
     ClassData::ClassProperty* cp = (ClassData::ClassProperty*)v8::Local<v8::External>::Cast(args.Data())->Value();
 
     v8::Local<v8::Object> self = args.This();
-    if (self->InternalFieldCount() > 0 && cp->setter) {
-        v8::TryCatch try_catch(args.GetIsolate());
-        cp->setter(args);
-        if (!try_catch.HasCaught())
-            return;
-        // Native setter failed (e.g. type mismatch), fall through to CreateDataProperty
-        try_catch.Reset();
+    if (self->InternalFieldCount() > 0) {
+        // Native instance: delegate to the native setter (which may throw for readonly props).
+        // Never fall back to CreateDataProperty — that would shadow the native getter.
+        if (cp->setter)
+            cp->setter(args);
+        return;
     }
 
-    // Not a native instance, readonly, or native setter failed: create a data property on 'this'
+    // Non-native instance (e.g. Object.create(proto)): create a JS data property so
+    // that assignment works on the derived object.
     v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
     v8::Local<v8::String> name = v8::String::NewFromUtf8(args.GetIsolate(), cp->name).ToLocalChecked();
     self->CreateDataProperty(context, name, args[0]).FromMaybe(false);
@@ -231,6 +231,55 @@ public:
             return v8::Symbol::GetToStringTag(isolate->m_isolate);
 
         return isolate->NewString(name);
+    }
+
+    // Enumerates all non-static instance property names from the full class hierarchy,
+    // so that Object.assign() / Object.keys() / spread can see them as own keys
+    // (values are still read via the prototype chain accessor — zero extra overhead).
+    static void s_proto_prop_enumerator(const v8::PropertyCallbackInfo<v8::Array>& info)
+    {
+        ClassInfo* ci = (ClassInfo*)v8::Local<v8::External>::Cast(info.Data())->Value();
+        v8::Isolate* isolate = info.GetIsolate();
+        v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+
+        int32_t count = 0;
+        for (ClassData* cd = &ci->m_cd; cd; cd = cd->base ? &cd->base->m_cd : nullptr)
+            for (int32_t i = 0; i < cd->pc; i++)
+                if (!cd->cps[i].is_static)
+                    count++;
+
+        v8::Local<v8::Array> arr = v8::Array::New(isolate, count);
+        int32_t idx = 0;
+        for (ClassData* cd = &ci->m_cd; cd; cd = cd->base ? &cd->base->m_cd : nullptr)
+            for (int32_t i = 0; i < cd->pc; i++)
+                if (!cd->cps[i].is_static)
+                    arr->Set(ctx, idx++,
+                        v8::String::NewFromUtf8(isolate, cd->cps[i].name).ToLocalChecked())
+                        .IsJust();
+        info.GetReturnValue().Set(arr);
+    }
+
+    // Reports prototype accessor properties as own+enumerable so that [[GetOwnProperty]]
+    // sees them. The actual Get() still goes through the prototype chain accessor.
+    static v8::Intercepted s_proto_prop_query(
+        v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
+    {
+        ClassInfo* ci = (ClassInfo*)v8::Local<v8::External>::Cast(info.Data())->Value();
+        if (!property->IsString())
+            return v8::Intercepted::kNo;
+        v8::String::Utf8Value propName(info.GetIsolate(), property);
+        if (!*propName)
+            return v8::Intercepted::kNo;
+        for (ClassData* cd = &ci->m_cd; cd; cd = cd->base ? &cd->base->m_cd : nullptr)
+            for (int32_t i = 0; i < cd->pc; i++)
+                if (!cd->cps[i].is_static && !::strcmp(cd->cps[i].name, *propName)) {
+                    // ReadOnly: writable=false, enumerable=true, configurable=true.
+                    // Object.assign only requires enumerable; ReadOnly prevents
+                    // incorrect writable=true in getOwnPropertyDescriptor results.
+                    info.GetReturnValue().Set(v8::ReadOnly);
+                    return v8::Intercepted::kYes;
+                }
+        return v8::Intercepted::kNo;
     }
 
     bool has(const char* name)
@@ -581,6 +630,32 @@ private:
                     pot->SetHandler(v8::NamedPropertyHandlerConfiguration(
                         pcd->cns->getter, pcd->cns->setter, nullptr, pcd->cns->remover, pcd->cns->enumerator, v8::Local<v8::Value>(),
                         v8::PropertyHandlerFlags::kOnlyInterceptStrings));
+            } else {
+                // No custom named handler: install query+enumerator so prototype accessor
+                // properties appear as own enumerable properties, enabling
+                // Object.assign({}, obj) / Object.keys(obj) / {...obj} to work correctly.
+                bool has_instance_props = false;
+                for (ClassData* tmp = &m_cd; tmp && !has_instance_props;
+                     tmp = tmp->base ? &tmp->base->m_cd : nullptr)
+                    for (int32_t j = 0; j < tmp->pc; j++)
+                        if (!tmp->cps[j].is_static) {
+                            has_instance_props = true;
+                            break;
+                        }
+
+                if (has_instance_props) {
+                    v8::Local<v8::External> ci_data =
+                        v8::External::New(isolate->m_isolate, (void*)this);
+                    ot->SetHandler(v8::NamedPropertyHandlerConfiguration(
+                        nullptr, nullptr, s_proto_prop_query, nullptr,
+                        s_proto_prop_enumerator, ci_data,
+                        v8::PropertyHandlerFlags::kOnlyInterceptStrings));
+                    if (m_cd.has_async)
+                        pot->SetHandler(v8::NamedPropertyHandlerConfiguration(
+                            nullptr, nullptr, s_proto_prop_query, nullptr,
+                            s_proto_prop_enumerator, ci_data,
+                            v8::PropertyHandlerFlags::kOnlyInterceptStrings));
+                }
             }
             if (m_cd.caf) {
                 ot->SetCallAsFunctionHandler(m_cd.caf);
