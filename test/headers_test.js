@@ -600,10 +600,7 @@ describe("Headers API", () => {
         headers.set('x-CUSTOM-header', 'custom');
 
         const names = Array.from(headers.keys()).sort();
-        if (isFibjs)
-            assert.deepEqual(names, ['ACCEPT', 'Authorization', 'Content-Type', 'x-CUSTOM-header']);
-        else
-            assert.deepEqual(names, ['accept', 'authorization', 'content-type', 'x-custom-header']);
+        assert.deepEqual(names, ['accept', 'authorization', 'content-type', 'x-custom-header']);
 
         // Verify all are accessible via lowercase
         assert.strictEqual(headers.get('content-type'), 'application/json');
