@@ -19,6 +19,12 @@ interface AbortSignal : EventEmitter
     */
     static AbortSignal timeout(Number ms);
 
+    /*! @brief 创建一个在任意给定信号中止时即中止的 AbortSignal
+     @param signals 一个 AbortSignal 对象的数组
+     @return 返回一个复合的 AbortSignal 对象
+    */
+    static AbortSignal any(Array signals);
+
     /*! @brief 如果请求已中止，则抛出异常 */
     throwIfAborted();
 

@@ -562,4 +562,143 @@ describe("AbortController API", () => {
             }
         });
     });
+
+    describe("AbortSignal.any()", () => {
+        it("returns a non-aborted signal when all sources are non-aborted", () => {
+            var ac1 = new AbortController();
+            var ac2 = new AbortController();
+            var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+
+            assert.strictEqual(composite.aborted, false);
+            assert.strictEqual(composite.reason, undefined);
+        });
+
+        it("aborts when any source signal aborts", () => {
+            var ac1 = new AbortController();
+            var ac2 = new AbortController();
+            var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+            var abortFired = false;
+
+            composite.addEventListener('abort', () => {
+                abortFired = true;
+            });
+
+            ac2.abort("second");
+
+            assert.strictEqual(composite.aborted, true);
+            assert.strictEqual(composite.reason, "second");
+            assert.strictEqual(abortFired, true);
+        });
+
+        it("propagates reason from the first aborting signal", () => {
+            var ac1 = new AbortController();
+            var ac2 = new AbortController();
+            var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+
+            var err = new Error("first-abort");
+            ac1.abort(err);
+
+            assert.strictEqual(composite.reason, err);
+            assert.strictEqual(composite.aborted, true);
+
+            // Second abort should not change the composite's reason
+            ac2.abort("second-abort");
+            assert.strictEqual(composite.reason, err);
+        });
+
+        it("immediately aborted if any source is already aborted", () => {
+            var ac1 = new AbortController();
+            ac1.abort("pre-aborted");
+
+            var ac2 = new AbortController();
+            var composite = AbortSignal.any([ac2.signal, ac1.signal]);
+
+            assert.strictEqual(composite.aborted, true);
+            assert.strictEqual(composite.reason, "pre-aborted");
+        });
+
+        it("uses the first already-aborted signal's reason", () => {
+            var ac1 = new AbortController();
+            var ac2 = new AbortController();
+            ac1.abort("reason-1");
+            ac2.abort("reason-2");
+
+            var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+            assert.strictEqual(composite.reason, "reason-1");
+        });
+
+        it("works with a single signal", () => {
+            var ac = new AbortController();
+            var composite = AbortSignal.any([ac.signal]);
+
+            assert.strictEqual(composite.aborted, false);
+            ac.abort("solo");
+            assert.strictEqual(composite.aborted, true);
+            assert.strictEqual(composite.reason, "solo");
+        });
+
+        it("works with empty array", () => {
+            var composite = AbortSignal.any([]);
+            assert.strictEqual(composite.aborted, false);
+        });
+
+        it("composite fires abort event exactly once", () => {
+            var ac1 = new AbortController();
+            var ac2 = new AbortController();
+            var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+            var count = 0;
+
+            composite.addEventListener('abort', () => { count++; });
+
+            ac1.abort("first");
+            ac2.abort("second");
+
+            assert.strictEqual(count, 1);
+        });
+
+        it("composite throwIfAborted works", () => {
+            var ac = new AbortController();
+            var composite = AbortSignal.any([ac.signal]);
+
+            assert.doesNotThrow(() => { composite.throwIfAborted(); });
+
+            var err = new Error("abort-throw");
+            ac.abort(err);
+
+            assert.throws(() => { composite.throwIfAborted(); }, err);
+        });
+
+        it("works with AbortSignal.abort() as source", () => {
+            var already = AbortSignal.abort("static-abort");
+            var ac = new AbortController();
+            var composite = AbortSignal.any([ac.signal, already]);
+
+            assert.strictEqual(composite.aborted, true);
+            assert.strictEqual(composite.reason, "static-abort");
+        });
+
+        it("works with AbortSignal.timeout() as source", () => {
+            var timed = AbortSignal.timeout(50);
+            var composite = AbortSignal.any([timed]);
+
+            assert.strictEqual(composite.aborted, false);
+
+            // Wait for timeout to fire
+            var coroutine = require('coroutine');
+            coroutine.sleep(100);
+
+            assert.strictEqual(composite.aborted, true);
+        });
+
+        it("nested any() propagates abort", () => {
+            var ac = new AbortController();
+            var inner = AbortSignal.any([ac.signal]);
+            var outer = AbortSignal.any([inner]);
+
+            assert.strictEqual(outer.aborted, false);
+            ac.abort("nested");
+            assert.strictEqual(outer.aborted, true);
+            assert.strictEqual(outer.reason, "nested");
+        });
+    });
 });

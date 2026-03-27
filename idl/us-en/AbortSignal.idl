@@ -19,6 +19,12 @@ interface AbortSignal : EventEmitter
     */
     static AbortSignal timeout(Number ms);
 
+    /*! @brief Create an AbortSignal that aborts when any of the given signals aborts
+     @param signals An array of AbortSignal objects
+     @return Returns a composite AbortSignal object
+    */
+    static AbortSignal any(Array signals);
+
     /*! @brief If the request has been aborted, throw an exception */
     throwIfAborted();
 

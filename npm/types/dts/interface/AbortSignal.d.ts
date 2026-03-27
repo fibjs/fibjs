@@ -29,6 +29,14 @@ declare class Class_AbortSignal extends Class_EventEmitter {
     static timeout(ms: number): Class_AbortSignal;
 
     /**
+     * @description 创建一个在任意给定信号中止时即中止的 AbortSignal
+     *      @param signals 一个 AbortSignal 对象的数组
+     *      @return 返回一个复合的 AbortSignal 对象
+     *     
+     */
+    static any(signals: any[]): Class_AbortSignal;
+
+    /**
      * @description 如果请求已中止，则抛出异常 
      */
     throwIfAborted(): void;
