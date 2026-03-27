@@ -30,7 +30,7 @@
 		} \
 	}; \
 	_t ac(NULL, isolate); \
-	return ac.check_result(m(&ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC0_ACB(cls, m) \
 	static result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
@@ -89,7 +89,7 @@
 	}; \
 	void* args[] = {this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(&ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER0_ACB(cls, m) \
 	result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
@@ -150,7 +150,7 @@
 	}; \
 	void* args[] = {&v0}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE1_ACB(cls, m, T0) \
 	static result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
@@ -215,7 +215,7 @@
 	}; \
 	void* args[] = {&v0, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE1_ACB(cls, m, T0) \
 	result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
@@ -280,7 +280,7 @@
 	}; \
 	void* args[] = {&v0}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC1_ACB(cls, m, T0) \
 	static result_t acb_##m( \
@@ -343,7 +343,7 @@
 	}; \
 	void* args[] = {&v0, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER1_ACB(cls, m, T0) \
 	result_t acb_##m( \
@@ -406,7 +406,7 @@
 	}; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE2_ACB(cls, m, T0, T1) \
 	static result_t acb_##m( \
@@ -473,7 +473,7 @@
 	}; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE2_ACB(cls, m, T0, T1) \
 	result_t acb_##m( \
@@ -540,7 +540,7 @@
 	}; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC2_ACB(cls, m, T0, T1) \
 	static result_t acb_##m( \
@@ -604,7 +604,7 @@
 	}; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER2_ACB(cls, m, T0, T1) \
 	result_t acb_##m( \
@@ -668,7 +668,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE3_ACB(cls, m, T0, T1, T2) \
 	static result_t acb_##m( \
@@ -736,7 +736,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE3_ACB(cls, m, T0, T1, T2) \
 	result_t acb_##m( \
@@ -804,7 +804,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC3_ACB(cls, m, T0, T1, T2) \
 	static result_t acb_##m( \
@@ -869,7 +869,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER3_ACB(cls, m, T0, T1, T2) \
 	result_t acb_##m( \
@@ -934,7 +934,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	static result_t acb_##m( \
@@ -1003,7 +1003,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	result_t acb_##m( \
@@ -1072,7 +1072,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC4_ACB(cls, m, T0, T1, T2, T3) \
 	static result_t acb_##m( \
@@ -1138,7 +1138,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER4_ACB(cls, m, T0, T1, T2, T3) \
 	result_t acb_##m( \
@@ -1204,7 +1204,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static result_t acb_##m( \
@@ -1274,7 +1274,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	result_t acb_##m( \
@@ -1344,7 +1344,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static result_t acb_##m( \
@@ -1411,7 +1411,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	result_t acb_##m( \
@@ -1478,7 +1478,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t acb_##m( \
@@ -1549,7 +1549,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t acb_##m( \
@@ -1620,7 +1620,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t acb_##m( \
@@ -1688,7 +1688,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t acb_##m( \
@@ -1756,7 +1756,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t acb_##m( \
@@ -1828,7 +1828,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t acb_##m( \
@@ -1900,7 +1900,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t acb_##m( \
@@ -1969,7 +1969,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t acb_##m( \
@@ -2038,7 +2038,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t acb_##m( \
@@ -2111,7 +2111,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t acb_##m( \
@@ -2184,7 +2184,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t acb_##m( \
@@ -2254,7 +2254,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t acb_##m( \
@@ -2324,7 +2324,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t acb_##m( \
@@ -2398,7 +2398,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t acb_##m( \
@@ -2472,7 +2472,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATIC9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t acb_##m( \
@@ -2543,7 +2543,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBER9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t acb_##m( \
@@ -2614,7 +2614,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_STATICVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	static result_t acb_##m( \
@@ -2689,7 +2689,7 @@
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
 	_t ac(args, isolate); \
-	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
+	return ac.check_result(CALL_E_NOSYNC); \
 	}
 #define ASYNC_MEMBERVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	result_t acb_##m( \

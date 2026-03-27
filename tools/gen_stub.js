@@ -97,17 +97,21 @@ function gen_stub(argn, bInst, bRet) {
         } else
             txt.push('	_t ac(NULL' + (bCCall ? ', isolate' : bInst ? ', holder()' : ', Isolate::current()') + '); \\');
 
-        s = '	return ac.check_result(m(';
-        if (argn > 0) {
-            a = [];
-            for (i = 0; i < argn; i++)
-                a.push('v' + i);
-            a.push('&ac');
-            s += a.join(', ');
-        } else
-            s += '&ac';
+        if (bCCall) {
+            txt.push('	return ac.check_result(CALL_E_NOSYNC); \\\n	}');
+        } else {
+            s = '	return ac.check_result(m(';
+            if (argn > 0) {
+                a = [];
+                for (i = 0; i < argn; i++)
+                    a.push('v' + i);
+                a.push('&ac');
+                s += a.join(', ');
+            } else
+                s += '&ac';
 
-        txt.push(s + ')); \\\n	}');
+            txt.push(s + ')); \\\n	}');
+        }
     }
 
     function gen_callback() {
