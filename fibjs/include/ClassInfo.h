@@ -313,6 +313,65 @@ public:
         return m_cd.name;
     }
 
+    bool has_declared_method(const char* method_name, bool is_static)
+    {
+        for (int32_t i = 0; i < m_cd.mc; i++) {
+            if (m_cd.cms[i].is_static != is_static)
+                continue;
+            if (!qstrcmp(m_cd.cms[i].name, method_name))
+                return true;
+        }
+
+        return false;
+    }
+
+    template <typename SetMainPrimaryFn, typename SetMainAliasFn, typename SetPromisePrimaryFn, typename SetPromiseAliasFn>
+    void bind_async_method(Isolate* isolate, v8::Local<v8::Context> context,
+        const char* method_name, bool is_static, ClassData::AsyncType async_type,
+        v8::Local<v8::Function> sync_func, v8::Local<v8::Function> promise_func,
+        SetMainPrimaryFn set_main_primary,
+        SetMainAliasFn set_main_alias,
+        bool has_promise_target,
+        SetPromisePrimaryFn set_promise_primary,
+        SetPromiseAliasFn set_promise_alias)
+    {
+        sync_func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), sync_func);
+        sync_func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), sync_func);
+
+        setAsyncFunctoin(promise_func);
+
+        sync_func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), promise_func);
+        promise_func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), sync_func);
+        promise_func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), sync_func);
+
+        exlib::string name_sync(method_name);
+        name_sync.append("Sync");
+        v8::Local<v8::Name> prop_sync = get_prop_name(isolate, name_sync.c_str());
+
+        exlib::string name_async(method_name);
+        name_async.append("Async");
+        v8::Local<v8::Name> prop_async = get_prop_name(isolate, name_async.c_str());
+
+        bool has_name_sync = has_declared_method(name_sync.c_str(), is_static);
+        bool has_name_async = has_declared_method(name_async.c_str(), is_static);
+
+        bool use_sync_primary = (async_type == ClassData::ASYNC_ASYNC);
+        set_main_primary(use_sync_primary);
+
+        if (!has_name_sync)
+            set_main_alias(true, prop_sync);
+        if (!has_name_async)
+            set_main_alias(false, prop_async);
+
+        if (has_promise_target) {
+            set_promise_primary();
+            if (!has_name_sync)
+                set_promise_alias(true, prop_sync);
+            if (!has_name_async)
+                set_promise_alias(false, prop_async);
+        }
+    }
+
     void Attach(Isolate* isolate, v8::Local<v8::Object> o)
     {
         int32_t i;
@@ -332,36 +391,22 @@ public:
                     if (m_cd.has_async)
                         op->Set(_context, name, func).IsJust();
                 } else {
-                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
-                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
-
                     v8::Local<v8::Function> pfunc = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker, v8::True(isolate->m_isolate));
-                    setAsyncFunctoin(pfunc);
-
-                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), pfunc);
-                    pfunc->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
-                    pfunc->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
-
-                    exlib::string name_sync(m_cd.cms[i].name);
-                    name_sync.append("Sync");
-                    v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
-
-                    exlib::string name_async(m_cd.cms[i].name);
-                    name_async.append("Async");
-                    v8::Local<v8::Name> _name_async = get_prop_name(isolate, name_async.c_str());
-
-                    if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
-                        o->Set(_context, name, func).IsJust();
-                    else
-                        o->Set(_context, name, pfunc).IsJust();
-                    o->Set(_context, _name_sync, func).IsJust();
-                    o->Set(_context, _name_async, pfunc).IsJust();
-
-                    if (m_cd.has_async) {
-                        op->Set(_context, name, pfunc).IsJust();
-                        op->Set(_context, _name_sync, func).IsJust();
-                        op->Set(_context, _name_async, pfunc).IsJust();
-                    }
+                    bind_async_method(isolate, _context, m_cd.cms[i].name, true, m_cd.cms[i].async_type,
+                        func, pfunc,
+                        [&](bool use_sync) {
+                            o->Set(_context, name, use_sync ? func : pfunc).IsJust();
+                        },
+                        [&](bool use_sync, v8::Local<v8::Name> alias) {
+                            o->Set(_context, alias, use_sync ? func : pfunc).IsJust();
+                        },
+                        m_cd.has_async,
+                        [&]() {
+                            op->Set(_context, name, pfunc).IsJust();
+                        },
+                        [&](bool use_sync, v8::Local<v8::Name> alias) {
+                            op->Set(_context, alias, use_sync ? func : pfunc).IsJust();
+                        });
                 }
             }
         }
@@ -523,38 +568,24 @@ private:
                             ppt->Set(name, ft);
                     } else {
                         v8::Local<v8::Function> func = ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
-                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
-                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
 
                         v8::Local<v8::FunctionTemplate> pft = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker, v8::True(isolate->m_isolate));
                         v8::Local<v8::Function> pfunc = pft->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
-
-                        setAsyncFunctoin(pfunc);
-
-                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), pfunc);
-                        pfunc->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
-                        pfunc->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
-
-                        exlib::string name_sync(m_cd.cms[i].name);
-                        name_sync.append("Sync");
-                        v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
-
-                        exlib::string name_async(m_cd.cms[i].name);
-                        name_async.append("Async");
-                        v8::Local<v8::Name> _name_async = get_prop_name(isolate, name_async.c_str());
-
-                        if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
-                            pt->Set(name, ft);
-                        else
-                            pt->Set(name, pft);
-                        pt->Set(_name_sync, ft);
-                        pt->Set(_name_async, pft);
-
-                        if (m_cd.has_async) {
-                            ppt->Set(name, pft);
-                            ppt->Set(_name_sync, ft);
-                            ppt->Set(_name_async, pft);
-                        }
+                        bind_async_method(isolate, context, m_cd.cms[i].name, false, m_cd.cms[i].async_type,
+                            func, pfunc,
+                            [&](bool use_sync) {
+                                pt->Set(name, use_sync ? ft : pft);
+                            },
+                            [&](bool use_sync, v8::Local<v8::Name> alias) {
+                                pt->Set(alias, use_sync ? ft : pft);
+                            },
+                            m_cd.has_async,
+                            [&]() {
+                                ppt->Set(name, pft);
+                            },
+                            [&](bool use_sync, v8::Local<v8::Name> alias) {
+                                ppt->Set(alias, use_sync ? ft : pft);
+                            });
                     }
                 }
 

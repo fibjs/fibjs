@@ -147,7 +147,7 @@ interface HttpClient : EventEmitter
      @param req 要发送的 HttpRequest 对象
      @return 返回服务器响应
      */
-    HttpMessage request(Stream conn, HttpRequest req) async;
+    HttpRequest request(Stream conn, HttpRequest req);
 
     /*! @brief 请求指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -175,7 +175,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage request(String method, String url, Object opts = {}) async;
+    HttpResponse requestSync(String method, String url, Object opts = {});
 
     /*! @brief 请求 opts 指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -201,7 +201,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage request(Object opts) async;
+    HttpResponse requestSync(Object opts);
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -228,7 +228,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage request(String url, Object opts = {}) async;
+    HttpResponse requestSync(String url, Object opts = {});
 
     /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param method 指定 http 请求方法：GET, POST 等
@@ -237,14 +237,36 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage request(String method, String url, Object opts, Function callback) async;
+    HttpRequest request(String method, String url, Object opts = {});
+
+    /*! @brief 请求 opts 指定的 url，并返回 HttpRequest 对象
+     @param opts 指定附加信息
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest request(Object opts);
+
+    /*! @brief 请求指定的 url，并返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest request(String url, Object opts = {});
+
+    /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param method 指定 http 请求方法：GET, POST 等
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest request(String method, String url, Object opts, Function callback);
 
     /*! @brief 请求 opts 指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param opts 指定附加信息
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage request(Object opts, Function callback) async;
+    HttpRequest request(Object opts, Function callback);
 
     /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -252,14 +274,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage request(String url, Object opts, Function callback) async;
+    HttpRequest request(String url, Object opts, Function callback);
 
     /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage request(String url, Function callback) async;
+    HttpRequest request(String url, Function callback);
+
+    /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param method 指定 http 请求方法：GET, POST 等
+     @param url 指定 url，必须是包含主机的完整 url
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest request(String method, String url, Function callback);
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -286,7 +316,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage get(String url, Object opts = {}) async;
+    HttpResponse getSync(String url, Object opts = {});
 
     /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -294,14 +324,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage get(String url, Object opts, Function callback) async;
+    HttpRequest get(String url, Object opts = {});
+
+    /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest get(String url, Object opts, Function callback);
 
     /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage get(String url, Function callback) async;
+    HttpRequest get(String url, Function callback);
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -328,7 +366,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage post(String url, Object opts = {}) async;
+    HttpResponse postSync(String url, Object opts = {});
 
     /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -336,14 +374,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage post(String url, Object opts, Function callback) async;
+    HttpRequest post(String url, Object opts = {});
+
+    /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest post(String url, Object opts, Function callback);
 
     /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage post(String url, Function callback) async;
+    HttpRequest post(String url, Function callback);
 
     /*! @brief 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -370,7 +416,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage del(String url, Object opts = {}) async;
+    HttpResponse delSync(String url, Object opts = {});
 
     /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -378,14 +424,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage del(String url, Object opts, Function callback) async;
+    HttpRequest del(String url, Object opts = {});
+
+    /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest del(String url, Object opts, Function callback);
 
     /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage del(String url, Function callback) async;
+    HttpRequest del(String url, Function callback);
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -412,7 +466,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage put(String url, Object opts = {}) async;
+    HttpResponse putSync(String url, Object opts = {});
 
     /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -420,14 +474,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage put(String url, Object opts, Function callback) async;
+    HttpRequest put(String url, Object opts = {});
+
+    /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest put(String url, Object opts, Function callback);
 
     /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage put(String url, Function callback) async;
+    HttpRequest put(String url, Function callback);
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -454,7 +516,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage patch(String url, Object opts = {}) async;
+    HttpResponse patchSync(String url, Object opts = {});
 
     /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -462,14 +524,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage patch(String url, Object opts, Function callback) async;
+    HttpRequest patch(String url, Object opts = {});
+
+    /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest patch(String url, Object opts, Function callback);
 
     /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage patch(String url, Function callback) async;
+    HttpRequest patch(String url, Function callback);
 
     /*! @brief 用 HEAD 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -496,7 +566,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpMessage head(String url, Object opts = {}) async;
+    HttpResponse headSync(String url, Object opts = {});
 
     /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -504,14 +574,22 @@ interface HttpClient : EventEmitter
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage head(String url, Object opts, Function callback) async;
+    HttpRequest head(String url, Object opts = {});
+
+    /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     @param url 指定 url，必须是包含主机的完整 url
+     @param opts 指定附加信息
+     @param callback 响应回调函数，接收 HttpResponse 作为参数
+     @return 返回 HttpRequest 对象
+     */
+    HttpRequest head(String url, Object opts, Function callback);
 
     /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
      @param callback 响应回调函数，接收 HttpResponse 作为参数
      @return 返回 HttpRequest 对象
      */
-    HttpMessage head(String url, Function callback) async;
+    HttpRequest head(String url, Function callback);
 
     /*! @brief 使用 Web Fetch 标准发送请求，返回 HttpResponse 对象
      @param url 指定 url，必须是包含 host 的完整 url

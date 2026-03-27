@@ -128,58 +128,6 @@ declare module 'child_process' {
     function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
 
     /**
-     * @description 在 shell 中执行一个命令并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execSync(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
-
-    /**
-     * @description 在 shell 中执行一个命令并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execAsync(command: string, options?: FIBJS.GeneralObject): Promise<[stdout: any, stderr: any, exitCode: number]>;
-
-    /**
      * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
      *     options 支持的内容如下：
      *      ```JavaScript
@@ -228,60 +176,6 @@ declare module 'child_process' {
      *      }
      *      ```
      *      @param command 指定要运行的命令
-     *      @param args 指定字符串参数列表
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execFileSync(command: string, args: any[], options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
-
-    /**
-     * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
-     *      @param args 指定字符串参数列表
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execFileAsync(command: string, args: any[], options?: FIBJS.GeneralObject): Promise<[stdout: any, stderr: any, exitCode: number]>;
-
-    /**
-     * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdio 输出内容
      *      
@@ -289,58 +183,6 @@ declare module 'child_process' {
     function execFile(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
     function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
-
-    /**
-     * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execFileSync(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
-
-    /**
-     * @description 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
-     *     options 支持的内容如下：
-     *      ```JavaScript
-     *      {
-     *         "cwd": "", // working directory of the child process, default to current directory
-     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
-     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
-     *         "detached": false, // child process will be a leader of a new process group, default to false
-     *         "uid": 0, // configure the user identity of the process
-     *         "gid": 0, // con
-     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
-     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
-     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
-     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
-     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
-     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
-     *      }
-     *      ```
-     *      @param command 指定要运行的命令
-     *      @param options 指定创建参数
-     *      @return 返回子进程的 stdio 输出内容
-     *      
-     */
-    function execFileAsync(command: string, options?: FIBJS.GeneralObject): Promise<[stdout: any, stderr: any, exitCode: number]>;
 
     /**
      * @description 用给定的命令发布一个子进程

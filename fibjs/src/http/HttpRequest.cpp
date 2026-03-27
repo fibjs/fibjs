@@ -28,7 +28,7 @@ result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8:
 }
 
 result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
-    bool urlEncoded_default, bool strict)
+    bool urlEncoded_default, bool strict, bool skip_body)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -37,53 +37,63 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
     method = default_method;
     GetConfigValue(opts, "method", method, true);
 
-    JSValue v = opts->Get(context, isolate->NewString("body", 4));
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+    JSValue v;
 
-    // Validate: GET and HEAD must not have a body (Fetch API strict mode)
-    bool has_body = !v->IsUndefined() && !v->IsNull();
-    if (strict && has_body) {
-        exlib::string m_upper = method;
-        for (char& c : m_upper)
-            c = toupper((unsigned char)c);
-        if (m_upper == "GET" || m_upper == "HEAD")
-            return CHECK_ERROR(Runtime::setError(kTypeError, "Request: GET/HEAD requests cannot have a body"));
-    }
+    if (!skip_body) {
+        v = opts->Get(context, isolate->NewString("body", 4));
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
 
-    hr = GetConfigValue(opts, "headers", headers);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
-        headers = new Headers();
-    else if (hr < 0)
-        return hr;
+        // Validate: GET and HEAD must not have a body (Fetch API strict mode)
+        bool has_body = !v->IsUndefined() && !v->IsNull();
+        if (strict && has_body) {
+            exlib::string m_upper = method;
+            for (char& c : m_upper)
+                c = toupper((unsigned char)c);
+            if (m_upper == "GET" || m_upper == "HEAD")
+                return CHECK_ERROR(Runtime::setError(kTypeError, "Request: GET/HEAD requests cannot have a body"));
+        }
 
-    if (has_body) {
-        hr = body_to_stream(isolate, v, body, headers.get(), urlEncoded_default);
-        if (hr < 0 && hr != CALL_RETURN_NULL)
+        hr = GetConfigValue(opts, "headers", headers);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+            headers = new Headers();
+        else if (hr < 0)
             return hr;
-    } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
-        body = new MemoryStream();
-        exlib::string s;
-        hr = json_base::encode(v, s);
-        if (hr < 0)
+
+        if (has_body) {
+            hr = body_to_stream(isolate, v, body, headers.get(), urlEncoded_default);
+            if (hr < 0 && hr != CALL_RETURN_NULL)
+                return hr;
+        } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
+            body = new MemoryStream();
+            exlib::string s;
+            hr = json_base::encode(v, s);
+            if (hr < 0)
+                return hr;
+            obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
+            bool wr;
+            body->cc_write(buf, wr);
+            Variant ct;
+            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                headers->set("Content-Type", "application/json");
+        } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
+            body = new MemoryStream();
+            obj_ptr<Buffer_base> buf;
+            hr = msgpack_base::encode(v, buf);
+            if (hr < 0)
+                return hr;
+            bool wr;
+            body->cc_write(buf, wr);
+            Variant ct;
+            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                headers->set("Content-Type", "application/msgpack");
+        }
+    } else {
+        hr = GetConfigValue(opts, "headers", headers);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+            headers = new Headers();
+        else if (hr < 0)
             return hr;
-        obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
-        bool wr;
-        body->cc_write(buf, wr);
-        Variant ct;
-        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            headers->set("Content-Type", "application/json");
-    } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
-        body = new MemoryStream();
-        obj_ptr<Buffer_base> buf;
-        hr = msgpack_base::encode(v, buf);
-        if (hr < 0)
-            return hr;
-        bool wr;
-        body->cc_write(buf, wr);
-        Variant ct;
-        if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
-            headers->set("Content-Type", "application/msgpack");
     }
 
     bool ka;
@@ -511,22 +521,196 @@ result_t HttpRequest::set_lastError(exlib::string newVal)
 
 result_t HttpRequest::end(int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end(retVal, ac);
+    class AsyncEnd : public AsyncState {
+    public:
+        AsyncEnd(HttpRequest* pThis, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_retVal(retVal)
+        {
+            m_ac = m_pThis->m_asyncState;
+            m_pThis->m_asyncState = nullptr;
+
+            next(end);
+        }
+
+        ON_STATE(AsyncEnd, end)
+        {
+            return m_pThis->m_message->end(m_retVal, next(resume));
+        }
+
+        ON_STATE(AsyncEnd, resume)
+        {
+            if (m_ac)
+                m_ac->post(0);
+            return next();
+        }
+
+        virtual int32_t error(int32_t hr) override
+        {
+            if (m_ac)
+                m_ac->post(hr);
+            return hr;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        obj_ptr<HttpRequest> m_pThis;
+        int32_t& m_retVal;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new AsyncEnd(this, retVal, ac))->post(0);
 }
 
 result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end(data, retVal, ac);
+    class AsyncEnd : public AsyncState {
+    public:
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_data(data)
+            , m_retVal(retVal)
+        {
+            m_ac = m_pThis->m_asyncState;
+            m_pThis->m_asyncState = nullptr;
+
+            next(end);
+        }
+
+        ON_STATE(AsyncEnd, end)
+        {
+            return m_pThis->m_message->end(m_data, m_retVal, next(resume));
+        }
+
+        ON_STATE(AsyncEnd, resume)
+        {
+            if (m_ac)
+                m_ac->post(0);
+            return next();
+        }
+
+        virtual int32_t error(int32_t hr) override
+        {
+            if (m_ac)
+                m_ac->post(hr);
+            return hr;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        obj_ptr<HttpRequest> m_pThis;
+        obj_ptr<Buffer_base> m_data;
+        int32_t& m_retVal;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new AsyncEnd(this, data, retVal, ac))->post(0);
 }
 
 result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    class AsyncEnd : public AsyncState {
+    public:
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_data(data)
+            , m_encoding(encoding)
+            , m_retVal(retVal)
+        {
+            m_ac = m_pThis->m_asyncState;
+            m_pThis->m_asyncState = nullptr;
+
+            next(end);
+        }
+
+        ON_STATE(AsyncEnd, end)
+        {
+            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+        }
+
+        ON_STATE(AsyncEnd, resume)
+        {
+            if (m_ac)
+                m_ac->post(0);
+            return next();
+        }
+
+        virtual int32_t error(int32_t hr) override
+        {
+            if (m_ac)
+                m_ac->post(hr);
+            return hr;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        obj_ptr<HttpRequest> m_pThis;
+        obj_ptr<Buffer_base> m_data;
+        exlib::string m_encoding;
+        int32_t& m_retVal;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new AsyncEnd(this, data, encoding, retVal, ac))->post(0);
 }
 
 result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    class AsyncEnd : public AsyncState {
+    public:
+        AsyncEnd(HttpRequest* pThis, exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_data(data)
+            , m_encoding(encoding)
+            , m_retVal(retVal)
+        {
+            m_ac = m_pThis->m_asyncState;
+            m_pThis->m_asyncState = nullptr;
+
+            next(end);
+        }
+
+        ON_STATE(AsyncEnd, end)
+        {
+            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+        }
+
+        ON_STATE(AsyncEnd, resume)
+        {
+            if (m_ac)
+                m_ac->post(0);
+            return next();
+        }
+
+        virtual int32_t error(int32_t hr) override
+        {
+            if (m_ac)
+                m_ac->post(hr);
+            return hr;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        obj_ptr<HttpRequest> m_pThis;
+        exlib::string m_data;
+        exlib::string m_encoding;
+        int32_t& m_retVal;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new AsyncEnd(this, data, encoding, retVal, ac))->post(0);
 }
 
 result_t HttpRequest::isEnded(bool& retVal)

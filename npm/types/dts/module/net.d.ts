@@ -247,26 +247,6 @@ declare module 'net' {
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(port: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param port 指定对方端口
@@ -276,28 +256,6 @@ declare module 'net' {
      *      
      */
     function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(port: number, host: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
@@ -310,30 +268,6 @@ declare module 'net' {
      */
     function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param path 指定 unix socket 或 Windows pipe 路径
@@ -342,26 +276,6 @@ declare module 'net' {
      *      
      */
     function connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(path: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(path: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
@@ -373,28 +287,6 @@ declare module 'net' {
      */
     function connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(path: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param options 指定连接选项对象，可以包含以下属性：
@@ -403,26 +295,6 @@ declare module 'net' {
      *      
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接选项对象，可以包含以下属性：
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接选项对象，可以包含以下属性：
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 创建一个 Smtp 对象，参见 Smtp 

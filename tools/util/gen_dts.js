@@ -32,6 +32,21 @@ function normalizeClazzName(interfaceName) {
     return `Class_${interfaceName}`
 }
 
+function hasDeclaredCallbackParam(host) {
+    return (host.params || []).some((param) => {
+        if (!param || !param.type)
+            return false;
+
+        if (param.type === 'Function')
+            return true;
+
+        if (Array.isArray(param.type))
+            return param.type.some((t) => t && t.type === 'Function');
+
+        return false;
+    });
+}
+
 function isSymbolMember(memberInfo) {
     return !!memberInfo.symbol;
 }
@@ -338,6 +353,7 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
     funcFlags,
     withOptionalParam = false,
     withRestArgs = false,
+    hasDeclaredMemberName = () => false,
 } = {}) {
     let syncFunc;
     let asyncFunc;
@@ -345,6 +361,14 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
     let asyncVariant;
 
     const params = Array.from(normalParams);
+    const declaredWithCallback = hasDeclaredCallbackParam(functionHost);
+    const isExplicitSyncName = functionHost.name.endsWith('Sync');
+    const shouldGenerateSyncAsyncVariants =
+        !declaredWithCallback &&
+        !isExplicitSyncName &&
+        !functionHost.name.endsWith('Async') &&
+        !hasDeclaredMemberName(functionHost.name + 'Sync') &&
+        !hasDeclaredMemberName(functionHost.name + 'Async');
 
     syncFunc = dom.create.function(
         functionHost.name,
@@ -360,23 +384,42 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
             const promiseType = dom.create.namedTypeReference('Promise');
             promiseType.typeArguments = [returnType];
             syncFunc.returnType = promiseType;
-            
-            // Generate xxxSync variant (synchronous version)
-            syncVariant = dom.create.function(
-                functionHost.name + 'Sync',
-                Array.from(params),
-                returnType,
-                funcFlags
-            );
-            
-            // Generate xxxAsync variant (same as default for promise functions)
-            asyncVariant = dom.create.function(
-                functionHost.name + 'Async',
-                Array.from(params),
-                promiseType,
-                funcFlags
-            );
+
+            if (shouldGenerateSyncAsyncVariants) {
+                // Generate xxxSync variant (synchronous version)
+                syncVariant = dom.create.function(
+                    functionHost.name + 'Sync',
+                    Array.from(params),
+                    returnType,
+                    funcFlags
+                );
+
+                // Generate xxxAsync variant (same as default for promise functions)
+                asyncVariant = dom.create.function(
+                    functionHost.name + 'Async',
+                    Array.from(params),
+                    promiseType,
+                    funcFlags
+                );
+            }
         } else {
+            if (declaredWithCallback)
+                return {
+                    syncFunc,
+                    asyncFunc,
+                    syncVariant,
+                    asyncVariant
+                };
+
+            // Explicit Sync APIs should not expose callback overloads in typings.
+            if (isExplicitSyncName)
+                return {
+                    syncFunc,
+                    asyncFunc,
+                    syncVariant,
+                    asyncVariant
+                };
+
             // Callback-based async function: generate callback version
             const errorParam = dom.create.parameter('err', dom.create.union([
                 dom.create.namedTypeReference('Error'),
@@ -403,24 +446,26 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
                 dom.type.void,
                 funcFlags
             )
-            
-            // Generate xxxSync variant (explicit synchronous version)
-            syncVariant = dom.create.function(
-                functionHost.name + 'Sync',
-                Array.from(params),
-                returnType,
-                funcFlags
-            );
-            
-            // Generate xxxAsync variant (Promise version)
-            const promiseType = dom.create.namedTypeReference('Promise');
-            promiseType.typeArguments = [returnType];
-            asyncVariant = dom.create.function(
-                functionHost.name + 'Async',
-                Array.from(params),
-                promiseType,
-                funcFlags
-            );
+
+            if (shouldGenerateSyncAsyncVariants) {
+                // Generate xxxSync variant (explicit synchronous version)
+                syncVariant = dom.create.function(
+                    functionHost.name + 'Sync',
+                    Array.from(params),
+                    returnType,
+                    funcFlags
+                );
+
+                // Generate xxxAsync variant (Promise version)
+                const promiseType = dom.create.namedTypeReference('Promise');
+                promiseType.typeArguments = [returnType];
+                asyncVariant = dom.create.function(
+                    functionHost.name + 'Async',
+                    Array.from(params),
+                    promiseType,
+                    funcFlags
+                );
+            }
         }
     }
 
@@ -440,7 +485,8 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
 function generateDtsMethod(methodHost, normalParams, returnType, {
     memFlags,
     withOptionalParam = false,
-    withRestArgs = false
+    withRestArgs = false,
+    hasDeclaredMemberName = () => false
 } = {}) {
     let syncMethod;
     let asyncMethod;
@@ -448,6 +494,14 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
     let asyncVariant;
 
     const params = Array.from(normalParams);
+    const declaredWithCallback = hasDeclaredCallbackParam(methodHost);
+    const isExplicitSyncName = methodHost.name.endsWith('Sync');
+    const shouldGenerateSyncAsyncVariants =
+        !declaredWithCallback &&
+        !isExplicitSyncName &&
+        !methodHost.name.endsWith('Async') &&
+        !hasDeclaredMemberName(methodHost.name + 'Sync') &&
+        !hasDeclaredMemberName(methodHost.name + 'Async');
 
     syncMethod = dom.create.method(
         methodHost.name,
@@ -463,23 +517,42 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
             const promiseType = dom.create.namedTypeReference('Promise');
             promiseType.typeArguments = [returnType];
             syncMethod.returnType = promiseType;
-            
-            // Generate xxxSync variant (synchronous version)
-            syncVariant = dom.create.method(
-                methodHost.name + 'Sync',
-                Array.from(params),
-                returnType,
-                memFlags
-            );
-            
-            // Generate xxxAsync variant (same as default for promise methods)
-            asyncVariant = dom.create.method(
-                methodHost.name + 'Async',
-                Array.from(params),
-                promiseType,
-                memFlags
-            );
+
+            if (shouldGenerateSyncAsyncVariants) {
+                // Generate xxxSync variant (synchronous version)
+                syncVariant = dom.create.method(
+                    methodHost.name + 'Sync',
+                    Array.from(params),
+                    returnType,
+                    memFlags
+                );
+
+                // Generate xxxAsync variant (same as default for promise methods)
+                asyncVariant = dom.create.method(
+                    methodHost.name + 'Async',
+                    Array.from(params),
+                    promiseType,
+                    memFlags
+                );
+            }
         } else {
+            if (declaredWithCallback)
+                return {
+                    syncMethod,
+                    asyncMethod,
+                    syncVariant,
+                    asyncVariant
+                };
+
+            // Explicit Sync APIs should not expose callback overloads in typings.
+            if (isExplicitSyncName)
+                return {
+                    syncMethod,
+                    asyncMethod,
+                    syncVariant,
+                    asyncVariant
+                };
+
             // Callback-based async method: generate callback version
             const errorParam = dom.create.parameter('err', dom.create.union([
                 dom.create.namedTypeReference('Error'),
@@ -506,24 +579,26 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
                 dom.type.void,
                 memFlags
             )
-            
-            // Generate xxxSync variant (explicit synchronous version)
-            syncVariant = dom.create.method(
-                methodHost.name + 'Sync',
-                Array.from(params),
-                returnType,
-                memFlags
-            );
-            
-            // Generate xxxAsync variant (Promise version)
-            const promiseType = dom.create.namedTypeReference('Promise');
-            promiseType.typeArguments = [returnType];
-            asyncVariant = dom.create.method(
-                methodHost.name + 'Async',
-                Array.from(params),
-                promiseType,
-                memFlags
-            );
+
+            if (shouldGenerateSyncAsyncVariants) {
+                // Generate xxxSync variant (explicit synchronous version)
+                syncVariant = dom.create.method(
+                    methodHost.name + 'Sync',
+                    Array.from(params),
+                    returnType,
+                    memFlags
+                );
+
+                // Generate xxxAsync variant (Promise version)
+                const promiseType = dom.create.namedTypeReference('Promise');
+                promiseType.typeArguments = [returnType];
+                asyncVariant = dom.create.method(
+                    methodHost.name + 'Async',
+                    Array.from(params),
+                    promiseType,
+                    memFlags
+                );
+            }
         }
     }
 
@@ -553,6 +628,12 @@ function processDeclareInterface(def, {
     dtsUnit,
     tripleSlashDirectiveMap,
 }) {
+    const declaredMethodNames = new Set(
+        def.members
+            .filter(mem => mem.memType === 'method')
+            .map(mem => mem.name)
+    );
+
     if (def.declare.extend) {
         const refType = def.declare.extend;
         dtsUnit.baseType = dom.create.namedTypeReference(normalizeClazzName(refType))
@@ -657,7 +738,12 @@ function processDeclareInterface(def, {
                                 over,
                                 getMethodParam(over),
                                 mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                                { memFlags, withOptionalParam, withRestArgs }
+                                {
+                                    memFlags,
+                                    withOptionalParam,
+                                    withRestArgs,
+                                    hasDeclaredMemberName: (name) => declaredMethodNames.has(name)
+                                }
                             )
 
                             syncMethod.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
@@ -680,7 +766,12 @@ function processDeclareInterface(def, {
                     } else {
                         const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
                             mem, getMethodParam(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                            { memFlags, withOptionalParam, withRestArgs }
+                            {
+                                memFlags,
+                                withOptionalParam,
+                                withRestArgs,
+                                hasDeclaredMemberName: (name) => declaredMethodNames.has(name)
+                            }
                         )
 
                         dtsUnitMember = syncMethod;
@@ -787,6 +878,12 @@ function processDeclareModule(def, {
     dtsUnit,
     tripleSlashDirectiveMap,
 }) {
+    const declaredMethodNames = new Set(
+        def.members
+            .filter(mem => mem.memType === 'method')
+            .map(mem => mem.name)
+    );
+
     const addRefToTripleSlashDirectivesHost = getAddRefToTripleSlashDirectivesHost(tripleSlashDirectiveMap, { allInterfacesNames, allModuleNames });
 
     def.members.forEach(mem => {
@@ -870,7 +967,12 @@ function processDeclareModule(def, {
                             over,
                             getFunctionParams(over),
                             mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                            { funcFlags: memFlags, withOptionalParam, withRestArgs }
+                            {
+                                funcFlags: memFlags,
+                                withOptionalParam,
+                                withRestArgs,
+                                hasDeclaredMemberName: (name) => declaredMethodNames.has(name)
+                            }
                         )
 
                         syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
@@ -894,7 +996,11 @@ function processDeclareModule(def, {
                     const { asyncFunc, syncFunc, syncVariant, asyncVariant } = generateDtsFunction(
                         mem,
                         getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                        { withOptionalParam, withRestArgs }
+                        {
+                            withOptionalParam,
+                            withRestArgs,
+                            hasDeclaredMemberName: (name) => declaredMethodNames.has(name)
+                        }
                     );
 
                     dtsUnit.members.push(dtsUnitMember = syncFunc);

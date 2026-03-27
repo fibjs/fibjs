@@ -288,7 +288,7 @@ describe('ws', () => {
             if (compress)
                 headers["Sec-WebSocket-Extensions"] = "permessage-deflate";
 
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+            var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                 headers
             });
 
@@ -344,7 +344,7 @@ describe('ws', () => {
 
         describe("handshake", () => {
             it("missing Upgrade header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Connection": "Upgrade",
                         "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
@@ -356,7 +356,7 @@ describe('ws', () => {
             });
 
             it("invalid connection header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Upgrade": "websocket",
                         "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
@@ -368,7 +368,7 @@ describe('ws', () => {
             });
 
             it("missing Sec-WebSocket-Key header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Upgrade": "websocket",
                         "Connection": "Upgrade",
@@ -380,7 +380,7 @@ describe('ws', () => {
             });
 
             it("missing Sec-WebSocket-Version header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Upgrade": "websocket",
                         "Connection": "Upgrade",
@@ -392,7 +392,7 @@ describe('ws', () => {
             });
 
             it("support Sec-WebSocket-Extensions header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Upgrade": "websocket",
                         "Connection": "Upgrade",
@@ -406,7 +406,7 @@ describe('ws', () => {
                 assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), null);
                 rep.socket.close();
 
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
                         "Upgrade": "websocket",
                         "Connection": "Upgrade",
@@ -696,7 +696,7 @@ describe('ws', () => {
 
         it("specialize httpClient", () => {
             var hc = new http.Client();
-            hc.post("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
+            hc.postSync("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
                 json: {
                     value: "valid"
                 }
@@ -717,7 +717,7 @@ describe('ws', () => {
             assert.equal(s.readyState, WebSocket.CLOSED);
             assert.isTrue(opened);
 
-            hc.post("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
+            hc.postSync("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
                 json: {
                     value: "invalid"
                 }

@@ -25,7 +25,7 @@ namespace fibjs {
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
     SeekableStream_base* body, Headers_base* headers,
-    obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 class asyncSend : public AsyncState {
 public:
@@ -266,7 +266,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             result_t hr;
             int32_t status;
 
-            static_cast<HttpResponse_base*>(m_httprep.get())->get_statusCode(status);
+            m_httprep->get_statusCode(status);
             if (status != 101) {
                 m_this->endConnect(1002, "server error.");
                 return CHECK_ERROR(Runtime::setError("websocket: server error."));
@@ -335,7 +335,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     private:
         Isolate* m_isolate;
         obj_ptr<WebSocket> m_this;
-        obj_ptr<HttpMessage_base> m_httprep;
+        obj_ptr<HttpResponse_base> m_httprep;
         obj_ptr<Headers_base> m_headers;
         obj_ptr<HttpClient_base> m_hc;
         exlib::string m_accept;

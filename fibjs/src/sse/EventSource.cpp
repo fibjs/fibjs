@@ -45,7 +45,7 @@ public:
         obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)m_ctx[0].object();
         o->keepAlive = true;
 
-        return m_hc->request(o.get(), m_es->m_response, next(opened));
+        return m_hc->requestSync(o.get(), m_es->m_response, next(opened));
     }
 
     ON_STATE(AsyncEventSource, opened)
@@ -54,7 +54,7 @@ public:
             return next();
 
         int32_t status;
-        static_cast<HttpResponse_base*>(m_es->m_response.get())->get_status(status);
+        m_es->m_response->get_status(status);
         if (status != 200)
             return next(close_body);
 

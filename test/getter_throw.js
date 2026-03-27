@@ -121,35 +121,35 @@ describe('getter throw', () => {
 
     it('utils.cpp CheckConfig', () => {
         assert.throws(() => {
-            http.request('get', `http://127.0.0.1:${9980 + base_port}`, arr);
+            http.requestSync('get', `http://127.0.0.1:${9980 + base_port}`, arr);
         })
         assert.throws(() => {
-            http.request('get', `http://127.0.0.1:${9980 + base_port}`, arr2);
+            http.requestSync('get', `http://127.0.0.1:${9980 + base_port}`, arr2);
         })
         // assert.throws(() => {
-        //     http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj);
+        //     http.requestSync('get', `http://127.0.0.1:${9980 + base_port}`, obj);
         // })
         assert.throws(() => {
-            http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj2);
+            http.requestSync('get', `http://127.0.0.1:${9980 + base_port}`, obj2);
         })
     });
 
     it('SimpleObject', () => {
         checkthrow([
             () => {
-                http.get(`http://127.0.0.1:${9980 + base_port}`, {
+                http.getSync(`http://127.0.0.1:${9980 + base_port}`, {
                     headers: obj
                 });
             },
         ]);
 
-        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        // http.getSync(`http://127.0.0.1:${9980 + base_port}`, {
         //     headers: arr
         // });
-        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        // http.getSync(`http://127.0.0.1:${9980 + base_port}`, {
         //     headers: arr2
         // });
-        // http.get(`http://127.0.0.1:${9980 + base_port}`, {
+        // http.getSync(`http://127.0.0.1:${9980 + base_port}`, {
         //     headers: obj2
         // });
     });

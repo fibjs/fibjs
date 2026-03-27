@@ -136,7 +136,7 @@ public:
         bool streaming = true;
         obj_ptr<AbortSignal_base> signal;
         obj_ptr<HttpRequest> req;
-        bool is_callback = false;
+        bool is_async = false;
 
         // Cast to concrete AbortSignal for internal C++ use (addAbortCallback / clearAbort).
         // Safe because AbortSignal is the only concrete implementation.
@@ -147,7 +147,7 @@ public:
         //                     false → string body gets text/plain;charset=UTF-8
         // strict: true → reject GET/HEAD requests with a body (Fetch API)
         result_t from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
-            bool urlEncoded_default, bool strict = false);
+            bool urlEncoded_default, bool strict = false, bool skip_body = false);
 
         // Fill u (URL), body fallback, and merged headers from an existing request.
         // Must be called after from_opts so that opts-supplied values take precedence.
@@ -167,6 +167,16 @@ public:
 public:
     // Apply parsed Options to this request (method, headers, body, keepAlive).
     void set_options(const Options& o);
+
+    // Bind the runtime response object used by the request lifecycle.
+    // This keeps req.response aligned with the object emitted in 'response'.
+    void _set_response(HttpResponse_base* resp)
+    {
+        m_response = resp;
+    }
+
+    // Deferred send: asyncRequest saves itself here so that end() can wake it.
+    AsyncState* m_asyncState = nullptr;
 
 public:
     void _appendHeader(exlib::string name, exlib::string value)

@@ -75,7 +75,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 
     while (cnt++ < 10)
         try {
-            const res = http.get(u);
+            const res = http.getSync(u);
             if (!res.body)
                 throw new Error(`[http_get] get nothing from url ${u}`);
 

@@ -360,36 +360,36 @@ describe('http2', () => {
         });
 
         it('should auto-negotiate h2 and get response', () => {
-            var resp = hc.get(`https://localhost:${h2_port}/hello`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/hello`);
             assert.strictEqual(resp.statusCode, 200);
             var body = resp.body.read(-1);
             assert.strictEqual(body.toString(), 'Hello HTTP/2');
         });
 
         it('should reuse h2 session for subsequent requests', () => {
-            var resp1 = hc.get(`https://localhost:${h2_port}/a`);
+            var resp1 = hc.getSync(`https://localhost:${h2_port}/a`);
             assert.strictEqual(resp1.statusCode, 200);
             assert.strictEqual(resp1.body.read(-1).toString(), 'ok:/a');
 
-            var resp2 = hc.get(`https://localhost:${h2_port}/b`);
+            var resp2 = hc.getSync(`https://localhost:${h2_port}/b`);
             assert.strictEqual(resp2.statusCode, 200);
             assert.strictEqual(resp2.body.read(-1).toString(), 'ok:/b');
         });
 
         it('should receive response headers', () => {
-            var resp = hc.get(`https://localhost:${h2_port}/hello`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/hello`);
             assert.strictEqual(resp.statusCode, 200);
             assert.ok(resp.firstHeader('content-type'));
             assert.strictEqual(resp.firstHeader('content-type'), 'text/plain');
         });
 
         it('should handle different status codes', () => {
-            var resp = hc.get(`https://localhost:${h2_port}/status/404`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/status/404`);
             assert.strictEqual(resp.statusCode, 404);
         });
 
         it('should handle large response body', () => {
-            var resp = hc.get(`https://localhost:${h2_port}/large`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/large`);
             assert.strictEqual(resp.statusCode, 200);
             var totalLen = 0;
             var chunk;
@@ -408,7 +408,7 @@ describe('http2', () => {
 
             var t1 = Date.now();
             assert.throws(() => {
-                hc.get(`https://localhost:${h2_port}/delay/500`, {
+                hc.getSync(`https://localhost:${h2_port}/delay/500`, {
                     signal: controller.signal
                 });
             }, /AbortError/);
@@ -540,7 +540,7 @@ describe('http2', () => {
             var hc = new http.Client(connectOpts);
 
             for (var i = 0; i < 30; i++) {
-                var resp = hc.get(`https://localhost:${h2_port}/stress/${i}`);
+                var resp = hc.getSync(`https://localhost:${h2_port}/stress/${i}`);
                 assert.strictEqual(resp.statusCode, 200);
                 assert.strictEqual(resp.body.read(-1).toString(), `ok:/stress/${i}`);
             }
@@ -560,7 +560,7 @@ describe('http2', () => {
                         try {
                             var hc = new http.Client(connectOpts);
                             for (var j = 0; j < 10; j++) {
-                                var resp = hc.get(`https://localhost:${h2_port}/mt/${idx}/${j}`);
+                                var resp = hc.getSync(`https://localhost:${h2_port}/mt/${idx}/${j}`);
                                 assert.strictEqual(resp.statusCode, 200);
                                 assert.strictEqual(resp.body.read(-1).toString(), `ok:/mt/${idx}/${j}`);
                             }
@@ -591,7 +591,7 @@ describe('http2', () => {
 
         it('should send POST body and receive echo', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/echo-body`, {
                 body: 'Hello POST'
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -601,7 +601,7 @@ describe('http2', () => {
         it('should send JSON POST body', () => {
             var hc = new http.Client(connectOpts);
             var payload = JSON.stringify({ key: 'value', num: 42 });
-            var resp = hc.post(`https://localhost:${h2_port}/post-json`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/post-json`, {
                 headers: { 'content-type': 'application/json' },
                 body: payload
             });
@@ -614,7 +614,7 @@ describe('http2', () => {
         it('should send large POST body', () => {
             var hc = new http.Client(connectOpts);
             var largeBody = 'X'.repeat(128 * 1024); // 128KB
-            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/echo-body`, {
                 body: largeBody
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -628,7 +628,7 @@ describe('http2', () => {
 
         it('should handle POST with empty body', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/echo-body`, {
                 body: ''
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -638,7 +638,7 @@ describe('http2', () => {
 
         it('should handle PUT method with body', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.put(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.putSync(`https://localhost:${h2_port}/echo-body`, {
                 body: 'PUT data'
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -647,21 +647,21 @@ describe('http2', () => {
 
         it('should handle POST without body property', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.post(`https://localhost:${h2_port}/method`);
+            var resp = hc.postSync(`https://localhost:${h2_port}/method`);
             assert.strictEqual(resp.statusCode, 200);
             assert.strictEqual(resp.body.read(-1).toString(), 'POST');
         });
 
         it('should handle DELETE method', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.del(`https://localhost:${h2_port}/method`);
+            var resp = hc.delSync(`https://localhost:${h2_port}/method`);
             assert.strictEqual(resp.statusCode, 200);
             assert.strictEqual(resp.body.read(-1).toString(), 'DELETE');
         });
 
         it('should handle PATCH method with body', () => {
             var hc = new http.Client(connectOpts);
-            var resp = hc.patch(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.patchSync(`https://localhost:${h2_port}/echo-body`, {
                 body: 'PATCH data'
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -674,7 +674,7 @@ describe('http2', () => {
             var binData = Buffer.alloc(256);
             for (var i = 0; i < 256; i++)
                 binData[i] = i;
-            var resp = hc.post(`https://localhost:${h2_port}/binary-echo`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/binary-echo`, {
                 headers: { 'content-type': 'application/octet-stream' },
                 body: binData
             });
@@ -690,7 +690,7 @@ describe('http2', () => {
             var hc = new http.Client(connectOpts);
             // 65535 = default initial window size
             var body = 'W'.repeat(65535);
-            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+            var resp = hc.postSync(`https://localhost:${h2_port}/echo-body`, {
                 body: body
             });
             assert.strictEqual(resp.statusCode, 200);
@@ -806,7 +806,7 @@ describe('http2', () => {
         it('should handle 204 No Content via HttpClient', () => {
             var http = require('http');
             var hc = new http.Client(connectOpts);
-            var resp = hc.get(`https://localhost:${h2_port}/no-content`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/no-content`);
             assert.strictEqual(resp.statusCode, 204);
         });
 
@@ -894,7 +894,7 @@ describe('http2', () => {
                 (function (idx) {
                     fibers.push(coroutine.start(() => {
                         try {
-                            var resp = hc.get(`https://localhost:${h2_port}/conc/${idx}`);
+                            var resp = hc.getSync(`https://localhost:${h2_port}/conc/${idx}`);
                             assert.strictEqual(resp.statusCode, 200);
                             assert.strictEqual(resp.body.read(-1).toString(), `ok:/conc/${idx}`);
                             done[idx] = true;
@@ -929,7 +929,7 @@ describe('http2', () => {
         it('should handle 4MB response via HttpClient', () => {
             var http = require('http');
             var hc = new http.Client(connectOpts);
-            var resp = hc.get(`https://localhost:${h2_port}/large-4m`);
+            var resp = hc.getSync(`https://localhost:${h2_port}/large-4m`);
             assert.strictEqual(resp.statusCode, 200);
             var totalLen = 0;
             var chunk;
@@ -991,7 +991,7 @@ describe('http2', () => {
                     fibers.push(coroutine.start(() => {
                         try {
                             var body = 'post-data-' + idx;
-                            var resp = hc.post(`https://localhost:${h2_port}/echo-body`, {
+                            var resp = hc.postSync(`https://localhost:${h2_port}/echo-body`, {
                                 body: body
                             });
                             assert.strictEqual(resp.statusCode, 200);

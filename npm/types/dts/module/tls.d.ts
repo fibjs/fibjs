@@ -240,26 +240,6 @@ declare module 'tls' {
      */
     function connect(url: string, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(url: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(url: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(url: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param url 指定连接的 URL
@@ -270,28 +250,6 @@ declare module 'tls' {
      */
     function connect(url: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(url: string, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(url: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(url: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param url 指定连接的 URL
@@ -301,28 +259,6 @@ declare module 'tls' {
      *      
      */
     function connect(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
@@ -335,30 +271,6 @@ declare module 'tls' {
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param url 指定连接的 URL
@@ -369,28 +281,6 @@ declare module 'tls' {
      */
     function connect(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param port 指定连接的端口号
@@ -399,26 +289,6 @@ declare module 'tls' {
      *      
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(port: number, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
@@ -430,28 +300,6 @@ declare module 'tls' {
      */
     function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(port: number, host: string, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param port 指定连接的端口号
@@ -461,28 +309,6 @@ declare module 'tls' {
      *      
      */
     function connect(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
     /**
      * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
@@ -495,30 +321,6 @@ declare module 'tls' {
      */
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
-    function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
-
     /**
      * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param options 指定连接的选项
@@ -527,26 +329,6 @@ declare module 'tls' {
      *      
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_Stream>;
 
 }
 

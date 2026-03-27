@@ -222,7 +222,7 @@ describe("sse", () => {
 
         it('json option alone defaults method to POST', async () => {
             // When {json: ...} is provided without an explicit method, EventSource
-            // should default to POST, mirroring http.post() behaviour.
+            // should default to POST, mirroring http.postSync() behaviour.
             const data = await new Promise((resolve, reject) => {
                 const es = new sse.EventSource(
                     `http://127.0.0.1:${8887 + base_port}/post-only`,
@@ -543,7 +543,7 @@ describe("sse", () => {
 
         it('direct http request to upgrade endpoint', () => {
             // Test direct HTTP request to see the raw response
-            const res = http.get(`http://127.0.0.1:${8888 + base_port}/sse`);
+            const res = http.getSync(`http://127.0.0.1:${8888 + base_port}/sse`);
             const body = res.body.read().toString();
             
             // Should contain standard SSE format
