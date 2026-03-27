@@ -195,6 +195,15 @@ declare class Class_Stream extends Class_EventEmitter {
     pause(): Class_Stream;
 
     /**
+     * @description 将流数据管道传输到目标流。数据通过事件驱动方式从源流传输到目标流，支持背压控制
+     *      @param destination 目标流对象
+     *      @param options 管道选项，可选
+     *      @return 返回目标流对象，支持链式调用
+     *      
+     */
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+
+    /**
      * @description 移除所有管道目标，或仅移除指定的目标。此方法仅为兼容，目前调用此方法不会有任何效果
      *      @param destination 要取消管道的特定可写目标
      *      

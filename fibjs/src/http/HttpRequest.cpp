@@ -18,6 +18,7 @@
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
 #include "ifs/TLSSocket.h"
+#include "Isolate.h"
 #include "ifs/Socket.h"
 #include "TLSSocket.h"
 
@@ -1104,6 +1105,11 @@ result_t HttpRequest::pause(obj_ptr<Message_base>& retVal)
 result_t HttpRequest::unpipe(Stream_base* destination)
 {
     return m_message->unpipe(destination);
+}
+
+result_t HttpRequest::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    return holder()->call_pipe(wrap(), destination, options, retVal);
 }
 
 } /* namespace fibjs */

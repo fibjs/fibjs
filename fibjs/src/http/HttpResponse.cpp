@@ -13,6 +13,7 @@
 #include "HttpMessage.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "Isolate.h"
 
 namespace fibjs {
 
@@ -914,6 +915,11 @@ result_t HttpResponse::pause(obj_ptr<Message_base>& retVal)
 result_t HttpResponse::unpipe(Stream_base* destination)
 {
     return m_message->unpipe(destination);
+}
+
+result_t HttpResponse::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    return holder()->call_pipe(wrap(), destination, options, retVal);
 }
 
 result_t HttpResponse::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)

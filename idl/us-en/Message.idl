@@ -167,6 +167,13 @@ interface Message : EventEmitter
      */
     Message pause();
 
+    /*! @brief Pipe the message body stream data to a destination stream
+     @param destination The destination stream object
+     @param options Pipe options, optional
+     @return Return the destination stream object
+     */
+    Value pipe(Value destination, Object options = {});
+
     /*! @brief Remove all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect
      @param destination The specific writable target to unpipe
      */

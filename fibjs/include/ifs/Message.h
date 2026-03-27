@@ -70,6 +70,7 @@ public:
     virtual result_t clone(obj_ptr<Message_base>& retVal) = 0;
     virtual result_t resume(obj_ptr<Message_base>& retVal) = 0;
     virtual result_t pause(obj_ptr<Message_base>& retVal) = 0;
+    virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t unpipe(Stream_base* destination) = 0;
 
 public:
@@ -108,6 +109,7 @@ public:
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resume(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pipe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -163,6 +165,7 @@ inline ClassInfo& Message_base::class_info()
         { "clone", s_clone, false, ClassData::ASYNC_SYNC },
         { "resume", s_resume, false, ClassData::ASYNC_SYNC },
         { "pause", s_pause, false, ClassData::ASYNC_SYNC },
+        { "pipe", s_pipe, false, ClassData::ASYNC_SYNC },
         { "unpipe", s_unpipe, false, ClassData::ASYNC_SYNC }
     };
 
@@ -739,6 +742,23 @@ inline void Message_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(0, 0);
 
     hr = pInst->pause(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Message_base::s_pipe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = pInst->pipe(v0, v1, vr);
 
     METHOD_RETURN();
 }

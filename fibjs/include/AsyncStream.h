@@ -11,6 +11,7 @@
 #include "TextEncoder.h"
 #include "Buffer.h"
 #include "StreamReader.h"
+#include "Isolate.h"
 #include "Fiber.h"
 #include <list>
 
@@ -411,6 +412,11 @@ public:
         }
         retVal = this;
         return 0;
+    }
+
+    virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+    {
+        return object_base::holder()->call_pipe(this->wrap(), destination, options, retVal);
     }
 
     virtual result_t unpipe(Stream_base* destination)

@@ -174,6 +174,8 @@ void SandBox::attachBuffer()
 
 void SandBox::installBuffer()
 {
+    Isolate* isolate = holder();
+
     v8::Local<v8::Value> _buffer = Buffer::load_module();
 
     InstallModule("buffer", _buffer);
@@ -185,6 +187,16 @@ void SandBox::installBuffer()
     require("internal/sandbox_init", "/builtin", _init);
     if (try_catch.HasCaught())
         ReportException(try_catch, 0, false);
+
+    // Save JS helper functions from sandbox_init.js into Isolate for C++ native objects
+    if (!_init.IsEmpty() && _init->IsObject()) {
+        v8::Local<v8::Object> helpers = _init.As<v8::Object>();
+        v8::Local<v8::Context> context = isolate->context();
+
+        v8::Local<v8::Value> pipe_fn;
+        if (helpers->Get(context, isolate->NewString("pipe")).ToLocal(&pipe_fn) && pipe_fn->IsFunction())
+            isolate->m_pipe_fn.Reset(isolate->m_isolate, pipe_fn.As<v8::Function>());
+    }
 }
 
 result_t SandBox::addBuiltinModules()

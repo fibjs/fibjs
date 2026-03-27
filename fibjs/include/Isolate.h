@@ -285,6 +285,12 @@ public:
 
     v8::Global<v8::ObjectTemplate> m_global_template;
 
+    // JS pipe function from internal/pipe.js, stored for C++ native objects to call
+    v8::Global<v8::Function> m_pipe_fn;
+
+    int32_t call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
+        v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+
     // Private symbol for storing async context on Promise objects
     v8::Global<v8::Private> m_async_context_symbol;
     bool m_promise_hook_installed = false;

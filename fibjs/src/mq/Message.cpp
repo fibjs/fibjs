@@ -10,6 +10,7 @@
 #include "MemoryStream.h"
 #include "Buffer.h"
 #include "Blob.h"
+#include "Isolate.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
 #include "ifs/fs.h"
@@ -496,6 +497,11 @@ result_t Message::pause(obj_ptr<Message_base>& retVal)
     }
     retVal = this;
     return 0;
+}
+
+result_t Message::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    return holder()->call_pipe(wrap(), destination, options, retVal);
 }
 
 result_t Message::unpipe(Stream_base* destination)

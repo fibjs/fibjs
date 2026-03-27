@@ -553,6 +553,15 @@ declare class Class_Message extends Class_EventEmitter {
     pause(): Class_Message;
 
     /**
+     * @description 将消息的 body 流数据管道传输到目标流
+     *      @param destination 目标流对象
+     *      @param options 管道选项，可选
+     *      @return 返回目标流对象
+     *      
+     */
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+
+    /**
      * @description 移除消息的 body 流的所有管道目标。此方法仅为兼容，调用后不会有实际效果
      *      @param destination 要取消管道的特定可写目标
      *      

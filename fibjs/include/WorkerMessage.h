@@ -9,6 +9,7 @@
 
 #include "Message.h"
 #include "ifs/WorkerMessage.h"
+#include "Isolate.h"
 
 namespace fibjs {
 
@@ -59,6 +60,7 @@ public:
     virtual result_t clone(obj_ptr<Message_base>& retVal);
     virtual result_t resume(obj_ptr<Message_base>& retVal) { return m_message->resume(retVal); }
     virtual result_t pause(obj_ptr<Message_base>& retVal) { return m_message->pause(retVal); }
+    virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal) { return holder()->call_pipe(wrap(), destination, options, retVal); }
     virtual result_t unpipe(Stream_base* destination) { return m_message->unpipe(destination); }
 
 public:

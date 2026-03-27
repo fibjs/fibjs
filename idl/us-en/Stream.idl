@@ -59,6 +59,13 @@ interface Stream : EventEmitter
      */
     Stream pause();
 
+    /*! @brief Pipe data from this stream to a destination stream. Data is transferred via events with backpressure support
+     @param destination The destination stream object
+     @param options Pipe options, optional
+     @return Returns the destination stream object for chaining
+     */
+    Value pipe(Value destination, Object options = {});
+
     /*! @brief Remove all pipe destinations, or only the specified destination. This method is for compatibility, calling it currently has no effect
      @param destination The specific writable destination to unpipe
      */

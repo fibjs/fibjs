@@ -12,6 +12,7 @@
 #include "WebSocketMessage.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "Isolate.h"
 
 namespace fibjs {
 
@@ -670,6 +671,11 @@ result_t WebSocketMessage::clone(obj_ptr<Message_base>& retVal)
 
     retVal = msg;
     return 0;
+}
+
+result_t WebSocketMessage::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    return holder()->call_pipe(wrap(), destination, options, retVal);
 }
 
 } /* namespace fibjs */

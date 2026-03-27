@@ -498,4 +498,20 @@ void Isolate::get_stderr(obj_ptr<Stream_base>& retVal)
     retVal = m_stderr;
 }
 
+result_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
+    v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    if (m_pipe_fn.IsEmpty())
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    v8::Local<v8::Function> pipe_fn = v8::Local<v8::Function>::New(m_isolate, m_pipe_fn);
+    v8::Local<v8::Value> argv[] = { src, destination, options };
+    v8::Local<v8::Value> result;
+    if (!pipe_fn->Call(context(), v8::Undefined(m_isolate), 3, argv).ToLocal(&result))
+        return CALL_E_JAVASCRIPT;
+
+    retVal = result;
+    return 0;
+}
+
 } // namespace fibjs
