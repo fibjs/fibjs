@@ -1031,4 +1031,245 @@ describe('stream', () => {
         assert.equal(received[1], '你好');
 
     });
+
+    describe("write queue and backpressure", () => {
+        it("write queue preserves order", () => {
+            var port = 29100 + vmid;
+            var receivedData = '';
+            var serverReady = new coroutine.Event();
+            var serverDone = new coroutine.Event();
+
+            var s = new net.Socket(net.AF_INET);
+            s.bind(port);
+            s.listen();
+            test_util.push(s);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s.accept();
+                    serverReady.set();
+                    var buf;
+                    while ((buf = conn.read()) !== null)
+                        receivedData += buf.toString();
+                    serverDone.set();
+                } catch (e) { }
+            });
+
+            var client = new net.Socket(net.AF_INET);
+            client.connect(port, '127.0.0.1');
+            test_util.push(client);
+            serverReady.wait();
+
+            // Rapid writes — write queue must preserve FIFO order
+            for (var i = 0; i < 100; i++)
+                client.write(String(i).padStart(4, '0'));
+
+            client.close();
+            serverDone.wait();
+
+            for (var i = 0; i < 100; i++)
+                assert.equal(receivedData.substr(i * 4, 4), String(i).padStart(4, '0'));
+        });
+
+        it("write returns false when buffer reaches highWaterMark", () => {
+            var port = 29110 + vmid;
+            var serverReady = new coroutine.Event();
+
+            var s = new net.Socket(net.AF_INET);
+            s.bind(port);
+            s.listen();
+            test_util.push(s);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s.accept();
+                    serverReady.set();
+                    while (conn.read() !== null);
+                } catch (e) { }
+            });
+
+            var client = new net.Socket(net.AF_INET);
+            client.connect(port, '127.0.0.1');
+            test_util.push(client);
+            serverReady.wait();
+
+            // Small write below highWaterMark (16384): should return true
+            var small = Buffer.alloc(100, 0x41);
+            assert.strictEqual(client.write(small), true);
+
+            // Write exactly at highWaterMark: should return false (backpressure)
+            var big = Buffer.alloc(16384, 0x42);
+            assert.strictEqual(client.write(big), false);
+
+            // After drain, write below threshold returns true again
+            var drainEvent = new coroutine.Event();
+            client.on('drain', () => drainEvent.set());
+            drainEvent.wait();
+            assert.strictEqual(client.write(small), true);
+
+            client.close();
+        });
+
+        it("drain event fires after backpressure clears", () => {
+            var port = 29120 + vmid;
+            var serverReady = new coroutine.Event();
+            var drainFired = false;
+            var drainEvent = new coroutine.Event();
+
+            var s = new net.Socket(net.AF_INET);
+            s.bind(port);
+            s.listen();
+            test_util.push(s);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s.accept();
+                    serverReady.set();
+                    while (conn.read() !== null);
+                } catch (e) { }
+            });
+
+            var client = new net.Socket(net.AF_INET);
+            client.connect(port, '127.0.0.1');
+            test_util.push(client);
+            serverReady.wait();
+
+            client.on('drain', () => {
+                drainFired = true;
+                drainEvent.set();
+            });
+
+            var chunk = Buffer.alloc(16384, 0x42);
+            var ret = client.write(chunk);
+            assert.strictEqual(ret, false);
+
+            drainEvent.wait();
+            assert.ok(drainFired);
+
+            client.close();
+        });
+
+        it("all writes complete without data loss", () => {
+            var port = 29130 + vmid;
+            var serverBufs = [];
+            var serverReady = new coroutine.Event();
+            var serverDone = new coroutine.Event();
+
+            var s = new net.Socket(net.AF_INET);
+            s.bind(port);
+            s.listen();
+            test_util.push(s);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s.accept();
+                    serverReady.set();
+                    var buf;
+                    while ((buf = conn.read()) !== null)
+                        serverBufs.push(buf);
+                    serverDone.set();
+                } catch (e) { }
+            });
+
+            var client = new net.Socket(net.AF_INET);
+            client.connect(port, '127.0.0.1');
+            test_util.push(client);
+            serverReady.wait();
+
+            // Write 1000 chunks of varying content
+            var expectedBufs = [];
+            for (var i = 0; i < 1000; i++) {
+                var chunk = Buffer.from('msg_' + String(i).padStart(6, '0') + '_');
+                expectedBufs.push(chunk);
+                client.write(chunk);
+            }
+            var expected = Buffer.concat(expectedBufs);
+
+            client.close();
+            serverDone.wait();
+
+            var serverBuf = Buffer.concat(serverBufs);
+            assert.strictEqual(serverBuf.length, expected.length);
+            assert.strictEqual(serverBuf.compare(expected), 0);
+        });
+
+        it("manual pipe with backpressure pause/resume", () => {
+            var port1 = 29140 + vmid;
+            var port2 = 29141 + vmid;
+            var totalBytes = 0;
+            var serverReady1 = new coroutine.Event();
+            var serverReady2 = new coroutine.Event();
+            var done = new coroutine.Event();
+
+            // Destination server: consumer
+            var s2 = new net.Socket(net.AF_INET);
+            s2.bind(port2);
+            s2.listen();
+            test_util.push(s2);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s2.accept();
+                    serverReady2.set();
+                    var buf;
+                    while ((buf = conn.read()) !== null)
+                        totalBytes += buf.length;
+                    done.set();
+                } catch (e) { }
+            });
+
+            // Source server: fast producer
+            var s1 = new net.Socket(net.AF_INET);
+            s1.bind(port1);
+            s1.listen();
+            test_util.push(s1);
+
+            coroutine.start(() => {
+                try {
+                    var conn = s1.accept();
+                    serverReady1.set();
+                    var chunk = Buffer.alloc(8192, 0x43);
+                    for (var i = 0; i < 16; i++)
+                        conn.write(chunk);
+                    conn.close();
+                } catch (e) { }
+            });
+
+            var src = new net.Socket(net.AF_INET);
+            src.connect(port1, '127.0.0.1');
+            test_util.push(src);
+            serverReady1.wait();
+
+            var dest = new net.Socket(net.AF_INET);
+            dest.connect(port2, '127.0.0.1');
+            test_util.push(dest);
+            serverReady2.wait();
+
+            // Manual pipe with backpressure: pause src when write returns false
+            var pauseCount = 0;
+            src.on('data', (chunk) => {
+                if (false === dest.write(chunk)) {
+                    pauseCount++;
+                    src.pause();
+                }
+            });
+
+            dest.on('drain', () => {
+                src.resume();
+            });
+
+            src.on('end', () => {
+                dest.close();
+            });
+
+            src.on('close', () => {
+                if (!done.isSet())
+                    dest.close();
+            });
+
+            done.wait();
+
+            assert.strictEqual(totalBytes, 8192 * 16);
+        });
+    });
 });

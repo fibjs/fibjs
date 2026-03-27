@@ -13,6 +13,7 @@
 #include "StreamReader.h"
 #include "Isolate.h"
 #include "Fiber.h"
+#include "Event.h"
 #include <list>
 
 namespace fibjs {
@@ -23,6 +24,7 @@ class AsyncStreamReader;
 // so AsyncStreamReader can access it via m_this pointer without templates
 class AsyncStreamBase {
 public:
+    // Read state
     bool m_readable = false;
     bool m_paused = false;
     bool m_ended = false;
@@ -34,6 +36,13 @@ public:
     size_t m_highWaterMark = 16384;
     obj_ptr<TextDecoder> m_decoder;
     AsyncStreamReader* reader = nullptr;
+
+    // Write queue state (all protected by m_writeLock)
+    exlib::spinlock m_writeLock;
+    std::list<AsyncEvent*> m_writeQueue;
+    size_t m_writeBytes = 0;
+    size_t m_writeHighWaterMark = 16384;
+    bool m_needDrain = false;
 
     static size_t roundUpPow2(size_t n)
     {
@@ -176,7 +185,6 @@ public:
     }
 
 public:
-
 private:
     Isolate* m_isolate;
     obj_ptr<ValueHolder> m_holder;
@@ -352,36 +360,89 @@ public:
         return static_cast<T*>(this)->writeBuffer(data, ac);
     }
 
+    // Enqueue buffer into write queue during sync phase
+    result_t enqueueWrite(Buffer_base* data, bool& retVal, AsyncEvent* ac)
+    {
+        ac->m_ctxo = new Event();
+
+        ac->m_ctx.resize(2);
+        ac->m_ctx[0] = data;
+
+        int32_t len;
+        data->get_length(len);
+
+        bool needStartWriter;
+        m_writeLock.lock();
+        m_writeQueue.push_back(ac);
+        m_writeBytes += len;
+        bool backpressure = (m_writeBytes >= m_writeHighWaterMark);
+        if (backpressure)
+            m_needDrain = true;
+        needStartWriter = (m_writer == nullptr);
+        if (needStartWriter)
+            m_writer = new AsyncStreamWriter(this);
+        m_writeLock.unlock();
+
+        ac->m_ctx[1] = !backpressure;
+
+        if (needStartWriter)
+            m_writer->start();
+
+        return CALL_E_NOSYNC;
+    }
+
     virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return enqueueWrite(data, retVal, ac);
 
-        retVal = true;
-        return static_cast<T*>(this)->writeBuffer(data, ac);
+        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+            retVal = true;
+            return static_cast<T*>(this)->writeBuffer(data, ac);
+        }
+
+        retVal = ac->m_ctx[1].boolVal();
+        ac->m_ctxo.As<Event_base>()->set();
+        return CALL_E_PENDDING;
     }
 
     virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return enqueueWrite(data, retVal, ac);
 
-        retVal = true;
-        return static_cast<T*>(this)->writeBuffer(data, ac);
+        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+            retVal = true;
+            return static_cast<T*>(this)->writeBuffer(data, ac);
+        }
+
+        retVal = ac->m_ctx[1].boolVal();
+        ac->m_ctxo.As<Event_base>()->set();
+        return CALL_E_PENDDING;
     }
 
     virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
     {
-        if (ac->isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+        if (ac->isSync()) {
+            obj_ptr<Buffer_base> buf;
+            result_t hr = Buffer_base::from(data, encoding, buf);
+            if (hr < 0)
+                return hr;
+            return enqueueWrite(buf, retVal, ac);
+        }
 
-        obj_ptr<Buffer_base> buf;
-        result_t hr = Buffer_base::from(data, encoding, buf);
-        if (hr < 0)
-            return hr;
+        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+            obj_ptr<Buffer_base> buf;
+            result_t hr = Buffer_base::from(data, encoding, buf);
+            if (hr < 0)
+                return hr;
+            retVal = true;
+            return static_cast<T*>(this)->writeBuffer(buf, ac);
+        }
 
-        retVal = true;
-        return static_cast<T*>(this)->writeBuffer(buf, ac);
+        retVal = ac->m_ctx[1].boolVal();
+        ac->m_ctxo.As<Event_base>()->set();
+        return CALL_E_PENDDING;
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
@@ -423,6 +484,77 @@ public:
     {
         return 0;
     }
+
+    // Write queue state machine: processes enqueued writes one at a time (FIFO)
+    class AsyncStreamWriter : public AsyncState {
+    public:
+        AsyncStreamWriter(AsyncStream<T>* pThis)
+            : AsyncState(NULL)
+            , m_pThis(pThis)
+        {
+            setAsync();
+            next(doWrite);
+        }
+
+        void start()
+        {
+            apost(0);
+        }
+
+        ON_STATE(AsyncStreamWriter, doWrite)
+        {
+            m_pThis->m_writeLock.lock();
+
+            if (m_pThis->m_writeQueue.empty()) {
+                bool needDrain = m_pThis->m_needDrain;
+                m_pThis->m_needDrain = false;
+                m_pThis->m_writer = nullptr;
+                m_pThis->m_writeLock.unlock();
+
+                if (needDrain)
+                    m_pThis->_emit("drain");
+
+                return next();
+            }
+
+            m_ac = m_pThis->m_writeQueue.front();
+            m_pThis->m_writeQueue.pop_front();
+            m_buf = (Buffer_base*)m_ac->m_ctx[0].object();
+            int32_t len;
+            m_buf->get_length(len);
+            m_pThis->m_writeBytes -= len;
+            m_pThis->m_writeLock.unlock();
+
+            return static_cast<T*>(m_pThis)->writeBuffer(m_buf, next(write_done));
+        }
+
+        ON_STATE(AsyncStreamWriter, write_done)
+        {
+            m_ac->m_ctxo.As<Event_base>()->wait(this);
+
+            m_ac->post(n);
+            m_ac = nullptr;
+            m_buf.Release();
+            return next(doWrite);
+        }
+
+        virtual int32_t error(int32_t v)
+        {
+            if (m_ac) {
+                m_ac->m_ctxo.As<Event_base>()->wait(this);
+
+                m_ac->post(v);
+                m_ac = nullptr;
+            }
+            m_buf.Release();
+            return next(doWrite);
+        }
+
+    private:
+        AsyncStream<T>* m_pThis;
+        AsyncEvent* m_ac = nullptr;
+        obj_ptr<Buffer_base> m_buf;
+    };
 
     // Async state machine to emit finish + close after optional write
     class AsyncEndEmitter : public AsyncState {
@@ -574,6 +706,7 @@ protected:
     exlib::atomic m_recvStarted = 0; // guard to ensure startRecvStream only runs once
     exlib::atomic m_connectStarted = 0; // guard to ensure startConnectEvent only runs once
     bool m_connect_event = false;
+    AsyncStreamWriter* m_writer = nullptr; // write queue state machine (protected by m_writeLock)
 };
 
 }
