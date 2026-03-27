@@ -856,19 +856,7 @@ public:
         m_abort_signal = signal;
         obj_ptr<Stream_base> socket = m_socket;
         signal->addAbortCallback([socket]() {
-            if (socket) {
-                Socket_base* sock = Socket_base::getInstance(socket);
-                if (sock) {
-                    sock->abort();
-                } else {
-                    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(socket);
-                    if (tls && tls->m_stream) {
-                        sock = Socket_base::getInstance(tls->m_stream);
-                        if (sock)
-                            sock->abort();
-                    }
-                }
-            }
+            HttpRequest::abort_socket(socket);
         });
     }
 
@@ -1114,33 +1102,19 @@ public:
     void init()
     {
         m_o->u->toString(m_url);
-        // D.3: abort callback closes the socket to cancel any pending
-        // operation (connect, read, or write).  We capture both the
-        // shared pconn slot AND a raw 'this' so we can fall back to
-        // m_conn during the connect phase when *pconn is still null.
-        // Capturing 'this' is safe because ~asyncRequest calls
-        // clearAbort() before member destruction.
+
         if (m_o->signal) {
-            auto conn = m_pconn;
-            auto pthis = this;
-            m_o->abort_signal()->addAbortCallback([conn, pthis]() {
-                obj_ptr<Stream_base> c = *conn;
-                if (!c)
-                    c = pthis->m_conn;
-                if (c) {
-                    Socket_base* sock = Socket_base::getInstance(c);
-                    if (sock) {
-                        sock->abort();
-                    } else {
-                        TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(c);
-                        if (tls && tls->m_stream) {
-                            sock = Socket_base::getInstance(tls->m_stream);
-                            if (sock)
-                                sock->abort();
-                        }
-                    }
-                }
-            });
+            // D.3: abort callback calls req->abort() to close the socket,
+            // cancelling any pending operation (connect, read, or write).
+            bool aborted;
+            m_o->signal->get_aborted(aborted);
+            if (!aborted) {
+                auto pthis = this;
+                m_o->abort_signal()->addAbortCallback([pthis]() {
+                    if (pthis->m_req)
+                        pthis->m_req->abort();
+                });
+            }
         }
 
         if (m_o->is_async && m_o->req)
@@ -1158,6 +1132,22 @@ public:
 
     ON_STATE(asyncRequest, prepare)
     {
+        if (!m_req) {
+            if (m_o->req)
+                m_req = m_o->req;
+            else
+                m_req = new HttpRequest();
+        } else
+            m_req->clear();
+
+        // Reject immediately if signal is already aborted
+        if (m_o->signal) {
+            bool aborted;
+            m_o->signal->get_aborted(aborted);
+            if (aborted)
+                return CHECK_ERROR(Runtime::setError("AbortError"));
+        }
+
         bool _domain = false;
 
         m_urls[m_url] = true;
@@ -1187,14 +1177,6 @@ public:
 
         if (!_domain && m_o->u->port().empty())
             m_connUrl.append(m_ssl ? ":443" : ":80");
-
-        if (!m_req) {
-            if (m_o->req)
-                m_req = m_o->req;
-            else
-                m_req = new HttpRequest();
-        } else
-            m_req->clear();
 
         m_req->set_method(m_o->method);
 
@@ -1454,6 +1436,10 @@ public:
 
     ON_STATE(asyncRequest, ssl_handshake)
     {
+        // m_conn is the raw TCP socket from net_base::connect.
+        // Sync it to req so abort() can close it during TLS handshake.
+        m_req->_set_socket(m_conn);
+
         obj_ptr<TLSSocket> ss = new TLSSocket();
         ss->init(m_hc->m_context);
 
@@ -1477,14 +1463,14 @@ public:
 
         obj_ptr<Stream_base> conn = m_conn;
         m_conn = ss;
-        *m_pconn = m_conn; // sync slot during TLS handshake
+        m_req->_set_socket(m_conn);
 
         return ss->connect(conn, m_sslhost, next(connected));
     }
 
     ON_STATE(asyncRequest, connected)
     {
-        *m_pconn = m_conn; // sync slot so abort callback holds the live connection
+        m_req->_set_socket(m_conn);
         if (!m_ssl)
             m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
 
@@ -1843,13 +1829,13 @@ public:
             m_is_h2_leader = false;
         }
 
-        // D.3: if abort was requested, convert the connection error to TypeError
+        // D.3: if abort was requested, convert the connection error to AbortError
         if (m_o->signal) {
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted) {
                 Runtime::setError(kTypeError, "AbortError");
-                return CALL_E_EXCEPTION;
+                v = CALL_E_EXCEPTION;
             }
         }
 
@@ -1894,7 +1880,6 @@ private:
     obj_ptr<HttpResponse_base>* m_respRetVal = nullptr;
     std::unordered_map<exlib::string, bool> m_urls;
     obj_ptr<Stream_base> m_conn;
-    std::shared_ptr<obj_ptr<Stream_base>> m_pconn = std::make_shared<obj_ptr<Stream_base>>();
     obj_ptr<HttpRequest> m_req;
     obj_ptr<HttpRequest> m_reqConn;
     exlib::string m_connUrl;
@@ -1920,6 +1905,14 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    // Reject immediately if signal is already aborted
+    if (o->signal) {
+        bool aborted;
+        o->signal->get_aborted(aborted);
+        if (aborted)
+            return CHECK_ERROR(Runtime::setError(kTypeError, "AbortError"));
+    }
 
     return (new asyncRequest(this, o, retVal, ac))->post(0);
 }
@@ -1948,13 +1941,13 @@ public:
 
     int32_t wait_result(int32_t hr)
     {
-        if (hr == CALL_E_PENDDING)
+        if (hr == CALL_E_PENDDING) {
             m_done->ac_wait();
-        else
+            if (m_result == CALL_E_EXCEPTION)
+                Runtime::setError(m_error_type, m_error_code, m_error);
+        } else {
             m_result = hr;
-
-        if (m_result == CALL_E_EXCEPTION)
-            Runtime::setError(m_error_type, m_error_code, m_error);
+        }
 
         return m_result;
     }

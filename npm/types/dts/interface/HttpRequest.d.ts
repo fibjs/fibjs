@@ -95,5 +95,10 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      */
     readonly query: Class_URLSearchParams;
 
+    /**
+     * @description 中止请求，关闭底层连接 
+     */
+    abort(): void;
+
 }
 

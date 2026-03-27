@@ -119,6 +119,7 @@ public:
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
     virtual result_t get_form(obj_ptr<FormData_base>& retVal);
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal);
+    virtual result_t abort();
 
 public:
     // Options holds all parsed fetch/request parameters.
@@ -178,6 +179,13 @@ public:
     // Deferred send: asyncRequest saves itself here so that end() can wake it.
     AsyncState* m_asyncState = nullptr;
 
+    // Set the connection socket for abort support.
+    void _set_socket(Stream_base* socket) { m_socket = socket; }
+    Stream_base* _get_socket() const { return m_socket; }
+
+    // Abort a socket (TCP or TLS-wrapped). Used by abort() and BodyStream.
+    static void abort_socket(Stream_base* socket);
+
 public:
     void _appendHeader(exlib::string name, exlib::string value)
     {
@@ -201,6 +209,7 @@ public:
 private:
     obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpMessage> m_message;
+    obj_ptr<Stream_base> m_socket;
     exlib::string m_method;
     exlib::string m_address;
     exlib::string m_queryString;

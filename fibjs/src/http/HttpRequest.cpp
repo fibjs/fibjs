@@ -18,6 +18,8 @@
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
 #include "ifs/TLSSocket.h"
+#include "ifs/Socket.h"
+#include "TLSSocket.h"
 
 namespace fibjs {
 
@@ -1027,6 +1029,34 @@ result_t HttpRequest::get_query(obj_ptr<URLSearchParams_base>& retVal)
     }
 
     retVal = m_query;
+    return 0;
+}
+
+static void abort_socket_impl(Stream_base* socket)
+{
+    if (!socket)
+        return;
+    Socket_base* sock = Socket_base::getInstance(socket);
+    if (sock) {
+        sock->abort();
+    } else {
+        TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(socket);
+        if (tls && tls->m_stream) {
+            sock = Socket_base::getInstance(tls->m_stream);
+            if (sock)
+                sock->abort();
+        }
+    }
+}
+
+void HttpRequest::abort_socket(Stream_base* socket)
+{
+    abort_socket_impl(socket);
+}
+
+result_t HttpRequest::abort()
+{
+    abort_socket_impl(m_socket);
     return 0;
 }
 

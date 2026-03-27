@@ -43,6 +43,7 @@ public:
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_form(obj_ptr<FormData_base>& retVal) = 0;
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal) = 0;
+    virtual result_t abort() = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -63,6 +64,7 @@ public:
     static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_form(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_query(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -74,6 +76,10 @@ public:
 namespace fibjs {
 inline ClassInfo& HttpRequest_base::class_info()
 {
+    static ClassData::ClassMethod s_method[] = {
+        { "abort", s_abort, false, ClassData::ASYNC_SYNC }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "response", s_get_response, block_set, false },
         { "method", s_get_method, s_set_method, false },
@@ -88,7 +94,7 @@ inline ClassInfo& HttpRequest_base::class_info()
 
     static ClassData s_cd = {
         "HttpRequest", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &HttpMessage_base::class_info(),
         true
     };
@@ -333,5 +339,17 @@ inline void HttpRequest_base::s_get_query(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->get_query(vr);
 
     METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->abort();
+
+    METHOD_VOID();
 }
 }

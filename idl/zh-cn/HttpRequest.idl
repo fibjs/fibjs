@@ -63,4 +63,7 @@ interface HttpRequest : HttpMessage
 
     /*! @brief 获取包含消息 query 的容器*/
     readonly URLSearchParams query;
+
+    /*! @brief 中止请求，关闭底层连接 */
+    abort();
 };

@@ -4179,6 +4179,93 @@ describe("http", () => {
 
                 assert.lessThan(t2 - t1, 500);
             });
+
+            it("already-aborted signal rejects immediately", () => {
+                var controller = new AbortController();
+                controller.abort("pre-abort");
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: controller.signal
+                    });
+                }, /AbortError/);
+                var t2 = new Date();
+
+                assert.lessThan(t2 - t1, 100);
+            });
+
+            it("AbortSignal.any() aborts request when any source fires", () => {
+                var ac1 = new AbortController();
+                var ac2 = new AbortController();
+                var composite = AbortSignal.any([ac1.signal, ac2.signal]);
+
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    ac2.abort();
+                });
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: composite
+                    });
+                }, /AbortError/);
+                var t2 = new Date();
+
+                assert.lessThan(t2 - t1, 500);
+            });
+
+            it("req.abort() cancels in-flight request via signal callback", () => {
+                var client = new http.Client();
+                client.timeout = 5000;
+
+                // AbortSignal callback internally calls req.abort() which closes the socket.
+                var controller = new AbortController();
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    controller.abort();
+                });
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    client.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: controller.signal
+                    });
+                }, /AbortError/);
+                var t2 = new Date();
+
+                assert.lessThan(t2 - t1, 500);
+            });
+
+            it("req.abort() on async http.request cancels request", (done) => {
+                var controller = new AbortController();
+                var req = http.request("http://127.0.0.1:" + abortPort + "/timeout", {
+                    signal: controller.signal
+                }, (res) => {
+                    done(new Error("should not get response"));
+                });
+
+                req.on("error", (err) => {
+                    done(() => {
+                        assert.ok(err);
+                    });
+                });
+
+                req.end();
+
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    controller.abort();
+                });
+            });
+
+            it("req.abort() on new request without socket does not throw", () => {
+                var req = new http.Request();
+                assert.doesNotThrow(() => {
+                    req.abort();
+                });
+            });
         });
 
         describe("keep-alive", () => {

@@ -51,4 +51,7 @@ interface HttpRequest : HttpMessage
 
     /*! @brief Get the container containing the message query*/
     readonly URLSearchParams query;
+
+    /*! @brief Abort the request, closing the underlying connection */
+    abort();
 };
