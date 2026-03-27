@@ -5347,6 +5347,8 @@ describe("http", () => {
                         r.response.write(r.firstHeader("x-custom"));
                     else
                         r.response.write("(none)");
+                } else if (r.address == "/echo-agent") {
+                    r.response.write(r.hasHeader("user-agent") ? r.firstHeader("user-agent") : "(no-ua)");
                 } else {
                     r.response.write(r.address);
                 }
@@ -5834,6 +5836,102 @@ describe("http", () => {
                         });
                     });
                 }).end();
+            });
+        });
+
+        describe("agent option in opts", () => {
+            it("http.request(opts) uses agent from opts", (done) => {
+                var hc = new http.Client();
+                hc.userAgent = "custom-agent-1";
+                http.request({
+                    protocol: 'http:',
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    pathname: '/echo-agent',
+                    agent: hc
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "custom-agent-1");
+                    });
+                }).end();
+            });
+
+            it("http.request(url, opts, callback) uses agent from opts", (done) => {
+                var hc = new http.Client();
+                hc.userAgent = "custom-agent-2";
+                http.request(url("/echo-agent"), { agent: hc }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "custom-agent-2");
+                    });
+                }).end();
+            });
+
+            it("http.request(method, url, opts, callback) uses agent from opts", (done) => {
+                var hc = new http.Client();
+                hc.userAgent = "custom-agent-3";
+                http.request("GET", url("/echo-agent"), { agent: hc }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "custom-agent-3");
+                    });
+                }).end();
+            });
+
+            it("http.get(url, opts, callback) uses agent from opts", (done) => {
+                var hc = new http.Client();
+                hc.userAgent = "custom-agent-4";
+                http.get(url("/echo-agent"), { agent: hc }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "custom-agent-4");
+                    });
+                }).end();
+            });
+
+            it("agent timeout applies to request", (done) => {
+                var hc = new http.Client();
+                hc.timeout = 5000;
+                hc.userAgent = "timeout-agent";
+                http.request(url("/echo-agent"), { agent: hc }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "timeout-agent");
+                    });
+                }).end();
+            });
+
+            it("agent option does not affect global client", (done) => {
+                var oldUA = http.userAgent;
+                var hc = new http.Client();
+                hc.userAgent = "isolated-agent";
+                http.request(url("/echo-agent"), { agent: hc }, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "isolated-agent");
+                        assert.equal(http.userAgent, oldUA);
+                    });
+                }).end();
+            });
+
+            it("no agent option uses global client", (done) => {
+                var oldUA = http.userAgent;
+                http.userAgent = "global-ua-test";
+                http.request(url("/echo-agent"), {}, (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "global-ua-test");
+                        http.userAgent = oldUA;
+                    });
+                }).end();
+            });
+
+            it("sync requestSync uses agent from opts", () => {
+                var hc = new http.Client();
+                hc.userAgent = "sync-agent";
+                var resp = http.requestSync(url("/echo-agent"), { agent: hc });
+                assert.equal(resp.text(), "sync-agent");
+            });
+
+            it("sync getSync uses agent from opts", () => {
+                var hc = new http.Client();
+                hc.userAgent = "sync-get-agent";
+                var resp = http.getSync(url("/echo-agent"), { agent: hc });
+                assert.equal(resp.text(), "sync-get-agent");
             });
         });
     });
