@@ -1106,11 +1106,14 @@ public:
         if (m_o->signal) {
             // D.3: abort callback calls req->abort() to close the socket,
             // cancelling any pending operation (connect, read, or write).
+            // For HTTP/2, it also resets the H2 stream.
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (!aborted) {
                 auto pthis = this;
                 m_o->abort_signal()->addAbortCallback([pthis]() {
+                    if (pthis->m_h2stream)
+                        pthis->m_h2stream->onClose(NGHTTP2_CANCEL);
                     if (pthis->m_req)
                         pthis->m_req->abort();
                 });
