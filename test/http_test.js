@@ -5934,6 +5934,79 @@ describe("http", () => {
                 assert.equal(resp.text(), "sync-get-agent");
             });
         });
+
+        describe("error event propagation", () => {
+            it("connection refused emits error on req", (done) => {
+                var req = http.request("http://127.0.0.1:1/nope", (r) => {
+                    done(new Error("should not get response"));
+                });
+                req.on("error", (err) => {
+                    done(() => {
+                        assert.ok(err, "error should be truthy");
+                    });
+                });
+                req.end();
+            });
+
+            it("error event with callback mode (url, callback)", (done) => {
+                http.request("http://127.0.0.1:1/nope", (r) => {
+                    done(new Error("should not get response"));
+                }).on("error", (err) => {
+                    done(() => {
+                        assert.ok(err);
+                    });
+                }).end();
+            });
+
+            it("error event with callback mode (method, url, opts, callback)", (done) => {
+                http.request("GET", "http://127.0.0.1:1/nope", {}, (r) => {
+                    done(new Error("should not get response"));
+                }).on("error", (err) => {
+                    done(() => {
+                        assert.ok(err);
+                    });
+                }).end();
+            });
+
+            it("HttpClient error event on connection refused", (done) => {
+                var hc = new http.Client();
+                hc.request("http://127.0.0.1:1/nope", (r) => {
+                    done(new Error("should not get response"));
+                }).on("error", (err) => {
+                    done(() => {
+                        assert.ok(err);
+                    });
+                }).end();
+            });
+
+            it("no-callback request emits error on req", (done) => {
+                var req = http.request("http://127.0.0.1:1/nope");
+                req.on("error", (err) => {
+                    done(() => {
+                        assert.ok(err);
+                    });
+                });
+                req.end();
+            });
+
+            it("error event fires only once", (done) => {
+                var count = 0;
+                var req = http.request("http://127.0.0.1:1/nope", (r) => {
+                    done(new Error("should not get response"));
+                });
+                req.on("error", (err) => {
+                    count++;
+                    if (count === 1) {
+                        setTimeout(() => {
+                            done(() => {
+                                assert.equal(count, 1);
+                            });
+                        }, 200);
+                    }
+                });
+                req.end();
+            });
+        });
     });
 });
 

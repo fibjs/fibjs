@@ -1853,6 +1853,15 @@ public:
             }
         }
 
+        // Emit 'error' event on the request when in async (callback/deferred) mode
+        if (m_o->is_async && m_req) {
+            exlib::string errMsg = Runtime::errMessage();
+            if (errMsg.empty())
+                errMsg = "Request failed";
+            Variant err(errMsg);
+            m_req->_emit("error", err);
+        }
+
         return v;
     }
 
