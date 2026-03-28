@@ -710,8 +710,8 @@ public:
             m_pThis->m_writeFinished = true;
             m_pThis->_emit("finish");
 
-            // autoDestroy: if read side also ended, close and emit close
-            if (m_pThis->m_autoDestroy && m_pThis->m_readEnded && !m_pThis->m_destroyed) {
+            // autoDestroy: if read side also ended (or no reader exists), close and emit close
+            if (m_pThis->m_autoDestroy && (m_pThis->m_readEnded || !m_pThis->reader) && !m_pThis->m_destroyed) {
                 m_pThis->m_destroyed = true;
                 return static_cast<T*>(m_pThis)->close(next(autoDestroyDone));
             }
