@@ -2236,6 +2236,47 @@ function test_net(eng, use_uv) {
             });
         });
 
+        describe("socket.connect options form", () => {
+            // Regression: sock.connect({host, port}) after pre-registering on('connect')
+            // must fire the 'data' event. Without startConnectEvent() being called in the
+            // sync phase of the options overload, m_state never reaches 0 and the
+            // AsyncStreamReader never starts — so 'data' silently drops.
+            it("data event fires when connect({host, port}) is called after on('connect')", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hello");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var received = null;
+                var done = new coroutine.Event();
+                var timedOut = false;
+
+                var sock = new net.Socket();
+                sock.on('connect', () => {
+                    sock.on('data', (chunk) => {
+                        received = chunk.toString();
+                        done.set();
+                    });
+                    sock.resume();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+
+                setTimeout(() => {
+                    timedOut = true;
+                    done.set();
+                }, 3000);
+
+                done.wait();
+                sock.close();
+
+                assert.equal(timedOut, false, "timed out waiting for data event");
+                assert.equal(received, "hello");
+            });
+        });
+
         describe("net.createServer", () => {
             var svr;
 

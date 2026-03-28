@@ -310,6 +310,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = opts;
 
+        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
