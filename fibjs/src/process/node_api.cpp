@@ -7,6 +7,8 @@
 
 #include "addons/js_native_api_internal.h"
 #include <queue>
+#include <mutex>
+#include <condition_variable>
 
 node_napi_env__::node_napi_env__(v8::Local<v8::Context> context,
     const std::string& module_filename,
@@ -145,13 +147,13 @@ public:
     // Thread-safe: callable from any thread
     napi_status Push(void* data, napi_threadsafe_function_call_mode mode)
     {
-        exlib::AutoLock lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
 
         while (queue.size() >= max_queue_size && max_queue_size > 0 && !is_closing) {
             if (mode == napi_tsfn_nonblocking) {
                 return napi_queue_full;
             }
-            cond->Wait();
+            cond.wait(lock);
         }
 
         if (is_closing) {
@@ -170,7 +172,7 @@ public:
 
     napi_status Acquire()
     {
-        exlib::AutoLock lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
 
         if (is_closing) {
             return napi_closing;
@@ -182,7 +184,7 @@ public:
 
     napi_status Release(napi_threadsafe_function_release_mode mode)
     {
-        exlib::AutoLock lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
 
         if (thread_count == 0) {
             return napi_invalid_arg;
@@ -194,7 +196,7 @@ public:
             if (!is_closing) {
                 is_closing = (mode == napi_tsfn_abort);
                 if (is_closing && max_queue_size > 0) {
-                    cond->Signal();
+                    cond.notify_one();
                 }
                 Send();
             }
@@ -207,9 +209,6 @@ public:
 
     napi_status Init()
     {
-        if (max_queue_size > 0) {
-            cond.reset(new exlib::OSCondVar(&mutex));
-        }
         return napi_ok;
     }
 
@@ -250,7 +249,7 @@ protected:
         bool has_more = false;
 
         {
-            exlib::AutoLock lock(mutex);
+            std::lock_guard<std::mutex> lock(mutex);
             if (is_closing) {
                 CloseHandlesAndMaybeDelete();
             } else {
@@ -260,7 +259,7 @@ protected:
                     queue.pop();
                     popped_value = true;
                     if (size == max_queue_size && max_queue_size > 0) {
-                        cond->Signal();
+                        cond.notify_one();
                     }
                     size--;
                 }
@@ -269,7 +268,7 @@ protected:
                     if (thread_count == 0) {
                         is_closing = true;
                         if (max_queue_size > 0) {
-                            cond->Signal();
+                            cond.notify_one();
                         }
                         CloseHandlesAndMaybeDelete();
                     }
@@ -309,7 +308,7 @@ protected:
         for (;;) {
             void* data;
             {
-                exlib::AutoLock lock(mutex);
+                std::lock_guard<std::mutex> lock(mutex);
                 if (queue.empty())
                     break;
                 data = queue.front();
@@ -324,10 +323,10 @@ protected:
     void CloseHandlesAndMaybeDelete(bool set_closing = false)
     {
         if (set_closing) {
-            exlib::AutoLock lock(mutex);
+            std::lock_guard<std::mutex> lock(mutex);
             is_closing = true;
-            if (cond) {
-                cond->Signal();
+            if (max_queue_size > 0) {
+                cond.notify_one();
             }
         }
         if (handles_closing) {
@@ -385,8 +384,8 @@ private:
     static const unsigned int kMaxIterationCount = 1000;
 
     // Mutex-protected
-    exlib::OSMutex mutex;
-    std::unique_ptr<exlib::OSCondVar> cond;
+    std::mutex mutex;
+    std::condition_variable cond;
     std::queue<void*> queue;
     size_t thread_count;
     bool is_closing;
