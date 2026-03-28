@@ -30,6 +30,22 @@ public:
     bool m_ended = false;
     bool m_finished = false;
     bool m_openEmitted = false;
+
+    // Stream lifecycle state
+    bool m_readEnded = false;
+    bool m_writeFinished = false;
+    bool m_destroyed = false;
+    bool m_autoDestroy = true;
+    bool m_allowHalfOpen = false;
+    exlib::atomic m_closeEmitted = 0;
+
+    void emitClose(Stream_base* stream)
+    {
+        if (m_closeEmitted.CompareAndSwap(0, 1) != 0)
+            return;
+        stream->_emit("close");
+    }
+
     exlib::spinlock m_lock;
     std::list<obj_ptr<Buffer_base>> m_pendingQueue;
     size_t m_totalBytes = 0;
@@ -86,12 +102,31 @@ public:
         return m_this->readBuffer(-1, m_buf, next(event));
     }
 
+    ON_STATE(AsyncStreamReader, auto_destroy_done)
+    {
+        m_base->emitClose(m_this);
+        return next();
+    }
+
     ON_STATE(AsyncStreamReader, event)
     {
         if (n == CALL_RETURN_NULL) {
+            m_base->m_readEnded = true;
             m_base->m_ended = true;
             m_this->_emit("end");
-            m_this->_emit("close");
+
+            // allowHalfOpen=false (default): auto-end write side on EOF
+            if (!m_base->m_allowHalfOpen && !m_base->m_writeFinished) {
+                m_base->m_writeFinished = true;
+                m_base->m_finished = true;
+                m_this->_emit("finish");
+            }
+
+            // autoDestroy: if both sides done, close and emit close
+            if (m_base->m_autoDestroy && m_base->m_writeFinished && !m_base->m_destroyed) {
+                m_base->m_destroyed = true;
+                return m_this->close(next(auto_destroy_done));
+            }
             return next();
         }
 
@@ -164,10 +199,28 @@ public:
         // Treat socket close errors as normal termination
         if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
             || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
+            m_base->m_readEnded = true;
             m_base->m_ended = true;
             m_this->_emit("end");
-            m_this->_emit("close");
+
+            // fd is already gone, mark destroyed and emit close
+            if (!m_base->m_destroyed) {
+                m_base->m_destroyed = true;
+                m_base->emitClose(m_this);
+            }
             return v;
+        }
+
+        // Treat timeout as idle timeout: emit 'timeout' and continue reading
+        if (v == CALL_E_TIMEOUT) {
+            obj_ptr<Stream_base> stream = m_this;
+            m_isolate->sync([stream]() -> int32_t {
+                JSFiber::EnterJsScope s;
+                stream->_emit("timeout");
+                return 0;
+            });
+            next(recv);
+            return CALL_E_PENDDING;
         }
 
         // Emit error event in JS context with proper Error object
@@ -478,6 +531,54 @@ public:
         return 0;
     }
 
+    class AsyncDestroyEmitter : public AsyncState {
+    public:
+        AsyncDestroyEmitter(AsyncStream<T>* pThis, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+        {
+            next(doClose);
+        }
+
+        ON_STATE(AsyncDestroyEmitter, doClose)
+        {
+            return static_cast<T*>(m_pThis)->close(next(done));
+        }
+
+        ON_STATE(AsyncDestroyEmitter, done)
+        {
+            m_pThis->emitClose(m_pThis);
+            return next(0);
+        }
+
+    private:
+        AsyncStream<T>* m_pThis;
+    };
+
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync()) {
+            // Idempotent: if already destroyed, return immediately
+            if (m_destroyed) {
+                retVal = this;
+                return 0;
+            }
+            m_destroyed = true;
+
+            if (!err.IsEmpty() && !err->IsUndefined() && !err->IsNull()) {
+                bool r;
+                this->_emit("error", &err, 1, r);
+            }
+            m_ended = true;
+            retVal = this;
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        retVal = this;
+        (new AsyncDestroyEmitter(this, ac))->apost(0);
+        return CALL_E_PENDDING;
+    }
+
     virtual result_t resume(obj_ptr<Stream_base>& retVal)
     {
         if (m_paused) {
@@ -606,8 +707,20 @@ public:
         ON_STATE(AsyncEndEmitter, emitEvents)
         {
             m_pThis->m_finished = true;
+            m_pThis->m_writeFinished = true;
             m_pThis->_emit("finish");
-            m_pThis->_emit("close");
+
+            // autoDestroy: if read side also ended, close and emit close
+            if (m_pThis->m_autoDestroy && m_pThis->m_readEnded && !m_pThis->m_destroyed) {
+                m_pThis->m_destroyed = true;
+                return static_cast<T*>(m_pThis)->close(next(autoDestroyDone));
+            }
+            return next(0);
+        }
+
+        ON_STATE(AsyncEndEmitter, autoDestroyDone)
+        {
+            m_pThis->emitClose(m_pThis);
             return next(0);
         }
 

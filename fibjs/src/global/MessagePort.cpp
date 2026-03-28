@@ -140,13 +140,13 @@ result_t MessagePort::set_onmessage(v8::Local<v8::Value> newVal)
     if (!m_onmessage.IsEmpty()) {
         v8::Local<v8::Function> prev = m_onmessage.Get(isolate->m_isolate).As<v8::Function>();
         v8::Local<v8::Object> retObj;
-        JSTrigger(this).off("message", prev, retObj);
+        off("message", prev, retObj);
     }
 
     if (newVal->IsFunction()) {
         m_onmessage.Reset(isolate->m_isolate, newVal);
         v8::Local<v8::Object> retObj;
-        JSTrigger(this).on("message", newVal.As<v8::Function>(), retObj);
+        on("message", newVal.As<v8::Function>(), retObj);
         start();
     } else {
         m_onmessage.Reset();
@@ -172,13 +172,13 @@ result_t MessagePort::set_onmessageerror(v8::Local<v8::Value> newVal)
     if (!m_onmessageerror.IsEmpty()) {
         v8::Local<v8::Function> prev = m_onmessageerror.Get(isolate->m_isolate).As<v8::Function>();
         v8::Local<v8::Object> retObj;
-        JSTrigger(this).off("messageerror", prev, retObj);
+        off("messageerror", prev, retObj);
     }
 
     if (newVal->IsFunction()) {
         m_onmessageerror.Reset(isolate->m_isolate, newVal);
         v8::Local<v8::Object> retObj;
-        JSTrigger(this).on("messageerror", newVal.As<v8::Function>(), retObj);
+        on("messageerror", newVal.As<v8::Function>(), retObj);
     } else {
         m_onmessageerror.Reset();
     }

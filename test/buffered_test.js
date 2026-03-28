@@ -164,5 +164,43 @@ describe("buffered stream", () => {
             } catch (e) { }
         }
     });
+
+    describe("stream close event", () => {
+        it("EOF autoDestroy triggers close", () => {
+            var tmpFile = path.join(__dirname, '_test_close_buf_' + coroutine.vmid);
+            fs.writeFile(tmpFile, 'hello world');
+            try {
+                var f = fs.openFile(tmpFile);
+                var bs = new io.BufferedStream(f);
+                var events = [];
+                var done = new coroutine.Event();
+                bs.on('data', () => { events.push('data'); });
+                bs.on('end', () => { events.push('end'); });
+                bs.on('close', () => { events.push('close'); done.set(); });
+                done.wait();
+                assert.ok(events.indexOf('end') >= 0);
+                assert.ok(events.indexOf('close') >= 0);
+            } finally {
+                try { fs.unlink(tmpFile); } catch (e) { }
+            }
+        });
+
+        it("destroy() triggers close", () => {
+            var tmpFile = path.join(__dirname, '_test_close_buf2_' + coroutine.vmid);
+            fs.writeFile(tmpFile, 'hello world');
+            try {
+                var f = fs.openFile(tmpFile);
+                var bs = new io.BufferedStream(f);
+                var done = new coroutine.Event();
+                var closed = false;
+                bs.on('close', () => { closed = true; done.set(); });
+                bs.destroy();
+                done.wait();
+                assert.strictEqual(closed, true);
+            } finally {
+                try { fs.unlink(tmpFile); } catch (e) { }
+            }
+        });
+    });
 });
 

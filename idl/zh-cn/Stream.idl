@@ -148,4 +148,11 @@ interface Stream : EventEmitter
      @return 返回当前对象
     */
     Stream unref();
+
+    /*! @brief 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
+     调用后，流将不再可用。
+     @param err 可选的错误对象，将作为 'error' 事件触发
+     @return 返回当前对象
+    */
+    Stream destroy(Value err = undefined) async;
 };

@@ -93,6 +93,8 @@ public:
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t abort();
+    virtual result_t setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal);
+    virtual result_t setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal);
 
 public:
     static result_t create(int32_t family, obj_ptr<Socket_base>& retVal);

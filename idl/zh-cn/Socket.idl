@@ -155,4 +155,17 @@ interface Socket : Stream
      被取消的操作会返回错误。socket 本身不会被关闭，可以继续使用。
      */
     abort();
+
+    /*! @brief 设置 socket 超时时间
+     @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
+     @return 返回当前 Socket 对象
+    */
+    Socket setTimeout(Integer timeout);
+
+    /*! @brief 设置 socket 超时时间，并注册一次性 'timeout' 事件监听器
+     @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
+     @param callback 回调函数，当 socket 超时时被调用一次
+     @return 返回当前 Socket 对象
+    */
+    Socket setTimeout(Integer timeout, Function callback);
 };

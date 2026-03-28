@@ -1706,4 +1706,58 @@ describe('fs', () => {
         }
     });
 
+    describe("stream close event", () => {
+        it("EOF autoDestroy triggers close", () => {
+            var fn = path.join(__dirname, '_test_close_fs_' + coroutine.vmid);
+            fs.writeFile(fn, 'hello world');
+            try {
+                var f = fs.openFile(fn);
+                var events = [];
+                var done = new coroutine.Event();
+                f.on('data', () => { events.push('data'); });
+                f.on('end', () => { events.push('end'); });
+                f.on('close', () => { events.push('close'); done.set(); });
+                done.wait();
+                assert.ok(events.indexOf('end') >= 0);
+                assert.ok(events.indexOf('close') >= 0);
+                assert.ok(events.indexOf('end') < events.indexOf('close'));
+            } finally {
+                fs.unlink(fn);
+            }
+        });
+
+        it("destroy() triggers close", () => {
+            var fn = path.join(__dirname, '_test_close_fs2_' + coroutine.vmid);
+            fs.writeFile(fn, 'hello world');
+            try {
+                var f = fs.openFile(fn);
+                var done = new coroutine.Event();
+                var closed = false;
+                f.on('close', () => { closed = true; done.set(); });
+                f.destroy();
+                done.wait();
+                assert.strictEqual(closed, true);
+            } finally {
+                fs.unlink(fn);
+            }
+        });
+
+        it("destroy(err) emits error then close", () => {
+            var fn = path.join(__dirname, '_test_close_fs3_' + coroutine.vmid);
+            fs.writeFile(fn, 'hello world');
+            try {
+                var f = fs.openFile(fn);
+                var events = [];
+                var done = new coroutine.Event();
+                f.on('error', () => { events.push('error'); });
+                f.on('close', () => { events.push('close'); done.set(); });
+                f.destroy(new Error('test'));
+                done.wait();
+                assert.deepStrictEqual(events, ['error', 'close']);
+            } finally {
+                fs.unlink(fn);
+            }
+        });
+    });
+
 });

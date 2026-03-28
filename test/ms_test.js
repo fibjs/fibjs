@@ -191,5 +191,42 @@ describe('ms', () => {
         testMs.rewind();
         assert.equal(testMs.read().toString(), 'Hello');
     });
+
+    describe("stream close event", () => {
+        it("EOF triggers end event", () => {
+            var testMs = new io.MemoryStream();
+            testMs.write('hello world');
+            testMs.rewind();
+
+            var events = [];
+            var done = new coroutine.Event();
+            testMs.on('data', () => { events.push('data'); });
+            testMs.on('end', () => { events.push('end'); done.set(); });
+            done.wait();
+            assert.ok(events.indexOf('data') >= 0);
+            assert.ok(events.indexOf('end') >= 0);
+        });
+
+        it("destroy() triggers close", () => {
+            var testMs = new io.MemoryStream();
+            var done = new coroutine.Event();
+            var closed = false;
+            testMs.on('close', () => { closed = true; done.set(); });
+            testMs.destroy();
+            done.wait();
+            assert.strictEqual(closed, true);
+        });
+
+        it("destroy(err) emits error then close", () => {
+            var testMs = new io.MemoryStream();
+            var events = [];
+            var done = new coroutine.Event();
+            testMs.on('error', () => { events.push('error'); });
+            testMs.on('close', () => { events.push('close'); done.set(); });
+            testMs.destroy(new Error('test'));
+            done.wait();
+            assert.deepStrictEqual(events, ['error', 'close']);
+        });
+    });
 });
 

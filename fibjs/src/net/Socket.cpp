@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include "options.h"
 #include "EventInfo.h"
+#include "EventEmitter.h"
 
 namespace fibjs {
 
@@ -205,6 +206,24 @@ result_t Socket::get_timeout(int32_t& retVal)
 result_t Socket::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
+    return 0;
+}
+
+result_t Socket::setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal)
+{
+    m_timeout = timeout;
+    retVal = this;
+    return 0;
+}
+
+result_t Socket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal)
+{
+    m_timeout = timeout;
+    if (!callback.IsEmpty() && !callback->IsUndefined()) {
+        v8::Local<v8::Object> r;
+        once("timeout", callback, r);
+    }
+    retVal = this;
     return 0;
 }
 

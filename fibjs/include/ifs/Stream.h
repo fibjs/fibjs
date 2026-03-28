@@ -52,6 +52,7 @@ public:
     virtual result_t getReader(obj_ptr<StreamReader_base>& retVal) = 0;
     virtual result_t ref(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -92,6 +93,7 @@ public:
     static void s_getReader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, Variant);
@@ -107,6 +109,7 @@ public:
     ASYNC_MEMBER0(Stream_base, flush);
     ASYNC_MEMBER0(Stream_base, close);
     ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
+    ASYNC_MEMBERVALUE2(Stream_base, destroy, v8::Local<v8::Value>, obj_ptr<Stream_base>);
 };
 }
 
@@ -132,7 +135,8 @@ inline ClassInfo& Stream_base::class_info()
         { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
         { "getReader", s_getReader, false, ClassData::ASYNC_SYNC },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
-        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC },
+        { "destroy", s_destroy, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -614,6 +618,25 @@ inline void Stream_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(0, 0);
 
     hr = pInst->unref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Stream_base);
+    ASYNC_METHOD_ENTER("Stream.destroy");
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_destroy(v0, cb, args);
+    else
+        hr = pInst->ac_destroy(v0, vr);
 
     METHOD_RETURN();
 }

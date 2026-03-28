@@ -440,5 +440,34 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     unref(): Class_Stream;
 
+    /**
+     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
+     *      调用后，流将不再可用。
+     *      @param err 可选的错误对象，将作为 'error' 事件触发
+     *      @return 返回当前对象
+     *     
+     */
+    destroy(err?: any): Class_Stream;
+
+    destroy(err?: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
+     *      调用后，流将不再可用。
+     *      @param err 可选的错误对象，将作为 'error' 事件触发
+     *      @return 返回当前对象
+     *     
+     */
+    destroySync(err?: any): Class_Stream;
+
+    /**
+     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
+     *      调用后，流将不再可用。
+     *      @param err 可选的错误对象，将作为 'error' 事件触发
+     *      @return 返回当前对象
+     *     
+     */
+    destroyAsync(err?: any): Promise<Class_Stream>;
+
 }
 

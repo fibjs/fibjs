@@ -334,5 +334,22 @@ declare class Class_Socket extends Class_Stream {
      */
     abort(): void;
 
+    /**
+     * @description 设置 socket 超时时间
+     *      @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
+     *      @return 返回当前 Socket 对象
+     *     
+     */
+    setTimeout(timeout: number): Class_Socket;
+
+    /**
+     * @description 设置 socket 超时时间，并注册一次性 'timeout' 事件监听器
+     *      @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
+     *      @param callback 回调函数，当 socket 超时时被调用一次
+     *      @return 返回当前 Socket 对象
+     *     
+     */
+    setTimeout(timeout: number, callback: (...args: any[])=>any): Class_Socket;
+
 }
 

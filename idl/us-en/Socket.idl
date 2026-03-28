@@ -155,4 +155,17 @@ interface Socket : Stream
      The cancelled operations will return an error. The socket itself will not be closed and can continue to be used.
      */
     abort();
+
+    /*! @brief Set timeout for the socket
+     @param timeout The timeout value in milliseconds. Setting 0 disables the timeout.
+     @return Returns the current Socket object
+    */
+    Socket setTimeout(Integer timeout);
+
+    /*! @brief Set timeout for the socket and register a one-time 'timeout' event listener
+     @param timeout The timeout value in milliseconds. Setting 0 disables the timeout.
+     @param callback Callback to be called once when the socket times out
+     @return Returns the current Socket object
+    */
+    Socket setTimeout(Integer timeout, Function callback);
 };

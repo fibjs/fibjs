@@ -11,6 +11,7 @@
 #include "UVSocket.h"
 #include "Buffer.h"
 #include "EventInfo.h"
+#include "EventEmitter.h"
 
 namespace fibjs {
 
@@ -66,6 +67,24 @@ result_t UVSocket::get_family(int32_t& retVal)
 result_t UVSocket::abort()
 {
     return UVStream_tmpl<Socket_base>::abort();
+}
+
+result_t UVSocket::setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal)
+{
+    m_timeout = timeout;
+    retVal = this;
+    return 0;
+}
+
+result_t UVSocket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal)
+{
+    m_timeout = timeout;
+    if (!callback.IsEmpty() && !callback->IsUndefined()) {
+        v8::Local<v8::Object> r;
+        once("timeout", callback, r);
+    }
+    retVal = this;
+    return 0;
 }
 
 result_t UVSocket::get_remoteAddress(exlib::string& retVal)

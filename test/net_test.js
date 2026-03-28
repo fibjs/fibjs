@@ -2311,6 +2311,166 @@ function test_net(eng, use_uv) {
             });
         });
 
+        describe("socket.setTimeout", () => {
+            it("setTimeout sets timeout and registers callback", () => {
+                var sock = new net.Socket();
+                var ret = sock.setTimeout(5000, () => {});
+                assert.strictEqual(ret, sock);
+                assert.strictEqual(sock.timeout, 5000);
+            });
+
+            it("setTimeout(0) clears timeout", () => {
+                var sock = new net.Socket();
+                sock.setTimeout(3000);
+                assert.strictEqual(sock.timeout, 3000);
+                sock.setTimeout(0);
+                assert.strictEqual(sock.timeout, 0);
+            });
+        });
+
+        describe("socket.destroy", () => {
+            it("destroy closes the socket", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hi");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var sock = new net.Socket();
+                var closed = false;
+                var done = new coroutine.Event();
+                sock.on('close', () => {
+                    closed = true;
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.destroy();
+
+                done.wait();
+                assert.strictEqual(closed, true);
+            });
+
+            it("destroy with error emits error event", () => {
+                var sock = new net.Socket();
+                var emittedErr = null;
+                sock.on('error', (e) => { emittedErr = e; });
+                sock.destroy(new Error('test error'));
+                assert.ok(emittedErr);
+                assert.strictEqual(emittedErr.message, 'test error');
+            });
+
+            it("multiple destroy() only emits close once", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hi");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var sock = new net.Socket();
+                var closeCount = 0;
+                var done = new coroutine.Event();
+                sock.on('close', () => {
+                    closeCount++;
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.destroy();
+                sock.destroy();
+                sock.destroy();
+
+                done.wait();
+                coroutine.sleep(200);
+                assert.strictEqual(closeCount, 1);
+            });
+
+            it("destroy(err) emits error then close", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hi");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var sock = new net.Socket();
+                var events = [];
+                var done = new coroutine.Event();
+                sock.on('error', () => { events.push('error'); });
+                sock.on('close', () => {
+                    events.push('close');
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.destroy(new Error('test'));
+
+                done.wait();
+                assert.deepStrictEqual(events, ['error', 'close']);
+            });
+        });
+
+        describe("stream close event", () => {
+            it("EOF triggers end then close via autoDestroy", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hi");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var events = [];
+                var done = new coroutine.Event();
+                var sock = new net.Socket();
+                sock.on('data', () => { events.push('data'); });
+                sock.on('end', () => { events.push('end'); });
+                sock.on('finish', () => { events.push('finish'); });
+                sock.on('close', () => {
+                    events.push('close');
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.resume();
+
+                done.wait();
+                assert.ok(events.indexOf('end') >= 0);
+                assert.ok(events.indexOf('close') >= 0);
+                assert.ok(events.indexOf('end') < events.indexOf('close'));
+            });
+
+            it("end() then EOF: finish before close", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.on('data', () => {});
+                    conn.on('end', () => { conn.close(); });
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var events = [];
+                var done = new coroutine.Event();
+                var sock = new net.Socket();
+                sock.on('data', () => { events.push('data'); });
+                sock.on('end', () => { events.push('end'); });
+                sock.on('finish', () => { events.push('finish'); });
+                sock.on('close', () => {
+                    events.push('close');
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.resume();
+                sock.end();
+
+                done.wait();
+                assert.ok(events.indexOf('finish') >= 0);
+                assert.ok(events.indexOf('close') >= 0);
+                assert.ok(events.indexOf('finish') < events.indexOf('close'));
+            });
+        });
+
         describe("net.createServer", () => {
             var svr;
 

@@ -148,4 +148,11 @@ interface Stream : EventEmitter
      @return Returns the current object
     */
     Stream unref();
+
+    /*! @brief Destroy the stream. Optionally emit an 'error' event, and emit a 'close' event.
+     After this call, the stream is no longer usable.
+     @param err Optional error object to emit as an 'error' event
+     @return Returns the current object
+    */
+    Stream destroy(Value err = undefined) async;
 };

@@ -1240,6 +1240,99 @@ describe('tls', () => {
                     ss.close();
                 });
             });
+
+            describe('stream close event', () => {
+                it("EOF autoDestroy triggers close", () => {
+                    var svr = new net.TcpServer(0, (s) => {
+                        var ss = new tls.TLSSocket(ctx_svr);
+                        try {
+                            ss.accept(s);
+                            ss.write('hi');
+                            ss.close();
+                        } catch (e) { }
+                        s.close();
+                    });
+                    svr.start();
+                    var port = svr.socket.localPort;
+                    test_util.push(svr.socket);
+
+                    var s1 = new net.Socket();
+                    s1.connect(port, '127.0.0.1');
+                    var ss = new tls.TLSSocket(ctx);
+                    ss.connect(s1);
+
+                    var events = [];
+                    var done = new coroutine.Event();
+                    ss.on('data', () => { events.push('data'); });
+                    ss.on('end', () => { events.push('end'); });
+                    ss.on('close', () => { events.push('close'); done.set(); });
+                    ss.resume();
+                    done.wait();
+                    assert.ok(events.indexOf('end') >= 0);
+                    assert.ok(events.indexOf('close') >= 0);
+                    assert.ok(events.indexOf('end') < events.indexOf('close'));
+                    svr.stop();
+                });
+
+                it("destroy() triggers close", () => {
+                    var svr = new net.TcpServer(0, (s) => {
+                        var ss = new tls.TLSSocket(ctx_svr);
+                        try {
+                            ss.accept(s);
+                            ss.write('hi');
+                            coroutine.sleep(5000);
+                            ss.close();
+                        } catch (e) { }
+                        s.close();
+                    });
+                    svr.start();
+                    var port = svr.socket.localPort;
+                    test_util.push(svr.socket);
+
+                    var s1 = new net.Socket();
+                    s1.connect(port, '127.0.0.1');
+                    var ss = new tls.TLSSocket(ctx);
+                    ss.connect(s1);
+
+                    var done = new coroutine.Event();
+                    var closed = false;
+                    ss.on('close', () => { closed = true; done.set(); });
+                    ss.destroy();
+                    done.wait();
+                    assert.strictEqual(closed, true);
+                    svr.stop();
+                });
+
+                it("destroy(err) emits error then close", () => {
+                    var svr = new net.TcpServer(0, (s) => {
+                        var ss = new tls.TLSSocket(ctx_svr);
+                        try {
+                            ss.accept(s);
+                            ss.write('hi');
+                            coroutine.sleep(5000);
+                            ss.close();
+                        } catch (e) { }
+                        s.close();
+                    });
+                    svr.start();
+                    var port = svr.socket.localPort;
+                    test_util.push(svr.socket);
+
+                    var s1 = new net.Socket();
+                    s1.connect(port, '127.0.0.1');
+                    var ss = new tls.TLSSocket(ctx);
+                    ss.connect(s1);
+
+                    var events = [];
+                    var done = new coroutine.Event();
+                    ss.on('error', () => { events.push('error'); });
+                    ss.on('close', () => { events.push('close'); done.set(); });
+                    ss.destroy(new Error('test'));
+                    done.wait();
+                    assert.deepStrictEqual(events, ['error', 'close']);
+                    svr.stop();
+                });
+            });
         });
     }
 
