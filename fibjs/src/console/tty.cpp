@@ -221,13 +221,6 @@ result_t TTYOutputStream::get_rows(int32_t& retVal)
     return 0;
 }
 
-result_t TTYOutputStream::get__writableState(v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = holder();
-    retVal = v8::Object::New(isolate->m_isolate);
-    return 0;
-}
-
 TTYOutputStream::TTYOutputStream(int32_t fd)
     : UVStream_tmpl<TTYOutputStream_base>(fd)
 {

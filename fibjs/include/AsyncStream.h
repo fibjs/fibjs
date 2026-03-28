@@ -450,6 +450,34 @@ public:
         return io_base::copyStream(this, stm, bytes, retVal, ac);
     }
 
+    virtual result_t get_writable(bool& retVal)
+    {
+        retVal = !m_ended;
+        return 0;
+    }
+
+    virtual result_t get_readable(bool& retVal)
+    {
+        retVal = !m_ended;
+        return 0;
+    }
+
+    virtual result_t get__readableState(v8::Local<v8::Object>& retVal)
+    {
+        Isolate* isolate = this->holder();
+        v8::Local<v8::Context> context = isolate->context();
+        retVal = v8::Object::New(isolate->m_isolate);
+        retVal->Set(context, isolate->NewString("ended"), v8::Boolean::New(isolate->m_isolate, m_ended)).IsJust();
+        return 0;
+    }
+
+    virtual result_t get__writableState(v8::Local<v8::Object>& retVal)
+    {
+        Isolate* isolate = this->holder();
+        retVal = v8::Object::New(isolate->m_isolate);
+        return 0;
+    }
+
     virtual result_t resume(obj_ptr<Stream_base>& retVal)
     {
         if (m_paused) {

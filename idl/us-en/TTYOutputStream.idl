@@ -25,10 +25,6 @@ interface TTYOutputStream : Stream
     */
     readonly Boolean isTTY;
 
-    /*! @brief Always true, indicating the stream is writable
-    */
-    readonly Boolean writable;
-
     /*! @brief Return the number of columns of the terminal corresponding to this TTYOutputStream
     */
     readonly Integer columns;
@@ -36,10 +32,6 @@ interface TTYOutputStream : Stream
     /*! @brief Return the number of rows of the terminal corresponding to this TTYOutputStream
     */
     readonly Integer rows;
-
-    /*! @brief Return the writable state object of the terminal corresponding to this TTYOutputStream
-     */
-    readonly Object _writableState;
 
     /*! @brief Clear line according to the direction indicated by dir
 

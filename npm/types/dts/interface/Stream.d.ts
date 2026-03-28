@@ -14,6 +14,26 @@ declare class Class_Stream extends Class_EventEmitter {
     readonly fd: number;
 
     /**
+     * @description 查询流是否可写 
+     */
+    readonly writable: boolean;
+
+    /**
+     * @description 查询流是否可读 
+     */
+    readonly readable: boolean;
+
+    /**
+     * @description 查询流的可读状态对象 
+     */
+    readonly _readableState: FIBJS.GeneralObject;
+
+    /**
+     * @description 查询流的可写状态对象 
+     */
+    readonly _writableState: FIBJS.GeneralObject;
+
+    /**
      * @description 从流内读取指定大小的数据
      *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
      *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null

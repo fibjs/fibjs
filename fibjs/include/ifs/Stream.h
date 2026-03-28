@@ -27,6 +27,10 @@ class Stream_base : public EventEmitter_base {
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal) = 0;
+    virtual result_t get_writable(bool& retVal) = 0;
+    virtual result_t get_readable(bool& retVal) = 0;
+    virtual result_t get__readableState(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get__writableState(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal) = 0;
@@ -62,6 +66,10 @@ public:
 
 public:
     static void s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_writable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_readable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get__readableState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get__writableState(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -129,6 +137,10 @@ inline ClassInfo& Stream_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "fd", s_get_fd, block_set, false },
+        { "writable", s_get_writable, block_set, false },
+        { "readable", s_get_readable, block_set, false },
+        { "_readableState", s_get__readableState, block_set, false },
+        { "_writableState", s_get__writableState, block_set, false },
         { "ondata", s_get_ondata, s_set_ondata, false },
         { "onclose", s_get_onclose, s_set_onclose, false },
         { "onerror", s_get_onerror, s_set_onerror, false }
@@ -155,6 +167,62 @@ inline void Stream_base::s_get_fd(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(0, 0);
 
     hr = pInst->get_fd(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_get_writable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_writable(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_get_readable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_readable(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_get__readableState(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get__readableState(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_get__writableState(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get__writableState(vr);
 
     METHOD_RETURN();
 }

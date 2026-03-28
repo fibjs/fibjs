@@ -6,6 +6,18 @@ interface Stream : EventEmitter
     /*! @brief Query the file descriptor value corresponding to the Stream, implemented by subclasses */
     readonly Integer fd;
 
+    /*! @brief Query whether the stream is writable */
+    readonly Boolean writable;
+
+    /*! @brief Query whether the stream is readable */
+    readonly Boolean readable;
+
+    /*! @brief Query the readable state object of the stream */
+    readonly Object _readableState;
+
+    /*! @brief Query the writable state object of the stream */
+    readonly Object _writableState;
+
     /*! @brief Read data of specified size from the stream
      @param bytes Specifies the amount of data to read, default is to read a random size data block, the size of the read data depends on the device
      @return Returns the data read from the stream. If encoding is set, returns a string; otherwise returns a Buffer. Returns null if no data is available or the connection is interrupted

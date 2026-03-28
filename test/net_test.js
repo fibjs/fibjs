@@ -2277,6 +2277,40 @@ function test_net(eng, use_uv) {
             });
         });
 
+        describe("stream writable/readable/_readableState", () => {
+            it("new Socket has writable, readable, _readableState", () => {
+                var sock = new net.Socket();
+                assert.strictEqual(typeof sock.writable, 'boolean');
+                assert.strictEqual(typeof sock.readable, 'boolean');
+                assert.ok(sock._readableState);
+                assert.strictEqual(sock._readableState.ended, false);
+            });
+
+            it("writable is true before close, false after close", () => {
+                var p = getPort();
+                var svr = net.createServer((conn) => {
+                    conn.write("hi");
+                    conn.close();
+                });
+                svr.listen(p);
+                test_util.push(svr.socket);
+
+                var sock = new net.Socket();
+                assert.strictEqual(sock.writable, true);
+
+                var done = new coroutine.Event();
+                sock.on('close', () => {
+                    assert.strictEqual(sock.writable, false);
+                    assert.strictEqual(sock._readableState.ended, true);
+                    done.set();
+                });
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.resume();
+
+                done.wait();
+            });
+        });
+
         describe("net.createServer", () => {
             var svr;
 

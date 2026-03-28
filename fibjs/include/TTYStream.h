@@ -77,15 +77,8 @@ public:
 
         return 0;
     }
-    virtual result_t get_writable(bool& retVal)
-    {
-        retVal = true;
-
-        return 0;
-    }
     virtual result_t get_columns(int32_t& retVal);
     virtual result_t get_rows(int32_t& retVal);
-    virtual result_t get__writableState(v8::Local<v8::Object>& retVal);
     virtual result_t clearLine(int32_t dir);
     virtual result_t clearScreenDown();
     virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac);

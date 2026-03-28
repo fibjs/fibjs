@@ -25,10 +25,6 @@ interface TTYOutputStream : Stream
     */
     readonly Boolean isTTY;
 
-    /*! @brief 恒为 true，表示流可写
-    */
-    readonly Boolean writable;
-
     /*! @brief 返回此 TTYOutputStream 对应的终端的列数
     */
     readonly Integer columns;
@@ -36,10 +32,6 @@ interface TTYOutputStream : Stream
     /*! @brief 返回此 TTYOutputStream 对应的终端的行数
     */
     readonly Integer rows;
-
-    /*! @brief 返回此 TTYOutputStream 对应的终端的可写状态对象
-     */
-    readonly Object _writableState;
 
     /*! @brief 根据 dir 指示的方向 clear line
 
