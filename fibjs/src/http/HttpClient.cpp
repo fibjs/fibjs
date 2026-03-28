@@ -1224,6 +1224,13 @@ public:
         if (!bHost)
             m_req->appendHeader("Host", host);
 
+        if (m_hc->m_enableEncoding) {
+            bool hasAE = false;
+            m_req->hasHeader("Accept-Encoding", hasAE);
+            if (!hasAE)
+                m_req->appendHeader("Accept-Encoding", "gzip, deflate");
+        }
+
         if (m_o->body)
             m_req->set_body(m_o->body);
 
@@ -1757,6 +1764,44 @@ public:
                 m_hc->save_conn(connUrl, m_conn);
             }
         }
+        return next(decode);
+    }
+
+    ON_STATE(asyncRequest, decode)
+    {
+        if (!m_hc->m_enableEncoding)
+            return next(end);
+
+        HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
+        exlib::string encoding;
+        if (resp->firstHeader("Content-Encoding", encoding) == CALL_RETURN_NULL)
+            return next(end);
+
+        obj_ptr<Stream_base> bodyStream;
+        if (resp->get_body(bodyStream) != 0 || !bodyStream)
+            return next(end);
+
+        m_decodeStream = new MemoryStream();
+
+        if (!qstricmp(encoding.c_str(), "gzip") || !qstricmp(encoding.c_str(), "x-gzip"))
+            return zlib_base::gunzipTo(bodyStream, m_decodeStream, -1, next(decode_done));
+        else if (!qstricmp(encoding.c_str(), "deflate") || !qstricmp(encoding.c_str(), "x-deflate"))
+            return zlib_base::inflateTo(bodyStream, m_decodeStream, -1, next(decode_done));
+
+        m_decodeStream.Release();
+        return next(end);
+    }
+
+    ON_STATE(asyncRequest, decode_done)
+    {
+        m_decodeStream->rewind();
+
+        HttpResponse* resp = static_cast<HttpResponse*>(static_cast<HttpResponse_base*>(m_retVal.get()));
+        resp->m_message->m_bodyStream = m_decodeStream;
+        resp->removeHeader("Content-Encoding");
+        resp->removeHeader("Content-Length");
+
+        m_decodeStream.Release();
         return next(end);
     }
 
@@ -1890,6 +1935,9 @@ private:
     obj_ptr<Buffer_base> m_buffer;
     bool m_reuse;
     bool m_completed = false;
+
+    // Content-Encoding decompression state
+    obj_ptr<MemoryStream> m_decodeStream;
 
     // HTTP/2 auto-upgrade state
     obj_ptr<Http2Session> m_h2session;

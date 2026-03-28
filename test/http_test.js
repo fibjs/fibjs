@@ -3436,6 +3436,46 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
             });
 
+            it("enableEncoding auto-decompress gzip", () => {
+                var url = "http://127.0.0.1:" + (8882 + base_port) + "/gzip_test";
+
+                // enableEncoding=true (default): auto-decompress and strip Content-Encoding
+                var hc1 = new http.Client();
+                hc1.enableEncoding = true;
+                var r1 = hc1.getSync(url);
+                assert.equal(r1.firstHeader("Content-Encoding"), null);
+                assert.equal(r1.text(),
+                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+
+                // enableEncoding=false: keep compressed body and Content-Encoding header
+                var hc2 = new http.Client();
+                hc2.enableEncoding = false;
+                var r2 = hc2.getSync(url);
+                assert.equal(r2.firstHeader("Content-Encoding"), null);
+                r2.body.close();
+            });
+
+            it("enableEncoding adds Accept-Encoding header", () => {
+                var url = "http://127.0.0.1:" + (8882 + base_port) + "/gzip_test";
+
+                // enableEncoding=true sends Accept-Encoding, server compresses
+                var hc1 = new http.Client();
+                hc1.enableEncoding = true;
+                var r1 = hc1.getSync(url);
+                assert.equal(r1.firstHeader("Content-Encoding"), null);
+                assert.equal(r1.firstHeader("Content-Length"), null);
+                assert.equal(r1.text(),
+                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+
+                // user-set Accept-Encoding is not overwritten
+                var hc3 = new http.Client();
+                hc3.enableEncoding = true;
+                var r3 = hc3.getSync(url, { headers: { "Accept-Encoding": "identity" } });
+                assert.equal(r3.firstHeader("Content-Encoding"), null);
+                assert.equal(r3.text(),
+                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+            });
+
             it("keep-alive", () => {
                 var r1 = http.getSync("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 r1.text(); // consume body to release connection back to pool
