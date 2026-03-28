@@ -1233,6 +1233,20 @@ class Buffer extends Uint8Array {
 
         return encoding.encode(this, codec || 'utf8');
     }
+
+    utf8Slice(start, end) { return this.toString('utf8', start, end); }
+    latin1Slice(start, end) { return this.toString('latin1', start, end); }
+    asciiSlice(start, end) { return this.toString('ascii', start, end); }
+    hexSlice(start, end) { return this.toString('hex', start, end); }
+    base64Slice(start, end) { return this.toString('base64', start, end); }
+    ucs2Slice(start, end) { return this.toString('ucs2', start, end); }
+
+    utf8Write(str, offset, length) { return this.write(str, offset, length, 'utf8'); }
+    latin1Write(str, offset, length) { return this.write(str, offset, length, 'latin1'); }
+    asciiWrite(str, offset, length) { return this.write(str, offset, length, 'ascii'); }
+    hexWrite(str, offset, length) { return this.write(str, offset, length, 'hex'); }
+    base64Write(str, offset, length) { return this.write(str, offset, length, 'base64'); }
+    ucs2Write(str, offset, length) { return this.write(str, offset, length, 'ucs2'); }
 }
 
 Buffer.from = function (bufferOrString, byte_offset, byte_length) {

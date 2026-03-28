@@ -1503,4 +1503,67 @@ describe('Buffer', () => {
             });
         });
     }
+
+    describe('encoding shortcut methods', () => {
+        it('utf8Slice / utf8Write', () => {
+            const buf = Buffer.alloc(16);
+            const written = buf.utf8Write('hello', 0, 5);
+            assert.strictEqual(written, 5);
+            assert.strictEqual(buf.utf8Slice(0, 5), 'hello');
+        });
+
+        it('utf8Write with multi-byte characters', () => {
+            const buf = Buffer.alloc(16);
+            const written = buf.utf8Write('你好', 0, 16);
+            assert.strictEqual(written, 6);
+            assert.strictEqual(buf.utf8Slice(0, 6), '你好');
+        });
+
+        it('latin1Slice / latin1Write', () => {
+            const buf = Buffer.alloc(8);
+            const written = buf.latin1Write('café', 0, 8);
+            assert.ok(written > 0);
+            assert.strictEqual(buf.latin1Slice(0, written), 'café');
+        });
+
+        it('asciiSlice / asciiWrite', () => {
+            const buf = Buffer.alloc(8);
+            const written = buf.asciiWrite('hello', 0, 5);
+            assert.strictEqual(written, 5);
+            assert.strictEqual(buf.asciiSlice(0, 5), 'hello');
+        });
+
+        it('hexSlice / hexWrite', () => {
+            const buf = Buffer.from([0x68, 0x65, 0x6c, 0x6c, 0x6f]);
+            assert.strictEqual(buf.hexSlice(0, 5), '68656c6c6f');
+
+            const buf2 = Buffer.alloc(4);
+            const written = buf2.hexWrite('deadbeef', 0, 4);
+            assert.strictEqual(written, 4);
+            assert.strictEqual(buf2.hexSlice(0, 4), 'deadbeef');
+        });
+
+        it('base64Slice / base64Write', () => {
+            const buf = Buffer.from('hello');
+            assert.strictEqual(buf.base64Slice(0, 5), Buffer.from('hello').toString('base64'));
+
+            const buf2 = Buffer.alloc(5);
+            const written = buf2.base64Write('aGVsbG8=', 0, 5);
+            assert.strictEqual(written, 5);
+            assert.strictEqual(buf2.toString('utf8'), 'hello');
+        });
+
+        it('ucs2Slice / ucs2Write', () => {
+            const buf = Buffer.alloc(10);
+            const written = buf.ucs2Write('hi', 0, 10);
+            assert.strictEqual(written, 4);
+            assert.strictEqual(buf.ucs2Slice(0, 4), 'hi');
+        });
+
+        it('slice parameters', () => {
+            const buf = Buffer.from('abcdefgh');
+            assert.strictEqual(buf.utf8Slice(2, 5), 'cde');
+            assert.strictEqual(buf.hexSlice(0, 3), '616263');
+        });
+    });
 });
