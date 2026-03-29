@@ -1092,6 +1092,7 @@ public:
         , m_o(o)
         , m_retVal(m_tempRetVal)
         , m_respRetVal(&retVal)
+        , m_req_holder(o->req_holder)
         , m_hc((HttpClient*)(HttpClient_base*)o->agent)
     {
         init();
@@ -1101,6 +1102,7 @@ public:
         : AsyncState(ac)
         , m_o(o)
         , m_retVal(m_tempRetVal)
+        , m_req_holder(o->req_holder)
         , m_hc((HttpClient*)(HttpClient_base*)o->agent)
     {
         init();
@@ -1936,6 +1938,7 @@ private:
     std::unordered_map<exlib::string, bool> m_urls;
     obj_ptr<Stream_base> m_conn;
     obj_ptr<HttpRequest> m_req;
+    obj_ptr<ValueHolder> m_req_holder;
     obj_ptr<HttpRequest> m_reqConn;
     exlib::string m_connUrl;
     obj_ptr<HttpClient> m_hc;
@@ -2045,8 +2048,11 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     o->req = new HttpRequest();
     if (!callback.IsEmpty()) {
         o->is_async = true;
+        o->req_holder = new ValueHolder(o->req->wrap());
         v8::Local<v8::Object> _r;
-        o->req->once("response", callback, _r);
+        hr = o->req->once("response", callback, _r);
+        if (hr < 0)
+            return hr;
     }
 
     ac->m_ctx[0] = o;
@@ -2102,6 +2108,8 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     o->is_async = true;
+    if (!o->req_holder)
+        o->req_holder = new ValueHolder(o->req->wrap());
     retVal = o->req;
 
     (new asyncRequest(o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);

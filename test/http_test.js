@@ -5476,6 +5476,9 @@ describe("http", () => {
                         r.response.write("(none)");
                 } else if (r.address == "/echo-agent") {
                     r.response.write(r.hasHeader("user-agent") ? r.firstHeader("user-agent") : "(no-ua)");
+                } else if (r.address == "/delay-gc-cb") {
+                    coroutine.sleep(400);
+                    r.response.write("delay-gc-cb-ok");
                 } else {
                     r.response.write(r.address);
                 }
@@ -5519,6 +5522,54 @@ describe("http", () => {
                         assert.equal(r.text(), "/hello");
                     });
                 }).end();
+            });
+
+            it("callback request survives GC before delayed response", (done) => {
+                var finished = false;
+                var timer = null;
+
+                var req = http.request(url("/delay-gc-cb"), (r) => {
+                    if (finished)
+                        return;
+                    finished = true;
+                    clearTimeout(timer);
+
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "delay-gc-cb-ok");
+                    });
+                });
+
+                req.on("error", (err) => {
+                    if (finished)
+                        return;
+                    finished = true;
+                    clearTimeout(timer);
+
+                    done(() => {
+                        throw new Error("unexpected request error: " + err);
+                    });
+                });
+
+                req.end();
+
+                req = undefined;
+
+                coroutine.start(() => {
+                    for (var i = 0; i < 3 && !finished; i++) {
+                        test_util.gc();
+                        coroutine.sleep(1);
+                    }
+                });
+
+                timer = setTimeout(() => {
+                    if (finished)
+                        return;
+                    finished = true;
+                    done(() => {
+                        throw new Error("timeout: callback request did not receive delayed response");
+                    });
+                }, 3000);
             });
         });
 

@@ -18,6 +18,7 @@
 namespace fibjs {
 
 class HttpClient_base;
+class ValueHolder;
 
 class HttpRequest : public HttpRequest_base {
 public:
@@ -140,6 +141,7 @@ public:
         bool streaming = true;
         obj_ptr<AbortSignal_base> signal;
         obj_ptr<HttpRequest> req;
+        obj_ptr<ValueHolder> req_holder;
         bool is_async = false;
         obj_ptr<HttpClient_base> agent;
 
