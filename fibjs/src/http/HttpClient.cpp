@@ -946,12 +946,12 @@ private:
 };
 
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
-    obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac, bool)
+    obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac, bool)
 {
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(HttpClient* hc, Stream_base* conn, HttpRequest_base* req,
-            obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac)
+            obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_hc(hc)
             , m_conn(conn)
@@ -976,7 +976,8 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         ON_STATE(asyncRequest, recv)
         {
             m_response = new HttpResponse();
-            m_retVal = m_response;
+            if (m_retVal)
+                *m_retVal = m_response;
 
             m_response->m_message->m_bNoBody = m_bNoBody;
 
@@ -1038,17 +1039,23 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                     m_response->m_message->m_bodyStream = bs;
                 }
             }
+
+            if (!m_retVal) {
+                static_cast<HttpRequest*>(m_req.get())->_set_response(m_response);
+                Variant resp_var = m_response;
+                static_cast<HttpRequest*>(m_req.get())->_emit("response", &resp_var, 1);
+            }
             return next();
         }
 
     private:
         obj_ptr<HttpClient> m_hc;
         obj_ptr<Stream_base> m_conn;
-        HttpRequest_base* m_req;
+        obj_ptr<HttpRequest_base> m_req;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<Stream_base> m_body;
+        obj_ptr<HttpMessage_base>* m_retVal;
         obj_ptr<HttpResponse> m_response;
-        obj_ptr<HttpMessage_base>& m_retVal;
         bool m_bNoBody;
         bool m_bConnect;
     };
@@ -1418,7 +1425,7 @@ public:
     ON_STATE(asyncRequest, ssl_connect)
     {
         m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
-        return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake), true);
+        return m_hc->request(m_conn, m_reqConn, &m_retVal, next(ssl_handshake), true);
     }
 
     ON_STATE(asyncRequest, ssl_connected)
@@ -1503,7 +1510,7 @@ public:
             m_is_h2_leader = false;
         }
 
-        return m_hc->request(m_conn, m_req, m_retVal, next(requested), true);
+        return m_hc->request(m_conn, m_req, &m_retVal, next(requested), true);
     }
 
     ON_STATE(asyncRequest, h2_init_session)
@@ -1968,49 +1975,6 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
     return (new asyncRequest(o, retVal, ac))->post(0);
 }
 
-class BlockingHttpEvent : public AsyncEvent {
-public:
-    explicit BlockingHttpEvent(Isolate* isolate)
-        : AsyncEvent(isolate)
-        , m_done(new Event())
-    {
-        setAsync();
-    }
-
-    virtual int32_t post(int32_t v) override
-    {
-        if (v == CALL_E_EXCEPTION) {
-            m_error_code = Runtime::errCode();
-            m_error_type = Runtime::errType();
-            m_error = Runtime::errMessage();
-        }
-
-        m_result = v;
-        m_done->set();
-        return 0;
-    }
-
-    int32_t wait_result(int32_t hr)
-    {
-        if (hr == CALL_E_PENDDING) {
-            m_done->ac_wait();
-            if (m_result == CALL_E_EXCEPTION)
-                Runtime::setError(m_error_type, m_error_code, m_error);
-        } else {
-            m_result = hr;
-        }
-
-        return m_result;
-    }
-
-private:
-    obj_ptr<Event_base> m_done;
-    int32_t m_result = 0;
-    exlib::string m_error;
-    result_t m_error_code = 0;
-    ErrorType m_error_type = kError;
-};
-
 // Lightweight event that silently absorbs async completion,
 // used by callback-mode HTTP methods to fire-and-forget.
 class FireAndForgetEvent : public AsyncEvent {
@@ -2427,14 +2391,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    BlockingHttpEvent ac(Isolate::current());
-    obj_ptr<HttpMessage_base> msg;
-    result_t hr = ac.wait_result(request(conn, req, msg, &ac, true));
-    if (hr < 0)
-        return hr;
-
-    static_cast<HttpRequest*>(req)->_set_response(static_cast<HttpResponse_base*>(msg.get()));
-    static_cast<HttpRequest*>(req)->_emit("response", msg);
+    request(conn, req, nullptr, new FireAndForgetEvent(Isolate::current()), true);
     retVal = req;
     return 0;
 }
