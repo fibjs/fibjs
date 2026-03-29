@@ -61,8 +61,7 @@ private:
         SeekableStream_base* strm = (SeekableStream_base*)stream;
         obj_ptr<Buffer_base> data = new Buffer(buf, size);
 
-        bool len;
-        hr = strm->cc_write(data, len);
+        hr = strm->cc_writeBuffer(data);
         if (hr < 0)
             return 0;
 
@@ -422,8 +421,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
         if (err > 0) {
             obj_ptr<Buffer_base> buffer = new Buffer(buf, err);
-            bool len;
-            hr = strm->cc_write(buffer, len);
+            hr = strm->cc_writeBuffer(buffer);
             if (hr < 0)
                 return hr;
         }
@@ -785,10 +783,7 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::strin
     obj_ptr<MemoryStream> strm;
 
     strm = new MemoryStream();
-    bool len;
-    hr = strm->cc_write(data, len);
-    if (hr < 0)
-        return hr;
+    strm->writeBuffer(data, nullptr);
 
     hr = strm->rewind();
     if (hr < 0)

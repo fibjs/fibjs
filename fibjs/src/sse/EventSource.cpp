@@ -390,8 +390,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     pBuf[pos++] = '\r';
     pBuf[pos++] = '\n';
 
-    bool _retVal;
-    return m_stream->write(buf, _retVal, ac);
+    return m_stream->writeBuffer(buf, ac);
 }
 
 result_t EventSource::get_readyState(int32_t& retVal)

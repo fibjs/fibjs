@@ -818,8 +818,7 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
     // Set body as MemoryStream
     obj_ptr<Buffer> buf = new Buffer((const uint8_t*)jsonStr.c_str(), jsonStr.length());
     obj_ptr<MemoryStream> ms = new MemoryStream();
-    bool ok;
-    ms->ac_write(buf, ok);
+    ms->writeBuffer(buf, nullptr);
     ms->rewind();
     resp->set_body(ms);
 

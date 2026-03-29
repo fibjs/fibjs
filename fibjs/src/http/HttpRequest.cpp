@@ -75,8 +75,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             if (hr < 0)
                 return hr;
             obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
-            bool wr;
-            body->cc_write(buf, wr);
+            body->writeBuffer(buf, nullptr);
             Variant ct;
             if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
                 headers->set("Content-Type", "application/json");
@@ -86,8 +85,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             hr = msgpack_base::encode(v, buf);
             if (hr < 0)
                 return hr;
-            bool wr;
-            body->cc_write(buf, wr);
+            body->writeBuffer(buf, nullptr);
             Variant ct;
             if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
                 headers->set("Content-Type", "application/msgpack");

@@ -129,8 +129,7 @@ result_t ChildProcess::Ipc::send(Stream_base* stream, v8::Local<v8::Value> msg)
 
     s.append(1, '\n');
     obj_ptr<Buffer> data = new Buffer(s.c_str(), s.length());
-    bool len;
-    return stream->ac_write(data, len);
+    return stream->ac_writeBuffer(data);
 }
 
 result_t ChildProcess::Ipc::sync_delete(Ipc* pThis)

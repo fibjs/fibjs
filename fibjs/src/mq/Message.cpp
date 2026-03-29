@@ -237,8 +237,7 @@ result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    bool _retVal;
-    return m_body->write(data, _retVal, ac);
+    return m_body->writeBuffer(data, ac);
 }
 
 result_t Message::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
