@@ -98,38 +98,6 @@ describe('coroutine', () => {
             assert.equal(coroutine.current().v, 100);
         });
 
-        it('caller', () => {
-            function t_fiber3(v1, v2) {
-                n = v1 + v2 + this.caller.v;
-            }
-
-            n = 1300;
-
-            var f = coroutine.start(t_fiber3, 100, 200);
-            assert.equal(n, 1300);
-            coroutine.current().v = 1234;
-            f.join();
-            assert.equal(n, 1534);
-        });
-
-        it('inherit local storage', () => {
-            function t_fiber4() {
-                n = coroutine.current().v;
-            }
-
-            n = 0;
-
-            coroutine.current().v = 1000;
-
-            var f = coroutine.start(t_fiber4);
-            assert.equal(n, 0);
-
-            coroutine.current().v = 2000;
-
-            f.join();
-            assert.equal(n, 1000);
-        });
-
         it("new fiber stack_usage error", () => {
             coroutine.start(() => { }).stack_usage;
         });

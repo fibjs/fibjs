@@ -39,8 +39,6 @@ private:
             v8::Local<v8::Value> v;
             int32_t pos = m_pos;
 
-            s->set_caller(m_caller);
-
             // Restore async context for AsyncLocalStorage propagation
             if (!m_async_ctx.IsEmpty())
                 s->m_async_ctx.Reset(m_isolate->m_isolate, m_async_ctx.Get(m_isolate->m_isolate));
@@ -78,11 +76,11 @@ private:
         m_event = new Event();
         m_error = false;
         m_pos = 0;
-        m_caller = JSFiber::current();
+        JSFiber* current = JSFiber::current();
 
         // Capture async context for AsyncLocalStorage propagation
-        if (m_caller && !m_caller->m_async_ctx.IsEmpty())
-            m_async_ctx.Reset(m_isolate->m_isolate, m_caller->m_async_ctx.Get(m_isolate->m_isolate));
+        if (current && !current->m_async_ctx.IsEmpty())
+            m_async_ctx.Reset(m_isolate->m_isolate, current->m_async_ctx.Get(m_isolate->m_isolate));
 
         for (i = 0; i < m_fibers; i++)
             m_isolate->sync([this]() -> int {
@@ -153,7 +151,6 @@ public:
     v8::Global<v8::Array> m_retVal;
     v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     obj_ptr<Event> m_event;
-    JSFiber* m_caller;
     bool m_error;
 };
 

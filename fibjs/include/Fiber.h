@@ -53,14 +53,11 @@ public:
     virtual result_t join();
     virtual result_t get_id(int64_t& retVal);
     virtual result_t get_stack(exlib::string& retVal);
-    virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
     virtual result_t get_stack_usage(int32_t& retVal);
 
 public:
     static void FiberProcRunJavascript(void* p);
     void start();
-
-    void set_caller(Fiber_base* caller);
 
     static JSFiber* current();
     result_t js_invoke();
@@ -137,7 +134,6 @@ public:
 public:
     exlib::string m_message;
     exlib::Event m_quit;
-    weak_ptr<Fiber_base> m_caller;
     exlib::Thread_base* m_bind_thread = NULL;
 
     const char* m_native_name = NULL;

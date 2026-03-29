@@ -73,31 +73,9 @@ void JSFiber::FiberProcRunJavascript(void* p)
     isolate->m_isolate->DiscardThreadSpecificMetadata();
 }
 
-void JSFiber::set_caller(Fiber_base* caller)
-{
-    m_caller = caller;
-
-    if (m_caller) {
-        v8::Local<v8::Object> co = m_caller->wrap();
-        v8::Local<v8::Object> o = wrap();
-        v8::Local<v8::Context> context = co->GetCreationContextChecked();
-
-        v8::Local<v8::Array> ks = co->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-        int32_t len = ks->Length();
-
-        int32_t i;
-
-        for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(context, i);
-            o->Set(context, k, JSValue(co->Get(context, k))).IsJust();
-        }
-    }
-}
-
 void JSFiber::start()
 {
     Ref();
-    set_caller(JSFiber::current());
     holder()->sync([this]() -> int {
         return js_invoke();
     });
@@ -158,15 +136,6 @@ result_t JSFiber::get_stack(exlib::string& retVal)
         retVal = str;
     }
 
-    return 0;
-}
-
-result_t JSFiber::get_caller(obj_ptr<Fiber_base>& retVal)
-{
-    if (m_caller == NULL)
-        return CALL_RETURN_NULL;
-
-    retVal = m_caller;
     return 0;
 }
 

@@ -53,9 +53,6 @@ interface Fiber : object
     /*! @brief 查询纤程的唯一 id */
     readonly Long id;
 
-    /*! @brief 查询纤程的调用纤程 */
-    readonly Fiber caller;
-
     /*! @brief 查询纤程的调用堆栈*/
     readonly String stack;
 

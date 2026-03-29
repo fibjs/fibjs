@@ -61,11 +61,6 @@ declare class Class_Fiber extends Class_object {
     readonly id: number;
 
     /**
-     * @description 查询纤程的调用纤程 
-     */
-    readonly caller: Class_Fiber;
-
-    /**
      * @description 查询纤程的调用堆栈
      */
     readonly stack: string;
