@@ -1079,22 +1079,22 @@ public:
             m_o->abort_signal()->clearAbort();
     }
 
-    asyncRequest(HttpClient* hc, HttpRequest::Options* o,
+    asyncRequest(HttpRequest::Options* o,
         obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
         : AsyncState(ac)
         , m_o(o)
         , m_retVal(m_tempRetVal)
         , m_respRetVal(&retVal)
-        , m_hc(hc)
+        , m_hc((HttpClient*)(HttpClient_base*)o->agent)
     {
         init();
     }
 
-    asyncRequest(HttpClient* hc, HttpRequest::Options* o, AsyncEvent* ac)
+    asyncRequest(HttpRequest::Options* o, AsyncEvent* ac)
         : AsyncState(ac)
         , m_o(o)
         , m_retVal(m_tempRetVal)
-        , m_hc(hc)
+        , m_hc((HttpClient*)(HttpClient_base*)o->agent)
     {
         init();
     }
@@ -1965,7 +1965,7 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
             return CHECK_ERROR(Runtime::setError(kTypeError, "AbortError"));
     }
 
-    return (new asyncRequest(this, o, retVal, ac))->post(0);
+    return (new asyncRequest(o, retVal, ac))->post(0);
 }
 
 class BlockingHttpEvent : public AsyncEvent {
@@ -2035,7 +2035,7 @@ result_t HttpClient::request(HttpRequest::Options* o, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(this, o, ac))->post(0);
+    return (new asyncRequest(o, ac))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
@@ -2045,6 +2045,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
+    o->agent = this;
     o->method = method;
     o->keepAlive = m_keepAlive;
     o->headers = headers;
@@ -2065,15 +2066,17 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     ac->m_ctx.resize(1);
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
-    result_t hr = o->from_opts(method, opts, true, false, skip_body);
+    o->agent = this;
+
+    result_t hr = o->from_opts(method, url, opts, true, false, skip_body);
     if (hr < 0)
         return hr;
 
-    hr = o->resolve_url(url, opts);
-    if (hr < 0)
-        return hr;
-
-    o->apply_keepalive_default(m_keepAlive);
+    // Object-only overload: build URL entirely from opts fields
+    if (!o->u) {
+        o->u = new Url();
+        o->u->format(opts);
+    }
 
     o->req = new HttpRequest();
     if (!callback.IsEmpty()) {
@@ -2137,7 +2140,7 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
     o->is_async = true;
     retVal = o->req;
 
-    (new asyncRequest(this, o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
     return 0;
 }
 
@@ -2179,7 +2182,7 @@ result_t HttpClient::fire_callback_request(exlib::string method, exlib::string u
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     retVal = o->req;
 
-    (new asyncRequest(this, o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
     return 0;
 }
 
@@ -2436,31 +2439,6 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     return 0;
 }
 
-result_t HttpClient::requestSync(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal)
-{
-    AsyncEvent parse_ac(Isolate::current());
-    result_t hr = get_request_opts(method, url, opts, &parse_ac);
-    if (hr != CALL_E_NOSYNC)
-        return hr;
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)parse_ac.m_ctx[0].object();
-    BlockingHttpEvent run_ac(Isolate::current());
-    return run_ac.wait_result(requestSync(o.get(), retVal, &run_ac));
-}
-
-result_t HttpClient::requestSync(v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("GET", "", opts, retVal);
-}
-
-result_t HttpClient::requestSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("GET", url, opts, retVal);
-}
-
 result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal)
 {
@@ -2524,12 +2502,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     return request(method, url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal);
 }
 
-result_t HttpClient::getSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("GET", url, opts, retVal);
-}
-
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
@@ -2546,12 +2518,6 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
     return request(url, callback, retVal);
-}
-
-result_t HttpClient::postSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("POST", url, opts, retVal);
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> opts,
@@ -2572,12 +2538,6 @@ result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
     return request("POST", url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal);
 }
 
-result_t HttpClient::delSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("DELETE", url, opts, retVal);
-}
-
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
@@ -2594,12 +2554,6 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
     return request("DELETE", url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal);
-}
-
-result_t HttpClient::putSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("PUT", url, opts, retVal);
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> opts,
@@ -2620,12 +2574,6 @@ result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
     return request("PUT", url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal);
 }
 
-result_t HttpClient::patchSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("PATCH", url, opts, retVal);
-}
-
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
@@ -2642,12 +2590,6 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
     return request("PATCH", url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal);
-}
-
-result_t HttpClient::headSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
-{
-    return requestSync("HEAD", url, opts, retVal);
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
@@ -2671,10 +2613,10 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
 // Async state machine shared by both fetch(url) and fetch(request).
 class asyncFetch : public AsyncState {
 public:
-    asyncFetch(HttpClient* hc, obj_ptr<HttpRequest::Options> o,
+    asyncFetch(obj_ptr<HttpRequest::Options> o,
         obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
         : AsyncState(ac)
-        , m_hc(hc)
+        , m_hc((HttpClient*)(HttpClient_base*)o->agent)
         , m_o(o)
         , m_retVal(retVal)
     {
@@ -2755,7 +2697,7 @@ result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
         return get_request_opts("GET", url, opts, ac);
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return (new asyncFetch(this, o, retVal, ac))->post(0);
+    return (new asyncFetch(o, retVal, ac))->post(0);
 }
 
 result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
@@ -2767,7 +2709,9 @@ result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts
         request->get_method(req_method);
 
         obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
-        result_t hr = o->from_opts(req_method, opts, true, true);
+        o->agent = this;
+
+        result_t hr = o->from_opts(req_method, "", opts, true, true);
         if (hr < 0)
             return hr;
 
@@ -2775,14 +2719,12 @@ result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts
         if (hr < 0)
             return hr;
 
-        o->apply_keepalive_default(m_keepAlive);
-
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = o;
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return (new asyncFetch(this, o, retVal, ac))->post(0);
+    return (new asyncFetch(o, retVal, ac))->post(0);
 }
 }

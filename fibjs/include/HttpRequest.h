@@ -17,6 +17,8 @@
 
 namespace fibjs {
 
+class HttpClient_base;
+
 class HttpRequest : public HttpRequest_base {
 public:
     HttpRequest()
@@ -139,16 +141,16 @@ public:
         obj_ptr<AbortSignal_base> signal;
         obj_ptr<HttpRequest> req;
         bool is_async = false;
+        obj_ptr<HttpClient_base> agent;
 
         // Cast to concrete AbortSignal for internal C++ use (addAbortCallback / clearAbort).
         // Safe because AbortSignal is the only concrete implementation.
         AbortSignal* abort_signal() const { return static_cast<AbortSignal*>((AbortSignal_base*)signal); }
 
-        // Parse method/headers/body/keepAlive from a v8 opts object.
-        // urlEncoded_default: true  → string body gets application/x-www-form-urlencoded
-        //                     false → string body gets text/plain;charset=UTF-8
-        // strict: true → reject GET/HEAD requests with a body (Fetch API)
-        result_t from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+        // Parse method/headers/body/keepAlive/agent from a v8 opts object.
+        // When url is non-empty, resolve it with URL-override fields in opts.
+        // When agent is set and keepAlive was not provided, apply agent's default.
+        result_t from_opts(exlib::string default_method, exlib::string url, v8::Local<v8::Object> opts,
             bool urlEncoded_default, bool strict = false, bool skip_body = false);
 
         // Fill u (URL), body fallback, and merged headers from an existing request.
@@ -158,12 +160,7 @@ public:
         // Resolve u from a base URL string + URL-override fields in opts.
         result_t resolve_url(exlib::string url, v8::Local<v8::Object> opts);
 
-        // Apply a fallback keepAlive value when the caller did not specify one.
-        void apply_keepalive_default(bool default_val)
-        {
-            if (!has_keepAlive)
-                keepAlive = default_val;
-        }
+
     };
 
 public:

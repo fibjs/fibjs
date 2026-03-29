@@ -175,7 +175,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse requestSync(String method, String url, Object opts = {});
+    HttpResponse requestSync(String method, String url, Object opts = {}) async;
 
     /*! @brief 请求 opts 指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -201,7 +201,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse requestSync(Object opts);
+    HttpResponse requestSync(Object opts) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -228,7 +228,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse requestSync(String url, Object opts = {});
+    HttpResponse requestSync(String url, Object opts = {}) async;
 
     /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param method 指定 http 请求方法：GET, POST 等
@@ -316,7 +316,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse getSync(String url, Object opts = {});
+    HttpResponse getSync(String url, Object opts = {}) async;
 
     /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -366,7 +366,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse postSync(String url, Object opts = {});
+    HttpResponse postSync(String url, Object opts = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -416,7 +416,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse delSync(String url, Object opts = {});
+    HttpResponse delSync(String url, Object opts = {}) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -466,7 +466,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse putSync(String url, Object opts = {});
+    HttpResponse putSync(String url, Object opts = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -516,7 +516,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse patchSync(String url, Object opts = {});
+    HttpResponse patchSync(String url, Object opts = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -566,7 +566,7 @@ interface HttpClient : EventEmitter
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse headSync(String url, Object opts = {});
+    HttpResponse headSync(String url, Object opts = {}) async;
 
     /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url

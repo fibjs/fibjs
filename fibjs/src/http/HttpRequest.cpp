@@ -18,6 +18,7 @@
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
 #include "ifs/TLSSocket.h"
+#include "HttpClient.h"
 #include "Isolate.h"
 #include "ifs/Socket.h"
 #include "TLSSocket.h"
@@ -30,7 +31,7 @@ result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8:
     return 0;
 }
 
-result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local<v8::Object> opts,
+result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::string url, v8::Local<v8::Object> opts,
     bool urlEncoded_default, bool strict, bool skip_body)
 {
     Isolate* isolate = Isolate::current();
@@ -123,6 +124,27 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, v8::Local
             streaming = s;
     }
 
+    // Extract agent (HttpClient) from opts if present
+    {
+        JSValue agent_val = opts->Get(context, isolate->NewString("agent"));
+        if (!IsEmpty(agent_val)) {
+            HttpClient_base* hc = HttpClient_base::getInstance(agent_val);
+            if (hc)
+                agent = hc;
+        }
+    }
+
+    // Resolve URL: merge url string with URL-override fields in opts
+    if (!url.empty()) {
+        hr = resolve_url(url, opts);
+        if (hr < 0)
+            return hr;
+    }
+
+    // Apply agent's default keepAlive when not explicitly specified
+    if (!has_keepAlive && agent)
+        keepAlive = ((HttpClient*)(HttpClient_base*)agent)->m_keepAlive;
+
     return 0;
 }
 
@@ -200,7 +222,7 @@ result_t HttpRequest_base::_new(exlib::string url, v8::Local<v8::Object> options
     obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
     HttpRequest::Options o;
-    result_t hr = o.from_opts("GET", options, false, true);
+    result_t hr = o.from_opts("GET", "", options, false, true);
     if (hr < 0)
         return hr;
 
@@ -226,7 +248,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     req->get_method(cur_method);
 
     HttpRequest::Options o;
-    hr = o.from_opts(cur_method, options, false, true);
+    hr = o.from_opts(cur_method, "", options, false, true);
     if (hr < 0)
         return hr;
 

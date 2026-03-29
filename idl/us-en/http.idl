@@ -178,7 +178,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse requestSync(String method, String url, Object opts = {});
+    static HttpResponse requestSync(String method, String url, Object opts = {}) async;
 
     /*! @brief Request the url specified by opts and return the result
      opts contains additional options for the request, supports the following content:
@@ -204,7 +204,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse requestSync(Object opts);
+    static HttpResponse requestSync(Object opts) async;
 
     /*! @brief Request the specified url with GET method and return the result, equivalent to request("GET", ...)
      opts contains additional options for the request, supports the following content:
@@ -231,7 +231,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse requestSync(String url, Object opts = {});
+    static HttpResponse requestSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param method Specify http request method: GET, POST, etc
@@ -319,7 +319,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse getSync(String url, Object opts = {});
+    static HttpResponse getSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with GET method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -369,7 +369,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse postSync(String url, Object opts = {});
+    static HttpResponse postSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with POST method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -419,7 +419,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse delSync(String url, Object opts = {});
+    static HttpResponse delSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with DELETE method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -469,7 +469,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse putSync(String url, Object opts = {});
+    static HttpResponse putSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PUT method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -519,7 +519,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse patchSync(String url, Object opts = {});
+    static HttpResponse patchSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PATCH method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host
@@ -569,7 +569,7 @@ module http
      @param opts Specify additional information
      @return Return server response
      */
-    static HttpResponse headSync(String url, Object opts = {});
+    static HttpResponse headSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with HEAD method, register callback to receive response, return HttpRequest object
      @param url Specify url, must be a complete url containing the host

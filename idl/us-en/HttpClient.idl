@@ -142,7 +142,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse requestSync(String method, String url, Object opts = {});
+    HttpResponse requestSync(String method, String url, Object opts = {}) async;
 
     /*! @brief Request the url specified by opts and return result
      opts contains additional options for the request, supported content is as follows:
@@ -168,7 +168,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse requestSync(Object opts);
+    HttpResponse requestSync(Object opts) async;
 
     /*! @brief Request the specified url with GET method and return result, equivalent to request("GET", ...)
      opts contains additional options for the request, supported content is as follows:
@@ -195,7 +195,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse requestSync(String url, Object opts = {});
+    HttpResponse requestSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
      @param method specify http request method: GET, POST, etc
@@ -283,7 +283,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse getSync(String url, Object opts = {});
+    HttpResponse getSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with GET method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -333,7 +333,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse postSync(String url, Object opts = {});
+    HttpResponse postSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with POST method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -383,7 +383,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse delSync(String url, Object opts = {});
+    HttpResponse delSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with DELETE method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -433,7 +433,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse putSync(String url, Object opts = {});
+    HttpResponse putSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PUT method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -483,7 +483,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse patchSync(String url, Object opts = {});
+    HttpResponse patchSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PATCH method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host
@@ -533,7 +533,7 @@ interface HttpClient : object
      @param opts specify additional information
      @return return server response
      */
-    HttpResponse headSync(String url, Object opts = {});
+    HttpResponse headSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with HEAD method, register callback to receive response, return HttpRequest object
      @param url specify url, must be complete url including host

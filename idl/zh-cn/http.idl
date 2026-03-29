@@ -178,7 +178,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse requestSync(String method, String url, Object opts = {});
+    static HttpResponse requestSync(String method, String url, Object opts = {}) async;
 
     /*! @brief 请求 opts 指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
@@ -204,7 +204,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse requestSync(Object opts);
+    static HttpResponse requestSync(Object opts) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
@@ -231,7 +231,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse requestSync(String url, Object opts = {});
+    static HttpResponse requestSync(String url, Object opts = {}) async;
 
     /*! @brief 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param method 指定 http 请求方法：GET, POST 等
@@ -319,7 +319,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse getSync(String url, Object opts = {});
+    static HttpResponse getSync(String url, Object opts = {}) async;
 
     /*! @brief 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -369,7 +369,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse postSync(String url, Object opts = {});
+    static HttpResponse postSync(String url, Object opts = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -419,7 +419,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse delSync(String url, Object opts = {});
+    static HttpResponse delSync(String url, Object opts = {}) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -469,7 +469,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse putSync(String url, Object opts = {});
+    static HttpResponse putSync(String url, Object opts = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -519,7 +519,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse patchSync(String url, Object opts = {});
+    static HttpResponse patchSync(String url, Object opts = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url
@@ -569,7 +569,7 @@ module http
      @param opts 指定附加信息
      @return 返回服务器响应
      */
-    static HttpResponse headSync(String url, Object opts = {});
+    static HttpResponse headSync(String url, Object opts = {}) async;
 
     /*! @brief 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      @param url 指定 url，必须是包含主机的完整 url

@@ -33,21 +33,6 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
     return isolate->m_httpclient;
 }
 
-// Extract agent (HttpClient) from opts if present, otherwise return global client.
-static HttpClient* get_httpClient_from_opts(v8::Local<v8::Object> opts)
-{
-    Isolate* isolate = Isolate::current();
-    if (!opts.IsEmpty()) {
-        JSValue agent = opts->Get(isolate->context(), isolate->NewString("agent"));
-        if (!IsEmpty(agent)) {
-            HttpClient_base* hc = HttpClient_base::getInstance(agent);
-            if (hc)
-                return (HttpClient*)hc;
-        }
-    }
-    return get_httpClient(isolate);
-}
-
 result_t http_request(exlib::string method, exlib::string url,
     SeekableStream_base* body, Headers_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
@@ -308,52 +293,52 @@ result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
 }
 
 result_t http_base::requestSync(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->requestSync(method, url, opts, retVal);
+    return get_httpClient(ac->isolate())->requestSync(method, url, opts, retVal, ac);
 }
 
 result_t http_base::requestSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->requestSync(url, opts, retVal);
+    return requestSync("GET", url, opts, retVal, ac);
 }
 
 result_t http_base::requestSync(v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->requestSync(opts, retVal);
+    return requestSync("GET", "", opts, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(method, url, opts, retVal);
+    return get_httpClient()->request(method, url, opts, retVal);
 }
 
 result_t http_base::request(v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(opts, retVal);
+    return get_httpClient()->request(opts, retVal);
 }
 
 result_t http_base::request(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(url, opts, retVal);
+    return get_httpClient()->request(url, opts, retVal);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(method, url, opts, callback, retVal);
+    return get_httpClient()->request(method, url, opts, callback, retVal);
 }
 
 result_t http_base::request(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(url, opts, callback, retVal);
+    return get_httpClient()->request(url, opts, callback, retVal);
 }
 
 result_t http_base::request(exlib::string url, v8::Local<v8::Function> callback,
@@ -371,25 +356,25 @@ result_t http_base::request(exlib::string method, exlib::string url,
 result_t http_base::request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->request(opts, callback, retVal);
+    return get_httpClient()->request(opts, callback, retVal);
 }
 
 result_t http_base::getSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->getSync(url, opts, retVal);
+    return requestSync("GET", url, opts, retVal, ac);
 }
 
 result_t http_base::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->get(url, opts, retVal);
+    return get_httpClient()->get(url, opts, retVal);
 }
 
 result_t http_base::get(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->get(url, opts, callback, retVal);
+    return get_httpClient()->get(url, opts, callback, retVal);
 }
 
 result_t http_base::get(exlib::string url, v8::Local<v8::Function> callback,
@@ -399,21 +384,21 @@ result_t http_base::get(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::postSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->postSync(url, opts, retVal);
+    return requestSync("POST", url, opts, retVal, ac);
 }
 
 result_t http_base::post(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->post(url, opts, retVal);
+    return get_httpClient()->post(url, opts, retVal);
 }
 
 result_t http_base::post(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->post(url, opts, callback, retVal);
+    return get_httpClient()->post(url, opts, callback, retVal);
 }
 
 result_t http_base::post(exlib::string url, v8::Local<v8::Function> callback,
@@ -423,21 +408,21 @@ result_t http_base::post(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::delSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->delSync(url, opts, retVal);
+    return requestSync("DELETE", url, opts, retVal, ac);
 }
 
 result_t http_base::del(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->del(url, opts, retVal);
+    return get_httpClient()->del(url, opts, retVal);
 }
 
 result_t http_base::del(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->del(url, opts, callback, retVal);
+    return get_httpClient()->del(url, opts, callback, retVal);
 }
 
 result_t http_base::del(exlib::string url, v8::Local<v8::Function> callback,
@@ -447,21 +432,21 @@ result_t http_base::del(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::putSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->putSync(url, opts, retVal);
+    return requestSync("PUT", url, opts, retVal, ac);
 }
 
 result_t http_base::put(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->put(url, opts, retVal);
+    return get_httpClient()->put(url, opts, retVal);
 }
 
 result_t http_base::put(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->put(url, opts, callback, retVal);
+    return get_httpClient()->put(url, opts, callback, retVal);
 }
 
 result_t http_base::put(exlib::string url, v8::Local<v8::Function> callback,
@@ -471,21 +456,21 @@ result_t http_base::put(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::patchSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->patchSync(url, opts, retVal);
+    return requestSync("PATCH", url, opts, retVal, ac);
 }
 
 result_t http_base::patch(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->patch(url, opts, retVal);
+    return get_httpClient()->patch(url, opts, retVal);
 }
 
 result_t http_base::patch(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->patch(url, opts, callback, retVal);
+    return get_httpClient()->patch(url, opts, callback, retVal);
 }
 
 result_t http_base::patch(exlib::string url, v8::Local<v8::Function> callback,
@@ -495,21 +480,21 @@ result_t http_base::patch(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::headSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient_from_opts(opts)->headSync(url, opts, retVal);
+    return requestSync("HEAD", url, opts, retVal, ac);
 }
 
 result_t http_base::head(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->head(url, opts, retVal);
+    return get_httpClient()->head(url, opts, retVal);
 }
 
 result_t http_base::head(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    return get_httpClient_from_opts(opts)->head(url, opts, callback, retVal);
+    return get_httpClient()->head(url, opts, callback, retVal);
 }
 
 result_t http_base::head(exlib::string url, v8::Local<v8::Function> callback,
