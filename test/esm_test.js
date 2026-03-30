@@ -357,6 +357,11 @@ describe('ECMAScript modules', () => {
         assert.ok(m);
     });
 
+    it("BUGFIX: async handler in ESM evaluate should not hang", async () => {
+        var m = await import('./esm_files/esm27_async_handler_no_hang.mjs');
+        assert.equal(m.default, true);
+    });
+
     it("BUGFIX: Sandbox should not be GC'd while module functions are still in use", async () => {
         // Create sandbox with addBuiltinModules to allow node:test import
         let sandbox = new vm.SandBox({});

@@ -143,8 +143,14 @@ public:
     }
 
 public:
+    enum class MicrotaskCheckpointReason {
+        kRegularCheckpoint,
+        kJsScopeLeave
+    };
+
+public:
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
-    void RunMicrotasks(bool allow_nested = false);
+    void RunMicrotasks(MicrotaskCheckpointReason reason);
     void PerformMicrotaskCheckpoint();
     void EnsurePromiseHook();
 

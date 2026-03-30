@@ -43,7 +43,7 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     m_fb->m_c_entry_fp_ = _fi.entry_fp;
     m_fb->m_handler_ = _fi.handle;
 
-    m_isolate->RunMicrotasks();
+    m_isolate->RunMicrotasks(Isolate::MicrotaskCheckpointReason::kRegularCheckpoint);
 }
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()

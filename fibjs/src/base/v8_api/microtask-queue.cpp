@@ -28,9 +28,11 @@ using namespace v8;
 
 namespace fibjs {
 
-void Isolate::RunMicrotasks(bool allow_nested)
+void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 {
-    if (m_module_evaluating > 0)
+    bool allow_same_turn_reentry = (reason == MicrotaskCheckpointReason::kJsScopeLeave);
+
+    if (m_module_evaluating > 0 && allow_same_turn_reentry)
         return;
 
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
@@ -38,7 +40,7 @@ void Isolate::RunMicrotasks(bool allow_nested)
 
     do {
         // Dispatch tasks from index 1 onwards to fibers first
-        for (intptr_t i = allow_nested ? 1 : 0; i < queue->size_; i++) {
+        for (intptr_t i = allow_same_turn_reentry ? 1 : 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
             sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
                 JSFiber::EnterJsScope s;
@@ -56,7 +58,7 @@ void Isolate::RunMicrotasks(bool allow_nested)
             });
         }
 
-        if (allow_nested) {
+        if (allow_same_turn_reentry) {
             // Run the first microtask directly in the current context
             if (queue->size_ > 0) {
                 queue->size_ = 1;
