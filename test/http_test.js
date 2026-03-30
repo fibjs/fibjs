@@ -5681,6 +5681,67 @@ describe("http", () => {
                     });
                 }).end();
             });
+
+            it("with Object opts (hostname/port/path) without protocol", (done) => {
+                http.request({
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    path: '/hello'
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/hello");
+                    });
+                }).end();
+            });
+
+            it("POST with Object opts (hostname/port/path)", (done) => {
+                http.request({
+                    method: 'POST',
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    path: '/echo-body'
+                }, (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/echo-bodypost-data");
+                    });
+                }).end("post-data");
+            });
+
+            it("concurrent requests with Object opts (hostname/port/path)", (done) => {
+                var total = 5;
+                var left = total;
+                var codes = [];
+                var finished = false;
+
+                function finish(fn) {
+                    if (finished)
+                        return;
+                    finished = true;
+                    done(fn);
+                }
+
+                for (var i = 0; i < total; i++) {
+                    http.request({
+                        hostname: '127.0.0.1',
+                        port: cbPort,
+                        path: '/hello'
+                    }, (r) => {
+                        if (finished)
+                            return;
+
+                        codes.push(r.statusCode);
+                        left--;
+
+                        if (left === 0) {
+                            finish(() => {
+                                assert.deepEqual(codes, [200, 200, 200, 200, 200]);
+                            });
+                        }
+                    }).end();
+                }
+            });
         });
 
         describe("http.get(url, callback)", () => {
@@ -5871,6 +5932,38 @@ describe("http", () => {
                     done(() => {
                         assert.equal(res.statusCode, 200);
                         assert.equal(res.text(), "GET");
+                    });
+                });
+            });
+
+            it("http.request(opts) with Object opts (hostname/port/path) emits response", (done) => {
+                var req = http.request({
+                    hostname: '127.0.0.1',
+                    port: cbPort,
+                    path: '/hello'
+                });
+                req.end();
+                assert.ok(req);
+
+                var finished = false;
+                var timer = setTimeout(() => {
+                    if (finished)
+                        return;
+                    finished = true;
+                    done(() => {
+                        throw new Error("timeout: request(opts) did not emit response event");
+                    });
+                }, 3000);
+
+                req.once("response", (res) => {
+                    if (finished)
+                        return;
+                    finished = true;
+                    clearTimeout(timer);
+                    done(() => {
+                        assert.strictEqual(req.response, res);
+                        assert.equal(res.statusCode, 200);
+                        assert.equal(res.text(), "/hello");
                     });
                 });
             });

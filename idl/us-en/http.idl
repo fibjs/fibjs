@@ -164,6 +164,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "path": "", // Node.js compatible alias of pathname for request options.
          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},

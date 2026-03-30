@@ -209,6 +209,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     v8::Local<v8::Context> context = isolate->context();
 
     bool isJavascript = false;
+    bool hasProtocol = false;
     exlib::string str;
     exlib::string url;
     exlib::string username;
@@ -231,6 +232,8 @@ result_t Url::format(v8::Local<v8::Object> args)
                 url = str + ":";
             else
                 url = str;
+
+            hasProtocol = true;
         }
     }
 
@@ -276,11 +279,24 @@ result_t Url::format(v8::Local<v8::Object> args)
         hasHost = true;
     }
 
+    // Node.js compatibility for http.request(options):
+    // when host/hostname is provided but protocol is omitted, default to http:.
+    if (hasHost && !hasProtocol && !slashes) {
+        url = "http://" + url;
+        m_slashes = true;
+    }
+
     if (GetConfigValue(args, "pathname", str, true) >= 0) {
         if (hasHost && !isJavascript) {
             if (!is_slash(str[0]))
                 url += "/";
             Url::encodeURI(str, str, pathTable);
+        }
+        url += str;
+    } else if (GetConfigValue(args, "path", str, true) >= 0) {
+        if (hasHost && !isJavascript && is_slashed_protocol(url.c_str())) {
+            if (!str.empty() && !is_slash(str[0]) && str[0] != '?')
+                url += "/";
         }
         url += str;
     }

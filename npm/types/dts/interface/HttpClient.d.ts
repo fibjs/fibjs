@@ -225,6 +225,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "path": "", // Node.js 兼容的 pathname 别名，用于 request 选项。
      *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},

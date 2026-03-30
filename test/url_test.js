@@ -780,6 +780,17 @@ describe("url", () => {
                     "pathname": "/foo/bar",
                     "path": "/foo/bar?baz=quux"
                 },
+                "http://localhost:8081/api/cluster/status?x=1": {
+                    "href": "http://localhost:8081/api/cluster/status?x=1",
+                    "host": "localhost:8081",
+                    "path": "/api/cluster/status?x=1"
+                },
+                "http://127.0.0.1:8081/api/cluster/status?x=1": {
+                    "href": "http://127.0.0.1:8081/api/cluster/status?x=1",
+                    "hostname": "127.0.0.1",
+                    "port": "8081",
+                    "path": "/api/cluster/status?x=1"
+                },
                 "mailto:foo@bar.com?subject=hello": {
                     "href": "mailto:foo@bar.com?subject=hello",
                     "protocol": "mailto:",
