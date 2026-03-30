@@ -241,6 +241,10 @@ public:
             : UVTimeout(pThis, timeout)
             , m_this(pThis)
             , m_ac(ac)
+            , m_inflight(false)
+            , m_in_queue(false)
+            , m_timedout(false)
+            , m_posted(false)
         {
             m_data = Buffer::Cast(data);
             m_buf.base = (char*)m_data->data();
@@ -255,20 +259,33 @@ public:
         // Override timeout handler: remove self from queue and post timeout error
         virtual void on_timeout_handler() override
         {
-            // Remove self from write queue
-            m_this->queue_write.remove(this);
+            if (m_posted)
+                return;
 
-            // Post timeout error
+            m_posted = true;
+            m_timedout = true;
+
+            if (!m_inflight && m_in_queue) {
+                m_this->queue_write.remove(this);
+                m_in_queue = false;
+            }
+
+            // If request is in-flight, keep queue ownership until uv callback.
+            // Otherwise we can complete and release immediately.
             m_ac->apost(CALL_E_TIMEOUT);
-            UVTimeout::cancel_timer();
+
+            if (!m_inflight)
+                finalize();
         }
 
     public:
         virtual void invoke()
         {
-            UVTimeout::start_timer();  // Start timer in uv loop thread
             m_this->queue_write.putTail(this);
+            m_in_queue = true;
             if (m_this->queue_write.count() == 1) {
+                m_inflight = true;
+                UVTimeout::start_timer();
                 int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
                 if (ret < 0)
                     post_all_result(m_this, ret);
@@ -279,17 +296,34 @@ public:
         static void on_write(uv_write_t* req, int32_t status)
         {
             UVStream_tmpl* pThis = container_of(req->handle, UVStream_tmpl, m_handle);
+            AsyncWrite* done_wr = container_of(req, AsyncWrite, m_req);
             AsyncWrite* wr;
+
+            done_wr->m_inflight = false;
+
+            if (done_wr->m_in_queue) {
+                if (pThis->queue_write.head() == done_wr)
+                    pThis->queue_write.getHead();
+                else
+                    pThis->queue_write.remove(done_wr);
+
+                done_wr->m_in_queue = false;
+            }
+
+            if (!done_wr->m_posted)
+                done_wr->post_result_only(status);
+
+            done_wr->finalize();
 
             if (status < 0) {
                 post_all_result(pThis, status);
                 return;
             }
 
-            pThis->queue_write.getHead()->post_result(0);
-
             if (pThis->queue_write.count() > 0) {
                 wr = pThis->queue_write.head();
+                wr->m_inflight = true;
+                wr->UVTimeout::start_timer();
                 int32_t ret = uv_write(&wr->m_req, &pThis->m_stream, &wr->m_buf, 1, on_write);
                 if (ret)
                     post_all_result(pThis, ret);
@@ -307,15 +341,41 @@ public:
 
         static void post_all_result(UVStream_tmpl* pThis, int32_t status)
         {
-            while (pThis->queue_write.count())
-                pThis->queue_write.getHead()->post_result(status);
+            while (pThis->queue_write.count()) {
+                AsyncWrite* wr = pThis->queue_write.getHead();
+                wr->m_in_queue = false;
+
+                if (!wr->m_posted)
+                    wr->post_result_only(status);
+
+                // Never release an in-flight request until uv callback returns.
+                if (!wr->m_inflight)
+                    wr->finalize();
+            }
             notify_flush_waiters(pThis, status);
         }
 
         void post_result(int32_t status)
         {
+            post_result_only(status);
+            finalize();
+        }
+
+        void post_result_only(int32_t status)
+        {
+            if (m_posted)
+                return;
+
+            m_posted = true;
             m_ac->apost(status);
-            UVTimeout::cancel_timer();
+        }
+
+        void finalize()
+        {
+            if (this->m_timeout > 0 && this->m_timer_started)
+                UVTimeout::cancel_timer();
+            else
+                delete this;
         }
 
     private:
@@ -324,6 +384,10 @@ public:
         obj_ptr<Buffer> m_data;
         uv_buf_t m_buf;
         uv_write_t m_req;
+        bool m_inflight;
+        bool m_in_queue;
+        bool m_timedout;
+        bool m_posted;
     };
 
     virtual result_t get_fd(int32_t& retVal)

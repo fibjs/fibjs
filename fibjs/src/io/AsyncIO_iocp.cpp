@@ -123,6 +123,15 @@ public:
 
     void proc()
     {
+        // Check if timed out while waiting in locker queue
+        if (m_timeout_cancelled) {
+            cleanup_timer();
+            m_locker.unlock(this);
+            m_ac->apost(CALL_E_TIMEOUT);
+            delete this;
+            return;
+        }
+
         // Check if aborted while waiting in queue
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
             cleanup_timer();

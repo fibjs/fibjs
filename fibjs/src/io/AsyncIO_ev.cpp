@@ -121,6 +121,8 @@ public:
         , m_opt(opt)
         , m_pThis(pThis)
         , m_abort_version(pThis ? pThis->get_abort_version() : 0)
+        , m_timedout(false)
+        , m_watching(false)
     {
         // Create timer if timeout specified
         if (timeout > 0) {
@@ -137,11 +139,9 @@ public:
                     {
                         // Check if timer was cancelled during message delivery
                         AsyncSockProc* pProc = m_timer->get_data<AsyncSockProc>();
-                        // Short-circuit: if cancelled, pProc->m_opt won't be accessed
-                        if (!m_timer->is_cancelled() && pProc->m_opt != NULL) {
-                            ev_io_stop(s_loop, &pProc->m_io_watcher);
-                            pProc->ready(CALL_E_TIMEOUT);
-                        }
+                        if (!m_timer->is_cancelled())
+                            pProc->on_timeout();
+
                         delete this;
                     }
 
@@ -164,6 +164,16 @@ public:
             return;
         }
 
+        // Timed out while waiting in locker queue. The lock ownership has
+        // been transferred to this task before resume(), so we can release it safely here.
+        if (m_timedout) {
+            m_locker.unlock(this);
+            m_ac->apost(CALL_E_TIMEOUT);
+            cleanup_timer();
+            delete this;
+            return;
+        }
+
         // Check if aborted while waiting in queue
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
             m_locker.unlock(this);
@@ -177,6 +187,7 @@ public:
 
         ev_io_init(&m_io_watcher, io_cb, m_sockfd, m_ev_op_t);
         ev_io_start(s_loop, &m_io_watcher);
+        m_watching = true;
     }
 
 public:
@@ -216,6 +227,7 @@ public:
     void ready(int32_t v)
     {
         m_opt = NULL;
+        m_watching = false;
         cleanup_timer();
         m_locker.unlock(this);
         m_ac->apost(v);
@@ -224,6 +236,10 @@ public:
 
     void on_watched()
     {
+        if (!m_watching)
+            return;
+
+        m_watching = false;
         ev_io_stop(s_loop, &m_io_watcher);
 
         // Check if aborted
@@ -243,6 +259,19 @@ public:
         }
     }
 
+    void on_timeout()
+    {
+        m_timedout = true;
+
+        // Only active watched operation can be completed immediately.
+        // Queued operations will be completed in start() after they own the locker.
+        if (m_opt == this && m_watching) {
+            ev_io_stop(s_loop, &m_io_watcher);
+            m_watching = false;
+            ready(CALL_E_TIMEOUT);
+        }
+    }
+
 public:
     intptr_t& m_sockfd;
     int32_t m_ev_op_t;
@@ -253,6 +282,8 @@ public:
     ev_io m_io_watcher;
     obj_ptr<AsyncIOTimer> m_timer;
     intptr_t m_abort_version;
+    bool m_timedout;
+    bool m_watching;
 
 private:
     static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)

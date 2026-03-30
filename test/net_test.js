@@ -1066,6 +1066,142 @@ function test_net(eng, use_uv) {
                 c1.close();
             });
 
+            it("queued read timeout should still trigger while waiting locker", () => {
+                if (use_uv)
+                    return;
+
+                var svr = new net.Socket(net_config.family);
+                test_util.push(svr);
+
+                var _port = getPort();
+
+                svr.bind(_port);
+                svr.listen();
+
+                var serverConn = null;
+                coroutine.start(() => {
+                    serverConn = svr.accept();
+                    test_util.push(serverConn);
+                });
+
+                var c1 = new net.Socket();
+                c1.connect(_port, '127.0.0.1');
+
+                while (!serverConn)
+                    coroutine.sleep(1);
+
+                var read1Err = null;
+                var read2Err = null;
+                var read2Data = null;
+                var read1Done = new coroutine.Event();
+                var read2Done = new coroutine.Event();
+
+                coroutine.start(() => {
+                    try {
+                        c1.timeout = 120;
+                        c1.recv();
+                    } catch (e) {
+                        read1Err = e.number;
+                    } finally {
+                        read1Done.set();
+                    }
+                });
+
+                coroutine.sleep(5);
+
+                coroutine.start(() => {
+                    try {
+                        c1.timeout = 60;
+                        read2Data = c1.recv();
+                    } catch (e) {
+                        read2Err = e.number;
+                    } finally {
+                        read2Done.set();
+                    }
+                });
+
+                read1Done.wait();
+                assert.equal(read1Err, 20021);
+
+                // If queued timeout is lost, this read may stay pending and then succeed after send.
+                coroutine.sleep(80);
+                serverConn.send(new Buffer("late-data"));
+
+                read2Done.wait();
+                assert.equal(read2Err, 20021);
+                assert.equal(read2Data, null);
+
+                c1.close();
+            });
+
+            it("queued write timeout should trigger while waiting locker", () => {
+                if (use_uv)
+                    return;
+
+                var svr = new net.Socket(net_config.family);
+                test_util.push(svr);
+
+                var _port = getPort();
+
+                svr.bind(_port);
+                svr.listen();
+
+                var serverConn = null;
+                coroutine.start(() => {
+                    serverConn = svr.accept();
+                    test_util.push(serverConn);
+                    // Don't read - let send buffer fill up
+                });
+
+                var c1 = new net.Socket();
+                c1.connect(_port, '127.0.0.1');
+
+                while (!serverConn)
+                    coroutine.sleep(1);
+
+                var write1Err = null;
+                var write2Err = null;
+                var write1Done = new coroutine.Event();
+                var write2Done = new coroutine.Event();
+                var largeData = new Buffer(2 * 1024 * 1024);
+
+                // Fiber A: write large data repeatedly to fill send buffer
+                coroutine.start(() => {
+                    try {
+                        c1.timeout = 500;
+                        while (true)
+                            c1.send(largeData);
+                    } catch (e) {
+                        write1Err = e.number;
+                    } finally {
+                        write1Done.set();
+                    }
+                });
+
+                coroutine.sleep(5);
+
+                // Fiber B: write with short timeout, should queue behind A
+                coroutine.start(() => {
+                    try {
+                        c1.timeout = 100;
+                        c1.send(new Buffer("small"));
+                    } catch (e) {
+                        write2Err = e.number;
+                    } finally {
+                        write2Done.set();
+                    }
+                });
+
+                // Write2 should timeout while queued behind write1
+                write2Done.wait();
+                assert.equal(write2Err, 20021);  // CALL_E_TIMEOUT
+
+                write1Done.wait();
+                assert.equal(write1Err, 20021);  // Write1 should also timeout
+
+                c1.close();
+            });
+
             it("connect timeout does not close socket", () => {
                 // Use a non-routable IP for connect timeout
                 var c1 = new net.Socket();
@@ -1240,6 +1376,190 @@ function test_net(eng, use_uv) {
 
                 c1.close();
             });
+
+            if (use_uv)
+                describe('uv', () => {
+                    it("uv: queued write must not complete before peer starts reading", () => {
+
+                        var marker = "__UV_TIMEOUT_MARKER_A__" + Date.now();
+                        var serverDone = new coroutine.Event();
+                        var markerSeen = new coroutine.Event();
+
+                        var svr = new net.Socket(net_config.family);
+                        test_util.push(svr);
+                        var _port = getPort();
+
+                        svr.bind(_port);
+                        svr.listen();
+
+                        coroutine.start(() => {
+                            try {
+                                var c = svr.accept();
+                                test_util.push(c);
+
+                                // Keep peer write path blocked first, then start reading.
+                                coroutine.sleep(180);
+
+                                var tail = "";
+                                while (true) {
+                                    var b = c.recv();
+                                    if (!b)
+                                        break;
+
+                                    // Only keep recent data to avoid O(n^2) string ops
+                                    tail = (tail + b.toString()).slice(-(marker.length * 2));
+                                    if (tail.indexOf(marker) >= 0) {
+                                        markerSeen.set();
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                            } finally {
+                                serverDone.set();
+                            }
+                        });
+
+                        var c1 = new net.Socket();
+                        c1.connect(_port, '127.0.0.1');
+
+                        var firstErr = null;
+                        var firstDone = new coroutine.Event();
+                        var secondErr = null;
+                        var secondDone = new coroutine.Event();
+
+                        var largeData = new Buffer(128 * 1024);
+
+                        coroutine.start(() => {
+                            try {
+                                c1.timeout = 60;
+                                // Keep writing until timeout so we reliably create blocked state.
+                                while (true)
+                                    c1.send(largeData);
+                            } catch (e) {
+                                firstErr = e.number;
+                            } finally {
+                                firstDone.set();
+                            }
+                        });
+
+                        // Ensure the second write is queued behind the blocked write path.
+                        coroutine.sleep(5);
+
+                        coroutine.start(() => {
+                            try {
+                                c1.timeout = 800;
+                                c1.send(marker);
+                            } catch (e) {
+                                secondErr = e.number;
+                            } finally {
+                                secondDone.set();
+                            }
+                        });
+
+                        firstDone.wait();
+                        assert.equal(firstErr, 20021);
+
+                        secondDone.wait();
+                        assert.equal(secondErr, null);
+
+                        // Ensure subsequent write can be observed by peer after head timeout.
+                        markerSeen.wait();
+
+                        c1.close();
+                        serverDone.wait();
+                    });
+
+                    it("uv: write completion must match peer-visible delivery after timeout", () => {
+
+                        var marker = "__UV_TIMEOUT_MARKER_B__" + Date.now();
+                        var serverDone = new coroutine.Event();
+                        var markerSeen = new coroutine.Event();
+                        var serverMarkerFound = false;
+
+                        var svr = new net.Socket(net_config.family);
+                        test_util.push(svr);
+                        var _port = getPort();
+
+                        svr.bind(_port);
+                        svr.listen();
+
+                        coroutine.start(() => {
+                            try {
+                                var c = svr.accept();
+                                test_util.push(c);
+
+                                // Delay reading to trigger writer timeout first.
+                                coroutine.sleep(180);
+
+                                var tail = "";
+                                while (true) {
+                                    var b = c.recv();
+                                    if (!b)
+                                        break;
+                                    // Only keep recent data to avoid O(n^2) string ops
+                                    tail = (tail + b.toString()).slice(-(marker.length * 2));
+                                    if (tail.indexOf(marker) >= 0) {
+                                        serverMarkerFound = true;
+                                        markerSeen.set();
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                            } finally {
+                                serverDone.set();
+                            }
+                        });
+
+                        var c1 = new net.Socket();
+                        c1.connect(_port, '127.0.0.1');
+
+                        var write1Err = null;
+                        var write1Done = new coroutine.Event();
+                        var write2Err = null;
+                        var write2Done = new coroutine.Event();
+                        var largeData = new Buffer(128 * 1024);
+
+                        coroutine.start(() => {
+                            try {
+                                c1.timeout = 60;
+                                while (true)
+                                    c1.send(largeData);
+                            } catch (e) {
+                                write1Err = e.number;
+                            } finally {
+                                write1Done.set();
+                            }
+                        });
+
+                        coroutine.sleep(5);
+
+                        coroutine.start(() => {
+                            try {
+                                c1.timeout = 800;
+                                c1.send(marker);
+                            } catch (e) {
+                                write2Err = e.number;
+                            } finally {
+                                write2Done.set();
+                            }
+                        });
+
+                        write1Done.wait();
+                        assert.equal(write1Err, 20021);
+
+                        write2Done.wait();
+                        assert.equal(write2Err, null);
+
+                        markerSeen.wait();
+                        c1.close();
+                        serverDone.wait();
+
+                        // If this fails while write2Err is null, completion was acknowledged
+                        // without peer-observable delivery.
+                        assert.ok(serverMarkerFound,
+                            "marker write completed on client but was not observed by server");
+                    });
+                });
         });
 
         it("bind same port", () => {
@@ -2314,7 +2634,7 @@ function test_net(eng, use_uv) {
         describe("socket.setTimeout", () => {
             it("setTimeout sets timeout and registers callback", () => {
                 var sock = new net.Socket();
-                var ret = sock.setTimeout(5000, () => {});
+                var ret = sock.setTimeout(5000, () => { });
                 assert.strictEqual(ret, sock);
                 assert.strictEqual(sock.timeout, 5000);
             });
@@ -2444,7 +2764,7 @@ function test_net(eng, use_uv) {
             it("end() then EOF: finish before close", () => {
                 var p = getPort();
                 var svr = net.createServer((conn) => {
-                    conn.on('data', () => {});
+                    conn.on('data', () => { });
                     conn.on('end', () => { conn.close(); });
                 });
                 svr.listen(p);
