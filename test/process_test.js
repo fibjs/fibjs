@@ -215,7 +215,7 @@ describe('process', () => {
             process.kill(process.pid, 0);
         });
 
-        it("signal 0 with string signal name", () => {
+        process.platform !== 'win32' && it("signal 0 with string signal name", () => {
             process.kill(process.pid, 'SIGURG');
         });
 

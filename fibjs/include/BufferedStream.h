@@ -21,11 +21,6 @@ public:
         , m_pos(0)
         , m_temp(0)
     {
-#ifdef _WIN32
-        m_eol.assign("\r\n", 2);
-#else
-        m_eol.assign("\n", 1);
-#endif
         extMemory(4096);
     }
 

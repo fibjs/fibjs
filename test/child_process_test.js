@@ -185,7 +185,7 @@ describe("child_process", () => {
                     var cleanLine = stripAnsi(line);
                     assert.equal(cleanLine, "exec testing....");
                 } else
-                    assert.equal(stdout.readLine(), "exec testing....\r");
+                    assert.equal(stdout.readLine(), "exec testing....");
 
                 var t0 = new Date().getTime();
 
@@ -222,7 +222,7 @@ describe("child_process", () => {
                     var cleanLine = stripAnsi(line);
                     assert.equal(cleanLine, "PTY_TEST_OUTPUT");
                 } else {
-                    assert.equal(stdout.readLine(), "PTY_TEST_OUTPUT\r");
+                    assert.equal(stdout.readLine(), "PTY_TEST_OUTPUT");
                 }
 
                 bs.join();
@@ -536,13 +536,13 @@ describe("child_process", () => {
             var ret = child_process.execFileSync(cmd, [
                 path.join(__dirname, "process", "exec_sync_success.js")
             ]);
-            assert.equal(ret, "execSync success output" + os.EOL);
+            assert.equal(ret, "execSync success output\n");
 
             // Test execFileSync with encoding
             var ret = child_process.execFileSync(cmd, [
                 path.join(__dirname, "process", "exec_sync_success.js")
             ], { encoding: 'utf8' });
-            assert.equal(ret, "execSync success output" + os.EOL);
+            assert.equal(ret, "execSync success output\n");
 
             // Test execFileSync with arguments
             var ret = child_process.execFileSync(cmd, [
@@ -983,13 +983,8 @@ describe("child_process", () => {
         assert.equal(result.stdout, result.output[1]);
         assert.equal(result.stderr, result.output[2]);
 
-        if (isWin32) {
-            assert.equal(result.stdout, "stdout output.\r\n");
-            assert.equal(result.stderr, "stderr output.\r\n");
-        } else {
-            assert.equal(result.stdout, "stdout output.\n");
-            assert.equal(result.stderr, "stderr output.\n");
-        }
+        assert.equal(result.stdout, "stdout output.\n");
+        assert.equal(result.stderr, "stderr output.\n");
     });
 
     it("spawnSync env option", () => {
@@ -1383,7 +1378,9 @@ describe("child_process", () => {
             var closeEventTriggered = false;
             var closeCode = null;
 
-            var p = child_process.spawn('echo', ['hello']);
+            var p = process.platform === 'win32'
+                ? child_process.spawn('cmd', ['/c', 'echo', 'hello'])
+                : child_process.spawn('echo', ['hello']);
 
             // Only listen for close event, NOT stdout.on('data')
             p.on('close', (code, signal) => {

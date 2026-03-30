@@ -3,7 +3,7 @@ var assert = require('assert');
 
 const io = require("io");
 const fs = require("fs");
-const path = require("path");
+const os = require("os");
 const coroutine = require("coroutine");
 
 const {
@@ -21,7 +21,7 @@ describe('io', () => {
     before(() => {
         const ms = new io.MemoryStream()
         const bs = new io.BufferedStream(ms)
-        EOL = bs.EOL
+        EOL = os.EOL
     });
 
     describe('io.BufferedStream', () => {
@@ -29,8 +29,8 @@ describe('io', () => {
             const ms = new io.MemoryStream()
             const bs = new io.BufferedStream(ms)
 
-            ms.write(`line1${bs.EOL}`)
-            ms.write(`line2${bs.EOL}`)
+            ms.write(`line1${os.EOL}`)
+            ms.write(`line2${os.EOL}`)
             ms.rewind()
 
             assert.deepEqual(

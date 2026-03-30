@@ -273,26 +273,37 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
         {
             int32_t pos = pThis->m_pos;
             int32_t mklen = (int32_t)mk.length();
+            const char* mkstr = mk.c_str();
+            const bool auto_cr = mklen == 0;
 
-            if (mklen == 0)
-                mklen = 1;
+            if (mklen == 0) {
+                mklen = 2;
+                mkstr = "\r\n";
+            }
 
             while ((pos < (int32_t)pThis->m_buf.length())
                 && (pThis->m_temp < mklen)) {
                 if (pThis->m_temp == 0) {
-                    char ch = mk[0];
+                    char ch = mkstr[0];
 
-                    while (pos < (int32_t)pThis->m_buf.length())
-                        if (pThis->m_buf[pos++] == ch) {
+                    while (pos < (int32_t)pThis->m_buf.length()) {
+                        char c = pThis->m_buf[pos++];
+                        if (auto_cr && c == '\n') {
+                            mklen = 1;
+                            mkstr = "\n";
+                            pThis->m_temp++;
+                            break;
+                        } else if (c == ch) {
                             pThis->m_temp++;
                             break;
                         }
+                    }
                 }
 
                 if (pThis->m_temp > 0) {
                     while ((pos < (int32_t)pThis->m_buf.length())
                         && (pThis->m_temp < mklen)) {
-                        if (pThis->m_buf[pos] != mk[pThis->m_temp]) {
+                        if (pThis->m_buf[pos] != mkstr[pThis->m_temp]) {
                             pThis->m_temp = 0;
                             break;
                         }
@@ -377,7 +388,7 @@ result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncEven
     if (hr < 0)
         return hr;
 
-    strBuf.append(m_eol);
+    strBuf.append(m_eol.length() > 0 ? m_eol : exlib::string("\n", 1));
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
     retVal = (int32_t)strBuf.length();
     bool _retVal;
@@ -410,7 +421,9 @@ result_t BufferedStream::get_EOL(exlib::string& retVal)
 
 result_t BufferedStream::set_EOL(exlib::string newVal)
 {
-    if (newVal[0] == '\r' && newVal[1] == '\n')
+    if (newVal.length() == 0) {
+        m_eol.clear();
+    } else if (newVal[0] == '\r' && newVal[1] == '\n')
         m_eol.assign(newVal.c_str(), 2);
     else if (newVal[1] == '\0' && (newVal[0] == '\r' || newVal[0] == '\n'))
         m_eol.assign(newVal.c_str(), 1);
