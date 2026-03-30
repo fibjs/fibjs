@@ -276,22 +276,22 @@ private:
     exlib::string m_protocol;
 
 public:
-    // HTTP/2 session pool (keyed by "ssl://host:port")
+    // HTTP/2 session pool (keyed by "origin + transport identity")
     void save_h2session(exlib::string url, Http2Session* session)
     {
-        m_h2sessions.set(url, session);
+        s_h2sessions.set(url, session);
     }
 
     obj_ptr<Http2Session> get_h2session(exlib::string url)
     {
         obj_ptr<Http2Session> session;
-        m_h2sessions.lookup(url, session);
+        s_h2sessions.lookup(url, session);
         return session;
     }
 
     void remove_h2session(exlib::string url)
     {
-        m_h2sessions.erase(url);
+        s_h2sessions.erase(url);
     }
 
     // Pending H2 handshake queue: prevents redundant TCP+TLS connections
@@ -314,15 +314,15 @@ public:
         obj_ptr<Stream_base>* retConn,
         AsyncEvent* ac)
     {
-        m_h2_pending_lock.lock();
-        auto it = m_h2_pending.find(url);
-        if (it != m_h2_pending.end()) {
+        s_h2_pending_lock.lock();
+        auto it = s_h2_pending.find(url);
+        if (it != s_h2_pending.end()) {
             it->second->waiters.push_back({ retSession, retConn, ac });
-            m_h2_pending_lock.unlock();
+            s_h2_pending_lock.unlock();
             return false;
         }
-        m_h2_pending[url] = new H2PendingEntry();
-        m_h2_pending_lock.unlock();
+        s_h2_pending[url] = new H2PendingEntry();
+        s_h2_pending_lock.unlock();
         return true;
     }
 
@@ -332,13 +332,13 @@ public:
     {
         H2PendingEntry* entry = nullptr;
 
-        m_h2_pending_lock.lock();
-        auto it = m_h2_pending.find(url);
-        if (it != m_h2_pending.end()) {
+        s_h2_pending_lock.lock();
+        auto it = s_h2_pending.find(url);
+        if (it != s_h2_pending.end()) {
             entry = it->second;
-            m_h2_pending.erase(it);
+            s_h2_pending.erase(it);
         }
-        m_h2_pending_lock.unlock();
+        s_h2_pending_lock.unlock();
 
         if (entry) {
             for (auto& item : entry->waiters) {
@@ -355,13 +355,13 @@ public:
     {
         H2PendingEntry* entry = nullptr;
 
-        m_h2_pending_lock.lock();
-        auto it = m_h2_pending.find(url);
-        if (it != m_h2_pending.end()) {
+        s_h2_pending_lock.lock();
+        auto it = s_h2_pending.find(url);
+        if (it != s_h2_pending.end()) {
             entry = it->second;
-            m_h2_pending.erase(it);
+            s_h2_pending.erase(it);
         }
-        m_h2_pending_lock.unlock();
+        s_h2_pending_lock.unlock();
 
         if (entry) {
             for (auto& item : entry->waiters)
@@ -371,9 +371,9 @@ public:
     }
 
 private:
-    LruCache<obj_ptr<Http2Session>> m_h2sessions;
-    std::unordered_map<exlib::string, H2PendingEntry*> m_h2_pending;
-    exlib::spinlock m_h2_pending_lock;
+    static LruCache<obj_ptr<Http2Session>> s_h2sessions;
+    static std::unordered_map<exlib::string, H2PendingEntry*> s_h2_pending;
+    static exlib::spinlock s_h2_pending_lock;
 
 public:
     exlib::string m_http_proxy;

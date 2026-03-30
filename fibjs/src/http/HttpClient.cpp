@@ -29,6 +29,7 @@
 #include "ifs/querystring.h"
 #include <string.h>
 #include <memory>
+#include <stdio.h>
 #include "Http2Session.h"
 #include "Http2Stream.h"
 #include "SecureContext.h"
@@ -39,6 +40,37 @@
 
 
 namespace fibjs {
+
+LruCache<obj_ptr<Http2Session>> HttpClient::s_h2sessions;
+std::unordered_map<exlib::string, HttpClient::H2PendingEntry*> HttpClient::s_h2_pending;
+exlib::spinlock HttpClient::s_h2_pending_lock;
+
+static inline exlib::string build_h2_pool_key(const exlib::string& connUrl,
+    const exlib::string& proxyUrl,
+    const exlib::string& sslHost,
+    SecureContext_base* context)
+{
+    exlib::string origin = "https://";
+    if (connUrl.length() > 6)
+        origin.append(connUrl.substr(6));
+
+    exlib::string key = origin;
+    key.append("|proxy=");
+    key.append(proxyUrl.empty() ? "direct" : proxyUrl);
+    key.append("|sni=");
+    key.append(sslHost);
+
+    char ctx_buf[32];
+    snprintf(ctx_buf, sizeof(ctx_buf), "%p", (void*)context);
+    key.append("|ctx=");
+    key.append(ctx_buf);
+
+    SecureContext* ctx = static_cast<SecureContext*>(context);
+    key.append("|alpn=");
+    key.append((ctx && ctx->hasAlpn()) ? "custom" : "auto");
+
+    return key;
+}
 
 result_t HttpClient_base::_new(obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -663,10 +695,10 @@ result_t HttpClient::destroy()
     m_conns.clear();
     m_lock.unlock();
 
-    m_h2sessions.forEach([](exlib::string key, obj_ptr<Http2Session>& session) {
+    s_h2sessions.forEach([](exlib::string key, obj_ptr<Http2Session>& session) {
         session->destroy();
     });
-    m_h2sessions.clear();
+    s_h2sessions.clear();
 
     return 0;
 }
@@ -1249,10 +1281,12 @@ public:
             m_sslhost.clear();
 
         m_reuse = false;
+        m_h2PoolKey.clear();
 
         // Check for existing H2 session before creating a new TCP connection
         if (m_ssl && m_hc->m_enableH2) {
-            m_h2session = m_hc->get_h2session(m_connUrl);
+            m_h2PoolKey = build_h2_pool_key(m_connUrl, m_http_proxy, m_sslhost, m_hc->m_context.get());
+            m_h2session = m_hc->get_h2session(m_h2PoolKey);
             if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
                 m_conn = m_h2session->m_conn;
                 return next(h2_wait_settings);
@@ -1261,7 +1295,7 @@ public:
 
             // Try to become the H2 handshake leader for this URL.
             // If another fiber is already doing the handshake, queue up and wait.
-            if (!m_hc->h2_acquire(m_connUrl, &m_h2session, &m_conn, this)) {
+            if (!m_hc->h2_acquire(m_h2PoolKey, &m_h2session, &m_conn, this)) {
                 next(h2_wait_settings);
                 return CALL_E_PENDDING;
             }
@@ -1508,7 +1542,7 @@ public:
         // (either ALPN was not h2, or reusing an existing connection),
         // clean up the pending entry so future requests don't hang as waiters.
         if (m_is_h2_leader) {
-            m_hc->h2_fail(m_connUrl, CALL_E_INVALID_CALL);
+            m_hc->h2_fail(m_h2PoolKey, CALL_E_INVALID_CALL);
             m_is_h2_leader = false;
         }
 
@@ -1527,16 +1561,16 @@ public:
 
         result_t hr = m_h2session->init(m_conn);
         if (hr < 0) {
-            m_hc->h2_fail(m_connUrl, hr);
+            m_hc->h2_fail(m_h2PoolKey, hr);
             m_is_h2_leader = false;
             return hr;
         }
 
-        m_hc->save_h2session(m_connUrl, m_h2session);
+        m_hc->save_h2session(m_h2PoolKey, m_h2session);
         m_h2session->startLoops();
 
         // Wake all queued waiters with the new session
-        m_hc->h2_complete(m_connUrl, m_h2session, m_conn);
+        m_hc->h2_complete(m_h2PoolKey, m_h2session, m_conn);
         m_is_h2_leader = false;
 
         return next(h2_wait_settings);
@@ -1882,7 +1916,7 @@ public:
         // If this fiber is the H2 leader and hits an error during
         // TCP connect / TLS / session init, propagate to all waiters.
         if (m_is_h2_leader) {
-            m_hc->h2_fail(m_connUrl, v);
+            m_hc->h2_fail(m_h2PoolKey, v);
             m_is_h2_leader = false;
         }
 
@@ -1941,6 +1975,7 @@ private:
     obj_ptr<ValueHolder> m_req_holder;
     obj_ptr<HttpRequest> m_reqConn;
     exlib::string m_connUrl;
+    exlib::string m_h2PoolKey;
     obj_ptr<HttpClient> m_hc;
     obj_ptr<Buffer_base> m_buffer;
     bool m_reuse;

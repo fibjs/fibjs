@@ -36,6 +36,8 @@ var connectOpts = { rejectUnauthorized: false, rejectUnverified: false };
 describe('http2', () => {
     var h2_port = 9880 + base_port;
     var svr;
+    var sessionSeq = 0;
+    var sessionIdMap = new Map();
 
     before(() => {
         var ctx = tls.createSecureContext({
@@ -48,18 +50,33 @@ describe('http2', () => {
         svr = new http2.Server(ctx, h2_port, function (req) { });
 
         svr.on('session', function (session) {
+            sessionSeq += 1;
+            sessionIdMap.set(session, sessionSeq);
             session.on('stream', function (stream, headers) {
                 handleStream(session, stream, headers);
+            });
+
+            session.on('close', function () {
+                sessionIdMap.delete(session);
             });
         });
 
         function handleStream(session, stream, headers) {
                 var method = headers[':method'];
                 var path = headers[':path'];
+                var sessionId = sessionIdMap.get(session) || 0;
 
                 if (path === '/hello') {
                     stream.respond({ ':status': 200, 'content-type': 'text/plain' });
                     stream.write('Hello HTTP/2');
+                    stream.close();
+                } else if (path === '/session-id') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write(String(sessionId));
+                    stream.close();
+                } else if (path === '/session-seq') {
+                    stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+                    stream.write(String(sessionSeq));
                     stream.close();
                 } else if (path === '/echo-headers') {
                     stream.respond({ ':status': 200, 'content-type': 'application/json' });
@@ -415,6 +432,88 @@ describe('http2', () => {
             var t2 = Date.now();
 
             assert.ok(t2 - t1 < 500);
+        });
+    });
+
+    describe('HttpClient session sharing and isolation', () => {
+        var http = require('http');
+
+        function getTextBody(resp) {
+            var body = resp.body.read(-1);
+            return body ? body.toString() : '';
+        }
+
+        it('should share H2 session across agents with same transport identity', () => {
+            var sharedCtx = tls.createSecureContext({
+                rejectUnauthorized: false,
+                rejectUnverified: false
+            }, false);
+            var opts = Object.assign({}, connectOpts, {
+                secureContext: sharedCtx
+            });
+
+            var hc1 = new http.Client(opts);
+            var hc2 = new http.Client(opts);
+
+            var sid1 = getTextBody(hc1.getSync(`https://localhost:${h2_port}/session-id`));
+            var sid2 = getTextBody(hc2.getSync(`https://localhost:${h2_port}/session-id`));
+
+            assert.ok(sid1);
+            assert.strictEqual(sid1, sid2);
+        });
+
+        it('should isolate H2 session when transport identity differs', () => {
+            var customAlpnCtx = tls.createSecureContext({
+                alpnProtocols: ['h2'],
+                rejectUnauthorized: false,
+                rejectUnverified: false
+            }, false);
+
+            var hcCustom = new http.Client(Object.assign({}, connectOpts, {
+                secureContext: customAlpnCtx
+            }));
+            var hcAuto = new http.Client(connectOpts);
+
+            var sidCustom = getTextBody(hcCustom.getSync(`https://localhost:${h2_port}/session-id`));
+            var sidAuto = getTextBody(hcAuto.getSync(`https://localhost:${h2_port}/session-id`));
+
+            assert.ok(sidCustom);
+            assert.ok(sidAuto);
+            assert.notStrictEqual(sidCustom, sidAuto);
+        });
+
+        it('should keep one shared session under concurrent cross-agent requests with same identity', () => {
+            var sharedCtx = tls.createSecureContext({
+                rejectUnauthorized: false,
+                rejectUnverified: false
+            }, false);
+            var opts = Object.assign({}, connectOpts, {
+                secureContext: sharedCtx
+            });
+
+            var fibers = [];
+            var sids = [];
+            var errors = [];
+
+            for (var i = 0; i < 8; i++) {
+                fibers.push(coroutine.start(() => {
+                    try {
+                        var hc = new http.Client(opts);
+                        var sid = getTextBody(hc.getSync(`https://localhost:${h2_port}/session-id`));
+                        sids.push(sid);
+                    } catch (e) {
+                        errors.push(e);
+                    }
+                }));
+            }
+
+            fibers.forEach(f => f.join());
+
+            assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
+            assert.strictEqual(sids.length, 8);
+
+            var uniq = new Set(sids);
+            assert.strictEqual(uniq.size, 1);
         });
     });
 
