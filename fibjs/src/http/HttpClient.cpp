@@ -1340,9 +1340,9 @@ public:
                 // to find and cancel the pending connection.
                 exlib::string tcpUrl = "tcp://";
                 tcpUrl.append(m_connUrl.substr(6));
-                return net_base::connect(tcpUrl, m_hc->m_timeout, m_conn, next(ssl_handshake));
+                return net_base::connect(tcpUrl, timeout(), m_conn, next(ssl_handshake));
             } else
-                return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
+                return net_base::connect(m_connUrl, timeout(), m_conn, next(connected));
         } else {
             bool socks = m_http_proxy[0] == 's';
 
@@ -1387,7 +1387,7 @@ public:
             if (u->port().empty())
                 connUrl.append(def_port);
 
-            return net_base::connect(connUrl, m_hc->m_timeout, m_conn,
+            return net_base::connect(connUrl, timeout(), m_conn,
                 next(socks
                         ? socks_hello
                         : m_ssl
@@ -1400,7 +1400,7 @@ public:
     {
         obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
 
-        m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
+        m_conn.As<Socket_base>()->set_timeout(timeout());
         return m_conn->writeBuffer(buf, next(socks_hello_response));
     }
 
@@ -1486,7 +1486,7 @@ public:
 
     ON_STATE(asyncRequest, ssl_connect)
     {
-        m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
+        m_conn.As<Socket_base>()->set_timeout(timeout());
         return m_hc->request(m_conn, m_reqConn, &m_retVal, next(ssl_handshake), true);
     }
 
@@ -1551,7 +1551,7 @@ public:
     {
         m_req->_set_socket(m_conn);
         if (!m_ssl)
-            m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
+            m_conn.As<Socket_base>()->set_timeout(timeout());
 
         // Check ALPN negotiation result for HTTP/2 auto-upgrade
         if (m_ssl && !m_reuse) {
@@ -2006,6 +2006,11 @@ private:
     obj_ptr<Buffer_base> m_buffer;
     bool m_reuse;
     bool m_completed = false;
+
+    int32_t timeout() const
+    {
+        return m_o->has_timeout ? m_o->timeout : m_hc->m_timeout;
+    }
 
     // Content-Encoding decompression state
     obj_ptr<MemoryStream> m_decodeStream;

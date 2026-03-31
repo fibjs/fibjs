@@ -4161,6 +4161,56 @@ describe("http", () => {
             });
         });
 
+        describe("per-request timeout option", () => {
+            it("per-request timeout overrides client timeout (overtime)", () => {
+                var client = new http.Client();
+                client.timeout = 5000;
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
+                        timeout: 200
+                    });
+                });
+                var t2 = new Date();
+
+                assert.greaterThan(t2 - t1, 190);
+                assert.lessThan(t2 - t1, 500);
+            });
+
+            it("per-request timeout overrides client timeout (intime)", () => {
+                var client = new http.Client();
+                client.timeout = 200;
+
+                assert.equal(client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
+                    timeout: 1000
+                }).text(), "/timeout");
+            });
+
+            it("per-request timeout with global http (overtime)", () => {
+                http.timeout = 5000;
+
+                var t1 = new Date();
+                assert.throws(() => {
+                    http.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
+                        timeout: 200
+                    });
+                });
+                var t2 = new Date();
+
+                assert.greaterThan(t2 - t1, 190);
+                assert.lessThan(t2 - t1, 500);
+            });
+
+            it("per-request timeout with global http (intime)", () => {
+                http.timeout = 200;
+
+                assert.equal(http.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
+                    timeout: 1000
+                }).text(), "/timeout");
+            });
+        });
+
         describe("abort control", () => {
             var abortPort = 8932 + base_port;
             var abortSvr;

@@ -106,6 +106,16 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    {
+        int32_t t;
+        result_t t_hr = GetConfigValue(opts, "timeout", t);
+        if (t_hr == 0) {
+            timeout = t;
+            has_timeout = true;
+        } else if (t_hr != CALL_E_PARAMNOTOPTIONAL)
+            return t_hr;
+    }
+
     GetConfigValue(opts, "redirect", redirect, true);
 
     // Parse signal option; ignore type mismatch or missing key

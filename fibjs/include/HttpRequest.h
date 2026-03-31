@@ -136,6 +136,8 @@ public:
         obj_ptr<SeekableStream_base> body;
         bool keepAlive = true;
         bool has_keepAlive = false;
+        int32_t timeout = -1;
+        bool has_timeout = false;
         exlib::string redirect = "follow"; // "follow" | "manual" | "error"
         bool redirected = false;
         bool streaming = true;
