@@ -66,18 +66,21 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         exlib::string port_str = u->port();
         int32_t port = port_str.empty() ? 443 : atoi(port_str.c_str());
 
-        // Ensure alpnProtocols includes 'h2'
+        // Ensure alpnProtocols includes 'h2'.
+        // Clone options before modifying to avoid mutating the caller's object.
         v8::Local<v8::Value> alpnVal;
         hr = GetConfigValue(options, "alpnProtocols", alpnVal);
+        v8::Local<v8::Object> connectOpts = options;
         if (hr == CALL_E_PARAMNOTOPTIONAL || alpnVal.IsEmpty()) {
+            connectOpts = options->Clone();
             v8::Local<v8::Array> alpn = v8::Array::New(isolate->m_isolate, 1);
             alpn->Set(context, 0, isolate->NewString("h2")).IsJust();
-            options->Set(context, isolate->NewString("alpnProtocols"), alpn).IsJust();
+            connectOpts->Set(context, isolate->NewString("alpnProtocols"), alpn).IsJust();
         }
 
-        // Create SecureContext from options
+        // Create SecureContext from connectOpts
         obj_ptr<SecureContext_base> ctx;
-        hr = tls_base::createSecureContext(options, false, ctx);
+        hr = tls_base::createSecureContext(connectOpts, false, ctx);
         if (hr < 0)
             return hr;
 

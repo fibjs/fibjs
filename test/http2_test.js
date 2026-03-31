@@ -515,6 +515,107 @@ describe('http2', () => {
             var uniq = new Set(sids);
             assert.strictEqual(uniq.size, 1);
         });
+
+        it('should share H2 session across different SecureContext instances with same mTLS content', () => {
+            // Regression test for pool-key bug:
+            // Before the fix, build_h2_pool_key() used the raw SecureContext pointer
+            // address as part of the key, so two distinct SecureContext objects with
+            // identical cert/CA/key content produced different pool keys and each
+            // established their own TCP+H2 connection to the server.
+            //
+            // This mirrors the kms pattern where @kubernetes/client-node calls
+            // kc.createAgent() on every request, producing a fresh https.Agent (and
+            // SecureContext) each time.  Under concurrency the server's TCP accept
+            // queue fills up, new SYNs are silently dropped, and all connecting
+            // fibers hang forever.
+            //
+            // After the fix, the key is derived from the cert fingerprint, so agents
+            // with the same TLS credentials share one session regardless of how many
+            // distinct SecureContext object instances exist.
+            var clientCtxOpts = {
+                cert: crt.pem,
+                key: pk1.privateKey.export(),
+                ca: ca.pem,
+                rejectUnauthorized: false,
+                rejectUnverified: false
+            };
+
+            // Create N different SecureContext objects carrying identical credentials.
+            var N = 10;
+            var clients = [];
+            for (var i = 0; i < N; i++) {
+                var ctx = tls.createSecureContext(clientCtxOpts, false);
+                clients.push(new http.Client(Object.assign({}, connectOpts, { secureContext: ctx })));
+            }
+
+            var fibers = [];
+            var sids = [];
+            var errors = [];
+
+            for (var i = 0; i < N; i++) {
+                (function (hc) {
+                    fibers.push(coroutine.start(() => {
+                        try {
+                            var sid = getTextBody(hc.getSync(`https://localhost:${h2_port}/session-id`));
+                            sids.push(sid);
+                        } catch (e) {
+                            errors.push(e);
+                        }
+                    }));
+                })(clients[i]);
+            }
+
+            fibers.forEach(f => f.join());
+
+            assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
+            assert.strictEqual(sids.length, N);
+            // All must land on the same server-side H2 session.
+            var uniq = new Set(sids);
+            assert.strictEqual(uniq.size, 1, 'Expected 1 shared H2 session, got: ' + [...uniq].join(', '));
+        });
+
+        it('should not hang under burst concurrency with repeated new-Agent pattern', () => {
+            // Stress reproduction of the kms hang bug: each concurrent fiber creates
+            // its own Agent (new SecureContext, same mTLS content) and fires a
+            // request, exactly as @kubernetes/client-node does per-call.
+            //
+            // Before the fix this exhausted TCP connections to the server.
+            // After the fix all fibers share one session and no fiber hangs.
+            var clientCtxOpts = {
+                cert: crt.pem,
+                key: pk1.privateKey.export(),
+                ca: ca.pem,
+                rejectUnauthorized: false,
+                rejectUnverified: false
+            };
+
+            var BURST = 20;
+            var errors = [];
+            var sids = [];
+            var fibers = [];
+
+            for (var i = 0; i < BURST; i++) {
+                fibers.push(coroutine.start(() => {
+                    try {
+                        // Each fiber creates a fresh Agent with a new SecureContext.
+                        var ctx = tls.createSecureContext(clientCtxOpts, false);
+                        var hc = new http.Client(Object.assign({}, connectOpts, { secureContext: ctx }));
+                        var sid = getTextBody(hc.getSync(`https://localhost:${h2_port}/session-id`));
+                        sids.push(sid);
+                    } catch (e) {
+                        errors.push(e);
+                    }
+                }));
+            }
+
+            fibers.forEach(f => f.join());
+
+            assert.strictEqual(errors.length, 0, errors[0] && errors[0].message);
+            assert.strictEqual(sids.length, BURST);
+            // With the fix: all BURST requests share exactly one H2 session.
+            var uniq = new Set(sids);
+            assert.strictEqual(uniq.size, 1, 'Expected 1 shared H2 session, got: ' + [...uniq].join(', '));
+        });
     });
 
     describe('edge cases', () => {

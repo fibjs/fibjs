@@ -60,14 +60,39 @@ static inline exlib::string build_h2_pool_key(const exlib::string& connUrl,
     key.append("|sni=");
     key.append(sslHost);
 
-    char ctx_buf[32];
-    snprintf(ctx_buf, sizeof(ctx_buf), "%p", (void*)context);
-    key.append("|ctx=");
-    key.append(ctx_buf);
-
     SecureContext* ctx = static_cast<SecureContext*>(context);
     key.append("|alpn=");
     key.append((ctx && ctx->hasAlpn()) ? "custom" : "auto");
+
+    // Use content-based fingerprint of client cert and CA instead of the
+    // raw pointer value so that different Agent instances with identical
+    // TLS configuration share the same H2 session pool entry.
+    key.append("|cert=");
+    if (ctx) {
+        obj_ptr<X509Certificate_base> cert;
+        if (ctx->get_cert(cert) == 0 && cert) {
+            exlib::string fp;
+            cert->get_fingerprint256(fp);
+            key.append(fp);
+        } else {
+            key.append("none");
+        }
+    } else {
+        key.append("none");
+    }
+    key.append("|ca=");
+    if (ctx) {
+        obj_ptr<X509Certificate_base> ca;
+        if (ctx->get_ca(ca) == 0 && ca) {
+            exlib::string fp;
+            ca->get_fingerprint256(fp);
+            key.append(fp);
+        } else {
+            key.append("default");
+        }
+    } else {
+        key.append("default");
+    }
 
     return key;
 }
@@ -1209,8 +1234,9 @@ public:
             if (host[0] == '/') {
                 _domain = true;
                 m_connUrl = "unix:";
-            } else
+            } else {
                 m_connUrl = "tcp://";
+            }
         } else
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
