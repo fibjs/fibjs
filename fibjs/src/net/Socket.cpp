@@ -335,11 +335,10 @@ private:
 
 result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
+    startConnectEvent();
+
     if (ac->isSync())
-    {
-        startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
-    }
 
 #ifdef _WIN32
     if (!m_bBind) {

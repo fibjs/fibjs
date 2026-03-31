@@ -265,10 +265,10 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         AsyncEvent* m_ac;
     };
 
-    if (ac->isSync()) {
-        startConnectEvent();
+    startConnectEvent();
+
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-    }
 
     retVal = this;
     if (m_family == net_base::C_AF_UNIX) {

@@ -742,6 +742,104 @@ function test_net(eng, use_uv) {
             assert.ok(receivedData.length > 0);
         });
 
+        it("data event with net.connect", () => {
+            var p = getPort();
+            var svr = net.createServer((conn) => {
+                conn.write('HTTP/1.1 200 OK\r\n');
+                coroutine.sleep(50);
+                conn.write('Content-Type: text/plain\r\n');
+                coroutine.sleep(50);
+                conn.write('\r\n');
+                coroutine.sleep(50);
+                conn.write('Hello from connect!');
+                coroutine.sleep(100);
+                conn.close();
+            });
+            svr.listen(p);
+            test_util.push(svr.socket);
+
+            var receivedData = [];
+            var closeEvent = new coroutine.Event();
+            var timedOut = false;
+
+            var c1 = net.connect(p, '127.0.0.1');
+
+            c1.on('data', (data) => {
+                receivedData.push(data.toString());
+            });
+
+            c1.on('close', () => {
+                closeEvent.set();
+            });
+
+            setTimeout(() => {
+                timedOut = true;
+                closeEvent.set();
+            }, 5000);
+
+            closeEvent.wait();
+
+            assert.equal(timedOut, false, "timed out waiting for data/close event");
+            var fullResponse = receivedData.join('');
+            assert.ok(fullResponse.includes('HTTP/1.1 200 OK'));
+            assert.ok(fullResponse.includes('Content-Type: text/plain'));
+            assert.ok(fullResponse.includes('Hello from connect!'));
+            assert.ok(receivedData.length > 0);
+
+            c1.close();
+        });
+
+        it("data event with net.connect and connectListener", () => {
+            var p = getPort();
+            var svr = net.createServer((conn) => {
+                conn.write('HTTP/1.1 200 OK\r\n');
+                coroutine.sleep(50);
+                conn.write('Content-Type: text/plain\r\n');
+                coroutine.sleep(50);
+                conn.write('\r\n');
+                coroutine.sleep(50);
+                conn.write('Hello from cb connect!');
+                coroutine.sleep(100);
+                conn.close();
+            });
+            svr.listen(p);
+            test_util.push(svr.socket);
+
+            var receivedData = [];
+            var closeEvent = new coroutine.Event();
+            var timedOut = false;
+            var connectFired = false;
+
+            var c1 = net.connect(p, '127.0.0.1', () => {
+                connectFired = true;
+            });
+
+            c1.on('data', (data) => {
+                receivedData.push(data.toString());
+            });
+
+            c1.on('close', () => {
+                closeEvent.set();
+            });
+
+            setTimeout(() => {
+                timedOut = true;
+                closeEvent.set();
+            }, 5000);
+
+            closeEvent.wait();
+
+            assert.equal(timedOut, false, "timed out waiting for data/close event");
+            assert.equal(connectFired, true, "connect callback should have fired");
+            var fullResponse = receivedData.join('');
+            assert.ok(fullResponse.includes('HTTP/1.1 200 OK'));
+            assert.ok(fullResponse.includes('Content-Type: text/plain'));
+            assert.ok(fullResponse.includes('Hello from cb connect!'));
+            assert.ok(receivedData.length > 0);
+
+            c1.close();
+        });
+
         describe("re-entrant", () => {
 
             it("accept", () => {
