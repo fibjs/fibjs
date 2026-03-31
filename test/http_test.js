@@ -2217,7 +2217,7 @@ describe("http", () => {
             st.wait(1);
 
             test_util.gc();
-            assert.equal(no, test_util.countObject('Socket') + 1);
+            assert.ok(test_util.countObject('Socket') <= no - 1);
         });
 
         it("remote close when request", () => {

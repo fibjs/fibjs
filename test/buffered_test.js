@@ -9,7 +9,6 @@ var mq = require('mq');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
-const is_win32 = process.platform === 'win32';
 
 describe("buffered stream", () => {
     var s;
@@ -149,7 +148,7 @@ describe("buffered stream", () => {
             // Test writeLine return value
             var testLine = 'Test Line';
             result = buffered.writeLine(testLine);
-            assert.equal(result, is_win32 ? 11 : 10); // Windows adds \r\n, others just \n
+            assert.equal(result, 10); // Default EOL is \n unless EOL is explicitly set
 
             // Verify the content was written correctly
             f.rewind();
