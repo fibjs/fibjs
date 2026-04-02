@@ -851,6 +851,10 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     exlib::string pending;
     int32_t stream_id;
 
+    // Lock m_request_lock to ensure HPACK-encoded frames are enqueued
+    // in the same order they were encoded (prevents out-of-order delivery).
+    m_request_lock.lock();
+
     if (endStream) {
         // No body: atomically submit + collect output to prevent
         // readLoop's asyncFlushOutput from stealing HEADERS data.
@@ -860,8 +864,10 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
         stream_id = m_nghttp2.submit_request(nva.data(), nva.size(), &data_prd);
     }
 
-    if (stream_id < 0)
+    if (stream_id < 0) {
+        m_request_lock.unlock();
         return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+    }
 
     obj_ptr<Http2Stream> stream = new Http2Stream(this, stream_id);
     stream->wrap();
@@ -874,6 +880,8 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     } else if (!endStream) {
         asyncFlushOutput();
     }
+
+    m_request_lock.unlock();
 
     retVal = stream;
     return 0;
@@ -905,6 +913,10 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
     exlib::string pending;
     int32_t stream_id;
 
+    // Lock m_request_lock to ensure HPACK-encoded frames are enqueued
+    // in the same order they were encoded (prevents out-of-order delivery).
+    m_request_lock.lock();
+
     if (endStream) {
         // No body: atomically submit + collect output to prevent
         // readLoop's asyncFlushOutput from stealing HEADERS data.
@@ -914,20 +926,23 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
         stream_id = m_nghttp2.submit_request(nva.data(), nva.size(), &data_prd);
     }
 
-    if (stream_id < 0)
+    if (stream_id < 0) {
+        m_request_lock.unlock();
         return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+    }
 
     obj_ptr<Http2Stream> stream = new Http2Stream(this, stream_id);
     addStream(stream_id, stream);
-
-
-    retVal = stream;
 
     // Flush atomically collected output (or nothing for non-endStream)
     if (!pending.empty()) {
         obj_ptr<Buffer_base> buf = new Buffer(pending.c_str(), pending.length());
         enqueueFlush(new AsyncFlushItem(buf));
     }
+
+    m_request_lock.unlock();
+
+    retVal = stream;
 
     return 0;
 }

@@ -389,6 +389,9 @@ public:
     exlib::spinlock m_done_lock;
     AsyncEvent* m_done_ac = nullptr;
 
+    // Serialize submit_request + enqueueFlush to preserve HPACK encoding order
+    exlib::spinlock m_request_lock;
+
     // Serialize all writes to the connection via write queue
     exlib::spinlock m_write_spinlock;
     exlib::List<AsyncFlushItem> m_write_queue;

@@ -1720,6 +1720,10 @@ public:
         int32_t stream_id;
         exlib::string pending;
 
+        // Lock m_request_lock to ensure HPACK-encoded frames are enqueued
+        // in the same order they were encoded (prevents out-of-order delivery).
+        m_h2session->m_request_lock.lock();
+
         m_h2session->m_nghttp2.submit_request_with_data(
             nva.data(), nva.size(), &data_prd,
             stream_id, pending,
@@ -1728,17 +1732,20 @@ public:
                 m_h2session->addStream(sid, stream);
             });
 
-        if (stream_id < 0)
+        if (stream_id < 0) {
+            m_h2session->m_request_lock.unlock();
             return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+        }
 
         m_h2stream = stream;
-
 
         // Send the atomically collected output
         if (!pending.empty()) {
             obj_ptr<Buffer_base> buf = new Buffer(pending.c_str(), pending.length());
             m_h2session->enqueueFlush(new AsyncFlushItem(buf));
         }
+
+        m_h2session->m_request_lock.unlock();
 
         return next(h2_request_sent);
     }
