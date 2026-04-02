@@ -15,11 +15,11 @@ const http = require('http');
 const outputFile = path.join(__dirname, '../fibjs/scripts/opt_tools/check.js');
 
 // Download and extract TypeScript from npm
-async function downloadTypeScript() {
+function downloadTypeScript() {
     console.log('Fetching TypeScript package info from npm...');
     
     // Get package info
-    const res = await http.get('https://registry.npmjs.org/typescript/latest');
+    const res = http.getSync('https://registry.npmjs.org/typescript/latest');
     const pkgInfo = res.json();
     const version = pkgInfo.version;
     const tarballUrl = pkgInfo.dist.tarball;
@@ -28,8 +28,8 @@ async function downloadTypeScript() {
     console.log(`Downloading from: ${tarballUrl}`);
     
     // Download tarball
-    const tarRes = await http.get(tarballUrl);
-    const tarGz = tarRes.body.readAll();
+    const tarRes = http.getSync(tarballUrl);
+    const tarGz = tarRes.readAll();
     
     console.log(`Downloaded ${tarGz.length} bytes`);
     
@@ -162,8 +162,8 @@ function getDeclarationDiagnostics(host, resolver, file) {
     return stubs + result.join('\n');
 }
 
-async function main() {
-    const { version, files } = await downloadTypeScript();
+function main() {
+    const { version, files } = downloadTypeScript();
     
     let tscCode = files['_tsc.js'];
     if (!tscCode) {
