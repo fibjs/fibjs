@@ -30,6 +30,11 @@ interface Stream : EventEmitter
      */
     Buffer readBuffer(Integer bytes = -1) async;
 
+    /*! @brief 从流内读取剩余的全部数据
+     @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     */
+    Buffer readAll() async;
+
     /*! @brief 设置流的编码方式。设置后 read() 将返回字符串而非 Buffer 对象
      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
      @return 返回当前流对象

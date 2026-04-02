@@ -20,11 +20,6 @@ interface SeekableStream : Stream
      */
     Long size();
 
-    /*! @brief Read all remaining data from the stream
-     @return Return the data read from the stream, return null if no data is readable or the connection is interrupted
-     */
-    Buffer readAll() async;
-
     /*! @brief Modify the file size, if the new size is smaller than the original size, the file is truncated
       @param bytes New file size
      */

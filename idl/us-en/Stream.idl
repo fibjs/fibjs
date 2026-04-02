@@ -30,6 +30,11 @@ interface Stream : EventEmitter
      */
     Buffer readBuffer(Integer bytes = -1) async;
 
+    /*! @brief Read all remaining data from the stream
+     @return Returns the data read from the stream, returns null if no data is available or the connection is interrupted
+     */
+    Buffer readAll() async;
+
     /*! @brief Set the encoding for the stream. After setting, read() will return strings instead of Buffer objects
      @param encoding The encoding to use, e.g. 'utf8', 'ascii', 'hex', etc. Pass null to return to Buffer mode
      @return Returns the current stream object

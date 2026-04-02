@@ -4549,6 +4549,42 @@ describe("http", () => {
             assert.equal(obj.ok, true);
             resp.body.close();
         });
+
+        it("body.readAll() reads chunked stream completely", () => {
+            var hc = new http.Client();
+            var resp = hc.getSync("http://127.0.0.1:" + streamPort + "/chunked");
+            var buf = resp.body.readAll();
+            assert.ok(buf instanceof Buffer);
+            assert.equal(buf.toString(), "hello world!");
+            resp.body.close();
+        });
+
+        it("body.readAll() reads content-length stream completely", () => {
+            var hc = new http.Client();
+            var resp = hc.getSync("http://127.0.0.1:" + streamPort + "/content-length");
+            var buf = resp.body.readAll();
+            assert.ok(buf instanceof Buffer);
+            assert.equal(buf.toString(), "content-length body");
+            resp.body.close();
+        });
+
+        it("body.readAll() reads large body completely", () => {
+            var hc = new http.Client();
+            var resp = hc.getSync("http://127.0.0.1:" + streamPort + "/big");
+            var buf = resp.body.readAll();
+            assert.ok(buf instanceof Buffer);
+            assert.equal(buf.length, 4096);
+            resp.body.close();
+        });
+
+        it("body.readAll() returns null for empty body", () => {
+            var hc = new http.Client();
+            var resp = hc.getSync("http://127.0.0.1:" + streamPort + "/chunked");
+            resp.body.readAll(); // consume first
+            var buf = resp.body.readAll();
+            assert.equal(buf, null);
+            resp.body.close();
+        });
     });
 
     describe("repeater", () => {

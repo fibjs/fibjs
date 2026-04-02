@@ -116,7 +116,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 }
 
 // Reads the full message body then invokes fn(status, data).
-// Handles streaming (loop-reads Stream_base), buffered (SeekableStream_base), and null body.
+// Handles streaming (Stream_base), buffered (SeekableStream_base), and null body.
 class asyncConsumeBody : public AsyncState {
 public:
     using ProcessFn = std::function<result_t(result_t, obj_ptr<Buffer_base>)>;
@@ -136,37 +136,17 @@ public:
             next(read);
         else if (pThis->m_body) {
             pThis->m_body->rewind();
-            next(seekable);
+            next(read);
         } else
             next(noBody);
     }
 
-    // Streaming path: loop-read until EOF
     ON_STATE(asyncConsumeBody, read)
     {
-        return m_pThis->m_bodyStream->readBuffer(-1, m_chunk, next(process));
-    }
-
-    ON_STATE(asyncConsumeBody, process)
-    {
-        if (n == CALL_RETURN_NULL) {
-            obj_ptr<Buffer_base> data;
-            if (!m_buf.empty())
-                data = new Buffer(m_buf.c_str(), m_buf.length());
-            return next(m_fn(m_buf.empty() ? CALL_RETURN_NULL : 0, data));
-        }
-        if (m_chunk) {
-            Buffer* b = (Buffer*)m_chunk.get();
-            m_buf.append((const char*)b->data(), b->length());
-            m_chunk.Release();
-        }
-        return next(read);
-    }
-
-    // Buffered path: single readAll on seekable stream
-    ON_STATE(asyncConsumeBody, seekable)
-    {
-        return m_pThis->m_body->readAll(m_data, next(done));
+        Stream_base* body = m_pThis->m_bodyStream
+            ? m_pThis->m_bodyStream.get()
+            : (Stream_base*)m_pThis->m_body.get();
+        return body->readAll(m_data, next(done));
     }
 
     ON_STATE(asyncConsumeBody, done)
@@ -190,20 +170,19 @@ private:
     obj_ptr<Message> m_pThis;
     ProcessFn m_fn;
     obj_ptr<Buffer_base> m_data;
-    obj_ptr<Buffer_base> m_chunk;
-    exlib::string m_buf;
 };
 
 result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!m_bodyStream && !m_body)
-        return CALL_RETURN_NULL;
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    return (new asyncConsumeBody(this, [&retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
-        retVal = data;
-        return n;
-    }, ac))->post(0);
+    if (m_bodyStream)
+        return m_bodyStream->readAll(retVal, ac);
+
+    if (m_body) {
+        m_body->rewind();
+        return m_body->readAll(retVal, ac);
+    }
+
+    return CALL_RETURN_NULL;
 }
 
 result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)

@@ -1,6 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
-/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
 /**
  * @description 可移动当前指针的流对象接口 
@@ -32,29 +31,6 @@ declare class Class_SeekableStream extends Class_Stream {
      *      
      */
     size(): number;
-
-    /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
-     *      
-     */
-    readAll(): Class_Buffer;
-
-    readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
-     *      
-     */
-    readAllSync(): Class_Buffer;
-
-    /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
-     *      
-     */
-    readAllAsync(): Promise<Class_Buffer>;
 
     /**
      * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断

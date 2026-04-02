@@ -33,6 +33,7 @@ public:
     virtual result_t get__writableState(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
@@ -73,6 +74,7 @@ public:
     static void s_get__writableState(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -98,6 +100,7 @@ public:
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, Variant);
     ASYNC_MEMBERVALUE2(Stream_base, readBuffer, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE1(Stream_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Stream_base, writeBuffer, Buffer_base*);
     ASYNC_MEMBERVALUE2(Stream_base, write, Buffer_base*, bool);
     ASYNC_MEMBERVALUE3(Stream_base, write, Buffer_base*, exlib::string, bool);
@@ -122,6 +125,7 @@ inline ClassInfo& Stream_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
         { "readBuffer", s_readBuffer, false, ClassData::ASYNC_ASYNC },
+        { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
         { "setEncoding", s_setEncoding, false, ClassData::ASYNC_SYNC },
         { "writeBuffer", s_writeBuffer, false, ClassData::ASYNC_ASYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
@@ -265,6 +269,23 @@ inline void Stream_base::s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>&
         hr = pInst->acb_readBuffer(v0, cb, args);
     else
         hr = pInst->ac_readBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Stream_base);
+    ASYNC_METHOD_ENTER("Stream.readAll");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readAll(cb, args);
+    else
+        hr = pInst->ac_readAll(vr);
 
     METHOD_RETURN();
 }

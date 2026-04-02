@@ -18,7 +18,6 @@ namespace fibjs {
 
 class Stream_base;
 class fs_base;
-class Buffer_base;
 class Stat_base;
 
 class SeekableStream_base : public Stream_base {
@@ -30,7 +29,6 @@ public:
     virtual result_t tell(int64_t& retVal) = 0;
     virtual result_t rewind() = 0;
     virtual result_t size(int64_t& retVal) = 0;
-    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
     virtual result_t eof(bool& retVal) = 0;
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
@@ -51,20 +49,17 @@ public:
     static void s_tell(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_size(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(SeekableStream_base, truncate, int64_t);
     ASYNC_MEMBERVALUE1(SeekableStream_base, stat, obj_ptr<Stat_base>);
 };
 }
 
 #include "ifs/fs.h"
-#include "ifs/Buffer.h"
 #include "ifs/Stat.h"
 
 namespace fibjs {
@@ -75,7 +70,6 @@ inline ClassInfo& SeekableStream_base::class_info()
         { "tell", s_tell, false, ClassData::ASYNC_SYNC },
         { "rewind", s_rewind, false, ClassData::ASYNC_SYNC },
         { "size", s_size, false, ClassData::ASYNC_SYNC },
-        { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
         { "truncate", s_truncate, false, ClassData::ASYNC_ASYNC },
         { "eof", s_eof, false, ClassData::ASYNC_SYNC },
         { "stat", s_stat, false, ClassData::ASYNC_ASYNC }
@@ -143,23 +137,6 @@ inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER(0, 0);
 
     hr = pInst->size(vr);
-
-    METHOD_RETURN();
-}
-
-inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    ASYNC_METHOD_INSTANCE(SeekableStream_base);
-    ASYNC_METHOD_ENTER("SeekableStream.readAll");
-
-    METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_readAll(cb, args);
-    else
-        hr = pInst->ac_readAll(vr);
 
     METHOD_RETURN();
 }

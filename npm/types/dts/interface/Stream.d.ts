@@ -86,6 +86,29 @@ declare class Class_Stream extends Class_EventEmitter {
     readBufferAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
+     * @description 从流内读取剩余的全部数据
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAll(): Class_Buffer;
+
+    readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 从流内读取剩余的全部数据
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllSync(): Class_Buffer;
+
+    /**
+     * @description 从流内读取剩余的全部数据
+     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     *      
+     */
+    readAllAsync(): Promise<Class_Buffer>;
+
+    /**
      * @description 设置流的编码方式。设置后 read() 将返回字符串而非 Buffer 对象
      *      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
      *      @return 返回当前流对象

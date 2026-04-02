@@ -20,11 +20,6 @@ interface SeekableStream : Stream
      */
     Long size();
 
-    /*! @brief 从流内读取剩余的全部数据
-     @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
-     */
-    Buffer readAll() async;
-
     /*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
       @param bytes 新的文件尺寸
      */

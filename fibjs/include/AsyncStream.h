@@ -400,6 +400,54 @@ public:
         return CALL_E_PENDDING;
     }
 
+    // Async state machine for readAll: loop readBuffer(-1) until EOF
+    class AsyncReadAll : public AsyncState {
+    public:
+        AsyncReadAll(AsyncStream<T>* pThis, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_retVal(retVal)
+        {
+            next(doRead);
+        }
+
+        ON_STATE(AsyncReadAll, doRead)
+        {
+            return m_pThis->readBuffer(-1, m_chunk, next(process));
+        }
+
+        ON_STATE(AsyncReadAll, process)
+        {
+            if (n == CALL_RETURN_NULL) {
+                if (m_buf.empty())
+                    return next(CALL_RETURN_NULL);
+                m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
+                return next(0);
+            }
+            if (m_chunk) {
+                Buffer* b = (Buffer*)m_chunk.get();
+                m_buf.append((const char*)b->data(), b->length());
+                m_chunk.Release();
+            }
+            return next(doRead);
+        }
+
+    private:
+        AsyncStream<T>* m_pThis;
+        obj_ptr<Buffer_base>& m_retVal;
+        obj_ptr<Buffer_base> m_chunk;
+        exlib::string m_buf;
+    };
+
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        (new AsyncReadAll(this, retVal, ac))->apost(0);
+        return CALL_E_PENDDING;
+    }
+
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal)
     {
         this->m_encoding = encoding;
