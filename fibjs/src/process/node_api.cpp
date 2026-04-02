@@ -6,9 +6,10 @@
  */
 
 #include "addons/js_native_api_internal.h"
+#include <exlib/include/thread.h>
 #include <queue>
 #include <mutex>
-#include <condition_variable>
+#include <memory>
 
 node_napi_env__::node_napi_env__(v8::Local<v8::Context> context,
     const std::string& module_filename,
@@ -115,6 +116,27 @@ void node_napi_env__::CallbackIntoModule(T&& call)
 namespace v8impl {
 
 class ThreadSafeFunction : public node::AsyncResource {
+    // SharedState holds all data accessed by external threads (Push/Acquire/Release).
+    // It is kept alive by a shared_ptr so that Push() can safely lock the mutex
+    // even after 'delete this' has been called on the ThreadSafeFunction.
+    struct SharedState {
+        std::mutex mutex;
+        std::queue<void*> queue;
+        size_t thread_count;
+        bool is_closing;
+
+        // Slot semaphore: available queue slots (only when max_queue_size > 0).
+        std::unique_ptr<exlib::OSSemaphore> slots;
+
+        SharedState(size_t tc, size_t max_q)
+            : thread_count(tc)
+            , is_closing(false)
+        {
+            if (max_q > 0)
+                slots = std::make_unique<exlib::OSSemaphore>(max_q);
+        }
+    };
+
 public:
     ThreadSafeFunction(v8::Local<v8::Function> func,
         v8::Local<v8::Object> resource,
@@ -128,8 +150,7 @@ public:
         napi_threadsafe_function_call_js call_js_cb_)
         : AsyncResource(env_->isolate, resource,
             *v8::String::Utf8Value(env_->isolate, name))
-        , thread_count(thread_count_)
-        , is_closing(false)
+        , state(std::make_shared<SharedState>(thread_count_, max_queue_size_))
         , dispatch_state(kDispatchIdle)
         , context(context_)
         , max_queue_size(max_queue_size_)
@@ -144,27 +165,39 @@ public:
         env->Ref();
     }
 
-    // Thread-safe: callable from any thread
+    ~ThreadSafeFunction() override = default;
+
+    // Thread-safe: callable from any thread.
+    // Copy shared_ptr by value so that 'state' stays alive even if the
+    // ThreadSafeFunction is deleted while we are blocked in slots->Wait().
     napi_status Push(void* data, napi_threadsafe_function_call_mode mode)
     {
-        std::unique_lock<std::mutex> lock(mutex);
+        // Keep state alive independently of 'this'.
+        std::shared_ptr<SharedState> s = state;
 
-        while (queue.size() >= max_queue_size && max_queue_size > 0 && !is_closing) {
+        if (max_queue_size > 0) {
             if (mode == napi_tsfn_nonblocking) {
-                return napi_queue_full;
+                if (!s->slots->TryWait())
+                    return napi_queue_full;
+            } else {
+                s->slots->Wait();
             }
-            cond.wait(lock);
         }
 
-        if (is_closing) {
-            if (thread_count == 0) {
+        std::lock_guard<std::mutex> lock(s->mutex);
+
+        if (s->is_closing) {
+            // Return the slot to cascade wake-up to the next blocked Push().
+            if (max_queue_size > 0)
+                s->slots->Post();
+            if (s->thread_count == 0) {
                 return napi_invalid_arg;
             } else {
-                thread_count--;
+                s->thread_count--;
                 return napi_closing;
             }
         } else {
-            queue.push(data);
+            s->queue.push(data);
             Send();
             return napi_ok;
         }
@@ -172,32 +205,29 @@ public:
 
     napi_status Acquire()
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(state->mutex);
 
-        if (is_closing) {
+        if (state->is_closing)
             return napi_closing;
-        }
 
-        thread_count++;
+        state->thread_count++;
         return napi_ok;
     }
 
     napi_status Release(napi_threadsafe_function_release_mode mode)
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(state->mutex);
 
-        if (thread_count == 0) {
+        if (state->thread_count == 0)
             return napi_invalid_arg;
-        }
 
-        thread_count--;
+        state->thread_count--;
 
-        if (thread_count == 0 || mode == napi_tsfn_abort) {
-            if (!is_closing) {
-                is_closing = (mode == napi_tsfn_abort);
-                if (is_closing && max_queue_size > 0) {
-                    cond.notify_one();
-                }
+        if (state->thread_count == 0 || mode == napi_tsfn_abort) {
+            if (!state->is_closing) {
+                state->is_closing = (mode == napi_tsfn_abort);
+                if (state->is_closing && max_queue_size > 0)
+                    state->slots->Post();
                 Send();
             }
         }
@@ -207,20 +237,10 @@ public:
 
     void* Context() { return context; }
 
-    napi_status Init()
-    {
-        return napi_ok;
-    }
+    napi_status Init() { return napi_ok; }
 
-    napi_status Unref()
-    {
-        return napi_ok;
-    }
-
-    napi_status Ref()
-    {
-        return napi_ok;
-    }
+    napi_status Unref() { return napi_ok; }
+    napi_status Ref() { return napi_ok; }
 
 protected:
     void Dispatch()
@@ -232,14 +252,17 @@ protected:
             dispatch_state = kDispatchRunning;
             has_more = DispatchOne();
 
-            if (dispatch_state.exchange(kDispatchIdle) != kDispatchRunning) {
+            if (dispatch_state.exchange(kDispatchIdle) != kDispatchRunning)
                 has_more = true;
-            }
+
+            // CloseHandlesAndMaybeDelete() will call Finalize() -> delete this.
+            // Stop here to avoid accessing members after deletion.
+            if (handles_closing)
+                return;
         }
 
-        if (has_more) {
+        if (has_more && !handles_closing)
             Send();
-        }
     }
 
     bool DispatchOne()
@@ -249,27 +272,25 @@ protected:
         bool has_more = false;
 
         {
-            std::lock_guard<std::mutex> lock(mutex);
-            if (is_closing) {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            if (state->is_closing) {
                 CloseHandlesAndMaybeDelete();
             } else {
-                size_t size = queue.size();
+                size_t size = state->queue.size();
                 if (size > 0) {
-                    data = queue.front();
-                    queue.pop();
+                    data = state->queue.front();
+                    state->queue.pop();
                     popped_value = true;
-                    if (size == max_queue_size && max_queue_size > 0) {
-                        cond.notify_one();
-                    }
+                    if (max_queue_size > 0)
+                        state->slots->Post();
                     size--;
                 }
 
                 if (size == 0) {
-                    if (thread_count == 0) {
-                        is_closing = true;
-                        if (max_queue_size > 0) {
-                            cond.notify_one();
-                        }
+                    if (state->thread_count == 0) {
+                        state->is_closing = true;
+                        if (max_queue_size > 0)
+                            state->slots->Post();
                         CloseHandlesAndMaybeDelete();
                     }
                 } else {
@@ -305,17 +326,21 @@ protected:
 
     void EmptyQueueAndDelete()
     {
+        // Drain any remaining items. No external thread can push new items
+        // because is_closing is true and slots->Post() woke them up already.
         for (;;) {
             void* data;
             {
-                std::lock_guard<std::mutex> lock(mutex);
-                if (queue.empty())
+                std::lock_guard<std::mutex> lock(state->mutex);
+                if (state->queue.empty())
                     break;
-                data = queue.front();
-                queue.pop();
+                data = state->queue.front();
+                state->queue.pop();
             }
             call_js_cb(nullptr, nullptr, context, data);
         }
+        // Release the shared state (external threads may still hold their own copy).
+        state.reset();
         env->Unref();
         delete this;
     }
@@ -323,15 +348,13 @@ protected:
     void CloseHandlesAndMaybeDelete(bool set_closing = false)
     {
         if (set_closing) {
-            std::lock_guard<std::mutex> lock(mutex);
-            is_closing = true;
-            if (max_queue_size > 0) {
-                cond.notify_one();
-            }
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->is_closing = true;
+            if (max_queue_size > 0)
+                state->slots->Post();
         }
-        if (handles_closing) {
+        if (handles_closing)
             return;
-        }
         handles_closing = true;
 
         isolate_->sync([this]() -> int {
@@ -344,9 +367,8 @@ protected:
     void Send()
     {
         unsigned char current_state = dispatch_state.fetch_or(kDispatchPending);
-        if ((current_state & kDispatchRunning) == kDispatchRunning) {
+        if ((current_state & kDispatchRunning) == kDispatchRunning)
             return;
-        }
 
         isolate_->sync([this]() -> int {
             fibjs::JSFiber::EnterJsScope s;
@@ -383,12 +405,9 @@ private:
     static const unsigned char kDispatchPending = 1 << 1;
     static const unsigned int kMaxIterationCount = 1000;
 
-    // Mutex-protected
-    std::mutex mutex;
-    std::condition_variable cond;
-    std::queue<void*> queue;
-    size_t thread_count;
-    bool is_closing;
+    // Shared state kept alive by shared_ptr so Push() is safe across deletion.
+    std::shared_ptr<SharedState> state;
+
     std::atomic_uchar dispatch_state;
 
     // Read-only after creation
@@ -1170,6 +1189,8 @@ napi_create_threadsafe_function(napi_env env,
         status = ts_fn->Init();
         if (status == napi_ok) {
             *result = reinterpret_cast<napi_threadsafe_function>(ts_fn);
+        } else {
+            delete ts_fn;
         }
     }
 
