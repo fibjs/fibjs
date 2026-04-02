@@ -46,7 +46,7 @@ result_t SQLite::open(const char* file)
 {
     sqlite3_enable_shared_cache(1);
     if (sqlite3_open_v2(file, (sqlite3**)&m_conn, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+        result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file));
         sqlite3_close((sqlite3*)m_conn);
         m_conn = NULL;
         return hr;
@@ -321,7 +321,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
     }
 
     if (sqlite3_open_v2(c_str, &db2, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
+        result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg(db2), c_str));
         return hr;
     }
 
