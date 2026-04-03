@@ -113,6 +113,21 @@ public:
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
                 hr = CALL_E_JAVASCRIPT;
+            else {
+                // After InstantiateModule succeeds, eagerly init import.meta for all SourceTextModules
+                // before resetting m_module_pending. Without this, V8 fires the lazy callback during
+                // Evaluate() when m_module_pending is already null, leaving import.meta.url empty.
+                m_sb->m_pending_module = fname;
+                initImportMeta(m_isolate->m_isolate, root_module);
+
+                for (auto& ref : module_refs) {
+                    v8::Local<v8::Module> mod = ref->second.first.Get(m_isolate->m_isolate);
+                    if (!mod->IsSyntheticModule()) {
+                        m_sb->m_pending_module = ref->first;
+                        initImportMeta(m_isolate->m_isolate, mod);
+                    }
+                }
+            }
         }
 
         rt->m_module_pending = prev_sb;

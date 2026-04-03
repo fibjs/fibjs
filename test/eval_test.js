@@ -117,6 +117,36 @@ describe('eval (-e)', () => {
             var result = runEval("console.log(typeof import.meta)");
             assert.equal(result, 'object');
         });
+
+        it('import.meta.url is a file URL', () => {
+            var result = runEval("console.log(import.meta.url)");
+            assert.ok(result.startsWith('file:///'), 'import.meta.url should start with file:///');
+        });
+
+        it('import.meta.filename is absolute path ending with [eval]', () => {
+            var result = runEval("console.log(import.meta.filename)");
+            var expected = path.join(process.cwd(), '[eval]');
+            assert.equal(result, expected);
+        });
+
+        it('import.meta.dirname equals current working directory', () => {
+            var result = runEval("console.log(import.meta.dirname)");
+            assert.equal(result, process.cwd());
+        });
+
+        it('import.meta.url matches filename', () => {
+            var result = runEval("const { fileURLToPath } = require('url'); console.log(fileURLToPath(import.meta.url))");
+            var expected = path.join(process.cwd(), '[eval]');
+            assert.equal(result, expected);
+        });
+
+        it('import.meta.url available in statically imported module', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import { metaUrl } from './eval_files/esm_module.mjs'; console.log(typeof metaUrl)"], {
+                encoding: 'utf8',
+                cwd: path.join(__dirname)
+            }).trim();
+            assert.equal(result, 'string');
+        });
     });
 
     describe('global variables', () => {
