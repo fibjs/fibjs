@@ -322,28 +322,94 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // Node.js 兼容的 pathname 别名，用于 request 选项。
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param method 指定 http 请求方法：GET, POST 等
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 请求 opts 指定的 url，并返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param opts 指定附加信息
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function request(opts: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，并返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function request(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -428,10 +494,27 @@ declare module 'http' {
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function get(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -486,10 +569,30 @@ declare module 'http' {
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function post(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -544,10 +647,27 @@ declare module 'http' {
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function del(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -602,10 +722,30 @@ declare module 'http' {
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function put(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -660,10 +800,30 @@ declare module 'http' {
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function patch(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -718,10 +878,27 @@ declare module 'http' {
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "query": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // 用于取消请求的 AbortSignal 对象
+     *      }
+     *      ```
+     *      缺省为 {}，不包含任何附加信息
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
-     *      @param callback 响应回调函数，接收 HttpResponse 作为参数
-     *      @return 返回 HttpRequest 对象
+     *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
      *      
      */
     function head(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
@@ -787,19 +964,73 @@ declare module 'http' {
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
-     * *
+     * @description 使用 Web Fetch 标准发送请求，以 HttpRequest 对象作为请求源，返回 HttpResponse 对象
+     *      opts 可覆盖 request 中的请求字段，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // 覆盖 request 中的请求方法
+     *          "headers": {}, // 与 request.headers 合并，opts 中的同名头覆盖 request 中的
+     *          "body": SeekableStream | Buffer | String | {}, // 覆盖 request.body
+     *          "keepAlive": unknown, // 覆盖连接保持设置
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "redirect": "follow", // 重定向模式："follow"（默认）| "error" | "manual"
+     *          "signal": AbortSignal, // 用于取消请求的 AbortSignal 对象
+     *          "streaming": false // 是否以流模式返回响应体
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不覆盖任何 request 中的信息
+     *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
+     *      @param opts 指定附加信息，可覆盖 request 中的对应字段
+     *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
+     *      
      */
     function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
-     * *
+     * @description 使用 Web Fetch 标准发送请求，以 HttpRequest 对象作为请求源，返回 HttpResponse 对象
+     *      opts 可覆盖 request 中的请求字段，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // 覆盖 request 中的请求方法
+     *          "headers": {}, // 与 request.headers 合并，opts 中的同名头覆盖 request 中的
+     *          "body": SeekableStream | Buffer | String | {}, // 覆盖 request.body
+     *          "keepAlive": unknown, // 覆盖连接保持设置
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "redirect": "follow", // 重定向模式："follow"（默认）| "error" | "manual"
+     *          "signal": AbortSignal, // 用于取消请求的 AbortSignal 对象
+     *          "streaming": false // 是否以流模式返回响应体
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不覆盖任何 request 中的信息
+     *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
+     *      @param opts 指定附加信息，可覆盖 request 中的对应字段
+     *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
+     *      
      */
     function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * *
+     * @description 使用 Web Fetch 标准发送请求，以 HttpRequest 对象作为请求源，返回 HttpResponse 对象
+     *      opts 可覆盖 request 中的请求字段，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // 覆盖 request 中的请求方法
+     *          "headers": {}, // 与 request.headers 合并，opts 中的同名头覆盖 request 中的
+     *          "body": SeekableStream | Buffer | String | {}, // 覆盖 request.body
+     *          "keepAlive": unknown, // 覆盖连接保持设置
+     *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
+     *          "redirect": "follow", // 重定向模式："follow"（默认）| "error" | "manual"
+     *          "signal": AbortSignal, // 用于取消请求的 AbortSignal 对象
+     *          "streaming": false // 是否以流模式返回响应体
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不覆盖任何 request 中的信息
+     *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
+     *      @param opts 指定附加信息，可覆盖 request 中的对应字段
+     *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
+     *      
      */
     function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 

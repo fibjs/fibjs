@@ -1133,6 +1133,36 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEven
     return uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL);
 }
 
+result_t fs_base::utimes(exlib::string path, double atime, double mtime, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    AutoReq req;
+    return uv_fs_utime(NULL, &req, path.c_str(), atime, mtime, NULL);
+}
+
+result_t fs_base::lutimes(exlib::string path, double atime, double mtime, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    AutoReq req;
+    return uv_fs_lutime(NULL, &req, path.c_str(), atime, mtime, NULL);
+}
+
+result_t fs_base::futimes(FileHandle_base* fd, double atime, double mtime, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t _fd;
+    fd->get_fd(_fd);
+
+    AutoReq req;
+    return uv_fs_futime(NULL, &req, _fd, atime, mtime, NULL);
+}
+
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
     if (ac->isSync())

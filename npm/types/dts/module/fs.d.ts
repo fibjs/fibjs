@@ -563,6 +563,64 @@ declare module 'fs' {
     function lchownAsync(path: string, uid: number, gid: number): Promise<void>;
 
     /**
+     * @description 修改指定文件的访问时间和修改时间
+     *      @param path 指定设置的文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function utimes(path: string, atime: number, mtime: number): void;
+
+    function utimes(path: string, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改指定文件的访问时间和修改时间
+     *      @param path 指定设置的文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function utimesSync(path: string, atime: number, mtime: number): void;
+
+    /**
+     * @description 修改指定文件的访问时间和修改时间
+     *      @param path 指定设置的文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function utimesAsync(path: string, atime: number, mtime: number): Promise<void>;
+
+    /**
+     * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *      @param path 指定设置的软连接文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function lutimes(path: string, atime: number, mtime: number): void;
+
+    function lutimes(path: string, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *      @param path 指定设置的软连接文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function lutimesSync(path: string, atime: number, mtime: number): void;
+
+    /**
+     * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *      @param path 指定设置的软连接文件
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function lutimesAsync(path: string, atime: number, mtime: number): Promise<void>;
+
+    /**
      * @description 查询指定文件的基础信息
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
@@ -989,6 +1047,35 @@ declare module 'fs' {
      *      
      */
     function fchownAsync(fd: Class_FileHandle, uid: number, gid: number): Promise<void>;
+
+    /**
+     * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *      @param fd 文件描述符对象
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function futimes(fd: Class_FileHandle, atime: number, mtime: number): void;
+
+    function futimes(fd: Class_FileHandle, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *      @param fd 文件描述符对象
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function futimesSync(fd: Class_FileHandle, atime: number, mtime: number): void;
+
+    /**
+     * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *      @param fd 文件描述符对象
+     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
+     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      
+     */
+    function futimesAsync(fd: Class_FileHandle, atime: number, mtime: number): Promise<void>;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘

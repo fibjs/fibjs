@@ -910,6 +910,57 @@ describe('fs', () => {
             }
             fs.unlink(fn);
         });
+
+        it("fs.utimes", () => {
+            var fn = path.join(__dirname, 'fs_test.js.utimes' + vmid);
+            fs.writeFile(fn, 'utimes test');
+            try {
+                var atime = 1000000;
+                var mtime = 2000000;
+                fs.utimes(fn, atime, mtime);
+                var st = fs.stat(fn);
+                assert.equal(Math.floor(st.atime / 1000), atime);
+                assert.equal(Math.floor(st.mtime / 1000), mtime);
+            } finally {
+                fs.unlink(fn);
+            }
+        });
+
+        it("fs.lutimes", () => {
+            var fn = path.join(__dirname, 'fs_test.js.lutimes' + vmid);
+            var target = path.join(__dirname, 'fs_test.js');
+            fs.symlink(target, fn);
+            try {
+                var atime = 1111111;
+                var mtime = 2222222;
+                fs.lutimes(fn, atime, mtime);
+                // symlink times changed, target NOT changed
+                var lst = fs.lstat(fn);
+                var st = fs.stat(target);
+                assert.equal(Math.floor(lst.atime / 1000), atime);
+                assert.equal(Math.floor(lst.mtime / 1000), mtime);
+                assert.notEqual(Math.floor(st.mtime / 1000), mtime);
+            } finally {
+                fs.unlink(fn);
+            }
+        });
+
+        it("fs.futimes", () => {
+            var fn = path.join(__dirname, 'fs_test.js.futimes' + vmid);
+            fs.writeFile(fn, 'futimes test');
+            var fd = fs.open(fn, 'r+');
+            try {
+                var atime = 3000000;
+                var mtime = 4000000;
+                fs.futimes(fd, atime, mtime);
+                var st = fs.stat(fn);
+                assert.equal(Math.floor(st.atime / 1000), atime);
+                assert.equal(Math.floor(st.mtime / 1000), mtime);
+            } finally {
+                fs.close(fd);
+                fs.unlink(fn);
+            }
+        });
     }
 
     it("file read & write", () => {

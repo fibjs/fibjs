@@ -51,6 +51,8 @@ public:
     static result_t lchmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
     static result_t lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
+    static result_t utimes(exlib::string path, double atime, double mtime, AsyncEvent* ac);
+    static result_t lutimes(exlib::string path, double atime, double mtime, AsyncEvent* ac);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
@@ -64,6 +66,7 @@ public:
     static result_t read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
     static result_t fchmod(FileHandle_base* fd, int32_t mode, AsyncEvent* ac);
     static result_t fchown(FileHandle_base* fd, int32_t uid, int32_t gid, AsyncEvent* ac);
+    static result_t futimes(FileHandle_base* fd, double atime, double mtime, AsyncEvent* ac);
     static result_t fdatasync(FileHandle_base* fd, AsyncEvent* ac);
     static result_t fsync(FileHandle_base* fd, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac);
@@ -125,6 +128,8 @@ public:
     static void s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_utimes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_lutimes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -135,6 +140,7 @@ public:
     static void s_static_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_futimes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -174,6 +180,8 @@ public:
     ASYNC_STATIC2(fs_base, lchmod, exlib::string, int32_t);
     ASYNC_STATIC3(fs_base, chown, exlib::string, int32_t, int32_t);
     ASYNC_STATIC3(fs_base, lchown, exlib::string, int32_t, int32_t);
+    ASYNC_STATIC3(fs_base, utimes, exlib::string, double, double);
+    ASYNC_STATIC3(fs_base, lutimes, exlib::string, double, double);
     ASYNC_STATICVALUE2(fs_base, stat, exlib::string, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE3(fs_base, stat, exlib::string, v8::Local<v8::Object>, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, lstat, exlib::string, obj_ptr<Stat_base>);
@@ -187,6 +195,7 @@ public:
     ASYNC_STATICVALUE6(fs_base, read, FileHandle_base*, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
     ASYNC_STATIC2(fs_base, fchmod, FileHandle_base*, int32_t);
     ASYNC_STATIC3(fs_base, fchown, FileHandle_base*, int32_t, int32_t);
+    ASYNC_STATIC3(fs_base, futimes, FileHandle_base*, double, double);
     ASYNC_STATIC1(fs_base, fdatasync, FileHandle_base*);
     ASYNC_STATIC1(fs_base, fsync, FileHandle_base*);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<NArray>);
@@ -240,6 +249,8 @@ inline ClassInfo& fs_base::class_info()
         { "lchmod", s_static_lchmod, true, ClassData::ASYNC_ASYNC },
         { "chown", s_static_chown, true, ClassData::ASYNC_ASYNC },
         { "lchown", s_static_lchown, true, ClassData::ASYNC_ASYNC },
+        { "utimes", s_static_utimes, true, ClassData::ASYNC_ASYNC },
+        { "lutimes", s_static_lutimes, true, ClassData::ASYNC_ASYNC },
         { "stat", s_static_stat, true, ClassData::ASYNC_ASYNC },
         { "lstat", s_static_lstat, true, ClassData::ASYNC_ASYNC },
         { "fstat", s_static_fstat, true, ClassData::ASYNC_ASYNC },
@@ -250,6 +261,7 @@ inline ClassInfo& fs_base::class_info()
         { "read", s_static_read, true, ClassData::ASYNC_ASYNC },
         { "fchmod", s_static_fchmod, true, ClassData::ASYNC_ASYNC },
         { "fchown", s_static_fchown, true, ClassData::ASYNC_ASYNC },
+        { "futimes", s_static_futimes, true, ClassData::ASYNC_ASYNC },
         { "fdatasync", s_static_fdatasync, true, ClassData::ASYNC_ASYNC },
         { "fsync", s_static_fsync, true, ClassData::ASYNC_ASYNC },
         { "readdir", s_static_readdir, true, ClassData::ASYNC_ASYNC },
@@ -548,6 +560,42 @@ inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
+inline void fs_base::s_static_utimes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("fs.utimes");
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(double, 1);
+    ARG(double, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_utimes(v0, v1, v2, cb, args);
+    else
+        hr = ac_utimes(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_static_lutimes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("fs.lutimes");
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(double, 1);
+    ARG(double, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_lutimes(v0, v1, v2, cb, args);
+    else
+        hr = ac_lutimes(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
 inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stat_base> vr;
@@ -756,6 +804,24 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = acb_fchown(v0.get(), v1, v2, cb, args);
     else
         hr = ac_fchown(v0.get(), v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_static_futimes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("fs.futimes");
+
+    METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<FileHandle_base>, 0);
+    ARG(double, 1);
+    ARG(double, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_futimes(v0.get(), v1, v2, cb, args);
+    else
+        hr = ac_futimes(v0.get(), v1, v2);
 
     METHOD_VOID();
 }

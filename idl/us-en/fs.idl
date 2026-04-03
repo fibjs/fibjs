@@ -182,6 +182,20 @@ module fs
      */
     static lchown(String path, Integer uid, Integer gid) async;
 
+    /*! @brief Change the access time and modification time of the specified file
+     @param path Specify the file to set
+     @param atime Last access time of the file, Unix timestamp in seconds
+     @param mtime Last modification time of the file, Unix timestamp in seconds
+     */
+    static utimes(String path, Number atime, Number mtime) async;
+
+    /*! @brief Change the access time and modification time of the specified symlink itself, without following the symlink
+     @param path Specify the symlink file to set
+     @param atime Last access time of the file, Unix timestamp in seconds
+     @param mtime Last modification time of the file, Unix timestamp in seconds
+     */
+    static lutimes(String path, Number atime, Number mtime) async;
+
     /*! @brief Query the basic information of the specified file
      @param path Specify the file to query
      @return Return the basic information of the file
@@ -289,6 +303,13 @@ module fs
      @param gid Group id
      */
     static fchown(FileHandle fd, Integer uid, Integer gid) async;
+
+    /*! @brief Change the access time and modification time of the file based on file descriptor
+     @param fd File descriptor object
+     @param atime Last access time of the file, Unix timestamp in seconds
+     @param mtime Last modification time of the file, Unix timestamp in seconds
+     */
+    static futimes(FileHandle fd, Number atime, Number mtime) async;
 
     /*! @brief Sync data to disk based on file descriptor
      @param fd File descriptor object
