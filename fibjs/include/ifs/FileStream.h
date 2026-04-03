@@ -96,6 +96,6 @@ inline void FileStream_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_chmod(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

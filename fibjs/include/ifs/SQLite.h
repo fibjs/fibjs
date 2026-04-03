@@ -129,6 +129,6 @@ inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_backup(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

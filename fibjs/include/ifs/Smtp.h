@@ -139,7 +139,7 @@ inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_connect(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -159,7 +159,7 @@ inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_command(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -176,7 +176,7 @@ inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_hello(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -194,7 +194,7 @@ inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_login(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -211,7 +211,7 @@ inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_from(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -228,7 +228,7 @@ inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_to(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -245,7 +245,7 @@ inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_data(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -260,7 +260,7 @@ inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_quit();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Smtp_base::s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)

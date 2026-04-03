@@ -111,6 +111,6 @@ inline void Iterator_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_next(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

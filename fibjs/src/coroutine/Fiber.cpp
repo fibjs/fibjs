@@ -199,22 +199,26 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     Isolate* isolate = m_pFiber->holder();
 
     isolate->m_fibers.putTail(m_pFiber);
+    isolate->m_js_scope_depth++;
 
     m_fiber.Reset(isolate->m_isolate, m_pFiber->wrap(isolate));
 }
 
 JSFiber::EnterJsScope::~EnterJsScope()
 {
-    Runtime* rt = Runtime::current();
     Isolate* isolate = m_pFiber->holder();
 
     isolate->RunMicrotasks(Isolate::MicrotaskCheckpointReason::kJsScopeLeave);
 
     m_pFiber->m_message = ReportException(try_catch, m_hr, false);
 
-    if (!rt->m_promise_error.IsEmpty()) {
+    isolate->m_js_scope_depth--;
+
+    // Only log unhandled promise rejections when the outermost JS scope exits,
+    // giving inner scopes' callers a chance to attach .catch() handlers.
+    if (isolate->m_js_scope_depth == 0 && !isolate->m_promise_error.IsEmpty()) {
         v8::Local<v8::Context> _context = isolate->context();
-        v8::Local<v8::Array> _promise_error = rt->m_promise_error.Get(isolate->m_isolate);
+        v8::Local<v8::Array> _promise_error = isolate->m_promise_error.Get(isolate->m_isolate);
         JSArray ks = _promise_error->GetPropertyNames(_context);
         int32_t len = ks->Length();
 
@@ -231,8 +235,8 @@ JSFiber::EnterJsScope::~EnterJsScope()
             }
         }
 
-        rt->m_promise_error.Reset();
-        rt->m_promise_error_no = 0;
+        isolate->m_promise_error.Reset();
+        isolate->m_promise_error_no = 0;
     }
 
     m_pFiber->m_quit.set();

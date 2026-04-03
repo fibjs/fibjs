@@ -150,7 +150,7 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_bind(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -184,7 +184,7 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_send(v0.get(), v1, v2, v3, v4, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value>& args)

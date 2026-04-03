@@ -354,6 +354,11 @@ public:
 
     std::atomic<int32_t> m_module_evaluating { 0 };
 
+    // Promise error tracking (per-isolate, shared across fibers)
+    v8::Global<v8::Array> m_promise_error;
+    int32_t m_promise_error_no = 0;
+    int32_t m_js_scope_depth = 0;
+
     obj_ptr<SecureContext_base> m_ctx;
 
     LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;

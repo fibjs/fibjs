@@ -155,7 +155,7 @@ inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::V
     else
         hr = pInst->ac_truncate(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -186,6 +186,6 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_stat(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

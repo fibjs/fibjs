@@ -218,7 +218,7 @@ inline void child_process_base::s_static_exec(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_exec(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -248,7 +248,7 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
     else
         hr = ac_execFile(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -366,7 +366,7 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_run(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -385,7 +385,7 @@ inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_sh(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void child_process_base::s_static_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)

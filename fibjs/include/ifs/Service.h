@@ -140,7 +140,7 @@ inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_run();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Service_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)

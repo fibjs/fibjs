@@ -640,7 +640,7 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_randomBytes(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -660,7 +660,7 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_randomFill(v0.get(), v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -694,7 +694,7 @@ inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo
     else
         hr = ac_generateKeyPair(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -716,7 +716,7 @@ inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_hkdf(v0, v1.get(), v2.get(), v3.get(), v4, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -738,7 +738,7 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_pbkdf2(v0.get(), v1.get(), v2, v3, v4, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_scrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -759,7 +759,7 @@ inline void crypto_base::s_static_scrypt(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_scrypt(v0.get(), v1.get(), v2, v3, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_privateDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -921,7 +921,7 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_sign(v0, v1.get(), v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -966,7 +966,7 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_verify(v0, v1.get(), v2, v3.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_timingSafeEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1021,7 +1021,7 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_bbsSign(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1063,7 +1063,7 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_bbsVerify(v0, v1, v2.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1108,7 +1108,7 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_proofGen(v0.get(), v1, v2, v3, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1153,6 +1153,6 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_proofVerify(v0, v1, v2, v3.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

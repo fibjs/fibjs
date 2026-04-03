@@ -96,7 +96,7 @@ inline void io_base::s_static_copyStream(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_copyStream(v0.get(), v1.get(), v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -113,6 +113,6 @@ inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_bridge(v0.get(), v1.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

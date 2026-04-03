@@ -127,7 +127,7 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_digest(v0, v1.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -146,7 +146,7 @@ inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_exportKey(v0, v1.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -177,7 +177,7 @@ inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_generateKey(v0, v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -212,7 +212,7 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_importKey(v0, v1, v2, v3, v4, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -243,7 +243,7 @@ inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_sign(v0, v1.get(), v2.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -276,7 +276,7 @@ inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_verify(v0, v1.get(), v2.get(), v3.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void subtle_base::s_static_deriveBits(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -307,6 +307,6 @@ inline void subtle_base::s_static_deriveBits(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_deriveBits(v0, v1.get(), v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

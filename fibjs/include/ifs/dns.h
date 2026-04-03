@@ -78,7 +78,7 @@ inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_resolve(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -97,6 +97,6 @@ inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_lookup(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

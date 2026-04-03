@@ -368,7 +368,7 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_connect(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -422,7 +422,7 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_accept(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Socket_base::s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -470,7 +470,7 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_recv(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -489,7 +489,7 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_send(v0.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Socket_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)

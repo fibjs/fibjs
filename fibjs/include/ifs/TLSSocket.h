@@ -195,7 +195,7 @@ inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_connect(v0.get(), v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -212,7 +212,7 @@ inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_accept(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TLSSocket_base::s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args)

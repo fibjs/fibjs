@@ -1009,7 +1009,7 @@ inline void HttpClient_base::s_requestSync(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = pInst->ac_requestSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_getSync(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1029,7 +1029,7 @@ inline void HttpClient_base::s_getSync(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_getSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1081,7 +1081,7 @@ inline void HttpClient_base::s_postSync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_postSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1133,7 +1133,7 @@ inline void HttpClient_base::s_delSync(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_delSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1185,7 +1185,7 @@ inline void HttpClient_base::s_putSync(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_putSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1237,7 +1237,7 @@ inline void HttpClient_base::s_patchSync(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = pInst->ac_patchSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1289,7 +1289,7 @@ inline void HttpClient_base::s_headSync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_headSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1351,6 +1351,6 @@ inline void HttpClient_base::s_fetch(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_fetch(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

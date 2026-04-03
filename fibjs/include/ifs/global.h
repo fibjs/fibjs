@@ -448,7 +448,7 @@ inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_fetch(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void global_base::s_static_queueMicrotask(const v8::FunctionCallbackInfo<v8::Value>& args)

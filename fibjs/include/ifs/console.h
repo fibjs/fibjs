@@ -653,7 +653,7 @@ inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_readLine(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -671,7 +671,7 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_getpass(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -15,8 +15,7 @@ namespace fibjs {
 class Runtime {
 public:
     Runtime(Isolate* isolate)
-        : m_promise_error_no(0)
-        , m_isolate(isolate)
+        : m_isolate(isolate)
     {
         RegInThread();
     }
@@ -185,9 +184,6 @@ private:
     void RegInThread();
 
 public:
-    v8::Global<v8::Array> m_promise_error;
-    int32_t m_promise_error_no;
-
     SandBox* m_module_pending = nullptr;
 
 private:

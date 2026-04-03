@@ -92,6 +92,6 @@ inline void Tray_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

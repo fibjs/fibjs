@@ -127,7 +127,7 @@ inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_save(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void HeapSnapshot_base::s_get_time(const v8::FunctionCallbackInfo<v8::Value>& args)

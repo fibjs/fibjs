@@ -142,7 +142,7 @@ inline void EventSource_base::s_close(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void EventSource_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -162,7 +162,7 @@ inline void EventSource_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_send(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void EventSource_base::s_get_readyState(const v8::FunctionCallbackInfo<v8::Value>& args)

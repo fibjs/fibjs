@@ -224,7 +224,7 @@ inline void TTYOutputStream_base::s_cursorTo(const v8::FunctionCallbackInfo<v8::
     else
         hr = pInst->ac_cursorTo(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -242,7 +242,7 @@ inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8
     else
         hr = pInst->ac_moveCursor(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TTYOutputStream_base::s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args)

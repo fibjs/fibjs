@@ -209,7 +209,7 @@ inline void net_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_resolve(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void net_base::s_static_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -227,7 +227,7 @@ inline void net_base::s_static_ip(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = ac_ip(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void net_base::s_static_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -245,7 +245,7 @@ inline void net_base::s_static_ipv6(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_ipv6(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -348,7 +348,7 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_connect(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void net_base::s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -367,7 +367,7 @@ inline void net_base::s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_openSmtp(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::Value>& args)

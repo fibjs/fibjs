@@ -323,7 +323,7 @@ inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_exists(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -340,7 +340,7 @@ inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_access(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -357,7 +357,7 @@ inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_link(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -373,7 +373,7 @@ inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_unlink(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -400,7 +400,7 @@ inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_mkdir(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_mkdtemp(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -418,7 +418,7 @@ inline void fs_base::s_static_mkdtemp(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_mkdtemp(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -435,7 +435,7 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_rmdir(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -452,7 +452,7 @@ inline void fs_base::s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = ac_rm(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -469,7 +469,7 @@ inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_rename(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -487,7 +487,7 @@ inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_copyFile(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -504,7 +504,7 @@ inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_chmod(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -521,7 +521,7 @@ inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_lchmod(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -539,7 +539,7 @@ inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_chown(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -557,7 +557,7 @@ inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_lchown(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_utimes(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -575,7 +575,7 @@ inline void fs_base::s_static_utimes(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_utimes(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_lutimes(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -593,7 +593,7 @@ inline void fs_base::s_static_lutimes(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_lutimes(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -621,7 +621,7 @@ inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_stat(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -649,7 +649,7 @@ inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_lstat(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -677,7 +677,7 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_fstat(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -695,7 +695,7 @@ inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_readlink(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -713,7 +713,7 @@ inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_realpath(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -731,7 +731,7 @@ inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_symlink(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -748,7 +748,7 @@ inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_truncate(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -770,7 +770,7 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_read(v0.get(), v1.get(), v2, v3, v4, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -787,7 +787,7 @@ inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_fchmod(v0.get(), v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -805,7 +805,7 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_fchown(v0.get(), v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_futimes(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -823,7 +823,7 @@ inline void fs_base::s_static_futimes(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_futimes(v0.get(), v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -839,7 +839,7 @@ inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_fdatasync(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -855,7 +855,7 @@ inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_fsync(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -883,7 +883,7 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_readdir(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -912,7 +912,7 @@ inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_glob(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_createReadStream(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -931,7 +931,7 @@ inline void fs_base::s_static_createReadStream(const v8::FunctionCallbackInfo<v8
     else
         hr = ac_createReadStream(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_createWriteStream(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -950,7 +950,7 @@ inline void fs_base::s_static_createWriteStream(const v8::FunctionCallbackInfo<v
     else
         hr = ac_createWriteStream(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -969,7 +969,7 @@ inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_openFile(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -989,7 +989,7 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_open(v0, v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1005,7 +1005,7 @@ inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_close(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1024,7 +1024,7 @@ inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_openTextStream(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1042,7 +1042,7 @@ inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_readTextFile(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1071,7 +1071,7 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_readFile(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1121,7 +1121,7 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_write(v0.get(), v1, v2, v3, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1140,7 +1140,7 @@ inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_writeTextFile(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1193,7 +1193,7 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_writeFile(v0, v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1212,7 +1212,7 @@ inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_appendFile(v0, v1.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void fs_base::s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)

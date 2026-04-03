@@ -128,7 +128,7 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -145,7 +145,7 @@ inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_use(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DbConnection_base::s_getTables(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -162,7 +162,7 @@ inline void DbConnection_base::s_getTables(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = pInst->ac_getTables(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_getTableInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -181,7 +181,7 @@ inline void DbConnection_base::s_getTableInfo(const v8::FunctionCallbackInfo<v8:
     else
         hr = pInst->ac_getTableInfo(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -198,7 +198,7 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_begin(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -215,7 +215,7 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_commit(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -232,7 +232,7 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = pInst->ac_rollback(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -284,7 +284,7 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = pInst->ac_execute(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)

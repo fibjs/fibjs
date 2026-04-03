@@ -193,7 +193,7 @@ inline void gui_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_alert(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void gui_base::s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -221,7 +221,7 @@ inline void gui_base::s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_confirm(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void gui_base::s_static_input(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -251,7 +251,7 @@ inline void gui_base::s_static_input(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_input(v0, v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void gui_base::s_static_chooseFile(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -269,6 +269,6 @@ inline void gui_base::s_static_chooseFile(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_chooseFile(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

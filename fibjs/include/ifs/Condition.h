@@ -120,7 +120,7 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_wait(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -376,6 +376,27 @@ enum {
     }                                                                      \
     THROW_ERROR()
 
+#define ASYNC_METHOD_RETURN()                                                  \
+    CHECK_ARGUMENT()                                                           \
+    if (hr == CALL_RETURN_UNDEFINED)                                           \
+        return;                                                                \
+    if (hr == CALL_RETURN_NULL) {                                              \
+        args.GetReturnValue().SetNull();                                       \
+        return;                                                                \
+    }                                                                          \
+    if (hr >= 0) {                                                             \
+        args.GetReturnValue().Set(V8_RETURN(GetReturnValue(isolate, vr)));     \
+        return;                                                                \
+    }                                                                          \
+    if (!cb.IsEmpty() && args.Data()->IsTrue()) {                              \
+        v8::Local<v8::Promise::Resolver> _resolver =                           \
+            cb.As<v8::Promise::Resolver>();                                     \
+        _resolver->Reject(isolate->context(), FillError(hr)).IsJust();         \
+        args.GetReturnValue().Set(_resolver->GetPromise());                    \
+        return;                                                                \
+    }                                                                          \
+    THROW_ERROR()
+
 #define METHOD_RETURN1()                      \
     CHECK_ARGUMENT()                          \
     args.GetReturnValue().Set(V8_RETURN(vr)); \
@@ -404,6 +425,19 @@ enum {
     CHECK_ARGUMENT()  \
     if (hr >= 0)      \
         return;       \
+    THROW_ERROR()
+
+#define ASYNC_METHOD_VOID()                                                    \
+    CHECK_ARGUMENT()                                                           \
+    if (hr >= 0)                                                               \
+        return;                                                                \
+    if (!cb.IsEmpty() && args.Data()->IsTrue()) {                              \
+        v8::Local<v8::Promise::Resolver> _resolver =                           \
+            cb.As<v8::Promise::Resolver>();                                     \
+        _resolver->Reject(isolate->context(), FillError(hr)).IsJust();         \
+        args.GetReturnValue().Set(_resolver->GetPromise());                    \
+        return;                                                                \
+    }                                                                          \
     THROW_ERROR()
 
 #define NAMED_METHOD_VOID()          \

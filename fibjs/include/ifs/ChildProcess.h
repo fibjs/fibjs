@@ -164,7 +164,7 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_join(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ChildProcess_base::s_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args)

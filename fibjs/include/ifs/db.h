@@ -118,7 +118,7 @@ inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = ac_open(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -136,7 +136,7 @@ inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_openMySQL(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -154,7 +154,7 @@ inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_openSQLite(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -172,7 +172,7 @@ inline void db_base::s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_openOdbc(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -190,7 +190,7 @@ inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_openMSSQL(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openDM(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -208,7 +208,7 @@ inline void db_base::s_static_openDM(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_openDM(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -226,7 +226,7 @@ inline void db_base::s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_openPSQL(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -244,7 +244,7 @@ inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_openLevelDB(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -262,6 +262,6 @@ inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_openRedis(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

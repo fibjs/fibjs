@@ -162,6 +162,6 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_invoke(v0.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

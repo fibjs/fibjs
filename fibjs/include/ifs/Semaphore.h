@@ -115,7 +115,7 @@ inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_wait(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Semaphore_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)

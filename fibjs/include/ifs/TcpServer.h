@@ -226,7 +226,7 @@ inline void TcpServer_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_listen(v0, v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -241,7 +241,7 @@ inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_stop();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TcpServer_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -256,7 +256,7 @@ inline void TcpServer_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void TcpServer_base::s_address(const v8::FunctionCallbackInfo<v8::Value>& args)

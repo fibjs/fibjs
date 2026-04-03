@@ -117,7 +117,7 @@ inline void FileHandle_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_chmod(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void FileHandle_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -134,7 +134,7 @@ inline void FileHandle_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_stat(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -156,7 +156,7 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_read(v0.get(), v1, v2, v3, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -189,7 +189,7 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_write(v0, v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void FileHandle_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -204,6 +204,6 @@ inline void FileHandle_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

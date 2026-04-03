@@ -249,17 +249,17 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Array> _promise_error;
 
-    if (rt->m_promise_error.IsEmpty()) {
+    if (isolate->m_promise_error.IsEmpty()) {
         _promise_error = v8::Array::New(isolate->m_isolate);
-        rt->m_promise_error.Reset(isolate->m_isolate, _promise_error);
+        isolate->m_promise_error.Reset(isolate->m_isolate, _promise_error);
     } else
-        _promise_error = rt->m_promise_error.Get(isolate->m_isolate);
+        _promise_error = isolate->m_promise_error.Get(isolate->m_isolate);
 
     if (e == v8::kPromiseRejectWithNoHandler) {
         v8::Local<v8::Array> o = v8::Array::New(isolate->m_isolate);
         o->Set(_context, 0, data.GetPromise()).IsJust();
         o->Set(_context, 1, data.GetValue()).IsJust();
-        _promise_error->Set(_context, rt->m_promise_error_no++, o).IsJust();
+        _promise_error->Set(_context, isolate->m_promise_error_no++, o).IsJust();
     } else if (e == v8::kPromiseHandlerAddedAfterReject) {
         v8::Local<v8::Promise> _promise = data.GetPromise();
         if (!_promise.IsEmpty()) {

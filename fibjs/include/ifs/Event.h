@@ -167,6 +167,6 @@ inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_wait();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

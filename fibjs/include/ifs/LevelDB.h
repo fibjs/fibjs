@@ -126,7 +126,7 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_has(v0.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -145,7 +145,7 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_get(v0.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -179,7 +179,7 @@ inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_set(v0.get(), v1.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -224,7 +224,7 @@ inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_remove(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void LevelDB_base::s_firstKey(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -241,7 +241,7 @@ inline void LevelDB_base::s_firstKey(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_firstKey(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void LevelDB_base::s_lastKey(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -258,7 +258,7 @@ inline void LevelDB_base::s_lastKey(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_lastKey(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -352,6 +352,6 @@ inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

@@ -345,6 +345,6 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_connect(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

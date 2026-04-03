@@ -187,7 +187,7 @@ inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_sleep(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void coroutine_base::s_static_get_fibers(const v8::FunctionCallbackInfo<v8::Value>& args)

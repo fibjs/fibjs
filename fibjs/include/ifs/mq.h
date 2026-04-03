@@ -109,6 +109,6 @@ inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_invoke(v0.get(), v1.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

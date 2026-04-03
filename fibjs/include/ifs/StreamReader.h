@@ -111,7 +111,7 @@ inline void StreamReader_base::s_read(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_read(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void StreamReader_base::s_releaseLock(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -140,7 +140,7 @@ inline void StreamReader_base::s_cancel(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_cancel(v0);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void StreamReader_base::s_get_closed(const v8::FunctionCallbackInfo<v8::Value>& args)

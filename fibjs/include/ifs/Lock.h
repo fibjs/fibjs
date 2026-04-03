@@ -104,7 +104,7 @@ inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_acquire(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Lock_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)

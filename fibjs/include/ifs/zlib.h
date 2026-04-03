@@ -321,7 +321,7 @@ inline void zlib_base::s_static_deflate(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_deflate(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -350,7 +350,7 @@ inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_deflateTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -379,7 +379,7 @@ inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_inflate(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -408,7 +408,7 @@ inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_inflateTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -436,7 +436,7 @@ inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = ac_gzip(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -463,7 +463,7 @@ inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_gzipTo(v0.get(), v1.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -492,7 +492,7 @@ inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_gunzip(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -521,7 +521,7 @@ inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_gunzipTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -550,7 +550,7 @@ inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_deflateRaw(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -579,7 +579,7 @@ inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_deflateRawTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -608,7 +608,7 @@ inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_inflateRaw(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -637,7 +637,7 @@ inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_inflateRawTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_createZip(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -698,7 +698,7 @@ inline void zlib_base::s_static_zip(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_zip(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -727,7 +727,7 @@ inline void zlib_base::s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_zipTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void zlib_base::s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -756,7 +756,7 @@ inline void zlib_base::s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_unzip(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zlib_base::s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -785,6 +785,6 @@ inline void zlib_base::s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_unzipTo(v0.get(), v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

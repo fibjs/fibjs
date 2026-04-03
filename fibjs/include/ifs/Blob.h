@@ -187,7 +187,7 @@ inline void Blob_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_text(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Blob_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -204,6 +204,6 @@ inline void Blob_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_arrayBuffer(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

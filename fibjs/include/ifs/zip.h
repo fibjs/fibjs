@@ -90,7 +90,7 @@ inline void zip_base::s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_isZipFile(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -132,6 +132,6 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_open(v0.get(), v1, v2, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

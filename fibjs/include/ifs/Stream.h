@@ -251,7 +251,7 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_read(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -270,7 +270,7 @@ inline void Stream_base::s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_readBuffer(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -287,7 +287,7 @@ inline void Stream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_readAll(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -320,7 +320,7 @@ inline void Stream_base::s_writeBuffer(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_writeBuffer(v0.get());
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -359,7 +359,7 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_write(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_resume(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -464,7 +464,7 @@ inline void Stream_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_end(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -479,7 +479,7 @@ inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_flush();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -494,7 +494,7 @@ inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -514,7 +514,7 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_copyTo(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Stream_base::s_get_ondata(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -659,6 +659,6 @@ inline void Stream_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_destroy(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

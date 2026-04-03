@@ -370,7 +370,7 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_read(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -387,7 +387,7 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_readAll(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -406,7 +406,7 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_write(v0.get(), vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -432,7 +432,7 @@ inline void Message_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_text(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -449,7 +449,7 @@ inline void Message_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = pInst->ac_arrayBuffer(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_blob(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -468,7 +468,7 @@ inline void Message_base::s_blob(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_blob(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_bytes(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -485,7 +485,7 @@ inline void Message_base::s_bytes(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_bytes(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -511,7 +511,7 @@ inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_json(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_pack(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -537,7 +537,7 @@ inline void Message_base::s_pack(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_pack(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -597,7 +597,7 @@ inline void Message_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_end(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Message_base::s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -641,7 +641,7 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_sendTo(v0.get(), v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -659,7 +659,7 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_readFrom(v0.get(), v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Message_base::s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -385,8 +385,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(fncallee_ovs);
 
-                    if (ov.type) txts.push('    METHOD_RETURN();\n}\n');
-                    else txts.push('    METHOD_VOID();\n}\n');
+                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
                 });
 
                 new_ovs.slice(0, 1).forEach(ov => {
@@ -434,8 +434,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
 
-                    if (ov.type) txts.push('    METHOD_RETURN();\n}\n');
-                    else txts.push('    METHOD_VOID();\n}\n');
+                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
 
                     recorder_statics.record(ov.name);
                 });
@@ -460,8 +460,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     }
                     make_ov_params(inst_mem_ovs);
 
-                    if (ov.type) txts.push('    METHOD_RETURN();\n}\n');
-                    else txts.push('    METHOD_VOID();\n}\n');
+                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
 
                     recorder_insts.record(ov.name);
                 });

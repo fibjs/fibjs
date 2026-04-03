@@ -126,7 +126,7 @@ inline void http2_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_connect(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http2_base::s_static_getDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)

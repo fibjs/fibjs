@@ -117,7 +117,7 @@ inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_namelist(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -134,7 +134,7 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_infolist(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -153,7 +153,7 @@ inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_getinfo(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -173,7 +173,7 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     else
         hr = pInst->ac_read(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -192,7 +192,7 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_readAll(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -222,7 +222,7 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_extract(v0, v1.get(), v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -240,7 +240,7 @@ inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_extractAll(v0, v1);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -281,7 +281,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_write(v0.get(), v1, v2);
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -296,6 +296,6 @@ inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 }

@@ -244,7 +244,7 @@ inline void Http2Session_base::s_ping(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = pInst->ac_ping(vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Http2Session_base::s_settings(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -273,7 +273,7 @@ inline void Http2Session_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = pInst->ac_close();
 
-    METHOD_VOID();
+    ASYNC_METHOD_VOID();
 }
 
 inline void Http2Session_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args)

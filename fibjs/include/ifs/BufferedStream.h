@@ -144,7 +144,7 @@ inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::V
     else
         hr = pInst->ac_readText(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -163,7 +163,7 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
     else
         hr = pInst->ac_readLine(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -199,7 +199,7 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
     else
         hr = pInst->ac_readUntil(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -218,7 +218,7 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
     else
         hr = pInst->ac_writeText(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -237,7 +237,7 @@ inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::
     else
         hr = pInst->ac_writeLine(v0, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void BufferedStream_base::s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args)

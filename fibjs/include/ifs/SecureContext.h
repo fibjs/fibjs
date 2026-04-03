@@ -287,7 +287,7 @@ inline void SecureContext_base::s_getSNIContext(const v8::FunctionCallbackInfo<v
     else
         hr = pInst->ac_getSNIContext(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void SecureContext_base::s_removeSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args)

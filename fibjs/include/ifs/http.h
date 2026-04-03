@@ -797,7 +797,7 @@ inline void http_base::s_static_requestSync(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_requestSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_getSync(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -816,7 +816,7 @@ inline void http_base::s_static_getSync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_getSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -866,7 +866,7 @@ inline void http_base::s_static_postSync(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_postSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_post(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -916,7 +916,7 @@ inline void http_base::s_static_delSync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_delSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -966,7 +966,7 @@ inline void http_base::s_static_putSync(const v8::FunctionCallbackInfo<v8::Value
     else
         hr = ac_putSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_put(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1016,7 +1016,7 @@ inline void http_base::s_static_patchSync(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_patchSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1066,7 +1066,7 @@ inline void http_base::s_static_headSync(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_headSync(v0, v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1141,6 +1141,6 @@ inline void http_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_fetch(v0.get(), v1, vr);
 
-    METHOD_RETURN();
+    ASYNC_METHOD_RETURN();
 }
 }

@@ -54,6 +54,18 @@ describe('promise', () => {
         t('async3.js', '/promise/async3.js:7:11\n    throw new Error(100);\n          ^\nError: 100\n    at a_test (/promise/async3.js:7:11) {}\n');
     });
 
+    it("async method should reject promise instead of sync throw", () => {
+        t('promise_async_throw.js', 'rejected: [20002] Parameter not optional.\n');
+    });
+
+    it("caught rejection should not produce stderr noise", () => {
+        var p = child_process.spawn(process.execPath, [path.join(__dirname, 'promise', 'promise_catch_no_stderr.js')]);
+        var stderr = p.stderr.read();
+        var stdout = p.stdout.read();
+        assert.equal(stdout ? stdout.toString() : "", "caught\n");
+        assert.equal(stderr ? stderr.toString() : "", "");
+    });
+
     it("microtask should run before next macrotask", done => {
         setImmediate(() => {
             let microtaskRan = false;
