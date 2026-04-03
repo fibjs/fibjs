@@ -1034,5 +1034,49 @@ describe("web fetch", () => {
                 ctx.server.close();
             }
         });
+
+        // Regression: fetch(url, { signal }) must not crash (SIGSEGV) when the
+        // server sends a gzip-encoded response.  Previously asyncFetch::do_wrap
+        // did a static_cast<BodyStream*> on the MemoryStream produced after
+        // decompression, yielding a wild pointer and crashing on setAbortSignal().
+        it("AbortSignal with gzip-encoded response does not crash", async () => {
+            const zlib = require('zlib');
+            const body = 'hello gzip world';
+            const compressed = zlib.gzip(Buffer.from(body));
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, {
+                    'Content-Type': 'text/plain',
+                    'Content-Encoding': 'gzip',
+                });
+                res.end(compressed);
+            });
+            try {
+                const resp = await fetch(ctx.baseUrl, { signal: new AbortController().signal });
+                const text = await resp.text();
+                assert.strictEqual(text, body);
+            } finally {
+                ctx.server.close();
+            }
+        });
+
+        it("AbortSignal.timeout() with gzip-encoded response does not crash", async () => {
+            const zlib = require('zlib');
+            const body = 'hello timeout gzip world';
+            const compressed = zlib.gzip(Buffer.from(body));
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, {
+                    'Content-Type': 'text/plain',
+                    'Content-Encoding': 'gzip',
+                });
+                res.end(compressed);
+            });
+            try {
+                const resp = await fetch(ctx.baseUrl, { signal: AbortSignal.timeout(500) });
+                const text = await resp.text();
+                assert.strictEqual(text, body);
+            } finally {
+                ctx.server.close();
+            }
+        });
     });
 });

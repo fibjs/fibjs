@@ -2709,9 +2709,12 @@ public:
                         ((Http2Stream*)h2ref.get())->onClose(NGHTTP2_CANCEL);
                     });
                 } else {
-                    // HTTP/1.1: register abort callback on BodyStream
-                    BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
-                    bs->setAbortSignal(m_o->abort_signal());
+                    // HTTP/1.1: register abort callback on BodyStream.
+                    // After Content-Encoding decompression, body may be a
+                    // MemoryStream (fully buffered) — nothing to hook in that case.
+                    BodyStream* bs = dynamic_cast<BodyStream*>(bodyStream.get());
+                    if (bs)
+                        bs->setAbortSignal(m_o->abort_signal());
                 }
             }
         }
