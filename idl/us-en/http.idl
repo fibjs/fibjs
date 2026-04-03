@@ -235,24 +235,90 @@ module http
     static HttpResponse requestSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "path": "", // Node.js compatible alias of pathname for request options.
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param method Specify http request method: GET, POST, etc
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest request(String method, String url, Object opts = {});
 
     /*! @brief Request the url specified by opts and return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param opts Specify additional information
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest request(Object opts);
 
     /*! @brief Request the specified url and return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest request(String url, Object opts = {});
 
@@ -323,10 +389,27 @@ module http
     static HttpResponse getSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with GET method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest get(String url, Object opts = {});
 
@@ -373,10 +456,30 @@ module http
     static HttpResponse postSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with POST method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest post(String url, Object opts = {});
 
@@ -423,10 +526,27 @@ module http
     static HttpResponse delSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with DELETE method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest del(String url, Object opts = {});
 
@@ -473,10 +593,30 @@ module http
     static HttpResponse putSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PUT method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest put(String url, Object opts = {});
 
@@ -523,10 +663,30 @@ module http
     static HttpResponse patchSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with PATCH method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest patch(String url, Object opts = {});
 
@@ -573,10 +733,27 @@ module http
     static HttpResponse headSync(String url, Object opts = {}) async;
 
     /*! @brief Request the specified url with HEAD method, register callback to receive response, return HttpRequest object
+     opts contains additional options for the request, supports the following content:
+     ```JavaScript
+     {
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "query": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object for cancelling the request
+     }
+     ```
+     Default is {}, no additional information
      @param url Specify url, must be a complete url containing the host
      @param opts Specify additional information
-     @param callback Response callback function, receives HttpResponse as parameter
-     @return Return HttpRequest object
+     @return Return HttpRequest object (listen 'response' event to receive the response)
      */
     static HttpRequest head(String url, Object opts = {});
 
@@ -611,4 +788,25 @@ module http
      @return Returns an HttpResponse object
     */
     static HttpResponse fetch(String url, Object opts = {}) async;
+
+    /*! @brief Send a Fetch request using an HttpRequest object as the request source, return HttpResponse
+     opts may override fields from the request object, supports the following content:
+     ```JavaScript
+     {
+         "method": "GET", // override the method in the request object
+         "headers": {}, // merged with request.headers; opts headers override request headers with the same name
+         "body": SeekableStream | Buffer | String | {}, // override request.body
+         "keepAlive": unknown, // override connection keep-alive setting
+         "timeout": 0, // request timeout in milliseconds, defaults to client setting
+         "redirect": "follow", // redirect mode: "follow" (default) | "error" | "manual"
+         "signal": AbortSignal, // AbortSignal object for cancelling the request
+         "streaming": false // whether to return the response body as a stream
+     }
+     ```
+     body, json, pack must not appear at the same time. Default is {}, no fields in request are overridden
+     @param request Source request object, provides url, method, headers, body and other base information
+     @param opts Specify additional information, may override corresponding fields in request
+     @return Return server response, includes status, headers, body, ok, redirected, url, type properties
+     */
+    static HttpResponse fetch(HttpRequest request, Object opts = {}) async;
 };
