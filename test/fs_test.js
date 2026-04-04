@@ -1728,6 +1728,15 @@ describe('fs', () => {
             assert.deepEqual(result.buffer, buf);
             assert.equal(buf.slice(0, 11).toString(), 'hello world');
             await fh.close();
+
+            // read with object argument
+            fh = await fs.promises.open(fn, 'r');
+            var buf2 = Buffer.alloc(1024);
+            var result2 = await fh.read({ buffer: buf2, offset: 0, length: 1024, position: 0 });
+            assert.isObject(result2);
+            assert.equal(result2.bytesRead, 11);
+            assert.equal(result2.buffer.slice(0, 11).toString(), 'hello world');
+            await fh.close();
         } finally {
             fs.unlink(fn);
         }

@@ -154,6 +154,7 @@ public:
     virtual result_t chmod(int32_t mode, AsyncEvent* ac);
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
+    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
     virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac);

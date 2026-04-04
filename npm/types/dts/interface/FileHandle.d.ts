@@ -105,6 +105,62 @@ declare class Class_FileHandle extends Class_object {
     readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<[bytesRead: number, buffer: Buffer]>;
 
     /**
+     * @description 根据文件描述符，读取文件内容
+     * 
+     *      options 支持以下属性：
+     *      ```JavaScript
+     *      {
+     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
+     *          "offset": 0, // Buffer 写入偏移量，默认为 0
+     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
+     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *      }
+     *      ```
+     *      @param options 指定读取选项
+     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      
+     */
+    read(options: FIBJS.GeneralObject): [bytesRead: number, buffer: Buffer];
+
+    read(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [bytesRead: number, buffer: Buffer])=>any): void;
+
+    /**
+     * @description 根据文件描述符，读取文件内容
+     * 
+     *      options 支持以下属性：
+     *      ```JavaScript
+     *      {
+     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
+     *          "offset": 0, // Buffer 写入偏移量，默认为 0
+     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
+     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *      }
+     *      ```
+     *      @param options 指定读取选项
+     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      
+     */
+    readSync(options: FIBJS.GeneralObject): [bytesRead: number, buffer: Buffer];
+
+    /**
+     * @description 根据文件描述符，读取文件内容
+     * 
+     *      options 支持以下属性：
+     *      ```JavaScript
+     *      {
+     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
+     *          "offset": 0, // Buffer 写入偏移量，默认为 0
+     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
+     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *      }
+     *      ```
+     *      @param options 指定读取选项
+     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      
+     */
+    readAsync(options: FIBJS.GeneralObject): Promise<[bytesRead: number, buffer: Buffer]>;
+
+    /**
      * @description 根据文件描述符，向文件写入内容
      *      @param buffer 待写入的 Buffer 对象
      *      @param offset Buffer 数据读取偏移量， 默认为 0

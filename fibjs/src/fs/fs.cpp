@@ -106,6 +106,38 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
     return 0;
 }
 
+result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(4);
+
+        obj_ptr<Buffer_base> buffer;
+        GetConfigValue(options, "buffer", buffer);
+        if (buffer == NULL)
+            buffer = new Buffer(NULL, 16384);
+
+        int32_t offset = 0;
+        GetConfigValue(options, "offset", offset, true);
+
+        int32_t length = Buffer::Cast(buffer)->length() - offset;
+        GetConfigValue(options, "length", length, true);
+
+        int32_t position = -1;
+        GetConfigValue(options, "position", position, true);
+
+        ac->m_ctx[0] = buffer;
+        ac->m_ctx[1] = offset;
+        ac->m_ctx[2] = length;
+        ac->m_ctx[3] = position;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return read(Buffer_base::getInstance(ac->m_ctx[0].object()),
+        ac->m_ctx[1].intVal(), ac->m_ctx[2].intVal(), ac->m_ctx[3].intVal(),
+        retVal, ac);
+}
+
 result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac)
 {
     return fs_base::write(this, buffer, offset, length, position, retVal, ac);

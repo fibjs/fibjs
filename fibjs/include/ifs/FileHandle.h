@@ -49,6 +49,7 @@ public:
     virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac) = 0;
@@ -78,6 +79,7 @@ public:
     ASYNC_MEMBER1(FileHandle_base, chmod, int32_t);
     ASYNC_MEMBERVALUE1(FileHandle_base, stat, obj_ptr<Stat_base>);
     ASYNC_MEMBERVALUE5(FileHandle_base, read, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<ReadType>);
+    ASYNC_MEMBERVALUE2(FileHandle_base, read, v8::Local<v8::Object>, obj_ptr<ReadType>);
     ASYNC_MEMBERVALUE5(FileHandle_base, write, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE4(FileHandle_base, write, exlib::string, int32_t, exlib::string, int32_t);
     ASYNC_MEMBERVALUE2(FileHandle_base, readFile, exlib::string, Variant);
@@ -223,6 +225,15 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->acb_read(v0.get(), v1, v2, v3, cb, args);
     else
         hr = pInst->ac_read(v0.get(), v1, v2, v3, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_read(v0, cb, args);
+    else
+        hr = pInst->ac_read(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }
