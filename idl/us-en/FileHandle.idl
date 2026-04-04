@@ -6,6 +6,11 @@
  */
 interface FileHandle : object
 {
+    /*! @brief FileHandle constructor, create a file handle from a file descriptor
+     @param fd File descriptor number
+     */
+    FileHandle(Integer fd);
+
     /*! @brief Query current file descriptor */
     readonly Integer fd;
 
@@ -24,9 +29,9 @@ interface FileHandle : object
      @param offset Buffer write offset, default 0
      @param length Number of bytes to read from file, default 0
      @param position File read position, default current file position
-     @return Actual number of bytes read
+     @return Return an object with bytesRead and buffer properties
      */
-    Integer read(Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
+    (Integer bytesRead, Buffer buffer) read(Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
 
     /*! @brief Write content to file according to file descriptor
      @param buffer Buffer object to be written
@@ -44,6 +49,67 @@ interface FileHandle : object
      @return Actual number of bytes written
      */
     Integer write(String string, Integer position = -1, String encoding = "utf8") async;
+
+    /*! @brief Read the entire contents of the file
+     @param encoding Specify decoding method, default no decoding
+     @return Return the file content
+     */
+    Variant readFile(String encoding = "") async;
+
+    /*! @brief Read the entire contents of the file
+
+     options supports the following options:
+     ```JavaScript
+     {
+         "encoding": "utf8" // specify the encoding, default is utf8.
+     }
+     ```
+     @param options Specify read options
+     @return Return the file content
+     */
+    Variant readFile(Object options) async;
+
+    /*! @brief Write data to the file, replacing its contents
+     @param data Data to write
+     @param opt Specify write options, will be ignored
+     @return Number of bytes actually written
+     */
+    Integer writeFile(Buffer data, String opt = "binary") async;
+
+    /*! @brief Write data to the file, replacing its contents
+     @param data Data to write
+     @param opt Specify write options
+     @return Number of bytes actually written
+     */
+    Integer writeFile(String data, String opt = "utf8") async;
+
+    /*! @brief Write data to the file, replacing its contents
+
+     options supports the following options:
+     ```JavaScript
+     {
+         "encoding": "utf8" // specify the encoding, default is utf8.
+     }
+     ```
+     @param data Data to write
+     @param options Specify write options
+     @return Number of bytes actually written
+     */
+    Integer writeFile(Buffer data, Object options) async;
+
+    /*! @brief Write data to the file, replacing its contents
+
+     options supports the following options:
+     ```JavaScript
+     {
+         "encoding": "utf8" // specify the encoding, default is utf8.
+     }
+     ```
+     @param data Data to write
+     @param options Specify write options
+     @return Number of bytes actually written
+     */
+    Integer writeFile(String data, Object options) async;
 
     /*! @brief Close current file handle */
     close() async;

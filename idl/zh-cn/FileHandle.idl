@@ -6,6 +6,11 @@
  */
 interface FileHandle : object
 {
+    /*! @brief FileHandle 构造函数，从文件描述符创建文件句柄
+     @param fd 文件描述符数值
+     */
+    FileHandle(Integer fd);
+
     /*! @brief 查询当前文件描述符 */
     readonly Integer fd;
 
@@ -24,9 +29,9 @@ interface FileHandle : object
      @param offset Buffer 写入偏移量， 默认为 0
      @param length 文件读取字节数，默认为 0
      @param position 文件读取位置，默认为当前文件位置
-     @return 实际读取的字节数
+     @return 返回包含 bytesRead 和 buffer 属性的对象
      */
-    Integer read(Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
+    (Integer bytesRead, Buffer buffer) read(Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
 
     /*! @brief 根据文件描述符，向文件写入内容
      @param buffer 待写入的 Buffer 对象
@@ -44,6 +49,67 @@ interface FileHandle : object
      @return 实际写入的字节数
      */
     Integer write(String string, Integer position = -1, String encoding = "utf8") async;
+
+    /*! @brief 读取文件的全部内容
+     @param encoding 指定解码方式，缺省不解码
+     @return 返回文件内容
+     */
+    Variant readFile(String encoding = "") async;
+
+    /*! @brief 读取文件的全部内容
+
+     options 支持以下选项：
+     ```JavaScript
+     {
+         "encoding": "utf8" // 指定编码，默认为 utf8。
+     }
+     ```
+     @param options 指定读取选项
+     @return 返回文件内容
+     */
+    Variant readFile(Object options) async;
+
+    /*! @brief 将数据写入文件，替换其内容
+     @param data 待写入的数据
+     @param opt 指定写入选项，将被忽略
+     @return 实际写入的字节数
+     */
+    Integer writeFile(Buffer data, String opt = "binary") async;
+
+    /*! @brief 将数据写入文件，替换其内容
+     @param data 待写入的数据
+     @param opt 指定写入选项
+     @return 实际写入的字节数
+     */
+    Integer writeFile(String data, String opt = "utf8") async;
+
+    /*! @brief 将数据写入文件，替换其内容
+
+     options 支持以下选项：
+     ```JavaScript
+     {
+         "encoding": "utf8" // 指定编码，默认为 utf8。
+     }
+     ```
+     @param data 待写入的数据
+     @param options 指定写入选项
+     @return 实际写入的字节数
+     */
+    Integer writeFile(Buffer data, Object options) async;
+
+    /*! @brief 将数据写入文件，替换其内容
+
+     options 支持以下选项：
+     ```JavaScript
+     {
+         "encoding": "utf8" // 指定编码，默认为 utf8。
+     }
+     ```
+     @param data 待写入的数据
+     @param options 指定写入选项
+     @return 实际写入的字节数
+     */
+    Integer writeFile(String data, Object options) async;
 
     /*! @brief 关闭当前文件句柄 */
     close() async;

@@ -153,9 +153,15 @@ public:
     virtual result_t get_fd(int32_t& retVal);
     virtual result_t chmod(int32_t mode, AsyncEvent* ac);
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
-    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+    virtual result_t readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
+    virtual result_t writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
 
 private:

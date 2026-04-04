@@ -1713,6 +1713,83 @@ describe('fs', () => {
         await f.close();
     });
 
+    it("FileHandle.read returns {bytesRead, buffer}", async () => {
+        var fn = path.join(__dirname, '_test_fh_read_' + vmid);
+        fs.writeFile(fn, 'hello world');
+        try {
+            var fh = await fs.promises.open(fn, 'r');
+            var buf = Buffer.alloc(1024);
+            var result = await fh.read(buf, 0, 1024, 0);
+
+            assert.isObject(result);
+            assert.property(result, 'bytesRead');
+            assert.property(result, 'buffer');
+            assert.equal(result.bytesRead, 11);
+            assert.deepEqual(result.buffer, buf);
+            assert.equal(buf.slice(0, 11).toString(), 'hello world');
+            await fh.close();
+        } finally {
+            fs.unlink(fn);
+        }
+    });
+
+    it("FileHandle.readFile", async () => {
+        var fn = path.join(__dirname, '_test_fh_readfile_' + vmid);
+        fs.writeFile(fn, 'readFile test content');
+        try {
+            var fh = await fs.promises.open(fn, 'r');
+            var data = await fh.readFile();
+            assert.isTrue(Buffer.isBuffer(data));
+            assert.equal(data.toString(), 'readFile test content');
+            await fh.close();
+
+            // readFile with encoding
+            fh = await fs.promises.open(fn, 'r');
+            var str = await fh.readFile('utf8');
+            assert.isString(str);
+            assert.equal(str, 'readFile test content');
+            await fh.close();
+        } finally {
+            fs.unlink(fn);
+        }
+    });
+
+    it("FileHandle.writeFile", async () => {
+        var fn = path.join(__dirname, '_test_fh_writefile_' + vmid);
+        try {
+            // writeFile with Buffer
+            var fh = await fs.promises.open(fn, 'w+');
+            var n = await fh.writeFile(Buffer.from('buffer data'));
+            assert.equal(n, 11);
+            await fh.close();
+            assert.equal(fs.readFile(fn).toString(), 'buffer data');
+
+            // writeFile with string
+            fh = await fs.promises.open(fn, 'w+');
+            n = await fh.writeFile('string data');
+            assert.equal(n, 11);
+            await fh.close();
+            assert.equal(fs.readFile(fn).toString(), 'string data');
+        } finally {
+            fs.unlink(fn);
+        }
+    });
+
+    it("fs.readSync with numeric fd", () => {
+        var fn = path.join(__dirname, '_test_readSync_fd_' + vmid);
+        fs.writeFile(fn, 'numeric fd test');
+        try {
+            var fh = fs.openSync(fn, 'r');
+            var buf = Buffer.alloc(1024);
+            var n = fs.readSync(fh.fd, buf, 0, 1024, 0);
+            assert.equal(n, 15);
+            assert.equal(buf.slice(0, 15).toString(), 'numeric fd test');
+            fs.closeSync(fh);
+        } finally {
+            fs.unlink(fn);
+        }
+    });
+
     it("write methods return value validation", () => {
         var fn = path.join(__dirname, 'fs_write_test' + vmid);
 

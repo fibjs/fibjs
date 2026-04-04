@@ -26,6 +26,12 @@ namespace fibjs {
 
 DECLARE_MODULE(fs);
 
+result_t FileHandle_base::_new(int32_t fd, obj_ptr<FileHandle_base>& retVal, v8::Local<v8::Object> This)
+{
+    retVal = new FileHandle(fd);
+    return 0;
+}
+
 result_t FileHandle::get_fd(int32_t& retVal)
 {
     retVal = m_fd;
@@ -42,9 +48,62 @@ result_t FileHandle::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     return fs_base::fstat(this, retVal, ac);
 }
 
-result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac)
+result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac)
 {
-    return fs_base::read(this, buffer, offset, length, position, retVal, ac);
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t bufLength = Buffer::Cast(buffer)->length();
+
+    if (offset < 0 || offset >= bufLength)
+        return Runtime::setError("fs: Offset is out of bounds");
+
+    if (length < 0 || (offset + length > bufLength))
+        return Runtime::setError("fs: Length extends beyond buffer");
+
+    if (position > -1) {
+        if (_lseeki64(m_fd, position, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
+    }
+
+    int32_t bytesRead = 0;
+    if (length > 0) {
+        exlib::string strBuf;
+        strBuf.resize(length);
+        int32_t sz = length;
+        char* p = strBuf.data();
+
+        while (sz) {
+            int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            if (n < 0)
+                return CHECK_ERROR(LastError());
+            if (n == 0)
+                break;
+
+            sz -= n;
+            p += n;
+        }
+
+        strBuf.resize(length - sz);
+
+        if (strBuf.length() > 0) {
+            int32_t written = 0;
+            result_t hr = buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", written);
+            if (hr < 0)
+                return hr;
+            bytesRead = written;
+        }
+    }
+
+    obj_ptr<ReadType> obj = new ReadType();
+    obj->bytesRead = bytesRead;
+    obj->buffer = buffer;
+    retVal = obj;
+
+    return 0;
 }
 
 result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac)
@@ -55,6 +114,124 @@ result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, 
 result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
     return fs_base::write(this, string, position, encoding, retVal, ac);
+}
+
+result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    // seek to beginning
+    if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
+        return CHECK_ERROR(LastError());
+
+    exlib::string strBuf;
+    char tmp[STREAM_BUFF_SIZE];
+
+    while (true) {
+        int32_t n = (int32_t)::_read(m_fd, tmp, STREAM_BUFF_SIZE);
+        if (n < 0)
+            return CHECK_ERROR(LastError());
+        if (n == 0)
+            break;
+        strBuf.append(tmp, n);
+    }
+
+    if (encoding != "") {
+        obj_ptr<Buffer_base> buf = new Buffer(strBuf.c_str(), strBuf.length());
+        return Buffer::Cast(buf)->toValue(encoding, retVal);
+    }
+
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
+    return 0;
+}
+
+result_t FileHandle::readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string encoding;
+        GetConfigValue(options, "encoding", encoding);
+        ac->m_ctx[0] = encoding;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return readFile(ac->m_ctx[0].string(), retVal, ac);
+}
+
+result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    // seek to beginning and truncate
+    if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
+        return CHECK_ERROR(LastError());
+
+    exlib::string strBuf;
+    Buffer::Cast(data)->toString(strBuf);
+
+    const char* p = strBuf.c_str();
+    int32_t sz = (int32_t)strBuf.length();
+    retVal = sz;
+
+    while (sz > 0) {
+        int32_t n = (int32_t)::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+        if (n < 0)
+            return CHECK_ERROR(LastError());
+        sz -= n;
+        p += n;
+    }
+
+    ftruncate(m_fd, _lseeki64(m_fd, 0, SEEK_CUR));
+
+    return 0;
+}
+
+result_t FileHandle::writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = commonEncode(opt, data, data);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
+    return writeFile(buf, "", retVal, ac);
+}
+
+result_t FileHandle::writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return writeFile(data, "", retVal, ac);
+}
+
+result_t FileHandle::writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string encoding = "utf8";
+        result_t hr = GetConfigValue(options, "encoding", encoding, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx[0] = encoding;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return writeFile(data, ac->m_ctx[0].string(), retVal, ac);
 }
 
 result_t FileHandle::close(AsyncEvent* ac)
