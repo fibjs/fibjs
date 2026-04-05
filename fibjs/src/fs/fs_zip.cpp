@@ -354,4 +354,26 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 
     return 0;
 }
+
+result_t fs_base::openFile(exlib::string fname, int32_t flags,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+
+    int32_t _fd;
+    result_t hr = file_open(safe_name, flags, 0666, _fd);
+    if (hr < 0)
+        return hr;
+
+    retVal = new FileStream(_fd);
+
+    return 0;
+}
 }

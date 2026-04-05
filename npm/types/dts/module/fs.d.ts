@@ -1453,6 +1453,38 @@ declare module 'fs' {
     function openFileAsync(fname: string, flags?: string): Promise<Class_SeekableStream>;
 
     /**
+     * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @return 返回打开的文件对象
+     *      
+     */
+    function openFile(fname: string, flags: number): Class_SeekableStream;
+
+    function openFile(fname: string, flags: number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    /**
+     * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @return 返回打开的文件对象
+     *      
+     */
+    function openFileSync(fname: string, flags: number): Class_SeekableStream;
+
+    /**
+     * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @return 返回打开的文件对象
+     *      
+     */
+    function openFileAsync(fname: string, flags: number): Promise<Class_SeekableStream>;
+
+    /**
      * @description 打开文件描述符
      * 
      *      参数 flags 支持的方式如下：
@@ -1507,6 +1539,41 @@ declare module 'fs' {
      *      
      */
     function openAsync(fname: string, flags?: string, mode?: number): Promise<Class_FileHandle>;
+
+    /**
+     * @description 打开文件描述符，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
+     *      @return 返回打开的文件描述符
+     *      
+     */
+    function open(fname: string, flags: number, mode?: number): Class_FileHandle;
+
+    function open(fname: string, flags: number, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    /**
+     * @description 打开文件描述符，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
+     *      @return 返回打开的文件描述符
+     *      
+     */
+    function openSync(fname: string, flags: number, mode?: number): Class_FileHandle;
+
+    /**
+     * @description 打开文件描述符，使用 fs.constants 整数 flags
+     * 
+     *      @param fname 指定文件名
+     *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
+     *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
+     *      @return 返回打开的文件描述符
+     *      
+     */
+    function openAsync(fname: string, flags: number, mode?: number): Promise<Class_FileHandle>;
 
     /**
      * @description 关闭文件描述符

@@ -76,7 +76,9 @@ public:
     static result_t createReadStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t createWriteStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    static result_t openFile(exlib::string fname, int32_t flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string fname, int32_t flags, int32_t mode, obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac);
     static result_t close(FileHandle_base* fd, AsyncEvent* ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
@@ -205,7 +207,9 @@ public:
     ASYNC_STATICVALUE3(fs_base, createReadStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, createWriteStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, int32_t, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, obj_ptr<FileHandle_base>);
+    ASYNC_STATICVALUE4(fs_base, open, exlib::string, int32_t, int32_t, obj_ptr<FileHandle_base>);
     ASYNC_STATIC1(fs_base, close, FileHandle_base*);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
@@ -969,6 +973,16 @@ inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_openFile(v0, v1, vr);
 
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_openFile(v0, v1, cb, args);
+    else
+        hr = ac_openFile(v0, v1, vr);
+
     ASYNC_METHOD_RETURN();
 }
 
@@ -982,6 +996,17 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "r");
+    OPT_ARG(int32_t, 2, 0666);
+
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
+        hr = ac_open(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
     OPT_ARG(int32_t, 2, 0666);
 
     if (!cb.IsEmpty())

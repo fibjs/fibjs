@@ -141,6 +141,65 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     return 0;
 }
 
+// file_open overload accepting integer flags (fibjs portable constants, macOS/BSD values).
+// Translates to native OS flags before calling open(2).
+inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int32_t& fd)
+{
+#ifdef _WIN32
+    int32_t _flags = _O_BINARY | (flags & 3);
+#else
+    int32_t _flags = flags & 3;
+#endif
+    if (flags & 8)       _flags |= O_APPEND;    // fibjs O_APPEND    = 8
+    if (flags & 512)     _flags |= O_CREAT;     // fibjs O_CREAT     = 512
+    if (flags & 1024)    _flags |= O_TRUNC;     // fibjs O_TRUNC     = 1024
+    if (flags & 2048)    _flags |= O_EXCL;      // fibjs O_EXCL      = 2048
+#ifdef O_NONBLOCK
+    if (flags & 4)       _flags |= O_NONBLOCK;  // fibjs O_NONBLOCK  = 4
+#endif
+#ifdef O_SYNC
+    if (flags & 128)     _flags |= O_SYNC;      // fibjs O_SYNC      = 128
+#endif
+#ifdef O_DSYNC
+    if (flags & 4194304) _flags |= O_DSYNC;     // fibjs O_DSYNC     = 4194304
+#endif
+#ifdef O_NOCTTY
+    if (flags & 131072)  _flags |= O_NOCTTY;    // fibjs O_NOCTTY    = 131072
+#endif
+#ifdef O_DIRECTORY
+    if (flags & 1048576) _flags |= O_DIRECTORY; // fibjs O_DIRECTORY = 1048576
+#endif
+#ifdef O_NOFOLLOW
+    if (flags & 256)     _flags |= O_NOFOLLOW;  // fibjs O_NOFOLLOW  = 256
+#endif
+#ifdef O_SYMLINK
+    if (flags & 2097152) _flags |= O_SYMLINK;   // fibjs O_SYMLINK   = 2097152
+#endif
+
+#ifdef _WIN32
+    fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
+#else
+    fd = ::open(fname.c_str(), _flags, mode);
+#endif
+    if (fd < 0)
+        return LastError();
+
+#ifndef _WIN32
+    struct stat64 st;
+    fstat64(fd, &st);
+
+    if (S_IFDIR & st.st_mode) {
+        ::_close(fd);
+        fd = -1;
+        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+    }
+
+    if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
+        return CHECK_ERROR(LastError());
+#endif
+    return 0;
+}
+
 class FileHandle : public FileHandle_base {
 public:
     FileHandle(int32_t fd)

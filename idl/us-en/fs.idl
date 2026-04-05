@@ -412,6 +412,14 @@ module fs
      */
     static SeekableStream openFile(String fname, String flags = "r") async;
 
+    /*! @brief Open file for reading, writing, or both reading and writing, using integer flags from fs.constants
+
+     @param fname Specify filename
+     @param flags Integer flags, combination of fs.constants values (e.g. fs.constants.O_WRONLY | fs.constants.O_CREAT)
+     @return Return the opened file object
+     */
+    static SeekableStream openFile(String fname, Integer flags) async;
+
     /*! @brief Open file descriptor
 
      The ways supported by parameter flags are as follows:
@@ -427,6 +435,15 @@ module fs
      @return Return the opened file descriptor
      */
     static FileHandle open(String fname, String flags = "r", Integer mode = 0666) async;
+
+    /*! @brief Open file descriptor using integer flags from fs.constants
+
+     @param fname Specify filename
+     @param flags Integer flags, combination of fs.constants values (e.g. fs.constants.O_WRONLY | fs.constants.O_CREAT)
+     @param mode When creating file, specify file mode, default 0666
+     @return Return the opened file descriptor
+     */
+    static FileHandle open(String fname, Integer flags, Integer mode = 0666) async;
 
     /*! @brief Close file descriptor
      @param fd File descriptor object

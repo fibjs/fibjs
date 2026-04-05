@@ -299,6 +299,25 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     return 0;
 }
 
+result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
+    obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+
+    int32_t _fd;
+    result_t hr = file_open(safe_name, flags, mode, _fd);
+    if (hr < 0)
+        return hr;
+
+    retVal = new FileHandle(_fd);
+
+    return 0;
+}
+
 result_t fs_base::close(FileHandle_base* fd, AsyncEvent* ac)
 {
     return fd->close(ac);

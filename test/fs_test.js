@@ -221,6 +221,32 @@ describe('fs', () => {
         fs.close(fd2);
     });
 
+    it("fs.open with integer flags (fs.constants compatibility)", () => {
+        var tmpFile = path.join(homedir, 'test_open_intflags_' + vmid + '.txt');
+        try {
+            // O_WRONLY | O_CREAT | O_TRUNC using fibjs portable constants
+            var flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC;
+            var fd = fs.open(tmpFile, flags, 0o644);
+            assert.greaterThan(fd.fd, -1);
+            fs.close(fd);
+            assert.ok(fs.exists(tmpFile), 'file should be created with integer flags');
+
+            // Re-open with O_RDONLY to verify the file was created
+            var fdRead = fs.open(tmpFile, fs.constants.O_RDONLY);
+            assert.greaterThan(fdRead.fd, -1);
+            fs.close(fdRead);
+
+            // O_WRONLY | O_APPEND using fibjs portable constants
+            var appendFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_APPEND;
+            var fdAppend = fs.open(tmpFile, appendFlags, 0o644);
+            assert.greaterThan(fdAppend.fd, -1);
+            fs.close(fdAppend);
+        } finally {
+            if (fs.exists(tmpFile))
+                fs.unlink(tmpFile);
+        }
+    });
+
     it("file openSync & closeSync", () => {
         var fd = fs.openSync(path.join(__dirname, 'fs_test.js'));
         assert.greaterThan(fd.fd, -1);
