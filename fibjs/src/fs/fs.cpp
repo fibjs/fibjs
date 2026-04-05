@@ -223,7 +223,7 @@ result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& re
         p += n;
     }
 
-    ftruncate(m_fd, _lseeki64(m_fd, 0, SEEK_CUR));
+    ftruncate64(m_fd, _lseeki64(m_fd, 0, SEEK_CUR));
 
     return 0;
 }
