@@ -7,6 +7,8 @@
 
 #include "object.h"
 #include "ifs/util.h"
+#include "ifs/CryptoKey.h"
+#include "ifs/KeyObject.h"
 
 namespace fibjs {
 
@@ -328,6 +330,73 @@ result_t types_base::isBigUint64Array(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
+result_t types_base::isFloat16Array(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsFloat16Array();
+    return 0;
+}
+
+result_t types_base::isAnyArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsArrayBuffer() || v->IsSharedArrayBuffer();
+    return 0;
+}
+
+result_t types_base::isSharedArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsSharedArrayBuffer();
+    return 0;
+}
+
+result_t types_base::isArgumentsObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsArgumentsObject();
+    return 0;
+}
+
+result_t types_base::isBoxedPrimitive(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBooleanObject() || v->IsNumberObject() || v->IsStringObject()
+        || v->IsSymbolObject() || v->IsBigIntObject();
+    return 0;
+}
+
+result_t types_base::isGeneratorFunction(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsGeneratorFunction();
+    return 0;
+}
+
+result_t types_base::isGeneratorObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsGeneratorObject();
+    return 0;
+}
+
+result_t types_base::isProxy(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsProxy();
+    return 0;
+}
+
+result_t types_base::isModuleNamespaceObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsModuleNamespaceObject();
+    return 0;
+}
+
+result_t types_base::isCryptoKey(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = CryptoKey_base::getInstance(v) != NULL;
+    return 0;
+}
+
+result_t types_base::isKeyObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = KeyObject_base::getInstance(v) != NULL;
+    return 0;
+}
+
 result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 {
     return types_base::isEmpty(v, retVal);
@@ -461,6 +530,61 @@ result_t util_base::isFunction(v8::Local<v8::Value> v, bool& retVal)
 result_t util_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     return types_base::isBuffer(v, retVal);
+}
+
+result_t util_base::isFloat16Array(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isFloat16Array(v, retVal);
+}
+
+result_t util_base::isAnyArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isAnyArrayBuffer(v, retVal);
+}
+
+result_t util_base::isSharedArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isSharedArrayBuffer(v, retVal);
+}
+
+result_t util_base::isArgumentsObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isArgumentsObject(v, retVal);
+}
+
+result_t util_base::isBoxedPrimitive(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isBoxedPrimitive(v, retVal);
+}
+
+result_t util_base::isGeneratorFunction(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isGeneratorFunction(v, retVal);
+}
+
+result_t util_base::isGeneratorObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isGeneratorObject(v, retVal);
+}
+
+result_t util_base::isProxy(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isProxy(v, retVal);
+}
+
+result_t util_base::isModuleNamespaceObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isModuleNamespaceObject(v, retVal);
+}
+
+result_t util_base::isCryptoKey(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isCryptoKey(v, retVal);
+}
+
+result_t util_base::isKeyObject(v8::Local<v8::Value> v, bool& retVal)
+{
+    return types_base::isKeyObject(v, retVal);
 }
 
 }

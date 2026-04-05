@@ -556,5 +556,88 @@ describe('types', () => {
         assert.notOk(types.isBigUint64Array(new Uint32Array()));
         assert.notOk(types.isBigUint64Array({}));
     });
+
+    it('isFloat16Array', () => {
+        assert.ok(types.isFloat16Array(new Float16Array(0)));
+        assert.notOk(types.isFloat16Array(new Float32Array(0)));
+        assert.notOk(types.isFloat16Array({}));
+    });
+
+    it('isAnyArrayBuffer', () => {
+        assert.ok(types.isAnyArrayBuffer(new ArrayBuffer(0)));
+        assert.ok(types.isAnyArrayBuffer(new SharedArrayBuffer(0)));
+        assert.notOk(types.isAnyArrayBuffer(new Uint8Array(0)));
+        assert.notOk(types.isAnyArrayBuffer({}));
+    });
+
+    it('isSharedArrayBuffer', () => {
+        assert.ok(types.isSharedArrayBuffer(new SharedArrayBuffer(0)));
+        assert.notOk(types.isSharedArrayBuffer(new ArrayBuffer(0)));
+        assert.notOk(types.isSharedArrayBuffer({}));
+    });
+
+    it('isArgumentsObject', () => {
+        assert.ok(types.isArgumentsObject((function () { return arguments; })()));
+        assert.notOk(types.isArgumentsObject([]));
+        assert.notOk(types.isArgumentsObject({}));
+    });
+
+    it('isBoxedPrimitive', () => {
+        assert.ok(types.isBoxedPrimitive(new Boolean(false)));
+        assert.ok(types.isBoxedPrimitive(new String('')));
+        assert.ok(types.isBoxedPrimitive(new Number(0)));
+        assert.ok(types.isBoxedPrimitive(Object(Symbol())));
+        assert.ok(types.isBoxedPrimitive(Object(BigInt(0))));
+        assert.notOk(types.isBoxedPrimitive(false));
+        assert.notOk(types.isBoxedPrimitive(''));
+        assert.notOk(types.isBoxedPrimitive(0));
+        assert.notOk(types.isBoxedPrimitive({}));
+    });
+
+    it('isGeneratorFunction', () => {
+        assert.ok(types.isGeneratorFunction(function* () { }));
+        assert.notOk(types.isGeneratorFunction(function () { }));
+        assert.notOk(types.isGeneratorFunction({}));
+    });
+
+    it('isGeneratorObject', () => {
+        function* gen() { }
+        assert.ok(types.isGeneratorObject(gen()));
+        assert.notOk(types.isGeneratorObject(gen));
+        assert.notOk(types.isGeneratorObject({}));
+    });
+
+    it('isProxy', () => {
+        assert.ok(types.isProxy(new Proxy({}, {})));
+        assert.notOk(types.isProxy({}));
+    });
+
+    it('isModuleNamespaceObject', async () => {
+        const path = require('path');
+        const fs = require('fs');
+        const tmpFile = path.join(__dirname, '__test_ns_mod.mjs');
+        fs.writeFileSync(tmpFile, 'export const foo = 1;');
+        try {
+            const ns = await import(tmpFile);
+            assert.ok(types.isModuleNamespaceObject(ns));
+            assert.notOk(types.isModuleNamespaceObject({}));
+        } finally {
+            fs.unlinkSync(tmpFile);
+        }
+    });
+
+    it('isCryptoKey', async () => {
+        const crypto = require('crypto');
+        const key = await crypto.subtle.generateKey({ name: 'HMAC', hash: 'SHA-256', length: 256 }, true, ['sign', 'verify']);
+        assert.ok(types.isCryptoKey(key));
+        assert.notOk(types.isCryptoKey({}));
+    });
+
+    it('isKeyObject', () => {
+        const crypto = require('crypto');
+        const key = crypto.createSecretKey(Buffer.alloc(32));
+        assert.ok(types.isKeyObject(key));
+        assert.notOk(types.isKeyObject({}));
+    });
 });
 

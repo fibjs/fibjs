@@ -380,5 +380,93 @@ declare module 'types' {
      */
     function isBigUint64Array(v: any): boolean;
 
+    /**
+     * @description 检测给定的变量是否是 Float16Array 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Float16Array 类型则返回 True
+     *      
+     */
+    function isFloat16Array(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 ArrayBuffer 或 SharedArrayBuffer 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 ArrayBuffer 或 SharedArrayBuffer 类型则返回 True
+     *      
+     */
+    function isAnyArrayBuffer(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 SharedArrayBuffer 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 SharedArrayBuffer 类型则返回 True
+     *      
+     */
+    function isSharedArrayBuffer(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 arguments 对象
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 arguments 对象则返回 True
+     *      
+     */
+    function isArgumentsObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是装箱的原始类型对象（如 new Boolean()、new String() 等）
+     *      @param v 给定需要检测的变量
+     *      @return 如果是装箱的原始类型对象则返回 True
+     *      
+     */
+    function isBoxedPrimitive(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 GeneratorFunction 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 GeneratorFunction 类型则返回 True
+     *      
+     */
+    function isGeneratorFunction(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Generator 对象
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Generator 对象则返回 True
+     *      
+     */
+    function isGeneratorObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Proxy 实例
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Proxy 实例则返回 True
+     *      
+     */
+    function isProxy(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 Module Namespace 对象
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 Module Namespace 对象则返回 True
+     *      
+     */
+    function isModuleNamespaceObject(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 CryptoKey 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 CryptoKey 类型则返回 True
+     *      
+     */
+    function isCryptoKey(v: any): boolean;
+
+    /**
+     * @description 检测给定的变量是否是 KeyObject 类型
+     *      @param v 给定需要检测的变量
+     *      @return 如果是 KeyObject 类型则返回 True
+     *      
+     */
+    function isKeyObject(v: any): boolean;
+
 }
 

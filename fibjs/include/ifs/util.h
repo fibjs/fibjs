@@ -65,6 +65,17 @@ public:
     static result_t isUint8Array(v8::Local<v8::Value> v, bool& retVal);
     static result_t isFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isFloat16Array(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isAnyArrayBuffer(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isSharedArrayBuffer(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isArgumentsObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBoxedPrimitive(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isGeneratorFunction(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isGeneratorObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isProxy(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isModuleNamespaceObject(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isCryptoKey(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isKeyObject(v8::Local<v8::Value> v, bool& retVal);
     static result_t isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal);
     static result_t isDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal);
     static result_t has(v8::Local<v8::Value> v, exlib::string key, bool& retVal);
@@ -145,6 +156,17 @@ public:
     static void s_static_isUint8Array(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isFloat16Array(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isAnyArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isSharedArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isArgumentsObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBoxedPrimitive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isGeneratorFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isGeneratorObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isProxy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isModuleNamespaceObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isCryptoKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isKeyObject(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_has(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -224,6 +246,17 @@ inline ClassInfo& util_base::class_info()
         { "isUint8Array", s_static_isUint8Array, true, ClassData::ASYNC_SYNC },
         { "isFunction", s_static_isFunction, true, ClassData::ASYNC_SYNC },
         { "isBuffer", s_static_isBuffer, true, ClassData::ASYNC_SYNC },
+        { "isFloat16Array", s_static_isFloat16Array, true, ClassData::ASYNC_SYNC },
+        { "isAnyArrayBuffer", s_static_isAnyArrayBuffer, true, ClassData::ASYNC_SYNC },
+        { "isSharedArrayBuffer", s_static_isSharedArrayBuffer, true, ClassData::ASYNC_SYNC },
+        { "isArgumentsObject", s_static_isArgumentsObject, true, ClassData::ASYNC_SYNC },
+        { "isBoxedPrimitive", s_static_isBoxedPrimitive, true, ClassData::ASYNC_SYNC },
+        { "isGeneratorFunction", s_static_isGeneratorFunction, true, ClassData::ASYNC_SYNC },
+        { "isGeneratorObject", s_static_isGeneratorObject, true, ClassData::ASYNC_SYNC },
+        { "isProxy", s_static_isProxy, true, ClassData::ASYNC_SYNC },
+        { "isModuleNamespaceObject", s_static_isModuleNamespaceObject, true, ClassData::ASYNC_SYNC },
+        { "isCryptoKey", s_static_isCryptoKey, true, ClassData::ASYNC_SYNC },
+        { "isKeyObject", s_static_isKeyObject, true, ClassData::ASYNC_SYNC },
         { "isDeepEqual", s_static_isDeepEqual, true, ClassData::ASYNC_SYNC },
         { "isDeepStrictEqual", s_static_isDeepStrictEqual, true, ClassData::ASYNC_SYNC },
         { "has", s_static_has, true, ClassData::ASYNC_SYNC },
@@ -812,6 +845,171 @@ inline void util_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Valu
     ARG(v8::Local<v8::Value>, 0);
 
     hr = isBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isFloat16Array(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isFloat16Array(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isAnyArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isAnyArrayBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isSharedArrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isSharedArrayBuffer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isArgumentsObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isArgumentsObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isBoxedPrimitive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBoxedPrimitive(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isGeneratorFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isGeneratorFunction(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isGeneratorObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isGeneratorObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isProxy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isProxy(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isModuleNamespaceObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isModuleNamespaceObject(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isCryptoKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isCryptoKey(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_isKeyObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isKeyObject(v0, vr);
 
     METHOD_RETURN();
 }

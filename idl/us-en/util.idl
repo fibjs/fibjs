@@ -491,6 +491,83 @@ module util
      */
     static Boolean isBigUint64Array(Value v);
 
+    /*! @brief Detect whether the given variable is Float16Array type
+
+     @param v Given variable to detect
+     @return Return True if it is Float16Array type
+     */
+    static Boolean isFloat16Array(Value v);
+
+    /*! @brief Detect whether the given variable is ArrayBuffer or SharedArrayBuffer type
+
+     @param v Given variable to detect
+     @return Return True if it is ArrayBuffer or SharedArrayBuffer type
+     */
+    static Boolean isAnyArrayBuffer(Value v);
+
+    /*! @brief Detect whether the given variable is SharedArrayBuffer type
+
+     @param v Given variable to detect
+     @return Return True if it is SharedArrayBuffer type
+     */
+    static Boolean isSharedArrayBuffer(Value v);
+
+    /*! @brief Detect whether the given variable is an arguments object
+
+     @param v Given variable to detect
+     @return Return True if it is an arguments object
+     */
+    static Boolean isArgumentsObject(Value v);
+
+    /*! @brief Detect whether the given variable is a boxed primitive object (e.g. new Boolean(), new String())
+
+     @param v Given variable to detect
+     @return Return True if it is a boxed primitive object
+     */
+    static Boolean isBoxedPrimitive(Value v);
+
+    /*! @brief Detect whether the given variable is a GeneratorFunction
+
+     @param v Given variable to detect
+     @return Return True if it is a GeneratorFunction
+     */
+    static Boolean isGeneratorFunction(Value v);
+
+    /*! @brief Detect whether the given variable is a Generator object
+
+     @param v Given variable to detect
+     @return Return True if it is a Generator object
+     */
+    static Boolean isGeneratorObject(Value v);
+
+    /*! @brief Detect whether the given variable is a Proxy instance
+
+     @param v Given variable to detect
+     @return Return True if it is a Proxy instance
+     */
+    static Boolean isProxy(Value v);
+
+    /*! @brief Detect whether the given variable is a Module Namespace object
+
+     @param v Given variable to detect
+     @return Return True if it is a Module Namespace object
+     */
+    static Boolean isModuleNamespaceObject(Value v);
+
+    /*! @brief Detect whether the given variable is a CryptoKey type
+
+     @param v Given variable to detect
+     @return Return True if it is a CryptoKey type
+     */
+    static Boolean isCryptoKey(Value v);
+
+    /*! @brief Detect whether the given variable is a KeyObject type
+
+     @param v Given variable to detect
+     @return Return True if it is a KeyObject type
+     */
+    static Boolean isKeyObject(Value v);
+
     /*! @brief Strip TypeScript type annotations from code
 
      This function removes TypeScript-specific syntax from the provided code string, converting it to plain JavaScript. It handles various TypeScript features including:
