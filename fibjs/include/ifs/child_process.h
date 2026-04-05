@@ -75,6 +75,7 @@ public:
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
             retVal->Set(context, isolate->NewString("status"), GetReturnValue(isolate, status)).Check();
+            retVal->Set(context, isolate->NewString("signal"), GetReturnValue(isolate, signal)).Check();
             retVal->Set(context, isolate->NewString("error"), GetReturnValue(isolate, error)).Check();
         }
 
@@ -85,6 +86,7 @@ public:
             args.push_back(GetReturnValue(isolate, stdout));
             args.push_back(GetReturnValue(isolate, stderr));
             args.push_back(GetReturnValue(isolate, status));
+            args.push_back(GetReturnValue(isolate, signal));
             args.push_back(GetReturnValue(isolate, error));
         }
 
@@ -94,6 +96,7 @@ public:
         Variant stdout;
         Variant stderr;
         int32_t status;
+        Variant signal;
         Variant error;
     };
 

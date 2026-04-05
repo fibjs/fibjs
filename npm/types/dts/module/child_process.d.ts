@@ -209,7 +209,7 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any];
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
 
     /**
      * @description 用给定的命令发布一个子进程
@@ -235,7 +235,7 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, error: any];
+    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
 
     /**
      * @description 在 shell 中同步执行一个命令并缓冲输出

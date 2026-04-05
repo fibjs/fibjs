@@ -188,7 +188,7 @@ module child_process
      @param options Specify the creation parameters
      @return Return the child process execution result
      */
-    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant error) spawnSync(String command, Array args, Object options = {});
+    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant signal, Variant error) spawnSync(String command, Array args, Object options = {});
 
     /*! @brief Spawn a child process with the given command
     options supports the following content:
@@ -212,7 +212,7 @@ module child_process
      @param options Specify the creation parameters
      @return Return the child process execution result
      */
-    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant error) spawnSync(String command, Object options = {});
+    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant signal, Variant error) spawnSync(String command, Object options = {});
 
     /*! @brief Synchronously execute a command in the shell and buffer the output
     options supports the following content:

@@ -638,7 +638,8 @@ describe("child_process", () => {
                 var t = Date.now();
                 var result = child_process.spawnSync("sleep", ["10"], { timeout: 500 });
                 var elapsed = Date.now() - t;
-                assert.equal(result.status, -15);
+                assert.equal(result.signal, "SIGTERM");
+                assert.equal(result.status, 0);
                 assert.ok(elapsed < 10000);
             });
 
@@ -1021,6 +1022,85 @@ describe("child_process", () => {
         assert.equal(result.stderr, result.output[1]);
         assert.equal(result.status, 0);
         assert.notEqual(result.error, undefined);
+    });
+
+    it("spawnSync with string input", () => {
+        var result = child_process.spawnSync("cat", [], {
+            input: "hello from input\n",
+            encoding: "utf8"
+        });
+
+        assert.equal(result.status, 0);
+        assert.equal(result.signal, null);
+        assert.equal(result.stdout, "hello from input\n");
+    });
+
+    it("spawnSync with Buffer input", () => {
+        var result = child_process.spawnSync("cat", [], {
+            input: Buffer.from("buffer input\n"),
+            encoding: "utf8"
+        });
+
+        assert.equal(result.status, 0);
+        assert.equal(result.stdout, "buffer input\n");
+    });
+
+    it("spawnSync with empty input", () => {
+        var result = child_process.spawnSync("cat", [], {
+            input: "",
+            encoding: "utf8"
+        });
+
+        assert.equal(result.status, 0);
+        assert.equal(result.stdout, "");
+    });
+
+    it("spawnSync input to shell via stdin", () => {
+        var result = child_process.spawnSync("sh", [], {
+            input: "echo hello\nexit 42\n",
+            encoding: "utf8"
+        });
+
+        assert.equal(result.stdout, "hello\n");
+        assert.equal(result.status, 42);
+        assert.equal(result.signal, null);
+    });
+
+    it("spawnSync signal field is null on normal exit", () => {
+        var result = child_process.spawnSync("true", [], {
+            encoding: "utf8"
+        });
+
+        assert.equal(result.status, 0);
+        assert.equal(result.signal, null);
+    });
+
+    it("spawnSync signal field on timeout kill", () => {
+        var result = child_process.spawnSync("sleep", ["10"], {
+            timeout: 500
+        });
+
+        assert.equal(result.signal, "SIGTERM");
+        assert.equal(result.status, 0);
+    });
+
+    it("spawnSync empty stdout/stderr with encoding returns empty string", () => {
+        var result = child_process.spawnSync("true", [], {
+            encoding: "utf8"
+        });
+
+        assert.equal(result.status, 0);
+        assert.strictEqual(result.stdout, "");
+        assert.strictEqual(result.stderr, "");
+    });
+
+    it("spawnSync empty stdout/stderr without encoding returns Buffer", () => {
+        var result = child_process.spawnSync(cmd, [
+            path.join(__dirname, "process", "exec28.js")
+        ]);
+
+        assert.ok(Buffer.isBuffer(result.stdout));
+        assert.ok(Buffer.isBuffer(result.stderr));
     });
 
     it("argv 1", () => {
