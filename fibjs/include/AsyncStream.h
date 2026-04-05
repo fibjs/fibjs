@@ -53,6 +53,10 @@ public:
     obj_ptr<TextDecoder> m_decoder;
     AsyncStreamReader* reader = nullptr;
 
+    // ValueHolder and isolate for async reader, managed by AsyncStream on JS thread
+    Isolate* m_streamIsolate = nullptr;
+    obj_ptr<ValueHolder> m_streamHolder;
+
     // Write queue state (all protected by m_writeLock)
     exlib::spinlock m_writeLock;
     std::list<AsyncEvent*> m_writeQueue;
@@ -79,15 +83,15 @@ public:
         : AsyncState(NULL)
         , m_this(pThis)
         , m_base(base)
+        , m_isolate(base->m_streamIsolate)
     {
-        m_isolate = pThis->holder();
-        m_holder = new ValueHolder(m_this->wrap());
         next(recv);
     }
 
     ~AsyncStreamReader()
     {
         m_base->reader = nullptr;
+        m_base->m_streamHolder.Release();
         m_this->isolate_unref();
     }
 
@@ -240,7 +244,6 @@ public:
 public:
 private:
     Isolate* m_isolate;
-    obj_ptr<ValueHolder> m_holder;
     obj_ptr<Stream_base> m_this;
     AsyncStreamBase* m_base;
     obj_ptr<Buffer_base> m_buf;
@@ -851,11 +854,23 @@ public:
         if (m_recvStarted.CompareAndSwap(0, 1) != 0)
             return;
 
-        auto state = m_state.dec();
-        if (state <= 1 && !reader) {
+        // Only create reader when m_state <= 2, meaning either:
+        // - m_state was 1 (non-socket / already-connected stream), or
+        // - startConnectEvent already ran (Socket, m_state went from 3 to 2)
+        // For naked unconnected sockets (m_state=3, no connect called),
+        // skip creation to allow GC. startConnectEvent will create it later
+        // if connect() is called.
+        if (m_state.value() <= 2) {
+            m_streamIsolate = this->holder();
+            m_streamHolder = new ValueHolder(this->wrap());
+
+            // Create reader BEFORE atomic decrement so that when on_connected()
+            // on the ev thread sees state==0, the reader pointer write is
+            // guaranteed visible via the full barrier of m_state.dec().
             reader = new AsyncStreamReader(this, this);
         }
-        if (state == 0)
+
+        if (m_state.dec() == 0)
             reader->start();
     }
 
@@ -864,11 +879,17 @@ public:
         if (m_connectStarted.CompareAndSwap(0, 1) != 0)
             return;
 
-        auto state = m_state.dec();
-        if (state <= 1 && !reader) {
+        // If startRecvStream already ran but skipped reader creation because
+        // m_state was 3, create reader now. This only happens when user calls
+        // on('data') before connect() on a manually-created Socket, so this
+        // code runs in Socket::connect's sync phase with V8 context available.
+        if (m_state.value() <= 2 && !reader) {
+            m_streamIsolate = this->holder();
+            m_streamHolder = new ValueHolder(this->wrap());
             reader = new AsyncStreamReader(this, this);
         }
-        if (state == 0)
+
+        if (m_state.dec() == 0)
             reader->start();
     }
 

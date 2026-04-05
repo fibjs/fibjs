@@ -1498,18 +1498,19 @@ function test_net(eng, use_uv) {
                                 // Keep peer write path blocked first, then start reading.
                                 coroutine.sleep(180);
 
-                                var tail = "";
+                                var markerBuf = Buffer.from(marker);
+                                var prevTail = Buffer.alloc(0);
                                 while (true) {
                                     var b = c.recv();
                                     if (!b)
                                         break;
 
-                                    // Only keep recent data to avoid O(n^2) string ops
-                                    tail = (tail + b.toString()).slice(-(marker.length * 2));
-                                    if (tail.indexOf(marker) >= 0) {
+                                    var combined = Buffer.concat([prevTail, b]);
+                                    if (combined.indexOf(markerBuf) >= 0) {
                                         markerSeen.set();
                                         break;
                                     }
+                                    prevTail = b.slice(-(markerBuf.length));
                                 }
                             } catch (e) {
                             } finally {
@@ -1526,6 +1527,7 @@ function test_net(eng, use_uv) {
                         var secondDone = new coroutine.Event();
 
                         var largeData = new Buffer(128 * 1024);
+                        largeData.fill(0x58);
 
                         coroutine.start(() => {
                             try {
@@ -1545,7 +1547,6 @@ function test_net(eng, use_uv) {
 
                         coroutine.start(() => {
                             try {
-                                c1.timeout = 800;
                                 c1.send(marker);
                             } catch (e) {
                                 secondErr = e.number;
@@ -1589,18 +1590,19 @@ function test_net(eng, use_uv) {
                                 // Delay reading to trigger writer timeout first.
                                 coroutine.sleep(180);
 
-                                var tail = "";
+                                var markerBuf = Buffer.from(marker);
+                                var prevTail = Buffer.alloc(0);
                                 while (true) {
                                     var b = c.recv();
                                     if (!b)
                                         break;
-                                    // Only keep recent data to avoid O(n^2) string ops
-                                    tail = (tail + b.toString()).slice(-(marker.length * 2));
-                                    if (tail.indexOf(marker) >= 0) {
+                                    var combined = Buffer.concat([prevTail, b]);
+                                    if (combined.indexOf(markerBuf) >= 0) {
                                         serverMarkerFound = true;
                                         markerSeen.set();
                                         break;
                                     }
+                                    prevTail = b.slice(-(markerBuf.length));
                                 }
                             } catch (e) {
                             } finally {
@@ -1616,6 +1618,7 @@ function test_net(eng, use_uv) {
                         var write2Err = null;
                         var write2Done = new coroutine.Event();
                         var largeData = new Buffer(128 * 1024);
+                        largeData.fill(0x58);
 
                         coroutine.start(() => {
                             try {
@@ -1633,7 +1636,6 @@ function test_net(eng, use_uv) {
 
                         coroutine.start(() => {
                             try {
-                                c1.timeout = 800;
                                 c1.send(marker);
                             } catch (e) {
                                 write2Err = e.number;
