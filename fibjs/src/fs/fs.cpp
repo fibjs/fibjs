@@ -1421,6 +1421,236 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
     return uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL);
 }
 
+class AsyncUVCP : public uv_fs_t {
+public:
+    AsyncUVCP(exlib::string src, exlib::string dest, bool recursive, bool force, int32_t mode, AsyncEvent* ac)
+        : m_ac(ac)
+        , m_src(src)
+        , m_dest(dest)
+        , m_recursive(recursive)
+        , m_force(force)
+        , m_mode(mode)
+    {
+    }
+
+    ~AsyncUVCP()
+    {
+        uv_fs_req_cleanup(this);
+    }
+
+public:
+    static void cb_stat(uv_fs_t* req)
+    {
+        AsyncUVCP* pThis = (AsyncUVCP*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
+        }
+
+        if (S_ISDIR(pThis->statbuf.st_mode)) {
+            if (!pThis->m_recursive) {
+                pThis->m_ac->apost(UV_EISDIR);
+                delete pThis;
+                return;
+            }
+
+            // Create destination directory
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_dest.c_str(), pThis->statbuf.st_mode & 0777, cb_mkdir);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
+            }
+        } else if (S_ISREG(pThis->statbuf.st_mode)) {
+            // Copy file directly
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
+                pThis->m_mode, cb_copyfile);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
+            }
+        } else {
+            // Symlinks and other types: try copyfile
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
+                pThis->m_mode, cb_copyfile);
+            if (ret != 0) {
+                pThis->m_ac->apost(ret);
+                delete pThis;
+            }
+        }
+    }
+
+    static void cb_mkdir(uv_fs_t* req)
+    {
+        AsyncUVCP* pThis = (AsyncUVCP*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0 && ret != UV_EEXIST) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
+        }
+
+        // Scan source directory
+        uv_fs_req_cleanup(pThis);
+        ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_src.c_str(), 0, cb_scandir);
+        if (ret != 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+        }
+    }
+
+    static void cb_scandir(uv_fs_t* req)
+    {
+        AsyncUVCP* pThis = (AsyncUVCP*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
+        }
+
+        uv_dirent_t dirent;
+        while (uv_fs_scandir_next(req, &dirent) != UV_EOF) {
+            pThis->m_entries.push_back(std::make_pair(dirent.name, dirent.type));
+        }
+
+        pThis->copy_next_entry();
+    }
+
+    static void cb_copyfile(uv_fs_t* req)
+    {
+        AsyncUVCP* pThis = (AsyncUVCP*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        pThis->m_ac->apost(ret);
+        delete pThis;
+    }
+
+    static void cb_entry_copied(uv_fs_t* req)
+    {
+        AsyncUVCP* pThis = (AsyncUVCP*)req;
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+
+        if (ret < 0) {
+            pThis->m_ac->apost(ret);
+            delete pThis;
+            return;
+        }
+
+        pThis->copy_next_entry();
+    }
+
+    void copy_next_entry()
+    {
+        if (m_entries.empty()) {
+            // All entries copied
+            m_ac->apost(0);
+            delete this;
+            return;
+        }
+
+        auto entry = m_entries.back();
+        m_entries.pop_back();
+
+        exlib::string src_path = m_src + PATH_SLASH + entry.first;
+        exlib::string dest_path = m_dest + PATH_SLASH + entry.first;
+
+        uv_fs_req_cleanup(this);
+
+        if (entry.second == UV_DIRENT_DIR) {
+            // For directories, create a new AsyncUVCP instance recursively
+            AsyncUVCP* subCopier = new AsyncUVCP(src_path, dest_path, m_recursive, m_force, m_mode, new SubDirEvent(this));
+            int32_t ret = uv_fs_stat(s_uv_loop, subCopier, src_path.c_str(), cb_stat);
+            if (ret != 0) {
+                m_ac->apost(ret);
+                delete subCopier;
+                delete this;
+            }
+        } else {
+            // For files, copy directly
+            int32_t ret = uv_fs_copyfile(s_uv_loop, this, src_path.c_str(), dest_path.c_str(),
+                m_mode, cb_entry_copied);
+            if (ret != 0) {
+                m_ac->apost(ret);
+                delete this;
+            }
+        }
+    }
+
+    class SubDirEvent : public AsyncEvent {
+    public:
+        SubDirEvent(AsyncUVCP* parent)
+            : m_parent(parent)
+        {
+        }
+
+        virtual void apost(int32_t hr) override
+        {
+            if (hr < 0) {
+                m_parent->m_ac->apost(hr);
+                delete m_parent;
+            } else {
+                m_parent->copy_next_entry();
+            }
+            delete this;
+        }
+
+    private:
+        AsyncUVCP* m_parent;
+    };
+
+private:
+    AsyncEvent* m_ac;
+    exlib::string m_src;
+    exlib::string m_dest;
+    bool m_recursive;
+    bool m_force;
+    int32_t m_mode;
+    std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
+};
+
+result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(3);
+
+        bool recursive = false;
+        GetConfigValue(opts, "recursive", recursive);
+        ac->m_ctx[0] = recursive;
+
+        bool force = true;
+        GetConfigValue(opts, "force", force);
+        ac->m_ctx[1] = force;
+
+        int32_t mode = 0;
+        GetConfigValue(opts, "mode", mode);
+        ac->m_ctx[2] = mode;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    bool recursive = ac->m_ctx[0].boolVal();
+    bool force = ac->m_ctx[1].boolVal();
+    int32_t mode = ac->m_ctx[2].intVal();
+
+    if (!force)
+        mode |= UV_FS_COPYFILE_EXCL;
+
+    os_resolve(src);
+    os_resolve(dest);
+
+    return uv_async([&] {
+        return uv_fs_stat(s_uv_loop, new AsyncUVCP(src, dest, recursive, force, mode, ac), src.c_str(), AsyncUVCP::cb_stat);
+    });
+}
+
 result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())

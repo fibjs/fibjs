@@ -156,6 +156,24 @@ module fs
      */
     static copyFile(String from, String to, Integer mode = 0) async;
 
+    /*! @brief Asynchronously copies src to dest, including subdirectories and files.
+
+     If src is a directory, directories are not copied recursively by default, set recursive to true.
+
+     opts supports the following options:
+     ```JavaScript
+     {
+         recursive: false, // recursively copy directories. Default: false
+         force: true, // overwrite existing files or directories. Default: true
+         mode: 0 // modifiers for copy operation. Default: 0
+     }
+     ```
+     @param src Specify the source path to copy
+     @param dest Specify the destination path to copy to
+     @param opts Specify copy parameters
+     */
+    static cp(String src, String dest, Object opts = {}) async;
+
     /*! @brief Set the access permissions of the specified file, this method is not supported on Windows
      @param path Specify the file to operate on
      @param mode Specify the access permissions to set

@@ -841,6 +841,104 @@ describe('fs', () => {
         }
     });
 
+    describe("cp", () => {
+        var cpBase = path.join(homedir, 'test_cp_' + vmid);
+
+        beforeEach(() => {
+            rmdir_recursive(cpBase);
+            fs.mkdir(cpBase);
+        });
+
+        afterEach(() => {
+            rmdir_recursive(cpBase);
+        });
+
+        it("copy single file", () => {
+            var src = path.join(cpBase, 'src.txt');
+            var dest = path.join(cpBase, 'dest.txt');
+            fs.writeFile(src, 'hello cp');
+            fs.cp(src, dest);
+            assert.equal(fs.readFile(dest).toString(), 'hello cp');
+        });
+
+        it("copy single file overwrites by default", () => {
+            var src = path.join(cpBase, 'src.txt');
+            var dest = path.join(cpBase, 'dest.txt');
+            fs.writeFile(src, 'new content');
+            fs.writeFile(dest, 'old content');
+            fs.cp(src, dest);
+            assert.equal(fs.readFile(dest).toString(), 'new content');
+        });
+
+        it("copy single file with force=false throws if dest exists", () => {
+            var src = path.join(cpBase, 'src.txt');
+            var dest = path.join(cpBase, 'dest.txt');
+            fs.writeFile(src, 'data');
+            fs.writeFile(dest, 'existing');
+            assert.throws(() => {
+                fs.cp(src, dest, { force: false });
+            });
+        });
+
+        it("copy directory without recursive should throw", () => {
+            var srcDir = path.join(cpBase, 'srcdir');
+            var destDir = path.join(cpBase, 'destdir');
+            fs.mkdir(srcDir);
+            fs.writeFile(path.join(srcDir, 'a.txt'), 'aaa');
+            assert.throws(() => {
+                fs.cp(srcDir, destDir);
+            });
+        });
+
+        it("copy directory recursively", () => {
+            var srcDir = path.join(cpBase, 'srcdir');
+            var destDir = path.join(cpBase, 'destdir');
+            fs.mkdir(srcDir);
+            fs.writeFile(path.join(srcDir, 'a.txt'), 'aaa');
+            fs.writeFile(path.join(srcDir, 'b.txt'), 'bbb');
+            fs.cp(srcDir, destDir, { recursive: true });
+
+            assert.ok(fs.stat(destDir).isDirectory());
+            assert.equal(fs.readFile(path.join(destDir, 'a.txt')).toString(), 'aaa');
+            assert.equal(fs.readFile(path.join(destDir, 'b.txt')).toString(), 'bbb');
+        });
+
+        it("copy nested directory structure", () => {
+            var srcDir = path.join(cpBase, 'srcdir');
+            var destDir = path.join(cpBase, 'destdir');
+            fs.mkdir(path.join(srcDir, 'sub1', 'sub2'), { recursive: true });
+            fs.writeFile(path.join(srcDir, 'root.txt'), 'root');
+            fs.writeFile(path.join(srcDir, 'sub1', 'file1.txt'), 'file1');
+            fs.writeFile(path.join(srcDir, 'sub1', 'sub2', 'file2.txt'), 'file2');
+
+            fs.cp(srcDir, destDir, { recursive: true });
+
+            assert.ok(fs.stat(destDir).isDirectory());
+            assert.ok(fs.stat(path.join(destDir, 'sub1')).isDirectory());
+            assert.ok(fs.stat(path.join(destDir, 'sub1', 'sub2')).isDirectory());
+            assert.equal(fs.readFile(path.join(destDir, 'root.txt')).toString(), 'root');
+            assert.equal(fs.readFile(path.join(destDir, 'sub1', 'file1.txt')).toString(), 'file1');
+            assert.equal(fs.readFile(path.join(destDir, 'sub1', 'sub2', 'file2.txt')).toString(), 'file2');
+        });
+
+        it("copy non-existent source should throw", () => {
+            var src = path.join(cpBase, 'noexist');
+            var dest = path.join(cpBase, 'dest');
+            assert.throws(() => {
+                fs.cp(src, dest);
+            });
+        });
+
+        it("copy empty directory recursively", () => {
+            var srcDir = path.join(cpBase, 'emptydir');
+            var destDir = path.join(cpBase, 'destdir');
+            fs.mkdir(srcDir);
+            fs.cp(srcDir, destDir, { recursive: true });
+            assert.ok(fs.stat(destDir).isDirectory());
+            assert.deepStrictEqual(fs.readdir(destDir), []);
+        });
+    });
+
     it("file.size", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
         var st = fs.stat(path.join(__dirname, 'fs_test.js'));

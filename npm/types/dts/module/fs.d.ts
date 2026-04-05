@@ -453,6 +453,68 @@ declare module 'fs' {
     function copyFileAsync(from: string, to: string, mode?: number): Promise<void>;
 
     /**
+     * @description 将 src 异步地复制到 dest，包括子目录和文件。
+     * 
+     *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
+     * 
+     *      opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          recursive: false, // recursively copy directories. Default: false
+     *          force: true, // overwrite existing files or directories. Default: true
+     *          mode: 0 // modifiers for copy operation. Default: 0
+     *      }
+     *      ```
+     *      @param src 指定要复制的源路径
+     *      @param dest 指定要复制到的目标路径
+     *      @param opts 指定复制参数
+     *      
+     */
+    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+
+    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 将 src 异步地复制到 dest，包括子目录和文件。
+     * 
+     *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
+     * 
+     *      opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          recursive: false, // recursively copy directories. Default: false
+     *          force: true, // overwrite existing files or directories. Default: true
+     *          mode: 0 // modifiers for copy operation. Default: 0
+     *      }
+     *      ```
+     *      @param src 指定要复制的源路径
+     *      @param dest 指定要复制到的目标路径
+     *      @param opts 指定复制参数
+     *      
+     */
+    function cpSync(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 将 src 异步地复制到 dest，包括子目录和文件。
+     * 
+     *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
+     * 
+     *      opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          recursive: false, // recursively copy directories. Default: false
+     *          force: true, // overwrite existing files or directories. Default: true
+     *          mode: 0 // modifiers for copy operation. Default: 0
+     *      }
+     *      ```
+     *      @param src 指定要复制的源路径
+     *      @param dest 指定要复制到的目标路径
+     *      @param opts 指定复制参数
+     *      
+     */
+    function cpAsync(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限

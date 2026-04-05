@@ -47,6 +47,7 @@ public:
     static result_t rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac);
+    static result_t cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t lchmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
@@ -126,6 +127,7 @@ public:
     static void s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_cp(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -178,6 +180,7 @@ public:
     ASYNC_STATIC2(fs_base, rm, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
+    ASYNC_STATIC3(fs_base, cp, exlib::string, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, lchmod, exlib::string, int32_t);
     ASYNC_STATIC3(fs_base, chown, exlib::string, int32_t, int32_t);
@@ -249,6 +252,7 @@ inline ClassInfo& fs_base::class_info()
         { "rm", s_static_rm, true, ClassData::ASYNC_ASYNC },
         { "rename", s_static_rename, true, ClassData::ASYNC_ASYNC },
         { "copyFile", s_static_copyFile, true, ClassData::ASYNC_ASYNC },
+        { "cp", s_static_cp, true, ClassData::ASYNC_ASYNC },
         { "chmod", s_static_chmod, true, ClassData::ASYNC_ASYNC },
         { "lchmod", s_static_lchmod, true, ClassData::ASYNC_ASYNC },
         { "chown", s_static_chown, true, ClassData::ASYNC_ASYNC },
@@ -490,6 +494,24 @@ inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_copyFile(v0, v1, v2, cb, args);
     else
         hr = ac_copyFile(v0, v1, v2);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void fs_base::s_static_cp(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("fs.cp");
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_cp(v0, v1, v2, cb, args);
+    else
+        hr = ac_cp(v0, v1, v2);
 
     ASYNC_METHOD_VOID();
 }
