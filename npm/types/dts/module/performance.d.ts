@@ -82,6 +82,19 @@ declare module 'performance' {
     function getEntriesByName(name: string, type?: string): any[];
 
     /**
+     * @description 标记资源时间（兼容性空实现）
+     *      @param timingInfo 时间信息对象
+     *      @param requestedUrl 请求的 URL
+     *      @param initiatorType 发起者类型
+     *      @param global 全局对象
+     *      @param cacheState 缓存状态
+     *      @param bodyInfo 请求体信息
+     *      @param responseStatus 响应状态码
+     *      
+     */
+    function markResourceTiming(timingInfo: any, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: any, responseStatus: number): void;
+
+    /**
      * @description 查询当前进程时间 
      *      @return 返回当前进程时间
      */

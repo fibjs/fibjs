@@ -84,6 +84,41 @@ declare module 'tls' {
     const secureContext: Class_SecureContext;
 
     /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接
+     *      @param options 指定连接的选项
+     *      @return 返回 tls/ssl 连接对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject): Class_Stream;
+
+    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接
+     *      @param options 指定连接的选项
+     *      @return 返回 tls/ssl 连接对象
+     *      
+     */
+    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接
+     *      @param options 指定连接的选项
+     *      @return 返回 tls/ssl 连接对象
+     *      
+     */
+    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
+
+    /**
+     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
+     *      @param options 指定连接的选项
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
      * @description 根据 url 创建一个 tls/ssl 连接
      *      @param url 指定连接的 URL
      *      @param timeout 指定连接超时时间，默认为 0
@@ -206,32 +241,6 @@ declare module 'tls' {
     function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
-     *      
-     */
-    function connect(options: FIBJS.GeneralObject): Class_Stream;
-
-    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
-     *      
-     */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
-     *      
-     */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
-
-    /**
      * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      *      @param url 指定连接的 URL
      *      @param connectListener 指定 once 的 connect 事件监听器
@@ -320,15 +329,6 @@ declare module 'tls' {
      *      
      */
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
 }
 

@@ -59,6 +59,19 @@ module tls
     /*! @brief Query default SecureContext */
     static readonly SecureContext secureContext;
 
+    /*! @brief Create a tls/ssl connection based on hostname and port number
+     @param options Specify connection options
+     @return Return tls/ssl connection object
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
+     @param options Specify connection options
+     @param connectListener Specify the once connect event listener
+     @return Return the connected Socket object
+     */
+    static Stream connect(Object options, Function connectListener) async;
+
     /*! @brief Create a tls/ssl connection based on url
      @param url Specify the URL to connect
      @param timeout Specify connection timeout time, default is 0
@@ -88,12 +101,6 @@ module tls
      @return Return tls/ssl connection object
      */
     static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
-
-    /*! @brief Create a tls/ssl connection based on hostname and port number
-     @param options Specify connection options
-     @return Return tls/ssl connection object
-     */
-    static Stream connect(Object options) async;
 
     /*! @brief Create a tls/ssl connection based on url, and trigger connect event after connection is established
      @param url Specify the URL to connect
@@ -166,11 +173,4 @@ module tls
      @return Return the connected Socket object
      */
     static Stream connect(Integer port, String host, Object options, Function connectListener) async;
-
-    /*! @brief Create a tls/ssl connection based on hostname and port number, and trigger connect event after connection is established
-     @param options Specify connection options
-     @param connectListener Specify the once connect event listener
-     @return Return the connected Socket object
-     */
-    static Stream connect(Object options, Function connectListener) async;
 };

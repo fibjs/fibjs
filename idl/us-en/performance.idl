@@ -63,6 +63,17 @@ module performance
      @return Return all performance entries*/
     static NArray getEntriesByName(String name, String type = "");
 
+    /*! @brief Mark resource timing for the given timing info (no-op stub for compatibility)
+     @param timingInfo Timing info object
+     @param requestedUrl Requested URL
+     @param initiatorType Initiator type
+     @param global Global object
+     @param cacheState Cache state
+     @param bodyInfo Body info
+     @param responseStatus Response status code
+     */
+    static markResourceTiming(Value timingInfo, String requestedUrl, String initiatorType, Value global, String cacheState, Value bodyInfo, Integer responseStatus);
+
     /*! @brief Query current process time 
      @return Return current process time*/
     static Number now();

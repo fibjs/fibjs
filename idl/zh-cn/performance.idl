@@ -63,6 +63,17 @@ module performance
      @return 返回所有性能记录*/
     static NArray getEntriesByName(String name, String type = "");
 
+    /*! @brief 标记资源时间（兼容性空实现）
+     @param timingInfo 时间信息对象
+     @param requestedUrl 请求的 URL
+     @param initiatorType 发起者类型
+     @param global 全局对象
+     @param cacheState 缓存状态
+     @param bodyInfo 请求体信息
+     @param responseStatus 响应状态码
+     */
+    static markResourceTiming(Value timingInfo, String requestedUrl, String initiatorType, Value global, String cacheState, Value bodyInfo, Integer responseStatus);
+
     /*! @brief 查询当前进程时间 
      @return 返回当前进程时间*/
     static Number now();

@@ -59,6 +59,19 @@ module tls
     /*! @brief 查询缺省 SecureContext */
     static readonly SecureContext secureContext;
 
+    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接
+     @param options 指定连接的选项
+     @return 返回 tls/ssl 连接对象
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
+     @param options 指定连接的选项
+     @param connectListener 指定 once 的 connect 事件监听器
+     @return 返回连接的 Socket 对象
+     */
+    static Stream connect(Object options, Function connectListener) async;
+
     /*! @brief 根据 url 创建一个 tls/ssl 连接
      @param url 指定连接的 URL
      @param timeout 指定连接超时时间，默认为 0
@@ -88,12 +101,6 @@ module tls
      @return 返回 tls/ssl 连接对象
      */
     static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
-
-    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接
-     @param options 指定连接的选项
-     @return 返回 tls/ssl 连接对象
-     */
-    static Stream connect(Object options) async;
 
     /*! @brief 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
      @param url 指定连接的 URL
@@ -166,11 +173,4 @@ module tls
      @return 返回连接的 Socket 对象
      */
     static Stream connect(Integer port, String host, Object options, Function connectListener) async;
-
-    /*! @brief 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     @param options 指定连接的选项
-     @param connectListener 指定 once 的 connect 事件监听器
-     @return 返回连接的 Socket 对象
-     */
-    static Stream connect(Object options, Function connectListener) async;
 };

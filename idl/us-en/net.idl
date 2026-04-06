@@ -49,6 +49,25 @@ module net
     /*! @brief Create a Socket object, see Socket */
     static Socket;
 
+    /*! @brief Create a Socket object and establish connection
+
+     options parameter can contain the following properties:
+      - port: Specify peer port
+      - host: Specify peer address or hostname
+      - timeout: Specify timeout time in milliseconds, default is 0
+
+     @param options Specify connection options object
+     @return Return successfully connected Socket object
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief Establish a connection, and trigger connect event after connection is established
+     @param options Specify connection options object, can contain the following properties:
+     @param connectListener Specify once connect event listener
+     @return Return connected Socket object
+     */
+    static Stream connect(Object options, Function connectListener) async;
+
     /*! @brief Create a Socket or SslSocket object and establish connection
      @param url Specify connection protocol, can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1, when connecting pipe, need to replace \ with /
      @param timeout Specify timeout time in milliseconds, default is 0
@@ -63,18 +82,6 @@ module net
      @return Return successfully connected Socket object
      */
     static Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
-
-    /*! @brief Create a Socket object and establish connection
-
-     options parameter can contain the following properties:
-      - port: Specify peer port
-      - host: Specify peer address or hostname
-      - timeout: Specify timeout time in milliseconds, default is 0
-
-     @param options Specify connection options object
-     @return Return successfully connected Socket object
-     */
-    static Stream connect(Object options) async;
 
     /*! @brief Establish a connection, and trigger connect event after connection is established
      @param port Specify peer port
@@ -114,13 +121,6 @@ module net
      @return Return connected Socket object
      */
     static Stream connect(String path, Integer timeout, Function connectListener) async;
-
-    /*! @brief Establish a connection, and trigger connect event after connection is established
-     @param options Specify connection options object, can contain the following properties:
-     @param connectListener Specify once connect event listener
-     @return Return connected Socket object
-     */
-    static Stream connect(Object options, Function connectListener) async;
 
     /*! @brief Create an Smtp object, see Smtp */
     static Smtp;

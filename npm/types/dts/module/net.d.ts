@@ -134,6 +134,59 @@ declare module 'net' {
     const Socket: typeof Class_Socket;
 
     /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject): Class_Stream;
+
+    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description 创建一个 Socket 对象并建立连接
+     * 
+     *      options 参数可以包含以下属性：
+     *       - port: 指定对方端口
+     *       - host: 指定对方地址或主机名
+     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     * 
+     *      @param options 指定连接选项对象
+     *      @return 返回连接成功的 Socket 对象
+     *      
+     */
+    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
+
+    /**
+     * @description 建立一个连接，并在连接建立后触发 connect 事件
+     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param connectListener 指定 once 的 connect 事件监听器
+     *      @return 返回连接的 Socket 对象
+     *      
+     */
+    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
      * @description 创建一个 Socket 或 SslSocket 对象并建立连接
      *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
      *      @param timeout 指定超时时间，单位是毫秒，默认为 0
@@ -195,50 +248,6 @@ declare module 'net' {
     function connectAsync(port: number, host?: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
-     * 
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
-     * 
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
-     *      
-     */
-    function connect(options: FIBJS.GeneralObject): Class_Stream;
-
-    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description 创建一个 Socket 对象并建立连接
-     * 
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
-     * 
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
-     *      
-     */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
-
-    /**
-     * @description 创建一个 Socket 对象并建立连接
-     * 
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
-     * 
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
-     *      
-     */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
-
-    /**
      * @description 建立一个连接，并在连接建立后触发 connect 事件
      *      @param port 指定对方端口
      *      @param connectListener 指定 once 的 connect 事件监听器
@@ -286,15 +295,6 @@ declare module 'net' {
      *      
      */
     function connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接选项对象，可以包含以下属性：
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
-     *      
-     */
-    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
      * @description 创建一个 Smtp 对象，参见 Smtp 

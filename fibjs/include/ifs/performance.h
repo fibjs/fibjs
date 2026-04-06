@@ -28,6 +28,7 @@ public:
     static result_t getEntries(obj_ptr<NArray>& retVal);
     static result_t getEntriesByType(exlib::string type, obj_ptr<NArray>& retVal);
     static result_t getEntriesByName(exlib::string name, exlib::string type, obj_ptr<NArray>& retVal);
+    static result_t markResourceTiming(v8::Local<v8::Value> timingInfo, exlib::string requestedUrl, exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState, v8::Local<v8::Value> bodyInfo, int32_t responseStatus);
     static result_t now(double& retVal);
 
 public:
@@ -49,6 +50,7 @@ public:
     static void s_static_getEntries(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getEntriesByType(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getEntriesByName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_markResourceTiming(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_now(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -64,6 +66,7 @@ inline ClassInfo& performance_base::class_info()
         { "getEntries", s_static_getEntries, true, ClassData::ASYNC_SYNC },
         { "getEntriesByType", s_static_getEntriesByType, true, ClassData::ASYNC_SYNC },
         { "getEntriesByName", s_static_getEntriesByName, true, ClassData::ASYNC_SYNC },
+        { "markResourceTiming", s_static_markResourceTiming, true, ClassData::ASYNC_SYNC },
         { "now", s_static_now, true, ClassData::ASYNC_SYNC }
     };
 
@@ -182,6 +185,25 @@ inline void performance_base::s_static_getEntriesByName(const v8::FunctionCallba
     hr = getEntriesByName(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void performance_base::s_static_markResourceTiming(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(7, 7);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(exlib::string, 1);
+    ARG(exlib::string, 2);
+    ARG(v8::Local<v8::Value>, 3);
+    ARG(exlib::string, 4);
+    ARG(v8::Local<v8::Value>, 5);
+    ARG(int32_t, 6);
+
+    hr = markResourceTiming(v0, v1, v2, v3, v4, v5, v6);
+
+    METHOD_VOID();
 }
 
 inline void performance_base::s_static_now(const v8::FunctionCallbackInfo<v8::Value>& args)
