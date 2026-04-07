@@ -555,6 +555,181 @@ describe("sse", () => {
             // Should be a valid timestamp
             assert.match(body, /data: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         });
+
+        it('should fire onclose when server closes connection', async () => {
+            var result = await new Promise((resolve, reject) => {
+                var messages = [];
+                var es = new sse.EventSource(`http://127.0.0.1:${8888 + base_port}/sse-multiple-sends`);
+
+                es.on('message', (e) => {
+                    messages.push(e.data);
+                });
+
+                es.on('close', () => {
+                    resolve({ closed: true, messages: messages, readyState: es.readyState });
+                });
+
+                es.on('error', (e) => {
+                    reject(new Error('unexpected error: ' + e.reason));
+                });
+
+                setTimeout(() => {
+                    reject(new Error('Timeout: onclose not fired, readyState=' + es.readyState));
+                }, 3000);
+            });
+
+            assert.equal(result.closed, true);
+            assert.equal(result.readyState, sse.CLOSED);
+            assert.deepEqual(result.messages, ['first message', 'second message', 'third message']);
+        });
+    });
+
+    describe('proxy (OpenAI-compatible)', () => {
+        var upstream_svr;
+        var proxy_svr;
+
+        before(() => {
+            // Upstream: simulates OpenAI chat/completions streaming API using sse.upgrade
+            upstream_svr = new http.Server(8889 + base_port, {
+                "/v1/chat/completions": sse.upgrade((se, req) => {
+                    var body = JSON.parse(req.body.readAll().toString());
+                    var model = body.model || 'unknown';
+
+                    var chunks = [
+                        {
+                            id: "chatcmpl-abc123", object: "chat.completion.chunk", model: model,
+                            choices: [{ index: 0, delta: { role: "assistant", content: "" }, finish_reason: null }]
+                        },
+                        {
+                            id: "chatcmpl-abc123", object: "chat.completion.chunk", model: model,
+                            choices: [{ index: 0, delta: { content: "Hello" }, finish_reason: null }]
+                        },
+                        {
+                            id: "chatcmpl-abc123", object: "chat.completion.chunk", model: model,
+                            choices: [{ index: 0, delta: { content: " world" }, finish_reason: null }]
+                        },
+                        {
+                            id: "chatcmpl-abc123", object: "chat.completion.chunk", model: model,
+                            choices: [{ index: 0, delta: {}, finish_reason: "stop" }]
+                        },
+                    ];
+
+                    for (var i = 0; i < chunks.length; i++) {
+                        coroutine.sleep(10);
+                        se.send(JSON.stringify(chunks[i]));
+                    }
+                    coroutine.sleep(10);
+                    se.send('[DONE]');
+                    se.close();
+                })
+            });
+            upstream_svr.start();
+            test_util.push(upstream_svr.socket);
+
+            // Proxy: uses sse.upgrade, routes by URL, forwards to upstream via EventSource
+            proxy_svr = new http.Server(8890 + base_port, {
+                "/v1/chat/completions": sse.upgrade((se, req) => {
+                    var body = JSON.parse(req.body.readAll().toString());
+
+                    // Connect to upstream with the client's request body
+                    var upstream = new sse.EventSource(
+                        `http://127.0.0.1:${8889 + base_port}/v1/chat/completions`,
+                        { json: body }
+                    );
+
+                    // Forward every SSE message from upstream to client
+                    upstream.onmessage = (e) => {
+                        se.send(e.data);
+                    };
+
+                    // When upstream server closes, close client connection
+                    upstream.onclose = () => {
+                        se.close();
+                    };
+                }),
+
+                // Reject all other paths
+                "*": (req) => {
+                    req.response.status = 403;
+                    req.response.setHeader('Content-Type', 'application/json');
+                    req.response.write(JSON.stringify({
+                        error: { message: "Path not allowed", type: "invalid_request_error" }
+                    }));
+                }
+            });
+            proxy_svr.start();
+            test_util.push(proxy_svr.socket);
+        });
+
+        it('should proxy OpenAI-compatible streaming response', async () => {
+            var events = await new Promise((resolve, reject) => {
+                var collected = [];
+                var es = new sse.EventSource(
+                    `http://127.0.0.1:${8890 + base_port}/v1/chat/completions`,
+                    {
+                        json: {
+                            model: "gpt-4",
+                            messages: [{ role: "user", content: "Say hello" }],
+                            stream: true
+                        }
+                    }
+                );
+
+                es.onmessage = (e) => {
+                    collected.push(e.data);
+                    if (e.data === '[DONE]') {
+                        es.close();
+                        resolve(collected);
+                    }
+                };
+
+                es.onerror = (e) => {
+                    reject(new Error('proxy error: ' + (e.reason || 'unknown')));
+                };
+            });
+
+            // 4 chunks + [DONE]
+            assert.equal(events.length, 5);
+
+            // Verify first chunk (role assignment)
+            var first = JSON.parse(events[0]);
+            assert.equal(first.id, 'chatcmpl-abc123');
+            assert.equal(first.object, 'chat.completion.chunk');
+            assert.equal(first.model, 'gpt-4');
+            assert.equal(first.choices[0].delta.role, 'assistant');
+            assert.equal(first.choices[0].finish_reason, null);
+
+            // Verify content chunks
+            var second = JSON.parse(events[1]);
+            assert.equal(second.choices[0].delta.content, 'Hello');
+
+            var third = JSON.parse(events[2]);
+            assert.equal(third.choices[0].delta.content, ' world');
+
+            // Verify stop chunk
+            var fourth = JSON.parse(events[3]);
+            assert.equal(fourth.choices[0].finish_reason, 'stop');
+
+            // Verify [DONE] signal
+            assert.equal(events[4], '[DONE]');
+
+            // Reassemble full streamed content
+            var content = '';
+            for (var i = 0; i < events.length - 1; i++) {
+                var chunk = JSON.parse(events[i]);
+                if (chunk.choices[0].delta.content) {
+                    content += chunk.choices[0].delta.content;
+                }
+            }
+            assert.equal(content, 'Hello world');
+        });
+
+        it('should reject non-allowed paths', () => {
+            var res = http.getSync(`http://127.0.0.1:${8890 + base_port}/v1/models`);
+            assert.equal(res.status, 403);
+            var body = JSON.parse(res.body.readAll().toString());
+            assert.equal(body.error.type, 'invalid_request_error');
+        });
     });
 });
 

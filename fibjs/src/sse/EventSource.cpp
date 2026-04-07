@@ -7,7 +7,6 @@
 #include "object.h"
 #include "EventSource.h"
 #include "HttpClient.h"
-#include "HttpResponse.h"
 #include "EventInfo.h"
 #include "BufferedStream.h"
 #include "Buffer.h"
@@ -63,10 +62,6 @@ public:
         if (qstricmp(contentType.c_str(), "text/event-stream", 17))
             return next(close_body);
 
-        // The streaming path in asyncRequest has already assembled the transport
-        // decode chain (ChunkedStream / RangeStream → BodyStream) and stored it
-        // in m_bodyStream.  Just retrieve it and wrap with BufferedStream for
-        // line-oriented SSE parsing.
         obj_ptr<Stream_base> stm;
         m_es->m_response->get_body(stm);
 

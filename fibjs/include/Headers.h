@@ -87,7 +87,6 @@ public:
 
             // skip headers managed by HttpMessage::getData
             if (!qstricmp(n.c_str(), "content-length")
-                || !qstricmp(n.c_str(), "transfer-encoding")
                 || !qstricmp(n.c_str(), "connection"))
                 continue;
 
@@ -120,7 +119,6 @@ public:
 
             // skip headers managed by HttpMessage::getData
             if (!qstricmp(n.c_str(), "content-length")
-                || !qstricmp(n.c_str(), "transfer-encoding")
                 || !qstricmp(n.c_str(), "connection"))
                 continue;
 
