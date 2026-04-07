@@ -1,0 +1,8 @@
+/*! @brief Deflate 压缩编解码器，使用 deflate 算法压缩数据(zlib格式) */
+interface Deflate : ZlibCodec
+{
+    /*! @brief Deflate 构造函数
+     @param opts 压缩选项
+     */
+    Deflate(Object opts = {});
+};

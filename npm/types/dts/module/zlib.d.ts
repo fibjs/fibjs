@@ -1,5 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/zlib_constants.d.ts" />
+/// <reference path="../interface/Gzip.d.ts" />
+/// <reference path="../interface/Gunzip.d.ts" />
+/// <reference path="../interface/Deflate.d.ts" />
+/// <reference path="../interface/Inflate.d.ts" />
+/// <reference path="../interface/DeflateRaw.d.ts" />
+/// <reference path="../interface/InflateRaw.d.ts" />
+/// <reference path="../interface/Unzip.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -65,6 +72,41 @@ declare module 'zlib' {
      * ! zlib 模块的常量对象，参见 zlib_constants 
      */
     const constants: typeof import ('zlib_constants');
+
+    /**
+     * ! Node.js 兼容的 Gzip 压缩类 
+     */
+    const Gzip: typeof Class_Gzip;
+
+    /**
+     * ! Node.js 兼容的 Gunzip 解压缩类 
+     */
+    const Gunzip: typeof Class_Gunzip;
+
+    /**
+     * ! Node.js 兼容的 Deflate 压缩类 
+     */
+    const Deflate: typeof Class_Deflate;
+
+    /**
+     * ! Node.js 兼容的 Inflate 解压缩类 
+     */
+    const Inflate: typeof Class_Inflate;
+
+    /**
+     * ! Node.js 兼容的 DeflateRaw 压缩类 
+     */
+    const DeflateRaw: typeof Class_DeflateRaw;
+
+    /**
+     * ! Node.js 兼容的 InflateRaw 解压缩类 
+     */
+    const InflateRaw: typeof Class_InflateRaw;
+
+    /**
+     * ! Node.js 兼容的 Unzip 自动检测解压缩类 
+     */
+    const Unzip: typeof Class_Unzip;
 
     /**
      * @description 创建一个 deflate 流对象 

@@ -51,6 +51,27 @@ module zlib
     /*! Constants object of zlib module, see zlib_constants */
     static constants = zlib_constants;
 
+    /*! Node.js compatible Gzip compression class */
+    static Gzip;
+
+    /*! Node.js compatible Gunzip decompression class */
+    static Gunzip;
+
+    /*! Node.js compatible Deflate compression class */
+    static Deflate;
+
+    /*! Node.js compatible Inflate decompression class */
+    static Inflate;
+
+    /*! Node.js compatible DeflateRaw compression class */
+    static DeflateRaw;
+
+    /*! Node.js compatible InflateRaw decompression class */
+    static InflateRaw;
+
+    /*! Node.js compatible Unzip auto-detect decompression class */
+    static Unzip;
+
     /*! @brief Create a deflate stream object 
      @param to Stream to store processing results
      @return Returns the encapsulated stream object*/

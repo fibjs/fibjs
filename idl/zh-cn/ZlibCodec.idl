@@ -1,0 +1,34 @@
+/*! @brief ZlibCodec 是 zlib 压缩解压缩编解码器的基类，提供 Node.js 兼容的 zlib 类构造函数接口
+
+ ZlibCodec 继承自 EventEmitter，可被用于 minizlib 等 npm 包。子类包括 Gzip、Gunzip、Deflate、Inflate、DeflateRaw、InflateRaw、Unzip。
+
+ ```JavaScript
+ const zlib = require('zlib');
+ const gzip = new zlib.Gzip({});
+ const result = gzip._processChunk(Buffer.from('hello'), zlib.constants.Z_FINISH);
+ ```
+ */
+interface ZlibCodec : EventEmitter
+{
+    /*! @brief 同步处理一块数据
+     @param chunk 要处理的数据
+     @param flushFlag 刷新标志，参见 zlib.constants.Z_NO_FLUSH 等
+     @return 返回处理后的数据
+     */
+    Buffer _processChunk(Buffer chunk, Integer flushFlag);
+
+    /*! @brief 关闭编解码器，释放资源 */
+    close();
+
+    /*! @brief 重置编解码器状态 */
+    reset();
+
+    /*! @brief 底层 handle 对象，用于内部兼容 */
+    Value _handle;
+
+    /*! @brief 动态更新压缩参数
+     @param level 压缩级别
+     @param strategy 压缩策略
+     */
+    params(Integer level, Integer strategy);
+};

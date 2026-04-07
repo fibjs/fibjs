@@ -1,0 +1,8 @@
+/*! @brief Gzip 压缩编解码器，使用 gzip 算法压缩数据 */
+interface Gzip : ZlibCodec
+{
+    /*! @brief Gzip 构造函数
+     @param opts 压缩选项
+     */
+    Gzip(Object opts = {});
+};

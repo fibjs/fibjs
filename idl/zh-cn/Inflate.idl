@@ -1,0 +1,8 @@
+/*! @brief Inflate 解压缩编解码器，解压 deflate 算法压缩的数据(zlib格式) */
+interface Inflate : ZlibCodec
+{
+    /*! @brief Inflate 构造函数
+     @param opts 解压缩选项
+     */
+    Inflate(Object opts = {});
+};

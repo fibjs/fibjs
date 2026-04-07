@@ -1124,4 +1124,299 @@ describe("zlib", () => {
             });
         });
     });
+
+    describe("ZlibCodec classes (Node.js compatible)", () => {
+        var testData = Buffer.from("hello world, this is a test of zlib codec classes");
+        var Z_NO_FLUSH = zlib.constants.Z_NO_FLUSH;
+        var Z_FINISH = zlib.constants.Z_FINISH;
+        var Z_SYNC_FLUSH = zlib.constants.Z_SYNC_FLUSH;
+
+        describe("class availability", () => {
+            it("exports all class constructors", () => {
+                assert.equal(typeof zlib.Gzip, "function");
+                assert.equal(typeof zlib.Gunzip, "function");
+                assert.equal(typeof zlib.Deflate, "function");
+                assert.equal(typeof zlib.Inflate, "function");
+                assert.equal(typeof zlib.DeflateRaw, "function");
+                assert.equal(typeof zlib.InflateRaw, "function");
+                assert.equal(typeof zlib.Unzip, "function");
+            });
+        });
+
+        describe("constructor and properties", () => {
+            it("creates instances with new", () => {
+                var g = new zlib.Gzip({});
+                assert.ok(g);
+                assert.equal(typeof g._processChunk, "function");
+                assert.equal(typeof g.close, "function");
+                assert.equal(typeof g.reset, "function");
+                assert.equal(typeof g.params, "function");
+            });
+
+            it("default options when empty object", () => {
+                var g = new zlib.Gzip({});
+                assert.ok(g);
+            });
+
+            it("default options when no argument", () => {
+                var g = new zlib.Gzip();
+                assert.ok(g);
+            });
+
+            it("has _handle property with close method", () => {
+                var g = new zlib.Gzip({});
+                assert.ok(g._handle);
+                assert.equal(typeof g._handle.close, "function");
+            });
+
+            it("_handle can be set and get", () => {
+                var g = new zlib.Gzip({});
+                var originalHandle = g._handle;
+                var newHandle = { close: function () { } };
+                g._handle = newHandle;
+                assert.strictEqual(g._handle, newHandle);
+                g._handle = originalHandle;
+            });
+
+            it("inherits EventEmitter", () => {
+                var g = new zlib.Gzip({});
+                assert.equal(typeof g.on, "function");
+                assert.equal(typeof g.removeAllListeners, "function");
+                assert.equal(typeof g.emit, "function");
+            });
+
+            it("on/removeAllListeners work", () => {
+                var g = new zlib.Gzip({});
+                var called = false;
+                g.on("error", function () { called = true; });
+                g.removeAllListeners("error");
+                assert.equal(g.listenerCount("error"), 0);
+            });
+        });
+
+        describe("Gzip/Gunzip roundtrip", () => {
+            it("compress and decompress with Z_FINISH", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed = gzip._processChunk(testData, Z_FINISH);
+                assert.ok(compressed.length > 0);
+
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("compress with level option", () => {
+                var gzip = new zlib.Gzip({ level: 1 });
+                var fast = gzip._processChunk(testData, Z_FINISH);
+
+                var gzip2 = new zlib.Gzip({ level: 9 });
+                var best = gzip2._processChunk(testData, Z_FINISH);
+
+                // Both should decompress to same data
+                var gunzip1 = new zlib.Gunzip({});
+                assert.deepEqual(gunzip1._processChunk(fast, Z_FINISH), testData);
+
+                var gunzip2 = new zlib.Gunzip({});
+                assert.deepEqual(gunzip2._processChunk(best, Z_FINISH), testData);
+            });
+
+            it("compatible with zlib.gunzip()", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed = gzip._processChunk(testData, Z_FINISH);
+                assert.deepEqual(zlib.gunzip(compressed), testData);
+            });
+
+            it("decompresses data from zlib.gzip()", () => {
+                var compressed = zlib.gzip(testData);
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+        });
+
+        describe("Deflate/Inflate roundtrip", () => {
+            it("compress and decompress with Z_FINISH", () => {
+                var deflate = new zlib.Deflate({});
+                var compressed = deflate._processChunk(testData, Z_FINISH);
+                assert.ok(compressed.length > 0);
+
+                var inflate = new zlib.Inflate({});
+                var decompressed = inflate._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("compatible with zlib.inflate()", () => {
+                var deflate = new zlib.Deflate({});
+                var compressed = deflate._processChunk(testData, Z_FINISH);
+                assert.deepEqual(zlib.inflate(compressed), testData);
+            });
+
+            it("decompresses data from zlib.deflate()", () => {
+                var compressed = zlib.deflate(testData);
+                var inflate = new zlib.Inflate({});
+                var decompressed = inflate._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+        });
+
+        describe("DeflateRaw/InflateRaw roundtrip", () => {
+            it("compress and decompress with Z_FINISH", () => {
+                var deflateRaw = new zlib.DeflateRaw({});
+                var compressed = deflateRaw._processChunk(testData, Z_FINISH);
+                assert.ok(compressed.length > 0);
+
+                var inflateRaw = new zlib.InflateRaw({});
+                var decompressed = inflateRaw._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("compatible with zlib.inflateRaw()", () => {
+                var deflateRaw = new zlib.DeflateRaw({});
+                var compressed = deflateRaw._processChunk(testData, Z_FINISH);
+                assert.deepEqual(zlib.inflateRaw(compressed), testData);
+            });
+
+            it("decompresses data from zlib.deflateRaw()", () => {
+                var compressed = zlib.deflateRaw(testData);
+                var inflateRaw = new zlib.InflateRaw({});
+                var decompressed = inflateRaw._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+        });
+
+        describe("Unzip auto-detection", () => {
+            it("decompresses gzip data", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed = gzip._processChunk(testData, Z_FINISH);
+
+                var unzip = new zlib.Unzip({});
+                var decompressed = unzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("decompresses deflate (zlib) data", () => {
+                var deflate = new zlib.Deflate({});
+                var compressed = deflate._processChunk(testData, Z_FINISH);
+
+                var unzip = new zlib.Unzip({});
+                var decompressed = unzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+
+            it("compatible with zlib.gzip() output", () => {
+                var compressed = zlib.gzip(testData);
+                var unzip = new zlib.Unzip({});
+                var decompressed = unzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, testData);
+            });
+        });
+
+        describe("multi-chunk processing", () => {
+            it("Gzip: multiple writes then finish", () => {
+                var gzip = new zlib.Gzip({});
+                var chunk1 = Buffer.from("hello ");
+                var chunk2 = Buffer.from("world");
+
+                var out1 = gzip._processChunk(chunk1, Z_NO_FLUSH);
+                var out2 = gzip._processChunk(chunk2, Z_FINISH);
+
+                var compressed = Buffer.concat([out1, out2]);
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, Buffer.from("hello world"));
+            });
+
+            it("Deflate: multiple writes then finish", () => {
+                var deflate = new zlib.Deflate({});
+                var chunk1 = Buffer.from("foo ");
+                var chunk2 = Buffer.from("bar");
+
+                var out1 = deflate._processChunk(chunk1, Z_NO_FLUSH);
+                var out2 = deflate._processChunk(chunk2, Z_FINISH);
+
+                var compressed = Buffer.concat([out1, out2]);
+                var inflate = new zlib.Inflate({});
+                var decompressed = inflate._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, Buffer.from("foo bar"));
+            });
+
+            it("Z_SYNC_FLUSH produces intermediate output", () => {
+                var gzip = new zlib.Gzip({});
+                var chunk = Buffer.from("test sync flush");
+
+                var out1 = gzip._processChunk(chunk, Z_SYNC_FLUSH);
+                assert.ok(out1.length > 0);
+
+                var out2 = gzip._processChunk(Buffer.alloc(0), Z_FINISH);
+                var compressed = Buffer.concat([out1, out2]);
+
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, chunk);
+            });
+        });
+
+        describe("large data", () => {
+            it("handles large buffer roundtrip", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed = gzip._processChunk(b, Z_FINISH);
+                assert.ok(compressed.length > 0);
+
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, b);
+            });
+        });
+
+        describe("close and reset", () => {
+            it("close prevents further processing", () => {
+                var gzip = new zlib.Gzip({});
+                gzip.close();
+                assert.throws(() => {
+                    gzip._processChunk(testData, Z_FINISH);
+                });
+            });
+
+            it("reset allows reuse", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed1 = gzip._processChunk(testData, Z_FINISH);
+                gzip.reset();
+                var compressed2 = gzip._processChunk(testData, Z_FINISH);
+
+                var gunzip1 = new zlib.Gunzip({});
+                assert.deepEqual(gunzip1._processChunk(compressed1, Z_FINISH), testData);
+                var gunzip2 = new zlib.Gunzip({});
+                assert.deepEqual(gunzip2._processChunk(compressed2, Z_FINISH), testData);
+            });
+        });
+
+        describe("params", () => {
+            it("changes compression level on deflate", () => {
+                var deflate = new zlib.Deflate({});
+                deflate.params(1, 0);
+                var compressed = deflate._processChunk(testData, Z_FINISH);
+
+                var inflate = new zlib.Inflate({});
+                assert.deepEqual(inflate._processChunk(compressed, Z_FINISH), testData);
+            });
+
+            it("throws on inflate (non-deflate)", () => {
+                var inflate = new zlib.Inflate({});
+                assert.throws(() => {
+                    inflate.params(1, 0);
+                });
+            });
+        });
+
+        describe("empty data", () => {
+            it("handles empty buffer", () => {
+                var gzip = new zlib.Gzip({});
+                var compressed = gzip._processChunk(Buffer.alloc(0), Z_FINISH);
+
+                var gunzip = new zlib.Gunzip({});
+                var decompressed = gunzip._processChunk(compressed, Z_FINISH);
+                assert.deepEqual(decompressed, Buffer.alloc(0));
+            });
+        });
+    });
 });

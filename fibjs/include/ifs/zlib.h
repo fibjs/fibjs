@@ -16,6 +16,13 @@
 namespace fibjs {
 
 class zlib_constants_base;
+class Gzip_base;
+class Gunzip_base;
+class Deflate_base;
+class Inflate_base;
+class DeflateRaw_base;
+class InflateRaw_base;
+class Unzip_base;
 class Stream_base;
 class Buffer_base;
 
@@ -147,6 +154,13 @@ public:
 }
 
 #include "ifs/zlib_constants.h"
+#include "ifs/Gzip.h"
+#include "ifs/Gunzip.h"
+#include "ifs/Deflate.h"
+#include "ifs/Inflate.h"
+#include "ifs/DeflateRaw.h"
+#include "ifs/InflateRaw.h"
+#include "ifs/Unzip.h"
 #include "ifs/Stream.h"
 #include "ifs/Buffer.h"
 
@@ -181,7 +195,14 @@ inline ClassInfo& zlib_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "constants", zlib_constants_base::class_info }
+        { "constants", zlib_constants_base::class_info },
+        { "Gzip", Gzip_base::class_info },
+        { "Gunzip", Gunzip_base::class_info },
+        { "Deflate", Deflate_base::class_info },
+        { "Inflate", Inflate_base::class_info },
+        { "DeflateRaw", DeflateRaw_base::class_info },
+        { "InflateRaw", InflateRaw_base::class_info },
+        { "Unzip", Unzip_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {

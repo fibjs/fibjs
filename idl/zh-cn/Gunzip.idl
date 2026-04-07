@@ -1,0 +1,8 @@
+/*! @brief Gunzip 解压缩编解码器，解压 gzip 压缩的数据 */
+interface Gunzip : ZlibCodec
+{
+    /*! @brief Gunzip 构造函数
+     @param opts 解压缩选项
+     */
+    Gunzip(Object opts = {});
+};
