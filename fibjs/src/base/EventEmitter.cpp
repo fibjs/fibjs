@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace fibjs {
-result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
+result_t EventEmitter_base::_new(v8::Local<v8::Object> options, obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new EventEmitter();
     return 0;

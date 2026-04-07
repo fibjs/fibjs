@@ -38,8 +38,10 @@ event.emit('read_file', 'test.txt');
  */
 interface EventEmitter : object
 {
-    /*! @brief 构造函数 */
-    EventEmitter();
+    /*! @brief 构造函数
+     @param options 选项对象，支持 captureRejections 等
+    */
+    EventEmitter(Object options = {});
 
     /*! @brief 事件触发对象 */
     static EventEmitter;

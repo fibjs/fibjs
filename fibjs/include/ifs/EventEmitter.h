@@ -20,7 +20,7 @@ class EventEmitter_base : public object_base {
 
 public:
     // EventEmitter_base
-    static result_t _new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t get_defaultMaxListeners(int32_t& retVal);
     static result_t set_defaultMaxListeners(int32_t newVal);
     virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
@@ -143,9 +143,11 @@ inline void EventEmitter_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = _new(vr, args.This());
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -155,6 +157,12 @@ inline result_t EventEmitter_base::load(v8::Local<v8::Value> v, obj_ptr<EventEmi
     obj_ptr<EventEmitter_base> vr;
 
     LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
 
     LOAD_RETURN();
 }

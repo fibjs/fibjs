@@ -38,8 +38,10 @@ This pattern has excellent advantages in business scenarios dealing with asynchr
  */
 interface EventEmitter : object
 {
-    /*! @brief Constructor */
-    EventEmitter();
+    /*! @brief Constructor
+     @param options Options object, supports captureRejections, etc.
+    */
+    EventEmitter(Object options = {});
 
     /*! @brief Event trigger object */
     static EventEmitter;

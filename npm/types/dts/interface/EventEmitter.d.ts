@@ -42,9 +42,11 @@
  */
 declare class Class_EventEmitter extends Class_object {
     /**
-     * @description 构造函数 
+     * @description 构造函数
+     *      @param options 选项对象，支持 captureRejections 等
+     *     
      */
-    constructor();
+    constructor(options?: FIBJS.GeneralObject);
 
     /**
      * @description 事件触发对象 
