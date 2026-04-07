@@ -56,6 +56,8 @@ public:
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t getHeaders(obj_ptr<NObject>& retVal) = 0;
     virtual result_t get_headersSent(bool& retVal) = 0;
+    virtual result_t get_trailers(obj_ptr<Headers_base>& retVal) = 0;
+    virtual result_t addTrailers(v8::Local<v8::Object> headers) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -94,6 +96,8 @@ public:
     static void s_getHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHeaders(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_headersSent(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_trailers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_addTrailers(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -111,7 +115,8 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "setHeader", s_setHeader, false, ClassData::ASYNC_SYNC },
         { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC },
         { "getHeader", s_getHeader, false, ClassData::ASYNC_SYNC },
-        { "getHeaders", s_getHeaders, false, ClassData::ASYNC_SYNC }
+        { "getHeaders", s_getHeaders, false, ClassData::ASYNC_SYNC },
+        { "addTrailers", s_addTrailers, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -124,7 +129,8 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "maxChunkSize", s_get_maxChunkSize, s_set_maxChunkSize, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "socket", s_get_socket, block_set, false },
-        { "headersSent", s_get_headersSent, block_set, false }
+        { "headersSent", s_get_headersSent, block_set, false },
+        { "trailers", s_get_trailers, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -534,5 +540,33 @@ inline void HttpMessage_base::s_get_headersSent(const v8::FunctionCallbackInfo<v
     hr = pInst->get_headersSent(vr);
 
     METHOD_RETURN();
+}
+
+inline void HttpMessage_base::s_get_trailers(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Headers_base> vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_trailers(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpMessage_base::s_addTrailers(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpMessage_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = pInst->addTrailers(v0);
+
+    METHOD_VOID();
 }
 }

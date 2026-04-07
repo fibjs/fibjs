@@ -162,5 +162,17 @@ declare class Class_HttpMessage extends Class_Message {
      */
     readonly headersSent: boolean;
 
+    /**
+     * @description 包含消息中 http 尾部消息头的容器，只读属性 
+     */
+    readonly trailers: Class_Headers;
+
+    /**
+     * @description 添加尾部消息头，尾部消息头将在 body 之后发送
+     *      @param headers 指定要添加的尾部消息头
+     *      
+     */
+    addTrailers(headers: FIBJS.GeneralObject): void;
+
 }
 

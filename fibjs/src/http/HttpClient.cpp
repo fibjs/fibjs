@@ -1069,7 +1069,10 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                     obj_ptr<Stream_base> stm = (Stream_base*)m_bs.get();
 
                     if (chunked) {
-                        stm = new ChunkedStream(m_bs, m_hc->m_maxChunkSize, m_hc->m_maxBodySize);
+                        if (!m_response->m_message->m_trailers)
+                            m_response->m_message->m_trailers = new Headers();
+                        m_response->m_message->m_trailers->m_lowercase_keys = true;
+                        stm = new ChunkedStream(m_bs, m_hc->m_maxChunkSize, m_hc->m_maxBodySize, m_response->m_message->m_trailers);
                     } else if (cl > 0) {
                         stm = new RangeStream(stm, cl);
                     }

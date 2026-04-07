@@ -1217,6 +1217,104 @@ describe("http", () => {
             assert.equal(datas.join(''), rep.readAll());
         });
 
+        describe("trailers", () => {
+            it("trailers property exists on HttpRequest and HttpResponse", () => {
+                var req = new http.Request();
+                var resp = new http.Response();
+
+                assert.ok(req.trailers instanceof http.Headers);
+                assert.ok(resp.trailers instanceof http.Headers);
+            });
+
+            it("addTrailers adds trailer headers", () => {
+                var resp = new http.Response();
+                resp.addTrailers({ 'Content-MD5': '7Ac236b', 'X-Checksum': 'abc123' });
+
+                assert.equal(resp.trailers.get("Content-MD5"), "7Ac236b");
+                assert.equal(resp.trailers.get("X-Checksum"), "abc123");
+            });
+
+            it("parse trailers from chunked response", () => {
+                function chunk(data) {
+                    return data.length.toString(16) + '\r\n' + data + '\r\n';
+                }
+
+                var rep = get_response(
+                    'HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n'
+                    + chunk('Hello, World!')
+                    + '0\r\n'
+                    + 'X-Checksum: abc123\r\n'
+                    + 'X-Hash: def456\r\n'
+                    + '\r\n'
+                );
+
+                assert.equal(rep.text(), 'Hello, World!');
+                assert.equal(rep.trailers.get("x-checksum"), "abc123");
+                assert.equal(rep.trailers.get("x-hash"), "def456");
+            });
+
+            it("parse multiple trailers from chunked response", () => {
+                function chunk(data) {
+                    return data.length.toString(16) + '\r\n' + data + '\r\n';
+                }
+
+                var rep = get_response(
+                    'HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\nTrailer: X-A, X-B, X-C\r\n\r\n'
+                    + chunk('data1')
+                    + chunk('data2')
+                    + '0\r\n'
+                    + 'X-A: val-a\r\n'
+                    + 'X-B: val-b\r\n'
+                    + 'X-C: val-c\r\n'
+                    + '\r\n'
+                );
+
+                assert.equal(rep.text(), 'data1data2');
+                assert.equal(rep.trailers.get("x-a"), "val-a");
+                assert.equal(rep.trailers.get("x-b"), "val-b");
+                assert.equal(rep.trailers.get("x-c"), "val-c");
+            });
+
+            it("no trailers when chunked response has none", () => {
+                function chunk(data) {
+                    return data.length.toString(16) + '\r\n' + data + '\r\n';
+                }
+
+                var rep = get_response(
+                    'HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n'
+                    + chunk('Hello')
+                    + '0\r\n'
+                    + '\r\n'
+                );
+
+                assert.equal(rep.text(), 'Hello');
+                assert.deepEqual(rep.trailers.toJSON(), {});
+            });
+
+            it("non-chunked response has empty trailers", () => {
+                var rep = get_response(
+                    'HTTP/1.1 200\r\nConnection: close\r\nContent-Length: 5\r\n\r\nHello'
+                );
+
+                assert.equal(rep.text(), 'Hello');
+                assert.deepEqual(rep.trailers.toJSON(), {});
+            });
+
+            it("trailers on request object", () => {
+                var req = new http.Request();
+                req.addTrailers({ 'X-Request-Checksum': 'req123' });
+                assert.equal(req.trailers.get("X-Request-Checksum"), "req123");
+            });
+
+            it("trailers cleared on clear()", () => {
+                var resp = new http.Response();
+                resp.addTrailers({ 'X-Foo': 'bar' });
+                assert.equal(resp.trailers.get("X-Foo"), "bar");
+                resp.clear();
+                assert.deepEqual(resp.trailers.toJSON(), {});
+            });
+        });
+
 
         describe('maxBodySize', () => {
             var data_1024 = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
@@ -5424,6 +5522,77 @@ describe("http", () => {
             var r = hc.getSync(base + "/204-then-200");
             assert.equal(r.statusCode, 204);
             assert.equal(r.body, null);
+        });
+    });
+
+    describe("chunked trailers (network)", () => {
+        const trPort = 8893 + base_port;
+        var svr;
+
+        before(() => {
+            svr = new net.TcpServer(trPort, (c) => {
+                var bs = new io.BufferedStream(c);
+                bs.EOL = "\r\n";
+                var line = bs.readLine(4096);
+                while (true) {
+                    var h = bs.readLine(4096);
+                    if (!h || h.length === 0) break;
+                }
+
+                var path = line.split(' ')[1];
+
+                if (path === '/with-trailers') {
+                    c.write("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nTrailer: X-Checksum\r\nConnection: close\r\n\r\n"
+                        + "d\r\nHello, World!\r\n"
+                        + "0\r\n"
+                        + "X-Checksum: abc123\r\n"
+                        + "X-Hash: def456\r\n"
+                        + "\r\n");
+                } else if (path === '/no-trailers') {
+                    c.write("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+                        + "5\r\nHello\r\n"
+                        + "0\r\n"
+                        + "\r\n");
+                } else if (path === '/multi-chunk-trailers') {
+                    c.write("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+                        + "3\r\nabc\r\n"
+                        + "3\r\ndef\r\n"
+                        + "3\r\nghi\r\n"
+                        + "0\r\n"
+                        + "X-Total: 9\r\n"
+                        + "\r\n");
+                }
+                c.close();
+            });
+            svr.start();
+        });
+
+        after(() => {
+            svr.stop();
+        });
+
+        const base = "http://127.0.0.1:" + trPort;
+
+        it("parse trailers from chunked response over network", () => {
+            var r = http.getSync(base + "/with-trailers");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.text(), "Hello, World!");
+            assert.equal(r.trailers.get("x-checksum"), "abc123");
+            assert.equal(r.trailers.get("x-hash"), "def456");
+        });
+
+        it("no trailers when chunked response sends none", () => {
+            var r = http.getSync(base + "/no-trailers");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.text(), "Hello");
+            assert.deepEqual(r.trailers.toJSON(), {});
+        });
+
+        it("trailers after multi-chunk body", () => {
+            var r = http.getSync(base + "/multi-chunk-trailers");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.text(), "abcdefghi");
+            assert.equal(r.trailers.get("x-total"), "9");
         });
     });
 

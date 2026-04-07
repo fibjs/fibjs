@@ -108,4 +108,12 @@ interface HttpMessage : Message
 
     /*! @brief Query whether the message headers have been sent */
     readonly Boolean headersSent;
+
+    /*! @brief Container containing http trailer headers in the message, read-only property */
+    readonly Headers trailers;
+
+    /*! @brief Add trailer headers, the trailer headers will be sent after the body
+     @param headers Specify the trailer headers to add
+     */
+    addTrailers(Object headers);
 };

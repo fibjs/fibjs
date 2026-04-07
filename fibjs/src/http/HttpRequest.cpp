@@ -507,6 +507,16 @@ result_t HttpRequest::get_headersSent(bool& retVal)
     return m_message->get_headersSent(retVal);
 }
 
+result_t HttpRequest::get_trailers(obj_ptr<Headers_base>& retVal)
+{
+    return m_message->get_trailers(retVal);
+}
+
+result_t HttpRequest::addTrailers(v8::Local<v8::Object> headers)
+{
+    return m_message->addTrailers(headers);
+}
+
 result_t HttpRequest::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
 {
     return m_message->onEventChange(type, ev, func);

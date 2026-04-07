@@ -13,15 +13,17 @@
 #include "Buffer.h"
 #include "parse.h"
 #include "AsyncStream.h"
+#include "Headers.h"
 
 namespace fibjs {
 
 class ChunkedStream : public AsyncStream<Stream_base> {
 public:
-    ChunkedStream(BufferedStream_base* stm, int32_t maxChunkSize, int32_t maxBodySize)
+    ChunkedStream(BufferedStream_base* stm, int32_t maxChunkSize, int32_t maxBodySize, Headers* trailers = nullptr)
         : m_stm(stm)
         , m_maxChunkSize(maxChunkSize)
         , m_maxBodySize(maxBodySize)
+        , m_trailers(trailers)
     {
     }
 
@@ -96,6 +98,22 @@ public:
 
             ON_STATE(asyncReadFrom, chunk_end)
             {
+                if (m_pThis->m_trailers && m_strLine.length() > 0) {
+                    // Parse trailer header line
+                    _parser p(m_strLine);
+                    int32_t p2;
+
+                    p.skipWord(':');
+                    p2 = p.pos;
+                    if (p2 > 0 && p.want(':')) {
+                        p.skipSpace();
+                        m_pThis->m_trailers->append_string(
+                            p.string, p2, p.now(), p.left());
+                    }
+
+                    // Read next trailer line
+                    return m_pThis->m_stm->readLine(64, m_strLine, this);
+                }
                 return next(CALL_RETURN_NULL);
             }
 
@@ -145,6 +163,7 @@ public:
     obj_ptr<BufferedStream_base> m_stm;
     int32_t m_maxChunkSize;
     int32_t m_maxBodySize;
+    obj_ptr<Headers> m_trailers;
 
     int64_t m_contentLength = 0;
 

@@ -433,8 +433,12 @@ result_t HttpMessage::readBody(AsyncEvent* ac)
                         return CHECK_ERROR(CALL_E_INVALID_DATA);
                     m_pThis->m_contentLength = 0;
 
+                    if (!m_pThis->m_trailers)
+                        m_pThis->m_trailers = new Headers();
+                    m_pThis->m_trailers->m_lowercase_keys = true;
+
                     m_body = m_pThis->ensure_body();
-                    m_chunked = new ChunkedStream(m_stm, m_pThis->m_maxChunkSize, m_pThis->m_maxBodySize);
+                    m_chunked = new ChunkedStream(m_stm, m_pThis->m_maxChunkSize, m_pThis->m_maxBodySize, m_pThis->m_trailers);
                     return m_chunked->copyTo(m_body, -1, m_copySize, next(body));
                 }
 
@@ -827,6 +831,21 @@ result_t HttpMessage::get_headersSent(bool& retVal)
     return 0;
 }
 
+result_t HttpMessage::get_trailers(obj_ptr<Headers_base>& retVal)
+{
+    if (!m_trailers)
+        m_trailers = new Headers();
+    retVal = m_trailers;
+    return 0;
+}
+
+result_t HttpMessage::addTrailers(v8::Local<v8::Object> headers)
+{
+    if (!m_trailers)
+        m_trailers = new Headers();
+    return m_trailers->append(headers);
+}
+
 result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stm)
@@ -849,6 +868,9 @@ result_t HttpMessage::clear()
 
     m_headers->clear();
     m_headers->m_lowercase_keys = false;
+
+    if (m_trailers)
+        m_trailers->clear();
 
     m_stm.Release();
     m_socket.Release();
@@ -890,6 +912,15 @@ void HttpMessage::copyTo(HttpMessage* target)
         for (size_t i = 0; i < m_headers->m_map.size(); i++) {
             auto& p = m_headers->m_map[i];
             target->m_headers->append(p.first, p.second.string());
+        }
+    }
+
+    // Clone trailers
+    if (m_trailers) {
+        target->m_trailers = new Headers();
+        for (size_t i = 0; i < m_trailers->m_map.size(); i++) {
+            auto& p = m_trailers->m_map[i];
+            target->m_trailers->append(p.first, p.second.string());
         }
     }
 }

@@ -308,6 +308,16 @@ result_t HttpResponse::get_headersSent(bool& retVal)
     return m_message->get_headersSent(retVal);
 }
 
+result_t HttpResponse::get_trailers(obj_ptr<Headers_base>& retVal)
+{
+    return m_message->get_trailers(retVal);
+}
+
+result_t HttpResponse::addTrailers(v8::Local<v8::Object> headers)
+{
+    return m_message->addTrailers(headers);
+}
+
 result_t HttpResponse::get_sent(bool& retVal)
 {
     return m_message->get_sent(retVal);

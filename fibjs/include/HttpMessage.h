@@ -80,6 +80,8 @@ public:
     result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
     result_t getHeaders(obj_ptr<NObject>& retVal);
     result_t get_headersSent(bool& retVal);
+    result_t get_trailers(obj_ptr<Headers_base>& retVal);
+    result_t addTrailers(v8::Local<v8::Object> headers);
     result_t get_stream(obj_ptr<Stream_base>& retVal);
 
     result_t clear();
@@ -125,6 +127,7 @@ public:
     exlib::string m_origin;
     exlib::string m_encoding;
     obj_ptr<Headers> m_headers;
+    obj_ptr<Headers> m_trailers;
 
     int64_t m_contentLength;
     bool m_bChunked;

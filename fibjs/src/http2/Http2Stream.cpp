@@ -452,7 +452,8 @@ void Http2Stream::onClose(uint32_t error_code)
 
 void Http2Stream::onTrailers(obj_ptr<NObject> headers)
 {
-    // Store trailers - can be retrieved later if needed
+    Variant v = headers;
+    _emit("trailers", &v, 1);
 }
 
 void Http2Stream::onEnd()

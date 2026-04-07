@@ -119,6 +119,8 @@ public:
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
     virtual result_t getHeaders(obj_ptr<NObject>& retVal);
     virtual result_t get_headersSent(bool& retVal);
+    virtual result_t get_trailers(obj_ptr<Headers_base>& retVal);
+    virtual result_t addTrailers(v8::Local<v8::Object> headers);
 
 public:
     // HttpResponse_base
