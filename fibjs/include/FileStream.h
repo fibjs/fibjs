@@ -110,12 +110,44 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         _flags |= O_RDWR;
     else if (flags == "w")
         _flags |= O_TRUNC | O_CREAT | O_WRONLY;
+    else if (flags == "wx" || flags == "xw")
+        _flags |= O_TRUNC | O_CREAT | O_WRONLY | O_EXCL;
     else if (flags == "w+")
         _flags |= O_TRUNC | O_CREAT | O_RDWR;
+    else if (flags == "wx+" || flags == "xw+")
+        _flags |= O_TRUNC | O_CREAT | O_RDWR | O_EXCL;
     else if (flags == "a")
         _flags |= O_APPEND | O_CREAT | O_WRONLY;
+    else if (flags == "ax" || flags == "xa")
+        _flags |= O_APPEND | O_CREAT | O_WRONLY | O_EXCL;
     else if (flags == "a+")
         _flags |= O_APPEND | O_CREAT | O_RDWR;
+    else if (flags == "ax+" || flags == "xa+")
+        _flags |= O_APPEND | O_CREAT | O_RDWR | O_EXCL;
+    else if (flags == "as" || flags == "sa")
+        _flags |= O_APPEND | O_CREAT | O_WRONLY
+#ifdef O_SYNC
+        | O_SYNC
+#endif
+        ;
+    else if (flags == "as+" || flags == "sa+")
+        _flags |= O_APPEND | O_CREAT | O_RDWR
+#ifdef O_SYNC
+        | O_SYNC
+#endif
+        ;
+    else if (flags == "rs" || flags == "sr")
+        _flags |= O_RDONLY
+#ifdef O_SYNC
+        | O_SYNC
+#endif
+        ;
+    else if (flags == "rs+" || flags == "sr+")
+        _flags |= O_RDWR
+#ifdef O_SYNC
+        | O_SYNC
+#endif
+        ;
 
 #ifdef _WIN32
     fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
