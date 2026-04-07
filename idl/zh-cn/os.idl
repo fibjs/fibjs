@@ -140,6 +140,9 @@ module os
     /*! @brief 查询当前运行环境行结尾标识，posix:\"\\n\"；windows:\"\\r\\n\"   */
     static readonly String EOL;
 
+    /*! os 模块的常量对象，参见 os_constants */
+    static constants = os_constants;
+
     /*! @brief 查询运行环境 1分钟，5分钟，15分钟平均负载
      @return 返回包含三个负载数据的数组
     */

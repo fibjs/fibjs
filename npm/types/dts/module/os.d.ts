@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Service.d.ts" />
+/// <reference path="../module/os_constants.d.ts" />
 /**
  * @description `os` 模块是核心模块之一，用于运行的操作系统函数。它提供了与操作系统交互的实用程序功能，包括文件地址、文件路径、网络接口、主机名、操作系统类型等
  * 
@@ -160,6 +161,11 @@ declare module 'os' {
      * @description 查询当前运行环境行结尾标识，posix:\"\\n\"；windows:\"\\r\\n\"   
      */
     const EOL: string;
+
+    /**
+     * ! os 模块的常量对象，参见 os_constants 
+     */
+    const constants: typeof import ('os_constants');
 
     /**
      * @description 查询运行环境 1分钟，5分钟，15分钟平均负载

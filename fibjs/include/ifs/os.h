@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class Service_base;
+class os_constants_base;
 
 class os_base : public object_base {
     DECLARE_CLASS(os_base);
@@ -77,6 +78,7 @@ public:
 }
 
 #include "ifs/Service.h"
+#include "ifs/os_constants.h"
 
 namespace fibjs {
 inline ClassInfo& os_base::class_info()
@@ -102,7 +104,8 @@ inline ClassInfo& os_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "Service", Service_base::class_info }
+        { "Service", Service_base::class_info },
+        { "constants", os_constants_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

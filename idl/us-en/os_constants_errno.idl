@@ -1,0 +1,89 @@
+/*! @brief os_constants errno sub-module, contains POSIX error code constants
+
+ Usage:
+ ```JavaScript
+ var errno = require('os').constants.errno
+ ```
+ */
+module os_constants_errno
+{
+    const E2BIG = 7;
+    const EACCES = 13;
+    const EADDRINUSE = 98;
+    const EADDRNOTAVAIL = 99;
+    const EAFNOSUPPORT = 97;
+    const EAGAIN = 11;
+    const EALREADY = 114;
+    const EBADF = 9;
+    const EBADMSG = 74;
+    const EBUSY = 16;
+    const ECANCELED = 125;
+    const ECHILD = 10;
+    const ECONNABORTED = 103;
+    const ECONNREFUSED = 111;
+    const ECONNRESET = 104;
+    const EDEADLK = 35;
+    const EDESTADDRREQ = 89;
+    const EDOM = 33;
+    const EDQUOT = 122;
+    const EEXIST = 17;
+    const EFAULT = 14;
+    const EFBIG = 27;
+    const EHOSTUNREACH = 113;
+    const EIDRM = 43;
+    const EILSEQ = 84;
+    const EINPROGRESS = 115;
+    const EINTR = 4;
+    const EINVAL = 22;
+    const EIO = 5;
+    const EISCONN = 106;
+    const EISDIR = 21;
+    const ELOOP = 40;
+    const EMFILE = 24;
+    const EMLINK = 31;
+    const EMSGSIZE = 90;
+    const EMULTIHOP = 72;
+    const ENAMETOOLONG = 36;
+    const ENETDOWN = 100;
+    const ENETRESET = 102;
+    const ENETUNREACH = 101;
+    const ENFILE = 23;
+    const ENOBUFS = 105;
+    const ENODATA = 61;
+    const ENODEV = 19;
+    const ENOENT = 2;
+    const ENOEXEC = 8;
+    const ENOLCK = 37;
+    const ENOLINK = 67;
+    const ENOMEM = 12;
+    const ENOMSG = 42;
+    const ENOPROTOOPT = 92;
+    const ENOSPC = 28;
+    const ENOSR = 63;
+    const ENOSTR = 60;
+    const ENOSYS = 38;
+    const ENOTCONN = 107;
+    const ENOTDIR = 20;
+    const ENOTEMPTY = 39;
+    const ENOTSOCK = 88;
+    const ENOTSUP = 95;
+    const ENOTTY = 25;
+    const ENXIO = 6;
+    const EOPNOTSUPP = 95;
+    const EOVERFLOW = 75;
+    const EPERM = 1;
+    const EPIPE = 32;
+    const EPROTO = 71;
+    const EPROTONOSUPPORT = 93;
+    const EPROTOTYPE = 91;
+    const ERANGE = 34;
+    const EROFS = 30;
+    const ESPIPE = 29;
+    const ESRCH = 3;
+    const ESTALE = 116;
+    const ETIME = 62;
+    const ETIMEDOUT = 110;
+    const ETXTBSY = 26;
+    const EWOULDBLOCK = 11;
+    const EXDEV = 18;
+};

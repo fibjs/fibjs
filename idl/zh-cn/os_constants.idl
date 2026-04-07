@@ -1,0 +1,24 @@
+/*! @brief os 模块常量定义模块
+
+ 引用方法：
+ ```JavaScript
+ var constants = require('os').constants
+ ```
+ */
+module os_constants
+{
+    /*! @brief UDP 地址重用标志 */
+    const UV_UDP_REUSEADDR = 4;
+
+    /*! @brief errno 错误码常量子对象 */
+    static errno = os_constants_errno;
+
+    /*! @brief 信号常量子对象 */
+    static signals = os_constants_signals;
+
+    /*! @brief 进程优先级常量子对象 */
+    static priority = os_constants_priority;
+
+    /*! @brief 动态链接库加载标志常量子对象 */
+    static dlopen = os_constants_dlopen;
+};

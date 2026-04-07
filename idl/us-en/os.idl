@@ -140,6 +140,9 @@ module os
     /*! @brief Query current runtime environment line ending identifier, posix:"\\n"; windows:"\\r\\n"   */
     static readonly String EOL;
 
+    /*! OS module constants object, see os_constants */
+    static constants = os_constants;
+
     /*! @brief Query runtime environment 1 minute, 5 minutes, 15 minutes average load
      @return Return array containing three load data
     */
