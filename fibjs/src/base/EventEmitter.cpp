@@ -30,7 +30,7 @@ result_t EventEmitter_base::set_defaultMaxListeners(int32_t newVal)
     return 0;
 }
 
-result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t object_base::on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).on(ev, func, retVal);
 }
@@ -40,12 +40,12 @@ result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVa
     return JSTrigger(this).on(map, retVal);
 }
 
-result_t object_base::addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+result_t object_base::addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).addEventListener(ev, func, options, retVal);
 }
 
-result_t object_base::prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t object_base::prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).prependListener(ev, func, retVal);
 }
@@ -55,7 +55,7 @@ result_t object_base::prependListener(v8::Local<v8::Object> map, v8::Local<v8::O
     return JSTrigger(this).prependListener(map, retVal);
 }
 
-result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t object_base::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(ev, func, retVal);
 }
@@ -65,7 +65,7 @@ result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object>& ret
     return JSTrigger(this).once(map, retVal);
 }
 
-result_t object_base::prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t object_base::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).prependOnceListener(ev, func, retVal);
 }
@@ -75,12 +75,12 @@ result_t object_base::prependOnceListener(v8::Local<v8::Object> map, v8::Local<v
     return JSTrigger(this).prependOnceListener(map, retVal);
 }
 
-result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t object_base::off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(ev, func, retVal);
 }
 
-result_t object_base::off(exlib::string ev, v8::Local<v8::Object>& retVal)
+result_t object_base::off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(ev, retVal);
 }
@@ -90,13 +90,13 @@ result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retV
     return JSTrigger(this).off(map, retVal);
 }
 
-result_t object_base::removeEventListener(exlib::string ev, v8::Local<v8::Function> func,
+result_t object_base::removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,
     v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).removeEventListener(ev, func, options, retVal);
 }
 
-result_t object_base::removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)
+result_t object_base::removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).removeAllListeners(ev, retVal);
 }
@@ -121,12 +121,13 @@ result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func
     result_t hr;
     JSTrigger e(this);
     v8::Local<v8::Object> r;
+    v8::Local<v8::Value> evVal = fibjs::NewString(e.isolate, ev);
 
-    hr = e.off(ev, r);
+    hr = e.off(evVal, r);
     if (hr < 0)
         return hr;
 
-    return e.on(ev, func, r);
+    return e.on(evVal, func, r);
 }
 
 result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& func)
@@ -135,7 +136,7 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& fun
     JSTrigger e(this);
     v8::Local<v8::Array> r;
 
-    hr = listeners(ev, r);
+    hr = listeners(fibjs::NewString(e.isolate, ev), r);
     if (hr < 0)
         return hr;
 
@@ -146,12 +147,12 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& fun
     return 0;
 }
 
-result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+result_t object_base::listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
 {
     return JSTrigger(this).listeners(ev, retVal);
 }
 
-result_t object_base::rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+result_t object_base::rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
 {
     return JSTrigger(this).rawListeners(ev, retVal);
 }
@@ -175,18 +176,23 @@ result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::emit(exlib::string ev, OptArgs args, bool& retVal)
+result_t object_base::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 {
-    onEventEmit(ev);
+    // onEventEmit only accepts string event names; Symbol events skip it
+    if (!ev->IsSymbol()) {
+        exlib::string evStr;
+        GetArgumentValue(holder(), ev, evStr, true);
+        onEventEmit(evStr);
+    }
     return JSTrigger(this).emit(ev, args, retVal);
 }
 
-result_t object_base::listenerCount(exlib::string ev, int32_t& retVal)
+result_t object_base::listenerCount(v8::Local<v8::Value> ev, int32_t& retVal)
 {
     return JSTrigger(this).listenerCount(ev, retVal);
 }
 
-result_t object_base::listenerCount(v8::Local<v8::Value> o, exlib::string ev, int32_t& retVal)
+result_t object_base::listenerCount(v8::Local<v8::Value> o, v8::Local<v8::Value> ev, int32_t& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> o1 = o->ToObject(isolate->context()).FromMaybe(v8::Local<v8::Object>());
@@ -203,12 +209,12 @@ result_t object_base::eventNames(v8::Local<v8::Array>& retVal)
 
 // Static stubs required by IDL-generated code; actual implementations are in JSTrigger
 // and registered via events.cpp override.
-result_t EventEmitter_base::on(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+result_t EventEmitter_base::on(EventEmitter_base* emitter, v8::Local<v8::Value> ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     return CALL_E_INVALID_CALL;
 }
 
-result_t EventEmitter_base::once(EventEmitter_base* emitter, exlib::string ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+result_t EventEmitter_base::once(EventEmitter_base* emitter, v8::Local<v8::Value> ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     return CALL_E_INVALID_CALL;
 }
@@ -230,7 +236,7 @@ void JSTrigger::initEv()
     }
 }
 
-v8::Local<v8::Array> JSTrigger::GetHiddenList(exlib::string k, bool create)
+v8::Local<v8::Array> JSTrigger::GetHiddenList(v8::Local<v8::Value> k, bool create)
 {
     v8::Local<v8::Value> es = GetPrivate(k);
     v8::Local<v8::Array> esa;
@@ -246,12 +252,13 @@ v8::Local<v8::Array> JSTrigger::GetHiddenList(exlib::string k, bool create)
     return esa;
 }
 
-result_t JSTrigger::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+result_t JSTrigger::onEventChange(exlib::string type, v8::Local<v8::Value> ev, v8::Local<v8::Function> func)
 {
     v8::Local<v8::Value> _args[3];
     bool b;
 
-    _args[0] = NewString(ev);
+    // pass ev as-is so Symbol event names are preserved for newListener/removeListener
+    _args[0] = ev;
 
     _args[1] = JSValue(func->Get(context, NewString("_func")));
     if (_args[1]->IsUndefined())
@@ -260,13 +267,19 @@ result_t JSTrigger::onEventChange(exlib::string type, exlib::string ev, v8::Loca
         func = v8::Local<v8::Function>::Cast(_args[1]);
 
     obj_ptr<object_base> pThis = object_base::getInstance(o);
-    if (pThis)
-        pThis->onEventChange(type, ev, func);
+    if (pThis) {
+        // internal C++ hook only receives string event names
+        if (!ev->IsSymbol()) {
+            exlib::string evStr;
+            GetArgumentValue(Isolate::current(isolate), ev, evStr, true);
+            pThis->onEventChange(type, evStr, func);
+        }
+    }
 
     return _emit(type, _args, 2, b);
 }
 
-int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
@@ -278,7 +291,7 @@ int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function>
     return 0;
 }
 
-int32_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+int32_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
@@ -307,7 +320,7 @@ void JSTrigger::spliceOne(v8::Local<v8::Array> esa, int32_t index)
         .IsJust();
 }
 
-int32_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+int32_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     if (esa.IsEmpty())
         return 0;
@@ -341,7 +354,7 @@ int32_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Functi
 }
 
 result_t JSTrigger::_map(v8::Local<v8::Object> m,
-    result_t (JSTrigger::*fn)(exlib::string, v8::Local<v8::Function>, v8::Local<v8::Object>&),
+    result_t (JSTrigger::*fn)(v8::Local<v8::Value>, v8::Local<v8::Function>, v8::Local<v8::Object>&),
     v8::Local<v8::Object>& retVal)
 {
     JSArray ks = m->GetPropertyNames(context);
@@ -355,7 +368,7 @@ result_t JSTrigger::_map(v8::Local<v8::Object> m,
             JSValue v = m->Get(context, k);
 
             if (v->IsFunction())
-                (this->*fn)(ToString(isolate, k), v8::Local<v8::Function>::Cast(v), retVal);
+                (this->*fn)(k, v8::Local<v8::Function>::Cast(v), retVal);
             else
                 return CHECK_ERROR(CALL_E_BADVARTYPE);
         }
@@ -372,11 +385,9 @@ void JSTrigger::_onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(JSValue(_data->Get(context, isolate->NewString("_func"))));
-    JSValue v = _data->Get(context, isolate->NewString("_ev"));
+    // retrieve ev as-is (may be Symbol or String)
+    v8::Local<v8::Value> ev = JSValue(_data->Get(context, isolate->NewString("_ev")));
     v8::Local<v8::Function> _wrap = v8::Local<v8::Function>::Cast(JSValue(_data->Get(context, isolate->NewString("_wrap"))));
-
-    exlib::string ev;
-    GetArgumentValue(isolate, v, ev, true);
 
     std::vector<v8::Local<v8::Value>> _args;
     int32_t len = args.Length();
@@ -393,12 +404,13 @@ void JSTrigger::_onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args)
         func->Call(context, args.This(), (int32_t)_args.size(), _args.data()).IsEmpty();
 }
 
-result_t JSTrigger::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t JSTrigger::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     Isolate* _isolate = Isolate::current(func);
     v8::Local<v8::Object> _data = v8::Object::New(isolate);
     _data->Set(context, NewString("_func"), func).IsJust();
-    _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
+    // store ev as-is so Symbol keys survive the round-trip in _onceWrap
+    _data->Set(context, NewString("_ev"), ev).IsJust();
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
@@ -413,7 +425,8 @@ result_t JSTrigger::once(exlib::string ev, v8::Local<v8::Function> func, v8::Loc
     return 0;
 }
 
-result_t JSTrigger::addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+
+result_t JSTrigger::addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     bool _once = false;
     result_t hr = GetConfigValue(options, "once", _once, true);
@@ -423,12 +436,13 @@ result_t JSTrigger::addEventListener(exlib::string ev, v8::Local<v8::Function> f
     return _once ? once(ev, func, retVal) : on(ev, func, retVal);
 }
 
-result_t JSTrigger::prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t JSTrigger::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     Isolate* _isolate = Isolate::current(func);
     v8::Local<v8::Object> _data = v8::Object::New(isolate);
     _data->Set(context, NewString("_func"), func).IsJust();
-    _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
+    // store ev as-is so Symbol keys survive the round-trip in _onceWrap
+    _data->Set(context, NewString("_ev"), ev).IsJust();
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
@@ -442,7 +456,7 @@ result_t JSTrigger::prependOnceListener(exlib::string ev, v8::Local<v8::Function
     return 0;
 }
 
-result_t JSTrigger::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     v8::Local<v8::Array> esa = GetHiddenList(ev);
 
@@ -459,7 +473,7 @@ result_t JSTrigger::off(exlib::string ev, v8::Local<v8::Function> func, v8::Loca
     return 0;
 }
 
-result_t JSTrigger::off(exlib::string ev, v8::Local<v8::Object>& retVal)
+result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
 {
     v8::Local<v8::Array> esa = GetHiddenList(ev);
 
@@ -489,23 +503,24 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
     result_t hr;
 
     if (len == 0) {
-        evs = events->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-        len = evs->Length();
-    }
+        // Collect all string-keyed listeners (Symbol keys are not enumerable here)
+        v8::Local<v8::Array> strKeys = events->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+        int32_t strLen = strKeys.IsEmpty() ? 0 : strKeys->Length();
 
-    Isolate* _isolate = Isolate::current(isolate);
-
-    for (i = 0; i < len; i++) {
-        JSValue v = evs->Get(context, i);
-        exlib::string key;
-
-        hr = GetArgumentValue(_isolate, v, key, true);
-        if (hr < 0)
-            return hr;
-
-        hr = off(key, retVal);
-        if (hr < 0)
-            return hr;
+        for (i = 0; i < strLen; i++) {
+            JSValue v = strKeys->Get(context, i);
+            hr = off(v, retVal);
+            if (hr < 0)
+                return hr;
+        }
+    } else {
+        for (i = 0; i < len; i++) {
+            // Pass raw value (string or Symbol) directly to off()
+            JSValue v = evs->Get(context, i);
+            hr = off(v, retVal);
+            if (hr < 0)
+                return hr;
+        }
     }
 
     retVal = o;
@@ -550,7 +565,7 @@ result_t JSTrigger::get_defaultMaxListeners(int32_t& retVal)
     return 0;
 }
 
-result_t JSTrigger::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+result_t JSTrigger::listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
 {
     int32_t n = 0;
 
@@ -579,7 +594,7 @@ result_t JSTrigger::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t JSTrigger::rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+result_t JSTrigger::rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
 {
     int32_t n = 0;
 
@@ -597,7 +612,7 @@ result_t JSTrigger::rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t JSTrigger::listenerCount(exlib::string ev, int32_t& retVal)
+result_t JSTrigger::listenerCount(v8::Local<v8::Value> ev, int32_t& retVal)
 {
     int32_t n = 0;
 
@@ -652,7 +667,8 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
         _obj->onEventEmit(ev);
     }
 
-    hr = fireTrigger(GetHiddenList(ev), args, argCount, evs, ff);
+    // Use NewString to convert to v8::Value so GetHiddenList (Value overload) works
+    hr = fireTrigger(GetHiddenList(NewString(ev)), args, argCount, evs, ff);
     if (hr < 0)
         return hr;
 
@@ -699,12 +715,48 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
 }
 
-result_t JSTrigger::emit(exlib::string ev, OptArgs args, bool& retVal)
+result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 {
     std::vector<v8::Local<v8::Value>> datas;
     args.GetData(datas);
 
-    return _emit(ev, datas.data(), args.Length(), retVal);
+    if (ev->IsSymbol()) {
+        // Symbol events: fire listeners directly, no "error" special handling
+        retVal = false;
+        QuickArray<obj_ptr<Fiber_base>> evs;
+        v8::Local<v8::Function> ff;
+        exlib::string msg;
+        result_t hr;
+
+        hr = fireTrigger(GetHiddenList(ev), datas.data(), (int32_t)datas.size(), evs, ff);
+        if (hr < 0)
+            return hr;
+
+        if (!ff.IsEmpty()) {
+            JSValue r = ff->Call(context, o, (int32_t)datas.size(), datas.data());
+            retVal = true;
+            if (r.IsEmpty())
+                hr = CALL_E_JAVASCRIPT;
+        }
+
+        if (evs.size() > 0) {
+            int32_t i;
+            for (i = 0; i < (int32_t)evs.size(); i++) {
+                evs[i]->join();
+                msg = ((JSFiber*)(Fiber_base*)evs[i])->m_message;
+            }
+            retVal = true;
+        }
+
+        if (hr < 0)
+            return hr;
+        return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
+    }
+
+    // String path: convert to exlib::string and use _emit (handles "error" etc.)
+    exlib::string evStr;
+    GetArgumentValue(Isolate::current(isolate), ev, evStr, true);
+    return _emit(evStr, datas.data(), (int32_t)datas.size(), retVal);
 }
 
 void JSTrigger::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -737,7 +789,7 @@ void JSTrigger::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = JSTrigger(args).on(v0, v1, vr);
@@ -759,7 +811,7 @@ void JSTrigger::s_addEventListener(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(3, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
@@ -776,7 +828,7 @@ void JSTrigger::s_prependListener(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(2, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = JSTrigger(args).prependListener(v0, v1, vr);
@@ -806,7 +858,7 @@ void JSTrigger::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = JSTrigger(args).once(v0, v1, vr);
@@ -828,7 +880,7 @@ void JSTrigger::s_prependOnceListener(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = JSTrigger(args).prependOnceListener(v0, v1, vr);
@@ -850,20 +902,20 @@ void JSTrigger::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = JSTrigger(args).off(v0, v1, vr);
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = JSTrigger(args).off(v0, vr);
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = JSTrigger(args).off(v0, vr);
 
@@ -878,7 +930,7 @@ void JSTrigger::s_removeEventListener(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(3, 2);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
@@ -895,15 +947,19 @@ void JSTrigger::s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 0);
 
     hr = JSTrigger(args).removeAllListeners(v0, vr);
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER(1, 1);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = JSTrigger(args).removeAllListeners(v0, vr);
+
+    METHOD_OVER(0, 0);
+
+    hr = JSTrigger(args).removeAllListeners(v8::Array::New(isolate->m_isolate), vr);
 
     METHOD_RETURN();
 }
@@ -968,7 +1024,7 @@ void JSTrigger::s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = JSTrigger(args).listeners(v0, vr);
 
@@ -983,7 +1039,7 @@ void JSTrigger::s_rawListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = JSTrigger(args).rawListeners(v0, vr);
 
@@ -998,14 +1054,14 @@ void JSTrigger::s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = JSTrigger(args).listenerCount(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Value>, 0);
-    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Value>, 1);
 
     v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Object> o = v0->ToObject(isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::Object>());
@@ -1027,7 +1083,7 @@ void JSTrigger::s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
     ARG_LIST(1);
 
     hr = JSTrigger(args).emit(v0, v1, vr);
@@ -1066,7 +1122,7 @@ void JSTrigger::_once_event_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
         v8::Local<v8::Value> emitter = JSValue(_data->Get(context, _isolate->NewString("emitter")));
         if (!emitter.IsEmpty() && emitter->IsObject()) {
             v8::Local<v8::Object> retVal;
-            JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off("error", errLis.As<v8::Function>(), retVal);
+            JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off(_isolate->NewString("error"), errLis.As<v8::Function>(), retVal);
         }
     }
 
@@ -1094,10 +1150,8 @@ void JSTrigger::_once_error_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
 
     if (!evLis.IsEmpty() && evLis->IsFunction() && !emitter.IsEmpty() && emitter->IsObject()) {
-        exlib::string ev;
-        GetArgumentValue(_isolate, evName, ev, true);
         v8::Local<v8::Object> retVal;
-        JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off(ev, evLis.As<v8::Function>(), retVal);
+        JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off(evName, evLis.As<v8::Function>(), retVal);
     }
 
     v8::Local<v8::Value> err = args.Length() > 0
@@ -1128,18 +1182,16 @@ void JSTrigger::_once_abort_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
 
     if (!emitter.IsEmpty() && emitter->IsObject()) {
-        exlib::string ev;
-        GetArgumentValue(_isolate, evName, ev, true);
         JSTrigger t(_isolate->m_isolate, emitter.As<v8::Object>());
         v8::Local<v8::Object> retVal;
 
         v8::Local<v8::Value> evLis = JSValue(_data->Get(context, _isolate->NewString("eventListener")));
         if (!evLis.IsEmpty() && evLis->IsFunction())
-            t.off(ev, evLis.As<v8::Function>(), retVal);
+            t.off(evName, evLis.As<v8::Function>(), retVal);
 
         v8::Local<v8::Value> errLis = JSValue(_data->Get(context, _isolate->NewString("errorListener")));
         if (!errLis.IsEmpty() && errLis->IsFunction())
-            t.off("error", errLis.As<v8::Function>(), retVal);
+            t.off(_isolate->NewString("error"), errLis.As<v8::Function>(), retVal);
     }
 
     resolver->Reject(context, _make_abort_error(_isolate)).IsJust();
@@ -1214,16 +1266,15 @@ void JSTrigger::_on_cleanup(Isolate* _isolate, v8::Local<v8::Object> _data)
     JSTrigger t(_isolate->m_isolate, emitter.As<v8::Object>());
 
     v8::Local<v8::Value> evHandler = JSValue(_data->Get(context, _isolate->NewString("eventHandler")));
+    // Use evName directly as v8::Value to support Symbol event names
     v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
-    exlib::string ev;
-    GetArgumentValue(_isolate, evName, ev, true);
 
     if (!evHandler.IsEmpty() && evHandler->IsFunction())
-        t.off(ev, evHandler.As<v8::Function>(), retVal);
+        t.off(evName, evHandler.As<v8::Function>(), retVal);
 
     v8::Local<v8::Value> errHandler = JSValue(_data->Get(context, _isolate->NewString("errorHandler")));
     if (!errHandler.IsEmpty() && errHandler->IsFunction())
-        t.off("error", errHandler.As<v8::Function>(), retVal);
+        t.off(_isolate->NewString("error"), errHandler.As<v8::Function>(), retVal);
 
     v8::Local<v8::Value> closeEvents = JSValue(_data->Get(context, _isolate->NewString("closeEvents")));
     if (!closeEvents.IsEmpty() && closeEvents->IsArray()) {
@@ -1231,8 +1282,7 @@ void JSTrigger::_on_cleanup(Isolate* _isolate, v8::Local<v8::Object> _data)
         v8::Local<v8::Value> closeHandler = JSValue(_data->Get(context, _isolate->NewString("closeHandler")));
         if (!closeHandler.IsEmpty() && closeHandler->IsFunction()) {
             for (uint32_t i = 0; i < closeArr->Length(); i++) {
-                exlib::string cev;
-                GetArgumentValue(_isolate, JSValue(closeArr->Get(context, i)), cev, true);
+                v8::Local<v8::Value> cev = JSValue(closeArr->Get(context, i));
                 t.off(cev, closeHandler.As<v8::Function>(), retVal);
             }
         }
@@ -1318,7 +1368,7 @@ void JSTrigger::_disposeAbortListener(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!sig.IsEmpty() && sig->IsObject() && !lis.IsEmpty() && lis->IsFunction()) {
         v8::Local<v8::Object> retVal;
-        JSTrigger(args.GetIsolate(), sig.As<v8::Object>()).off("abort", lis.As<v8::Function>(), retVal);
+        JSTrigger(args.GetIsolate(), sig.As<v8::Object>()).off(_isolate->NewString("abort"), lis.As<v8::Function>(), retVal);
     }
 }
 
@@ -1354,7 +1404,7 @@ void JSTrigger::s_addAbortListener(const v8::FunctionCallbackInfo<v8::Value>& ar
         listener->Call(context, v8::Undefined(_isolate->m_isolate), 0, nullptr).IsEmpty();
     } else {
         // signal.once('abort', listener)
-        JSTrigger(_isolate->m_isolate, signal).once("abort", listener, retVal);
+        JSTrigger(_isolate->m_isolate, signal).once(_isolate->NewString("abort"), listener, retVal);
     }
 
     // Create disposable: { [Symbol.dispose]() { signal.off('abort', listener) } }
@@ -1435,11 +1485,11 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
         evData->Set(context, _isolate->NewString("errorListener"), errorListener).IsJust();
 
         v8::Local<v8::Object> retVal;
-        JSTrigger(_isolate->m_isolate, emitter).once("error", errorListener, retVal);
+        JSTrigger(_isolate->m_isolate, emitter).once(_isolate->NewString("error"), errorListener, retVal);
     }
 
     v8::Local<v8::Object> retVal;
-    JSTrigger(_isolate->m_isolate, emitter).once(event, eventListener, retVal);
+    JSTrigger(_isolate->m_isolate, emitter).once(_isolate->NewString(event), eventListener, retVal);
 
     // Handle options.signal
     if (args.Length() > 2 && args[2]->IsObject()) {
@@ -1452,9 +1502,9 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
 
             if (!aborted.IsEmpty() && aborted->IsTrue()) {
                 JSTrigger t(_isolate->m_isolate, emitter);
-                t.off(event, eventListener, retVal);
+                t.off(_isolate->NewString(event), eventListener, retVal);
                 if (!errorListener.IsEmpty())
-                    t.off("error", errorListener, retVal);
+                    t.off(_isolate->NewString("error"), errorListener, retVal);
                 resolver->Reject(context, _make_abort_error(_isolate)).IsJust();
             } else {
                 v8::Local<v8::Object> abortData = v8::Object::New(_isolate->m_isolate);
@@ -1667,8 +1717,8 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
     // Register event listeners
     v8::Local<v8::Object> retVal;
     JSTrigger t(_isolate->m_isolate, emitter);
-    t.on(event, eventHandler, retVal);
-    t.on("error", errorHandler, retVal);
+    t.on(_isolate->NewString(event), eventHandler, retVal);
+    t.on(_isolate->NewString("error"), errorHandler, retVal);
 
     // Handle options
     if (args.Length() > 2 && args[2]->IsObject()) {
@@ -1708,7 +1758,7 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
             for (uint32_t i = 0; i < closeArr->Length(); i++) {
                 exlib::string cev;
                 GetArgumentValue(_isolate, JSValue(closeArr->Get(context, i)), cev, true);
-                t.on(cev, closeHandler, retVal);
+                t.on(_isolate->NewString(cev), closeHandler, retVal);
             }
         }
 

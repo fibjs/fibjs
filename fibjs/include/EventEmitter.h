@@ -51,9 +51,21 @@ public:
         return JSValue(events->Get(context, NewString(key)));
     }
 
+    // Symbol-aware overload: pass the key directly (string or Symbol)
+    v8::Local<v8::Value> GetPrivate(v8::Local<v8::Value> key)
+    {
+        return JSValue(events->Get(context, key));
+    }
+
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
         events->Set(context, NewString(key), value).IsJust();
+    }
+
+    // Symbol-aware overload
+    void SetPrivate(v8::Local<v8::Value> key, v8::Local<v8::Value> value)
+    {
+        events->Set(context, key, value).IsJust();
     }
 
     void DeletePrivate(exlib::string key)
@@ -61,22 +73,47 @@ public:
         events->Delete(context, NewString(key)).IsJust();
     }
 
-    v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false);
+    // Symbol-aware overload
+    void DeletePrivate(v8::Local<v8::Value> key)
+    {
+        events->Delete(context, key).IsJust();
+    }
 
-    result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
-    int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev);
-    int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev);
+    v8::Local<v8::Array> GetHiddenList(v8::Local<v8::Value> k, bool create = false);
+
+    // Convenience overload for internal C++ callers using string literals
+    v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false)
+    {
+        return GetHiddenList(static_cast<v8::Local<v8::Value>>(NewString(k)), create);
+    }
+
+    result_t onEventChange(exlib::string type, v8::Local<v8::Value> ev, v8::Local<v8::Function> func);
+    int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
+
+    // String overload for internal C++ callers
+    int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+    {
+        return putFunction(esa, func, static_cast<v8::Local<v8::Value>>(NewString(ev)));
+    }
+
+    int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
     void spliceOne(v8::Local<v8::Array> esa, int32_t index);
-    int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev);
+    int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
     result_t _map(v8::Local<v8::Object> m,
-        result_t (JSTrigger::*fn)(exlib::string, v8::Local<v8::Function>, v8::Local<v8::Object>&),
+        result_t (JSTrigger::*fn)(v8::Local<v8::Value>, v8::Local<v8::Function>, v8::Local<v8::Object>&),
         v8::Local<v8::Object>& retVal);
 
-    result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    result_t on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
         putFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
         return 0;
+    }
+
+    // String overload for internal C++ callers
+    result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    {
+        return on(static_cast<v8::Local<v8::Value>>(NewString(ev)), func, retVal);
     }
 
     result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
@@ -84,7 +121,7 @@ public:
         return _map(map, &JSTrigger::on, retVal);
     }
 
-    result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    result_t prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
         prependPutFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
@@ -97,37 +134,47 @@ public:
     }
 
     static void _onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args);
-    result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
 
     result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::once, retVal);
     }
 
-    result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func,
+    result_t addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,
         v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
-    result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
 
     result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::prependOnceListener, retVal);
     }
 
-    result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t off(exlib::string ev, v8::Local<v8::Object>& retVal);
+    result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
+
+    // String overloads for internal C++ callers
+    result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    {
+        return off(static_cast<v8::Local<v8::Value>>(NewString(ev)), func, retVal);
+    }
+    result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
+    {
+        return off(static_cast<v8::Local<v8::Value>>(NewString(ev)), retVal);
+    }
 
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::off, retVal);
     }
 
-    result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func,
+    result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,
         v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
     {
         return off(ev, func, retVal);
     }
 
-    result_t removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)
+    result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
     {
         return off(ev, retVal);
     }
@@ -137,9 +184,15 @@ public:
     result_t getMaxListeners(int32_t& retVal);
     static result_t set_defaultMaxListeners(int32_t newVal);
     static result_t get_defaultMaxListeners(int32_t& retVal);
-    result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
-    result_t rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal);
-    result_t listenerCount(exlib::string ev, int32_t& retVal);
+    result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);
+    result_t rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);
+    result_t listenerCount(v8::Local<v8::Value> ev, int32_t& retVal);
+
+    // String overload for internal C++ callers
+    result_t listenerCount(exlib::string ev, int32_t& retVal)
+    {
+        return listenerCount(static_cast<v8::Local<v8::Value>>(NewString(ev)), retVal);
+    }
     result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value>* args, int32_t argCount,
         QuickArray<obj_ptr<Fiber_base>>& evs, v8::Local<v8::Function>& ff);
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
@@ -229,7 +282,7 @@ public:
         std::vector<v8::Global<v8::Value>> m_value_args;
     };
 
-    result_t emit(exlib::string ev, OptArgs args, bool& retVal);
+    result_t emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal);
 
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {

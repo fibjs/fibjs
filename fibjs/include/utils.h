@@ -565,7 +565,7 @@ public:                                   \
 
 #define EVENT_SUPPORT()                                                                       \
 public:                                                                                       \
-    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func,                       \
+    virtual result_t on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,                       \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::on(ev, func, retVal);                                             \
@@ -574,7 +574,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::on(map, retVal);                                                  \
     }                                                                                         \
-    virtual result_t prependListener(exlib::string ev, v8::Local<v8::Function> func,          \
+    virtual result_t prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,          \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::prependListener(ev, func, retVal);                                \
@@ -584,7 +584,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::prependListener(map, retVal);                                     \
     }                                                                                         \
-    virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func,              \
+    virtual result_t addListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,              \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::on(ev, func, retVal);                                             \
@@ -593,12 +593,12 @@ public:                                                                         
     {                                                                                         \
         return object_base::on(map, retVal);                                                  \
     }                                                                                         \
-    virtual result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func,         \
+    virtual result_t addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,         \
         v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)                         \
     {                                                                                         \
         return object_base::addEventListener(ev, func, options, retVal);                      \
     }                                                                                         \
-    virtual result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func,      \
+    virtual result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,      \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::prependOnceListener(ev, func, retVal);                            \
@@ -608,7 +608,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::prependOnceListener(map, retVal);                                 \
     }                                                                                         \
-    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func,                     \
+    virtual result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,                     \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::once(ev, func, retVal);                                           \
@@ -617,12 +617,12 @@ public:                                                                         
     {                                                                                         \
         return object_base::once(map, retVal);                                                \
     }                                                                                         \
-    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func,                      \
+    virtual result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,                      \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::off(ev, func, retVal);                                            \
     }                                                                                         \
-    virtual result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)                     \
+    virtual result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)                     \
     {                                                                                         \
         return object_base::off(ev, retVal);                                                  \
     }                                                                                         \
@@ -630,12 +630,12 @@ public:                                                                         
     {                                                                                         \
         return object_base::off(map, retVal);                                                 \
     }                                                                                         \
-    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func,           \
+    virtual result_t removeListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,           \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::off(ev, func, retVal);                                            \
     }                                                                                         \
-    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Object>& retVal)          \
+    virtual result_t removeListener(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)          \
     {                                                                                         \
         return object_base::off(ev, retVal);                                                  \
     }                                                                                         \
@@ -644,12 +644,12 @@ public:                                                                         
     {                                                                                         \
         return object_base::off(map, retVal);                                                 \
     }                                                                                         \
-    virtual result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func,      \
+    virtual result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func,      \
         v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)                         \
     {                                                                                         \
         return object_base::removeEventListener(ev, func, options, retVal);                   \
     }                                                                                         \
-    virtual result_t removeAllListeners(exlib::string ev,                                     \
+    virtual result_t removeAllListeners(v8::Local<v8::Value> ev,                                     \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::removeAllListeners(ev, retVal);                                   \
@@ -667,23 +667,23 @@ public:                                                                         
     {                                                                                         \
         return object_base::getMaxListeners(retVal);                                          \
     }                                                                                         \
-    virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)                \
+    virtual result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)                \
     {                                                                                         \
         return object_base::listeners(ev, retVal);                                            \
     }                                                                                         \
-    virtual result_t rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal)             \
+    virtual result_t rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)             \
     {                                                                                         \
         return object_base::rawListeners(ev, retVal);                                         \
     }                                                                                         \
-    virtual result_t listenerCount(exlib::string ev, int32_t& retVal)                         \
+    virtual result_t listenerCount(v8::Local<v8::Value> ev, int32_t& retVal)                         \
     {                                                                                         \
         return object_base::listenerCount(ev, retVal);                                        \
     }                                                                                         \
-    virtual result_t listenerCount(v8::Local<v8::Value> o, exlib::string ev, int32_t& retVal) \
+    virtual result_t listenerCount(v8::Local<v8::Value> o, v8::Local<v8::Value> ev, int32_t& retVal) \
     {                                                                                         \
         return object_base::listenerCount(o, ev, retVal);                                     \
     }                                                                                         \
-    virtual result_t emit(exlib::string ev, OptArgs args,                                     \
+    virtual result_t emit(v8::Local<v8::Value> ev, OptArgs args,                                     \
         bool& retVal)                                                                         \
     {                                                                                         \
         return object_base::emit(ev, args, retVal);                                           \

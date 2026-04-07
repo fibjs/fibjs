@@ -249,7 +249,7 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, v8::
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> _retVal;
-        once("connect", connectListener, _retVal);
+        once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
     return connect(socket, server_name, ac);

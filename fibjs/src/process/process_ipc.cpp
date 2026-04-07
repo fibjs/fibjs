@@ -177,7 +177,7 @@ static void on_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
         JSTrigger t(isolate->m_isolate, args.This());
         v8::Local<v8::Array> a;
 
-        t.listeners("message", a);
+        t.listeners(fibjs::NewString(isolate->m_isolate, "message"), a);
         if (a->Length() == 0) {
             if (!isolate->m_channel)
                 isolate->m_ipc_mode = 0;

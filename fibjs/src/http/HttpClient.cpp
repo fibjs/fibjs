@@ -2123,7 +2123,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         o->is_async = true;
         o->req_holder = new ValueHolder(o->req->wrap());
         v8::Local<v8::Object> _r;
-        hr = o->req->once("response", callback, _r);
+        hr = o->req->once(o->req->holder()->NewString("response"), callback, _r);
         if (hr < 0)
             return hr;
     }

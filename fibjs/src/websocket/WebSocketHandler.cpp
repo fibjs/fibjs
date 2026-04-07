@@ -44,7 +44,7 @@ WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept, bool enableCo
     , m_maxSize(maxSize)
 {
     v8::Local<v8::Object> r;
-    on("accept", accept, r);
+    on(holder()->NewString("accept"), accept, r);
 }
 
 result_t WebSocketHandler::isRouting(bool& retVal)

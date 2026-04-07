@@ -54,7 +54,7 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object on(String ev, Function func);
+    Object on(Value ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -67,7 +67,7 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object addListener(String ev, Function func);
+    Object addListener(Value ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -85,14 +85,14 @@ interface EventEmitter : object
     @param options 指定事件处理函数的选项
     @return 返回事件对象本身，便于链式调用
     */
-    Object addEventListener(String ev, Function func, Object options = {});
+    Object addEventListener(Value ev, Function func, Object options = {});
 
     /*! @brief 绑定一个事件处理函数到对象起始
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object prependListener(String ev, Function func);
+    Object prependListener(Value ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -105,7 +105,7 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object once(String ev, Function func);
+    Object once(Value ev, Function func);
 
     /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -118,7 +118,7 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object prependOnceListener(String ev, Function func);
+    Object prependOnceListener(Value ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -131,13 +131,13 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object off(String ev, Function func);
+    Object off(Value ev, Function func);
 
     /*! @brief 取消对象处理队列中的全部函数
     @param ev 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-    Object off(String ev);
+    Object off(Value ev);
 
     /*! @brief 从对象处理队列中取消指定函数
     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
@@ -150,13 +150,13 @@ interface EventEmitter : object
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-    Object removeListener(String ev, Function func);
+    Object removeListener(Value ev, Function func);
 
     /*! @brief 取消对象处理队列中的全部函数
     @param ev 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-    Object removeListener(String ev);
+    Object removeListener(Value ev);
 
     /*! @brief 从对象处理队列中取消指定函数
     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
@@ -170,13 +170,13 @@ interface EventEmitter : object
     @param options 指定事件处理函数的选项
     @return 返回事件对象本身，便于链式调用
     */
-    Object removeEventListener(String ev, Function func, Object options = {});
+    Object removeEventListener(Value ev, Function func, Object options = {});
 
     /*! @brief 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
     @param ev 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-    Object removeAllListeners(String ev);
+    Object removeAllListeners(Value ev);
 
     /*! @brief 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
     @param evs 指定事件的名称
@@ -198,26 +198,26 @@ interface EventEmitter : object
     @param ev 指定事件的名称
     @return 返回指定事件的监听器数组
    */
-    Array listeners(String ev);
+    Array listeners(Value ev);
 
     /*! @brief 查询对象指定事件的监听器数组，包含 once 包装函数
     @param ev 指定事件的名称
     @return 返回指定事件的监听器数组
    */
-    Array rawListeners(String ev);
+    Array rawListeners(Value ev);
 
     /*! @brief 查询对象指定事件的监听器数量
     @param ev 指定事件的名称
     @return 返回指定事件的监听器数量
    */
-    Integer listenerCount(String ev);
+    Integer listenerCount(Value ev);
 
     /*! @brief 查询对象指定事件的监听器数量
     @param o 指定查询的对象
     @param ev 指定事件的名称
     @return 返回指定事件的监听器数量
    */
-    Integer listenerCount(Value o, String ev);
+    Integer listenerCount(Value o, Value ev);
 
     /*! @brief 查询监听器事件名称
     @return 返回事件名称数组
@@ -229,7 +229,7 @@ interface EventEmitter : object
     @param args 事件参数，将会传递给事件处理函数
     @return 返回事件触发状态，有响应事件返回 true，否则返回 false
    */
-    Boolean emit(String ev, ...args);
+    Boolean emit(Value ev, ...args);
 
     /*! @brief 监听一个 AbortSignal 的 abort 事件，返回一个可释放的对象
 
@@ -253,7 +253,7 @@ interface EventEmitter : object
     @param options 可选参数对象
     @return 返回 Promise，以事件参数数组解析
    */
-    static Object once(EventEmitter emitter, String ev, Object options = {});
+    static Object once(EventEmitter emitter, Value ev, Object options = {});
 
     /*! @brief 创建一个异步迭代器，持续监听指定事件
 
@@ -268,5 +268,5 @@ interface EventEmitter : object
     @param options 可选参数对象
     @return 返回 AsyncIterator 对象
    */
-    static Object on(EventEmitter emitter, String ev, Object options = {});
+    static Object on(EventEmitter emitter, Value ev, Object options = {});
 };

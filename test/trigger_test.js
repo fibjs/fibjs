@@ -887,5 +887,158 @@ describe("Trigger/EventEmitter", () => {
             });
         });
     });
+
+    describe("Symbol event names", () => {
+        it("on/emit with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('test');
+            var called = false;
+            e.on(sym, () => { called = true; });
+            assert.isTrue(e.emit(sym));
+            assert.isTrue(called);
+        });
+
+        it("once with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('once');
+            var count = 0;
+            e.once(sym, () => { count++; });
+            e.emit(sym);
+            e.emit(sym);
+            assert.equal(count, 1);
+        });
+
+        it("off with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('off');
+            var count = 0;
+            var fn = () => { count++; };
+            e.on(sym, fn);
+            e.emit(sym);
+            e.off(sym, fn);
+            e.emit(sym);
+            assert.equal(count, 1);
+        });
+
+        it("listenerCount with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('count');
+            var fn1 = () => {};
+            var fn2 = () => {};
+            e.on(sym, fn1);
+            e.on(sym, fn2);
+            assert.equal(e.listenerCount(sym), 2);
+            e.off(sym, fn1);
+            assert.equal(e.listenerCount(sym), 1);
+        });
+
+        it("listeners with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('listeners');
+            var fn1 = () => {};
+            var fn2 = () => {};
+            e.on(sym, fn1);
+            e.on(sym, fn2);
+            assert.deepEqual(e.listeners(sym), [fn1, fn2]);
+        });
+
+        it("removeAllListeners with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('removeAll');
+            e.on(sym, () => {});
+            e.on(sym, () => {});
+            assert.equal(e.listenerCount(sym), 2);
+            e.removeAllListeners(sym);
+            assert.equal(e.listenerCount(sym), 0);
+        });
+
+        it("emit with Symbol passes args correctly", () => {
+            var e = new events();
+            var sym = Symbol('args');
+            var received;
+            e.on(sym, (a, b) => { received = [a, b]; });
+            e.emit(sym, 'hello', 42);
+            assert.deepEqual(received, ['hello', 42]);
+        });
+
+        it("different Symbols are independent", () => {
+            var e = new events();
+            var sym1 = Symbol('s1');
+            var sym2 = Symbol('s2');
+            var calls = [];
+            e.on(sym1, () => { calls.push(1); });
+            e.on(sym2, () => { calls.push(2); });
+            e.emit(sym1);
+            assert.deepEqual(calls, [1]);
+            e.emit(sym2);
+            assert.deepEqual(calls, [1, 2]);
+        });
+
+        it("Symbol and string with same description are independent", () => {
+            var e = new events();
+            var sym = Symbol('test');
+            var calls = [];
+            e.on(sym, () => { calls.push('symbol'); });
+            e.on('test', () => { calls.push('string'); });
+            e.emit(sym);
+            assert.deepEqual(calls, ['symbol']);
+            e.emit('test');
+            assert.deepEqual(calls, ['symbol', 'string']);
+        });
+
+        it("prependListener with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('prepend');
+            var order = [];
+            e.on(sym, () => { order.push(2); });
+            e.prependListener(sym, () => { order.push(1); });
+            e.emit(sym);
+            assert.deepEqual(order, [1, 2]);
+        });
+
+        it("prependOnceListener with Symbol", () => {
+            var e = new events();
+            var sym = Symbol('prependOnce');
+            var order = [];
+            e.on(sym, () => { order.push(2); });
+            e.prependOnceListener(sym, () => { order.push(1); });
+            e.emit(sym);
+            e.emit(sym);
+            assert.deepEqual(order, [1, 2, 2]);
+        });
+
+        it("error Symbol does not trigger error handling", () => {
+            var e = new events();
+            var sym = Symbol('error');
+            var called = false;
+            e.on(sym, () => { called = true; });
+            // Symbol('error') is not the string 'error', so no special handling
+            assert.isTrue(e.emit(sym));
+            assert.isTrue(called);
+        });
+
+        it("newListener event fires for Symbol listeners", () => {
+            var e = new events();
+            var sym = Symbol('newListenerTest');
+            var captured;
+            e.on('newListener', (type, fn) => { captured = type; });
+            var handler = () => {};
+            e.on(sym, handler);
+            assert.equal(captured, sym);
+            e.off('newListener');
+        });
+
+        it("removeListener event fires for Symbol listeners", () => {
+            var e = new events();
+            var sym = Symbol('removeListenerTest');
+            var captured;
+            var handler = () => {};
+            e.on(sym, handler);
+            e.on('removeListener', (type, fn) => { captured = type; });
+            e.off(sym, handler);
+            assert.equal(captured, sym);
+            e.off('removeListener');
+        });
+    });
 });
 

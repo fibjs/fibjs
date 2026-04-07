@@ -226,7 +226,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
         ac->m_ctx[0] = socket;
 
         v8::Local<v8::Object> _retVal;
-        socket->once("connect", connectListener, _retVal);
+        socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -269,7 +269,7 @@ result_t net_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
         ac->m_ctx[1] = socket;
 
         v8::Local<v8::Object> _retVal;
-        socket->once("connect", connectListener, _retVal);
+        socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }

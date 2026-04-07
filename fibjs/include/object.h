@@ -212,30 +212,30 @@ public:
 
 public:
     // Event
-    result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
-    result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
-    result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
+    result_t prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
-    result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
-    result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
-    result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t off(exlib::string ev, v8::Local<v8::Object>& retVal);
+    result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
-    result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
-    result_t removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal);
+    result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
+    result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);
     result_t setMaxListeners(int32_t n);
     result_t getMaxListeners(int32_t& retVal);
     result_t setListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t getListener(exlib::string ev, v8::Local<v8::Function>& func);
-    result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
-    result_t rawListeners(exlib::string ev, v8::Local<v8::Array>& retVal);
-    result_t listenerCount(exlib::string ev, int32_t& retVal);
-    result_t listenerCount(v8::Local<v8::Value> o, exlib::string ev, int32_t& retVal);
-    result_t emit(exlib::string ev, OptArgs args, bool& retVal);
+    result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);
+    result_t rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);
+    result_t listenerCount(v8::Local<v8::Value> ev, int32_t& retVal);
+    result_t listenerCount(v8::Local<v8::Value> o, v8::Local<v8::Value> ev, int32_t& retVal);
+    result_t emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal);
     result_t eventNames(v8::Local<v8::Array>& retVal);
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
     result_t _emit(exlib::string ev, Variant* args = NULL, int32_t argCount = 0);
@@ -331,16 +331,48 @@ public:
         return JSValue(GetPrivateObject()->Get(context, holder()->NewString(key)));
     }
 
+    // Symbol-aware overload: accepts any v8::Value as key (string or Symbol)
+    v8::Local<v8::Value> GetPrivate(v8::Local<v8::Value> key)
+    {
+        v8::Local<v8::Context> context = holder()->context();
+        v8::Local<v8::Object> po = GetPrivateObject();
+        if (key->IsSymbol())
+            return JSValue(po->Get(context, key.As<v8::Symbol>()));
+        return JSValue(po->Get(context, key));
+    }
+
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
         v8::Local<v8::Context> context = holder()->context();
         GetPrivateObject()->Set(context, holder()->NewString(key), value).IsJust();
     }
 
+    // Symbol-aware overload: accepts any v8::Value as key (string or Symbol)
+    void SetPrivate(v8::Local<v8::Value> key, v8::Local<v8::Value> value)
+    {
+        v8::Local<v8::Context> context = holder()->context();
+        v8::Local<v8::Object> po = GetPrivateObject();
+        if (key->IsSymbol())
+            po->Set(context, key.As<v8::Symbol>(), value).IsJust();
+        else
+            po->Set(context, key, value).IsJust();
+    }
+
     void DeletePrivate(exlib::string key)
     {
         v8::Local<v8::Context> context = holder()->context();
         GetPrivateObject()->Delete(context, holder()->NewString(key)).IsJust();
+    }
+
+    // Symbol-aware overload
+    void DeletePrivate(v8::Local<v8::Value> key)
+    {
+        v8::Local<v8::Context> context = holder()->context();
+        v8::Local<v8::Object> po = GetPrivateObject();
+        if (key->IsSymbol())
+            po->Delete(context, key.As<v8::Symbol>()).IsJust();
+        else
+            po->Delete(context, key).IsJust();
     }
 
 public:

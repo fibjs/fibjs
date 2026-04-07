@@ -142,7 +142,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
 
         if (!connectListener.IsEmpty()) {
             v8::Local<v8::Object> _retVal;
-            ssl_sock->once("connect", connectListener, _retVal);
+            ssl_sock->once(ssl_sock->holder()->NewString("connect"), connectListener, _retVal);
         }
 
         ac->m_ctx[0] = ssl_sock;
@@ -187,7 +187,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
         if (!connectListener.IsEmpty()) {
             v8::Local<v8::Object> _retVal;
-            ssl_sock->once("connect", connectListener, _retVal);
+            ssl_sock->once(ssl_sock->holder()->NewString("connect"), connectListener, _retVal);
         }
 
         ac->m_ctx[0] = ssl_sock;
@@ -240,7 +240,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
 
         if (!connectListener.IsEmpty()) {
             v8::Local<v8::Object> _retVal;
-            ssl_sock->once("connect", connectListener, _retVal);
+            ssl_sock->once(ssl_sock->holder()->NewString("connect"), connectListener, _retVal);
         }
 
         ac->m_ctx[0] = ssl_sock;
@@ -277,7 +277,7 @@ result_t tls_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
 
         if (!connectListener.IsEmpty()) {
             v8::Local<v8::Object> _retVal;
-            ssl_sock->once("connect", connectListener, _retVal);
+            ssl_sock->once(ssl_sock->holder()->NewString("connect"), connectListener, _retVal);
         }
 
         ac->m_ctx[0] = ssl_sock;

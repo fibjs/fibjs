@@ -25,7 +25,7 @@ const char* s_cmd[][2] = {
 bool Redis::regsub(exlib::string& key, v8::Local<v8::Function> func)
 {
     v8::Local<v8::Object> r;
-    on(key, func, r);
+    on(holder()->NewString(key), func, r);
 
     std::unordered_map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
@@ -42,7 +42,7 @@ bool Redis::regsub(exlib::string& key, v8::Local<v8::Function> func)
 bool Redis::unregsub(exlib::string& key, v8::Local<v8::Function> func)
 {
     v8::Local<v8::Object> r;
-    off(key, func, r);
+    off(holder()->NewString(key), func, r);
 
     std::unordered_map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
@@ -154,7 +154,7 @@ result_t Redis::unsub(exlib::string key, int32_t cmd)
 {
     v8::Local<v8::Object> r;
     exlib::string key1 = s_cmd[cmd][1] + key;
-    off(key1, r);
+    off(holder()->NewString(key1), r);
     m_funcs.erase(key1);
 
     Variant v;
@@ -189,7 +189,7 @@ result_t Redis::unsub(v8::Local<v8::Array>& channels, int32_t cmd)
         s = s_cmd[cmd][1] + s;
 
         v8::Local<v8::Object> r;
-        off(s, r);
+        off(isolate->NewString(s), r);
         m_funcs.erase(s);
     }
 

@@ -153,10 +153,10 @@ public:
     void removeChangeHandler(v8::Local<v8::Function> callback)
     {
         v8::Local<v8::Object> triggers;
-        this->off(exlib::string("change"), callback, triggers);
+        this->off(holder()->NewString("change"), callback, triggers);
 
         int32_t count;
-        listenerCount("change", count);
+        listenerCount(holder()->NewString("change"), count);
 
         if (count == 0)
             close();
@@ -164,7 +164,7 @@ public:
     void removeChangeHandler()
     {
         v8::Local<v8::Object> triggers;
-        this->off(exlib::string("change"), triggers);
+        this->off(holder()->NewString("change"), triggers);
 
         close();
     }

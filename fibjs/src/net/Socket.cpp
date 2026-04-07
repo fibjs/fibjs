@@ -221,7 +221,7 @@ result_t Socket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, o
     m_timeout = timeout;
     if (!callback.IsEmpty() && !callback->IsUndefined()) {
         v8::Local<v8::Object> r;
-        once("timeout", callback, r);
+        once(holder()->NewString("timeout"), callback, r);
     }
     retVal = this;
     return 0;
@@ -395,7 +395,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, v8::
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> _retVal;
-        once("connect", connectListener, _retVal);
+        once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
     return connect(port, host, timeout, retVal, ac);
@@ -415,7 +415,7 @@ result_t Socket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> 
 {
     if (ac->isSync()) {
         v8::Local<v8::Object> _retVal;
-        once("connect", connectListener, _retVal);
+        once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
     return connect(options, retVal, ac);

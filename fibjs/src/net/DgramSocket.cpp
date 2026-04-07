@@ -51,7 +51,7 @@ result_t dgram_base::createSocket(exlib::string type, v8::Local<v8::Function> ca
         return hr;
 
     v8::Local<v8::Object> r;
-    retVal->on("message", callback, r);
+    retVal->on(retVal->holder()->NewString("message"), callback, r);
 
     return 0;
 }
@@ -105,7 +105,7 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, v8::Local<v8::Func
         return hr;
 
     v8::Local<v8::Object> r;
-    retVal->on("message", callback, r);
+    retVal->on(retVal->holder()->NewString("message"), callback, r);
 
     return 0;
 }
@@ -372,7 +372,7 @@ result_t DgramSocket::close()
 result_t DgramSocket::close(v8::Local<v8::Function> callback)
 {
     v8::Local<v8::Object> r;
-    on("close", callback, r);
+    on(holder()->NewString("close"), callback, r);
     return close();
 }
 

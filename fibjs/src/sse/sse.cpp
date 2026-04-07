@@ -26,7 +26,7 @@ result_t sse_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>
 EventSourceHandler::EventSourceHandler(v8::Local<v8::Function> accept)
 {
     v8::Local<v8::Object> r;
-    on("accept", accept, r);
+    on(holder()->NewString("accept"), accept, r);
 }
 
 result_t EventSourceHandler::isRouting(bool& retVal)

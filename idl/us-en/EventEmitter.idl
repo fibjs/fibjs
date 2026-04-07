@@ -54,7 +54,7 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object on(String ev, Function func);
+    Object on(Value ev, Function func);
 
     /*! @brief Bind an event handler function to the object
     @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
@@ -67,7 +67,7 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object addListener(String ev, Function func);
+    Object addListener(Value ev, Function func);
 
     /*! @brief Bind an event handler function to the object
     @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
@@ -85,14 +85,14 @@ interface EventEmitter : object
     @param options Specifies the options for the event handler function
     @return Returns the event object itself for chaining
     */
-    Object addEventListener(String ev, Function func, Object options = {});
+    Object addEventListener(Value ev, Function func, Object options = {});
 
     /*! @brief Bind an event handler function to the beginning of the object
     @param ev Specifies the event name
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object prependListener(String ev, Function func);
+    Object prependListener(Value ev, Function func);
 
     /*! @brief Bind an event handler function to the beginning of the object
     @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
@@ -105,7 +105,7 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object once(String ev, Function func);
+    Object once(Value ev, Function func);
 
     /*! @brief Bind a one-time event handler function to the object, the one-time handler function will only trigger once
     @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
@@ -118,7 +118,7 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object prependOnceListener(String ev, Function func);
+    Object prependOnceListener(Value ev, Function func);
 
     /*! @brief Bind an event handler function to the beginning of the object
     @param map Specifies the event mapping relationship, object property names will be used as event names, property values will be used as event handler functions
@@ -131,13 +131,13 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object off(String ev, Function func);
+    Object off(Value ev, Function func);
 
     /*! @brief Remove all functions from the object's processing queue
     @param ev Specifies the event name
     @return Returns the event object itself for chaining
    */
-    Object off(String ev);
+    Object off(Value ev);
 
     /*! @brief Remove the specified function from the object's processing queue
     @param map Specifies the event mapping relationship, object property names as event names, property values as event handler functions
@@ -150,13 +150,13 @@ interface EventEmitter : object
     @param func Specifies the event handler function
     @return Returns the event object itself for chaining
    */
-    Object removeListener(String ev, Function func);
+    Object removeListener(Value ev, Function func);
 
     /*! @brief Remove all functions from the object's processing queue
     @param ev Specifies the event name
     @return Returns the event object itself for chaining
    */
-    Object removeListener(String ev);
+    Object removeListener(Value ev);
 
     /*! @brief Remove the specified function from the object's processing queue
     @param map Specifies the event mapping relationship, object property names as event names, property values as event handler functions
@@ -170,13 +170,13 @@ interface EventEmitter : object
     @param options Specifies the options for the event handler function
     @return Returns the event object itself for chaining
     */
-    Object removeEventListener(String ev, Function func, Object options = {});
+    Object removeEventListener(Value ev, Function func, Object options = {});
 
     /*! @brief Remove all listeners for all events from the object's processing queue, if an event is specified, remove all listeners for the specified event.
     @param ev Specifies the event name
     @return Returns the event object itself for chaining
    */
-    Object removeAllListeners(String ev);
+    Object removeAllListeners(Value ev);
 
     /*! @brief Remove all listeners for all events from the object's processing queue, if an event is specified, remove all listeners for the specified event.
     @param evs Specifies the event names
@@ -198,26 +198,26 @@ interface EventEmitter : object
     @param ev Specifies the event name
     @return Returns the listener array for the specified event
    */
-    Array listeners(String ev);
+    Array listeners(Value ev);
 
     /*! @brief Query the raw listener array for the specified event of the object, including once wrappers
     @param ev Specifies the event name
     @return Returns the raw listener array for the specified event
    */
-    Array rawListeners(String ev);
+    Array rawListeners(Value ev);
 
     /*! @brief Query the number of listeners for the specified event of the object
     @param ev Specifies the event name
     @return Returns the number of listeners for the specified event
    */
-    Integer listenerCount(String ev);
+    Integer listenerCount(Value ev);
 
     /*! @brief Query the number of listeners for the specified event of the object
     @param o Specifies the object to query
     @param ev Specifies the event name
     @return Returns the number of listeners for the specified event
    */
-    Integer listenerCount(Value o, String ev);
+    Integer listenerCount(Value o, Value ev);
 
     /*! @brief Query listener event names
     @return Returns the array of event names
@@ -229,7 +229,7 @@ interface EventEmitter : object
     @param args Event parameters, will be passed to the event handler function
     @return Returns the event trigger status, returns true if there is a response event, otherwise returns false
    */
-    Boolean emit(String ev, ...args);
+    Boolean emit(Value ev, ...args);
 
     /*! @brief Listen to an AbortSignal's abort event, returns a disposable object
 
@@ -253,7 +253,7 @@ interface EventEmitter : object
     @param options Optional parameters object
     @return Returns a Promise that resolves with the event arguments array
    */
-    static Object once(EventEmitter emitter, String ev, Object options = {});
+    static Object once(EventEmitter emitter, Value ev, Object options = {});
 
     /*! @brief Create an async iterator that continuously listens for the specified event
 
@@ -268,5 +268,5 @@ interface EventEmitter : object
     @param options Optional parameters object
     @return Returns an AsyncIterator object
    */
-    static Object on(EventEmitter emitter, String ev, Object options = {});
+    static Object on(EventEmitter emitter, Value ev, Object options = {});
 };

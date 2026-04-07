@@ -85,7 +85,7 @@ result_t Http2Session::onEventChange(exlib::string type, exlib::string ev, v8::L
         return 0;
 
     int32_t count = 0;
-    listenerCount("stream", count);
+    listenerCount(holder()->NewString("stream"), count);
 
     // EventEmitter triggers "newListener" before insertion, so count is old value.
     if (type == "newListener") {

@@ -65,7 +65,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    on(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个事件处理函数到对象
@@ -82,7 +82,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    addListener(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个事件处理函数到对象
@@ -104,7 +104,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *     
      */
-    addEventListener(ev: string, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个事件处理函数到对象起始
@@ -113,7 +113,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    prependListener(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个事件处理函数到对象起始
@@ -130,7 +130,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    once(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
@@ -147,7 +147,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    prependOnceListener(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 绑定一个事件处理函数到对象起始
@@ -164,7 +164,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    off(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 取消对象处理队列中的全部函数
@@ -172,7 +172,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    off(ev: string): FIBJS.GeneralObject;
+    off(ev: any): FIBJS.GeneralObject;
 
     /**
      * @description 从对象处理队列中取消指定函数
@@ -189,7 +189,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    removeListener(ev: string, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 取消对象处理队列中的全部函数
@@ -197,7 +197,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    removeListener(ev: string): FIBJS.GeneralObject;
+    removeListener(ev: any): FIBJS.GeneralObject;
 
     /**
      * @description 从对象处理队列中取消指定函数
@@ -215,7 +215,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *     
      */
-    removeEventListener(ev: string, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
@@ -223,7 +223,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    removeAllListeners(ev: string): FIBJS.GeneralObject;
+    removeAllListeners(ev: any): FIBJS.GeneralObject;
 
     /**
      * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
@@ -253,7 +253,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数组
      *    
      */
-    listeners(ev: string): any[];
+    listeners(ev: any): any[];
 
     /**
      * @description 查询对象指定事件的监听器数组，包含 once 包装函数
@@ -261,7 +261,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数组
      *    
      */
-    rawListeners(ev: string): any[];
+    rawListeners(ev: any): any[];
 
     /**
      * @description 查询对象指定事件的监听器数量
@@ -269,7 +269,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数量
      *    
      */
-    listenerCount(ev: string): number;
+    listenerCount(ev: any): number;
 
     /**
      * @description 查询对象指定事件的监听器数量
@@ -278,7 +278,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数量
      *    
      */
-    listenerCount(o: any, ev: string): number;
+    listenerCount(o: any, ev: any): number;
 
     /**
      * @description 查询监听器事件名称
@@ -294,7 +294,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件触发状态，有响应事件返回 true，否则返回 false
      *    
      */
-    emit(ev: string, ...args: any[]): boolean;
+    emit(ev: any, ...args: any[]): boolean;
 
     /**
      * @description 监听一个 AbortSignal 的 abort 事件，返回一个可释放的对象
@@ -322,7 +322,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回 Promise，以事件参数数组解析
      *    
      */
-    static once(emitter: Class_EventEmitter, ev: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    static once(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 创建一个异步迭代器，持续监听指定事件
@@ -339,7 +339,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回 AsyncIterator 对象
      *    
      */
-    static on(emitter: Class_EventEmitter, ev: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    static on(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 
