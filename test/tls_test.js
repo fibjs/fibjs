@@ -239,14 +239,10 @@ describe('tls', () => {
                     it('deleted during resolve', () => {
                         var ctx = tls.createSecureContext({
                             "SNIResolver": (domain) => {
-                                coroutine.sleep(100);
+                                ctx.removeSNIContext(domain);
                                 return sni_resolver(domain);
                             }
                         }, true);
-
-                        setImmediate(() => {
-                            ctx.removeSNIContext("test");
-                        });
 
                         assert.equal(ctx.getSNIContext("test", true).cert.subject, 'CN=test');
                         assert.equal(ctx.getSNIContext("test"), undefined);
@@ -255,14 +251,10 @@ describe('tls', () => {
                     it('deleted during resolve return nothing', () => {
                         var ctx = tls.createSecureContext({
                             "SNIResolver": (domain) => {
-                                coroutine.sleep(100);
+                                ctx.removeSNIContext(domain);
                                 return;
                             }
                         }, true);
-
-                        setImmediate(() => {
-                            ctx.removeSNIContext("test");
-                        });
 
                         assert.equal(ctx.getSNIContext("test", true), undefined);
                         assert.equal(ctx.getSNIContext("test"), undefined);
@@ -1111,7 +1103,8 @@ describe('tls', () => {
                     svr.onlistening = () => { fired = true; };
                     svr.start();
                     test_util.push(svr.socket);
-                    coroutine.sleep(0);
+                    for (var i = 0; i < 10 && !fired; i++)
+                        coroutine.sleep(0);
                     assert.strictEqual(fired, true);
                 });
             });
