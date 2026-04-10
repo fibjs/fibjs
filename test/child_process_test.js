@@ -434,6 +434,14 @@ describe("child_process", () => {
     const isAndroid = process.platform === 'android';
     
     if (!process.env.QEMU_LD_PREFIX && !isAndroid) {
+        it("exec with input", () => {
+            var ret = child_process.exec("cat", { input: "hello from exec\n" });
+            assert.equal(ret.stdout, "hello from exec\n");
+
+            var ret = child_process.exec("cat | tr a-z A-Z", { input: "lowercase\n" });
+            assert.equal(ret.stdout, "LOWERCASE\n");
+        });
+
         it("exec", () => {
             var ret = child_process.exec("export a = 100");
             assert.equal(ret.stdout, null);
@@ -483,6 +491,20 @@ describe("child_process", () => {
             });
         });
 
+        it("execSync with input", () => {
+            // string input
+            var ret = child_process.execSync("cat", { input: "hello from execSync\n" });
+            assert.equal(ret, "hello from execSync\n");
+
+            // Buffer input
+            var ret = child_process.execSync("cat", { input: Buffer.from("buffer execSync\n") });
+            assert.equal(ret, "buffer execSync\n");
+
+            // input to shell command via stdin
+            var ret = child_process.execSync("cat | tr a-z A-Z", { input: "lowercase\n" });
+            assert.equal(ret, "LOWERCASE\n");
+        });
+
         it("execSync", () => {
             // Test successful execSync
             var ret = child_process.execSync("echo hello");
@@ -529,6 +551,24 @@ describe("child_process", () => {
                 var ret = child_process.execSync(`echo "hello world"`);
                 assert.equal(ret, `hello world\n`);
             }
+        });
+
+        it("execFileSync with input", () => {
+            // string input
+            var ret = child_process.execFileSync("cat", [], { input: "hello from execFileSync\n" });
+            assert.equal(ret, "hello from execFileSync\n");
+
+            // Buffer input
+            var ret = child_process.execFileSync("cat", [], { input: Buffer.from("buffer execFileSync\n") });
+            assert.equal(ret, "buffer execFileSync\n");
+
+            // empty input
+            var ret = child_process.execFileSync("cat", [], { input: "" });
+            assert.equal(ret, null);
+
+            // input without args array
+            var ret = child_process.execFileSync("cat", { input: "no args array\n" });
+            assert.equal(ret, "no args array\n");
         });
 
         it("execFileSync", () => {
@@ -1101,6 +1141,16 @@ describe("child_process", () => {
 
         assert.ok(Buffer.isBuffer(result.stdout));
         assert.ok(Buffer.isBuffer(result.stderr));
+    });
+
+    it("execFile with string input", () => {
+        var ret = child_process.execFile("cat", [], { input: "hello from execFile\n" });
+        assert.equal(ret.stdout, "hello from execFile\n");
+    });
+
+    it("execFile with Buffer input", () => {
+        var ret = child_process.execFile("cat", [], { input: Buffer.from("buffer execFile\n") });
+        assert.equal(ret.stdout, "buffer execFile\n");
     });
 
     it("argv 1", () => {

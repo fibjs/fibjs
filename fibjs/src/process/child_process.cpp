@@ -68,6 +68,38 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
 {
     class ReadStdout : public AsyncEvent {
     public:
+        // Helper to write input to stdin then close it
+        class WriteStdin : public AsyncEvent {
+        public:
+            WriteStdin(obj_ptr<Stream_base> stdin_stream, obj_ptr<Buffer_base> buf, ReadStdout* parent)
+                : m_stdin(stdin_stream)
+                , m_buf(buf)
+                , m_parent(parent)
+                , m_phase(0)
+            {
+                setAsync();
+                m_stdin->writeBuffer(m_buf, this);
+            }
+
+            virtual int32_t post(int32_t v)
+            {
+                if (m_phase == 0) {
+                    m_phase = 1;
+                    m_stdin->close(this);
+                } else {
+                    m_parent->post(0);
+                    delete this;
+                }
+                return 0;
+            }
+
+        private:
+            obj_ptr<Stream_base> m_stdin;
+            obj_ptr<Buffer_base> m_buf;
+            ReadStdout* m_parent;
+            int32_t m_phase;
+        };
+
         ReadStdout(obj_ptr<ExecFileType>& retVal, AsyncEvent* ac)
             : m_codec(ac->m_ctx[0].string())
             , m_retVal(retVal)
@@ -86,6 +118,19 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             if (m_stderr) {
                 m_cnt.inc();
                 m_buferr = new MemoryStream();
+            }
+
+            // Write input to stdin if provided
+            if (ac->m_ctx.size() > 1) {
+                obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac->m_ctx[1].object();
+                if (input_buf) {
+                    obj_ptr<Stream_base> stdin_stream;
+                    m_cp->get_stdin(stdin_stream);
+                    if (stdin_stream) {
+                        m_cnt.inc();
+                        new WriteStdin(stdin_stream, input_buf, this);
+                    }
+                }
             }
 
             m_cnt.inc();
@@ -176,13 +221,31 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         exlib::string codec("utf8");
         GetConfigValue(opts, "encoding", codec);
 
+        // Extract input option (string or Buffer)
+        obj_ptr<Buffer_base> input_buf;
+        if (!opts.IsEmpty()) {
+            Isolate* isolate = Isolate::current(opts);
+            JSValue input_val = opts->Get(isolate->context(), isolate->NewString("input"));
+            if (!input_val.IsEmpty() && !input_val->IsUndefined() && !input_val->IsNull()) {
+                if (input_val->IsString()) {
+                    exlib::string input_str;
+                    GetArgumentValue(isolate, input_val, input_str);
+                    Buffer_base::_new(input_str, "utf8", input_buf);
+                } else {
+                    GetArgumentValue(isolate, input_val, input_buf);
+                }
+            }
+        }
+
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)
             return hr;
 
         ac->m_ctxo = cp;
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(input_buf ? 2 : 1);
         ac->m_ctx[0] = codec;
+        if (input_buf)
+            ac->m_ctx[1] = input_buf;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
