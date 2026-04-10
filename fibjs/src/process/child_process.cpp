@@ -16,6 +16,17 @@ namespace fibjs {
 
 DECLARE_MODULE(child_process);
 
+// Set default encoding on options if not already specified
+static void setDefaultEncoding(v8::Local<v8::Object>& options, const char* encoding)
+{
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::String> key = isolate->NewString("encoding");
+
+    if (!options->Has(context, key).FromMaybe(false))
+        options->Set(context, key, isolate->NewString(encoding)).Check();
+}
+
 // Helper function to throw execSync/execFileSync error when child process exits with non-zero code
 static void throwExecSyncError(const exlib::string& command, int32_t exitCode,
     const Variant& stdout_val, const Variant& stderr_val, v8::Local<v8::Object> options)
@@ -578,6 +589,8 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Obje
 
 result_t child_process_base::execSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal)
 {
+    setDefaultEncoding(options, "buffer");
+
     obj_ptr<ExecType> exec_retVal;
     result_t hr = ac_exec(command, options, exec_retVal);
     if (hr < 0)
@@ -597,6 +610,8 @@ result_t child_process_base::execSync(exlib::string command, v8::Local<v8::Objec
 
 result_t child_process_base::execFileSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, Variant& retVal)
 {
+    setDefaultEncoding(options, "buffer");
+
     obj_ptr<ExecFileType> exec_retVal;
     result_t hr = ac_execFile(command, args, options, exec_retVal);
     if (hr < 0)

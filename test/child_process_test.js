@@ -494,21 +494,25 @@ describe("child_process", () => {
         it("execSync with input", () => {
             // string input
             var ret = child_process.execSync("cat", { input: "hello from execSync\n" });
-            assert.equal(ret, "hello from execSync\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "hello from execSync\n");
 
             // Buffer input
             var ret = child_process.execSync("cat", { input: Buffer.from("buffer execSync\n") });
-            assert.equal(ret, "buffer execSync\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "buffer execSync\n");
 
             // input to shell command via stdin
             var ret = child_process.execSync("cat | tr a-z A-Z", { input: "lowercase\n" });
-            assert.equal(ret, "LOWERCASE\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "LOWERCASE\n");
         });
 
         it("execSync", () => {
             // Test successful execSync
             var ret = child_process.execSync("echo hello");
-            assert.equal(ret, "hello" + os.EOL);
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "hello" + os.EOL);
 
             // Test execSync with encoding
             var ret = child_process.execSync("echo world", { encoding: 'utf8' });
@@ -538,29 +542,35 @@ describe("child_process", () => {
                     assert.equal(error.status, 127);
                 }
                 assert.equal(error.signal, null);
-                assert.ok(error.stderr.includes("command not found") ||
-                    error.stderr.includes("not found") ||
-                    error.stderr.includes("not recognized"));
+                assert.ok(Buffer.isBuffer(error.stderr));
+                var stderrStr = error.stderr.toString();
+                assert.ok(stderrStr.includes("command not found") ||
+                    stderrStr.includes("not found") ||
+                    stderrStr.includes("not recognized"));
                 return true;
             });
 
             if (isWin32) {
                 var ret = child_process.execSync(`echo "hello world"`);
-                assert.equal(ret, `"hello world"\r\n`);
+                assert.ok(Buffer.isBuffer(ret));
+                assert.equal(ret.toString(), `"hello world"\r\n`);
             } else {
                 var ret = child_process.execSync(`echo "hello world"`);
-                assert.equal(ret, `hello world\n`);
+                assert.ok(Buffer.isBuffer(ret));
+                assert.equal(ret.toString(), `hello world\n`);
             }
         });
 
         it("execFileSync with input", () => {
             // string input
             var ret = child_process.execFileSync("cat", [], { input: "hello from execFileSync\n" });
-            assert.equal(ret, "hello from execFileSync\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "hello from execFileSync\n");
 
             // Buffer input
             var ret = child_process.execFileSync("cat", [], { input: Buffer.from("buffer execFileSync\n") });
-            assert.equal(ret, "buffer execFileSync\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "buffer execFileSync\n");
 
             // empty input
             var ret = child_process.execFileSync("cat", [], { input: "" });
@@ -568,7 +578,8 @@ describe("child_process", () => {
 
             // input without args array
             var ret = child_process.execFileSync("cat", { input: "no args array\n" });
-            assert.equal(ret, "no args array\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "no args array\n");
         });
 
         it("execFileSync", () => {
@@ -576,7 +587,8 @@ describe("child_process", () => {
             var ret = child_process.execFileSync(cmd, [
                 path.join(__dirname, "process", "exec_sync_success.js")
             ]);
-            assert.equal(ret, "execSync success output\n");
+            assert.ok(Buffer.isBuffer(ret));
+            assert.equal(ret.toString(), "execSync success output\n");
 
             // Test execFileSync with encoding
             var ret = child_process.execFileSync(cmd, [
@@ -589,7 +601,8 @@ describe("child_process", () => {
                 path.join(__dirname, "process", "exec_file_sync.js"),
                 "arg1", "arg2"
             ]);
-            assert.ok(ret.includes('["arg1","arg2"]'));
+            assert.ok(Buffer.isBuffer(ret));
+            assert.ok(ret.toString().includes('["arg1","arg2"]'));
 
             // Test execFileSync error case
             assert.throws(() => {
@@ -599,8 +612,10 @@ describe("child_process", () => {
             }, (error) => {
                 assert.equal(error.status, 1);
                 assert.equal(error.signal, null);
-                assert.ok(error.stdout.includes("execSync stdout before error"));
-                assert.ok(error.stderr.includes("execSync stderr error message"));
+                assert.ok(Buffer.isBuffer(error.stdout));
+                assert.ok(Buffer.isBuffer(error.stderr));
+                assert.ok(error.stdout.toString().includes("execSync stdout before error"));
+                assert.ok(error.stderr.toString().includes("execSync stderr error message"));
                 assert.ok(error.hasOwnProperty('output'));
                 assert.equal(error.output.length, 3);
                 assert.equal(error.output[0], null);
@@ -615,8 +630,10 @@ describe("child_process", () => {
             }, (error) => {
                 assert.equal(error.status, 42);
                 assert.equal(error.signal, null);
-                assert.ok(error.stdout.includes("execFileSync stdout"));
-                assert.ok(error.stderr.includes("execFileSync stderr"));
+                assert.ok(Buffer.isBuffer(error.stdout));
+                assert.ok(Buffer.isBuffer(error.stderr));
+                assert.ok(error.stdout.toString().includes("execFileSync stdout"));
+                assert.ok(error.stderr.toString().includes("execFileSync stderr"));
                 return true;
             });
 
@@ -642,7 +659,8 @@ describe("child_process", () => {
                 // iOS returns different exit status
                 if (!isIOS) {
                     assert.equal(error.status, 4);
-                    var env = json.decode(error.stdout);
+                    assert.ok(Buffer.isBuffer(error.stdout));
+                    var env = json.decode(error.stdout.toString());
                     assert.equal(env.test_env_var, "test_value");
                 }
                 return true;
