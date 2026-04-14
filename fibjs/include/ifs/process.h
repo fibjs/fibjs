@@ -169,9 +169,13 @@ inline ClassInfo& process_base::class_info()
         { "connected", s_static_get_connected, block_set, true }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "title", ClassData::CONST_String, { .stringValue = "fibjs" } }
+    };
+
     static ClassData s_cd = {
         "process", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &EventEmitter_base::class_info(),
         false
     };

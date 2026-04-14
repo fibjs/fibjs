@@ -91,6 +91,11 @@ declare module 'process' {
     const release: FIBJS.GeneralObject;
 
     /**
+     * @description 当前进程标题，固定为 'fibjs' 
+     */
+    export const title: "fibjs";
+
+    /**
      * @description 读取当前对象指向的进程的 id 
      */
     const pid: number;

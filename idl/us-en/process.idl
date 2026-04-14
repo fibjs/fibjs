@@ -69,6 +69,9 @@ module process : EventEmitter
     /*! @brief Return release metadata for the current build, with name set to 'node' for compatibility */
     static readonly Object release;
 
+    /*! @brief The title of the current process, always 'fibjs' */
+    const title = "fibjs";
+
     /*! @brief Read the id of the process pointed to by the current object */
     static readonly Integer pid;
 
