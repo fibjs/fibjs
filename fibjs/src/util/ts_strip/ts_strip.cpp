@@ -242,60 +242,68 @@ private:
         const int oldEnd = t.end;
         t.end = p;
         
-        // If the regex extends beyond the original token end, we need to check
-        // if any subsequent tokens were incorrectly scanned (e.g., a backtick
-        // inside the regex was scanned as a template literal start).
-        // In that case, we need to rescan the affected tokens.
+        // If the regex extends beyond the original token end, the original token stream
+        // after the slash may already be corrupted. This is especially true inside
+        // template expressions, where the scanner needs template nesting context to
+        // correctly turn the closing `}` into TemplateMiddle/TemplateTail. Re-scan the
+        // remaining suffix from the end of the regex with reconstructed template state.
         if (p > oldEnd && m_tokenIndex + 1 < m_tokens.size()) {
-            // Find the first token that starts at or after the regex end
-            size_t nextIdx = m_tokenIndex + 1;
-            while (nextIdx < m_tokens.size() && m_tokens[nextIdx].pos < p) {
-                nextIdx++;
-            }
-            
-            // Check if we skipped any tokens that had their end position 
-            // extend beyond the regex end (e.g., a template literal that 
-            // consumed too much)
-            if (nextIdx > m_tokenIndex + 1) {
-                const Token& lastSkipped = m_tokens[nextIdx - 1];
-                if (lastSkipped.end > p) {
-                    // The last skipped token extended beyond the regex.
-                    // We need to rescan from position p to lastSkipped.end
-                    Scanner rescanner(m_src, m_length);
-                    rescanner.setTextPos(p);
-                    
-                    std::vector<Token> newTokens;
-                    while (true) {
-                        SyntaxKind kind = rescanner.scan();
-                        int tokenPos = rescanner.getTokenStart();
-                        int tokenEnd = rescanner.getTokenEnd();
-                        bool hadLineBreak = rescanner.hasPrecedingLineBreak();
-                        
-                        // Stop when we reach a position covered by existing valid tokens
-                        if (tokenPos >= lastSkipped.end) {
-                            break;
-                        }
-                        
-                        newTokens.push_back(Token(kind, tokenPos, tokenEnd, hadLineBreak));
-                        
-                        if (kind == SyntaxKind::EndOfFileToken) {
-                            break;
-                        }
+            Scanner rescanner(m_src, m_length);
+            rescanner.setTextPos(p);
+
+            std::vector<int> templateDepthStack;
+            int braceDepth = 0;
+            for (size_t i = 0; i <= m_tokenIndex && i < m_tokens.size(); i++) {
+                SyntaxKind existingKind = m_tokens[i].kind;
+                if (existingKind == SyntaxKind::TemplateHead) {
+                    templateDepthStack.push_back(braceDepth);
+                } else if (existingKind == SyntaxKind::TemplateTail) {
+                    if (!templateDepthStack.empty()) {
+                        templateDepthStack.pop_back();
                     }
-                    
-                    // Replace the skipped tokens with the rescanned ones
-                    // First, remove tokens from m_tokenIndex+1 to nextIdx-1 (inclusive)
-                    // Then insert newTokens at m_tokenIndex+1
-                    if (!newTokens.empty()) {
-                        // Erase old tokens
-                        m_tokens.erase(m_tokens.begin() + m_tokenIndex + 1, 
-                                      m_tokens.begin() + nextIdx);
-                        // Insert new tokens
-                        m_tokens.insert(m_tokens.begin() + m_tokenIndex + 1,
-                                       newTokens.begin(), newTokens.end());
+                } else if (existingKind == SyntaxKind::OpenBraceToken) {
+                    braceDepth++;
+                } else if (existingKind == SyntaxKind::CloseBraceToken) {
+                    if (braceDepth > 0) {
+                        braceDepth--;
                     }
                 }
             }
+
+            auto updateTemplateScannerState = [&](SyntaxKind& kind) {
+                if (kind == SyntaxKind::TemplateHead) {
+                    templateDepthStack.push_back(braceDepth);
+                } else if (kind == SyntaxKind::TemplateTail) {
+                    if (!templateDepthStack.empty()) {
+                        templateDepthStack.pop_back();
+                    }
+                } else if (kind == SyntaxKind::OpenBraceToken) {
+                    braceDepth++;
+                } else if (kind == SyntaxKind::CloseBraceToken) {
+                    if (!templateDepthStack.empty() && braceDepth == templateDepthStack.back()) {
+                        rescanner.reScanTemplateToken();
+                        kind = rescanner.getToken();
+                        if (kind == SyntaxKind::TemplateTail) {
+                            templateDepthStack.pop_back();
+                        }
+                    } else if (braceDepth > 0) {
+                        braceDepth--;
+                    }
+                }
+            };
+
+            std::vector<Token> newTokens;
+            while (true) {
+                SyntaxKind kind = rescanner.scan();
+                updateTemplateScannerState(kind);
+                newTokens.push_back(Token(kind, rescanner.getTokenStart(), rescanner.getTokenEnd(), rescanner.hasPrecedingLineBreak()));
+                if (kind == SyntaxKind::EndOfFileToken) {
+                    break;
+                }
+            }
+
+            m_tokens.erase(m_tokens.begin() + m_tokenIndex + 1, m_tokens.end());
+            m_tokens.insert(m_tokens.end(), newTokens.begin(), newTokens.end());
         }
         
         return true;

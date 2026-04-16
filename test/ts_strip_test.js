@@ -2252,6 +2252,66 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
+            it('should strip async function parameter types after template literal with regex', () => {
+                const input =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${value.replace(/\'/g, `"\'"\'"`)}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req: SessionRequest, id: string, sid: string, forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                const expected =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${value.replace(/\'/g, `"\'"\'"`)}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req                , id        , sid        , forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                assert.strictEqual(normalize(strip(input)), normalize(expected));
+            });
+
+            it('should strip async function parameter types after template literal with regex replacement string', () => {
+                const input =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${value.replace(/\'/g, "x")}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req: SessionRequest, id: string, sid: string, forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                const expected =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${value.replace(/\'/g, "x")}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req                , id        , sid        , forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                assert.strictEqual(normalize(strip(input)), normalize(expected));
+            });
+
+            it('should strip async function parameter types after regex inside template expression', () => {
+                const input =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${/\'/.test(value)}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req: SessionRequest, id: string, sid: string, forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                const expected =
+                    'function shellQuote(value) {\n' +
+                    '    return `\'${/\'/.test(value)}\'`;\n' +
+                    '}\n\n' +
+                    'async function sendSessionFsFile(req                , id        , sid        , forceDownload = false) {\n' +
+                    '    return req.session.user.id + id + sid + forceDownload;\n' +
+                    '}';
+
+                assert.strictEqual(normalize(strip(input)), normalize(expected));
+            });
+
             it('should strip async arrow function types', () => {
                 const input = 'const fetch = async (url: string): Promise<Response> => { };';
                 const expected = 'const fetch = async (url        )                    => { };';
