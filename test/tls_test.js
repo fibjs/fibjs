@@ -45,6 +45,9 @@ describe('tls', () => {
                 }
             });
 
+            var caPemBuffer = Buffer.from(ca.pem);
+            var crtPemBuffer = Buffer.from(crt.pem);
+
             var resolve_cnt = 0;
             function sni_resolver(domain) {
                 resolve_cnt++;
@@ -117,6 +120,30 @@ describe('tls', () => {
 
                     assert.equal(ctx.cert, crt);
                     assert.ok(ctx.key.equals(pk1.privateKey));
+                });
+
+                it('cert/ca accept Buffer inputs', () => {
+                    var ctx = tls.createSecureContext({
+                        key: pk1.privateKey,
+                        cert: crtPemBuffer,
+                        ca: caPemBuffer
+                    });
+
+                    assert.equal(ctx.cert.subject, crt.subject);
+                    assert.equal(ctx.ca.subject, ca.subject);
+                    assert.ok(ctx.key.equals(pk1.privateKey));
+                });
+
+                it('cert accepts Buffer array chain', () => {
+                    var ctx = tls.createSecureContext({
+                        key: pk1.privateKey,
+                        cert: [crtPemBuffer, caPemBuffer],
+                        ca: [caPemBuffer]
+                    });
+
+                    assert.equal(ctx.cert.subject, crt.subject);
+                    assert.equal(ctx.cert.next().subject, ca.subject);
+                    assert.equal(ctx.ca.subject, ca.subject);
                 });
 
                 it('key/cert undefined — ignored, no error thrown', () => {

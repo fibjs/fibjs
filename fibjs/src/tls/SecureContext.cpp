@@ -13,6 +13,29 @@
 
 namespace fibjs {
 
+static result_t load_cert_option(v8::Local<v8::Object> options, const char* name, obj_ptr<X509Certificate_base>& retVal)
+{
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Context> context = isolate->context();
+    result_t hr = GetConfigValue(options, name, retVal);
+
+    if (hr == 0)
+        return 0;
+
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL && hr != CALL_E_TYPEMISMATCH)
+        return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
+
+    if (!js_obj_has_value(options, context, name))
+        return CALL_E_PARAMNOTOPTIONAL;
+
+    v8::Local<v8::Value> value = options->Get(context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>());
+    hr = X509Certificate_base::load(value, retVal);
+    if (hr < 0)
+        return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
+
+    return 0;
+}
+
 result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal)
 {
     result_t hr;
@@ -101,12 +124,8 @@ void SecureContext::init_ctx(const SSL_METHOD* method)
 result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
 {
     Isolate* isolate = holder();
-    result_t hr;
-
     obj_ptr<X509Certificate_base> ca;
-    hr = GetConfigValue(options, "ca", ca);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return Runtime::setError("SecureContext: ca must be a valid X509Certificate.");
+    result_t hr = load_cert_option(options, "ca", ca);
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         return set_ca(ca);
     else if (!isServer)
@@ -204,12 +223,9 @@ result_t SecureContext::get_key(obj_ptr<KeyObject_base>& retVal)
 
 result_t SecureContext::set_cert(v8::Local<v8::Object> options)
 {
-    result_t hr;
     obj_ptr<X509Certificate_base> certs;
 
-    hr = GetConfigValue(options, "cert", certs);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return Runtime::setError("SecureContext: cert must be a valid X509Certificate.");
+    result_t hr = load_cert_option(options, "cert", certs);
 
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         X509Certificate* now = certs.As<X509Certificate>();
