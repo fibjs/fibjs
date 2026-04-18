@@ -195,6 +195,8 @@ describe("test", () => {
             t = true;
         });
 
+        todo("todo1");
+
         it("check", () => {
             assert.equal(t, false);
         });

@@ -31,6 +31,7 @@ public:
     static result_t oit(exlib::string name, v8::Local<v8::Function> block);
     static result_t only(exlib::string name, v8::Local<v8::Function> block);
     static result_t todo(exlib::string name, v8::Local<v8::Function> block);
+    static result_t todo(exlib::string name);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
@@ -220,6 +221,12 @@ inline void test_base::s_static_todo(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(v8::Local<v8::Function>, 1);
 
     hr = todo(v0, v1);
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = todo(v0);
 
     METHOD_VOID();
 }

@@ -136,6 +136,11 @@ module test
      */
     static todo(String name, Function block);
 
+    /*! @brief Plan item definition
+     @param name Define item name
+     */
+    static todo(String name);
+
     /*! @brief Define current test module enter event
      @param func Event function
      */

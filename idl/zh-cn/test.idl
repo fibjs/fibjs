@@ -136,6 +136,11 @@ module test
      */
     static todo(String name, Function block);
 
+    /*! @brief 计划项目定义
+     @param name 定义项目名称
+     */
+    static todo(String name);
+
     /*! @brief 定义当前测试模块进入事件
      @param func 事件函数
      */

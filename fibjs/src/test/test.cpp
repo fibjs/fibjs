@@ -241,8 +241,9 @@ public:
                 exlib::string str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
+                bool is_todo_case = (p1->m_level == _case::TEST_TODO);
 
-                if (!p1->m_block.IsEmpty()) {
+                if (!p1->m_block.IsEmpty() || is_todo_case) {
                     if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
@@ -363,7 +364,7 @@ public:
 
                     if (!p1->m_status)
                         outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
-                    else if (mode > console_base::C_ERROR || (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO))
+                    else if (mode > console_base::C_ERROR || p1->m_level >= p->m_run_level)
                         if (!p1->m_subs.size())
                             outLog(console_base::C_INFO, str);
 
@@ -385,7 +386,7 @@ public:
                 }
 
                 // 判断是否是 describe：有 describe_block 或已经展开的 subs，且没有 it 的 block
-                if (p1->m_status && (p1->m_subs.size() || !p1->m_describe_block.IsEmpty() || p1->m_block.IsEmpty())) {
+                if (p1->m_status && (p1->m_subs.size() || !p1->m_describe_block.IsEmpty() || (p1->m_block.IsEmpty() && p1->m_level != _case::TEST_TODO))) {
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;
 
@@ -633,6 +634,11 @@ result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
 result_t test_base::todo(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_TODO);
+}
+
+result_t test_base::todo(exlib::string name)
+{
+    return _case::it(name, v8::Local<v8::Function>(), _case::TEST_TODO);
 }
 
 result_t test_base::before(v8::Local<v8::Function> func)

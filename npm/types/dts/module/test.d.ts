@@ -167,6 +167,13 @@ declare module 'test' {
     function todo(name: string, block: (...args: any[])=>any): void;
 
     /**
+     * @description 计划项目定义
+     *      @param name 定义项目名称
+     *      
+     */
+    function todo(name: string): void;
+
+    /**
      * @description 定义当前测试模块进入事件
      *      @param func 事件函数
      *      
