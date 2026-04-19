@@ -13,6 +13,7 @@
 #include "SimpleObject.h"
 #include "ts_strip/ts_strip.h"
 #include "util.h"
+#include "dotenv_parser.h"
 #include <unordered_map>
 
 namespace fibjs {
@@ -42,6 +43,27 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
 
     _constructor->Set(context, isolate->NewString("super_"), _superConstructor).IsJust();
     constructor_proto->Set(context, isolate->NewString("__proto__"), superConstructor_proto).IsJust();
+    return 0;
+}
+
+result_t util_base::parseEnv(exlib::string content, v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> result = v8::Object::New(isolate->m_isolate);
+    dotenv_parser::store_t store;
+
+    result->SetPrototype(context, v8::Null(isolate->m_isolate)).Check();
+    dotenv_parser::parse_content(std::string_view(content.c_str(), content.length()), store);
+
+    for (const auto& entry : store) {
+        result->Set(context,
+            isolate->NewString(entry.first.c_str(), (int32_t)entry.first.length()),
+            isolate->NewString(entry.second.c_str(), (int32_t)entry.second.length()))
+            .IsJust();
+    }
+
+    retVal = result;
     return 0;
 }
 

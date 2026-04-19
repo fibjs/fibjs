@@ -192,6 +192,13 @@ declare module 'process' {
     function chdir(directory: string): void;
 
     /**
+     * @description 从 dotenv 文件加载环境变量到 process.env
+     *      @param path 指定 dotenv 文件路径，空字符串时默认读取当前目录下的 .env
+     *      
+     */
+    function loadEnvFile(path?: string): void;
+
+    /**
      * @description 查询运行环境运行时间，以秒为单位
      *      @return 返回表示时间的数值
      *     

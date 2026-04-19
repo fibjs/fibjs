@@ -126,6 +126,34 @@ describe('util', () => {
         });
     });
 
+    it('parseEnv', () => {
+        var result = util.parseEnv([
+            ' BASIC = basic ',
+            'EMPTY=',
+            'DUP=first',
+            'DUP=second',
+            'export EXPORTED = value',
+            'COMMENT=value # tail comment',
+            'QUOTED="value # kept"',
+            "MULTILINE='line1",
+            "line2'",
+            'INVALID_LINE',
+            'AFTER_INVALID=ok'
+        ].join('\n'));
+
+        assert.equal(Object.getPrototypeOf(result), null);
+        assert.deepEqual(result, {
+            BASIC: 'basic',
+            EMPTY: '',
+            DUP: 'second',
+            EXPORTED: 'value',
+            COMMENT: 'value',
+            QUOTED: 'value # kept',
+            MULTILINE: 'line1\nline2',
+            AFTER_INVALID: 'ok'
+        });
+    });
+
     it('has', () => {
         var obj = {
             foo: 'bar',

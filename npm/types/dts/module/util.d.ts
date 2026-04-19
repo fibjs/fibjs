@@ -109,6 +109,15 @@ declare module 'util' {
     function inherits(constructor: any, superConstructor: any): void;
 
     /**
+     * @description 解析 dotenv 文件原始文本并返回键值对象
+     * 
+     *      @param content dotenv 文件的原始内容
+     *      @return 返回解析后的键值对象
+     *      
+     */
+    function parseEnv(content: string): FIBJS.GeneralObject;
+
+    /**
      * @description 函数返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
      * 
      *      支持以下参数:

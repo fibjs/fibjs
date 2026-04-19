@@ -51,6 +51,7 @@ public:
     static result_t cwd(exlib::string& retVal);
     static result_t dlopen(v8::Local<v8::Object> module, exlib::string filename, int32_t flags);
     static result_t chdir(exlib::string directory);
+    static result_t loadEnvFile(exlib::string path);
     static result_t uptime(double& retVal);
     static result_t cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
@@ -104,6 +105,7 @@ public:
     static void s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dlopen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadEnvFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -134,6 +136,7 @@ inline ClassInfo& process_base::class_info()
         { "cwd", s_static_cwd, true, ClassData::ASYNC_SYNC },
         { "dlopen", s_static_dlopen, true, ClassData::ASYNC_SYNC },
         { "chdir", s_static_chdir, true, ClassData::ASYNC_SYNC },
+        { "loadEnvFile", s_static_loadEnvFile, true, ClassData::ASYNC_SYNC },
         { "uptime", s_static_uptime, true, ClassData::ASYNC_SYNC },
         { "cpuUsage", s_static_cpuUsage, true, ClassData::ASYNC_SYNC },
         { "memoryUsage", s_static_memoryUsage, true, ClassData::ASYNC_SYNC },
@@ -499,6 +502,19 @@ inline void process_base::s_static_chdir(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
 
     hr = chdir(v0);
+
+    METHOD_VOID();
+}
+
+inline void process_base::s_static_loadEnvFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    hr = loadEnvFile(v0);
 
     METHOD_VOID();
 }

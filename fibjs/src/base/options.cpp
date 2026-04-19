@@ -14,6 +14,8 @@
 #include "options.h"
 #include "unicode/locid.h"
 #include "unicode/timezone.h"
+#include "../util/dotenv_parser.h"
+#include <uv/include/uv.h>
 
 namespace fibjs {
 
@@ -42,6 +44,65 @@ bool g_openssl_legacy_provider = false;
 bool g_use_env_proxy = false;
 
 exlib::string g_exec_code;
+
+struct EnvFileOption {
+    exlib::string path;
+    bool optional;
+};
+
+static bool readEnvFile(const exlib::string& path, exlib::string& retVal)
+{
+    FILE* fp = fopen(path.c_str(), "rb");
+    if (fp == nullptr)
+        return false;
+
+    char buffer[8192];
+    size_t bytes_read;
+
+    retVal.clear();
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+        retVal.append(buffer, bytes_read);
+
+    bool ok = ferror(fp) == 0;
+    fclose(fp);
+    return ok;
+}
+
+static bool hasEnvVar(const std::string& key)
+{
+    char buf[1];
+    size_t sz = sizeof(buf);
+    int32_t ret = uv_os_getenv(key.c_str(), buf, &sz);
+
+    return ret == 0 || ret == UV_ENOBUFS;
+}
+
+static void applyEnvFileOptions(const std::vector<EnvFileOption>& env_files)
+{
+    dotenv_parser::store_t store;
+
+    for (const auto& env_file : env_files) {
+        exlib::string content;
+        if (!readEnvFile(env_file.path, content)) {
+            if (env_file.optional) {
+                fprintf(stderr, "%s not found. Continuing without it.\n", env_file.path.c_str());
+                continue;
+            }
+
+            fprintf(stderr, "%s: not found\n", env_file.path.c_str());
+            _exit(1);
+        }
+
+        dotenv_parser::parse_content(std::string_view(content.c_str(), content.length()), store);
+    }
+
+    for (const auto& entry : store) {
+        if (hasEnvVar(entry.first))
+            continue;
+
+        uv_os_setenv(entry.first.c_str(), entry.second.c_str());
+    }
+}
 
 #ifdef DEBUG
 #define GUARD_SIZE 32
@@ -78,6 +139,9 @@ static void printHelp()
          "                              HTTP_PROXY/HTTPS_PROXY/NO_PROXY environment\n"
          "                              variables and use them for connections.\n"
          "\n"
+         "  --env-file=file             load environment variables from a dotenv file.\n"
+         "  --env-file-if-exists=file   same as --env-file, but do not fail if the file is missing.\n"
+         "\n"
          "  --openssl-legacy-provider   enable OpenSSL 3.0 legacy provider.\n"
          "\n"
          "  --prof                      log statistical profiling information.\n"
@@ -99,12 +163,19 @@ void options(int32_t& pos, char* argv[])
 {
     int32_t i;
     int32_t df = 0;
+    std::vector<EnvFileOption> env_files;
 
     for (i = 1; i < pos; i++) {
         char* arg = argv[i];
 
         if (df)
             argv[i - df] = arg;
+
+        if (!qstrcmp(arg, "--")) {
+            df++;
+            i++;
+            break;
+        }
 
         if (arg[0] != '-')
             break;
@@ -158,6 +229,40 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--use-env-proxy")) {
             g_use_env_proxy = true;
             df++;
+        } else if (!qstrcmp(arg, "--env-file")) {
+            if (i + 1 >= pos || argv[i + 1][0] == 0) {
+                fprintf(stderr, "%s requires a path\n", arg);
+                _exit(1);
+            }
+
+            env_files.push_back({ argv[i + 1], false });
+            i++;
+            df += 2;
+        } else if (!qstrcmp(arg, "--env-file=", 11)) {
+            if (arg[11] == 0) {
+                fprintf(stderr, "%s requires a path\n", "--env-file");
+                _exit(1);
+            }
+
+            env_files.push_back({ arg + 11, false });
+            df++;
+        } else if (!qstrcmp(arg, "--env-file-if-exists")) {
+            if (i + 1 >= pos || argv[i + 1][0] == 0) {
+                fprintf(stderr, "%s requires a path\n", arg);
+                _exit(1);
+            }
+
+            env_files.push_back({ argv[i + 1], true });
+            i++;
+            df += 2;
+        } else if (!qstrcmp(arg, "--env-file-if-exists=", 21)) {
+            if (arg[21] == 0) {
+                fprintf(stderr, "%s requires a path\n", "--env-file-if-exists");
+                _exit(1);
+            }
+
+            env_files.push_back({ arg + 21, true });
+            df++;
         } else if (!qstrcmp(arg, "--openssl-legacy-provider")) {
             g_openssl_legacy_provider = true;
             df++;
@@ -193,6 +298,9 @@ void options(int32_t& pos, char* argv[])
 
     pos = i;
     int32_t argc = pos - df;
+
+    if (!env_files.empty())
+        applyEnvFileOptions(env_files);
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 

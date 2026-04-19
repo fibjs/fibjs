@@ -7,9 +7,11 @@
 
 #include "object.h"
 #include "ifs/process.h"
+#include "ifs/fs.h"
 #include <uv/include/uv.h>
 #include "unicode/locid.h"
 #include "unicode/timezone.h"
+#include "../util/dotenv_parser.h"
 
 extern "C" char** environ;
 
@@ -120,6 +122,36 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         retVal = o;
     } else
         retVal = isolate->m_env.Get(isolate->m_isolate);
+
+    return 0;
+}
+
+result_t process_base::loadEnvFile(exlib::string path)
+{
+    if (path.empty())
+        path = ".env";
+
+    exlib::string content;
+    result_t hr = fs_base::ac_readTextFile(path, content);
+    if (hr < 0)
+        return hr;
+
+    dotenv_parser::store_t store;
+    dotenv_parser::parse_content(std::string_view(content.c_str(), content.length()), store);
+
+    Isolate* isolate = Isolate::current();
+    for (const auto& entry : store) {
+        char exists_buf[1];
+        size_t exists_sz = sizeof(exists_buf);
+        int32_t uv_ret = uv_os_getenv(entry.first.c_str(), exists_buf, &exists_sz);
+        if (uv_ret == 0 || uv_ret == UV_ENOBUFS)
+            continue;
+
+        uv_os_setenv(entry.first.c_str(), entry.second.c_str());
+        on_env_update(isolate,
+            exlib::string(entry.first.c_str(), entry.first.length()),
+            exlib::string(entry.second.c_str(), entry.second.length()));
+    }
 
     return 0;
 }

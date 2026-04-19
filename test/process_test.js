@@ -10,6 +10,7 @@ var json = require('json');
 var child_process = require('child_process');
 var io = require('io');
 var os = require('os');
+var fs = require('fs');
 
 var cmd;
 var s;
@@ -204,6 +205,112 @@ describe('process', () => {
         assert.isTrue('test_key' in process.env);
         assert.isFalse('test_key_1' in process.env);
         delete process.env.test_key;
+    });
+
+    it('loadEnvFile', () => {
+        var oldCwd = process.cwd();
+        var tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-load-env-'));
+        var envFile = path.join(tempDir, '.env');
+
+        fs.writeTextFile(envFile, [
+            'BASIC=basic',
+            'EXISTING=from-file',
+            'EMPTY=',
+            'export EXPORTED = value',
+            'SPACED=value # comment'
+        ].join('\n'));
+
+        delete process.env.BASIC;
+        delete process.env.EMPTY;
+        delete process.env.EXPORTED;
+        delete process.env.SPACED;
+        process.env.EXISTING = 'existing';
+
+        try {
+            process.chdir(tempDir);
+            process.loadEnvFile();
+
+            assert.equal(process.env.BASIC, 'basic');
+            assert.equal(process.env.EXISTING, 'existing');
+            assert.equal(process.env.EMPTY, '');
+            assert.equal(process.env.EXPORTED, 'value');
+            assert.equal(process.env.SPACED, 'value');
+        } finally {
+            process.chdir(oldCwd);
+            delete process.env.BASIC;
+            delete process.env.EMPTY;
+            delete process.env.EXPORTED;
+            delete process.env.SPACED;
+            delete process.env.EXISTING;
+
+            fs.unlink(envFile);
+            fs.rmdir(tempDir);
+        }
+    });
+
+    it('loadEnvFile missing file', () => {
+        assert.throws(() => {
+            process.loadEnvFile(path.join(__dirname, 'not-exists.env'));
+        }, (err) => err && err.code === 'ENOENT');
+    });
+
+    it('cli --env-file loads dotenv into child process', () => {
+        var tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-cli-env-'));
+        var baseEnvFile = path.join(tempDir, 'base.env');
+        var overrideEnvFile = path.join(tempDir, 'override.env');
+
+        fs.writeTextFile(baseEnvFile, [
+            'BASIC=basic',
+            'OVERRIDE=base',
+            'EXISTING=from-file'
+        ].join('\n'));
+        fs.writeTextFile(overrideEnvFile, [
+            'OVERRIDE=override'
+        ].join('\n'));
+
+        try {
+            var result = child_process.spawnSync(cmd, [
+                '--env-file=' + baseEnvFile,
+                '--env-file=' + overrideEnvFile,
+                '-e',
+                'console.log(JSON.stringify({ BASIC: process.env.BASIC, OVERRIDE: process.env.OVERRIDE, EXISTING: process.env.EXISTING }));'
+            ], {
+                env: Object.assign({}, process.env, { EXISTING: 'existing' })
+            });
+
+            assert.equal(result.status, 0);
+            assert.deepEqual(JSON.parse(result.stdout), {
+                BASIC: 'basic',
+                OVERRIDE: 'override',
+                EXISTING: 'existing'
+            });
+        } finally {
+            fs.unlink(baseEnvFile);
+            fs.unlink(overrideEnvFile);
+            fs.rmdir(tempDir);
+        }
+    });
+
+    it('cli --env-file-if-exists ignores missing file', () => {
+        var result = child_process.spawnSync(cmd, [
+            '--env-file-if-exists=' + path.join(__dirname, 'missing-cli.env'),
+            '-e',
+            'console.log("ok")'
+        ]);
+
+        assert.equal(result.status, 0);
+        assert.equal(result.stdout.toString().trim(), 'ok');
+    });
+
+    it('cli --env-file fails on missing file', () => {
+        var result = child_process.spawnSync(cmd, [
+            '--env-file=' + path.join(__dirname, 'missing-cli.env'),
+            '-e',
+            'console.log("unreachable")'
+        ]);
+
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /not found/);
     });
 
     describe("kill", () => {

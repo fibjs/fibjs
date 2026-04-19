@@ -138,6 +138,11 @@ module process : EventEmitter
      */
     static chdir(String directory);
 
+    /*! @brief Load environment variables from a dotenv file into process.env
+     @param path Specify the dotenv file path, default is current directory .env when empty
+     */
+    static loadEnvFile(String path = "");
+
     /*! @brief Query the runtime of the runtime environment in seconds
      @return Return the numerical value representing time
     */

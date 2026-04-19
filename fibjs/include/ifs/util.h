@@ -30,6 +30,7 @@ public:
     static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
+    static result_t parseEnv(exlib::string content, v8::Local<v8::Object>& retVal);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t styleText(std::vector<exlib::string>& format, exlib::string text, exlib::string& retVal);
     static result_t styleText(exlib::string format, exlib::string text, exlib::string& retVal);
@@ -124,6 +125,7 @@ public:
 public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parseEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_styleText(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_debuglog(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -214,6 +216,7 @@ inline ClassInfo& util_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "format", s_static_format, true, ClassData::ASYNC_SYNC },
         { "inherits", s_static_inherits, true, ClassData::ASYNC_SYNC },
+        { "parseEnv", s_static_parseEnv, true, ClassData::ASYNC_SYNC },
         { "inspect", s_static_inspect, true, ClassData::ASYNC_SYNC },
         { "styleText", s_static_styleText, true, ClassData::ASYNC_SYNC },
         { "debuglog", s_static_debuglog, true, ClassData::ASYNC_SYNC },
@@ -342,6 +345,21 @@ inline void util_base::s_static_inherits(const v8::FunctionCallbackInfo<v8::Valu
     hr = inherits(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void util_base::s_static_parseEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = parseEnv(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value>& args)

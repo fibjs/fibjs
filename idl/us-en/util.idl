@@ -86,6 +86,13 @@ module util
      */
     static inherits(Value constructor, Value superConstructor);
 
+    /*! @brief Parse the raw contents of a dotenv file and return the parsed key-value object
+
+     @param content The raw contents of a dotenv file
+     @return Return the parsed key-value object
+     */
+    static Object parseEnv(String content);
+
     /*! @brief The function returns the string representation of obj, mainly used for debugging. Additional options can be used to change certain aspects of the formatted string.
 
      Supports the following parameters:
