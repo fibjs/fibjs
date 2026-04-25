@@ -327,7 +327,9 @@ describe('ws', () => {
 
         it("server", () => {
             var httpd = new http.Server(8813 + base_port, {
-                "/ws": WebSocket.upgrade((s) => {
+                "/ws": WebSocket.upgrade({
+                    protocol: "test"
+                }, (s) => {
                     s.onmessage = function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -418,6 +420,22 @@ describe('ws', () => {
 
                 assert.equal(rep.statusCode, 101);
                 assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), null);
+                rep.socket.close();
+            });
+
+            it("support Sec-WebSocket-Protocol header.", () => {
+                var rep = http.getSync("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                        "Sec-WebSocket-Version": "13",
+                        "Sec-WebSocket-Protocol": "json, test"
+                    }
+                });
+
+                assert.equal(rep.statusCode, 101);
+                assert.equal(rep.firstHeader("Sec-WebSocket-Protocol"), "test");
                 rep.socket.close();
             });
         });
@@ -561,6 +579,7 @@ describe('ws', () => {
                 }
             }, {
                 "/ws": WebSocket.upgrade({
+                    protocol: "test",
                     perMessageDeflate: true
                 }, (s, req) => {
                     s.onmessage = function (msg) {
@@ -590,10 +609,11 @@ describe('ws', () => {
         it('init property', () => {
             var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
             assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
-            assert.equal(s.protocol, "test");
+            assert.equal(s.protocol, "");
             // assert.equal(s.readyState, WebSocket.CONNECTING);
 
             s.onopen = () => {
+                assert.equal(s.protocol, "test");
                 s.close();
             };
         });
@@ -613,6 +633,7 @@ describe('ws', () => {
 
             assert.isTrue(t);
             assert.equal(s.readyState, WebSocket.OPEN);
+            assert.equal(s.protocol, "test");
 
             s.close();
             s.close();
@@ -657,7 +678,7 @@ describe('ws', () => {
                 }
             });
             assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
-            assert.equal(s.protocol, "test");
+            assert.equal(s.protocol, "");
 
             var opened = false;
             s.onopen = () => {
@@ -672,6 +693,7 @@ describe('ws', () => {
 
             assert.equal(s.readyState, WebSocket.CLOSED);
             assert.isTrue(opened);
+            assert.equal(s.protocol, "test");
 
             var s1 = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                 protocol: "test",
@@ -680,7 +702,7 @@ describe('ws', () => {
                 }
             });
             assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
-            assert.equal(s1.protocol, "test");
+            assert.equal(s1.protocol, "");
             var errored = false;
             s1.onerror = () => {
                 errored = true;
@@ -706,7 +728,7 @@ describe('ws', () => {
                 httpClient: hc
             });
             assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
-            assert.equal(s.protocol, "test");
+            assert.equal(s.protocol, "");
 
             var opened = false;
             s.onopen = () => {
@@ -716,6 +738,7 @@ describe('ws', () => {
             coroutine.sleep(100);
             assert.equal(s.readyState, WebSocket.CLOSED);
             assert.isTrue(opened);
+            assert.equal(s.protocol, "test");
 
             hc.postSync("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
                 json: {
@@ -727,7 +750,7 @@ describe('ws', () => {
                 httpClient: hc
             });
             assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
-            assert.equal(s1.protocol, "test");
+            assert.equal(s1.protocol, "");
             var opened1 = false;
             s1.onopen = () => {
                 opened1 = true;
@@ -791,6 +814,7 @@ describe('ws', () => {
         it('upgrade perMessageDeflate', () => {
             var httpd = new http.Server(8819 + base_port, {
                 "/ws": WebSocket.upgrade({
+                    protocol: "test",
                     perMessageDeflate: true
                 }, (s) => {
                     s.on("message", function (msg) {
@@ -822,9 +846,78 @@ describe('ws', () => {
             s.close();
         });
 
+        it('protocols option object', () => {
+            var opened = false;
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                protocols: ["json", "test"]
+            });
+
+            assert.equal(s.protocol, "");
+
+            s.onopen = () => {
+                opened = true;
+                s.close();
+            };
+
+            for (var i = 0; i < 2000 && !opened; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(opened);
+            assert.equal(s.protocol, "test");
+        });
+
+        it('server protocols negotiation', () => {
+            var httpd = new http.Server(8820 + base_port, {
+                "/ws": WebSocket.upgrade({
+                    protocols: ["json", "text"]
+                }, (s) => {
+                    s.onmessage = function (msg) {
+                        this.send(msg.data);
+                    };
+                })
+            });
+            test_util.push(httpd.socket);
+            httpd.start();
+
+            var opened = false;
+            var s = new WebSocket("ws://127.0.0.1:" + (8820 + base_port) + "/ws", ["json", "text"]);
+
+            s.onopen = () => {
+                opened = true;
+                s.close();
+            };
+
+            for (var i = 0; i < 2000 && !opened; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(opened);
+            assert.equal(s.protocol, "json");
+        });
+
+        it('reject invalid protocol values', () => {
+            assert.throws(() => {
+                new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", ["test", "test"]);
+            });
+
+            assert.throws(() => {
+                new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                    protocols: ["bad,proto"]
+                });
+            });
+
+            assert.throws(() => {
+                WebSocket.upgrade({
+                    protocols: [" test ", "test"]
+                }, () => {
+                });
+            });
+        });
+
         it('send/on("message")', () => {
             var httpd = new http.Server(8815 + base_port, {
-                "/ws": WebSocket.upgrade((s) => {
+                "/ws": WebSocket.upgrade({
+                    protocol: "test"
+                }, (s) => {
                     s.on("message", function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -1042,7 +1135,9 @@ describe('ws', () => {
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8816 + base_port, {
-                    "/ws": WebSocket.upgrade((s, req) => {
+                    "/ws": WebSocket.upgrade({
+                        protocol: "test"
+                    }, (s, req) => {
                         s.onmessage = e => { }
                     })
                 });
@@ -1080,7 +1175,9 @@ describe('ws', () => {
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8817 + base_port, {
-                    "/ws": WebSocket.upgrade((s, req) => {
+                    "/ws": WebSocket.upgrade({
+                        protocol: "test"
+                    }, (s, req) => {
                         test_util.push(s);
                         s.send(new Date());
                     })
@@ -1120,7 +1217,9 @@ describe('ws', () => {
                 test_util.gc();
 
                 var httpd = new http.Server(8818 + base_port, {
-                    "/ws": WebSocket.upgrade((s, req) => { })
+                    "/ws": WebSocket.upgrade({
+                        protocol: "test"
+                    }, (s, req) => { })
                 });
 
                 test_util.push(httpd.socket);
@@ -1142,6 +1241,22 @@ describe('ws', () => {
                 test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1);
             });
+        });
+
+        it('protocols array', () => {
+            var opened = false;
+            var s = new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", ["json", "test"]);
+
+            s.onopen = () => {
+                opened = true;
+                s.close();
+            };
+
+            for (var i = 0; i < 2000 && !opened; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(opened);
+            assert.equal(s.protocol, "test");
         });
     });
 });

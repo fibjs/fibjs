@@ -17,9 +17,156 @@
 #include "MemoryStream.h"
 #include "HttpClient.h"
 #include "Headers.h"
+#include <vector>
 #include <stdlib.h>
 
 namespace fibjs {
+
+namespace {
+
+inline bool is_protocol_space(char ch)
+{
+    return ch == ' ' || ch == '\t';
+}
+
+inline bool is_protocol_separator(char ch)
+{
+    switch (ch) {
+    case '(': case ')': case '<': case '>': case '@':
+    case ',': case ';': case ':': case '\\': case '"':
+    case '/': case '[': case ']': case '?': case '=':
+    case '{': case '}':
+        return true;
+    default:
+        return ch <= 0x20 || ch >= 0x7f;
+    }
+}
+
+exlib::string trim_protocol(const exlib::string& value)
+{
+    size_t start = 0;
+    size_t end = value.length();
+
+    while (start < end && is_protocol_space(value[start]))
+        start++;
+
+    while (end > start && is_protocol_space(value[end - 1]))
+        end--;
+
+    return value.substr(start, end - start);
+}
+
+bool is_valid_protocol(const exlib::string& protocol)
+{
+    if (protocol.empty())
+        return false;
+
+    for (size_t i = 0; i < protocol.length(); i++) {
+        if (is_protocol_separator(protocol[i]))
+            return false;
+    }
+
+    return true;
+}
+
+void split_protocol_header(const exlib::string& header, std::vector<exlib::string>& protocols)
+{
+    size_t start = 0;
+
+    while (start <= header.length()) {
+        size_t end = header.find(',', start);
+        exlib::string token = trim_protocol(header.substr(start, end == exlib::string::npos ? header.length() - start : end - start));
+
+        if (!token.empty())
+            protocols.push_back(token);
+
+        if (end == exlib::string::npos)
+            break;
+
+        start = end + 1;
+    }
+}
+
+bool contains_protocol(const std::vector<exlib::string>& protocols, const exlib::string& protocol)
+{
+    for (auto& item : protocols) {
+        if (item == protocol)
+            return true;
+    }
+
+    return false;
+}
+
+exlib::string join_protocols(const std::vector<exlib::string>& protocols)
+{
+    exlib::string header;
+
+    for (size_t i = 0; i < protocols.size(); i++) {
+        if (i)
+            header.append(", ");
+        header.append(protocols[i]);
+    }
+
+    return header;
+}
+
+result_t normalize_protocols(const std::vector<exlib::string>& input, std::vector<exlib::string>& protocols)
+{
+    protocols.clear();
+
+    for (auto& rawProtocol : input) {
+        exlib::string protocol = trim_protocol(rawProtocol);
+
+        if (!is_valid_protocol(protocol))
+            return CHECK_ERROR(Runtime::setError("websocket: invalid protocol."));
+
+        if (contains_protocol(protocols, protocol))
+            return CHECK_ERROR(Runtime::setError("websocket: duplicated protocol."));
+
+        protocols.push_back(protocol);
+    }
+
+    return 0;
+}
+
+result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protocolHeader)
+{
+    exlib::string protocol;
+    std::vector<exlib::string> protocols;
+    std::vector<exlib::string> normalizedProtocols;
+    std::vector<exlib::string> protocolList;
+    Isolate* isolate = Isolate::current(opts);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::String> protocolsKey = isolate->NewString("protocols", 9);
+    bool hasProtocols = opts->Has(context, protocolsKey).FromMaybe(false);
+    result_t hr = GetConfigValue(opts, "protocol", protocol);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (hasProtocols) {
+        v8::Local<v8::Value> protocolsValue;
+        if (!opts->Get(context, protocolsKey).ToLocal(&protocolsValue))
+            return CALL_E_JAVASCRIPT;
+
+        hr = GetArgumentValue(isolate, protocolsValue, protocolList);
+        if (hr < 0)
+            return hr;
+    }
+
+    if (hasProtocols)
+        protocols = protocolList;
+    else if (!protocol.empty())
+        protocols.push_back(protocol);
+
+    hr = normalize_protocols(protocols, normalizedProtocols);
+    if (hr < 0)
+        return hr;
+
+    protocolHeader = join_protocols(normalizedProtocols);
+    return 0;
+}
+
+} // namespace
 
 #define WS_DEFALTE_BUF_SIZE (32 * 1024)
 
@@ -192,6 +339,25 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol,
     return WebSocket_base::_new(url, opts, retVal, This);
 }
 
+result_t WebSocket_base::_new(exlib::string url, std::vector<exlib::string>& protocols,
+    exlib::string origin, obj_ptr<WebSocket_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(This);
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+    v8::Local<v8::Array> protocolsArray = v8::Array::New(isolate->m_isolate, (int32_t)protocols.size());
+
+    for (uint32_t i = 0; i < protocols.size(); i++)
+        protocolsArray->Set(context, i, isolate->NewString(protocols[i])).IsJust();
+
+    opts->Set(context, isolate->NewString("protocols", 9), protocolsArray).IsJust();
+    opts->Set(context, isolate->NewString("origin", 6), isolate->NewString(origin)).IsJust();
+
+    return WebSocket_base::_new(url, opts, retVal, This);
+}
+
 result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<WebSocket_base>& retVal,
     v8::Local<v8::Object> This)
@@ -237,6 +403,9 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             if (!m_this->m_origin.empty())
                 m_headers->append("Origin", m_this->m_origin);
+
+            if (!m_this->m_protocols.empty())
+                m_headers->append("Sec-WebSocket-Protocol", m_this->m_protocols);
 
             char keys[16];
             int32_t i;
@@ -307,6 +476,28 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
             }
 
+            hr = m_httprep->firstHeader("Sec-WebSocket-Protocol", v);
+            if (hr < 0)
+                return hr;
+
+            if (!m_this->m_protocols.empty()) {
+                std::vector<exlib::string> requested;
+                split_protocol_header(m_this->m_protocols, requested);
+
+                if (hr == CALL_RETURN_NULL) {
+                    m_this->endConnect(1002, "missing Sec-WebSocket-Protocol header.");
+                    return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Protocol header."));
+                }
+
+                if (!contains_protocol(requested, v)) {
+                    m_this->endConnect(1002, "invalid Sec-WebSocket-Protocol header.");
+                    return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Protocol header."));
+                }
+
+                m_this->m_protocol = v;
+            } else if (hr != CALL_RETURN_NULL)
+                m_this->m_protocol = v;
+
             hr = m_httprep->firstHeader("Sec-WebSocket-Extensions", v);
             if (hr < 0)
                 return hr;
@@ -342,18 +533,22 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     };
 
     exlib::string origin = "";
-    exlib::string protocol = "";
+    exlib::string protocols = "";
     bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
     obj_ptr<Headers_base> headers;
     obj_ptr<HttpClient_base> hc = NULL;
+    result_t hr;
 
-    GetConfigValue(opts, "protocol", protocol);
     GetConfigValue(opts, "origin", origin);
     GetConfigValue(opts, "perMessageDeflate", perMessageDeflate);
     GetConfigValue(opts, "maxPayload", maxPayload);
 
-    result_t hr = GetConfigValue(opts, "headers", headers);
+    hr = load_protocol_options(opts, protocols);
+    if (hr < 0)
+        return hr;
+
+    hr = GetConfigValue(opts, "headers", headers);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         headers = new Headers();
     else if (hr < 0)
@@ -361,7 +556,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
     GetConfigValue(opts, "httpClient", hc);
 
-    obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin, perMessageDeflate, maxPayload);
+    obj_ptr<WebSocket> sock = new WebSocket(url, protocols, origin, perMessageDeflate, maxPayload);
     sock->m_holder = new ValueHolder(sock->wrap(This));
 
     (new asyncConnect(sock, headers, hc, sock->holder()))->apost(0);

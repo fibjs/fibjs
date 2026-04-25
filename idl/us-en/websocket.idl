@@ -7,7 +7,9 @@ Start WebSocket server example:
 var http = require('http');
 
 var svr = new http.Server(80, {
-    '/ws': WebSocket.upgrade(conn => {
+    '/ws': WebSocket.upgrade({
+        protocols: ['json', 'text']
+    }, conn => {
         conn.onmessage = e => {
             conn.send('fibjs:' + e.data);
         };
@@ -17,10 +19,10 @@ svr.start();
 ```
 Example of establishing connection with the above server in client:
 ```JavaScript
-var conn = new WebSocket("ws://127.0.0.1/ws");
+var conn = new WebSocket("ws://127.0.0.1/ws", ['json', 'text']);
 // emit open event
 conn.onopen = () => {
-    console.log("websocket connected");
+    console.log("websocket connected with protocol:", conn.protocol);
     conn.send("hi");
 };
 // emit close event
@@ -39,10 +41,18 @@ interface WebSocket : EventEmitter
     WebSocket(String url, String protocol = "", String origin = "");
 
     /*! @brief WebSocket constructor
+     @param url specify the server to connect to
+     @param protocols specify the candidate sub-protocol list during handshake, default is []
+     @param origin specify the simulated origin during handshake, default is ""
+    */
+    WebSocket(String url, String protocols[], String origin = "");
+
+    /*! @brief WebSocket constructor
      opts contains additional options for the request, supported content as follows:
      ```JavaScript
      {
          "protocol": "", // specify the sub-protocol, default is ""
+         "protocols": [], // specify the candidate sub-protocol list, takes precedence over protocol when provided
          "origin": "", // specify the origin, default is ""
          "perMessageDeflate": false, // specify whether to enable permessage-deflate, default is false
          "maxPayload": 67108864, // specify the max payload size, default is 64MB
@@ -145,6 +155,14 @@ interface WebSocket : EventEmitter
     static Handler upgrade(Function accept);
 
     /*! @brief Create a WebSocket protocol handler, receive upgrade request from http and handshake, generate WebSocket object
+     opts supports `protocol` or `protocols` to select and return `Sec-WebSocket-Protocol`, for example:
+     ```JavaScript
+     WebSocket.upgrade({
+         protocols: ['json', 'text']
+     }, conn => {
+         console.log(conn.protocol); // selected sub-protocol
+     })
+     ```
      @param opts Connection options, default is {}
      @param accept Connection success handler function, callback will pass two parameters, first is the received WebSocket object, second is the HttpRequest object during handshake
      @return Returns protocol handler, can be connected with HttpServer, Chain, Routing, etc.

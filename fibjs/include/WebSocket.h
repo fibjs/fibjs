@@ -10,6 +10,7 @@
 #include "ifs/WebSocket.h"
 #include "ifs/Stream.h"
 #include "ZlibStream.h"
+#include <vector>
 
 namespace fibjs {
 
@@ -17,10 +18,10 @@ namespace fibjs {
 
 class WebSocket : public WebSocket_base {
 public:
-    WebSocket(exlib::string url, exlib::string protocol, exlib::string origin, bool enableCompress, int32_t maxSize)
+    WebSocket(exlib::string url, exlib::string protocols, exlib::string origin, bool enableCompress, int32_t maxSize)
         : m_ac(NULL)
         , m_url(url)
-        , m_protocol(protocol)
+        , m_protocols(protocols)
         , m_origin(origin)
         , m_masked(true)
         , m_compress(false)
@@ -97,6 +98,7 @@ public:
     exlib::Locker m_lockSend;
 
     exlib::string m_url;
+    exlib::string m_protocols;
     exlib::string m_protocol;
     exlib::string m_origin;
 

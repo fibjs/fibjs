@@ -13,7 +13,9 @@
  * var http = require('http');
  * 
  * var svr = new http.Server(80, {
- *     '/ws': WebSocket.upgrade(conn => {
+ *     '/ws': WebSocket.upgrade({
+ *         protocols: ['json', 'text']
+ *     }, conn => {
  *         conn.onmessage = e => {
  *             conn.send('fibjs:' + e.data);
  *         };
@@ -23,10 +25,10 @@
  * ```
  * 在客户端中与上述服务器建立连接的示例：
  * ```JavaScript
- * var conn = new WebSocket("ws://127.0.0.1/ws");
+ * var conn = new WebSocket("ws://127.0.0.1/ws", ['json', 'text']);
  * // emit open event
  * conn.onopen = () => {
- *     console.log("websocket connected");
+ *     console.log("websocket connected with protocol:", conn.protocol);
  *     conn.send("hi");
  * };
  * // emit close event
@@ -48,10 +50,20 @@ declare class Class_WebSocket extends Class_EventEmitter {
 
     /**
      * @description WebSocket 构造函数
+     *      @param url 指定连接的服务器
+     *      @param protocols 指定握手时的候选子协议列表
+     *      @param origin 指定握手时模拟的源，缺省为 ""
+     *     
+     */
+    constructor(url: string, protocols: string[], origin?: string);
+
+    /**
+     * @description WebSocket 构造函数
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
      *          "protocol": "", // specify the sub-protocol, default is ""
+     *          "protocols": [], // specify candidate sub-protocols, takes precedence over protocol when provided
      *          "origin": "", // specify the origin, default is ""
      *          "perMessageDeflate": false, // specify whether to enable permessage-deflate, default is false
      *          "maxPayload": 67108864, // specify the max payload size, default is 64MB
@@ -166,6 +178,14 @@ declare class Class_WebSocket extends Class_EventEmitter {
 
     /**
      * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
+     *      opts 支持使用 `protocol` 或 `protocols` 指定服务端可接受的子协议，并在握手成功时回写 `Sec-WebSocket-Protocol`，例如：
+     *      ```JavaScript
+     *      WebSocket.upgrade({
+     *          protocols: ['json', 'text']
+     *      }, conn => {
+     *          console.log(conn.protocol); // selected sub-protocol
+     *      })
+     *      ```
      *      @param opts 连接选项，缺省为 {}
      *      @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
      *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用

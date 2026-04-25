@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/Handler.h"
+#include <vector>
 
 namespace fibjs {
 
@@ -15,7 +16,8 @@ class WebSocketHandler : public Handler_base {
     FIBER_FREE();
 
 public:
-    WebSocketHandler(v8::Local<v8::Function> accept, bool enableCompress, int32_t maxSize);
+    WebSocketHandler(v8::Local<v8::Function> accept, bool enableCompress, int32_t maxSize,
+        const std::vector<exlib::string>& protocols = std::vector<exlib::string>());
 
 public:
     // Handler_base
@@ -26,6 +28,7 @@ public:
 public:
     bool m_enableCompress;
     int32_t m_maxSize;
+    std::vector<exlib::string> m_protocols;
 };
 
 } /* namespace fibjs */

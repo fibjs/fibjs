@@ -42,6 +42,7 @@ public:
 public:
     // WebSocket_base
     static result_t _new(exlib::string url, exlib::string protocol, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, std::vector<exlib::string>& protocols, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
@@ -151,6 +152,14 @@ inline void WebSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = _new(v0, v1, v2, vr, args.This());
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(std::vector<exlib::string>, 1);
     OPT_ARG(exlib::string, 2, "");
 
     hr = _new(v0, v1, v2, vr, args.This());
