@@ -1967,8 +1967,20 @@ public:
 
     virtual int32_t error(int32_t v)
     {
-        if (m_reuse && (at(ssl_connect) || at(connected))) {
+        if (can_retry_transport_error(v) && m_reuse && (at(ssl_connect) || at(connected))) {
             m_reuse = false;
+            next(prepare);
+            return 0;
+        }
+
+        if (can_retry_transport_error(v) && can_retry_http1_request()) {
+            m_http1_retry_count++;
+            m_reuse = false;
+            m_buffer.Release();
+            m_decodeStream.Release();
+            m_reqConn.Release();
+            m_retVal.Release();
+            m_conn.Release();
             next(prepare);
             return 0;
         }
@@ -1982,7 +1994,7 @@ public:
             return 0;
         }
 
-        if (can_retry_h2_request()) {
+        if (can_retry_transport_error(v) && can_retry_h2_request()) {
             m_h2_retry_count++;
             if (m_h2session && !m_h2PoolKey.empty())
                 m_hc->remove_h2session(m_h2PoolKey, m_h2session);
@@ -2020,6 +2032,35 @@ public:
         }
 
         return v;
+    }
+
+    bool can_retry_transport_error(int32_t v)
+    {
+        if (v == CALL_E_TIMEOUT || v == CALL_E_ABORT)
+            return false;
+
+        if (m_o->signal) {
+            bool aborted;
+            if (m_o->signal->get_aborted(aborted) >= 0 && aborted)
+                return false;
+        }
+
+        return true;
+    }
+
+    bool can_retry_http1_request()
+    {
+        if (m_h2session || m_http1_retry_count > 0 || m_completed)
+            return false;
+
+        if (!(at(connected) || at(requested) || at(decode)))
+            return false;
+
+        exlib::string method;
+        if (!m_req || m_req->get_method(method) < 0)
+            return false;
+
+        return !qstricmp(method.c_str(), "GET") || !qstricmp(method.c_str(), "HEAD");
     }
 
     bool can_retry_h2_request()
@@ -2093,6 +2134,7 @@ private:
     std::vector<std::pair<exlib::string, exlib::string>> m_h2_hdrs;
     bool m_h2_endStream = true;
     bool m_is_h2_leader = false;
+    int32_t m_http1_retry_count = 0;
     int32_t m_h2_retry_count = 0;
 };
 

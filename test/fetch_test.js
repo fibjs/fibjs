@@ -7,6 +7,9 @@ const { once } = require('node:events');
 const isFibjs = !!process.versions?.fibjs;
 const abortErrorName = isFibjs ? 'TypeError' : 'AbortError';
 const timeoutErrorName = isFibjs ? 'TypeError' : 'TimeoutError';
+const fibjsNet = isFibjs ? require('net') : null;
+const fibjsIo = isFibjs ? require('io') : null;
+const coroutine = isFibjs ? require('coroutine') : null;
 
 // Helper: start a server with a given handler, returns { server, baseUrl, port }
 async function startServer(handler) {
@@ -860,6 +863,54 @@ describe("web fetch", () => {
                 () => fetch('not-a-valid-url'),
                 { name: 'TypeError' }
             );
+        });
+
+        it("retries GET when HTTP/1 server closes before response headers", async () => {
+            if (!isFibjs)
+                return;
+
+            const port = 19480 + coroutine.vmid;
+            let hits = 0;
+            const server = new fibjsNet.TcpServer(port, (conn) => {
+                const bs = new fibjsIo.BufferedStream(conn);
+                bs.EOL = '\r\n';
+
+                const line = bs.readLine(4096);
+                if (!line) {
+                    conn.close();
+                    return;
+                }
+
+                while (true) {
+                    const header = bs.readLine(4096);
+                    if (!header || header.length === 0)
+                        break;
+                }
+
+                hits++;
+                if (hits === 1) {
+                    conn.close();
+                    return;
+                }
+
+                const body = JSON.stringify({ ok: true, hits });
+                conn.write('HTTP/1.1 200 OK\r\n'
+                    + 'Content-Type: application/json\r\n'
+                    + 'Content-Length: ' + Buffer.byteLength(body) + '\r\n'
+                    + 'Connection: close\r\n'
+                    + '\r\n'
+                    + body);
+                conn.close();
+            });
+
+            server.start();
+            try {
+                const resp = await fetch('http://127.0.0.1:' + port + '/retry-on-close');
+                assert.strictEqual(resp.status, 200);
+                assert.deepStrictEqual(await resp.json(), { ok: true, hits: 2 });
+            } finally {
+                server.stop();
+            }
         });
 
         describe("redirect loop throws", () => {
