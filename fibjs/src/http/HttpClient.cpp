@@ -1982,6 +1982,17 @@ public:
             return 0;
         }
 
+        if (can_retry_h2_request()) {
+            m_h2_retry_count++;
+            if (m_h2session && !m_h2PoolKey.empty())
+                m_hc->remove_h2session(m_h2PoolKey, m_h2session);
+            m_h2stream.Release();
+            m_h2session.Release();
+            m_conn.Release();
+            next(prepare);
+            return 0;
+        }
+
         // If this fiber is the H2 leader and hits an error during
         // TCP connect / TLS / session init, propagate to all waiters.
         if (m_is_h2_leader) {
@@ -2009,6 +2020,22 @@ public:
         }
 
         return v;
+    }
+
+    bool can_retry_h2_request()
+    {
+        if (!m_h2session || m_h2_retry_count > 0)
+            return false;
+
+        if (!(at(h2_submit_no_body) || at(h2_submit_with_body)
+                || at(h2_request_sent) || at(h2_wait_headers)))
+            return false;
+
+        exlib::string method;
+        if (!m_req || m_req->get_method(method) < 0)
+            return false;
+
+        return !qstricmp(method.c_str(), "GET") || !qstricmp(method.c_str(), "HEAD");
     }
 
     int32_t complete()
@@ -2066,6 +2093,7 @@ private:
     std::vector<std::pair<exlib::string, exlib::string>> m_h2_hdrs;
     bool m_h2_endStream = true;
     bool m_is_h2_leader = false;
+    int32_t m_h2_retry_count = 0;
 };
 
 // AsyncEvent is the internal binding execution context. It is still used

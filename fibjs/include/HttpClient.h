@@ -294,6 +294,14 @@ public:
         s_h2sessions.erase(url);
     }
 
+    void remove_h2session(exlib::string url, Http2Session* session)
+    {
+        obj_ptr<Http2Session> cached;
+        s_h2sessions.lookup(url, cached);
+        if (cached == session)
+            s_h2sessions.erase(url);
+    }
+
     // Pending H2 handshake queue: prevents redundant TCP+TLS connections
     // when multiple fibers request the same H2 host concurrently.
     struct H2PendingItem {

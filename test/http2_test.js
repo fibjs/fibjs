@@ -38,6 +38,7 @@ describe('http2', () => {
     var svr;
     var sessionSeq = 0;
     var sessionIdMap = new Map();
+    var abortRetrySessionOnce = false;
 
     before(() => {
         var ctx = tls.createSecureContext({
@@ -179,6 +180,21 @@ describe('http2', () => {
                     stream.close();
                     // Send GOAWAY after responding
                     session.goaway(0, stream.id);
+                } else if (path.startsWith('/retry-after-h2-abort/')) {
+                    if (stream.closed || stream.destroyed)
+                        return;
+
+                    stream.respond({ ':status': 200, 'content-type': 'application/json' });
+                    stream.write(JSON.stringify({ path: path, sid: sessionId }));
+                    stream.close();
+
+                    if (path.startsWith('/retry-after-h2-abort/burst/') && !abortRetrySessionOnce) {
+                        abortRetrySessionOnce = true;
+                        if (session.socket && typeof session.socket.abort === 'function')
+                            session.socket.abort();
+                        else
+                            session.destroy();
+                    }
                 } else {
                     stream.respond({ ':status': 200 });
                     stream.write('ok:' + path);
@@ -391,6 +407,31 @@ describe('http2', () => {
             var resp2 = hc.getSync(`https://localhost:${h2_port}/b`);
             assert.strictEqual(resp2.statusCode, 200);
             assert.strictEqual(resp2.body.read(-1).toString(), 'ok:/b');
+        });
+
+        it('should retry safe fetch requests when reused H2 session closes before headers', async () => {
+            abortRetrySessionOnce = false;
+
+            var agent = new http.Client(connectOpts);
+            var baseUrl = `https://localhost:${h2_port}`;
+            var warm = await fetch(baseUrl + '/retry-after-h2-abort/warm', { agent: agent });
+            assert.strictEqual(warm.status, 200);
+            assert.strictEqual((await warm.json()).path, '/retry-after-h2-abort/warm');
+
+            var jobs = [];
+            for (var i = 0; i < 16; i++) {
+                jobs.push((async function (idx) {
+                    var resp = await fetch(baseUrl + '/retry-after-h2-abort/burst/' + idx, { agent: agent });
+                    assert.strictEqual(resp.status, 200);
+                    return await resp.json();
+                })(i));
+            }
+
+            var results = await Promise.all(jobs);
+            assert.strictEqual(results.length, 16);
+            results.forEach((payload, idx) => {
+                assert.strictEqual(payload.path, '/retry-after-h2-abort/burst/' + idx);
+            });
         });
 
         it('should receive response headers', () => {
