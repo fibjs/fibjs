@@ -41,6 +41,31 @@
 
 namespace fibjs {
 
+// Best-effort stale-socket probe for pooled connections.
+// Non-blocking: if uncertain, keep the connection and let normal retry handle it.
+static inline bool http_conn_looks_alive(Stream_base* conn)
+{
+    if (!conn)
+        return false;
+
+    Socket_base* sock = Socket_base::getInstance(conn);
+    if (!sock) {
+        TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(conn);
+        if (tls && tls->m_stream)
+            sock = Socket_base::getInstance(tls->m_stream);
+    }
+
+    if (!sock)
+        return false;
+
+    bool alive;
+    result_t hr = sock->isAlive(alive);
+    if (hr < 0)
+        return false;
+
+    return alive;
+}
+
 LruCache<obj_ptr<Http2Session>> HttpClient::s_h2sessions;
 std::unordered_map<exlib::string, HttpClient::H2PendingEntry*> HttpClient::s_h2_pending;
 exlib::spinlock HttpClient::s_h2_pending_lock;
@@ -1331,9 +1356,13 @@ public:
             m_is_h2_leader = true;
         }
 
-        if (m_hc->get_conn(m_connUrl, m_conn)) {
-            m_reuse = true;
-            return next(connected);
+        while (m_hc->get_conn(m_connUrl, m_conn)) {
+            if (http_conn_looks_alive(m_conn)) {
+                m_reuse = true;
+                return next(connected);
+            }
+
+            m_conn.Release();
         }
 
         if (m_http_proxy.empty()) {
@@ -1362,9 +1391,13 @@ public:
                     m_reqConn->appendHeader("User-Agent", a);
             }
 
-            if (m_hc->get_conn(m_http_proxy, m_conn)) {
-                m_reuse = true;
-                return next(m_ssl ? ssl_connect : connected);
+            while (m_hc->get_conn(m_http_proxy, m_conn)) {
+                if (http_conn_looks_alive(m_conn)) {
+                    m_reuse = true;
+                    return next(m_ssl ? ssl_connect : connected);
+                }
+
+                m_conn.Release();
             }
 
             obj_ptr<Url> u = new Url();

@@ -3619,6 +3619,75 @@ describe("http", () => {
                 var r2 = http.getSync("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(r1.stream.stream, r2.stream.stream);
             });
+
+            it("drops stale pooled connections before reuse", () => {
+                var serverSockets = [];
+                var server = new http.Server(0, (r) => {
+                    if (serverSockets.indexOf(r.stream) < 0)
+                        serverSockets.push(r.stream);
+
+                    r.response.setHeader('Connection', 'keep-alive');
+                    r.response.write('pool-ok');
+                    r.response.end();
+                });
+
+                server.start();
+
+                try {
+                    var hc = new http.Client();
+                    var url = 'http://127.0.0.1:' + server.socket.localPort;
+
+                    function oneAsync(i, done) {
+                        hc.get(url + '/warmup-' + i, (r) => {
+                            try {
+                                coroutine.sleep(20);
+                                r.readAll();
+                                done();
+                            } catch (e) {
+                                done(e);
+                            }
+                        }).end();
+                    }
+
+                    var warmupCount = 32;
+                    var left = warmupCount;
+                    var err = null;
+
+                    for (var i = 0; i < warmupCount; i++) {
+                        oneAsync(i, (e) => {
+                            if (!err && e)
+                                err = e;
+                            left--;
+                        });
+                    }
+
+                    while (left > 0)
+                        coroutine.sleep(1);
+
+                    if (err)
+                        throw err;
+
+                    assert.ok(serverSockets.length > 1);
+
+                    var staleCount = serverSockets.length;
+                    serverSockets.forEach((s) => {
+                        try {
+                            s.close();
+                        } catch (e) { }
+                    });
+
+                    coroutine.sleep(20);
+
+                    for (var i = 0; i < 50; i++) {
+                        var r = hc.getSync(url + '/request-' + i);
+                        assert.equal(r.readAll().toString(), 'pool-ok');
+                    }
+
+                    assert.ok(serverSockets.length > staleCount);
+                } finally {
+                    server.stop();
+                }
+            });
         });
 
         describe("head", () => {
