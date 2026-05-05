@@ -274,6 +274,16 @@ declare class Class_Socket extends Class_Stream {
     setNoDelay(noDelay?: boolean): void;
 
     /**
+     * @description 检查 socket 当前看起来是否仍然可用
+     * 
+     *      此方法执行一次尽力而为的非阻塞检测，不会消耗已收到的数据。
+     *      返回 false 表示 socket 已明确不可用，返回 true 只表示当前没有检测到关闭状态。
+     *      @return 返回 socket 当前看起来是否仍然可用
+     *      
+     */
+    isAlive(): boolean;
+
+    /**
      * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
      *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
      *      @return 返回从连接读取的数据

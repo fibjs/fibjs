@@ -440,4 +440,22 @@ result_t UVSocket::setNoDelay(bool noDelay)
 
     return 0;
 }
+
+result_t UVSocket::isAlive(bool& retVal)
+{
+    retVal = false;
+
+    if (m_state.value() > 1 || m_readEnded || m_destroyed)
+        return 0;
+
+    if (uv_is_closing(&m_handle))
+        return 0;
+
+    int32_t fd;
+    result_t hr = get_fd(fd);
+    if (hr < 0)
+        return 0;
+
+    return socket_isAlive((SOCKET)fd, retVal);
+}
 }

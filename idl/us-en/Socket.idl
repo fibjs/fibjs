@@ -137,6 +137,14 @@ interface Socket : Stream
      */
     setNoDelay(Boolean noDelay = true);
 
+    /*! @brief Check whether the socket appears to be alive
+
+     This method performs a best-effort, non-blocking check without consuming data.
+     A return value of false means the socket is definitely not usable, while true only means no closed state was detected.
+     @return Returns whether the socket appears to be alive
+     */
+    Boolean isAlive();
+
     /*! @brief Read data of specified size from the connection, unlike the read method, recv does not guarantee to read all required data, but returns immediately after reading data
      @param bytes Specifies the amount of data to read, default reads data of any size
      @return Returns the data read from the connection

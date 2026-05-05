@@ -388,6 +388,46 @@ function test_net(eng, use_uv) {
                 test_util.gc();
                 assert.equal(socketCount, test_util.countObject('Socket'));
             });
+
+            it("socket.isAlive", () => {
+                var closeEvent = new coroutine.Event();
+                var dataEvent = new coroutine.Event();
+                var peer;
+
+                var srv = new net.Socket(net_config.family);
+                test_util.push(srv);
+
+                var port = getPort();
+                srv.bind(port);
+                srv.listen();
+
+                coroutine.start(() => {
+                    peer = srv.accept();
+                    peer.send('alive-data');
+                    dataEvent.set();
+                    closeEvent.wait();
+                    peer.close();
+                });
+
+                var client = new net.Socket(net_config.family);
+                assert.equal(client.isAlive(), false);
+
+                client.connect(port, net_config.address);
+                assert.equal(client.isAlive(), true);
+
+                dataEvent.wait();
+                coroutine.sleep(10);
+                assert.equal(client.isAlive(), true);
+                assert.equal(client.recv().toString(), 'alive-data');
+
+                closeEvent.set();
+                coroutine.sleep(20);
+                assert.equal(client.isAlive(), false);
+
+                client.close();
+                coroutine.sleep(10);
+                assert.equal(client.isAlive(), false);
+            });
         });
 
         it("write and send return value validation", () => {

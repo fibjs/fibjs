@@ -48,6 +48,7 @@ public:
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setKeepAlive(bool enable, int32_t initialDelay) = 0;
     virtual result_t setNoDelay(bool noDelay) = 0;
+    virtual result_t isAlive(bool& retVal) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t abort() = 0;
@@ -73,6 +74,7 @@ public:
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -107,6 +109,7 @@ inline ClassInfo& Socket_base::class_info()
         { "accept", s_accept, false, ClassData::ASYNC_ASYNC },
         { "setKeepAlive", s_setKeepAlive, false, ClassData::ASYNC_SYNC },
         { "setNoDelay", s_setNoDelay, false, ClassData::ASYNC_SYNC },
+        { "isAlive", s_isAlive, false, ClassData::ASYNC_SYNC },
         { "recv", s_recv, false, ClassData::ASYNC_ASYNC },
         { "send", s_send, false, ClassData::ASYNC_ASYNC },
         { "abort", s_abort, false, ClassData::ASYNC_SYNC },
@@ -452,6 +455,20 @@ inline void Socket_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>&
     hr = pInst->setNoDelay(v0);
 
     METHOD_VOID();
+}
+
+inline void Socket_base::s_isAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(Socket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->isAlive(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)

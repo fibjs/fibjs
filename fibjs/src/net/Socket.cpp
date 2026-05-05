@@ -16,8 +16,103 @@
 #include "options.h"
 #include "EventInfo.h"
 #include "EventEmitter.h"
+#ifndef _WIN32
+#include <poll.h>
+#endif
 
 namespace fibjs {
+
+result_t socket_isAlive(SOCKET fd, bool& retVal)
+{
+    retVal = false;
+
+    if (fd == INVALID_SOCKET)
+        return 0;
+
+#ifdef _WIN32
+    fd_set readfds;
+    fd_set exceptfds;
+    FD_ZERO(&readfds);
+    FD_ZERO(&exceptfds);
+    FD_SET(fd, &readfds);
+    FD_SET(fd, &exceptfds);
+
+    timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    int pr = ::select(0, &readfds, NULL, &exceptfds, &tv);
+    if (pr == SOCKET_ERROR) {
+        int32_t err = WSAGetLastError();
+        retVal = err == WSAEINTR;
+        return 0;
+    }
+
+    if (pr == 0) {
+        retVal = true;
+        return 0;
+    }
+
+    if (FD_ISSET(fd, &exceptfds))
+        return 0;
+
+    if (FD_ISSET(fd, &readfds)) {
+        char ch;
+        int rr = ::recv(fd, &ch, 1, MSG_PEEK);
+        if (rr > 0)
+            retVal = true;
+        else if (rr == SOCKET_ERROR) {
+            int32_t err = WSAGetLastError();
+            retVal = err == WSAEWOULDBLOCK || err == WSAEINTR;
+        }
+
+        return 0;
+    }
+
+    retVal = true;
+    return 0;
+#else
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN | POLLERR | POLLHUP;
+#ifdef POLLRDHUP
+    pfd.events |= POLLRDHUP;
+#endif
+    pfd.revents = 0;
+
+    int pr = ::poll(&pfd, 1, 0);
+    if (pr < 0) {
+        retVal = errno == EINTR;
+        return 0;
+    }
+
+    if (pr == 0) {
+        retVal = true;
+        return 0;
+    }
+
+    if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL
+#ifdef POLLRDHUP
+            | POLLRDHUP
+#endif
+            ))
+        return 0;
+
+    if (pfd.revents & POLLIN) {
+        char ch;
+        int rr = (int)::recv(fd, &ch, 1, MSG_PEEK | MSG_DONTWAIT);
+        if (rr > 0)
+            retVal = true;
+        else if (rr < 0)
+            retVal = errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR;
+
+        return 0;
+    }
+
+    retVal = true;
+    return 0;
+#endif
+}
 
 result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
     v8::Local<v8::Object> This)
@@ -462,5 +557,15 @@ result_t Socket::setNoDelay(bool noDelay)
 
     fibjs::setNoDelay(m_aio.m_fd, noDelay ? 1 : 0);
     return 0;
+}
+
+result_t Socket::isAlive(bool& retVal)
+{
+    retVal = false;
+
+    if (m_aio.m_fd == INVALID_SOCKET || m_state.value() > 1 || m_readEnded || m_destroyed)
+        return 0;
+
+    return socket_isAlive((SOCKET)m_aio.m_fd, retVal);
 }
 }

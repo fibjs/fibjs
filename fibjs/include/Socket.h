@@ -17,6 +17,8 @@
 
 namespace fibjs {
 
+result_t socket_isAlive(SOCKET fd, bool& retVal);
+
 class ConnectOptions : public obj_base {
 public:
     LOAD_OPTIONS(ConnectOptions, (host)(port)(timeout));
@@ -90,6 +92,7 @@ public:
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
     virtual result_t setKeepAlive(bool enable, int32_t initialDelay);
     virtual result_t setNoDelay(bool noDelay);
+    virtual result_t isAlive(bool& retVal);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t abort();
