@@ -21,6 +21,8 @@ public:
 
 public:
     result_t toString(exlib::string& retVal);
+    result_t has(exlib::string name, v8::Local<v8::Value> value, bool& retVal);
+    result_t _delete(exlib::string name, v8::Local<v8::Value> value);
 
 public:
     result_t init(URLSearchParams_base* init)

@@ -68,6 +68,14 @@ describe("URLSearchParams Test Suite", () => {
             assert.strictEqual(params.has('foo'), true);
             assert.strictEqual(params.has('nonexistent'), false);
         });
+
+        it("should check parameter existence by name and value", () => {
+            const params = new URLSearchParams('foo=bar&foo=baz&empty=');
+            assert.strictEqual(params.has('foo', 'bar'), true);
+            assert.strictEqual(params.has('foo', 'baz'), true);
+            assert.strictEqual(params.has('foo', 'qux'), false);
+            assert.strictEqual(params.has('empty', ''), true);
+        });
     });
 
     describe("Multiple Values Handling", () => {
@@ -88,6 +96,13 @@ describe("URLSearchParams Test Suite", () => {
             const params = new URLSearchParams('foo=bar&foo=baz&other=value');
             params.delete('foo');
             assert.deepStrictEqual(params.getAll('foo'), []);
+            assert.strictEqual(params.get('other'), 'value');
+        });
+
+        it("should delete only matching values when using delete(name, value)", () => {
+            const params = new URLSearchParams('foo=bar&foo=baz&foo=bar&other=value');
+            params.delete('foo', 'bar');
+            assert.deepStrictEqual(params.getAll('foo'), ['baz']);
             assert.strictEqual(params.get('other'), 'value');
         });
     });

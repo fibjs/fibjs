@@ -44,7 +44,9 @@
  * params.get('name');        // 'Alice'
  * params.getAll('hobby');    // ['reading', 'coding']
  * params.has('age');         // true
+ * params.has('hobby', 'reading'); // true
  * params.delete('city');
+ * params.delete('hobby', 'coding');
  * 
  * // Convert to string
  * params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
@@ -125,6 +127,23 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      
      */
     constructor(init: Class_URLSearchParams);
+
+    /**
+     * @description 检查容器内是否存在指定参数名和参数值的组合
+     *      @param name 指定要检查的参数名
+     *      @param value 指定要检查的参数值，当传入 undefined 时行为与 has(name) 相同
+     *      @return 返回指定参数名和参数值组合是否存在
+     *      
+     */
+    has(name: string, value: any): boolean;
+
+    /**
+     * @description 删除指定参数名和参数值的组合
+     *      @param name 指定要删除的参数名
+     *      @param value 指定要删除的参数值，当传入 undefined 时行为与 delete(name) 相同
+     *      
+     */
+    delete(name: string, value: any): void;
 
 }
 

@@ -41,7 +41,9 @@ params.append('hobby', 'coding');  // Support multiple parameters with same name
 params.get('name');        // 'Alice'
 params.getAll('hobby');    // ['reading', 'coding']
 params.has('age');         // true
+params.has('hobby', 'reading'); // true
 params.delete('city');
+params.delete('hobby', 'coding');
 
 // Convert to string
 params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
@@ -112,4 +114,17 @@ interface URLSearchParams : HttpCollection
      @param init URLSearchParams object for initialization
      */
     URLSearchParams(URLSearchParams init);
+
+    /*! @brief check whether a specific key-value pair exists in the parameter container
+     @param name specify the parameter name to check
+     @param value specify the parameter value to check; when undefined, behave the same as has(name)
+     @return return whether the specific key-value pair exists
+     */
+    Boolean has(String name, Value value);
+
+    /*! @brief delete a specific key-value pair from the parameter container
+     @param name specify the parameter name to delete
+     @param value specify the parameter value to delete; when undefined, behave the same as delete(name)
+     */
+    delete(String name, Value value);
 };
