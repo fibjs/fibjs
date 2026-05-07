@@ -2,6 +2,8 @@ const { describe, it, xdescribe, xit, before, after } = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
 const { once } = require('node:events');
+const fs = require('fs');
+const path = require('path');
 
 // fibjs throws TypeError for abort/timeout; Node.js throws DOMException (AbortError/TimeoutError)
 const isFibjs = !!process.versions?.fibjs;
@@ -90,6 +92,39 @@ describe("web fetch", () => {
         it("response.url matches request url", async () => {
             const resp = await fetch(ctx.baseUrl + '/path');
             assert.ok(resp.url.includes('/path'));
+        });
+    });
+
+    describe("fetch - file URL", () => {
+        const fixtureDir = path.join(process.cwd(), 'temp');
+        const fixturePath = path.join(fixtureDir, 'fetch_file_url_fixture.txt');
+        const fixtureContent = 'file fetch fixture';
+        let fixtureUrl;
+
+        before(() => {
+            fs.writeFileSync(fixturePath, fixtureContent);
+            fixtureUrl = new URL(`file://${fixturePath}`);
+        });
+
+        after(() => {
+            try {
+                fs.unlinkSync(fixturePath);
+            } catch (e) {
+            }
+        });
+
+        it("reads local file content via file URL", async () => {
+            const resp = await fetch(fixtureUrl);
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.ok, true);
+            assert.strictEqual(await resp.text(), fixtureContent);
+        });
+
+        it("supports HEAD for local file URL", async () => {
+            const resp = await fetch(fixtureUrl, { method: 'HEAD' });
+            assert.strictEqual(resp.status, 200);
+            assert.strictEqual(resp.ok, true);
+            assert.strictEqual(await resp.text(), '');
         });
     });
 

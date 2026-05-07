@@ -10,6 +10,7 @@
 #include "HttpMessage.h"
 #include "Buffer.h"
 #include "Blob.h"
+#include "FileStream.h"
 #include "MemoryStream.h"
 #include "HttpRequest.h"
 #include "TLSSocket.h"
@@ -24,6 +25,9 @@
 #include "ifs/zlib.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
+#include "ifs/fs.h"
+#include "ifs/mime.h"
+#include "ifs/url.h"
 #include "ifs/URLSearchParams.h"
 #include "ifs/FormData.h"
 #include "ifs/querystring.h"
@@ -40,6 +44,66 @@
 
 
 namespace fibjs {
+
+static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal)
+{
+    exlib::string path;
+    result_t hr = url_base::fileURLToPath(o->u->href(), v8::Local<v8::Object>(), path);
+    if (hr < 0)
+        return hr;
+
+    exlib::string method = o->method;
+    for (size_t i = 0; i < method.length(); i++)
+        method[i] = (char)toupper((unsigned char)method[i]);
+
+    if (method != "GET" && method != "HEAD")
+        return CHECK_ERROR(Runtime::setError(kTypeError, "fetch(file:): only GET and HEAD are supported"));
+
+    FileStream file;
+    hr = file.open(path, "r");
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<HttpResponse> resp = new HttpResponse();
+    resp->m_fetchUrl = o->u->href();
+    resp->m_redirected = o->redirected;
+    resp->m_fetchType = "basic";
+    resp->set_statusCode(200);
+
+    exlib::string mimeType;
+    if (mime_base::getType(path, mimeType) >= 0 && !mimeType.empty())
+        resp->setHeader("Content-Type", mimeType);
+
+    int64_t size = 0;
+    if (file.size(size) >= 0)
+        resp->setHeader("Content-Length", std::to_string(size).c_str());
+
+    if (method == "HEAD") {
+        file.close();
+        retVal = resp;
+        return 0;
+    }
+
+    obj_ptr<Buffer_base> buf;
+    hr = file.cc_readAll(buf);
+    file.cc_close();
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL || !buf)
+        buf = new Buffer();
+
+    obj_ptr<MemoryStream> body = new MemoryStream();
+    hr = body->writeBuffer(buf, nullptr);
+    if (hr < 0)
+        return hr;
+
+    body->rewind();
+    resp->set_body(body);
+
+    retVal = resp;
+    return 0;
+}
 
 // Best-effort stale-socket probe for pooled connections.
 // Non-blocking: if uncertain, keep the connection and let normal retry handle it.
@@ -2153,6 +2217,9 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
         if (aborted)
             return CHECK_ERROR(Runtime::setError(kTypeError, "AbortError"));
     }
+
+    if (o->u->protocol() == "file:")
+        return build_file_fetch_response(o, retVal);
 
     return (new asyncRequest(o, retVal, ac))->post(0);
 }
