@@ -11,6 +11,7 @@
 #include "SandBox.h"
 #include "Fiber.h"
 #include "EventInfo.h"
+#include "file_path.h"
 #include "path.h"
 #include "ifs/worker_threads.h"
 
@@ -54,6 +55,10 @@ result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
+    result_t hr = absolute_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     bool isAbs = false;
     path_base::isAbsolute(path, isAbs);
     if (!isAbs)
@@ -62,7 +67,6 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker> worker = new Worker(path, opts);
 
     bool v;
-    result_t hr;
 
     v = true;
     hr = GetConfigValue(opts, "file_system", v, false);

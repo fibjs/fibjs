@@ -11,6 +11,7 @@
 #include "HeapGraphEdge.h"
 #include "HeapProxy.h"
 #include "ifs/v8.h"
+#include "file_path.h"
 #include "FileStream.h"
 #include "ifs/fs.h"
 #include "ifs/global.h"
@@ -72,6 +73,10 @@ result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retV
 
 result_t v8_base::saveSnapshot(exlib::string fname)
 {
+    result_t hr = normalize_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HeapSnapshot_base> snapshot;
     takeSnapshot(snapshot);
     return snapshot->cc_save(fname);
@@ -79,7 +84,9 @@ result_t v8_base::saveSnapshot(exlib::string fname)
 
 result_t v8_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal)
 {
-    result_t hr;
+    result_t hr = normalize_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<HeapSnapshot> hs = new HeapSnapshot();
     hr = hs->load(fname);

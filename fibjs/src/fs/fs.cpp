@@ -12,6 +12,7 @@
 #include "ifs/fs.h"
 #include "ifs/zip.h"
 #include "encoding_conv.h"
+#include "file_path.h"
 #include "path.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -287,10 +288,12 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
-    path_base::normalize(fname, safe_name);
+    result_t hr = normalize_file_path_like(fname, safe_name);
+    if (hr < 0)
+        return hr;
 
     int32_t _fd;
-    result_t hr = file_open(safe_name, flags, mode, _fd);
+    hr = file_open(safe_name, flags, mode, _fd);
     if (hr < 0)
         return hr;
 
@@ -306,10 +309,12 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
-    path_base::normalize(fname, safe_name);
+    result_t hr = normalize_file_path_like(fname, safe_name);
+    if (hr < 0)
+        return hr;
 
     int32_t _fd;
-    result_t hr = file_open(safe_name, flags, mode, _fd);
+    hr = file_open(safe_name, flags, mode, _fd);
     if (hr < 0)
         return hr;
 
@@ -711,6 +716,10 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     retVal = uv_fs_access(NULL, &req, path.c_str(), F_OK, NULL) == 0;
     return 0;
@@ -721,6 +730,10 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     return uv_fs_access(NULL, &req, path.c_str(), mode, NULL);
 }
@@ -729,6 +742,14 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = normalize_file_path_like(oldPath, oldPath);
+    if (hr < 0)
+        return hr;
+
+    hr = normalize_file_path_like(newPath, newPath);
+    if (hr < 0)
+        return hr;
 
     AutoReq req;
     return uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL);
@@ -739,6 +760,10 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     return uv_fs_unlink(NULL, &req, path.c_str(), NULL);
 }
@@ -747,6 +772,14 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = normalize_file_path_like(target, target);
+    if (hr < 0)
+        return hr;
+
+    hr = normalize_file_path_like(linkpath, linkpath);
+    if (hr < 0)
+        return hr;
 
     int _type = 0;
 
@@ -764,6 +797,10 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     int32_t ret = uv_fs_readlink(NULL, &req, path.c_str(), NULL);
     if (ret < 0)
@@ -778,7 +815,10 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr;
+    result_t hr = coerce_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     exlib::string resolved;
 
     // First resolve to absolute path and normalize
@@ -914,6 +954,10 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     return uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL);
 }
@@ -1019,6 +1063,10 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
 
     bool recursive = ac->m_ctx[0].boolVal();
     int32_t mode = ac->m_ctx[1].intVal();
+
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
 
     if (!recursive)
         return mkdir(path, mode, ac);
@@ -1279,6 +1327,10 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* 
 
     bool recursive = ac->m_ctx[0].boolVal();
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     if (!recursive) {
         // Try to unlink first (for files)
         AutoReq req;
@@ -1396,6 +1448,14 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr = normalize_file_path_like(from, from);
+    if (hr < 0)
+        return hr;
+
+    hr = normalize_file_path_like(to, to);
+    if (hr < 0)
+        return hr;
+
     AutoReq req;
     return uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL);
 }
@@ -1416,6 +1476,14 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = normalize_file_path_like(from, from);
+    if (hr < 0)
+        return hr;
+
+    hr = normalize_file_path_like(to, to);
+    if (hr < 0)
+        return hr;
 
     AutoReq req;
     return uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL);
@@ -1640,6 +1708,14 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
     bool force = ac->m_ctx[1].boolVal();
     int32_t mode = ac->m_ctx[2].intVal();
 
+    result_t hr = normalize_file_path_like(src, src);
+    if (hr < 0)
+        return hr;
+
+    hr = normalize_file_path_like(dest, dest);
+    if (hr < 0)
+        return hr;
+
     if (!force)
         mode |= UV_FS_COPYFILE_EXCL;
 
@@ -1655,6 +1731,10 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
 
     AutoReq req;
     int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
@@ -1685,6 +1765,10 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
 
     os_normalize(path, path, true);
 

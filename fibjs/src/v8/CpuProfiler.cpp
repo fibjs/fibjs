@@ -9,6 +9,7 @@
 #include "ifs/v8.h"
 #include "ifs/timers.h"
 #include "ifs/fs.h"
+#include "file_path.h"
 #include "ifs/coroutine.h"
 #include "ifs/json.h"
 #include "Buffer.h"
@@ -56,7 +57,9 @@ result_t v8_base::start(exlib::string fname, int32_t time, int32_t interval, obj
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<SeekableStream_base> f;
     OptArgs args;
-    result_t hr;
+    result_t hr = normalize_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
 
     hr = fs_base::ac_openFile(fname, "a", f);
     if (hr < 0)

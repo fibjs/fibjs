@@ -71,6 +71,7 @@ run("./url_search_params_test.js");
 run("./blob_test.js");
 run("./formdata_test.js");
 run("./url_test.js");
+run("./file_url_support_test.js");
 run("./querystring_test.js");
 run("./mime_test.js");
 run("./http_test.js");

@@ -8,6 +8,7 @@
 #include "object.h"
 #include "SandBox.h"
 #include "Buffer.h"
+#include "file_path.h"
 #include "path.h"
 #include "parse.h"
 #include "options.h"
@@ -342,6 +343,10 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     result_t hr;
     bool isAbs;
 
+    hr = absolute_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
+
     path_base::isAbsolute(fname, isAbs);
     if (!isAbs)
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
@@ -371,6 +376,10 @@ result_t SandBox::run(exlib::string fname, bool in_cjs)
 
     result_t hr;
     bool isAbs;
+
+    hr = absolute_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
 
     path_base::isAbsolute(fname, isAbs);
     if (!isAbs)

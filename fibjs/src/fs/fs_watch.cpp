@@ -6,6 +6,7 @@
  */
 
 #include "ifs/fs.h"
+#include "file_path.h"
 #include "path.h"
 #include "FSWatcher.h"
 #include "StatsWatcher.h"
@@ -32,15 +33,7 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, obj_
 
 result_t get_safe_abs_path(exlib::string fname, exlib::string& safe_name)
 {
-    result_t hr = 0;
-    path_base::normalize(fname, safe_name);
-    bool is_abs;
-    path_base::isAbsolute(safe_name, is_abs);
-
-    if (!is_abs)
-        hr = _resolve(safe_name);
-
-    return hr;
+    return absolute_file_path_like(fname, safe_name);
 }
 
 result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)

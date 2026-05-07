@@ -13,6 +13,7 @@
 
 #include "ifs/io.h"
 #include "ifs/fs.h"
+#include "file_path.h"
 #include "FileStream.h"
 #include "Buffer.h"
 #include "v8_api.h"
@@ -218,8 +219,12 @@ result_t FileStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 result_t FileStream::open(exlib::string fname, exlib::string flags)
 {
     close();
-    name = fname;
-    return file_open(fname, flags, 0666, m_fd);
+
+    result_t hr = normalize_file_path_like(fname, name);
+    if (hr < 0)
+        return hr;
+
+    return file_open(name, flags, 0666, m_fd);
 }
 
 result_t FileStream::get_name(exlib::string& retVal)

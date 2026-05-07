@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/process.h"
 #include "ifs/fs.h"
+#include "file_path.h"
 #include <uv/include/uv.h>
 #include "unicode/locid.h"
 #include "unicode/timezone.h"
@@ -131,8 +132,12 @@ result_t process_base::loadEnvFile(exlib::string path)
     if (path.empty())
         path = ".env";
 
+    result_t hr = normalize_file_path_like(path, path);
+    if (hr < 0)
+        return hr;
+
     exlib::string content;
-    result_t hr = fs_base::ac_readTextFile(path, content);
+    hr = fs_base::ac_readTextFile(path, content);
     if (hr < 0)
         return hr;
 

@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/zip.h"
 #include "ifs/fs.h"
+#include "file_path.h"
 #include "path.h"
 #include "ZipFile.h"
 #include "utf8.h"
@@ -175,6 +176,10 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = normalize_file_path_like(filename, filename);
+    if (hr < 0)
+        return hr;
 
     return ifZipFile(filename, retVal);
 }

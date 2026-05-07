@@ -7,6 +7,7 @@
 
 #include "ifs/fs.h"
 #include "ifs/zip.h"
+#include "file_path.h"
 #include "path.h"
 #include "Stat.h"
 #include "FileStream.h"
@@ -257,9 +258,11 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
-    path_base::normalize(path, safe_name);
+    result_t hr = normalize_file_path_like(path, safe_name);
+    if (hr < 0)
+        return hr;
 
-    result_t hr = zip_stat(safe_name, retVal, ac);
+    hr = zip_stat(safe_name, retVal, ac);
     if (hr >= 0)
         return 0;
 
@@ -290,9 +293,11 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
-    path_base::normalize(path, safe_name);
+    result_t hr = normalize_file_path_like(path, safe_name);
+    if (hr < 0)
+        return hr;
 
-    result_t hr = zip_stat(safe_name, retVal, ac);
+    hr = zip_stat(safe_name, retVal, ac);
     if (hr >= 0)
         return 0;
 
@@ -324,10 +329,12 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
-    path_base::normalize(fname, safe_name);
+    result_t hr = normalize_file_path_like(fname, safe_name);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<ZipFile::Info> zi;
-    result_t hr = resolve_zip_file(safe_name, zi, ac);
+    hr = resolve_zip_file(safe_name, zi, ac);
     if (hr >= 0) {
         obj_ptr<Buffer_base> data;
         exlib::string strData;
@@ -365,10 +372,12 @@ result_t fs_base::openFile(exlib::string fname, int32_t flags,
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     exlib::string safe_name;
-    path_base::normalize(fname, safe_name);
+    result_t hr = normalize_file_path_like(fname, safe_name);
+    if (hr < 0)
+        return hr;
 
     int32_t _fd;
-    result_t hr = file_open(safe_name, flags, 0666, _fd);
+    hr = file_open(safe_name, flags, 0666, _fd);
     if (hr < 0)
         return hr;
 
