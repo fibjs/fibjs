@@ -370,6 +370,35 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     return l->run_script(&context, bin, fname, extarg, false, true);
 }
 
+result_t SandBox::run_worker_source(exlib::string fname, exlib::string source, Worker_base* master)
+{
+    result_t hr;
+    bool isAbs;
+
+    hr = absolute_file_path_like(fname, fname);
+    if (hr < 0)
+        return hr;
+
+    path_base::isAbsolute(fname, isAbs);
+    if (!isAbs)
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
+    path_base::normalize(fname, fname);
+
+    obj_ptr<Buffer_base> bin = new Buffer(source.c_str(), source.length());
+
+    obj_ptr<ExtLoader> l;
+    hr = get_loader(fname, l);
+    if (hr < 0)
+        return hr;
+
+    Context context(this, fname);
+
+    std::vector<ExtLoader::arg> extarg(1);
+    extarg[0] = ExtLoader::arg("Master", master->wrap());
+
+    return l->run_script(&context, bin, fname, extarg, false, true);
+}
+
 result_t SandBox::run(exlib::string fname, bool in_cjs)
 {
     Scope _scope(this);

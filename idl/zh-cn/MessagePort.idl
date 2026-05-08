@@ -45,9 +45,9 @@ interface MessagePort : EventEmitter
     /*! @brief Mark the port as inactive so it doesn't keep the event loop alive */
     unref();
 
-    /*! @brief Event handler for message events. Setting this automatically calls start(). */
-    Value onmessage;
+    /*! @brief 查询和绑定接受消息事件，相当于 on("message", func); 设置后会自动调用 start()。 */
+    event message();
 
-    /*! @brief Event handler for message deserialization errors */
-    Value onmessageerror;
+    /*! @brief 查询和绑定接受消息反序列化错误事件，相当于 on("messageerror", func); */
+    event messageerror();
 };

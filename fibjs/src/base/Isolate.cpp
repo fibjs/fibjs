@@ -19,6 +19,8 @@
 #include "EventEmitter.h"
 #include "PerformanceObserver.h"
 #include "Fiber.h"
+#include "MessagePort.h"
+#include "Worker.h"
 
 using namespace v8;
 
@@ -28,7 +30,7 @@ void init_process_ipc(Isolate* isolate);
 
 static exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_iso_id;
-static exlib::atomic s_iso_ref;
+static exlib::atomic s_iso_count;
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
@@ -159,6 +161,7 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     , m_hr(0)
     , m_ipc_mode(0)
     , m_test(NULL)
+    , m_ref(0)
     , m_currentFibers(0)
     , m_idleFibers(0)
     , m_fid(1)
@@ -408,12 +411,33 @@ void Isolate::init()
 
 void Isolate::Ref()
 {
-    s_iso_ref.inc();
+    if (m_ref.inc() == 1)
+        s_iso_count.inc();
 }
 
 void Isolate::Unref(int32_t hr)
 {
-    if (s_iso_ref.dec() == 0) {
+    if (m_ref.dec() == 0) {
+        if (m_parent_worker) {
+            obj_ptr<Worker> peerWorker = m_parent_worker.As<Worker>();
+            obj_ptr<Worker> mainWorker = peerWorker ? peerWorker->m_peer_worker : nullptr;
+
+            if (mainWorker) {
+                int32_t exitCode = hr < 0 ? 1 : m_exitCode;
+                mainWorker->holder()->sync([mainWorker, exitCode]() -> int {
+                    JSFiber::EnterJsScope s;
+                    mainWorker->onIsolateIdle(exitCode);
+                    return 0;
+                });
+            }
+
+            s_iso_count.dec();
+            return;
+        }
+
+        if (s_iso_count.dec() != 0)
+            return;
+
         Isolate* isolate = s_isolates.head();
         isolate->m_hr = hr;
 
@@ -425,7 +449,7 @@ void Isolate::Unref(int32_t hr)
             bool r;
 
             t._emit("beforeExit", &code, 1, r);
-            if (s_iso_ref == 1) {
+            if (s_iso_count == 1 && isolate->m_ref == 1) {
                 if (isolate->m_hr >= 0)
                     process_base::exit();
                 else

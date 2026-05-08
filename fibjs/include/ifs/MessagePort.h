@@ -30,10 +30,6 @@ public:
     virtual result_t close() = 0;
     virtual result_t ref() = 0;
     virtual result_t unref() = 0;
-    virtual result_t get_onmessage(v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t set_onmessage(v8::Local<v8::Value> newVal) = 0;
-    virtual result_t get_onmessageerror(v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t set_onmessageerror(v8::Local<v8::Value> newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -157,14 +153,14 @@ inline void MessagePort_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void MessagePort_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> vr;
+    v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(MessagePort_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessage(vr);
+    hr = pInst->getListener("message", vr);
 
     METHOD_RETURN();
 }
@@ -176,23 +172,23 @@ inline void MessagePort_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessage(v0);
+    hr = pInst->setListener("message", v0);
 
     METHOD_VOID();
 }
 
 inline void MessagePort_base::s_get_onmessageerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> vr;
+    v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(MessagePort_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onmessageerror(vr);
+    hr = pInst->getListener("messageerror", vr);
 
     METHOD_RETURN();
 }
@@ -204,9 +200,9 @@ inline void MessagePort_base::s_set_onmessageerror(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onmessageerror(v0);
+    hr = pInst->setListener("messageerror", v0);
 
     METHOD_VOID();
 }

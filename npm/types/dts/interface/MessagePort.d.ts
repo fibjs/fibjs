@@ -61,14 +61,14 @@ declare class Class_MessagePort extends Class_EventEmitter {
     unref(): void;
 
     /**
-     * @description Event handler for message events. Setting this automatically calls start(). 
+     * @description 查询和绑定接受消息事件，相当于 on("message", func); 设置后会自动调用 start()。 
      */
-    onmessage: any;
+    on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description Event handler for message deserialization errors 
+     * @description 查询和绑定接受消息反序列化错误事件，相当于 on("messageerror", func); 
      */
-    onmessageerror: any;
+    on(event: "messageerror", listener: ()=>void): this;
 
 }
 

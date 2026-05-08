@@ -1125,7 +1125,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     overriddenMethods.has(parentFn.name)) {
 
                     // Add using declaration for overridden method
-                    usingDeclarations.push(`    using ${def.declare.extend}_base::${parentFn.name};`);
+                    usingDeclarations.push(`    using ${def.declare.extend}_base::${get_name(get_fname(parentFn, parentDef), parentFn, parentDef)};`);
                 }
             });
 

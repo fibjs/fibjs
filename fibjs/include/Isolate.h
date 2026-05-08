@@ -43,6 +43,7 @@ class ValueHolder;
 class SecureContext_base;
 class Buffer_base;
 class Worker_base;
+class MessagePort_base;
 class PerformanceMark;
 class PerformanceObserver;
 
@@ -324,6 +325,7 @@ public:
     int32_t m_ipc_mode;
 
     obj_ptr<Worker_base> m_parent_worker;
+    obj_ptr<MessagePort_base> m_parent_port;
 
     exlib::List<exlib::linkitem> m_fibers;
 
@@ -332,6 +334,7 @@ public:
     exlib::Semaphore m_sem;
     exlib::LockedList<exlib::linkitem> m_urgentJobs;
     exlib::LockedList<exlib::linkitem> m_jobs;
+    exlib::atomic m_ref;
     int32_t m_currentFibers;
     int32_t m_idleFibers;
 

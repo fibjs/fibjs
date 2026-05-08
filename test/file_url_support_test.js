@@ -222,7 +222,10 @@ describe('file url path-like inputs', () => {
 
                 await new Promise((resolve, reject) => {
                     const worker = new workerThreads.Worker(toFileURL(workerFile).href);
-                    worker.on('load', resolve);
+                    worker.on('online', () => {
+                        worker.on('exit', resolve);
+                        worker.terminate();
+                    });
                     worker.on('error', reject);
                 });
 

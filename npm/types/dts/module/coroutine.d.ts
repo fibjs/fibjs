@@ -3,7 +3,6 @@
 /// <reference path="../interface/Semaphore.d.ts" />
 /// <reference path="../interface/Condition.d.ts" />
 /// <reference path="../interface/Event.d.ts" />
-/// <reference path="../interface/Worker.d.ts" />
 /// <reference path="../interface/Fiber.d.ts" />
 /**
  * @description 并发控制模块
@@ -52,11 +51,6 @@ declare module 'coroutine' {
      * @description 事件对象，参见 Event 
      */
     const Event: typeof Class_Event;
-
-    /**
-     * @description 独立线程工作对象，参见 Worker 
-     */
-    const Worker: typeof Class_Worker;
 
     /**
      * @description 启动一个纤程并返回纤程对象

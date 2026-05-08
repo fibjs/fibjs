@@ -310,16 +310,15 @@ describe('MessageChannel', () => {
     });
 
     describe('postMessage data passing', () => {
-        it('should pass objects by reference in same isolate', () => {
+        it('should clone objects in same isolate', () => {
             return new Promise((resolve, reject) => {
                 var mc = new MessageChannel();
                 var obj = { a: 1, b: [2, 3] };
 
                 mc.port2.onmessage = (ev) => {
                     try {
-                        assert.deepStrictEqual(ev.data, obj);
-                        // Same isolate: shared reference
-                        assert.strictEqual(ev.data, obj);
+                        assert.deepStrictEqual(ev.data, { a: 1, b: [2, 3] });
+                        assert.notStrictEqual(ev.data, obj);
                         mc.port1.close();
                         mc.port2.close();
                         resolve();
@@ -329,6 +328,8 @@ describe('MessageChannel', () => {
                 };
 
                 mc.port1.postMessage(obj);
+                obj.a = 9;
+                obj.b.push(4);
             });
         });
 

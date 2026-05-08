@@ -35,32 +35,36 @@
  * // create a worker thread
  * const fib = new Worker(__dirname + '/fib-worker.js');
  * // Receive result from worker thread
- * fib.onmessage = (ev) => {
- *   console.log('result: ', ev.data);
- * };
+ * fib.on('message', (result) => {
+ *   console.log('result: ', result);
+ * });
+ * fib.on('error', (err) => {
+ *   console.error(err);
+ * });
  * fib.postMessage(40);
  * console.log('main thread still working');
  * ```
  * 
- * 在这个例子中，我们通过 Worker 对象的构造函数创建了一个工作线程来处理 Fibonacci 数列的计算，主线程通过 postMessage() 方法给工作线程传递数据，并通过 onmessage 事件来获取处理结果。同时，主线程显示 'still working' 消息，以证明已将此计算任务 '委托'给了工作线程，并可以继续处理其他事情。
+ * 在这个例子中，我们通过 Worker 对象的构造函数创建了一个工作线程来处理 Fibonacci 数列的计算，主线程通过 postMessage() 方法给工作线程传递数据，并通过 message 事件来获取处理结果。同时，主线程显示 'still working' 消息，以证明已将此计算任务 '委托'给了工作线程，并可以继续处理其他事情。
  * 
  * 工作线程代码样式如下：
  * 
  * ```JavaScript
  * // fib-worker.js
- * Master.onmessage = (ev) => {
- *   const n = ev.data;
+ * const { parentPort } = require('worker_threads');
+ * 
+ * parentPort.on('message', (n) => {
  *   const result = fib(n);
  *   // After calculation, result is sent back to main thread.
- *   Master.postMessage(result);
- * };
+ *   parentPort.postMessage(result);
+ * });
  * function fib(n) {
  *   if (n <= 1) return n;
  *   return fib(n - 1) + fib(n - 2);
  * }
  * ```
  * 
- * 在工作线程中，我们监听了主线程通过入口参数 postMessage() 发送的消息，将指定的 Fibonacci 数列计算并通过 Master.postMessage() 方法将计算结果传送回主线程。
+ * 在工作线程中，我们通过 parentPort.on('message') 监听主线程发送的消息，计算指定的 Fibonacci 数列，并通过 parentPort.postMessage() 将计算结果传送回主线程。
  * 
  * 这是一个最基础的 Worker 示例，使用 Worker 对象开发时，主线程与工作线程是完全异步的，每个 Worker 对象都是一个单独的线程，在主线程中实例化的 Worker 对象并不会产生任何阻塞。
  *  
@@ -68,23 +72,45 @@
 declare class Class_Worker extends Class_EventEmitter {
     /**
      * @description Worker 对象构造函数
-     *      @param path 指定 Worker 入口脚本，只接受绝对路径
-     *      @param opts 构造选项，暂未支持
+     *    @param path 指定 Worker 入口脚本，接受绝对路径、以 ./ 或 ../ 开头的相对路径，或者在 opts.eval = true 时直接传入源码
+     *    @param opts 构造选项，支持 eval 和 workerData
      *      
      */
     constructor(path: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 向 Master 或 Worker 发送消息，
+     * @description 查询目标 worker 的逻辑 worker 标识 
+     */
+    readonly threadId: number;
+
+    /**
+     * @description 向对端线程发送消息，
      *      @param data 指定发送的消息内容
      *      
      */
     postMessage(data: any): void;
 
     /**
-     * @description 查询和绑定接受 load 消息事件，相当于 on("load", func); 
+     * @description 终止 worker 
      */
-    on(event: "load", listener: ()=>void): this;
+    terminate(): void;
+
+    /**
+     * @description 维持 fibjs 进程不退出
+     *    
+     */
+    ref(): void;
+
+    /**
+     * @description 允许 fibjs 进程退出
+     *    
+     */
+    unref(): void;
+
+    /**
+     * @description 查询和绑定接受 worker 就绪事件，相当于 on("online", func); 
+     */
+    on(event: "online", listener: ()=>void): this;
 
     /**
      * @description 查询和绑定接受 postMessage 消息事件，相当于 on("message", func); 
@@ -95,6 +121,11 @@ declare class Class_Worker extends Class_EventEmitter {
      * @description 查询和绑定接受 error 消息事件，相当于 on("error", func); 
      */
     on(event: "error", listener: ()=>void): this;
+
+    /**
+     * @description 查询和绑定接受 worker 退出事件，相当于 on("exit", func); 
+     */
+    on(event: "exit", listener: ()=>void): this;
 
 }
 

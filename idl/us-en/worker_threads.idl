@@ -10,12 +10,24 @@ module worker_threads
     /*! @brief Independent thread worker object, see Worker */
     static Worker;
 
+    /*! @brief One end of a message channel, see MessagePort */
+    static MessagePort;
+
+    /*! @brief A pair of connected MessagePort objects, see MessageChannel */
+    static MessageChannel;
+
     /*! @brief Query if current Worker is main thread */
     static readonly Boolean isMainThread;
 
-    /*! @brief Query the parent thread of current Worker */
-    static readonly Worker parentPort;
+    /*! @brief Query the logical worker identifier of current execution context */
+    static readonly Integer threadId;
+
+    /*! @brief Query the parent port of current Worker */
+    static readonly MessagePort parentPort;
 
     /*! @brief Query the clone of data passed to this thread by parent thread through Worker constructor */
     static readonly Value workerData;
+
+    /*! @brief Receive the next queued message from a MessagePort synchronously */
+    static Value receiveMessageOnPort(MessagePort port);
 };

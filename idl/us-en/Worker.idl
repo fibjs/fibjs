@@ -31,54 +31,73 @@ const { Worker } = require('worker_threads');
 // create a worker thread
 const fib = new Worker(__dirname + '/fib-worker.js');
 // Receive results from the worker thread
-fib.onmessage = (ev) => {
-  console.log('result: ', ev.data);
-};
+fib.on('message', (result) => {
+  console.log('result: ', result);
+});
+fib.on('error', (err) => {
+  console.error(err);
+});
 fib.postMessage(40);
 console.log('main thread still working');
 ```
 
-In this example, we create a worker thread through the Worker's constructor to handle Fibonacci sequence calculations. The main thread passes data to the worker thread via the postMessage() method and obtains the processing results through the onmessage event. At the same time, the main thread displays the 'still working' message to prove that this calculation task has been 'delegated' to the worker thread and can continue to handle other things.
+In this example, we create a worker thread through the Worker's constructor to handle Fibonacci sequence calculations. The main thread passes data to the worker thread via the postMessage() method and obtains the processing results through the message event. At the same time, the main thread displays the 'still working' message to prove that this calculation task has been 'delegated' to the worker thread and can continue to handle other things.
 
 The worker thread code style is as follows:
 
 ```JavaScript
 // fib-worker.js
-Master.onmessage = (ev) => {
-  const n = ev.data;
+const { parentPort } = require('worker_threads');
+
+parentPort.on('message', (n) => {
   const result = fib(n);
   // After calculation, the result is sent back to the main thread.
-  Master.postMessage(result);
-};
+  parentPort.postMessage(result);
+});
 function fib(n) {
   if (n <= 1) return n;
   return fib(n - 1) + fib(n - 2);
 }
 ```
 
-In the worker thread, we listen to the message sent by the main thread through the entry parameter postMessage(), calculate the specified Fibonacci sequence, and send the calculation result back to the main thread through the Master.postMessage() method.
+In the worker thread, we listen to the message sent by the main thread through parentPort.on('message'), calculate the specified Fibonacci sequence, and send the calculation result back to the main thread through parentPort.postMessage().
 
 This is a basic Worker example. When developing with Worker objects, the main thread and worker threads are completely asynchronous. Each Worker object is a separate thread, and instantiating a Worker object in the main thread does not cause any blocking.
  */
 interface Worker : EventEmitter
 {
     /*! @brief Worker object constructor
-     @param path specifies the Worker entry script, only absolute paths are accepted
-     @param opts construction options, not yet supported
+  @param path specifies the Worker entry script, accepting absolute paths, ./ or ../ relative paths, or source text when opts.eval = true
+  @param opts construction options, supports eval and workerData
      */
     Worker(String path, Object opts = {});
 
-    /*! @brief Send message to Master or Worker,
+  /*! @brief Query the logical worker identifier of the target worker. */
+  readonly Integer threadId;
+
+    /*! @brief Send a message to the peer thread,
      @param data specifies the content of the message to send
      */
     postMessage(Value data);
 
-    /*! @brief Query and bind to receive load message event, equivalent to on("load", func); */
-    event load();
+  /*! @brief Terminate the worker. */
+  terminate();
+
+    /*! @brief Keep the fibjs process alive. */
+    ref();
+
+    /*! @brief Allow the fibjs process to exit. */
+    unref();
+
+    /*! @brief Query and bind to receive worker ready event, equivalent to on("online", func); */
+    event online();
 
     /*! @brief Query and bind to receive postMessage message event, equivalent to on("message", func); */
     event message();
 
     /*! @brief Query and bind to receive error message event, equivalent to on("error", func); */
     event error();
+
+    /*! @brief Query and bind to receive worker exit event, equivalent to on("exit", func); */
+    event exit();
 };

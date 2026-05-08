@@ -37,9 +37,6 @@ module coroutine
     /*! @brief Event object, see Event */
     static Event;
 
-    /*! @brief Independent thread worker object, see Worker */
-    static Worker;
-
     /*! @brief Start a fiber and return the fiber object
      @param func Specify the function for fiber execution
      @param args Variable parameter sequence, this sequence will be passed to the function within the fiber

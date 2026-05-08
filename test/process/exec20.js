@@ -1,5 +1,5 @@
-var coroutine = require('coroutine');
 var path = require('path');
+var { Worker } = require('worker_threads');
 
 process.exitCode = 20;
-new coroutine.Worker(path.join(__dirname, 'exec20_worker.js'));
+new Worker(path.join(__dirname, 'exec20_worker.js'));

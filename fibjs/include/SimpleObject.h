@@ -306,6 +306,62 @@ public:
     }
 };
 
+class NError : public NObject {
+public:
+    explicit NError(exlib::string message)
+        : m_message(message)
+    {
+        if (m_in_trace)
+            NError::class_info().RefClass();
+    }
+
+    NError(exlib::string message, exlib::string code)
+        : m_message(message)
+    {
+        if (m_in_trace)
+            NError::class_info().RefClass();
+
+        setCode(code);
+    }
+
+    virtual ~NError()
+    {
+        if (m_in_trace)
+            NError::class_info().UnrefClass();
+    }
+
+    DECLARE_CLASSINFO(NError);
+
+public:
+    void setName(exlib::string name)
+    {
+        add("name", name);
+    }
+
+    void setCode(exlib::string code)
+    {
+        add("code", code);
+    }
+
+    void setCause(Variant cause)
+    {
+        add("cause", cause);
+    }
+
+    virtual result_t valueOf(v8::Local<v8::Value>& retVal)
+    {
+        Isolate* isolate = holder();
+        v8::Local<v8::Object> err = v8::Exception::Error(isolate->NewString(m_message)).As<v8::Object>();
+
+        NObject::valueOf(err);
+        retVal = err;
+        return 0;
+    }
+
+private:
+    exlib::string m_message;
+};
+
 inline ClassInfo& NObject::class_info()
 {
     static ClassData s_cd = {
@@ -348,6 +404,18 @@ inline ClassInfo& NType::class_info()
         "NType", false, NULL, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline ClassInfo& NError::class_info()
+{
+    static ClassData s_cd = {
+        "NError", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &NObject::class_info()
     };
 
     static ClassInfo s_ci(s_cd);

@@ -14,12 +14,19 @@
 
 namespace fibjs {
 
+class Buffer_base;
+class Worker;
+
 class MessagePort : public MessagePort_base {
 public:
     MessagePort()
         : m_peer(nullptr)
         , m_closed(false)
         , m_started(false)
+        , m_queue_holding(false)
+        , m_can_deliver_inline(false)
+        , m_flush_pending(false)
+        , m_raw_message_mode(false)
     {
     }
 
@@ -37,6 +44,21 @@ public:
         m_peer = peer;
     }
 
+    void setRawMessageMode(bool rawMessageMode)
+    {
+        m_raw_message_mode = rawMessageMode;
+    }
+
+    void setCanDeliverInline(bool canDeliverInline)
+    {
+        m_can_deliver_inline = canDeliverInline;
+    }
+
+    void setMessageTarget(Worker* messageTarget)
+    {
+        m_message_target = messageTarget;
+    }
+
 public:
     // MessagePort_base
     virtual result_t postMessage(v8::Local<v8::Value> data);
@@ -45,22 +67,30 @@ public:
     virtual result_t close();
     virtual result_t ref();
     virtual result_t unref();
-    virtual result_t get_onmessage(v8::Local<v8::Value>& retVal);
-    virtual result_t set_onmessage(v8::Local<v8::Value> newVal);
-    virtual result_t get_onmessageerror(v8::Local<v8::Value>& retVal);
-    virtual result_t set_onmessageerror(v8::Local<v8::Value> newVal);
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
+
+public:
+    bool receiveMessage(v8::Local<v8::Value>& retVal);
+    bool hasMessageListeners();
+    bool hasPendingMessages();
+    void flush();
 
 private:
-    void enqueueMessage(v8::Local<v8::Value> data);
-    void flush();
+    bool canDeliverMessages();
+    bool contributesKeepAlive();
+    result_t enqueueSerializedMessage(Buffer_base* data);
+    result_t emitSerializedMessage(Buffer_base* data);
 
 private:
     MessagePort* m_peer;
     bool m_closed;
     bool m_started;
-    std::list<v8::Global<v8::Value>> m_queue;
-    v8::Global<v8::Value> m_onmessage;
-    v8::Global<v8::Value> m_onmessageerror;
+    bool m_queue_holding;
+    bool m_can_deliver_inline;
+    bool m_raw_message_mode;
+    bool m_flush_pending;
+    std::list<obj_ptr<Buffer_base>> m_queue;
+    obj_ptr<Worker> m_message_target;
 };
 
 } /* namespace fibjs */

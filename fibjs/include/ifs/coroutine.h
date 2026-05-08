@@ -19,7 +19,6 @@ class Lock_base;
 class Semaphore_base;
 class Condition_base;
 class Event_base;
-class Worker_base;
 class Fiber_base;
 
 class coroutine_base : public object_base {
@@ -69,7 +68,6 @@ public:
 #include "ifs/Semaphore.h"
 #include "ifs/Condition.h"
 #include "ifs/Event.h"
-#include "ifs/Worker.h"
 #include "ifs/Fiber.h"
 
 namespace fibjs {
@@ -86,8 +84,7 @@ inline ClassInfo& coroutine_base::class_info()
         { "Lock", Lock_base::class_info },
         { "Semaphore", Semaphore_base::class_info },
         { "Condition", Condition_base::class_info },
-        { "Event", Event_base::class_info },
-        { "Worker", Worker_base::class_info }
+        { "Event", Event_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {
