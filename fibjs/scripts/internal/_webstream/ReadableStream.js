@@ -432,6 +432,12 @@ function readableStreamTee(stream, cloneForBranch2) {
                 readAgain = false;
                 pullAlgorithm();
             }
+        }, () => {
+            // reader.closed handles propagating the stored error to both branches.
+            // This branch exists to consume the in-flight read() rejection so it
+            // does not surface as an unhandled promise rejection.
+            reading = false;
+            readAgain = false;
         });
 
         return Promise.resolve();
