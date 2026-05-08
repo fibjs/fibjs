@@ -109,6 +109,24 @@ bool MessagePort::contributesKeepAlive()
     return false;
 }
 
+void MessagePort::ensureKeepAliveRef()
+{
+    if (!contributesKeepAlive() || m_keepalive_refed)
+        return;
+
+    holder()->Ref();
+    m_keepalive_refed = true;
+}
+
+void MessagePort::releaseKeepAliveRef()
+{
+    if (!m_keepalive_refed)
+        return;
+
+    holder()->Unref();
+    m_keepalive_refed = false;
+}
+
 result_t MessagePort::enqueueSerializedMessage(Buffer_base* data)
 {
     isolate_ref();
@@ -201,6 +219,7 @@ result_t MessagePort::start()
 
     if (!m_started) {
         m_started = true;
+        ensureKeepAliveRef();
         flush();
     }
     return 0;
@@ -210,9 +229,8 @@ result_t MessagePort::close()
 {
     if (!m_closed) {
         m_closed = true;
-        if (m_queue.empty()) {
-            isolate_unref();
-        }
+        releaseKeepAliveRef();
+
         if (m_peer) {
             m_peer->m_peer = nullptr;
             m_peer = nullptr;
@@ -224,17 +242,13 @@ result_t MessagePort::close()
 
 result_t MessagePort::ref()
 {
-    if (contributesKeepAlive()) {
-        isolate_ref();
-    }
+    ensureKeepAliveRef();
     return 0;
 }
 
 result_t MessagePort::unref()
 {
-    if (contributesKeepAlive()) {
-        isolate_unref();
-    }
+    releaseKeepAliveRef();
     return 0;
 }
 

@@ -187,6 +187,56 @@ describe('worker_threads fibjs target behavior', () => {
         worker.postMessage({ seq: 1, text: 'early' });
     });
 
+    it('keeps parentPort alive across multiple messages with an async gap', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.postMessage({ step: "ready" });',
+            'parentPort.on("message", (message) => {',
+            '  if (message.cmd === "step1") {',
+            '    parentPort.postMessage({ step: "step1" });',
+            '    return;',
+            '  }',
+            '  if (message.cmd === "step2") {',
+            '    parentPort.postMessage({ step: "step2" });',
+            '    parentPort.close();',
+            '  }',
+            '});'
+        ].join('\n'), {
+            eval: true
+        });
+
+        const steps = [];
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                steps.push(message.step);
+
+                if (message.step === 'ready') {
+                    worker.postMessage({ cmd: 'step1' });
+                    return;
+                }
+
+                if (message.step === 'step1') {
+                    setTimeout(() => worker.postMessage({ cmd: 'step2' }), 10);
+                    return;
+                }
+            } catch (err) {
+                finish(err);
+            }
+        });
+        worker.once('exit', (exitCode) => {
+            try {
+                assert.deepStrictEqual(steps, ['ready', 'step1', 'step2']);
+                assert.strictEqual(exitCode, 0);
+                finish();
+            } catch (err) {
+                finish(err);
+            }
+        });
+    });
+
     it('emits uncaught worker exceptions on the error event', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker(throwWorkerFile);

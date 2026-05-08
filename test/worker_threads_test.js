@@ -206,6 +206,59 @@ describe('worker_threads node baseline', () => {
         });
     });
 
+    it('keeps parentPort alive across multiple messages', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.postMessage({ step: "ready" });',
+            'parentPort.on("message", (message) => {',
+            '  if (message.cmd === "step1") {',
+            '    parentPort.postMessage({ step: "step1" });',
+            '    return;',
+            '  }',
+            '  if (message.cmd === "step2") {',
+            '    parentPort.postMessage({ step: "step2" });',
+            '    parentPort.close();',
+            '  }',
+            '});'
+        ].join('\n'), {
+            eval: true
+        });
+
+        const steps = [];
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                steps.push(message.step);
+
+                if (message.step === 'ready') {
+                    worker.postMessage({ cmd: 'step1' });
+                    return;
+                }
+
+                if (message.step === 'step1') {
+                    setTimeout(() => worker.postMessage({ cmd: 'step2' }), 10);
+                    return;
+                }
+
+                if (message.step === 'step2')
+                    return;
+            } catch (err) {
+                finish(err);
+            }
+        });
+        worker.once('exit', (exitCode) => {
+            try {
+                assert.deepStrictEqual(steps, ['ready', 'step1', 'step2']);
+                assert.strictEqual(exitCode, 0);
+                finish();
+            } catch (err) {
+                finish(err);
+            }
+        });
+    });
+
     it('exposes a stable logical threadId for each worker isolate', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([

@@ -23,7 +23,7 @@ public:
         : m_peer(nullptr)
         , m_closed(false)
         , m_started(false)
-        , m_queue_holding(false)
+        , m_keepalive_refed(false)
         , m_can_deliver_inline(false)
         , m_flush_pending(false)
         , m_raw_message_mode(false)
@@ -78,6 +78,8 @@ public:
 private:
     bool canDeliverMessages();
     bool contributesKeepAlive();
+    void ensureKeepAliveRef();
+    void releaseKeepAliveRef();
     result_t enqueueSerializedMessage(Buffer_base* data);
     result_t emitSerializedMessage(Buffer_base* data);
 
@@ -85,7 +87,7 @@ private:
     MessagePort* m_peer;
     bool m_closed;
     bool m_started;
-    bool m_queue_holding;
+    bool m_keepalive_refed;
     bool m_can_deliver_inline;
     bool m_raw_message_mode;
     bool m_flush_pending;
