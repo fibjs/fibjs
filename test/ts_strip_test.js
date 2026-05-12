@@ -2541,6 +2541,18 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
+            it('should erase import with only inline type specifiers', () => {
+                const input = 'import { type User } from "./mod";';
+                const expected = '                                  ';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should erase export with only inline type specifiers', () => {
+                const input = 'export { type User };';
+                const expected = '                     ';
+                assert.strictEqual(strip(input), expected);
+            });
+
             it('should handle mixed type identifiers and type modifiers', () => {
                 // 'type' alone is identifier, 'type X' is modifier
                 const input = 'export { type, type User };';
