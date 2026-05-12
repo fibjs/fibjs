@@ -437,6 +437,22 @@ describe("module", () => {
                     }
                 });
             });
+
+            it("scoped package sub script in exports", () => {
+                var pkg = require('@scope/icons');
+                assert.deepEqual(pkg, {
+                    "name": "@scope/icons",
+                    "entry": "root"
+                });
+
+                var subpath = require('@scope/icons/lib/components/Context');
+                assert.deepEqual(subpath, {
+                    "name": "@scope/icons",
+                    "entry": "Context"
+                });
+
+                assert.deepEqual(subpath, require('./node_modules/@scope/icons/lib/components/Context'));
+            });
         });
 
         it("sub package", () => {

@@ -278,7 +278,13 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                         if (IsEmpty(def_value))
                             return false;
                     } else {
-                        for (int32_t i = len - 1; i >= 0; i--) {
+                        JSValue best_value;
+                        exlib::string best_script_part;
+                        size_t best_left_len = 0;
+                        size_t best_right_len = 0;
+                        size_t best_key_len = 0;
+
+                        for (int32_t i = 0; i < len; i++) {
                             v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
                             exlib::string skey = isolate->toString(key);
 
@@ -287,26 +293,45 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
                             path_base::normalize(skey, skey);
 
+                            if (skey == script_name) {
+                                script_part.clear();
+                                script_name.clear();
+                                def_value = o->Get(context, key);
+                                break;
+                            }
+
                             size_t skey_left_len = skey.find('*');
                             if (skey_left_len != exlib::string::npos) {
                                 size_t skey_len = skey.length();
                                 size_t skey_right_len = skey_len - skey_left_len - 1;
                                 size_t script_name_len = script_name.length();
 
-                                if (!qstrcmp(skey.c_str(), script_name.c_str(), skey_left_len)
+                                if (script_name_len >= skey_left_len + skey_right_len
+                                    && !qstrcmp(skey.c_str(), script_name.c_str(), skey_left_len)
                                     && !qstrcmp(skey.c_str() + skey_len - skey_right_len,
                                         script_name.c_str() + script_name_len - skey_right_len, skey_right_len)) {
-                                    script_part = script_name.substr(skey_left_len, script_name_len - skey_right_len - skey_left_len);
-                                    script_name.clear();
-                                    def_value = o->Get(context, key);
-                                    break;
+                                    if (IsEmpty(best_value)
+                                        || skey_left_len > best_left_len
+                                        || (skey_left_len == best_left_len && skey_right_len > best_right_len)
+                                        || (skey_left_len == best_left_len && skey_right_len == best_right_len && skey_len > best_key_len)) {
+                                        best_script_part = script_name.substr(skey_left_len, script_name_len - skey_right_len - skey_left_len);
+                                        best_value = o->Get(context, key);
+                                        best_left_len = skey_left_len;
+                                        best_right_len = skey_right_len;
+                                        best_key_len = skey_len;
+                                    }
                                 }
-                            } else if (skey == script_name) {
-                                script_name.clear();
-                                def_value = o->Get(context, key);
-                                break;
                             }
                         }
+
+                        if (IsEmpty(def_value) && !IsEmpty(best_value)) {
+                            script_part = best_script_part;
+                            script_name.clear();
+                            def_value = best_value;
+                        }
+
+                        if (IsEmpty(def_value))
+                            return false;
 
                         if (!script_name.empty())
                             return false;
