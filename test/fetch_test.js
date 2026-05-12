@@ -3,7 +3,9 @@ const assert = require('node:assert');
 const http = require('node:http');
 const { once } = require('node:events');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { pathToFileURL } = require('node:url');
 
 // fibjs throws TypeError for abort/timeout; Node.js throws DOMException (AbortError/TimeoutError)
 const isFibjs = !!process.versions?.fibjs;
@@ -96,21 +98,20 @@ describe("web fetch", () => {
     });
 
     describe("fetch - file URL", () => {
-        const fixtureDir = path.join(process.cwd(), 'temp');
-        const fixturePath = path.join(fixtureDir, 'fetch_file_url_fixture.txt');
         const fixtureContent = 'file fetch fixture';
+        let fixtureDir;
+        let fixturePath;
         let fixtureUrl;
 
         before(() => {
+            fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fetch-file-url-'));
+            fixturePath = path.join(fixtureDir, 'fetch_file_url_fixture.txt');
             fs.writeFileSync(fixturePath, fixtureContent);
-            fixtureUrl = new URL(`file://${fixturePath}`);
+            fixtureUrl = pathToFileURL(fixturePath);
         });
 
         after(() => {
-            try {
-                fs.unlinkSync(fixturePath);
-            } catch (e) {
-            }
+            fs.rmSync(fixtureDir, { recursive: true, force: true });
         });
 
         it("reads local file content via file URL", async () => {
