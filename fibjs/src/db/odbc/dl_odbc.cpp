@@ -9,7 +9,13 @@
 #include "dl_odbc.h"
 
 static void* odbc_handle;
+#ifdef __APPLE__
+#define odbc_func(func) dl_def_func(odbc_handle, func, ODBC_LIB, \
+    "/opt/homebrew/opt/unixodbc/lib/libodbc.dylib", \
+    "/usr/local/opt/unixodbc/lib/libodbc.dylib")
+#else
 #define odbc_func(func) dl_def_func(odbc_handle, func, ODBC_LIB)
+#endif
 
 SQLRETURN SQL_API SQLAllocEnv(SQLHENV* EnvironmentHandle)
 {

@@ -285,6 +285,9 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 
     exlib::string str;
     hr = q->first("Driver", v);
+    if (hr == CALL_RETURN_NULL)
+        hr = q->first("driver", v);
+
     if (hr != CALL_RETURN_NULL) {
         str = v.string();
         driver = str.c_str();
