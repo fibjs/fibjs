@@ -38,10 +38,10 @@ describe("vec", () => {
         for (var i = 0; i < buf.length; i += 16) {
             var arr = [];
 
-            arr.push(buf.readFloatLE(0).toFixed(6));
-            arr.push(buf.readFloatLE(4).toFixed(6));
-            arr.push(buf.readFloatLE(8).toFixed(6));
-            arr.push(buf.readInt32LE(12));
+            arr.push(buf.readFloatLE(i).toFixed(6));
+            arr.push(buf.readFloatLE(i + 4).toFixed(6));
+            arr.push(buf.readFloatLE(i + 8).toFixed(6));
+            arr.push(buf.readInt32LE(i + 12));
             res.push(arr);
         }
 
@@ -112,7 +112,7 @@ describe("vec", () => {
                 "0.267261",
                 "0.534522",
                 "0.801784",
-                1
+                2
             ]
         ]);
         assert.deepEqual(decodeVec(res[1].data), [
@@ -126,7 +126,7 @@ describe("vec", () => {
                 "0.424264",
                 "0.565685",
                 "0.707107",
-                1
+                2
             ]
         ]);
     });
@@ -246,7 +246,7 @@ describe("vec", () => {
                 "0.267261",
                 "0.534522",
                 "0.801784",
-                1
+                2
             ]
         ]);
         assert.deepEqual(decodeVec(res[1].data), [
@@ -260,7 +260,7 @@ describe("vec", () => {
                 "0.424264",
                 "0.565685",
                 "0.707107",
-                1
+                2
             ]
         ]);
 
@@ -276,10 +276,10 @@ describe("vec", () => {
                 1
             ],
             [
-                "0.267261",
-                "0.534522",
-                "0.801784",
-                1
+                "0.218218",
+                "0.436436",
+                "0.872872",
+                2
             ]
         ]);
         assert.deepEqual(decodeVec(res[1].data), [
@@ -293,9 +293,43 @@ describe("vec", () => {
                 "0.424264",
                 "0.565685",
                 "0.707107",
-                1
+                2
             ]
         ]);
+    });
+
+    it("update after delete", () => {
+        conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
+        conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[1,1,1]", 1)`);
+        conn.execute(`insert into vindex(title, description, rowid) values("[4,5,6]", "[1,1,1]", 2)`);
+
+        conn.execute(`delete from vindex where rowid = 1`);
+        conn.execute(`update vindex set title="[7,8,9]" where rowid = 2`);
+
+        assert.deepEqual(conn.execute(`select rowid from vindex`), [
+            {
+                "rowid": 2
+            }
+        ]);
+
+        var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[7,8,9]:1")`);
+        assert.equal(res.length, 1);
+        assert.equal(res[0].rowid, 2);
+        assert.closeTo(res[0].distance, 0, 0.0001);
+    });
+
+    it("update rowid", () => {
+        conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
+        conn.execute(`insert into vindex(title, description, rowid) values("[1,0,0]", "[1,1,1]", 10)`);
+
+        conn.execute(`update vindex set rowid = 20 where rowid = 10`);
+
+        assert.deepEqual(conn.execute(`select rowid from vindex`), [
+            {
+                "rowid": 20
+            }
+        ]);
+        assert.deepEqual(conn.execute(`select rowid from vindex where rowid = 10`), []);
     });
 
     it("double insert in trans", () => {

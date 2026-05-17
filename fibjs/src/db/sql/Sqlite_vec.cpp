@@ -94,13 +94,39 @@ public:
         hnswlib::BruteforceSearch<float>::addPoint(datapoint, label, replace_deleted);
     }
 
+    bool contains(hnswlib::labeltype label) const
+    {
+        return dict_external_to_internal.find(label) != dict_external_to_internal.end();
+    }
+
+    bool getPoint(hnswlib::labeltype label, std::vector<float>& data) const
+    {
+        auto it = dict_external_to_internal.find(label);
+        if (it == dict_external_to_internal.end())
+            return false;
+
+        data.resize(dim());
+        memcpy(data.data(), data_ + size_per_element_ * it->second, data_size_);
+        return true;
+    }
+
     void removePoint(hnswlib::labeltype cur_external)
     {
-        size_t cur_c = dict_external_to_internal[cur_external];
+        auto it = dict_external_to_internal.find(cur_external);
+        if (it == dict_external_to_internal.end())
+            return;
 
-        dict_external_to_internal.erase(cur_external);
-        memcpy(data_ + size_per_element_ * cur_c,
-            data_ + size_per_element_ * (cur_element_count - 1), size_per_element_);
+        size_t cur_c = it->second;
+        size_t last = cur_element_count - 1;
+
+        dict_external_to_internal.erase(it);
+        if (cur_c != last) {
+            hnswlib::labeltype label = rowid(last);
+            memcpy(data_ + size_per_element_ * cur_c,
+                data_ + size_per_element_ * last, size_per_element_);
+            dict_external_to_internal[label] = cur_c;
+        }
+
         cur_element_count--;
     }
 
@@ -213,7 +239,10 @@ class VecIndex : public sqlite3_vtab {
 public:
     class op {
     public:
+        hnswlib::labeltype old_rowid;
         hnswlib::labeltype rowid;
+        bool has_old_rowid = false;
+        bool deleted = false;
         std::vector<std::vector<float>> datas;
     };
 
@@ -308,23 +337,45 @@ public:
             dirty.resize(indexCount);
 
             for (auto& op : ops) {
-                if (op.datas.size() == 0) {
+                if (op.deleted) {
                     // delete
                     for (int i = 0; i < indexCount; i++) {
+                        if (!columns[i].contains(op.old_rowid))
+                            continue;
+
                         dirty[i] = true;
-                        columns[i].removePoint(op.rowid);
+                        columns[i].removePoint(op.old_rowid);
                     }
                 } else {
                     // insert or update
-                    for (int i = 0; i < indexCount; i++)
-                        if (op.datas[i].size()) {
-                            dirty[i] = true;
-                            columns[i].addPoint(op.datas[i].data(), op.rowid);
+                    bool rowid_changed = op.has_old_rowid && op.old_rowid != op.rowid;
+                    std::vector<std::vector<float>> row_data;
+
+                    if (rowid_changed) {
+                        row_data.resize(indexCount);
+                        for (int i = 0; i < indexCount; i++) {
+                            if (op.datas[i].size()) {
+                                row_data[i] = op.datas[i];
+                            } else if (!columns[i].getPoint(op.old_rowid, row_data[i])) {
+                                zErrMsg = sqlite3_mprintf("rowid[%d] does not exist", op.old_rowid);
+                                return SQLITE_ERROR;
+                            }
                         }
+
+                        for (int i = 0; i < indexCount; i++) {
+                            dirty[i] = true;
+                            columns[i].removePoint(op.old_rowid);
+                            columns[i].addPoint(row_data[i].data(), op.rowid);
+                        }
+                    } else {
+                        for (int i = 0; i < indexCount; i++)
+                            if (op.datas[i].size()) {
+                                dirty[i] = true;
+                                columns[i].addPoint(op.datas[i].data(), op.rowid);
+                            }
+                    }
                 }
             }
-
-            rollback();
 
             int rc;
             const char* zQuery;
@@ -352,6 +403,8 @@ public:
                     if (rc != SQLITE_DONE)
                         return rc;
                 }
+
+        rollback();
         }
 
         return SQLITE_OK;
@@ -497,6 +550,8 @@ std::vector<float> parse_vector(sqlite3_value* value, size_t dim)
 
         return parse_vector(txt, dim);
     }
+
+    return std::vector<float>();
 }
 
 static int init(sqlite3* db, void* pAux, int argc, const char* const* argv,
@@ -772,7 +827,9 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
             return SQLITE_ERROR;
         }
 
-        op.rowid = sqlite3_value_int64(argv[0]);
+        op.old_rowid = op.rowid = sqlite3_value_int64(argv[0]);
+        op.has_old_rowid = true;
+        op.deleted = true;
         p->incr_ops[op.rowid] = false;
     } else if (argc > 1 && sqlite3_value_type(argv[0]) == SQLITE_NULL) {
         // INSERT operation
@@ -803,14 +860,22 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
         }
 
         p->incr_ops[op.rowid] = true;
+        *pRowid = op.rowid;
     } else {
         // some UPDATE operations
-        if (SQLITE_INTEGER != sqlite3_value_type(argv[1])) {
+        if (SQLITE_INTEGER != sqlite3_value_type(argv[0]) || SQLITE_INTEGER != sqlite3_value_type(argv[1])) {
             p->zErrMsg = sqlite3_mprintf("rowid must be an integer");
             return SQLITE_ERROR;
         }
 
+        op.old_rowid = sqlite3_value_int64(argv[0]);
         op.rowid = sqlite3_value_int64(argv[1]);
+        op.has_old_rowid = true;
+
+        if (op.old_rowid != op.rowid && p->exists(op.rowid)) {
+            p->zErrMsg = sqlite3_mprintf("rowid[%lld] already exists", op.rowid);
+            return SQLITE_ERROR;
+        }
 
         for (int i = 0; i < p->indexCount; i++) {
             std::vector<float> vec;
@@ -830,6 +895,13 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
 
             op.datas.push_back(vec);
         }
+
+        if (op.old_rowid != op.rowid) {
+            p->incr_ops[op.old_rowid] = false;
+            p->incr_ops[op.rowid] = true;
+        }
+
+        *pRowid = op.rowid;
     }
 
     p->ops.push_back(op);
