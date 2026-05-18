@@ -48,11 +48,30 @@ describe("vec", () => {
         return res;
     }
 
+    function splitPages(buf, pageSize) {
+        var pages = [];
+
+        for (var offset = 0; offset < buf.length; offset += pageSize)
+            pages.push(buf.slice(offset, Math.min(offset + pageSize, buf.length)));
+
+        return pages;
+    }
+
     it("create table", () => {
         conn.execute("create virtual table vindex using vec_index(title(128), description(128))");
         assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vec_index'"), [
             {
                 "name": "vec_index"
+            }
+        ]);
+        assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vec_index_meta'"), [
+            {
+                "name": "vec_index_meta"
+            }
+        ]);
+        assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vec_index_pages'"), [
+            {
+                "name": "vec_index_pages"
             }
         ]);
 
@@ -66,9 +85,23 @@ describe("vec", () => {
                 "data": null
             }
         ]);
+        assert.deepEqual(conn.execute(`select name, format, page_size from vec_index_meta where tbl="vindex" order by name desc`), [
+            {
+                "name": "title",
+                "format": 0,
+                "page_size": 4096
+            },
+            {
+                "name": "description",
+                "format": 0,
+                "page_size": 4096
+            }
+        ]);
 
         conn.execute("drop table vindex");
         assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vindex_data'"), []);
+        assert.deepEqual(conn.execute(`select * from vec_index_meta where tbl="vindex"`), []);
+        assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
     });
 
     it("insert", () => {
@@ -464,6 +497,143 @@ describe("vec", () => {
                 3
             ]
         ]);
+    });
+
+    it("load from disk db (paged format)", () => {
+        conn = db.openSQLite(path.join(__dirname, "vec_test.db"));
+
+        conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
+        conn.trans(() => {
+            for (var rowid = 1; rowid <= 300; rowid++) {
+                conn.execute(`insert into vindex(title, description, rowid) values(?, ?, ?)`,
+                    JSON.stringify([rowid, rowid + 1, rowid + 2]),
+                    JSON.stringify([rowid + 3, rowid + 4, rowid + 5]),
+                    rowid);
+            }
+        });
+
+        var rows = conn.execute(`select name, data from vec_index where tbl="vindex" order by name asc`);
+        rows.forEach((row) => {
+            conn.execute(`update vec_index_meta set format = 1 where tbl="vindex" and name = ?`, row.name);
+            conn.execute(`delete from vec_index_pages where tbl="vindex" and name = ?`, row.name);
+
+            splitPages(row.data, 4096).forEach((page, index) => {
+                conn.execute(`insert into vec_index_pages(tbl, name, page_no, data) values("vindex", ?, ?, ?)`, row.name, index, page);
+            });
+
+            conn.execute(`update vec_index set data = x'' where tbl="vindex" and name = ?`, row.name);
+        });
+
+        conn.close();
+
+        conn = db.openSQLite(path.join(__dirname, "vec_test.db"));
+
+        assert.deepEqual(conn.execute(`select count(*) as count from vindex`), [
+            {
+                "count": 300
+            }
+        ]);
+
+        var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[3,4,5]:1")`);
+        assert.equal(res.length, 1);
+        assert.equal(res[0].rowid, 3);
+        assert.closeTo(res[0].distance, 0, 0.0001);
+
+        conn.execute(`update vindex set title="[3,4,9]", description="[6,7,8]" where rowid = 3`);
+        conn.close();
+
+        conn = db.openSQLite(path.join(__dirname, "vec_test.db"));
+
+        assert.deepEqual(conn.execute(`select name, format from vec_index_meta where tbl="vindex" order by name asc`), [
+            {
+                "name": "description",
+                "format": 1
+            },
+            {
+                "name": "title",
+                "format": 1
+            }
+        ]);
+        assert.deepEqual(conn.execute(`select name, page_no from vec_index_pages where tbl="vindex" order by name asc, page_no asc`), [
+            {
+                "name": "description",
+                "page_no": 0
+            },
+            {
+                "name": "description",
+                "page_no": 1
+            },
+            {
+                "name": "title",
+                "page_no": 0
+            },
+            {
+                "name": "title",
+                "page_no": 1
+            }
+        ]);
+        var blobRows = conn.execute(`select name, data from vec_index where tbl="vindex" order by name asc`);
+        assert.equal(blobRows[0].data.hex(), "");
+        assert.equal(blobRows[1].data.hex(), "");
+
+        res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[3,4,9]:1")`);
+        assert.equal(res.length, 1);
+        assert.equal(res[0].rowid, 3);
+        assert.closeTo(res[0].distance, 0, 0.0001);
+    });
+
+    it("paged format keeps single blob below page size", () => {
+        conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
+        conn.execute(`update vec_index_meta set format = 1 where tbl="vindex"`);
+        conn.execute(`insert into vindex(title, description, rowid) values("[1,2,2]", "[3,4,1]", 3)`);
+        conn.execute(`insert into vindex(title, description, rowid) values("[1,2,4]", "[2,2,1]", 4)`);
+
+        assert.deepEqual(conn.execute(`select name, format, page_size from vec_index_meta where tbl="vindex" order by name asc`), [
+            {
+                "name": "description",
+                "format": 1,
+                "page_size": 4096
+            },
+            {
+                "name": "title",
+                "format": 1,
+                "page_size": 4096
+            }
+        ]);
+
+        assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
+
+        var rows = conn.execute(`select name, data from vec_index where tbl="vindex" order by name asc`);
+        assert.equal(rows.length, 2);
+        assert.notEqual(rows[0].data.hex(), "");
+        assert.notEqual(rows[1].data.hex(), "");
+
+        assert.deepEqual(conn.execute(`select rowid from vindex order by rowid`), [
+            {
+                "rowid": 3
+            },
+            {
+                "rowid": 4
+            }
+        ]);
+    });
+
+    it("paged auto page size adapts by dimension", () => {
+        conn.execute("create virtual table vindex using vec_index(small(3), wide(512))");
+        conn.execute(`update vec_index_meta set format = 1 where tbl="vindex"`);
+        conn.execute(`insert into vindex(small, wide, rowid) values("[1,2,2]", "[1,2,3]", 3)`);
+
+        var rows = conn.execute(`select name, format, page_size from vec_index_meta where tbl="vindex" order by name asc`);
+        assert.equal(rows.length, 2);
+        assert.equal(rows[0].format, 1);
+        assert.equal(rows[1].format, 1);
+        assert.equal(rows[0].name, "small");
+        assert.equal(rows[1].name, "wide");
+        assert.ok(rows[0].page_size < rows[1].page_size);
+        assert.equal(rows[0].page_size, 4096);
+        assert.equal(rows[1].page_size, 135168);
+
+        assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
     });
 
     it("benchmark", () => {

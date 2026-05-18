@@ -10,6 +10,7 @@
 #include "SQLite.h"
 #include "hnswlib/hnswlib.h"
 #include "hnswlib/bruteforce.h"
+#include <set>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,15 @@ namespace fibjs {
 #define VEC_SEARCH_FUNCTION SQLITE_INDEX_CONSTRAINT_FUNCTION
 
 #define VEC_INDEX_BLOCK_SIZE 4096
+#define VEC_PERSIST_MIN_PAGE_SIZE_BYTES 4096
+#define VEC_PERSIST_MAX_PAGE_SIZE_BYTES 196608
+#define VEC_PERSIST_PAGE_ALIGN_BYTES 4096
+#define VEC_PERSIST_TARGET_ELEMENTS_PER_PAGE_SMALL 96
+#define VEC_PERSIST_TARGET_ELEMENTS_PER_PAGE_LARGE 64
+#define VEC_PERSIST_SMALL_ELEMENT_BYTES 256
+
+#define VEC_STORAGE_FORMAT_BLOB 0
+#define VEC_STORAGE_FORMAT_PAGED 1
 
 static void vec_version(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
@@ -107,6 +117,30 @@ public:
 
         data.resize(dim());
         memcpy(data.data(), data_ + size_per_element_ * it->second, data_size_);
+        return true;
+    }
+
+    bool getInternalIndex(hnswlib::labeltype label, size_t& idx) const
+    {
+        auto it = dict_external_to_internal.find(label);
+        if (it == dict_external_to_internal.end())
+            return false;
+
+        idx = it->second;
+        return true;
+    }
+
+    bool renamePoint(hnswlib::labeltype old_label, hnswlib::labeltype new_label)
+    {
+        auto it = dict_external_to_internal.find(old_label);
+        if (it == dict_external_to_internal.end())
+            return false;
+
+        size_t idx = it->second;
+        dict_external_to_internal.erase(it);
+        dict_external_to_internal[new_label] = idx;
+        memcpy(data_ + size_per_element_ * idx + data_size_, &new_label, sizeof(new_label));
+
         return true;
     }
 
@@ -237,6 +271,12 @@ public:
 
 class VecIndex : public sqlite3_vtab {
 public:
+    class storage_config {
+    public:
+        int format = VEC_STORAGE_FORMAT_BLOB;
+        size_t page_size = 0;
+    };
+
     class op {
     public:
         hnswlib::labeltype old_rowid;
@@ -255,6 +295,9 @@ public:
 
         indexCount = _columns.size();
         columns = new VecColumn[indexCount];
+        update_stmts = new sqlite3_stmt*[indexCount]();
+        page_upsert_stmts = new sqlite3_stmt*[indexCount]();
+        page_delete_tail_stmts = new sqlite3_stmt*[indexCount]();
 
         for (int i = 0; i < indexCount; i++)
             columns[i].init(_columns[i].name, _columns[i].dimensions);
@@ -262,10 +305,310 @@ public:
 
     ~VecIndex()
     {
+        for (int i = 0; i < indexCount; i++) {
+            if (update_stmts[i])
+                sqlite3_finalize(update_stmts[i]);
+            if (page_upsert_stmts[i])
+                sqlite3_finalize(page_upsert_stmts[i]);
+            if (page_delete_tail_stmts[i])
+                sqlite3_finalize(page_delete_tail_stmts[i]);
+        }
+
+        delete[] update_stmts;
+        delete[] page_upsert_stmts;
+        delete[] page_delete_tail_stmts;
         delete[] columns;
     }
 
 public:
+    int prepare_update_stmt(int idx, sqlite3_stmt** stmt)
+    {
+        if (update_stmts[idx] == nullptr) {
+            const char* zQuery = sqlite3_mprintf("UPDATE vec_index SET data = ? WHERE tbl = \"%w\" AND name = \"%w\"",
+                name.c_str(), columns[idx].name.c_str());
+            int rc = sqlite3_prepare_v2(db, zQuery, -1, &update_stmts[idx], 0);
+            sqlite3_free((void*)zQuery);
+            if (rc != SQLITE_OK)
+                return rc;
+        }
+
+        *stmt = update_stmts[idx];
+        return SQLITE_OK;
+    }
+
+    int prepare_page_upsert_stmt(int idx, sqlite3_stmt** stmt)
+    {
+        if (page_upsert_stmts[idx] == nullptr) {
+            const char* zQuery = sqlite3_mprintf("INSERT OR REPLACE INTO vec_index_pages(tbl, name, page_no, data) VALUES (\"%w\", \"%w\", ?, ?)",
+                name.c_str(), columns[idx].name.c_str());
+            int rc = sqlite3_prepare_v2(db, zQuery, -1, &page_upsert_stmts[idx], 0);
+            sqlite3_free((void*)zQuery);
+            if (rc != SQLITE_OK)
+                return rc;
+        }
+
+        *stmt = page_upsert_stmts[idx];
+        return SQLITE_OK;
+    }
+
+    int prepare_page_delete_tail_stmt(int idx, sqlite3_stmt** stmt)
+    {
+        if (page_delete_tail_stmts[idx] == nullptr) {
+            const char* zQuery = sqlite3_mprintf("DELETE FROM vec_index_pages WHERE tbl = \"%w\" AND name = \"%w\" AND page_no >= ?",
+                name.c_str(), columns[idx].name.c_str());
+            int rc = sqlite3_prepare_v2(db, zQuery, -1, &page_delete_tail_stmts[idx], 0);
+            sqlite3_free((void*)zQuery);
+            if (rc != SQLITE_OK)
+                return rc;
+        }
+
+        *stmt = page_delete_tail_stmts[idx];
+        return SQLITE_OK;
+    }
+
+    int load_blob_index(int idx)
+    {
+        const char* zQuery = sqlite3_mprintf("SELECT data FROM vec_index WHERE tbl = \"%w\" AND name = \"%w\"",
+            name.c_str(), columns[idx].name.c_str());
+        sqlite3_stmt* stmt;
+        int rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        if ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+            const void* idx_data = sqlite3_column_blob(stmt, 0);
+            size_t idx_size = sqlite3_column_bytes(stmt, 0);
+
+            if (idx_data != nullptr && idx_size > 0)
+                rc = columns[idx].load(idx_data, idx_size);
+            else
+                rc = SQLITE_OK;
+        }
+
+        sqlite3_finalize(stmt);
+        return rc == SQLITE_DONE ? SQLITE_OK : rc;
+    }
+
+    int load_paged_index(int idx, bool& has_pages)
+    {
+        const char* zQuery = sqlite3_mprintf("SELECT data FROM vec_index_pages WHERE tbl = \"%w\" AND name = \"%w\" ORDER BY page_no",
+            name.c_str(), columns[idx].name.c_str());
+        sqlite3_stmt* stmt;
+        int rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        std::vector<char> data;
+        has_pages = false;
+        while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+            const char* page_data = (const char*)sqlite3_column_blob(stmt, 0);
+            size_t page_size = sqlite3_column_bytes(stmt, 0);
+            has_pages = true;
+            if (page_data != nullptr && page_size > 0)
+                data.insert(data.end(), page_data, page_data + page_size);
+        }
+
+        sqlite3_finalize(stmt);
+        if (rc != SQLITE_DONE)
+            return rc;
+
+        if (data.empty())
+            return SQLITE_OK;
+
+        return columns[idx].load(data.data(), data.size());
+    }
+
+    int get_storage_config(int idx, storage_config& config)
+    {
+        const char* zQuery = sqlite3_mprintf("SELECT format FROM vec_index_meta WHERE tbl = \"%w\" AND name = \"%w\"",
+            name.c_str(), columns[idx].name.c_str());
+        sqlite3_stmt* stmt;
+        int rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        config.format = VEC_STORAGE_FORMAT_BLOB;
+        config.page_size = 0;
+        if ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+            config.format = sqlite3_column_int(stmt, 0);
+
+        sqlite3_finalize(stmt);
+
+        if (config.format == VEC_STORAGE_FORMAT_PAGED)
+            config.page_size = default_persist_page_size(idx);
+
+        return (rc == SQLITE_ROW || rc == SQLITE_DONE) ? SQLITE_OK : rc;
+    }
+
+    size_t default_persist_page_size(int idx) const
+    {
+        size_t size_per_element = columns[idx].size_per_element_;
+        size_t target_elements = size_per_element <= VEC_PERSIST_SMALL_ELEMENT_BYTES
+            ? VEC_PERSIST_TARGET_ELEMENTS_PER_PAGE_SMALL
+            : VEC_PERSIST_TARGET_ELEMENTS_PER_PAGE_LARGE;
+        size_t page_size = size_per_element * target_elements;
+
+        if (page_size < VEC_PERSIST_MIN_PAGE_SIZE_BYTES)
+            page_size = VEC_PERSIST_MIN_PAGE_SIZE_BYTES;
+        else if (page_size > VEC_PERSIST_MAX_PAGE_SIZE_BYTES)
+            page_size = VEC_PERSIST_MAX_PAGE_SIZE_BYTES;
+
+        page_size = ((page_size + VEC_PERSIST_PAGE_ALIGN_BYTES - 1) / VEC_PERSIST_PAGE_ALIGN_BYTES) * VEC_PERSIST_PAGE_ALIGN_BYTES;
+        if (page_size > VEC_PERSIST_MAX_PAGE_SIZE_BYTES)
+            page_size = VEC_PERSIST_MAX_PAGE_SIZE_BYTES;
+
+        return page_size;
+    }
+
+    size_t persist_page_elements(int idx, size_t page_size_bytes) const
+    {
+        size_t size_per_element = columns[idx].size_per_element_;
+        size_t page_elements = page_size_bytes / size_per_element;
+        return page_elements > 0 ? page_elements : 1;
+    }
+
+    bool should_keep_single_blob(int idx, size_t page_size_bytes) const
+    {
+        const VecColumn& column = columns[idx];
+        return column.cur_element_count * column.size_per_element_ <= page_size_bytes;
+    }
+
+    int set_storage_format(int idx, int format, int page_size)
+    {
+        const char* zQuery = sqlite3_mprintf("UPDATE vec_index_meta SET format = %d, page_size = %d WHERE tbl = \"%w\" AND name = \"%w\"",
+            format, page_size, name.c_str(), columns[idx].name.c_str());
+        int rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        return rc;
+    }
+
+    int clear_paged_index(int idx)
+    {
+        const char* zQuery = sqlite3_mprintf("DELETE FROM vec_index_pages WHERE tbl = \"%w\" AND name = \"%w\"",
+            name.c_str(), columns[idx].name.c_str());
+        int rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        return rc;
+    }
+
+    int update_blob_index(int idx, const void* data, sqlite3_uint64 size)
+    {
+        sqlite3_stmt* stmt;
+        int rc = prepare_update_stmt(idx, &stmt);
+        if (rc != SQLITE_OK || stmt == 0)
+            return rc;
+
+        sqlite3_reset(stmt);
+        sqlite3_clear_bindings(stmt);
+
+        if (size > 0)
+            rc = sqlite3_bind_blob64(stmt, 1, data, size, SQLITE_TRANSIENT);
+        else
+            rc = sqlite3_bind_zeroblob64(stmt, 1, 0);
+
+        if (rc != SQLITE_OK) {
+            sqlite3_reset(stmt);
+            return rc;
+        }
+
+        rc = sqlite3_step(stmt);
+        sqlite3_reset(stmt);
+        return rc == SQLITE_DONE ? SQLITE_OK : rc;
+    }
+
+    int reset_storage_to_blob(int idx)
+    {
+        int rc = set_storage_format(idx, VEC_STORAGE_FORMAT_BLOB, VEC_INDEX_BLOCK_SIZE);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        return clear_paged_index(idx);
+    }
+
+    int write_paged_index(int idx, size_t old_count, size_t page_size_bytes, const std::set<size_t>& dirty_pages)
+    {
+        const VecColumn& column = columns[idx];
+        size_t page_elements = persist_page_elements(idx, page_size_bytes);
+        size_t old_page_count = (old_count + page_elements - 1) / page_elements;
+        size_t new_page_count = (column.cur_element_count + page_elements - 1) / page_elements;
+        int rc = SQLITE_OK;
+
+        if (should_keep_single_blob(idx, page_size_bytes)) {
+            rc = clear_paged_index(idx);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            rc = update_blob_index(idx, column.data_, column.cur_element_count * column.size_per_element_);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            return set_storage_format(idx, VEC_STORAGE_FORMAT_PAGED, page_size_bytes);
+        }
+
+        if (!dirty_pages.empty() && column.cur_element_count > 0) {
+            sqlite3_stmt* stmt;
+            rc = prepare_page_upsert_stmt(idx, &stmt);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            for (auto page_no : dirty_pages) {
+                if (page_no >= new_page_count)
+                    continue;
+
+                size_t offset = page_no * page_elements;
+                size_t count = column.cur_element_count - offset;
+                if (count > page_elements)
+                    count = page_elements;
+
+                sqlite3_reset(stmt);
+                sqlite3_clear_bindings(stmt);
+
+                rc = sqlite3_bind_int64(stmt, 1, page_no);
+                if (rc == SQLITE_OK)
+                    rc = sqlite3_bind_blob64(stmt, 2,
+                        column.data_ + offset * column.size_per_element_,
+                        count * column.size_per_element_, SQLITE_TRANSIENT);
+                if (rc != SQLITE_OK) {
+                    return rc;
+                }
+
+                rc = sqlite3_step(stmt);
+                sqlite3_reset(stmt);
+                if (rc != SQLITE_DONE)
+                    return rc;
+            }
+        }
+
+        if (old_page_count > new_page_count) {
+            sqlite3_stmt* stmt;
+            rc = prepare_page_delete_tail_stmt(idx, &stmt);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            sqlite3_reset(stmt);
+            sqlite3_clear_bindings(stmt);
+            rc = sqlite3_bind_int64(stmt, 1, new_page_count);
+            if (rc != SQLITE_OK) {
+                sqlite3_reset(stmt);
+                return rc;
+            }
+
+            rc = sqlite3_step(stmt);
+            sqlite3_reset(stmt);
+            if (rc != SQLITE_DONE)
+                return rc;
+        }
+
+        rc = update_blob_index(idx, nullptr, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        return set_storage_format(idx, VEC_STORAGE_FORMAT_PAGED, page_size_bytes);
+    }
+
     int create_index()
     {
         const char* zQuery;
@@ -279,9 +622,32 @@ public:
         if (rc != SQLITE_OK)
             return rc;
 
+        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index_meta(tbl, name, format, page_size)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        rc = sqlite3_exec(db, "CREATE UNIQUE INDEX IF NOT EXISTS vim_index ON vec_index_meta (tbl, name)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index_pages(tbl, name, page_no, data)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        rc = sqlite3_exec(db, "CREATE UNIQUE INDEX IF NOT EXISTS vip_index ON vec_index_pages (tbl, name, page_no)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
         for (int i = 0; i < indexCount; i++) {
             zQuery = sqlite3_mprintf("INSERT INTO vec_index(tbl, name) VALUES (\"%w\", \"%w\")",
                 name.c_str(), columns[i].name.c_str());
+            rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+            sqlite3_free((void*)zQuery);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            zQuery = sqlite3_mprintf("INSERT OR REPLACE INTO vec_index_meta(tbl, name, format, page_size) VALUES (\"%w\", \"%w\", %d, %d)",
+                name.c_str(), columns[i].name.c_str(), VEC_STORAGE_FORMAT_BLOB, VEC_INDEX_BLOCK_SIZE);
             rc = sqlite3_exec(db, zQuery, 0, 0, 0);
             sqlite3_free((void*)zQuery);
             if (rc != SQLITE_OK)
@@ -298,31 +664,37 @@ public:
         zQuery = sqlite3_mprintf("DELETE FROM vec_index WHERE tbl = \"%w\"", name.c_str());
         int rc = sqlite3_exec(db, zQuery, 0, 0, 0);
         sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        zQuery = sqlite3_mprintf("DELETE FROM vec_index_meta WHERE tbl = \"%w\"", name.c_str());
+        rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        zQuery = sqlite3_mprintf("DELETE FROM vec_index_pages WHERE tbl = \"%w\"", name.c_str());
+        rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
         return rc;
     }
 
     int load_index()
     {
-        const char* zQuery;
-        sqlite3_stmt* stmt;
-        int rc;
-
         for (int i = 0; i < indexCount; i++) {
-            zQuery = sqlite3_mprintf("SELECT data  FROM vec_index WHERE tbl = \"%w\" AND name = \"%w\"",
-                name.c_str(), columns[i].name.c_str());
-            rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
-            sqlite3_free((void*)zQuery);
+            storage_config config;
+            int rc = get_storage_config(i, config);
             if (rc != SQLITE_OK)
                 return rc;
 
-            if ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                const void* idx_data = sqlite3_column_blob(stmt, 0);
-                size_t idx_size = sqlite3_column_bytes(stmt, 0);
+            if (config.format == VEC_STORAGE_FORMAT_PAGED) {
+                bool has_pages = false;
+                rc = load_paged_index(i, has_pages);
+                if (rc == SQLITE_OK && !has_pages)
+                    rc = load_blob_index(i);
+            } else
+                rc = load_blob_index(i);
 
-                rc = columns[i].load(idx_data, idx_size);
-            }
-
-            sqlite3_finalize(stmt);
             if (rc != SQLITE_OK)
                 return rc;
         }
@@ -333,8 +705,26 @@ public:
     int sync_index()
     {
         if (ops.size()) {
+            std::vector<storage_config> storage_configs(indexCount);
+            std::vector<size_t> original_counts(indexCount);
             std::vector<bool> dirty;
+            std::vector<std::set<size_t>> dirty_pages(indexCount);
             dirty.resize(indexCount);
+
+            for (int i = 0; i < indexCount; i++) {
+                int rc = get_storage_config(i, storage_configs[i]);
+                if (rc != SQLITE_OK)
+                    return rc;
+                original_counts[i] = columns[i].cur_element_count;
+            }
+
+            auto mark_dirty_index = [&](int column_index, size_t element_index) {
+                if (storage_configs[column_index].format != VEC_STORAGE_FORMAT_PAGED)
+                    return;
+
+                size_t page_elements = persist_page_elements(column_index, storage_configs[column_index].page_size);
+                dirty_pages[column_index].insert(element_index / page_elements);
+            };
 
             for (auto& op : ops) {
                 if (op.deleted) {
@@ -344,63 +734,76 @@ public:
                             continue;
 
                         dirty[i] = true;
+                        size_t remove_idx = 0;
+                        size_t last_idx = columns[i].cur_element_count - 1;
+                        columns[i].getInternalIndex(op.old_rowid, remove_idx);
+                        mark_dirty_index(i, remove_idx);
+                        mark_dirty_index(i, last_idx);
                         columns[i].removePoint(op.old_rowid);
                     }
                 } else {
                     // insert or update
                     bool rowid_changed = op.has_old_rowid && op.old_rowid != op.rowid;
-                    std::vector<std::vector<float>> row_data;
 
                     if (rowid_changed) {
-                        row_data.resize(indexCount);
-                        for (int i = 0; i < indexCount; i++) {
-                            if (op.datas[i].size()) {
-                                row_data[i] = op.datas[i];
-                            } else if (!columns[i].getPoint(op.old_rowid, row_data[i])) {
-                                zErrMsg = sqlite3_mprintf("rowid[%d] does not exist", op.old_rowid);
-                                return SQLITE_ERROR;
-                            }
-                        }
-
                         for (int i = 0; i < indexCount; i++) {
                             dirty[i] = true;
-                            columns[i].removePoint(op.old_rowid);
-                            columns[i].addPoint(row_data[i].data(), op.rowid);
+
+                            if (op.datas[i].size()) {
+                                if (!columns[i].contains(op.old_rowid)) {
+                                    zErrMsg = sqlite3_mprintf("rowid[%d] does not exist", op.old_rowid);
+                                    return SQLITE_ERROR;
+                                }
+
+                                size_t remove_idx = 0;
+                                size_t last_idx = columns[i].cur_element_count - 1;
+                                columns[i].getInternalIndex(op.old_rowid, remove_idx);
+                                mark_dirty_index(i, remove_idx);
+                                mark_dirty_index(i, last_idx);
+                                columns[i].removePoint(op.old_rowid);
+                                columns[i].addPoint(op.datas[i].data(), op.rowid);
+                                mark_dirty_index(i, columns[i].cur_element_count - 1);
+                            } else {
+                                size_t rename_idx = 0;
+                                if (!columns[i].renamePoint(op.old_rowid, op.rowid)) {
+                                    zErrMsg = sqlite3_mprintf("rowid[%d] does not exist", op.old_rowid);
+                                    return SQLITE_ERROR;
+                                }
+                                if (columns[i].getInternalIndex(op.rowid, rename_idx))
+                                    mark_dirty_index(i, rename_idx);
+                            }
                         }
                     } else {
                         for (int i = 0; i < indexCount; i++)
                             if (op.datas[i].size()) {
                                 dirty[i] = true;
+                                size_t old_idx = 0;
+                                bool existed = columns[i].getInternalIndex(op.rowid, old_idx);
+                                if (existed)
+                                    mark_dirty_index(i, old_idx);
                                 columns[i].addPoint(op.datas[i].data(), op.rowid);
+                                size_t new_idx = 0;
+                                if (columns[i].getInternalIndex(op.rowid, new_idx))
+                                    mark_dirty_index(i, new_idx);
                             }
                     }
                 }
             }
 
             int rc;
-            const char* zQuery;
-            sqlite3_stmt* stmt;
 
             for (int i = 0; i < indexCount; i++)
                 if (dirty[i]) {
-                    zQuery = sqlite3_mprintf("UPDATE vec_index SET data = ? WHERE tbl = \"%w\" AND name = \"%w\"",
-                        name.c_str(), columns[i].name.c_str());
-                    rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
-                    if (rc != SQLITE_OK || stmt == 0) {
-                        return rc;
-                    }
-                    const VecColumn& _idx = columns[i];
-                    rc = sqlite3_bind_blob64(stmt, 1, _idx.data_, _idx.cur_element_count * _idx.size_per_element_, SQLITE_TRANSIENT);
-                    if (rc != SQLITE_OK) {
-                        sqlite3_free((void*)zQuery);
-                        return rc;
+                    if (storage_configs[i].format == VEC_STORAGE_FORMAT_PAGED)
+                        rc = write_paged_index(i, original_counts[i], storage_configs[i].page_size, dirty_pages[i]);
+                    else {
+                        const VecColumn& column = columns[i];
+                        rc = update_blob_index(i, column.data_, column.cur_element_count * column.size_per_element_);
+                        if (rc == SQLITE_OK)
+                            rc = reset_storage_to_blob(i);
                     }
 
-                    rc = sqlite3_step(stmt);
-                    sqlite3_finalize(stmt);
-                    sqlite3_free((void*)zQuery);
-
-                    if (rc != SQLITE_DONE)
+                    if (rc != SQLITE_OK)
                         return rc;
                 }
 
@@ -433,6 +836,9 @@ public:
 
     int32_t indexCount;
     VecColumn* columns;
+    sqlite3_stmt** update_stmts;
+    sqlite3_stmt** page_upsert_stmts;
+    sqlite3_stmt** page_delete_tail_stmts;
 
     std::vector<op> ops;
     std::unordered_map<hnswlib::labeltype, bool> incr_ops;
