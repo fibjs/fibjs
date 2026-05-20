@@ -207,9 +207,17 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
         return CHECK_ERROR(Runtime::setError("ChildProcess: every element of stdio must be \'pty\'."));
 
     for (i = 0; i < 3; i++) {
-        if (stddefs[i].type() == Variant::VT_Integer) {
+        if (stddefs[i].type() == Variant::VT_Integer
+            || stddefs[i].type() == Variant::VT_Long
+            || stddefs[i].type() == Variant::VT_Number) {
+            double fd_num = stddefs[i].dblVal();
+            int32_t fd = stddefs[i].intVal();
+
+            if (fd_num < 0 || fd_num != (double)fd)
+                return CHECK_ERROR(Runtime::setError("ChildProcess: stdio fd must be a non-negative integer."));
+
             stdios[i].flags = UV_INHERIT_FD;
-            stdios[i].data.fd = stddefs[i].intVal();
+            stdios[i].data.fd = fd;
         } else {
             exlib::string s = stddefs[i].type() != Variant::VT_String ? "pipe" : stddefs[i].string();
 

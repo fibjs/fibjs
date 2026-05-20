@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 const child_process = require('child_process');
 var coroutine = require("coroutine");
+var fs = require('fs');
 var path = require('path');
 var json = require('json');
 var net = require('net');
@@ -14,8 +15,20 @@ var os = require('os');
 
 const isWin32 = process.platform === "win32";
 const isIOS = process.platform === "ios";
+const supportsPosixStdioFd = !isWin32 && !isIOS;
 
 var envKeys = require('./process/const.env_keys.js');
+
+function getFdCount() {
+    if (isWin32 || isIOS)
+        return null;
+
+    try {
+        return fs.readdir('/dev/fd').length;
+    } catch (e) {
+        return null;
+    }
+}
 
 describe("child_process", () => {
     var cmd;
@@ -1052,6 +1065,81 @@ describe("child_process", () => {
         });
 
         assert.equal(result.error, undefined);
+    });
+
+    (supportsPosixStdioFd ? it : xit)("spawnSync numeric stdio fds", () => {
+        var tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-spawnsync-fd-'));
+        var stdoutPath = path.join(tempDir, 'stdout.log');
+        var stderrPath = path.join(tempDir, 'stderr.log');
+        var stdoutHandle = fs.open(stdoutPath, 'w');
+        var stderrHandle = fs.open(stderrPath, 'w');
+
+        try {
+            var result = child_process.spawnSync(cmd, [path.join(__dirname, "process", "exec28.js")], {
+                stdio: ['ignore', stdoutHandle.fd, stderrHandle.fd]
+            });
+
+            assert.equal(result.error, undefined);
+            assert.isNull(result.stdout);
+            assert.isNull(result.stderr);
+            assert.equal(fs.readTextFile(stdoutPath), 'stdout output.\n');
+            assert.equal(fs.readTextFile(stderrPath), 'stderr output.\n');
+        } finally {
+            fs.close(stdoutHandle);
+            fs.close(stderrHandle);
+            fs.unlink(stdoutPath);
+            fs.unlink(stderrPath);
+            fs.rmdir(tempDir);
+        }
+    });
+
+    (supportsPosixStdioFd ? it : xit)("spawnSync numeric stdio fds do not leak", () => {
+        var baseFdCount = getFdCount();
+        if (baseFdCount === null)
+            return;
+
+        var tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-spawnsync-fd-leak-'));
+
+        try {
+            for (var i = 0; i < 25; i++) {
+                var stdoutPath = path.join(tempDir, 'stdout-' + i + '.log');
+                var stderrPath = path.join(tempDir, 'stderr-' + i + '.log');
+                var stdoutHandle = fs.open(stdoutPath, 'w');
+                var stderrHandle = fs.open(stderrPath, 'w');
+
+                try {
+                    var result = child_process.spawnSync(cmd, [path.join(__dirname, "process", "exec28.js")], {
+                        stdio: ['ignore', stdoutHandle.fd, stderrHandle.fd]
+                    });
+
+                    assert.equal(result.error, undefined);
+                } finally {
+                    fs.close(stdoutHandle);
+                    fs.close(stderrHandle);
+                    fs.unlink(stdoutPath);
+                    fs.unlink(stderrPath);
+                }
+            }
+
+            var finalFdCount = getFdCount();
+            assert.ok(finalFdCount - baseFdCount <= 4,
+                'spawnSync leaked file descriptors: base=' + baseFdCount + ', final=' + finalFdCount);
+        } finally {
+            fs.rmdir(tempDir);
+        }
+    });
+
+    (supportsPosixStdioFd ? it : xit)("execSync does not leak stdio pipes", () => {
+        var baseFdCount = getFdCount();
+        if (baseFdCount === null)
+            return;
+
+        for (var i = 0; i < 25; i++)
+            child_process.execSync("true");
+
+        var finalFdCount = getFdCount();
+        assert.ok(finalFdCount - baseFdCount <= 4,
+            'execSync leaked file descriptors: base=' + baseFdCount + ', final=' + finalFdCount);
     });
 
     it("inherit in spawnSync", () => {

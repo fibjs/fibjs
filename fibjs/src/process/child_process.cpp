@@ -79,7 +79,6 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
 {
     class ReadStdout : public AsyncEvent {
     public:
-        // Helper to write input to stdin then close it
         class WriteStdin : public AsyncEvent {
         public:
             WriteStdin(obj_ptr<Stream_base> stdin_stream, obj_ptr<Buffer_base> buf, ReadStdout* parent)
@@ -115,6 +114,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             : m_codec(ac->m_ctx[0].string())
             , m_retVal(retVal)
             , m_ac(ac)
+            , m_closeStdinOnFinish(false)
         {
             setAsync();
             m_cp = ac->m_ctxo.As<ChildProcess_base>();
@@ -131,16 +131,16 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 m_buferr = new MemoryStream();
             }
 
-            // Write input to stdin if provided
+            m_cp->get_stdin(m_stdin);
+            if (m_stdin)
+                m_closeStdinOnFinish = true;
+
             if (ac->m_ctx.size() > 1) {
                 obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac->m_ctx[1].object();
-                if (input_buf) {
-                    obj_ptr<Stream_base> stdin_stream;
-                    m_cp->get_stdin(stdin_stream);
-                    if (stdin_stream) {
-                        m_cnt.inc();
-                        new WriteStdin(stdin_stream, input_buf, this);
-                    }
+                if (input_buf && m_stdin) {
+                    m_closeStdinOnFinish = false;
+                    m_cnt.inc();
+                    new WriteStdin(m_stdin, input_buf, this);
                 }
             }
 
@@ -186,6 +186,15 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         virtual int32_t post(int32_t v)
         {
             if (m_cnt.dec() == 0) {
+                if (m_closeStdinOnFinish && m_stdin)
+                    m_stdin->close(nullptr);
+
+                if (m_stdout)
+                    m_stdout->close(nullptr);
+
+                if (m_stderr)
+                    m_stderr->close(nullptr);
+
                 m_retVal = new ExecFileType();
 
                 m_retVal->stdout = getBuffer(m_bufout, m_codec);
@@ -207,6 +216,9 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         ChildProcess_base* m_cp;
 
         exlib::atomic m_cnt;
+
+        obj_ptr<Stream_base> m_stdin;
+        bool m_closeStdinOnFinish;
 
         obj_ptr<Stream_base> m_stdout;
         obj_ptr<MemoryStream> m_bufout;
@@ -352,7 +364,6 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
 {
     class ReadStdout : public AsyncEvent {
     public:
-        // Helper to write input to stdin then close it
         class WriteStdin : public AsyncEvent {
         public:
             WriteStdin(obj_ptr<Stream_base> stdin_stream, obj_ptr<Buffer_base> buf, ReadStdout* parent)
@@ -388,6 +399,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             : m_codec(ac->m_ctx[0].string())
             , m_retVal(retVal)
             , m_ac(ac)
+            , m_closeStdinOnFinish(false)
         {
             setAsync();
             ChildProcess_base* cp = ac->m_ctxo.As<ChildProcess_base>();
@@ -404,16 +416,16 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 m_buferr = new MemoryStream();
             }
 
-            // Write input to stdin if provided
+            cp->get_stdin(m_stdin);
+            if (m_stdin)
+                m_closeStdinOnFinish = true;
+
             if (ac->m_ctx.size() > 1) {
                 obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac->m_ctx[1].object();
-                if (input_buf) {
-                    obj_ptr<Stream_base> stdin_stream;
-                    cp->get_stdin(stdin_stream);
-                    if (stdin_stream) {
-                        m_cnt.inc();
-                        new WriteStdin(stdin_stream, input_buf, this);
-                    }
+                if (input_buf && m_stdin) {
+                    m_closeStdinOnFinish = false;
+                    m_cnt.inc();
+                    new WriteStdin(m_stdin, input_buf, this);
                 }
             }
 
@@ -465,6 +477,15 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         virtual int32_t post(int32_t v)
         {
             if (m_cnt.dec() == 0) {
+                if (m_closeStdinOnFinish && m_stdin)
+                    m_stdin->close(nullptr);
+
+                if (m_stdout)
+                    m_stdout->close(nullptr);
+
+                if (m_stderr)
+                    m_stderr->close(nullptr);
+
                 m_retVal = new child_process_base::SpawnSyncType();
 
                 ChildProcess_base* cp = m_ac->m_ctxo.As<ChildProcess_base>();
@@ -499,6 +520,9 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         obj_ptr<child_process_base::SpawnSyncType>& m_retVal;
         AsyncEvent* m_ac;
         exlib::atomic m_cnt;
+
+        obj_ptr<Stream_base> m_stdin;
+        bool m_closeStdinOnFinish;
 
         obj_ptr<Stream_base> m_stdout;
         obj_ptr<MemoryStream> m_bufout;
