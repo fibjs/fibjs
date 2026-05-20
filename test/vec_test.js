@@ -74,6 +74,11 @@ describe("vec", () => {
                 "name": "vec_index_pages"
             }
         ]);
+        assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vec_index_state'"), [
+            {
+                "name": "vec_index_state"
+            }
+        ]);
 
         assert.deepEqual(conn.execute(`select name, data from vec_index where tbl="vindex" order by name desc`), [
             {
@@ -88,13 +93,19 @@ describe("vec", () => {
         assert.deepEqual(conn.execute(`select name, format, page_size from vec_index_meta where tbl="vindex" order by name desc`), [
             {
                 "name": "title",
-                "format": 0,
-                "page_size": 4096
+                "format": 1,
+                "page_size": 36864
             },
             {
                 "name": "description",
-                "format": 0,
-                "page_size": 4096
+                "format": 1,
+                "page_size": 36864
+            }
+        ]);
+        assert.deepEqual(conn.execute(`select tbl, version from vec_index_state where tbl="vindex"`), [
+            {
+                "tbl": "vindex",
+                "version": 0
             }
         ]);
 
@@ -102,6 +113,7 @@ describe("vec", () => {
         assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vindex_data'"), []);
         assert.deepEqual(conn.execute(`select * from vec_index_meta where tbl="vindex"`), []);
         assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
+        assert.deepEqual(conn.execute(`select * from vec_index_state where tbl="vindex"`), []);
     });
 
     it("insert", () => {
@@ -573,8 +585,8 @@ describe("vec", () => {
             }
         ]);
         var blobRows = conn.execute(`select name, data from vec_index where tbl="vindex" order by name asc`);
-        assert.equal(blobRows[0].data.hex(), "");
-        assert.equal(blobRows[1].data.hex(), "");
+        assert.notEqual(blobRows[0].data.hex(), "");
+        assert.notEqual(blobRows[1].data.hex(), "");
 
         res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[3,4,9]:1")`);
         assert.equal(res.length, 1);
@@ -582,7 +594,7 @@ describe("vec", () => {
         assert.closeTo(res[0].distance, 0, 0.0001);
     });
 
-    it("paged format keeps single blob below page size", () => {
+    it("paged format writes pages below page size", () => {
         conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
         conn.execute(`update vec_index_meta set format = 1 where tbl="vindex"`);
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,2]", "[3,4,1]", 3)`);
@@ -601,7 +613,16 @@ describe("vec", () => {
             }
         ]);
 
-        assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
+        assert.deepEqual(conn.execute(`select name, page_no from vec_index_pages where tbl="vindex" order by name asc, page_no asc`), [
+            {
+                "name": "description",
+                "page_no": 0
+            },
+            {
+                "name": "title",
+                "page_no": 0
+            }
+        ]);
 
         var rows = conn.execute(`select name, data from vec_index where tbl="vindex" order by name asc`);
         assert.equal(rows.length, 2);
@@ -633,7 +654,280 @@ describe("vec", () => {
         assert.equal(rows[0].page_size, 4096);
         assert.equal(rows[1].page_size, 135168);
 
-        assert.deepEqual(conn.execute(`select * from vec_index_pages where tbl="vindex"`), []);
+        assert.deepEqual(conn.execute(`select name, page_no from vec_index_pages where tbl="vindex" order by name asc, page_no asc`), [
+            {
+                "name": "small",
+                "page_no": 0
+            },
+            {
+                "name": "wide",
+                "page_no": 0
+            }
+        ]);
+    });
+
+    it("shared cache refreshes across connections", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+
+            conn2 = db.openSQLite(dbFile);
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                }
+            ]);
+
+            conn2.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
+
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                },
+                {
+                    "rowid": 2
+                }
+            ]);
+
+            assert.deepEqual(conn1.execute(`select version from vec_index_state where tbl="vindex"`), [
+                {
+                    "version": 2
+                }
+            ]);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("shared cache refreshes deletes across connections", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+            conn1.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
+
+            conn2 = db.openSQLite(dbFile);
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                },
+                {
+                    "rowid": 2
+                }
+            ]);
+
+            conn2.execute(`delete from vindex where rowid = 2`);
+
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                }
+            ]);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("shared cache refreshes vector updates across connections", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+            conn1.execute(`insert into vindex(title, rowid) values("[1,1,0]", 2)`);
+
+            assert.equal(conn1.execute(`select rowid from vindex where vec_search(title, "[1,0,0]:1")`)[0].rowid, 1);
+
+            conn2 = db.openSQLite(dbFile);
+            conn2.execute(`update vindex set title="[0,0,1]" where rowid = 1`);
+
+            assert.equal(conn1.execute(`select rowid from vindex where vec_search(title, "[1,0,0]:1")`)[0].rowid, 2);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("shared cache refreshes rowid updates across connections", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+            conn1.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
+            conn1.execute(`select rowid from vindex order by rowid`);
+
+            conn2 = db.openSQLite(dbFile);
+            conn2.execute(`update vindex set rowid = 9 where rowid = 2`);
+
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                },
+                {
+                    "rowid": 9
+                }
+            ]);
+            assert.deepEqual(conn1.execute(`select rowid from vindex where rowid = 2`), []);
+            assert.deepEqual(conn1.execute(`select rowid from vindex where rowid = 9`), [
+                {
+                    "rowid": 9
+                }
+            ]);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("stale writer reloads latest committed snapshot", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+            conn1.execute(`select rowid from vindex order by rowid`);
+
+            conn2 = db.openSQLite(dbFile);
+            conn2.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
+
+            conn1.execute(`insert into vindex(title, rowid) values("[0,0,1]", 3)`);
+
+            assert.deepEqual(conn1.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                },
+                {
+                    "rowid": 2
+                },
+                {
+                    "rowid": 3
+                }
+            ]);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("drop table invalidates other connections", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+
+            conn2 = db.openSQLite(dbFile);
+            assert.deepEqual(conn2.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                }
+            ]);
+
+            conn1.execute("drop table vindex");
+
+            assert.throws(() => {
+                conn2.execute(`select rowid from vindex order by rowid`);
+            }, /no such table: vindex/);
+
+            assert.throws(() => {
+                conn2.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
+            }, /no such table: vindex/);
+        } finally {
+            if (conn2)
+                conn2.close();
+            conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
+    });
+
+    it("drop and recreate with same name does not reuse stale cache", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+        conn.close();
+
+        var conn1 = db.openSQLite(dbFile);
+        var conn2;
+        var conn3;
+
+        try {
+            conn1.execute("create virtual table vindex using vec_index(title(3))");
+            conn1.execute(`insert into vindex(title, rowid) values("[1,0,0]", 1)`);
+
+            conn2 = db.openSQLite(dbFile);
+            assert.deepEqual(conn2.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 1
+                }
+            ]);
+
+            conn1.execute("drop table vindex");
+            conn2.close();
+            conn2 = null;
+            conn1.close();
+            conn1 = null;
+
+            conn3 = db.openSQLite(dbFile);
+            conn3.execute("create virtual table vindex using vec_index(title(3))");
+            conn3.execute(`insert into vindex(title, rowid) values("[0,0,1]", 7)`);
+
+            assert.deepEqual(conn3.execute(`select rowid from vindex order by rowid`), [
+                {
+                    "rowid": 7
+                }
+            ]);
+            assert.deepEqual(conn3.execute(`select version from vec_index_state where tbl="vindex"`), [
+                {
+                    "version": 1
+                }
+            ]);
+        } finally {
+            if (conn3)
+                conn3.close();
+            if (conn2)
+                conn2.close();
+            if (conn1)
+                conn1.close();
+            conn = db.openSQLite(":memory:");
+        }
     });
 
     it("benchmark", () => {

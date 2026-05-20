@@ -10,6 +10,10 @@
 #include "SQLite.h"
 #include "hnswlib/hnswlib.h"
 #include "hnswlib/bruteforce.h"
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -52,6 +56,7 @@ public:
 
     ~VecColumn()
     {
+        reset();
         if (space)
             delete space;
     }
@@ -74,14 +79,29 @@ public:
         return SQLITE_OK;
     }
 
+    void reset()
+    {
+        if (data_) {
+            free(data_);
+            data_ = nullptr;
+        }
+
+        dict_external_to_internal.clear();
+        maxelements_ = 0;
+        cur_element_count = 0;
+    }
+
     int load(const void* data, size_t size)
     {
+        reset();
         cur_element_count = size / size_per_element_;
         maxelements_ = (cur_element_count + VEC_INDEX_BLOCK_SIZE - 1) / VEC_INDEX_BLOCK_SIZE * VEC_INDEX_BLOCK_SIZE;
-        data_ = (char*)malloc(maxelements_ * size_per_element_);
-        if (data_ == nullptr)
-            return SQLITE_NOMEM;
-        memcpy(data_, data, cur_element_count * size_per_element_);
+        if (maxelements_ > 0) {
+            data_ = (char*)malloc(maxelements_ * size_per_element_);
+            if (data_ == nullptr)
+                return SQLITE_NOMEM;
+            memcpy(data_, data, cur_element_count * size_per_element_);
+        }
 
         for (size_t i = 0; i < cur_element_count; i++)
             dict_external_to_internal[rowid(i)] = i;
@@ -271,6 +291,17 @@ public:
 
 class VecIndex : public sqlite3_vtab {
 public:
+    class snapshot {
+    public:
+        sqlite3_int64 version = 0;
+        VecColumn* columns = nullptr;
+
+        ~snapshot()
+        {
+            delete[] columns;
+        }
+    };
+
     class storage_config {
     public:
         int format = VEC_STORAGE_FORMAT_BLOB;
@@ -286,21 +317,41 @@ public:
         std::vector<std::vector<float>> datas;
     };
 
+    class cache_store {
+    public:
+        class cache_entry {
+        public:
+            size_t active_connections = 0;
+            std::shared_ptr<snapshot> current_snapshot;
+        };
+
+        std::mutex mutex;
+        std::map<std::string, cache_entry> snapshots;
+    };
+
+    static cache_store& shared_cache()
+    {
+        static cache_store store;
+        return store;
+    }
+
 public:
     VecIndex(sqlite3* db, const char* _name, std::vector<VecIndexColumn>& _columns)
         : db(db)
         , name(_name)
+        , column_defs(_columns)
     {
         memset(this, 0, sizeof(sqlite3_vtab));
 
         indexCount = _columns.size();
-        columns = new VecColumn[indexCount];
         update_stmts = new sqlite3_stmt*[indexCount]();
         page_upsert_stmts = new sqlite3_stmt*[indexCount]();
         page_delete_tail_stmts = new sqlite3_stmt*[indexCount]();
 
-        for (int i = 0; i < indexCount; i++)
-            columns[i].init(_columns[i].name, _columns[i].dimensions);
+        cache_key = build_cache_key();
+        retain_cache_entry();
+        working_columns = allocate_columns();
+        columns = working_columns;
     }
 
     ~VecIndex()
@@ -317,10 +368,244 @@ public:
         delete[] update_stmts;
         delete[] page_upsert_stmts;
         delete[] page_delete_tail_stmts;
-        delete[] columns;
+        release_working_columns();
+        release_cache_entry();
     }
 
 public:
+    void retain_cache_entry()
+    {
+        cache_store& cache = shared_cache();
+        std::lock_guard<std::mutex> lock(cache.mutex);
+        cache.snapshots[cache_key].active_connections++;
+    }
+
+    void release_cache_entry()
+    {
+        cache_store& cache = shared_cache();
+        std::lock_guard<std::mutex> lock(cache.mutex);
+        auto it = cache.snapshots.find(cache_key);
+        if (it == cache.snapshots.end())
+            return;
+
+        if (it->second.active_connections > 0)
+            it->second.active_connections--;
+
+        if (it->second.active_connections == 0)
+            cache.snapshots.erase(it);
+    }
+
+    VecColumn* allocate_columns() const
+    {
+        VecColumn* new_columns = new VecColumn[indexCount];
+
+        for (int i = 0; i < indexCount; i++)
+            new_columns[i].init(column_defs[i].name, column_defs[i].dimensions);
+
+        return new_columns;
+    }
+
+    void release_working_columns()
+    {
+        if (working_columns) {
+            delete[] working_columns;
+            working_columns = nullptr;
+        }
+    }
+
+    std::string build_cache_key() const
+    {
+        const char* filename = sqlite3_db_filename(db, "main");
+        if (filename == nullptr || filename[0] == '\0')
+            return std::string("mem:") + std::to_string((uintptr_t)db) + "|" + name;
+
+        return std::string(filename) + "|" + name;
+    }
+
+    void attach_snapshot(const std::shared_ptr<snapshot>& snap)
+    {
+        release_working_columns();
+        shared_snapshot = snap;
+        columns = snap->columns;
+        loaded_version = snap->version;
+    }
+
+    int clone_active_columns()
+    {
+        if (working_columns != nullptr)
+            return SQLITE_OK;
+
+        VecColumn* new_columns = allocate_columns();
+        int rc = copy_columns(new_columns, columns);
+        if (rc != SQLITE_OK) {
+            delete[] new_columns;
+            return rc;
+        }
+
+        working_columns = new_columns;
+        shared_snapshot.reset();
+        columns = working_columns;
+        return SQLITE_OK;
+    }
+
+    int copy_columns(VecColumn* dst, VecColumn* src) const
+    {
+        for (int i = 0; i < indexCount; i++) {
+            if (src[i].cur_element_count == 0)
+                continue;
+
+            int rc = dst[i].load(src[i].data_, src[i].cur_element_count * src[i].size_per_element_);
+            if (rc != SQLITE_OK)
+                return rc;
+        }
+
+        return SQLITE_OK;
+    }
+
+    int get_state_version(sqlite3_int64& version)
+    {
+        const char* zQuery = sqlite3_mprintf("SELECT version FROM vec_index_state WHERE tbl = \"%w\"",
+            name.c_str());
+        sqlite3_stmt* stmt;
+        int rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        version = 0;
+        if ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+            version = sqlite3_column_int64(stmt, 0);
+
+        sqlite3_finalize(stmt);
+        return (rc == SQLITE_ROW || rc == SQLITE_DONE) ? SQLITE_OK : rc;
+    }
+
+    int bump_state_version(sqlite3_int64& version)
+    {
+        const char* zQuery = sqlite3_mprintf("UPDATE vec_index_state SET version = version + 1 WHERE tbl = \"%w\"",
+            name.c_str());
+        int rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        return get_state_version(version);
+    }
+
+    int load_columns_from_db(VecColumn* target_columns, sqlite3_int64& version)
+    {
+        VecColumn* previous_columns = columns;
+        columns = target_columns;
+
+        int rc = get_state_version(version);
+        if (rc == SQLITE_OK) {
+            for (int i = 0; i < indexCount; i++) {
+                storage_config config;
+                rc = get_storage_config(i, config);
+                if (rc != SQLITE_OK)
+                    break;
+
+                bool has_pages = false;
+                rc = load_paged_index(i, has_pages);
+
+                if (rc != SQLITE_OK)
+                    break;
+            }
+        }
+
+        columns = previous_columns;
+        return rc;
+    }
+
+    int load_snapshot(std::shared_ptr<snapshot>& snap)
+    {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            sqlite3_int64 version_before = 0;
+            sqlite3_int64 version_after = 0;
+            int rc = get_state_version(version_before);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            std::shared_ptr<snapshot> loaded = std::make_shared<snapshot>();
+            loaded->columns = allocate_columns();
+            rc = load_columns_from_db(loaded->columns, loaded->version);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            rc = get_state_version(version_after);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            if (version_before == version_after) {
+                loaded->version = version_after;
+                snap = loaded;
+                return SQLITE_OK;
+            }
+        }
+
+        return SQLITE_BUSY;
+    }
+
+    int ensure_snapshot_current(bool for_write)
+    {
+        sqlite3_int64 db_version = 0;
+        int rc = get_state_version(db_version);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        if (loaded_version == db_version)
+            return SQLITE_OK;
+
+        if (for_write) {
+            if (!ops.empty()) {
+                zErrMsg = sqlite3_mprintf("vec index changed in another connection");
+                return SQLITE_BUSY;
+            }
+        } else if (!ops.empty())
+            return SQLITE_OK;
+
+        cache_store& cache = shared_cache();
+        {
+            std::lock_guard<std::mutex> lock(cache.mutex);
+            auto it = cache.snapshots.find(cache_key);
+            if (it != cache.snapshots.end() && it->second.current_snapshot && it->second.current_snapshot->version == db_version) {
+                attach_snapshot(it->second.current_snapshot);
+                return SQLITE_OK;
+            }
+        }
+
+        std::shared_ptr<snapshot> fresh_snapshot;
+        rc = load_snapshot(fresh_snapshot);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        {
+            std::lock_guard<std::mutex> lock(cache.mutex);
+            cache.snapshots[cache_key].current_snapshot = fresh_snapshot;
+        }
+
+        attach_snapshot(fresh_snapshot);
+        return SQLITE_OK;
+    }
+
+    int publish_working_snapshot(sqlite3_int64 version)
+    {
+        std::shared_ptr<snapshot> published = std::make_shared<snapshot>();
+        published->columns = working_columns;
+        published->version = version;
+
+        working_columns = nullptr;
+
+        cache_store& cache = shared_cache();
+        {
+            std::lock_guard<std::mutex> lock(cache.mutex);
+            cache.snapshots[cache_key].current_snapshot = published;
+        }
+
+        attach_snapshot(published);
+        return SQLITE_OK;
+    }
+
     int prepare_update_stmt(int idx, sqlite3_stmt** stmt)
     {
         if (update_stmts[idx] == nullptr) {
@@ -366,30 +651,6 @@ public:
         return SQLITE_OK;
     }
 
-    int load_blob_index(int idx)
-    {
-        const char* zQuery = sqlite3_mprintf("SELECT data FROM vec_index WHERE tbl = \"%w\" AND name = \"%w\"",
-            name.c_str(), columns[idx].name.c_str());
-        sqlite3_stmt* stmt;
-        int rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
-        sqlite3_free((void*)zQuery);
-        if (rc != SQLITE_OK)
-            return rc;
-
-        if ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-            const void* idx_data = sqlite3_column_blob(stmt, 0);
-            size_t idx_size = sqlite3_column_bytes(stmt, 0);
-
-            if (idx_data != nullptr && idx_size > 0)
-                rc = columns[idx].load(idx_data, idx_size);
-            else
-                rc = SQLITE_OK;
-        }
-
-        sqlite3_finalize(stmt);
-        return rc == SQLITE_DONE ? SQLITE_OK : rc;
-    }
-
     int load_paged_index(int idx, bool& has_pages)
     {
         const char* zQuery = sqlite3_mprintf("SELECT data FROM vec_index_pages WHERE tbl = \"%w\" AND name = \"%w\" ORDER BY page_no",
@@ -430,12 +691,17 @@ public:
         if (rc != SQLITE_OK)
             return rc;
 
-        config.format = VEC_STORAGE_FORMAT_BLOB;
+        config.format = VEC_STORAGE_FORMAT_PAGED;
         config.page_size = 0;
         if ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
             config.format = sqlite3_column_int(stmt, 0);
 
         sqlite3_finalize(stmt);
+
+        if (config.format == VEC_STORAGE_FORMAT_BLOB) {
+            zErrMsg = sqlite3_mprintf("blob vec storage format is no longer supported");
+            return SQLITE_ERROR;
+        }
 
         if (config.format == VEC_STORAGE_FORMAT_PAGED)
             config.page_size = default_persist_page_size(idx);
@@ -468,12 +734,6 @@ public:
         size_t size_per_element = columns[idx].size_per_element_;
         size_t page_elements = page_size_bytes / size_per_element;
         return page_elements > 0 ? page_elements : 1;
-    }
-
-    bool should_keep_single_blob(int idx, size_t page_size_bytes) const
-    {
-        const VecColumn& column = columns[idx];
-        return column.cur_element_count * column.size_per_element_ <= page_size_bytes;
     }
 
     int set_storage_format(int idx, int format, int page_size)
@@ -519,15 +779,6 @@ public:
         return rc == SQLITE_DONE ? SQLITE_OK : rc;
     }
 
-    int reset_storage_to_blob(int idx)
-    {
-        int rc = set_storage_format(idx, VEC_STORAGE_FORMAT_BLOB, VEC_INDEX_BLOCK_SIZE);
-        if (rc != SQLITE_OK)
-            return rc;
-
-        return clear_paged_index(idx);
-    }
-
     int write_paged_index(int idx, size_t old_count, size_t page_size_bytes, const std::set<size_t>& dirty_pages)
     {
         const VecColumn& column = columns[idx];
@@ -535,18 +786,6 @@ public:
         size_t old_page_count = (old_count + page_elements - 1) / page_elements;
         size_t new_page_count = (column.cur_element_count + page_elements - 1) / page_elements;
         int rc = SQLITE_OK;
-
-        if (should_keep_single_blob(idx, page_size_bytes)) {
-            rc = clear_paged_index(idx);
-            if (rc != SQLITE_OK)
-                return rc;
-
-            rc = update_blob_index(idx, column.data_, column.cur_element_count * column.size_per_element_);
-            if (rc != SQLITE_OK)
-                return rc;
-
-            return set_storage_format(idx, VEC_STORAGE_FORMAT_PAGED, page_size_bytes);
-        }
 
         if (!dirty_pages.empty() && column.cur_element_count > 0) {
             sqlite3_stmt* stmt;
@@ -602,7 +841,7 @@ public:
                 return rc;
         }
 
-        rc = update_blob_index(idx, nullptr, 0);
+        rc = update_blob_index(idx, column.data_, column.cur_element_count * column.size_per_element_);
         if (rc != SQLITE_OK)
             return rc;
 
@@ -638,6 +877,21 @@ public:
         if (rc != SQLITE_OK)
             return rc;
 
+        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index_state(tbl, version)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        rc = sqlite3_exec(db, "CREATE UNIQUE INDEX IF NOT EXISTS vis_index ON vec_index_state (tbl)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        zQuery = sqlite3_mprintf("INSERT OR IGNORE INTO vec_index_state(tbl, version) VALUES (\"%w\", 0)",
+            name.c_str());
+        rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
         for (int i = 0; i < indexCount; i++) {
             zQuery = sqlite3_mprintf("INSERT INTO vec_index(tbl, name) VALUES (\"%w\", \"%w\")",
                 name.c_str(), columns[i].name.c_str());
@@ -647,7 +901,7 @@ public:
                 return rc;
 
             zQuery = sqlite3_mprintf("INSERT OR REPLACE INTO vec_index_meta(tbl, name, format, page_size) VALUES (\"%w\", \"%w\", %d, %d)",
-                name.c_str(), columns[i].name.c_str(), VEC_STORAGE_FORMAT_BLOB, VEC_INDEX_BLOCK_SIZE);
+                name.c_str(), columns[i].name.c_str(), VEC_STORAGE_FORMAT_PAGED, default_persist_page_size(i));
             rc = sqlite3_exec(db, zQuery, 0, 0, 0);
             sqlite3_free((void*)zQuery);
             if (rc != SQLITE_OK)
@@ -676,35 +930,63 @@ public:
         zQuery = sqlite3_mprintf("DELETE FROM vec_index_pages WHERE tbl = \"%w\"", name.c_str());
         rc = sqlite3_exec(db, zQuery, 0, 0, 0);
         sqlite3_free((void*)zQuery);
-        return rc;
+        if (rc != SQLITE_OK)
+            return rc;
+
+        zQuery = sqlite3_mprintf("DELETE FROM vec_index_state WHERE tbl = \"%w\"", name.c_str());
+        rc = sqlite3_exec(db, zQuery, 0, 0, 0);
+        sqlite3_free((void*)zQuery);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        cache_store& cache = shared_cache();
+        std::lock_guard<std::mutex> lock(cache.mutex);
+        cache.snapshots.erase(cache_key);
+        return SQLITE_OK;
     }
 
     int load_index()
     {
-        for (int i = 0; i < indexCount; i++) {
-            storage_config config;
-            int rc = get_storage_config(i, config);
-            if (rc != SQLITE_OK)
-                return rc;
+        cache_store& cache = shared_cache();
+        sqlite3_int64 db_version = 0;
+        int rc = get_state_version(db_version);
+        if (rc != SQLITE_OK)
+            return rc;
 
-            if (config.format == VEC_STORAGE_FORMAT_PAGED) {
-                bool has_pages = false;
-                rc = load_paged_index(i, has_pages);
-                if (rc == SQLITE_OK && !has_pages)
-                    rc = load_blob_index(i);
-            } else
-                rc = load_blob_index(i);
-
-            if (rc != SQLITE_OK)
-                return rc;
+        {
+            std::lock_guard<std::mutex> lock(cache.mutex);
+            auto it = cache.snapshots.find(cache_key);
+            if (it != cache.snapshots.end() && it->second.current_snapshot && it->second.current_snapshot->version == db_version) {
+                attach_snapshot(it->second.current_snapshot);
+                return SQLITE_OK;
+            }
         }
 
+        std::shared_ptr<snapshot> fresh_snapshot;
+        rc = load_snapshot(fresh_snapshot);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        {
+            std::lock_guard<std::mutex> lock(cache.mutex);
+            cache.snapshots[cache_key].current_snapshot = fresh_snapshot;
+        }
+
+        attach_snapshot(fresh_snapshot);
         return SQLITE_OK;
     }
 
     int sync_index()
     {
         if (ops.size()) {
+            int rc = ensure_snapshot_current(true);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            rc = clone_active_columns();
+            if (rc != SQLITE_OK)
+                return rc;
+
             std::vector<storage_config> storage_configs(indexCount);
             std::vector<size_t> original_counts(indexCount);
             std::vector<bool> dirty;
@@ -790,24 +1072,29 @@ public:
                 }
             }
 
-            int rc;
-
             for (int i = 0; i < indexCount; i++)
                 if (dirty[i]) {
-                    if (storage_configs[i].format == VEC_STORAGE_FORMAT_PAGED)
-                        rc = write_paged_index(i, original_counts[i], storage_configs[i].page_size, dirty_pages[i]);
-                    else {
-                        const VecColumn& column = columns[i];
-                        rc = update_blob_index(i, column.data_, column.cur_element_count * column.size_per_element_);
-                        if (rc == SQLITE_OK)
-                            rc = reset_storage_to_blob(i);
+                    if (storage_configs[i].format != VEC_STORAGE_FORMAT_PAGED) {
+                        zErrMsg = sqlite3_mprintf("blob vec storage format is no longer supported");
+                        return SQLITE_ERROR;
                     }
+
+                    rc = write_paged_index(i, original_counts[i], storage_configs[i].page_size, dirty_pages[i]);
 
                     if (rc != SQLITE_OK)
                         return rc;
                 }
 
-        rollback();
+            sqlite3_int64 new_version = loaded_version;
+            rc = bump_state_version(new_version);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            rc = publish_working_snapshot(new_version);
+            if (rc != SQLITE_OK)
+                return rc;
+
+            rollback();
         }
 
         return SQLITE_OK;
@@ -817,6 +1104,9 @@ public:
     {
         ops.clear();
         incr_ops.clear();
+
+        if (working_columns != nullptr && shared_snapshot)
+            attach_snapshot(shared_snapshot);
     }
 
     bool exists(hnswlib::labeltype rowid)
@@ -833,9 +1123,14 @@ public:
     sqlite3* db;
 
     std::string name;
+    std::vector<VecIndexColumn> column_defs;
+    std::string cache_key;
+    sqlite3_int64 loaded_version = -1;
 
     int32_t indexCount;
     VecColumn* columns;
+    VecColumn* working_columns = nullptr;
+    std::shared_ptr<snapshot> shared_snapshot;
     sqlite3_stmt** update_stmts;
     sqlite3_stmt** page_upsert_stmts;
     sqlite3_stmt** page_delete_tail_stmts;
@@ -989,10 +1284,13 @@ static int init(sqlite3* db, void* pAux, int argc, const char* const* argv,
     VecIndex* pNew = new VecIndex(db, argv[2], columns);
     *ppVtab = pNew;
 
-    if (isCreate)
-        return pNew->create_index();
-    else
-        return pNew->load_index();
+    if (isCreate) {
+        int rc = pNew->create_index();
+        if (rc != SQLITE_OK)
+            return rc;
+    }
+
+    return pNew->load_index();
 }
 
 static int vecIndexCreate(sqlite3* db, void* pAux, int argc, const char* const* argv,
@@ -1083,10 +1381,14 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
     int argc, sqlite3_value** argv)
 {
     VecCursor* pCur = (VecCursor*)pVtabCursor;
+    VecIndex* pIndex = (VecIndex*)pCur->pVtab;
+    int rc = pIndex->ensure_snapshot_current(false);
+    if (rc != SQLITE_OK)
+        return rc;
 
     if (strcmp(idxStr, "search") == 0) {
         pCur->query_type = QueryType::search;
-        VecColumn& column = ((VecIndex*)pCur->pVtab)->columns[idxNum];
+        VecColumn& column = pIndex->columns[idxNum];
         const char* txt = (const char*)sqlite3_value_text(argv[0]);
         std::string tmp;
         int nlimit = 1024;
@@ -1098,7 +1400,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
                 txt = tmp.c_str();
                 nlimit = atoi(limit + 1);
                 if (nlimit <= 0) {
-                    ((VecIndex*)pCur->pVtab)->zErrMsg = sqlite3_mprintf("The limit must be greater than 0");
+                    pIndex->zErrMsg = sqlite3_mprintf("The limit must be greater than 0");
                     return SQLITE_ERROR;
                 }
             }
@@ -1106,11 +1408,11 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
 
         std::vector<float> query_vector = parse_vector(txt, column.dim());
         if (query_vector.size() == 0) {
-            ((VecIndex*)pCur->pVtab)->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", column.name.c_str());
+            pIndex->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", column.name.c_str());
             return SQLITE_ERROR;
         }
         if (query_vector.size() > column.dim()) {
-            ((VecIndex*)pCur->pVtab)->zErrMsg = sqlite3_mprintf("Vector \"%s\" size must be less than or equal to %d",
+            pIndex->zErrMsg = sqlite3_mprintf("Vector \"%s\" size must be less than or equal to %d",
                 column.name.c_str(), column.dim());
             return SQLITE_ERROR;
         }
@@ -1137,7 +1439,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
         hnswlib::labeltype id = (hnswlib::labeltype)sqlite3_value_int64(argv[0]);
 
         pCur->search_result.clear();
-        if (((VecIndex*)pCur->pVtab)->exists(id))
+        if (pIndex->exists(id))
             pCur->search_result.push_back(std::make_pair(0.0f, id));
 
         pCur->iCurrent = 0;
@@ -1225,6 +1527,9 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
 {
     VecIndex* p = (VecIndex*)pVtab;
     VecIndex::op op;
+    int rc = p->ensure_snapshot_current(true);
+    if (rc != SQLITE_OK)
+        return rc;
 
     if (argc == 1 && sqlite3_value_type(argv[0]) != SQLITE_NULL) {
         // DELETE operation
