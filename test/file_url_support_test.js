@@ -19,6 +19,32 @@ const zip = isFibjs ? require('zip') : null;
 const v8 = isFibjs ? require('v8') : null;
 const coroutine = isFibjs ? require('coroutine') : null;
 
+function sleep(ms) {
+    if (isFibjs) {
+        coroutine.sleep(ms);
+        return;
+    }
+
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function removeFixtureRootSync(targetPath) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+            fs.rmSync(targetPath, { recursive: true, force: true });
+            return;
+        } catch (err) {
+            if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM'))
+                throw err;
+
+            if (attempt === 4)
+                throw err;
+
+            sleep(50 * (attempt + 1));
+        }
+    }
+}
+
 function toFileURL(filePath) {
     return pathToFileURL(filePath);
 }
@@ -62,7 +88,7 @@ describe('file url path-like inputs', () => {
     });
 
     after(() => {
-        fs.rmSync(fixtureRoot, { recursive: true, force: true });
+        removeFixtureRootSync(fixtureRoot);
     });
 
     describe('node baseline fs', () => {
