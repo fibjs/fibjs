@@ -39,6 +39,30 @@ describe("child_process", () => {
 
     after(test_util.cleanup);
 
+    it("fibjs --version output via pipe (not TTY)", () => {
+        // When stdout is a pipe (not TTY), printf/puts use full buffering.
+        // If --version or --help calls _exit() without fflush(stdout),
+        // the output buffer is lost and the command produces no output.
+        var ret = child_process.execFileSync(cmd, ["--version"]);
+        var version = ret.toString().trim();
+        assert.ok(version.length > 0, "fibjs --version should output version via pipe, got: " + JSON.stringify(version));
+        assert.ok(version.startsWith("v"), "fibjs --version output should start with 'v', got: " + version);
+    });
+
+    it("fibjs -v output via pipe (not TTY)", () => {
+        var ret = child_process.execFileSync(cmd, ["-v"]);
+        var version = ret.toString().trim();
+        assert.ok(version.length > 0, "fibjs -v should output version via pipe, got: " + JSON.stringify(version));
+        assert.ok(version.startsWith("v"), "fibjs -v output should start with 'v', got: " + version);
+    });
+
+    it("fibjs --help output via pipe (not TTY)", () => {
+        var ret = child_process.execFileSync(cmd, ["--help"]);
+        var help = ret.toString().trim();
+        assert.ok(help.length > 0, "fibjs --help should output help text via pipe, got: " + JSON.stringify(help));
+        assert.ok(help.indexOf("Usage") >= 0, "fibjs --help should contain 'Usage'");
+    });
+
     it("stdout", () => {
         var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
         var stdout = new io.BufferedStream(bs.stdout);

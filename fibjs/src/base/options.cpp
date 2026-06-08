@@ -90,6 +90,7 @@ static void applyEnvFileOptions(const std::vector<EnvFileOption>& env_files)
             }
 
             fprintf(stderr, "%s: not found\n", env_file.path.c_str());
+            fflush(stderr);
             _exit(1);
         }
 
@@ -193,9 +194,11 @@ void options(int32_t& pos, char* argv[])
 
         if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
+            fflush(stdout);
             _exit(0);
         } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
             printf("v%s\n", fibjs_version);
+            fflush(stdout);
             _exit(0);
         } else if (!qstrcmp(arg, "--use-thread")) {
             exlib::Service::use_thread = true;
@@ -232,6 +235,7 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--env-file")) {
             if (i + 1 >= pos || argv[i + 1][0] == 0) {
                 fprintf(stderr, "%s requires a path\n", arg);
+                fflush(stderr);
                 _exit(1);
             }
 
@@ -241,6 +245,7 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--env-file=", 11)) {
             if (arg[11] == 0) {
                 fprintf(stderr, "%s requires a path\n", "--env-file");
+                fflush(stderr);
                 _exit(1);
             }
 
@@ -249,6 +254,7 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--env-file-if-exists")) {
             if (i + 1 >= pos || argv[i + 1][0] == 0) {
                 fprintf(stderr, "%s requires a path\n", arg);
+                fflush(stderr);
                 _exit(1);
             }
 
@@ -258,6 +264,7 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--env-file-if-exists=", 21)) {
             if (arg[21] == 0) {
                 fprintf(stderr, "%s requires a path\n", "--env-file-if-exists");
+                fflush(stderr);
                 _exit(1);
             }
 
@@ -270,6 +277,7 @@ void options(int32_t& pos, char* argv[])
             g_cov = fopen(arg + 6, "a");
             if (g_cov == nullptr) {
                 printf("Invalid filename: %s\n", arg + 6);
+                fflush(stdout);
                 _exit(0);
             }
             df++;
@@ -281,6 +289,7 @@ void options(int32_t& pos, char* argv[])
             g_cov = fopen(name, "a");
             if (g_cov == nullptr) {
                 printf("Can't open file: %s, please try again", name);
+                fflush(stdout);
                 _exit(0);
             }
             df++;
