@@ -188,7 +188,7 @@ function translate(text, opts) {
         return JSON.parse(res);
     }
     catch (e) {
-        console.error(`error occured when parsing result!`);
+        console.error(`error occurred when parsing result!`);
         console.error(`res is: `, res);
         throw new Error(e);
     }
