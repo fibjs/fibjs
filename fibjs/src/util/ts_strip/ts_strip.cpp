@@ -352,6 +352,15 @@ private:
         m_overwrites.push_back(Overwrite(pos, value));
     }
 
+    // Check if there's a line terminator in the source range [start, end)
+    bool hasLineTerminatorInRange(int start, int end) const {
+        for (int i = start; i < end && i < (int)m_length; i++) {
+            if (m_src[i] == '\n' || m_src[i] == '\r')
+                return true;
+        }
+        return false;
+    }
+
     // ========== Core parsing helpers (from TypeRunner) ==========
     
     /**
@@ -1216,7 +1225,16 @@ void TsStrip::parsePrimaryExpression() {
                         int start = getNodePos();
                         nextToken();
                         skipType();
-                        addReplacement(start, getNodePos());
+                        int arrowPos = getNodePos();
+                        addReplacement(start, arrowPos);
+                        // If return type contains newlines, move => to right after )
+                        // to satisfy [no LineTerminator here] between ArrowParameters and =>
+                        if (hasLineTerminatorInRange(start, arrowPos)) {
+                            addOverwrite(start, '=');
+                            addOverwrite(start + 1, '>');
+                            addOverwrite(arrowPos, ' ');
+                            addOverwrite(arrowPos + 1, ' ');
+                        }
                     }
                     // Must be arrow function
                     if (token() == SyntaxKind::EqualsGreaterThanToken) {
@@ -1388,6 +1406,13 @@ void TsStrip::parsePrimaryExpression() {
                                 // Yes, there's a following `:` for the false branch
                                 // So `: Type` was a return type annotation - add replacement
                                 addReplacement(start, typeEnd);
+                                // If return type contains newlines, move => to right after )
+                                if (hasLineTerminatorInRange(start, typeEnd)) {
+                                    addOverwrite(start, '=');
+                                    addOverwrite(start + 1, '>');
+                                    addOverwrite(typeEnd, ' ');
+                                    addOverwrite(typeEnd + 1, ' ');
+                                }
                             }
                             // If no `:`, this means we parsed `cond ? (a) : v => v` incorrectly.
                             // The `:` was the ternary separator. But we can't rollback now since
@@ -1399,7 +1424,15 @@ void TsStrip::parsePrimaryExpression() {
                             return;  // Already parsed body above
                         }
                         // allowReturnTypeInArrowFunction is true - this is definitely a return type
-                        addReplacement(start, getNodePos());
+                        int arrowPos = getNodePos();
+                        addReplacement(start, arrowPos);
+                        // If return type contains newlines, move => to right after )
+                        if (hasLineTerminatorInRange(start, arrowPos)) {
+                            addOverwrite(start, '=');
+                            addOverwrite(start + 1, '>');
+                            addOverwrite(arrowPos, ' ');
+                            addOverwrite(arrowPos + 1, ' ');
+                        }
                     } else {
                         // No =>, this was a ternary colon, not a return type annotation
                         // Restore position
@@ -1738,7 +1771,15 @@ void TsStrip::parsePrimaryExpression() {
                         start = getNodePos();
                         nextToken();
                         skipType();
-                        addReplacement(start, getNodePos());
+                        int arrowPos2 = getNodePos();
+                        addReplacement(start, arrowPos2);
+                        // If return type contains newlines, move => to right after )
+                        if (hasLineTerminatorInRange(start, arrowPos2)) {
+                            addOverwrite(start, '=');
+                            addOverwrite(start + 1, '>');
+                            addOverwrite(arrowPos2, ' ');
+                            addOverwrite(arrowPos2 + 1, ' ');
+                        }
                     }
                     if (token() == SyntaxKind::EqualsGreaterThanToken) {
                         nextToken();
@@ -1758,7 +1799,15 @@ void TsStrip::parsePrimaryExpression() {
                     int start = getNodePos();
                     nextToken();
                     skipType();
-                    addReplacement(start, getNodePos());
+                    int arrowPos = getNodePos();
+                    addReplacement(start, arrowPos);
+                    // If return type contains newlines, move => to right after )
+                    if (hasLineTerminatorInRange(start, arrowPos)) {
+                        addOverwrite(start, '=');
+                        addOverwrite(start + 1, '>');
+                        addOverwrite(arrowPos, ' ');
+                        addOverwrite(arrowPos + 1, ' ');
+                    }
                 }
                 if (token() == SyntaxKind::EqualsGreaterThanToken) {
                     nextToken();

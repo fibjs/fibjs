@@ -2318,6 +2318,141 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
+            it('should strip async arrow function with multiline return type (no LineTerminator before =>)', () => {
+                // JavaScript requires [no LineTerminator here] between ArrowParameters and =>
+                // When return type spans multiple lines, => is moved to right after ) to avoid
+                // line terminators while preserving all newlines in the stripped region
+                const input =
+                    'const fn = async (input: {\n' +
+                    '    a: string;\n' +
+                    '    b: string;\n' +
+                    '}): Promise<{\n' +
+                    '    x?: string;\n' +
+                    '    y?: string;\n' +
+                    '} | null> => {\n' +
+                    '    return null;\n' +
+                    '};';
+                const expected =
+                    'const fn = async (input   \n' +
+                    '              \n' +
+                    '              \n' +
+                    ' )=>         \n' +
+                    '               \n' +
+                    '               \n' +
+                    '             {\n' +
+                    '    return null;\n' +
+                    '};';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip non-async arrow with multiline return type', () => {
+                const input =
+                    'const fn = (input: {\n' +
+                    '    a: string;\n' +
+                    '}): {\n' +
+                    '    x: string;\n' +
+                    '} => {\n' +
+                    '    return input;\n' +
+                    '};';
+                const expected =
+                    'const fn = (input   \n' +
+                    '              \n' +
+                    ' )=> \n' +
+                    '              \n' +
+                    '     {\n' +
+                    '    return input;\n' +
+                    '};';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip async generic arrow with multiline return type', () => {
+                const input =
+                    'const fn = async <T extends { id: string }>(input: T): Promise<\n' +
+                    '    T\n' +
+                    '> => {\n' +
+                    '    return input;\n' +
+                    '};';
+                const expected =
+                    'const fn = async                           (input   )=>        \n' +
+                    '     \n' +
+                    '     {\n' +
+                    '    return input;\n' +
+                    '};';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip arrow with multiline params and multiline return type', () => {
+                const input =
+                    'const fn = (\n' +
+                    '    a: string,\n' +
+                    '    b: number\n' +
+                    '): Promise<\n' +
+                    '    string\n' +
+                    '> => a;';
+                const expected =
+                    'const fn = (\n' +
+                    '    a        ,\n' +
+                    '    b        \n' +
+                    ')=>        \n' +
+                    '          \n' +
+                    '     a;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should NOT move => for single-line return type', () => {
+                const input = 'const fn = async (x: string): string => x;';
+                const expected = 'const fn = async (x        )         => x;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip arrow in ternary with multiline return type', () => {
+                const input =
+                    'const fn = cond ? (x: {\n' +
+                    '    a: string;\n' +
+                    '}): {\n' +
+                    '    b: string;\n' +
+                    '} => x : y;';
+                const expected =
+                    'const fn = cond ? (x   \n' +
+                    '              \n' +
+                    ' )=> \n' +
+                    '              \n' +
+                    '     x : y;';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip async arrow with deeply nested multiline return type', () => {
+                const input =
+                    'const fn = async (): Promise<{\n' +
+                    '    data: Array<{\n' +
+                    '        id: string;\n' +
+                    '        name: string;\n' +
+                    '    }>;\n' +
+                    '}> => { return {}; };';
+                const expected =
+                    'const fn = async ()=>         \n' +
+                    '                 \n' +
+                    '                   \n' +
+                    '                     \n' +
+                    '       \n' +
+                    '      { return {}; };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should strip empty parens arrow with multiline return type', () => {
+                const input =
+                    'const fn = (): {\n' +
+                    '    x: string;\n' +
+                    '    y: number;\n' +
+                    '} => ({ x: "", y: 0 });';
+                const expected =
+                    'const fn = ()=> \n' +
+                    '              \n' +
+                    '              \n' +
+                    '     ({ x: "", y: 0 });';
+                assert.strictEqual(strip(input), expected);
+            });
+
             it('should strip multiline async class method parameter and return types', () => {
                 const input =
                     'class A { async listAttachments(\n' +
