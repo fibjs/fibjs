@@ -1,1 +1,1 @@
-const require = 100;
+var x = ;

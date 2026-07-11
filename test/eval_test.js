@@ -301,18 +301,14 @@ describe('eval (-e)', () => {
             assert.equal(result, '42');
         });
 
-        it('require ESM .js file in ESM package should fail', () => {
-            // In ESM package, .js files are treated as ESM, and ESM cannot be required
-            try {
-                child_process.execFileSync(cmd, ['-e', "const m = require('./esm_module.js'); console.log(m.value)"], {
-                    encoding: 'utf8',
-                    cwd: esmPkgDir
-                });
-                assert.fail('Should have thrown an error');
-            } catch (e) {
-                assert.ok(e.stderr && e.stderr.includes('ECMAScript modules are not supported in require'),
-                    'Expected error message about ESM not being supported in require');
-            }
+        it('require ESM .js file in ESM package should succeed (require(esm))', () => {
+            // require(esm) support (Node.js v22.12+ behavior): ESM-syntax .js files
+            // can now be required. Named exports are exposed alongside `default`.
+            var result = child_process.execFileSync(cmd, ['-e', "const m = require('./esm_module.js'); console.log(m.value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '100');
         });
     });
 

@@ -43,7 +43,9 @@ describe('promise', () => {
     });
 
     it("error in async function", () => {
-        t('async1.js', 'Error: /promise/async1.js:5:1\nawait t();\n^^^^^\nSyntaxError: await is only valid in async functions and the top level bodies of modules {} {\n  \"number\": 20024\n}\n');
+        // require(esm) support: top-level await in a .js file is now retried as
+        // an ES module, so the async function actually runs and throws.
+        t('async1.js', '/promise/async1.js:2:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async1.js:2:11)\n    at /promise/async1.js:5:7 {}\n');
     });
 
     it("error in async function with sync", () => {
