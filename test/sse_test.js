@@ -664,6 +664,7 @@ describe("sse", () => {
         it('should proxy OpenAI-compatible streaming response', async () => {
             var events = await new Promise((resolve, reject) => {
                 var collected = [];
+                var settled = false;
                 var es = new sse.EventSource(
                     `http://127.0.0.1:${8890 + base_port}/v1/chat/completions`,
                     {
@@ -678,12 +679,22 @@ describe("sse", () => {
                 es.onmessage = (e) => {
                     collected.push(e.data);
                     if (e.data === '[DONE]') {
+                        // Guard against the close/error race: once we have the
+                        // terminal [DONE] message, the proxy may close the
+                        // connection, which can fire onerror before the
+                        // resolve is processed. Settle only once.
+                        if (settled)
+                            return;
+                        settled = true;
                         es.close();
                         resolve(collected);
                     }
                 };
 
                 es.onerror = (e) => {
+                    if (settled)
+                        return;
+                    settled = true;
                     reject(new Error('proxy error: ' + (e.reason || 'unknown')));
                 };
             });
