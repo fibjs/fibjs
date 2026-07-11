@@ -268,8 +268,14 @@ private:
 
             if (type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr < 0)
-                    return hr;
+                if (hr < 0) {
+                    exlib::string err_msg = Runtime::errMessage();
+                    // If the file uses ESM syntax but was detected as CJS (e.g., .js
+                    // file with import/export but no "type": "module" in package.json),
+                    // treat it as ESM: leave mod empty so the caller loads it as ESM.
+                    if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
+                        return CHECK_ERROR(Runtime::setError(err_msg));
+                }
             }
         }
 
@@ -314,8 +320,14 @@ private:
 
             if (type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr < 0)
-                    return hr;
+                if (hr < 0) {
+                    exlib::string err_msg = Runtime::errMessage();
+                    // If the file uses ESM syntax but was detected as CJS (e.g., .js
+                    // file with import/export but no "type": "module" in package.json),
+                    // treat it as ESM: leave mod empty so the caller loads it as ESM.
+                    if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
+                        return CHECK_ERROR(Runtime::setError(err_msg));
+                }
             }
         }
 

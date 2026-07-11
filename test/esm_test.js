@@ -28,6 +28,42 @@ describe('ECMAScript modules', () => {
             assert.equal(m, m2);
         });
 
+        it("require(esm) - .js file with ESM syntax", () => {
+            // .js file with import/export but no "type": "module" in package.json
+            // Node.js v22.12+ supports require(esm); fibjs should too
+            var generate = require('./esm_files/require_esm_js/generate.js');
+            assert.equal(generate.default('red'), 'generated-red');
+        });
+
+        it("require(esm) - named exports without default", () => {
+            var mod = require('./esm_files/require_esm_js/named.js');
+            assert.equal(typeof mod.add, 'function');
+            assert.equal(typeof mod.multiply, 'function');
+            assert.equal(mod.add(2, 3), 5);
+            assert.equal(mod.multiply(2, 3), 6);
+        });
+
+        it("require(esm) - default and named exports interop", () => {
+            var generate = require('./esm_files/require_esm_js/generate.js');
+            assert.equal(typeof generate.default, 'function');
+            assert.equal(generate.default('blue'), 'generated-blue');
+        });
+
+        it("require(esm) - secondary pattern: redeclare 'require' identifier", () => {
+            // .js file with `const require = 100;` which is a CJS compile error
+            // (require is a wrapper parameter) but valid in ESM.
+            // Node.js v22.12+ detects this and retries as ESM.
+            var mod = require('./esm_files/require_esm_js/require_bug.js');
+            assert.equal(mod.value, 42);
+        });
+
+        it("require(esm) - secondary pattern: redeclare 'module' identifier", () => {
+            // .js file with `const module = { id: 'esm' };` — CJS compile error
+            // but valid in ESM.
+            var mod = require('./esm_files/require_esm_js/redeclare_module.js');
+            assert.equal(mod.moduleId, 'esm');
+        });
+
         it("throw when file not exists", async () => {
             await assert.rejects(async () => {
                 await import('./esm_files/not_exists.mjs');

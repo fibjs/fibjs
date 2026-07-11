@@ -43,7 +43,9 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
     if (isolate->m_module_evaluating > 0)
         return Runtime::setError("require is not defined in ES module scope, use import instead");
 
-    return isolate->m_topSandbox->require(id, s_root, retVal);
+    // Use in_cjs=true so that require(esm) works: when a .js file with ESM
+    // syntax is required, js_Loader retries it as ESM (like Node.js v22.12+).
+    return isolate->m_topSandbox->require(id, s_root, retVal, true);
 }
 
 result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
