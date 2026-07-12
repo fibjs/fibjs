@@ -20,6 +20,7 @@ const CST = require('internal/constant');
 
 const DEPENDENCIES = 'dependencies';
 const DEVDEPENDENCIES = 'devDependencies';
+const OPTDEPENDENCIES = 'optionalDependencies';
 const DEP_KEY_TUPLE = [DEPENDENCIES, DEVDEPENDENCIES];
 const SEP = path.sep;
 
@@ -55,11 +56,13 @@ function read_module(p, parent) {
 
                 const dep_vs = util.clone(minfo.dependencies || {});
                 const dev_dep_vs = util.clone(minfo.devDependencies || {});
+                const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
 
                 modules[n] = {
                     version: minfo.version,
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
+                    opt_dep_vs: opt_dep_vs,
                     parent: parent
                 };
 
@@ -229,6 +232,7 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
             version: pkg.version,
             dep_vs: util.extend({}, pkg.package_json.dependencies),
             dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
+            opt_dep_vs: util.extend({}, pkg.package_json.optionalDependencies),
             parent: rootsnap,
             workspace_package: true,
             workspace_path: pkg.path,
@@ -410,6 +414,7 @@ function fetch_leveled_module_info(m, v, parent) {
 
             const dep_vs = util.clone(minfo.dependencies || {});
             const dev_dep_vs = util.clone(minfo.devDependencies || {});
+            const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
 
             var binary;
             if (minfo.binary) {
@@ -439,6 +444,10 @@ function fetch_leveled_module_info(m, v, parent) {
                 binary: binary,
                 dep_vs: dep_vs,
                 dev_dep_vs: dev_dep_vs,
+                opt_dep_vs: opt_dep_vs,
+                os: minfo.os,
+                cpu: minfo.cpu,
+                libc: minfo.libc,
                 node_modules: {},
                 parent: parent,
                 dist: minfo.dist,
@@ -477,6 +486,7 @@ function fetch_leveled_module_info(m, v, parent) {
                 binary: binary,
                 dep_vs: util.extend({}, pkgjson_info.dependencies),
                 dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
+                opt_dep_vs: util.extend({}, pkgjson_info.optionalDependencies),
                 node_modules: {},
                 parent: parent,
                 dist: null,
@@ -497,6 +507,7 @@ function fetch_leveled_module_info(m, v, parent) {
                 binary: undefined,
                 dep_vs: util.extend({}, local_pkg_info.dependencies),
                 dev_dep_vs: util.extend({}, local_pkg_info.devDependencies),
+                opt_dep_vs: util.extend({}, local_pkg_info.optionalDependencies),
                 node_modules: {},
                 parent: parent,
                 dist: null,
@@ -529,6 +540,7 @@ function get_root_snapshot() {
 
     const dep_vs = util.extend({}, pkgjson.dependencies);
     const dev_dep_vs = util.extend({}, pkgjson.devDependencies);
+    const opt_dep_vs = util.extend({}, pkgjson.optionalDependencies);
 
     const registry = normalize_registry_origin(pkgjson.registry || 'https://registry.npmjs.org/');
 
@@ -537,6 +549,7 @@ function get_root_snapshot() {
         version: pkgjson.version,
         dep_vs: dep_vs,
         dev_dep_vs: dev_dep_vs,
+        opt_dep_vs: opt_dep_vs,
         new_module: true,
         registry: registry,
         root_is_new: root_is_new,
@@ -562,6 +575,57 @@ function get_root_snapshot() {
     return m;
 }
 
+/**
+ * @description check if a package's os/cpu constraints match the current platform
+ */
+function check_platform_match(pkg_info) {
+    var i;
+    var matched;
+
+    // check os
+    if (pkg_info.os && pkg_info.os.length > 0) {
+        matched = false;
+        for (i = 0; i < pkg_info.os.length; i++) {
+            var o = pkg_info.os[i];
+            if (o[0] === '!') {
+                if (o.slice(1) === process.platform) return false;
+                continue;
+            }
+            if (o === process.platform) matched = true;
+        }
+        if (!matched) return false;
+    }
+
+    // check cpu
+    if (pkg_info.cpu && pkg_info.cpu.length > 0) {
+        matched = false;
+        for (i = 0; i < pkg_info.cpu.length; i++) {
+            if (pkg_info.cpu[i] === process.arch) { matched = true; break; }
+        }
+        if (!matched) return false;
+    }
+
+    // check libc (musl)
+    if (pkg_info.libc && pkg_info.libc.length > 0) {
+        var is_musl = !!process.versions.musl;
+        matched = false;
+        for (i = 0; i < pkg_info.libc.length; i++) {
+            var l = pkg_info.libc[i];
+            if (l[0] === '!') {
+                if (l.slice(1) === 'musl' && is_musl) return false;
+                continue;
+            }
+            if ((l === 'musl' && is_musl) || (l === 'glibc' && !is_musl))
+                matched = true;
+            else if (l === process.versions.modules ? 'glibc' : 'unknown')
+                matched = true;
+        }
+        if (!matched) return false;
+    }
+
+    return true;
+}
+
 const name_maps_installation2pkg = {}
 /**
  * @description walk throught to generate dep_vs/dev_dep_vs information recursively
@@ -569,12 +633,13 @@ const name_maps_installation2pkg = {}
 function walkthrough_deps(level_info, need_dev_deps = false) {
     if (level_info.new_module) {
         ;[
-            ['dep_vs', 'dependencies']
+            ['dep_vs', 'dependencies'],
+            ['opt_dep_vs', 'optionalDependencies']
         ].concat(
             need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
         ).forEach(([dep_type]) => {
             coroutine.parallel(
-                Object.keys(level_info[dep_type]),
+                Object.keys(level_info[dep_type] || {}),
                 dname => {
                     const _deps = level_info[dep_type];
 
@@ -591,6 +656,17 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
                     if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
                         if (!find_version(dname, v, level_info))
                             child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info);
+
+                        // check platform compatibility; skip optional deps that don't match
+                        if (child_level_info && !check_platform_match(child_level_info)) {
+                            if (dep_type === 'opt_dep_vs') {
+                                install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
+                                delete level_info.node_modules[dname];
+                                child_level_info = null;
+                                return;
+                            }
+                            console.warn('platform mismatch for', dname, '- may not work');
+                        }
 
                         /**
                          * @todo deal with special installation name, such as 'fibjs/fib-graphql'
@@ -1115,6 +1191,7 @@ if (!pkgjson_path_specified) {
                 version: localPkg.version || '0.0.0',
                 dep_vs: util.extend({}, localPkg.dependencies),
                 dev_dep_vs: util.extend({}, localPkg.devDependencies),
+                opt_dep_vs: util.extend({}, localPkg.optionalDependencies),
                 bin: localPkg.bin,
                 parent: rootsnap,
                 local_package: true,
