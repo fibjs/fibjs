@@ -3,6 +3,7 @@ const path = require('path');
 
 const CST = require('internal/constant');
 const helpers_string = require('internal/helpers/string')
+const semver = require('internal/helpers/semver');
 const SPECIAL_PKG_PATTERN = /^\@?([a-z][a-z0-9\-]*)?(\/[a-z][a-z0-9\-]*)?(\#[\w]+)?/
 
 exports.is_special_installname = function (pkg_name = '') {
@@ -27,8 +28,8 @@ const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name
     input_uri = input_uri.replace(/^npm:/, '');
     input_uri = input_uri.replace(/^https?:\/\/[^\/]+\//, '');
 
-    // local path: must check before @ split (paths may contain @ in scoped dirs)
-    if (/^(file:)?(\.{1,2}\/|[~\/])/.test(input_uri))
+    // local path: check before @ split. Use semver to exclude version ranges (~1.0.0, ^2.0, >=1.0, etc.)
+    if (!semver.validRange(input_uri) && /^(file:)?(\.{1,2}\/|~\/|\/)/.test(input_uri))
         return {
             type: 'local',
             local_path: path.resolve(input_uri.replace(/^file:/, '')),

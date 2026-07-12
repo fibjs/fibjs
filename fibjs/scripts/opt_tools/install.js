@@ -8,6 +8,7 @@ const http = require('http');
 const zlib = require('zlib');
 const zip = require('zip');
 const crypto = require('crypto');
+const child_process = require('child_process');
 const semver = require('internal/helpers/semver');
 const untar = require('internal/helpers/untar');
 
@@ -239,6 +240,128 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
     });
 }
 // ---------------------- WORKSPACES UTILS :end ------------------------- //
+
+// ---------------------- LIFECYCLE SCRIPTS :start ------------------------- //
+
+/**
+ * @description flatten an object to npm_package_* env vars (e.g., {scripts:{install:"x"}} → npm_package_scripts_install)
+ */
+function flatten_package_env(prefix, obj) {
+    var env = {};
+    for (var k in obj) {
+        var val = obj[k];
+        var key = prefix + '_' + k.replace(/[^a-zA-Z0-9_]/g, '_');
+        if (typeof val === 'object' && val !== null && !Array.isArray(val))
+            env = util.extend(env, flatten_package_env(key, val));
+        else
+            env[key] = String(val);
+    }
+    return env;
+}
+
+/**
+ * @description set up npm-compatible environment variables for a lifecycle script
+ */
+function setup_script_env(pkgjson, pkg_path, event) {
+    var env = util.extend({}, process.env);
+
+    // npm_package_* variables
+    var pkg_env = flatten_package_env('npm_package', pkgjson);
+    util.extend(env, pkg_env);
+
+    // npm_lifecycle_* variables
+    env.npm_lifecycle_event = event;
+    env.npm_lifecycle_script = pkgjson.scripts && pkgjson.scripts[event] || '';
+
+    // npm_config_registry
+    if (!env.npm_config_registry)
+        env.npm_config_registry = 'https://registry.npmjs.org/';
+
+    // add node_modules/.bin to PATH
+    var bin_path = path.join(pkg_path, 'node_modules', '.bin');
+    var path_sep = process.platform === 'win32' ? ';' : ':';
+    env.PATH = bin_path + path_sep + (env.PATH || '');
+
+    return env;
+}
+
+/**
+ * @description run lifecycle scripts for a single module
+ */
+function run_module_scripts(pkg_path, pkg_info, is_root) {
+    var pkgjson;
+    try {
+        pkgjson = JSON.parse(fs.readTextFile(path.join(pkg_path, 'package.json')));
+    } catch (e) {
+        return;
+    }
+
+    var scripts = pkgjson.scripts || {};
+
+    // build lifecycle event list
+    var events;
+    if (is_root)
+        events = ['preinstall', 'install', 'postinstall', 'prepublish', 'preprepare', 'prepare', 'postprepare'];
+    else
+        events = ['install', 'postinstall'];
+
+    for (var i = 0; i < events.length; i++) {
+        var event = events[i];
+        var script = scripts[event];
+        if (!script) continue;
+
+        install_log('  ' + event + ' ' + (pkgjson.name || '') + '@' + (pkgjson.version || ''));
+
+        var env = setup_script_env(pkgjson, pkg_path, event);
+
+        try {
+            var result = child_process.spawnSync(process.execPath, [event], {
+                cwd: pkg_path,
+                env: env,
+                stdio: 'pipe'
+            });
+
+            if (result.status !== 0) {
+                var msg = '[lifecycle] ' + pkgjson.name + ': ' + event + ' exited with code ' + result.status;
+                if (result.stderr) install_log('  stderr:', result.stderr.toString().trim());
+                if (process.env.FIBJS_STRICT_SCRIPTS)
+                    throw new Error(msg);
+                else
+                    console.warn(msg);
+            }
+        } catch (e) {
+            if (process.env.FIBJS_STRICT_SCRIPTS)
+                throw e;
+            else
+                console.warn('[lifecycle] ' + pkgjson.name + ': ' + event + ' error:', e.message);
+        }
+    }
+
+    // binding.gyp default check
+    if (!scripts.install && !scripts.preinstall) {
+        if (fs.exists(path.join(pkg_path, 'binding.gyp'))) {
+            install_log('  [warn] ' + (pkgjson.name || '') + ': binding.gyp found but no install script; node-gyp rebuild not yet supported');
+        }
+    }
+}
+
+/**
+ * @description recursively run lifecycle scripts in topological order (children first)
+ */
+function run_lifecycle_scripts(level_info, base_path, is_root) {
+    // process children first (deep-first)
+    for (var k in level_info.node_modules) {
+        var child = level_info.node_modules[k];
+        var child_path = path.join(base_path, 'node_modules', k);
+        run_lifecycle_scripts(child, child_path, false);
+    }
+
+    // process current module
+    if (level_info.new_module)
+        run_module_scripts(base_path, level_info, is_root);
+}
+
+// ---------------------- LIFECYCLE SCRIPTS :end ------------------------- //
 
 function sha1(data) {
     return crypto.createHash('sha1').update(data).digest('hex');
@@ -942,6 +1065,7 @@ ctx.depk = ctx.dep_against_k = ''
 
 let need_add_newpkg_to_pkgjson = false
 let pkgjson_path_specified = false;
+let ignore_scripts = process.argv.indexOf('--ignore-scripts', 2) > -1;
 if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1) {
     need_add_newpkg_to_pkgjson = true;
 } else if (process.argv.indexOf('--save-dev', 2) > -1 || process.argv.indexOf('-D', 2) > -1) {
@@ -1046,6 +1170,12 @@ download_module();
         create_local_package_symlinks(mod, path.join(base_path, 'node_modules', k));
     }
 })(rootsnap, process.cwd());
+
+// run lifecycle scripts (unless --ignore-scripts)
+if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {
+    install_log('\nrun lifecycle scripts...');
+    run_lifecycle_scripts(rootsnap, process.cwd(), true);
+}
 
 dump_snap();
 update_pkgjson(rootsnap);

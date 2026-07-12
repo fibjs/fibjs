@@ -126,7 +126,7 @@ var lifecycleTests = [
         verify: function (targetDir) {
             assert.ok(checkFile(targetDir, 'test-pkg-install', '.install-ran'));
         },
-        skip: true  // Phase 3
+        skipInNode: true,
     },
     {
         description: 'should run scripts.postinstall',
@@ -134,7 +134,7 @@ var lifecycleTests = [
         verify: function (targetDir) {
             assert.ok(checkFile(targetDir, 'test-pkg-postinstall', '.postinstall-ran'));
         },
-        skip: true  // Phase 3
+        skipInNode: true,
     },
     {
         description: 'binding.gyp without install script should not error',
@@ -142,9 +142,61 @@ var lifecycleTests = [
         verify: function (targetDir) {
             assert.ok(checkSymlink(targetDir, 'test-pkg-binding-gyp'));
         },
-        skip: true  // Phase 3
+        skipInNode: true,
     },
 ];
+
+// ---------- parse_pkg_installname unit tests (fibjs-only) ----------
+
+if (isFibjs) (function () {
+var parse_pkg_installname = require('internal/helpers/package').parse_pkg_installname;
+
+var parsingTests = [
+    // === should be local path ===
+    { input: ['./fixtures/pkg'], expectedType: 'local', desc: './fixtures/pkg → local' },
+    { input: ['', './fixtures/pkg'], expectedType: 'local', desc: "('', './fixtures/pkg') → local" },
+    { input: ['../sibling-pkg'], expectedType: 'local', desc: '../sibling-pkg → local' },
+    { input: ['/abs/path/pkg'], expectedType: 'local', desc: '/abs/path/pkg → local' },
+    { input: ['~/projects/pkg'], expectedType: 'local', desc: '~/projects/pkg → local' },
+    { input: ['file:./fixtures/pkg'], expectedType: 'local', desc: 'file:./fixtures/pkg → local' },
+    { input: ['', 'file:../foo'], expectedType: 'local', desc: "file:../foo → local" },
+    { input: ['./@scope/pkg'], expectedType: 'local', desc: './@scope/pkg → local (scoped dir)' },
+
+    // === should NOT be local path (semver ranges) ===
+    { input: ['~1.0.0'], expectedType: '!local', desc: '~1.0.0 → not local (semver range)' },
+    { input: ['^2.0.0'], expectedType: '!local', desc: '^2.0.0 → not local (semver range)' },
+    { input: ['>=1.0.0'], expectedType: '!local', desc: '>=1.0.0 → not local (semver range)' },
+    { input: ['1.0.0'], expectedType: '!local', desc: '1.0.0 → not local (exact version)' },
+    { input: ['*'], expectedType: '!local', desc: '* → not local' },
+    { input: ['latest'], expectedType: '!local', desc: 'latest → not local' },
+    { input: ['1.0.0 - 2.0.0'], expectedType: '!local', desc: '1.0.0 - 2.0.0 → not local (semver range)' },
+    { input: ['', '~1.1.0'], expectedType: '!local', desc: "('', '~1.1.0') → not local" },
+
+    // === should be registry ===
+    { input: ['foo'], expectedType: 'registry', desc: 'foo → registry' },
+    { input: ['@scope/foo'], expectedType: 'registry', desc: '@scope/foo → registry' },
+    { input: ['foo@1.0.0'], expectedType: 'registry', desc: 'foo@1.0.0 → registry' },
+    { input: ['@scope/foo@^2.0'], expectedType: 'registry', desc: '@scope/foo@^2.0 → registry' },
+
+    // === should be git ===
+    { input: ['user/repo'], expectedType: 'git', desc: 'user/repo → git' },
+    { input: ['user/repo#branch'], expectedType: 'git', desc: 'user/repo#branch → git' },
+];
+
+describe('parse_pkg_installname', function () {
+    parsingTests.forEach(function (t) {
+        it(t.desc, function () {
+            var result = parse_pkg_installname.apply(null, t.input);
+            if (t.expectedType === '!local') {
+                assert.notEqual(result.type, 'local', 'should not be local');
+            } else {
+                assert.equal(result.type, t.expectedType);
+            }
+        });
+    });
+});
+
+})(); // end isFibjs guard
 
 // ---------- tests ----------
 
@@ -214,7 +266,8 @@ describe('opt_tools install lifecycle', function () {
     // ===== Phase 3: lifecycle scripts =====
     describe('lifecycle scripts (Phase 3)', function () {
         lifecycleTests.forEach(function (test) {
-            (test.skip ? it.skip : it)(test.description, function () {
+            var shouldSkip = test.skip || (!isFibjs && test.skipInNode);
+            (shouldSkip ? it.skip : it)(test.description, function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
