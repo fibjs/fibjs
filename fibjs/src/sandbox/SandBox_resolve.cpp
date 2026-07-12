@@ -77,6 +77,42 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
         return Runtime::setError("SandBox: unknown error during module loading.");
 
     retVal = module->Get(_context, strExports).FromMaybe(v8::Local<v8::Value>());
+
+    // CJS-ESM interop: when any caller retrieves exports of an ESM module
+    // that has a default export but no __esModule marker, wrap the namespace
+    // with a plain-object facade that adds __esModule=true. This ensures
+    // transpiled _interopRequireDefault() helpers do not double-wrap, and
+    // works regardless of whether the module was first loaded via require()
+    // or import(). compile_module() detects __esModule and handles both paths.
+    v8::Local<v8::Private> strIsModule = v8::Private::ForApi(
+        isolate->m_isolate, isolate->NewString("isModule"));
+    JSValue isModuleVal = module->GetPrivate(_context, strIsModule);
+    if (!isModuleVal.IsEmpty() && isModuleVal->IsTrue()
+        && retVal->IsModuleNamespaceObject()) {
+        v8::Local<v8::Object> ns_obj = retVal.As<v8::Object>();
+        v8::Local<v8::String> strDefault = isolate->NewString("default");
+        v8::Local<v8::String> strEsModule = isolate->NewString("__esModule");
+        if (!ns_obj->Has(_context, strEsModule).FromMaybe(false)
+            && ns_obj->Has(_context, strDefault).FromMaybe(false)) {
+            v8::Local<v8::Object> wrapper = v8::Object::New(isolate->m_isolate);
+            v8::Local<v8::Array> names = ns_obj->GetOwnPropertyNames(_context)
+                .FromMaybe(v8::Local<v8::Array>());
+            if (!names.IsEmpty()) {
+                for (uint32_t i = 0; i < names->Length(); i++) {
+                    v8::Local<v8::Value> key = names->Get(_context, i)
+                        .FromMaybe(v8::Local<v8::Value>());
+                    if (key.IsEmpty()) continue;
+                    v8::Local<v8::Value> val = ns_obj->Get(_context, key)
+                        .FromMaybe(v8::Local<v8::Value>());
+                    if (val.IsEmpty()) continue;
+                    wrapper->Set(_context, key, val).IsJust();
+                }
+            }
+            wrapper->Set(_context, strEsModule, v8::True(isolate->m_isolate)).IsJust();
+            retVal = wrapper;
+        }
+    }
+
     return 0;
 }
 

@@ -64,6 +64,65 @@ describe('ECMAScript modules', () => {
             assert.equal(_mod.default('green'), 'generated-green');
         });
 
+        it("require(esm) - _interopRequireDefault after import (reverse order)", async () => {
+            // ESM import caches the original namespace in mod.exports first.
+            // Subsequent CJS require() must still get the facade with __esModule
+            // so _interopRequireDefault does not double-wrap.
+            // Use a fresh SandBox to avoid cache interference from other tests.
+            var sbox = new vm.SandBox();
+
+            // First: ESM import (caches the module)
+            var ns = await sbox.import('./esm_files/require_esm_js/generate.js', __dirname);
+            assert.equal(typeof ns.default, 'function');
+
+            // Then: CJS require (must go through run_module → wait_module,
+            // which reads the cached mod.exports — if no wrapper was stored,
+            // _interopRequireDefault will double-wrap)
+            function _interopRequireDefault(obj) {
+                return obj && obj.__esModule ? obj : { default: obj };
+            }
+            var _mod = _interopRequireDefault(sbox.require('./esm_files/require_esm_js/generate.js', __dirname));
+            assert.equal(typeof _mod.default, 'function',
+                '_interopRequireDefault after import should not double-wrap');
+            assert.equal(_mod.default('yellow'), 'generated-yellow');
+        });
+
+        it("require(esm) - SandBox.require after import (sbox cached path)", async () => {
+            // sbox.require uses in_cjs=false and cannot load ESM .js standalone.
+            // But it CAN load them from cache (via wait_module) after an import.
+            // This tests the SandBox::require → run_module → wait_module path
+            // for cached modules.
+            var sbox = new vm.SandBox();
+
+            // First load via import (caches the module)
+            await sbox.import('./esm_files/require_esm_js/generate.js', __dirname);
+
+            // Then require from SandBox (uses SandBox::require, not global require)
+            var _mod = sbox.require('./esm_files/require_esm_js/generate.js', __dirname);
+            assert.equal(typeof _mod.default, 'function');
+            assert.equal(_mod.__esModule, true,
+                'sbox.require of cached ESM should have __esModule');
+            assert.equal(_mod.default('orange'), 'generated-orange');
+        });
+
+        it("require(esm) - dependency loaded via ESM then required from CJS", async () => {
+            // dep.mjs is loaded as a dependency (non-root) by main.mjs.
+            // saveModule() caches it separately from the root. Verify that
+            // a subsequent CJS require of the dependency still gets __esModule.
+            var sbox = new vm.SandBox();
+
+            // Load main.mjs which imports dep.mjs as a dependency
+            var ns = await sbox.import('./esm_files/interop_dep/main.mjs', __dirname);
+            assert.equal(typeof ns.default, 'function');
+
+            // Now require the dependency directly from CJS
+            var dep = sbox.require('./esm_files/interop_dep/dep.mjs', __dirname);
+            assert.equal(dep.__esModule, true,
+                'dependency cached by saveModule should have __esModule');
+            assert.equal(typeof dep.default, 'function');
+            assert.equal(dep.version, '2.0.0');
+        });
+
         it("require(esm) - secondary pattern: redeclare 'require' identifier", () => {
             // .js file with `const require = 100;` which is a CJS compile error
             // (require is a wrapper parameter) but valid in ESM.
