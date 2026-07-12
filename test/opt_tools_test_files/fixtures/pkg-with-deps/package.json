@@ -1,0 +1,1 @@
+{"name":"test-pkg-with-deps","version":"1.0.0","dependencies":{"test-pkg-install":"file:../pkg-with-install"}}

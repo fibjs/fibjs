@@ -159,9 +159,11 @@ function find_workspace_packages(root_path, workspaces_config) {
 }
 
 /**
- * @description create symlinks for workspace packages
+ * @description create symlinks for local/workspace packages
+ * @param {string} root_path - root project path
+ * @param {Array<{name: string, srcPath: string}>} packages - packages to symlink
  */
-function create_workspace_symlinks(root_path, workspace_packages) {
+function create_local_symlinks(root_path, packages) {
     const node_modules_path = path.join(root_path, 'node_modules');
 
     // ensure node_modules directory exists
@@ -169,9 +171,9 @@ function create_workspace_symlinks(root_path, workspace_packages) {
         fs.mkdir(node_modules_path, { recursive: true });
     }
 
-    workspace_packages.forEach(pkg => {
+    packages.forEach(pkg => {
         const link_path = path.join(node_modules_path, pkg.name);
-        const target_path = path.resolve(root_path, pkg.relative_path);
+        const target_path = pkg.srcPath;
 
         try {
             // For scoped packages, ensure parent directory exists
@@ -187,24 +189,33 @@ function create_workspace_symlinks(root_path, workspace_packages) {
                     fs.unlink(link_path);
                 } else if (stats.isDirectory()) {
                     // don't remove if it's a real directory with installed packages
-                    console.warn(`[workspaces] Skipping ${pkg.name}: directory already exists`);
+                    console.warn(`[install] Skipping ${pkg.name}: directory already exists`);
                     return;
                 }
             }
 
             // create symlink or junction based on platform
             if (process.platform === 'win32') {
-                // Use junction on Windows to avoid permission issues
                 fs.symlink(target_path, link_path, 'junction');
             } else {
-                // Use symlink on Unix-like systems
                 fs.symlink(target_path, link_path);
             }
 
+            install_log('link:', target_path, '→', link_path);
         } catch (e) {
-            console.warn(`[workspaces] Failed to create symlink for ${pkg.name}:`, e.message);
+            console.warn(`[install] Failed to create symlink for ${pkg.name}:`, e.message);
         }
     });
+}
+
+/**
+ * @description create symlinks for workspace packages (delegates to create_local_symlinks)
+ */
+function create_workspace_symlinks(root_path, workspace_packages) {
+    create_local_symlinks(root_path, workspace_packages.map(pkg => ({
+        name: pkg.name,
+        srcPath: path.resolve(root_path, pkg.relative_path)
+    })));
 }
 
 /**
@@ -349,6 +360,28 @@ function fetch_leveled_module_info(m, v, parent) {
                 pkg_install_typeinfo,
                 new_module: true
             }
+        case 'local':
+            const local_pkg_path = path.join(pkg_install_typeinfo.local_path, 'package.json');
+            if (!fs.exists(local_pkg_path))
+                throw new Error(`[local] package.json not found at ${pkg_install_typeinfo.local_path}`);
+
+            const local_pkg_info = JSON.parse(fs.readTextFile(local_pkg_path));
+
+            return {
+                name: local_pkg_info.name || m,
+                version: local_pkg_info.version || '0.0.0',
+                bin: local_pkg_info.bin,
+                binary: undefined,
+                dep_vs: util.extend({}, local_pkg_info.dependencies),
+                dev_dep_vs: util.extend({}, local_pkg_info.devDependencies),
+                node_modules: {},
+                parent: parent,
+                dist: null,
+                local_package: true,
+                local_path: pkg_install_typeinfo.local_path,
+                pkg_install_typeinfo,
+                new_module: true
+            };
         default:
             throw new Error(`unsupported package type '${pkg_install_typeinfo.type}' !`)
     }
@@ -507,7 +540,7 @@ function generate_mv_paths(level_info, parent_p) {
             const lmod = level_info.node_modules[k];
             const bp = path.join(parent_p, 'node_modules');
 
-            if (lmod.new_module && !lmod.workspace_package) { // don't generate download paths for workspace packages
+            if (lmod.new_module && !lmod.workspace_package && !lmod.local_package) { // don't generate download paths for workspace/local packages
                 const mv = k + '@' + lmod.version;
 
                 let ps = mv_paths[mv];
@@ -533,9 +566,13 @@ function generate_mv_paths(level_info, parent_p) {
                                 base_path: [bp]
                             };
                             break
+                        case 'local':
+                            // local packages don't need download; skip
+                            break
                     }
 
-                    mv_paths[mv] = ps;
+                    if (ps)
+                        mv_paths[mv] = ps;
                 } else
                     ps.base_path.push(bp);
             }
@@ -702,6 +739,30 @@ function download_module() {
                     });
 
                     install_log('extract:', git_archive_url);
+                    break
+                case 'local':
+                    const localSrcPath = mvm.pkg_install_typeinfo.local_path;
+                    mvm.base_path.forEach(bp => {
+                        const destPath = path.join(bp, mvm.name);
+
+                        // skip if already exists (symlink or directory)
+                        if (fs.exists(destPath)) {
+                            try {
+                                const st = fs.lstat(destPath);
+                                if (st.isSymbolicLink() || st.isDirectory())
+                                    return;
+                            } catch (e) { }
+                        }
+
+                        fs.mkdir(path.dirname(destPath), { recursive: true });
+
+                        if (process.platform === 'win32')
+                            fs.symlink(localSrcPath, destPath, 'junction');
+                        else
+                            fs.symlink(localSrcPath, destPath);
+
+                        install_log('link:', localSrcPath, '→', destPath);
+                    });
                     break
             }
 
@@ -918,6 +979,40 @@ if (!pkgjson_path_specified) {
             if (ctx.new_pkgname && rootsnap[dep_type][ctx.new_pkgname] === undefined)
                 rootsnap[dep_type][ctx.new_pkgname] = '*';
             break
+        case 'local':
+            const localPkgPath = path.join(new_pkginstall_typeinfo.local_path, 'package.json');
+            if (!fs.exists(localPkgPath))
+                throw new Error(`[local] package.json not found at ${new_pkginstall_typeinfo.local_path}`);
+
+            const localPkg = JSON.parse(fs.readTextFile(localPkgPath));
+            const pkgName = localPkg.name || path.basename(new_pkginstall_typeinfo.local_path);
+
+            rootsnap.node_modules[pkgName] = {
+                version: localPkg.version || '0.0.0',
+                dep_vs: util.extend({}, localPkg.dependencies),
+                dev_dep_vs: util.extend({}, localPkg.devDependencies),
+                bin: localPkg.bin,
+                parent: rootsnap,
+                local_package: true,
+                local_path: new_pkginstall_typeinfo.local_path,
+                pkg_install_typeinfo: new_pkginstall_typeinfo,
+                new_module: true,
+                node_modules: read_module(new_pkginstall_typeinfo.local_path, rootsnap.node_modules[pkgName])
+            };
+
+            // create symlink for local package
+            create_local_symlinks(process.cwd(), [{
+                name: pkgName,
+                srcPath: new_pkginstall_typeinfo.local_path
+            }]);
+
+            // mark as symlinked to prevent duplicate creation
+            rootsnap.node_modules[pkgName]._symlinked = true;
+
+            // use the package name as the dep key (not the CLI path)
+            if (ctx.new_pkgname)
+                rootsnap[dep_type][pkgName] = '*';
+            break
         case 'registry':
             if (new_pkginstall_typeinfo.registry_semver) {
                 rootsnap[dep_type][new_pkginstall_typeinfo.package_name] = new_pkginstall_typeinfo.registry_semver
@@ -936,6 +1031,21 @@ walkthrough_deps(rootsnap, need_add_newpkg_to_pkgjson === DEVDEPENDENCIES);
 move_up(rootsnap);
 generate_mv_paths(rootsnap, process.cwd());
 download_module();
+
+// create symlinks for local packages found during dependency walking
+(function create_local_package_symlinks(level_info, base_path) {
+    for (let k in level_info.node_modules) {
+        const mod = level_info.node_modules[k];
+        if (mod.new_module && mod.local_package && !mod._symlinked) {
+            create_local_symlinks(base_path, [{
+                name: k,
+                srcPath: mod.local_path || mod.pkg_install_typeinfo.local_path
+            }]);
+            mod._symlinked = true;
+        }
+        create_local_package_symlinks(mod, path.join(base_path, 'node_modules', k));
+    }
+})(rootsnap, process.cwd());
 
 dump_snap();
 update_pkgjson(rootsnap);

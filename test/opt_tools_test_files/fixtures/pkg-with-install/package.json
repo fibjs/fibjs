@@ -1,0 +1,1 @@
+{"name":"test-pkg-install","version":"1.0.0","scripts":{"install":"node -e \"require('fs').writeFileSync('.install-ran', 'ok')\""}}

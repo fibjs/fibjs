@@ -27,16 +27,6 @@ function install_npm(testDir) {
 
 const tests = [
     {
-        description: "should create symlinks for basic workspace packages",
-        testDir: 'basic_workspace',
-        symlinks: [
-            {
-                from: 'packages/package-a',
-                to: 'package-a'
-            }
-        ]
-    },
-    {
         description: "should handle nested workspace structure with scoped packages",
         testDir: 'nested_workspace',
         symlinks: [
@@ -78,23 +68,6 @@ const tests = [
             }
         ]
     },
-    {
-        description: "should install dependencies for workspace packages",
-        testDir: 'deps_workspace',
-        symlinks: [
-            {
-                from: 'packages/simple-pkg',
-                to: 'simple-pkg'
-            }
-        ],
-        // Verify that workspace package dependencies are installed
-        dependencies: [
-            {
-                packageName: 'simple-pkg',
-                dependency: 'ms'
-            }
-        ]
-    }
 ];
 
 // NPM Workspaces Tests

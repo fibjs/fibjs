@@ -1,4 +1,5 @@
 const url = require('url');
+const path = require('path');
 
 const CST = require('internal/constant');
 const helpers_string = require('internal/helpers/string')
@@ -25,6 +26,21 @@ const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name
 
     input_uri = input_uri.replace(/^npm:/, '');
     input_uri = input_uri.replace(/^https?:\/\/[^\/]+\//, '');
+
+    // local path: must check before @ split (paths may contain @ in scoped dirs)
+    if (/^(file:)?(\.{1,2}\/|[~\/])/.test(input_uri))
+        return {
+            type: 'local',
+            local_path: path.resolve(input_uri.replace(/^file:/, '')),
+            package_name: null,
+            registry_pkg_path: null,
+            registry_semver: null,
+            from_http: false,
+            git_origin: '',
+            git_basename: null,
+            git_path: null,
+            git_reference: null,
+        }
 
     const registry_part = input_uri.split('@');
     if (registry_part.length == 2 && registry_part[0] !== '')

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "test-pkg-no-scripts": "file:opt_tools_test_files/fixtures/pkg-no-scripts",
+    "test-pkg-with-deps": "file:opt_tools_test_files/fixtures/pkg-with-deps"
+  },
   "author": "",
   "license": "ISC"
 }

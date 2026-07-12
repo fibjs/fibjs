@@ -101,6 +101,7 @@ if (process.platform != "android") {
     run("./ts_test.js");
     run("./icu_test.js");
     run("./workspaces_test.js");
+    run("./opt_tools_test.js");
     run("./scripts_test.js");
     run("./selfzip_test.js");
 }
