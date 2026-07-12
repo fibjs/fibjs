@@ -24,6 +24,7 @@ class test_base : public object_base {
 public:
     // test_base
     static result_t _function(exlib::string name, v8::Local<v8::Function> block);
+    static result_t _function(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block);
     static result_t xdescribe(exlib::string name, v8::Local<v8::Function> block);
     static result_t odescribe(exlib::string name, v8::Local<v8::Function> block);
     static result_t xit(exlib::string name, v8::Local<v8::Function> block);
@@ -31,6 +32,7 @@ public:
     static result_t oit(exlib::string name, v8::Local<v8::Function> block);
     static result_t only(exlib::string name, v8::Local<v8::Function> block);
     static result_t todo(exlib::string name, v8::Local<v8::Function> block);
+    static result_t todo(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block);
     static result_t todo(exlib::string name);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
@@ -123,6 +125,14 @@ inline void test_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(v8::Local<v8::Function>, 1);
 
     hr = _function(v0, v1);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    hr = _function(v0, v1, v2);
 
     METHOD_VOID();
 }
@@ -221,6 +231,14 @@ inline void test_base::s_static_todo(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(v8::Local<v8::Function>, 1);
 
     hr = todo(v0, v1);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    hr = todo(v0, v1, v2);
 
     METHOD_OVER(1, 1);
 

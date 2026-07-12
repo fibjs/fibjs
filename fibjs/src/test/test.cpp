@@ -581,14 +581,43 @@ inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
     return func;
 }
 
+static int32_t get_level_from_options(v8::Local<v8::Object> options, int32_t default_level)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Value> v;
+
+    if (options->Get(context, isolate->NewString("skip")).ToLocal(&v) && v->IsTrue())
+        return _case::TEST_SKIP;
+
+    if (options->Get(context, isolate->NewString("todo")).ToLocal(&v) && v->IsTrue())
+        return _case::TEST_TODO;
+
+    if (options->Get(context, isolate->NewString("only")).ToLocal(&v) && v->IsTrue())
+        return _case::TEST_ONLY;
+
+    return default_level;
+}
+
 result_t test_base::_function(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_NORMAL);
 }
 
+result_t test_base::_function(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
+{
+    return _case::it(name, wrapFunction(block), get_level_from_options(options, _case::TEST_NORMAL));
+}
+
 result_t test_suite_base::_function(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::describe(name, block, _case::TEST_NORMAL);
+}
+
+result_t test_suite_base::_function(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, block, get_level_from_options(options, _case::TEST_NORMAL));
 }
 
 result_t test_suite_base::skip(exlib::string name, v8::Local<v8::Function> block)
@@ -599,6 +628,16 @@ result_t test_suite_base::skip(exlib::string name, v8::Local<v8::Function> block
 result_t test_suite_base::only(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::describe(name, block, _case::TEST_ONLY);
+}
+
+result_t test_suite_base::todo(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, block, _case::TEST_TODO);
+}
+
+result_t test_suite_base::todo(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, block, get_level_from_options(options, _case::TEST_TODO));
 }
 
 result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
@@ -634,6 +673,11 @@ result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
 result_t test_base::todo(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, wrapFunction(block), _case::TEST_TODO);
+}
+
+result_t test_base::todo(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
+{
+    return _case::it(name, wrapFunction(block), get_level_from_options(options, _case::TEST_TODO));
 }
 
 result_t test_base::todo(exlib::string name)

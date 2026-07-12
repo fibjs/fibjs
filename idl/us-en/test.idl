@@ -79,6 +79,13 @@ module test
      */
     static Function(String name, Function block);
 
+    /*! @brief Define a test item with options
+     @param name Define item name
+     @param options Test options, support: { skip, todo, only }
+     @param block Test content
+     */
+    static Function(String name, Object options, Function block);
+
     /*! @brief Test framework module, points to this module, can be called as a function */
     static test;
 
@@ -135,6 +142,13 @@ module test
      @param block Test content
      */
     static todo(String name, Function block);
+
+    /*! @brief Plan item definition with options
+     @param name Define item name
+     @param options Test options, support: { skip, todo, only }
+     @param block Test content
+     */
+    static todo(String name, Object options, Function block);
 
     /*! @brief Plan item definition
      @param name Define item name

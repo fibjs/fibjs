@@ -537,4 +537,228 @@ describe("test", () => {
             });
         });
     });
+
+    describe("it with options { skip: true }", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            it('step1', () => {
+                steps.push('step1');
+            });
+
+            it('step2', { skip: true }, () => {
+                steps.push('step2');
+            });
+
+            it('step3', () => {
+                steps.push('step3');
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step1',
+                'step3'
+            ])
+        });
+    });
+
+    describe("it with options { todo: true }", () => {
+        var t = false;
+
+        it('todo with options', { todo: true }, () => {
+            t = true;
+        });
+
+        it('check', () => {
+            assert.equal(t, false);
+        });
+    });
+
+    describe("it with options { only: true }", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            it('step1', () => {
+                steps.push('step1');
+            });
+
+            it('step2', { only: true }, () => {
+                steps.push('step2');
+            });
+
+            it('step3', () => {
+                steps.push('step3');
+            });
+
+            it('step4', { only: true }, () => {
+                steps.push('step4');
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step2',
+                'step4'
+            ])
+        });
+    });
+
+    describe("describe with options { skip: true }", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            describe('step1', () => {
+                before(() => {
+                    steps.push('step1');
+                });
+            });
+
+            describe('step2', { skip: true }, () => {
+                before(() => {
+                    steps.push('step2');
+                });
+            });
+
+            describe('step3', () => {
+                before(() => {
+                    steps.push('step3');
+                });
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step1',
+                'step3'
+            ])
+        });
+    });
+
+    describe("describe with options { only: true }", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            describe('step1', () => {
+                before(() => {
+                    steps.push('step1');
+                });
+            });
+
+            describe('step2', { only: true }, () => {
+                before(() => {
+                    steps.push('step2');
+                });
+            });
+
+            describe('step3', () => {
+                before(() => {
+                    steps.push('step3');
+                });
+            });
+
+            describe('step4', { only: true }, () => {
+                before(() => {
+                    steps.push('step4');
+                });
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step2',
+                'step4'
+            ])
+        });
+    });
+
+    describe("describe.todo", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            describe('step1', () => {
+                before(() => {
+                    steps.push('step1');
+                });
+            });
+
+            describe.todo('step2', () => {
+                before(() => {
+                    steps.push('step2');
+                });
+
+                it('inner test', () => {
+                    steps.push('step2_inner');
+                });
+            });
+
+            describe('step3', () => {
+                before(() => {
+                    steps.push('step3');
+                });
+            });
+        });
+
+        it('check', () => {
+            // describe.todo executes its block, hooks, and inner tests,
+            // but all tests inside are treated as todo (not counted as failures)
+            assert.deepEqual(steps, [
+                'step1',
+                'step2',
+                'step2_inner',
+                'step3'
+            ])
+        });
+    });
+
+    describe("it with options { skip: true } dynamic", () => {
+        var steps = [];
+        var shouldSkip = true;
+
+        describe('suite', () => {
+            it('step1', () => {
+                steps.push('step1');
+            });
+
+            it('step2', { skip: shouldSkip }, () => {
+                steps.push('step2');
+            });
+
+            it('step3', () => {
+                steps.push('step3');
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step1',
+                'step3'
+            ])
+        });
+    });
+
+    describe("it options skip takes priority over todo", () => {
+        var steps = [];
+
+        describe('suite', () => {
+            it('step1', () => {
+                steps.push('step1');
+            });
+
+            it('step2', { skip: true, todo: true }, () => {
+                steps.push('step2');
+            });
+
+            it('step3', () => {
+                steps.push('step3');
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(steps, [
+                'step1',
+                'step3'
+            ])
+        });
+    });
 });

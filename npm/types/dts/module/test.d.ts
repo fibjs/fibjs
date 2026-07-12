@@ -86,6 +86,15 @@ declare module 'test' {
     function Function(name: string, block: (...args: any[])=>any): void;
 
     /**
+     * @description 定义一个测试项目（带选项）
+     *      @param name 定义项目名称
+     *      @param options 测试选项，支持: { skip, todo, only }
+     *      @param block 测试内容
+     *      
+     */
+    function Function(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
+
+    /**
      * @description 测试框架模块，指向本模块，可作为函数调用 
      */
     const test: typeof import ('test');
@@ -165,6 +174,15 @@ declare module 'test' {
      *      
      */
     function todo(name: string, block: (...args: any[])=>any): void;
+
+    /**
+     * @description 计划项目定义（带选项）
+     *      @param name 定义项目名称
+     *      @param options 测试选项，支持: { skip, todo, only }
+     *      @param block 测试内容
+     *      
+     */
+    function todo(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
 
     /**
      * @description 计划项目定义

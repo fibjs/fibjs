@@ -7,6 +7,13 @@ module test_suite
      */
     static Function(String name, Function block);
 
+    /*! @brief Define a test suite with options, can be nested
+     @param name Define project name
+     @param options Test options, support: { skip, todo, only }
+     @param block Test content
+     */
+    static Function(String name, Object options, Function block);
+
     /*! @brief Pause test suite project definition
      @param name Define project name
      @param block Test content
@@ -18,4 +25,17 @@ module test_suite
      @param block Test content
      */
     static only(String name, Function block);
+
+    /*! @brief Plan test suite definition
+     @param name Define project name
+     @param block Test content
+     */
+    static todo(String name, Function block);
+
+    /*! @brief Plan test suite definition with options
+     @param name Define project name
+     @param options Test options, support: { skip, todo, only }
+     @param block Test content
+     */
+    static todo(String name, Object options, Function block);
 };

@@ -79,6 +79,13 @@ module test
      */
     static Function(String name, Function block);
 
+    /*! @brief 定义一个测试项目（带选项）
+     @param name 定义项目名称
+     @param options 测试选项，支持: { skip, todo, only }
+     @param block 测试内容
+     */
+    static Function(String name, Object options, Function block);
+
     /*! @brief 测试框架模块，指向本模块，可作为函数调用 */
     static test;
 
@@ -135,6 +142,13 @@ module test
      @param block 测试内容
      */
     static todo(String name, Function block);
+
+    /*! @brief 计划项目定义（带选项）
+     @param name 定义项目名称
+     @param options 测试选项，支持: { skip, todo, only }
+     @param block 测试内容
+     */
+    static todo(String name, Object options, Function block);
 
     /*! @brief 计划项目定义
      @param name 定义项目名称

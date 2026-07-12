@@ -7,6 +7,13 @@ module test_suite
      */
     static Function(String name, Function block);
 
+    /*! @brief 定义一个测试套件（带选项），可嵌套定义
+     @param name 定义项目名称
+     @param options 测试选项，支持: { skip, todo, only }
+     @param block 测试内容
+     */
+    static Function(String name, Object options, Function block);
+
     /*! @brief 暂停测试套件的项目定义
      @param name 定义项目名称
      @param block 测试内容
@@ -18,4 +25,17 @@ module test_suite
      @param block 测试内容
      */
     static only(String name, Function block);
+
+    /*! @brief 计划测试套件定义
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static todo(String name, Function block);
+
+    /*! @brief 计划测试套件定义（带选项）
+     @param name 定义项目名称
+     @param options 测试选项，支持: { skip, todo, only }
+     @param block 测试内容
+     */
+    static todo(String name, Object options, Function block);
 };
