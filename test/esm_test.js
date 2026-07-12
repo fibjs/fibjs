@@ -49,6 +49,21 @@ describe('ECMAScript modules', () => {
             assert.equal(generate.default('blue'), 'generated-blue');
         });
 
+        it("require(esm) - _interopRequireDefault pattern (__esModule check)", () => {
+            // Simulates TypeScript/Babel transpiled CJS that uses
+            // _interopRequireDefault to unwrap ESM default exports.
+            // Without __esModule on the namespace, this helper
+            // double-wraps: { default: { default: fn } }
+            function _interopRequireDefault(obj) {
+                return obj && obj.__esModule ? obj : { default: obj };
+            }
+            var _mod = _interopRequireDefault(require('./esm_files/require_esm_js/generate.js'));
+            assert.equal(typeof _mod, 'object');
+            assert.equal(typeof _mod.default, 'function',
+                '_interopRequireDefault should not double-wrap');
+            assert.equal(_mod.default('green'), 'generated-green');
+        });
+
         it("require(esm) - secondary pattern: redeclare 'require' identifier", () => {
             // .js file with `const require = 100;` which is a CJS compile error
             // (require is a wrapper parameter) but valid in ESM.

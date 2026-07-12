@@ -26,6 +26,7 @@ public:
     esm_importer(SandBox* sb)
         : m_sb(sb)
         , m_isolate(sb->holder())
+        , m_is_cjs_require(false)
     {
     }
 
@@ -57,6 +58,13 @@ public:
     result_t require(exlib::string id, Buffer_base* data, v8::Local<v8::Object> mod)
     {
         v8::Local<v8::Context> _context = m_isolate->context();
+
+        // require(esm) from CJS: the resulting namespace needs to be wrapped with a
+        // facade that adds __esModule=true so that transpiled interop helpers like
+        // _interopRequireDefault() recognize it as an ESM module and do not wrap the
+        // namespace again into { default: { default: fn } }. See Node.js
+        // lib/internal/modules/cjs/loader.js (createRequiredModuleFacade).
+        m_is_cjs_require = true;
 
         v8::Local<v8::Module> root_module = load_module(id, (Buffer*)data, v8::Local<v8::Value>());
         if (root_module.IsEmpty())
@@ -666,6 +674,14 @@ private:
         v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
         v8::Local<v8::Value> result = module->GetModuleNamespace();
 
+        // require(esm) CJS interop: when a CJS file does require(esm), wrap the
+        // namespace with a facade that re-exports everything and adds
+        // __esModule=true, so transpiled _interopRequireDefault() helpers see
+        // __esModule===true and do not double-wrap the namespace. Mirrors
+        // Node.js createRequiredModuleFacade (cjs/loader.js).
+        if (impoter->m_is_cjs_require)
+            result = impoter->wrapForCJSRequire(module, result);
+
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
         resolver->Resolve(context, result).IsJust();
 
@@ -706,6 +722,65 @@ private:
         impoter->saveModule();
     }
 
+    // Build the CJS-interop facade for require(esm). Mirrors Node.js
+    // createRequiredModuleFacade (lib/internal/modules/cjs/loader.js).
+    // Creates a plain object that copies all exports from the module namespace
+    // and adds __esModule=true, so transpiled _interopRequireDefault() helpers
+    // see __esModule===true and do not double-wrap the namespace.
+    // We use a plain object (not a V8 module) because we cannot create and
+    // evaluate a new V8 module inside a Promise .then callback safely.
+    v8::Local<v8::Value> wrapForCJSRequire(v8::Local<v8::Module> original, v8::Local<v8::Value> namespace_value)
+    {
+        v8::Local<v8::Context> _context = m_isolate->context();
+
+        if (!namespace_value->IsModuleNamespaceObject())
+            return namespace_value;
+
+        v8::Local<v8::Object> ns_obj = namespace_value.As<v8::Object>();
+        v8::Local<v8::String> strDefault = m_isolate->NewString("default");
+        v8::Local<v8::String> strEsModule = m_isolate->NewString("__esModule");
+        v8::Local<v8::String> strModuleExports = m_isolate->NewString("module.exports");
+
+        // If __esModule is already defined, skip the extension (Node behavior).
+        if (ns_obj->Has(_context, strEsModule).FromMaybe(false))
+            return namespace_value;
+
+        // If the namespace has 'module.exports' (CJS-named-export interop),
+        // use that as exports directly.
+        if (ns_obj->Has(_context, strModuleExports).FromMaybe(false))
+            return ns_obj->Get(_context, strModuleExports).FromMaybe(v8::Local<v8::Value>());
+
+        // Only build the facade when the namespace has a 'default' export.
+        if (!ns_obj->Has(_context, strDefault).FromMaybe(false))
+            return namespace_value;
+
+        // Create a plain object wrapper with __esModule: true.
+        // Copy all own property names from the namespace (this includes all exports).
+        v8::Local<v8::Object> wrapper = v8::Object::New(m_isolate->m_isolate);
+
+        v8::Local<v8::Array> names;
+        {
+            v8::MaybeLocal<v8::Array> maybe_names = ns_obj->GetOwnPropertyNames(_context);
+            if (maybe_names.IsEmpty())
+                return namespace_value;
+            names = maybe_names.ToLocalChecked();
+        }
+
+        for (uint32_t i = 0, count = names->Length(); i < count; i++) {
+            v8::Local<v8::Value> key = names->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
+            if (key.IsEmpty())
+                continue;
+            v8::Local<v8::Value> value = ns_obj->Get(_context, key).FromMaybe(v8::Local<v8::Value>());
+            if (value.IsEmpty())
+                continue;
+            wrapper->Set(_context, key, value).IsJust();
+        }
+
+        wrapper->Set(_context, strEsModule, v8::True(m_isolate->m_isolate)).IsJust();
+
+        return wrapper;
+    }
+
     void saveModule()
     {
         v8::Local<v8::Context> _context = m_isolate->context();
@@ -743,6 +818,11 @@ private:
 public:
     obj_ptr<SandBox> m_sb;
     Isolate* m_isolate;
+
+    // Set to true when this importer is serving a CJS require(esm) call, so the
+    // resolved namespace is wrapped with a __esModule=true facade before being
+    // exposed as module.exports. ESM dynamic import (import()) keeps false.
+    bool m_is_cjs_require;
 
     std::vector<SandBox::module_map_iter> module_refs;
     v8::Global<v8::Promise::Resolver> m_resolver;
