@@ -29,6 +29,9 @@ public:
     static result_t get_parentPort(obj_ptr<MessagePort_base>& retVal);
     static result_t get_workerData(v8::Local<v8::Value>& retVal);
     static result_t receiveMessageOnPort(MessagePort_base* port, v8::Local<v8::Value>& retVal);
+    static result_t markAsUncloneable(v8::Local<v8::Value> object);
+    static result_t markAsUntransferable(v8::Local<v8::Value> object);
+    static result_t isMarkedAsUntransferable(v8::Local<v8::Value> object, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -47,6 +50,9 @@ public:
     static void s_static_get_parentPort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_workerData(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_receiveMessageOnPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_markAsUncloneable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_markAsUntransferable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isMarkedAsUntransferable(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -58,7 +64,10 @@ namespace fibjs {
 inline ClassInfo& worker_threads_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "receiveMessageOnPort", s_static_receiveMessageOnPort, true, ClassData::ASYNC_SYNC }
+        { "receiveMessageOnPort", s_static_receiveMessageOnPort, true, ClassData::ASYNC_SYNC },
+        { "markAsUncloneable", s_static_markAsUncloneable, true, ClassData::ASYNC_SYNC },
+        { "markAsUntransferable", s_static_markAsUntransferable, true, ClassData::ASYNC_SYNC },
+        { "isMarkedAsUntransferable", s_static_isMarkedAsUntransferable, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -148,6 +157,47 @@ inline void worker_threads_base::s_static_receiveMessageOnPort(const v8::Functio
     ARG(obj_ptr<MessagePort_base>, 0);
 
     hr = receiveMessageOnPort(v0.get(), vr);
+
+    METHOD_RETURN();
+}
+
+inline void worker_threads_base::s_static_markAsUncloneable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = markAsUncloneable(v0);
+
+    METHOD_VOID();
+}
+
+inline void worker_threads_base::s_static_markAsUntransferable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = markAsUntransferable(v0);
+
+    METHOD_VOID();
+}
+
+inline void worker_threads_base::s_static_isMarkedAsUntransferable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isMarkedAsUntransferable(v0, vr);
 
     METHOD_RETURN();
 }

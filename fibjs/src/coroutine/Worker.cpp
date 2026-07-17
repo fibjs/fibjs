@@ -102,6 +102,29 @@ result_t worker_threads_base::receiveMessageOnPort(MessagePort_base* port, v8::L
     return 0;
 }
 
+// Mark an object as not cloneable. No-op in fibjs: fibjs uses V8's
+// ValueSerializer for postMessage, which does not honor Node.js's
+// transfer_mode_private_symbol. The API is provided for compatibility
+// with packages (e.g. undici) that call it in Web API constructors.
+result_t worker_threads_base::markAsUncloneable(v8::Local<v8::Value> object)
+{
+    return 0;
+}
+
+// Mark an object as not transferable. No-op in fibjs.
+result_t worker_threads_base::markAsUntransferable(v8::Local<v8::Value> object)
+{
+    return 0;
+}
+
+// Check if an object is marked as not transferable. Always returns false
+// in fibjs since markAsUntransferable is a no-op.
+result_t worker_threads_base::isMarkedAsUntransferable(v8::Local<v8::Value> object, bool& retVal)
+{
+    retVal = false;
+    return 0;
+}
+
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {

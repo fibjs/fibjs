@@ -14,7 +14,10 @@ const {
     parentPort,
     receiveMessageOnPort,
     threadId,
-    workerData
+    workerData,
+    markAsUncloneable,
+    markAsUntransferable,
+    isMarkedAsUntransferable
 } = workerThreads;
 
 function doneOnce(done) {
@@ -453,5 +456,77 @@ describe('worker_threads node baseline', () => {
         } catch (err) {
             finish(err);
         }
+    });
+});
+
+describe('worker_threads markAsUncloneable / markAsUntransferable compatibility', () => {
+    // These APIs are required by packages such as undici 8.x which import
+    // `markAsUncloneable` from `node:worker_threads` and call it in Web API
+    // constructors (CacheStorage, Headers, Response, ...). fibjs provides
+    // them as no-op stubs for Node.js compatibility — fibjs's postMessage
+    // uses V8 ValueSerializer which does not honor Node.js's transfer mode
+    // private symbols, so the marker has no behavioral effect in fibjs.
+
+    it('markAsUncloneable is a function', () => {
+        assert.strictEqual(typeof markAsUncloneable, 'function');
+    });
+
+    it('markAsUntransferable is a function', () => {
+        assert.strictEqual(typeof markAsUntransferable, 'function');
+    });
+
+    it('isMarkedAsUntransferable is a function', () => {
+        assert.strictEqual(typeof isMarkedAsUntransferable, 'function');
+    });
+
+    it('markAsUncloneable accepts an object and returns undefined', () => {
+        const obj = { foo: 'bar' };
+        assert.strictEqual(markAsUncloneable(obj), undefined);
+        // Object should be unchanged
+        assert.deepStrictEqual(obj, { foo: 'bar' });
+    });
+
+    it('markAsUncloneable accepts a function', () => {
+        const fn = function () {};
+        assert.strictEqual(markAsUncloneable(fn), undefined);
+    });
+
+    it('markAsUncloneable is a no-op for primitives', () => {
+        assert.strictEqual(markAsUncloneable(42), undefined);
+        assert.strictEqual(markAsUncloneable('hello'), undefined);
+        assert.strictEqual(markAsUncloneable(null), undefined);
+        assert.strictEqual(markAsUncloneable(undefined), undefined);
+        assert.strictEqual(markAsUncloneable(true), undefined);
+    });
+
+    it('markAsUntransferable accepts an object and returns undefined', () => {
+        const obj = { foo: 'bar' };
+        assert.strictEqual(markAsUntransferable(obj), undefined);
+        assert.deepStrictEqual(obj, { foo: 'bar' });
+    });
+
+    it('markAsUntransferable is a no-op for primitives', () => {
+        assert.strictEqual(markAsUntransferable(42), undefined);
+        assert.strictEqual(markAsUntransferable(null), undefined);
+    });
+
+    it('isMarkedAsUntransferable returns false for any value in fibjs', () => {
+        const obj = { foo: 'bar' };
+        markAsUntransferable(obj);
+        assert.strictEqual(isMarkedAsUntransferable(obj), false);
+
+        assert.strictEqual(isMarkedAsUntransferable({}), false);
+        assert.strictEqual(isMarkedAsUntransferable(42), false);
+        assert.strictEqual(isMarkedAsUntransferable(null), false);
+        assert.strictEqual(isMarkedAsUntransferable(undefined), false);
+    });
+
+    it('can be destructured from worker_threads module (undici pattern)', () => {
+        // Verifies the exact import pattern used by undici 8.x's
+        // lib/web/webidl/index.js:
+        //   const { markAsUncloneable } = require('node:worker_threads')
+        const { markAsUncloneable: m } = require('worker_threads');
+        assert.strictEqual(typeof m, 'function');
+        assert.strictEqual(m({}), undefined);
     });
 });

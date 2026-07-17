@@ -30,4 +30,26 @@ module worker_threads
 
     /*! @brief Receive the next queued message from a MessagePort synchronously */
     static Value receiveMessageOnPort(MessagePort port);
+
+    /*! @brief Mark an object as not cloneable. If the object is used as the
+        message in a port.postMessage() call, an error is thrown. This is a
+        no-op for primitive values.
+
+        Note: fibjs uses V8's ValueSerializer for postMessage serialization,
+        which does not honor Node.js's transfer mode private symbols. The
+        marker has no effect on fibjs's serialization behavior, but the API
+        is provided for compatibility with packages (e.g. undici) that call
+        it in Web API constructors. */
+    static markAsUncloneable(Value object);
+
+    /*! @brief Mark an object as not transferable. If the object occurs in the
+        transfer list of a port.postMessage() call, it will be ignored.
+
+        Note: no-op in fibjs, provided for Node.js compatibility. */
+    static markAsUntransferable(Value object);
+
+    /*! @brief Check if an object is marked as not transferable.
+
+        Note: always returns false in fibjs, provided for Node.js compatibility. */
+    static Boolean isMarkedAsUntransferable(Value object);
 };
