@@ -1,0 +1,6 @@
+{
+    "name": "cjs_runtime_error_with_type",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "commonjs"
+}

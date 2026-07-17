@@ -482,9 +482,20 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
             if (v.IsEmpty() || !v->IsObject())
                 return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + fname1 + "'"));
 
+            // Read "type" field directly instead of GetConfigValue.
+            // GetConfigValue sets Runtime::m_error to the key name ("type")
+            // when the field is missing, which pollutes the error state and
+            // can mask real errors later (e.g. when a CJS module throws at
+            // runtime, resove_module reads the stale m_error and reports
+            // "Error: type" instead of the actual error).
+            Isolate* isolate = holder();
+            v8::Local<v8::Context> _context = isolate->context();
+
             exlib::string type;
             v8::Local<v8::Object> o = v.As<v8::Object>();
-            GetConfigValue(o, "type", type);
+            JSValue type_val = o->Get(_context, isolate->NewString("type"));
+            if (!type_val->IsUndefined() && !type_val->IsNull())
+                GetArgumentValue(isolate, type_val, type, false);
 
             retVal = type == "module" ? kESModule : kCommonJS;
             return 0;

@@ -543,6 +543,46 @@ describe('ECMAScript modules', () => {
             assert.deepEqual(m, { test: 4 });
         });
     });
+
+    describe('BUGFIX: import CJS with runtime error should propagate real error', () => {
+        // When a CJS package (no "type" field in package.json) throws a
+        // runtime error during ESM import, the real error must propagate.
+        // Previously, GetConfigValue(o,"type",type) in resolveModuleType
+        // polluted Runtime::m_error with the string "type" (the field name)
+        // when the "type" field was missing. Later, resove_module() read
+        // this stale m_error when installScript returned CALL_E_JAVASCRIPT,
+        // producing a misleading "Error: type" that masked the real error.
+
+        it("should propagate real error when CJS (no type field) throws at runtime", async () => {
+            try {
+                await import('./esm_files/cjs_runtime_error_no_type/index.js');
+                assert.fail("Should have thrown an error");
+            } catch (e) {
+                // The error message must contain the REAL error text, not "type"
+                assert.ok(e.message.includes("the REAL runtime error"),
+                    'Error should contain the real runtime error message, got: ' + e.message);
+                // Must NOT be the stale "type" message from GetConfigValue
+                assert.notEqual(e.message, 'type',
+                    'Error must not be the stale "type" message from m_error pollution');
+            }
+        });
+
+        it("should propagate real error when CJS (with type:commonjs) throws at runtime", async () => {
+            try {
+                await import('./esm_files/cjs_runtime_error_with_type/index.js');
+                assert.fail("Should have thrown an error");
+            } catch (e) {
+                assert.ok(e.message.includes("the REAL runtime error"),
+                    'Error should contain the real runtime error message, got: ' + e.message);
+            }
+        });
+
+        it("should load CJS (no type field) successfully when no error", async () => {
+            var m = await import('./esm_files/cjs_ok_no_type/index.js');
+            assert.equal(m.value, 42);
+            assert.equal(m.message, "loaded ok without type field");
+        });
+    });
 });
 
 
