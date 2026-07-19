@@ -1257,6 +1257,237 @@ describe("db", () => {
             assert.equal(journal_mode, "wal");
         });
 
+        it("fulltext search fts5", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE VIRTUAL TABLE email USING fts5(sender, title, body)');
+            conn.execute("insert into email(sender, title, body) values('tom cat', 'some titles', 'this is body')");
+            conn.execute("insert into email(sender, title, body) values('响马', '这里是标题yes', 'this这里是身体')");
+
+            // 基础 MATCH 查询
+            var rs = conn.execute("SELECT * FROM email WHERE email MATCH 'body'");
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].sender, "tom cat");
+
+            // 字段限定查询
+            var rs2 = conn.execute("SELECT * FROM email WHERE email MATCH 'sender:tom'");
+            assert.equal(rs2.length, 1);
+            assert.equal(rs2[0].sender, "tom cat");
+
+            // 短语查询(用引号包裹成 phrase)
+            var rs3 = conn.execute('SELECT * FROM email WHERE email MATCH \'"tom cat"\'');
+            assert.equal(rs3.length, 1);
+            assert.equal(rs3[0].sender, "tom cat");
+
+            // 前缀查询
+            var rs4 = conn.execute("SELECT * FROM email WHERE email MATCH 'ti*'");
+            assert.equal(rs4.length, 1);
+            assert.equal(rs4[0].title, "some titles");
+
+            // 布尔查询
+            var rs5 = conn.execute("SELECT * FROM email WHERE email MATCH 'tom OR 响马'");
+            assert.equal(rs5.length, 2);
+
+            // 排序: bm25
+            var rs6 = conn.execute("SELECT sender, bm25(email) AS rank FROM email WHERE email MATCH 'body OR 响马' ORDER BY rank");
+            assert.equal(rs6.length, 2);
+
+            // 高亮与摘要
+            var rs7 = conn.execute("SELECT highlight(email, 1, '[', ']') AS h FROM email WHERE email MATCH 'titles'");
+            assert.equal(rs7.length, 1);
+            assert.equal(rs7[0].h, "some [titles]");
+
+            // snippet
+            var rs8 = conn.execute("SELECT snippet(email, 2, '[', ']', '...', 5) AS s FROM email WHERE email MATCH 'body'");
+            assert.equal(rs8.length, 1);
+            assert.ok(rs8[0].s.indexOf('[body]') >= 0 || rs8[0].s.indexOf('body') >= 0);
+
+            // rowid 查询
+            conn.execute("DELETE FROM email WHERE rowid = 1");
+            conn.execute("insert into email(sender, title, body, rowid) values('alice', 'hello', 'world', 100)");
+            var rs9 = conn.execute('SELECT sender FROM email WHERE rowid = 100');
+            assert.equal(rs9.length, 1);
+            assert.equal(rs9[0].sender, "alice");
+
+            // 删除后查询
+            var rs10 = conn.execute('SELECT * FROM email');
+            assert.equal(rs10.length, 2);
+
+            // 修改
+            conn.execute("UPDATE email SET sender='bob' WHERE rowid=100");
+            var rs11 = conn.execute('SELECT sender FROM email WHERE rowid=100');
+            assert.equal(rs11[0].sender, "bob");
+
+            conn.close();
+        });
+
+        it("fts5 tokenize unicode61", () => {
+            var conn = db.open(conn_str);
+
+            // unicode61 默认 tokenizer
+            conn.execute("CREATE VIRTUAL TABLE ft_u61 USING fts5(content, tokenize = 'unicode61')");
+            conn.execute("insert into ft_u61(content) values('Hello World FIBJS')");
+            conn.execute("insert into ft_u61(content) values('另一个世界')");
+
+            // 大小写不敏感
+            var rs = conn.execute("SELECT * FROM ft_u61 WHERE ft_u61 MATCH 'hello'");
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].content, "Hello World FIBJS");
+
+            var rs2 = conn.execute("SELECT * FROM ft_u61 WHERE ft_u61 MATCH 'FIBJS'");
+            assert.equal(rs2.length, 1);
+
+            conn.close();
+        });
+
+        it("fts5 tokenize porter", () => {
+            var conn = db.open(conn_str);
+
+            // porter tokenizer(基于 unicode61 的词干提取)
+            conn.execute("CREATE VIRTUAL TABLE ft_porter USING fts5(content, tokenize = 'porter')");
+            conn.execute("insert into ft_porter(content) values('running runners ran')");
+            conn.execute("insert into ft_porter(content) values('quickly runs the race')");
+
+            // 词干提取: run 可以匹配 running/runners/runs
+            var rs = conn.execute("SELECT * FROM ft_porter WHERE ft_porter MATCH 'run'");
+            assert.equal(rs.length, 2);
+
+            conn.close();
+        });
+
+        it("fts5 tokenize ascii", () => {
+            var conn = db.open(conn_str);
+
+            // ascii tokenizer
+            conn.execute("CREATE VIRTUAL TABLE ft_ascii USING fts5(content, tokenize = 'ascii')");
+            conn.execute("insert into ft_ascii(content) values('hello world')");
+            conn.execute("insert into ft_ascii(content) values('case insensitive search')");
+
+            var rs = conn.execute("SELECT * FROM ft_ascii WHERE ft_ascii MATCH 'HELLO'");
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].content, "hello world");
+
+            conn.close();
+        });
+
+        it("fts5 multi-table join", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE VIRTUAL TABLE docs USING fts5(title, body)');
+            conn.execute('CREATE TABLE docs_meta(id INTEGER PRIMARY KEY, author TEXT)');
+
+            conn.execute("insert into docs(title, body, rowid) values('fts5 guide', 'introduction to full text search', 1)");
+            conn.execute("insert into docs(title, body, rowid) values('advanced sql', 'complex queries and joins', 2)");
+            conn.execute("insert into docs_meta(id, author) values(1, 'alice')");
+            conn.execute("insert into docs_meta(id, author) values(2, 'bob')");
+
+            // join fts5 表与普通表(MATCH 左操作数必须用表名而非别名)
+            var rs = conn.execute(
+                "SELECT docs.title, m.author FROM docs JOIN docs_meta AS m ON docs.rowid = m.id WHERE docs MATCH 'search' ORDER BY m.author"
+            );
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].title, "fts5 guide");
+            assert.equal(rs[0].author, "alice");
+
+            conn.close();
+        });
+
+        it("fts5 rank function", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE VIRTUAL TABLE ft_rank USING fts5(content)');
+            conn.execute("insert into ft_rank(content) values('the quick brown fox')");
+            conn.execute("insert into ft_rank(content) values('the lazy dog')");
+            conn.execute("insert into ft_rank(content) values('the fox and the hound')");
+
+            // 按 bm25 排序
+            var rs = conn.execute(
+                "SELECT content, bm25(ft_rank) AS rank FROM ft_rank WHERE ft_rank MATCH 'fox' ORDER BY rank"
+            );
+            assert.equal(rs.length, 2);
+
+            // rank 列(默认排序权重)
+            var rs2 = conn.execute(
+                "SELECT content, rank FROM ft_rank WHERE ft_rank MATCH 'the' ORDER BY rank"
+            );
+            assert.equal(rs2.length, 3);
+
+            conn.close();
+        });
+
+        it("fts5 special syntax", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE VIRTUAL TABLE ft_syn USING fts5(content)');
+            conn.execute("insert into ft_syn(content) values('apple banana cherry')");
+
+            // NEAR 查询(语法:NEAR(phrase1 phrase2 [, N]))
+            var rs = conn.execute("SELECT * FROM ft_syn WHERE ft_syn MATCH 'NEAR(apple banana)'");
+            assert.equal(rs.length, 1);
+
+            // NEAR 带距离参数
+            var rs2 = conn.execute("SELECT * FROM ft_syn WHERE ft_syn MATCH 'NEAR(apple banana, 5)'");
+            assert.equal(rs2.length, 1);
+
+            // 列过滤器(应用于整个表)
+            conn.execute("insert into ft_syn(content) values('banana apple grape')");
+
+            // 按相关度排序
+            var rs3 = conn.execute("SELECT content, bm25(ft_syn) AS r FROM ft_syn WHERE ft_syn MATCH 'apple' ORDER BY r");
+            assert.equal(rs3.length, 2);
+
+            // 事务支持
+            conn.execute('BEGIN TRANSACTION');
+            conn.execute("insert into ft_syn(content) values('in transaction')");
+            conn.execute('COMMIT');
+
+            var rs4 = conn.execute("SELECT * FROM ft_syn WHERE ft_syn MATCH 'transaction'");
+            assert.equal(rs4.length, 1);
+
+            conn.close();
+        });
+
+        it("fts5 contentless table", () => {
+            var conn = db.open(conn_str);
+
+            // contentless 表:不存储原文,节省空间
+            conn.execute("CREATE VIRTUAL TABLE ft_c USING fts5(content, content='')");
+            conn.execute("insert into ft_c(rowid, content) values(1, 'hello world')");
+            conn.execute("insert into ft_c(rowid, content) values(2, 'fibjs sqlite fts5')");
+
+            // 可正常 MATCH 查询并返回 rowid
+            var rs = conn.execute("SELECT rowid FROM ft_c WHERE ft_c MATCH 'hello'");
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].rowid, 1);
+
+            // contentless 表无原文,SELECT content 返回 NULL
+            var rs2 = conn.execute("SELECT content FROM ft_c WHERE ft_c MATCH 'hello'");
+            assert.equal(rs2.length, 1);
+            assert.isNull(rs2[0].content);
+
+            conn.close();
+        });
+
+        it("fts5 external content table", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE TABLE articles(id INTEGER PRIMARY KEY, title TEXT, body TEXT)');
+            conn.execute("insert into articles(id, title, body) values(1, 'fts5 guide', 'introduction to fts5')");
+            conn.execute("insert into articles(id, title, body) values(2, 'advanced sql', 'joins and subqueries')");
+
+            // external content 表:索引指向外部表
+            conn.execute("CREATE VIRTUAL TABLE ft_articles USING fts5(title, body, content='articles', content_rowid='id')");
+            conn.execute("insert into ft_articles(rowid, title, body) select id, title, body from articles");
+
+            // 通过 fts5 查询,取得外部表内容
+            var rs = conn.execute("SELECT ft_articles.rowid, title, body FROM ft_articles WHERE ft_articles MATCH 'fts5'");
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].title, "fts5 guide");
+            assert.equal(rs[0].body, "introduction to fts5");
+
+            conn.close();
+        });
+
         it("backup", () => {
             var conn = db.open(conn_str);
             conn.backup(conn_str + ".backup");
