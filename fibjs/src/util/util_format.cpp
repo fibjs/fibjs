@@ -460,7 +460,29 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
     return strBuffer.str();
 }
 
-result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
+struct format_options {
+    bool color = false;
+    v8::Local<v8::Object> inspect_options;
+};
+
+inline result_t format_value(Isolate* isolate, v8::Local<v8::Value> v,
+    const format_options& options, exlib::string& retVal)
+{
+    if (!options.inspect_options.IsEmpty())
+        return util_base::inspect(v, options.inspect_options, retVal);
+
+    retVal = json_format(isolate, v, options.color);
+    return 0;
+}
+
+inline result_t format_json_value(Isolate* isolate, v8::Local<v8::Value> v,
+    const format_options& options, exlib::string& retVal)
+{
+    retVal = json_format(isolate, v, options.color);
+    return 0;
+}
+
+result_t util_format_impl(Isolate* isolate, exlib::string fmt, OptArgs args, const format_options& options, exlib::string& retVal)
 {
     const char* s1;
     char ch;
@@ -501,7 +523,7 @@ result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool col
                         v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, (int32_t)n);
 
                         exlib::string s;
-                        s = json_format(isolate, v, color);
+                        format_value(isolate, v, options, s);
                         retVal.append(s);
                     }
                 } else
@@ -510,7 +532,7 @@ result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool col
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(isolate, args[idx++], color);
+                    format_json_value(isolate, args[idx++], options, s);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -538,7 +560,7 @@ result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool col
             retVal.append(isolate->toString(v));
         else {
             exlib::string s;
-            s = json_format(isolate, v, color);
+            format_value(isolate, v, options, s);
 
             retVal.append(s);
         }
@@ -549,11 +571,27 @@ result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool col
 
 result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
 {
-    return util_format(Isolate::current(), fmt, args, false, retVal);
+    format_options options;
+    return util_format_impl(Isolate::current(), fmt, args, options, retVal);
 }
 
 result_t util_base::format(OptArgs args, exlib::string& retVal)
 {
-    return util_format(Isolate::current(), "", args, false, retVal);
+    format_options options;
+    return util_format_impl(Isolate::current(), "", args, options, retVal);
+}
+
+result_t util_base::formatWithOptions(v8::Local<v8::Object> options, exlib::string fmt, OptArgs args, exlib::string& retVal)
+{
+    format_options fmt_options;
+    fmt_options.inspect_options = options;
+    return util_format_impl(Isolate::current(), fmt, args, fmt_options, retVal);
+}
+
+result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
+{
+    format_options options;
+    options.color = color;
+    return util_format_impl(isolate, fmt, args, options, retVal);
 }
 }

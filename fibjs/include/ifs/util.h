@@ -29,6 +29,7 @@ public:
     // util_base
     static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t format(OptArgs args, exlib::string& retVal);
+    static result_t formatWithOptions(v8::Local<v8::Object> options, exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t parseEnv(exlib::string content, v8::Local<v8::Object>& retVal);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
@@ -124,6 +125,7 @@ public:
 
 public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_formatWithOptions(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_parseEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -215,6 +217,7 @@ inline ClassInfo& util_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "format", s_static_format, true, ClassData::ASYNC_SYNC },
+        { "formatWithOptions", s_static_formatWithOptions, true, ClassData::ASYNC_SYNC },
         { "inherits", s_static_inherits, true, ClassData::ASYNC_SYNC },
         { "parseEnv", s_static_parseEnv, true, ClassData::ASYNC_SYNC },
         { "inspect", s_static_inspect, true, ClassData::ASYNC_SYNC },
@@ -329,6 +332,23 @@ inline void util_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>
     ARG_LIST(0);
 
     hr = format(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_formatWithOptions(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(exlib::string, 1);
+    ARG_LIST(2);
+
+    hr = formatWithOptions(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

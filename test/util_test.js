@@ -917,6 +917,24 @@ describe('util', () => {
             assert.equal(util.format('%j', '42'), '"42"');
         });
 
+        it("formatWithOptions", () => {
+            var nested = {
+                a: {
+                    b: 1
+                }
+            };
+
+            assert.equal(util.formatWithOptions({
+                colors: false,
+                depth: 0
+            }, '%d %j', 42, nested), '42 {\n  "a": {\n    "b": 1\n  }\n}');
+
+            assert.equal(util.formatWithOptions({
+                colors: false,
+                depth: 0
+            }, 'tail', nested), 'tail {\n  "a": [Object]\n}');
+        });
+
         it("%s", () => {
             assert.equal(util.format('%%s%s', 'foo'), '%sfoo');
 
