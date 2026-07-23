@@ -79,6 +79,15 @@ module util
      */
     static String format(...args);
 
+    /*! @brief Format variables according to the specified format and inspect options
+
+     @param options Inspect options used for non-string values
+     @param fmt Format string
+     @param args Optional parameter list
+     @return Return the formatted string
+     */
+    static String formatWithOptions(Object options, String fmt, ...args);
+
     /*! @brief Inherit prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
 
      @param constructor Initial constructor

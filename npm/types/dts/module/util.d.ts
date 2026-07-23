@@ -100,6 +100,17 @@ declare module 'util' {
     function format(...args: any[]): string;
 
     /**
+     * @description 按照指定格式和 inspect 选项格式化变量
+     * 
+     *      @param options 非字符串值使用的 inspect 选项
+     *      @param fmt 格式化字符串
+     *      @param args 可选参数列表
+     *      @return 返回格式化后的字符串
+     *      
+     */
+    function formatWithOptions(options: FIBJS.GeneralObject, fmt: string, ...args: any[]): string;
+
+    /**
      * @description 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
      * 
      *      @param constructor 初始的构造函数

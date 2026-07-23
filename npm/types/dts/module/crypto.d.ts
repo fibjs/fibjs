@@ -365,6 +365,14 @@ declare module 'crypto' {
     function randomFillAsync(buffer: Class_Buffer, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
+     * @description 使用强随机数填充指定的 TypedArray
+     *      @param data 指定要填充的 TypedArray
+     *      @return 返回填充后的 TypedArray
+     *      
+     */
+    function getRandomValues(data: TypedArray): TypedArray;
+
+    /**
      * @description 生成一个随机的 RFC 4122 版本 4 的 UUID
      *      @param options 可选参数，可指定 disableEntropyCache 禁用熵缓存（该选项被忽略，仅为兼容性保留）
      *      @return 返回一个 UUID v4 字符串

@@ -69,6 +69,11 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
     return buffer->fill(rand, offset, offset + size, retVal);
 }
 
+result_t crypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal)
+{
+    return webcrypto_base::getRandomValues(data, retVal);
+}
+
 result_t crypto_base::randomUUID(v8::Local<v8::Object> options, exlib::string& retVal)
 {
     // Generate UUID v4 using uuid module

@@ -246,6 +246,12 @@ module crypto
      */
     static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
 
+    /*! @brief Fill the specified TypedArray with cryptographically strong random values
+     @param data Specify the TypedArray to fill
+     @return Return the filled TypedArray
+     */
+    static TypedArray getRandomValues(TypedArray data);
+
     /*! @brief Generate a random RFC 4122 version 4 UUID
      @param options Optional parameters, can specify disableEntropyCache to disable entropy cache (this option is ignored, kept only for compatibility)
      @return Return a UUID v4 string

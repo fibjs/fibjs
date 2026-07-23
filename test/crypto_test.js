@@ -4434,6 +4434,15 @@ describe('crypto', () => {
     });
 
     describe('randomUUID', () => {
+        it('top-level getRandomValues', () => {
+            const array = new Uint8Array(16);
+            const result = crypto.getRandomValues(array);
+
+            assert.strictEqual(result, array);
+            assert.strictEqual(result.length, 16);
+            assert.ok(Array.from(result).some(v => v !== 0));
+        });
+
         it('generates valid UUID v4', () => {
             const last = new Set(['00000000-0000-0000-0000-000000000000']);
 

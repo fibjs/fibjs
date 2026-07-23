@@ -83,6 +83,7 @@ public:
     static result_t hash(exlib::string algorithm, Buffer_base* data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal);
     static result_t randomUUID(v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -153,6 +154,7 @@ public:
     static void s_static_hash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getRandomValues(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomUUID(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -236,6 +238,7 @@ inline ClassInfo& crypto_base::class_info()
         { "hash", s_static_hash, true, ClassData::ASYNC_SYNC },
         { "randomBytes", s_static_randomBytes, true, ClassData::ASYNC_ASYNC },
         { "randomFill", s_static_randomFill, true, ClassData::ASYNC_ASYNC },
+        { "getRandomValues", s_static_getRandomValues, true, ClassData::ASYNC_SYNC },
         { "randomUUID", s_static_randomUUID, true, ClassData::ASYNC_SYNC },
         { "generateKeyPair", s_static_generateKeyPair, true, ClassData::ASYNC_ASYNC },
         { "hkdf", s_static_hkdf, true, ClassData::ASYNC_ASYNC },
@@ -661,6 +664,21 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
         hr = ac_randomFill(v0.get(), v1, v2, vr);
 
     ASYNC_METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_getRandomValues(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::TypedArray> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::TypedArray>, 0);
+
+    hr = getRandomValues(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::Value>& args)
