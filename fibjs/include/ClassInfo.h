@@ -412,16 +412,22 @@ public:
         }
 
         for (i = 0; i < m_cd.oc; i++) {
-            o->Set(_context, isolate->NewString(m_cd.cos[i].name),
-                 m_cd.cos[i].invoker().getModule(isolate))
-                .IsJust();
+            v8::Local<v8::Object> subMod = m_cd.cos[i].invoker().getModule(isolate);
+            o->Set(_context, isolate->NewString(m_cd.cos[i].name), subMod).IsJust();
+            if (m_cd.has_async)
+                op->Set(_context, isolate->NewString(m_cd.cos[i].name), subMod).IsJust();
         }
 
         for (i = 0; i < m_cd.pc; i++)
             if (m_cd.cps[i].is_static) {
-                o->SetAccessorProperty(get_prop_name(isolate, m_cd.cps[i].name),
+                v8::Local<v8::Name> propName = get_prop_name(isolate, m_cd.cps[i].name);
+                o->SetAccessorProperty(propName,
                     isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].getter),
                     isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].setter));
+                if (m_cd.has_async)
+                    op->SetAccessorProperty(propName,
+                        isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].getter),
+                        isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].setter));
             }
 
         for (i = 0; i < m_cd.cc; i++) {
@@ -441,6 +447,8 @@ public:
                 break;
             }
             o->Set(_context, isolate->NewString(m_cd.ccs[i].name), constVal).IsJust();
+            if (m_cd.has_async)
+                op->Set(_context, isolate->NewString(m_cd.ccs[i].name), constVal).IsJust();
         }
 
         if (m_cd.base)

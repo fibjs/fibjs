@@ -1837,6 +1837,25 @@ describe('fs', () => {
         await f.close();
     });
 
+    it("promises.constants", () => {
+        var fsp = require('fs/promises');
+        assert.isObject(fsp.constants);
+        assert.equal(fsp.constants.F_OK, 0);
+        assert.equal(fsp.constants.R_OK, 4);
+        assert.equal(fsp.constants.W_OK, 2);
+        assert.equal(fsp.constants.X_OK, 1);
+        assert.equal(fsp.constants.O_RDONLY, 0);
+        assert.equal(fsp.constants.O_WRONLY, 1);
+        assert.equal(fsp.constants.O_RDWR, 2);
+        assert.equal(fsp.constants.O_CREAT, 512);
+        assert.equal(fsp.constants.O_TRUNC, 1024);
+        assert.equal(fsp.constants.O_APPEND, 8);
+        // Also verify fs.promises.constants === fs.constants (same shape)
+        assert.equal(fsp.constants.F_OK, fs.constants.F_OK);
+        assert.equal(fsp.constants.R_OK, fs.constants.R_OK);
+        assert.equal(fsp.constants.W_OK, fs.constants.W_OK);
+    });
+
     it("FileHandle.read returns {bytesRead, buffer}", async () => {
         var fn = path.join(__dirname, '_test_fh_read_' + vmid);
         fs.writeFile(fn, 'hello world');
