@@ -179,7 +179,7 @@ for platform in "${BUILT_PLATFORMS[@]}"; do
     esac
 
     echo "  📦 Building ${platform} -> ${ARCH_IMAGE}"
-    if ! docker build --platform "${platform}" \
+    if ! docker build --pull --platform "${platform}" \
         --build-arg "FIBJS_BINARY=${fibjs_binary}" \
         -t "${ARCH_IMAGE}" \
         -f Dockerfile.dev .; then
