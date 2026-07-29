@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define SQL_SS_VARIANT (-150)
 
@@ -52,7 +53,17 @@ static exlib::string normalize_identifier(exlib::string str)
     return str;
 }
 
+static SQLLEN wstrlen_limited(const char16_t* str, SQLLEN maxChars)
+{
+    SQLLEN len = 0;
+    while (len < maxChars && str[len])
+        len++;
+    return len;
+}
+
 void* g_odbc;
+
+static const OdbcConnectOptions s_default_connect_options = { "Server", true };
 
 result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
@@ -168,10 +179,13 @@ exlib::string safe_conn_string(const char* str)
 }
 
 result_t odbc_connect(const char* driver, const char* host, int32_t port, const char* username,
-    const char* password, const char* dbName, void*& conn)
+    const char* password, const char* dbName, void*& conn, const OdbcConnectOptions* options)
 {
     if (conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (options == NULL)
+        options = &s_default_connect_options;
 
     SQLRETURN hr;
     if (!g_odbc) {
@@ -195,7 +209,8 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
             conn_str.append(safe_conn_string(driver));
             conn_str.append(1, ';');
 
-            conn_str.append("Server=");
+            conn_str.append(options->serverAttr);
+            conn_str.append(1, '=');
             conn_str.append(safe_conn_string(host));
             if (use_hostport && port > 0) {
                 char str_buf[32];
@@ -243,11 +258,11 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
         // Prefer the more compact "host:port" style, but fall back to "Server=host;Port=port"
         // for drivers that do not accept host:port in the Server attribute.
         exlib::string first_err;
-        exlib::string conn_str1 = build_conn_str(true);
+        exlib::string conn_str1 = build_conn_str(options->useHostPort);
         hr = try_connect(conn_str1);
         if (hr < 0) {
             first_err = odbc_error(SQL_HANDLE_DBC, conn);
-            if (port > 0) {
+            if (port > 0 && options->useHostPort) {
                 exlib::string conn_str2 = build_conn_str(false);
                 hr = try_connect(conn_str2);
             }
@@ -267,7 +282,8 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     return 0;
 }
 
-result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn)
+result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn,
+    const OdbcConnectOptions* options)
 {
     obj_ptr<Url> u = new Url();
 
@@ -303,7 +319,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 
     return odbc_connect(driver, u->hostname().c_str(), port,
         username.c_str(), password.c_str(),
-        pathname.length() > 0 ? pathname.c_str() + 1 : "", conn);
+        pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
 }
 
 result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
@@ -457,20 +473,37 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     }
                     default: {
                         exlib::wstring value;
-                        SQLLEN displaySize = 0;
-                        SQLColAttributeW(stmt, i + 1, SQL_DESC_DISPLAY_SIZE, NULL, 0, NULL, &displaySize);
-                        if (displaySize <= 0)
-                            displaySize = 256;
-                        value.resize(displaySize + 1);
-                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), (displaySize + 1) * sizeof(SQLWCHAR), &len);
-                        if (hr < 0)
-                            break;
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else {
-                            value.resize(len / 2);
+                        exlib::wstring chunk;
+                        const SQLLEN chunkChars = 4096;
+                        SQLLEN valueChars = 0;
+
+                        chunk.resize(chunkChars + 1);
+                        do {
+                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, chunk.data(),
+                                (chunkChars + 1) * sizeof(SQLWCHAR), &len);
+                            if (hr < 0)
+                                break;
+                            if (len == SQL_NULL_DATA) {
+                                v.setNull();
+                                break;
+                            }
+
+                            SQLLEN copiedChars = len == SQL_NO_TOTAL
+                                ? wstrlen_limited(chunk.data(), chunkChars)
+                                : (hr == SQL_SUCCESS_WITH_INFO ? chunkChars : len / sizeof(SQLWCHAR));
+                            if (copiedChars > chunkChars)
+                                copiedChars = chunkChars;
+
+                            if (copiedChars > 0) {
+                                SQLLEN oldChars = valueChars;
+                                valueChars += copiedChars;
+                                value.resize(valueChars);
+                                memcpy(value.data() + oldChars, chunk.data(), copiedChars * sizeof(SQLWCHAR));
+                            }
+                        } while (hr == SQL_SUCCESS_WITH_INFO);
+
+                        if (hr >= 0 && len != SQL_NULL_DATA)
                             v = utf16to8String(value);
-                        }
                         break;
                     }
                     }

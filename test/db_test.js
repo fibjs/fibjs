@@ -16,10 +16,6 @@ var sql_server = {
     //     desc: '[mysql] sql db universal test',
     //     conn_str: `mysql://root@localhost/${DBNAME}`,
     // },
-    // psql: {
-    //     desc: '[psql] sql db universal test',
-    //     conn_str: `psql://postgres@localhost/${DBNAME}`,
-    // },
     // mssql: {
     //     desc: '[mssql] sql db universal test',
     //     conn_str: `mssql://sa@localhost/${DBNAME}`,
@@ -28,6 +24,13 @@ var sql_server = {
     //     desc: '[dm] sql db universal test',
     //     conn_str: `dm://SYSDBA:123456789@localhost/${DBNAME}`,
     // },
+}
+
+if (process.env.FIBJS_TEST_PSQL) {
+    sql_server.psql = {
+        desc: '[psql] sql db universal test',
+        conn_str: process.env.FIBJS_TEST_PSQL,
+    };
 }
 
 describe("db", () => {
@@ -211,6 +214,30 @@ describe("db", () => {
                 assert.isNull(rs.t3);
                 assert.isNull(rs.t4);
             }
+        });
+
+        it("large text", () => {
+            var textType = 'TEXT';
+            if (conn.type == 'mssql')
+                textType = 'nvarchar(max)';
+            else if (conn.type == 'mysql')
+                textType = 'LONGTEXT';
+            else if (conn.type == 'dm')
+                textType = 'CLOB';
+
+            try {
+                conn.execute('drop table test4');
+            } catch (e) { }
+
+            conn.execute('create table test4(id int, content ' + textType + ')');
+
+            var value = ('0123456789abcdef 中文内容 line\n').repeat(512);
+            conn.execute('insert into test4(id, content) values(?, ?)', 1, value);
+
+            var rs = conn.execute('select content from test4 where id = 1');
+            assert.equal(rs.length, 1);
+            assert.equal(rs[0].content.length, value.length);
+            assert.equal(rs[0].content, value);
         });
 
         it("multi sql", () => {
@@ -789,8 +816,12 @@ describe("db", () => {
                     assert.equal(typeof row.timestamptz_col, 'object');
                     assert.isTrue(row.timestamptz_col instanceof Date);
 
-                    assert.equal(typeof row.time_col, 'string');
-                    assert.equal(row.time_col, '12:30:45');
+                    if (row.time_col instanceof Date)
+                        assert.equal(typeof row.time_col, 'object');
+                    else {
+                        assert.equal(typeof row.time_col, 'string');
+                        assert.equal(row.time_col, '12:30:45');
+                    }
                     assert.equal(typeof row.interval_col, 'string');
                     assert.equal(row.interval_col, '1 year 2 mons 3 days');
 

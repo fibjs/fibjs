@@ -70,7 +70,8 @@ result_t db_base::openPSQL(exlib::string connString, obj_ptr<DbConnection_base>&
     int32_t port = 5432;
     obj_ptr<psql> conn = new psql();
 
-    result_t hr = odbc_connect(connString, driver, port, conn->m_conn);
+    OdbcConnectOptions options = { "Servername", false };
+    result_t hr = odbc_connect(connString, driver, port, conn->m_conn, &options);
     if (hr < 0)
         return hr;
 
