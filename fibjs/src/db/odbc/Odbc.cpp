@@ -63,7 +63,7 @@ static SQLLEN wstrlen_limited(const char16_t* str, SQLLEN maxChars)
 
 void* g_odbc;
 
-static const OdbcConnectOptions s_default_connect_options = { "Server", true };
+static const OdbcConnectOptions s_default_connect_options = { "Server", true, false };
 
 result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
@@ -245,7 +245,8 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
                 conn_str.append(1, ';');
             }
 
-            conn_str.append("TrustServerCertificate=Yes;");
+            if (options->trustCertificate)
+                conn_str.append("TrustServerCertificate=Yes;");
             return conn_str;
         };
 

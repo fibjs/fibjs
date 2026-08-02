@@ -30,7 +30,8 @@ result_t db_base::openDM(exlib::string connString, obj_ptr<DbConnection_base>& r
     int32_t port = 5236;
     obj_ptr<dm> conn = new dm();
 
-    result_t hr = odbc_connect(connString, driver, port, conn->m_conn);
+    OdbcConnectOptions options = { "Server", true, true };
+    result_t hr = odbc_connect(connString, driver, port, conn->m_conn, &options);
     if (hr < 0)
         return hr;
 

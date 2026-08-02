@@ -1,0 +1,30 @@
+# fibjs 数据库测试环境镜像
+# 包含所有数据库测试所需的 ODBC 驱动和客户端库
+#
+# 构建:
+#   docker build -f docker/Dockerfile.db-test-env -t fibjs/db-test-env .
+#
+# 推送到 Docker Hub:
+#   docker push fibjs/db-test-env
+#
+# 注意: DM (达梦) ODBC 驱动 libdodbc.so 是专有软件，不包含在此镜像中。
+# CI 中从 sizx/dm8 容器动态提取。本地开发请使用 docker-compose.db-dev.yml。
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    unixodbc unixodbc-dev \
+    freetds-bin freetds-dev tdsodbc \
+    odbc-postgresql \
+    libmysqlclient-dev \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置 ODBC 驱动库路径
+# fibjs 不依赖 odbcinst.ini，driver 名本身就是 .so 文件名，
+# unixODBC 会直接从 LD_LIBRARY_PATH 加载
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/odbc:$LD_LIBRARY_PATH
+
+WORKDIR /workspace

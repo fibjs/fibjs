@@ -1,0 +1,87 @@
+name: Database Tests
+
+on:
+  push:
+    branches:
+      - 'dev'
+      - 'master'
+      - 'ci/**'
+      - 'ci-**'
+    paths:
+      - 'fibjs/src/db/**'
+      - 'test/db_test.js'
+      - 'docker/docker-compose.db-test.yml'
+      - '.github/workflows/db-test.yml'
+      - '.github/workflows/db-test.sh'
+  schedule:
+    # 每日凌晨 2:00 UTC (北京时间 10:00) 运行
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # 允许手动触发
+
+jobs:
+  # Linux amd64: Docker Compose 启动全部 4 个 (PG/MySQL/MSSQL/DM)
+  db-test-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+      - name: Setup environment
+        shell: bash
+        run: . ./vender/build_tools/scripts/actions-env.sh
+        env:
+          BUILD_TARGET: linux
+          BUILD_ARCH: x64
+          BUILD_TYPE: release
+      - name: Build fibjs
+        shell: bash
+        run: . ./.github/workflows/build.sh
+      - name: Run database tests
+        shell: bash
+        run: bash ./.github/workflows/db-test.sh
+
+  # macOS arm64: brew 启动 PG + MySQL, MSSQL/DM 暂不支持
+  db-test-darwin:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+      - name: Setup environment
+        shell: bash
+        run: . ./vender/build_tools/scripts/actions-env.sh
+        env:
+          BUILD_TARGET: darwin
+          BUILD_ARCH: arm64
+          BUILD_TYPE: release
+      - name: Build fibjs
+        shell: bash
+        run: bash build -j2 arm64 darwin release ci
+      - name: Run database tests
+        shell: bash
+        run: bash ./.github/workflows/db-test.sh
+
+  # Windows x64: 预装 PG + MySQL (启动服务), Docker 启动 MSSQL, DM 跳过
+  db-test-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+      - name: Setup environment
+        shell: bash
+        run: . ./vender/build_tools/scripts/actions-env.sh
+        env:
+          BUILD_TARGET: win32
+          BUILD_ARCH: x64
+          BUILD_TYPE: release
+      - name: Build fibjs
+        shell: bash
+        run: bash build -j2 x64 win32 release ci
+      - name: Run database tests
+        shell: bash
+        run: bash ./.github/workflows/db-test.sh

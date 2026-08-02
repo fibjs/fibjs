@@ -15,6 +15,7 @@ namespace fibjs {
 struct OdbcConnectOptions {
     const char* serverAttr;
     bool useHostPort;
+    bool trustCertificate;
 };
 
 result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn,

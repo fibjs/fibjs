@@ -10,26 +10,41 @@ var coroutine = require('coroutine');
 var vmid = coroutine.vmid;
 
 var DBNAME = `test`;
-var sql_server = {
-    // for running test locally, uncomment configurations below and change it accordingly to your DB server.
-    // mysql: {
-    //     desc: '[mysql] sql db universal test',
-    //     conn_str: `mysql://root@localhost/${DBNAME}`,
-    // },
-    // mssql: {
-    //     desc: '[mssql] sql db universal test',
-    //     conn_str: `mssql://sa@localhost/${DBNAME}`,
-    // },
-    // dm: {
-    //     desc: '[dm] sql db universal test',
-    //     conn_str: `dm://SYSDBA:123456789@localhost/${DBNAME}`,
-    // },
-}
+var sql_server = {};
 
+// PostgreSQL - 通过 FIBJS_TEST_PSQL 环境变量控制
+// 连接格式: psql://user:password@host:port/test
 if (process.env.FIBJS_TEST_PSQL) {
     sql_server.psql = {
         desc: '[psql] sql db universal test',
         conn_str: process.env.FIBJS_TEST_PSQL,
+    };
+}
+
+// MySQL - 通过 FIBJS_TEST_MYSQL 环境变量控制
+// 连接格式: mysql://root:password@host:port/test
+if (process.env.FIBJS_TEST_MYSQL) {
+    sql_server.mysql = {
+        desc: '[mysql] sql db universal test',
+        conn_str: process.env.FIBJS_TEST_MYSQL,
+    };
+}
+
+// MSSQL - 通过 FIBJS_TEST_MSSQL 环境变量控制
+// 连接格式: mssql://sa:password@host:port/test
+if (process.env.FIBJS_TEST_MSSQL) {
+    sql_server.mssql = {
+        desc: '[mssql] sql db universal test',
+        conn_str: process.env.FIBJS_TEST_MSSQL,
+    };
+}
+
+// DM (达梦) - 通过 FIBJS_TEST_DM 环境变量控制
+// 连接格式: dm://SYSDBA:password@host:port/test
+if (process.env.FIBJS_TEST_DM) {
+    sql_server.dm = {
+        desc: '[dm] sql db universal test',
+        conn_str: process.env.FIBJS_TEST_DM,
     };
 }
 

@@ -1,0 +1,83 @@
+# fibjs 数据库测试环境 (本地开发用)
+# 用法:
+#   # 启动所有数据库服务
+#   docker compose -f docker/docker-compose.db-dev.yml up -d
+#
+#   # 安装 ODBC 驱动 (仅需一次)
+#   sudo apt-get install -y unixodbc-dev freetds-bin tdsodbc odbc-postgresql
+#   docker cp fibjs-db-dev-dm8:/home/dmdba/dmdbms/bin/libdodbc.so /tmp/libdodbc.so
+#   sudo cp /tmp/libdodbc.so /usr/lib/x86_64-linux-gnu/odbc/libdodbc.so
+#   sudo ldconfig
+#
+#   # 运行测试
+#   FIBJS_TEST_PSQL="psql://fibjs:fibjs_test@localhost:5432/test" \
+#   FIBJS_TEST_MYSQL="mysql://root:root_test@localhost:3306/test" \
+#   FIBJS_TEST_MSSQL="mssql://sa:Test_1234@localhost:1433/test" \
+#   FIBJS_TEST_DM="dm://SYSDBA:123456789@localhost:5236/test" \
+#   bin/Linux_amd64_release/fibjs test/db_test.js
+#
+#   # 停止
+#   docker compose -f docker/docker-compose.db-dev.yml down
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fibjs-db-dev-postgres
+    environment:
+      POSTGRES_USER: fibjs
+      POSTGRES_PASSWORD: fibjs_test
+      POSTGRES_DB: test
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fibjs -d test"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    container_name: fibjs-db-dev-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_test
+      MYSQL_DATABASE: test
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_test"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: fibjs-db-dev-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Test_1234"
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/1433' 2>/dev/null || exit 1"]
+      interval: 10s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  dm8:
+    image: sizx/dm8:latest
+    container_name: fibjs-db-dev-dm8
+    environment:
+      SYSDBA_PWD: "123456789"
+      PAGE_SIZE: 32
+      CHARSET: 1
+      LENGTH_IN_CHAR: 1
+      CASE_SENSITIVE: 0
+    ports:
+      - "5236:5236"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/5236' 2>/dev/null || exit 1"]
+      interval: 10s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
