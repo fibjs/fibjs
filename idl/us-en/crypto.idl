@@ -34,6 +34,13 @@ module crypto
     */
     static Digest createHmac(String algo, Buffer key);
 
+    /*! @brief Create an hmac digest object based on the given algorithm name
+     @param algo Specify the algorithm for the digest object
+     @param key Signature key, of type KeyObject
+     @return Return the digest object
+    */
+    static Digest createHmac(String algo, KeyObject key);
+
     /*! @brief Get the symmetric encryption algorithms supported by the crypto module
      @return Return the array of supported symmetric encryption algorithms
      */

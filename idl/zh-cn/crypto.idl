@@ -34,6 +34,13 @@ module crypto
     */
     static Digest createHmac(String algo, Buffer key);
 
+    /*! @brief 根据给定的算法名称创建一个 hmac 信息摘要对象
+     @param algo 指定信息摘要对象的算法
+     @param key 签名密钥，KeyObject 类型
+     @return 返回信息摘要对象
+    */
+    static Digest createHmac(String algo, KeyObject key);
+
     /*! @brief 获取 crypto 模块支持的的对称加密算法
      @return 返回支持的对称加密算法数组
      */

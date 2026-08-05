@@ -9,6 +9,7 @@
 #include "ifs/crypto.h"
 #include "Digest.h"
 #include "Buffer.h"
+#include "KeyObject.h"
 #include "crypto_util.h"
 #include <openssl/kdf.h>
 #include <boost/preprocessor.hpp>
@@ -66,7 +67,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
     return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHash: unknown algorithm '%s'.", algo.c_str()));
 }
 
-result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
+static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
     obj_ptr<Digest_base>& retVal)
 {
     const EVP_MD* md = _evp_md_type(algo.c_str());
@@ -74,12 +75,28 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
         if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
             return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHmac: XOF hash '%s' is not supported.", algo.c_str()));
 
-        Buffer* buf = Buffer::Cast(key);
-        retVal = new Digest(md, (const char*)buf->data(), buf->length());
+        retVal = new Digest(md, key, keylen);
         return 0;
     }
 
     return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHmac: unknown algorithm '%s'.", algo.c_str()));
+}
+
+result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
+    obj_ptr<Digest_base>& retVal)
+{
+    Buffer* buf = Buffer::Cast(key);
+    return _createHmac(algo, (const char*)buf->data(), buf->length(), retVal);
+}
+
+result_t crypto_base::createHmac(exlib::string algo, KeyObject_base* key,
+    obj_ptr<Digest_base>& retVal)
+{
+    KeyObject* ko = (KeyObject*)key;
+    if (ko->type() != KeyObject::kKeyTypeSecret)
+        return CHECK_ERROR(Runtime::setError("createHmac: Invalid key type"));
+
+    return _createHmac(algo, (const char*)ko->data(), ko->length(), retVal);
 }
 
 result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,

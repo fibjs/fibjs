@@ -674,6 +674,54 @@ describe("hash", () => {
         hmac_case.forEach(hmac_test);
     });
 
+    it("hmac with secret KeyObject", () => {
+        // KeyObject 与 Buffer 密钥计算出的 HMAC 一致,覆盖所有 digest 输出格式
+        var hmac_case = [{
+            name: 'SHA256',
+            key: crypto.createSecretKey(Buffer.from('key')),
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: 'f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8',
+            base64: '97yD9DBThCSxMpjmqm+xQ+9NWaFJRhdZl0edvC0aPNg='
+        }, {
+            name: 'SHA256',
+            key: crypto.createSecretKey(Buffer.alloc(0)),
+            text: '',
+            hmac: 'b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad',
+            base64: 'thNnmggU2ex3L5XXeMNfxf8Wl8STcVZTxscSFEKSxa0='
+        }, {
+            name: 'SHA3_256',
+            key: crypto.createSecretKey(Buffer.from('key')),
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: '8c6e0683409427f8931711b10ca92a506eb1fafa48fadd66d76126f47ac2c333',
+            base64: 'jG4Gg0CUJ/iTFxGxDKkqUG6x+vpI+t1m12Em9HrCwzM='
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
+
+    it("createSecretKey with encoding", () => {
+        // 不同编码创建的 KeyObject,其 HMAC 结果与原始字节一致
+        const key = 'my-secret-key';
+        const buf = Buffer.from(key, 'utf8');
+        const koBuf = crypto.createSecretKey(buf);
+        const koUtf8 = crypto.createSecretKey(key, 'utf8');
+        const koHex = crypto.createSecretKey(buf.toString('hex'), 'hex');
+        const koB64 = crypto.createSecretKey(buf.toString('base64'), 'base64');
+
+        const expected = crypto.createHmac('sha256', buf).update('payload').digest('hex');
+        for (const ko of [koBuf, koUtf8, koHex, koB64]) {
+            assert.equal(ko.type, 'secret');
+            assert.equal(crypto.createHmac('sha256', ko).update('payload').digest('hex'), expected);
+        }
+    });
+
+    it("createHmac with non-secret KeyObject", () => {
+        assert.throws(() => crypto.createHmac('sha256', crypto.createPublicKey(pub_rsa4096_pem)), { message: /Invalid key type/ });
+        assert.throws(() => crypto.createHmac('sha256', crypto.createPrivateKey(rsa4096_pem)), { message: /Invalid key type/ });
+        assert.throws(() => crypto.createHmac('sha256', crypto.createPrivateKey(ec_pem)), { message: /Invalid key type/ });
+        assert.throws(() => crypto.createHmac('sha256', crypto.createPrivateKey(sm2_pem)), { message: /Invalid key type/ });
+    });
+
     it("BUGFIX: crash when digest has been called", () => {
         const hash = crypto.createHash("md5")
         hash.update("123").digest('hex');

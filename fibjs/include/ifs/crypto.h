@@ -58,6 +58,7 @@ public:
     static result_t createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
     static result_t createHmac(exlib::string algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
+    static result_t createHmac(exlib::string algo, KeyObject_base* key, obj_ptr<Digest_base>& retVal);
     static result_t getCiphers(v8::Local<v8::Array>& retVal);
     static result_t getCipherInfo(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     static result_t getCipherInfo(int32_t nid, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
@@ -329,6 +330,13 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = createHmac(v0, v1.get(), vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<KeyObject_base>, 1);
 
     hr = createHmac(v0, v1.get(), vr);
 
