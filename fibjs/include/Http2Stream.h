@@ -62,7 +62,7 @@ public:
     result_t waitHeaders(AsyncEvent* ac);
 
 public:
-    Http2Session* m_session;
+    obj_ptr<Http2Session> m_session;
     int32_t m_stream_id;
 
     bool m_closed = false;

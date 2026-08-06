@@ -39,6 +39,7 @@
 #include "SecureContext.h"
 #include "Fiber.h"
 #include "Event.h"
+#include "AsyncStream.h"
 #include <openssl/ssl.h>
 
 
@@ -129,6 +130,69 @@ static inline bool http_conn_looks_alive(Stream_base* conn)
 
     return alive;
 }
+
+class H2PrefetchedBodyStream : public AsyncStream<Stream_base> {
+    FIBER_FREE();
+
+public:
+    H2PrefetchedBodyStream(Buffer_base* first, Stream_base* rest)
+        : m_first(first)
+        , m_rest(rest)
+    {
+    }
+
+    virtual result_t get_fd(int32_t& retVal)
+    {
+        return m_rest->get_fd(retVal);
+    }
+
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        if (m_first) {
+            Buffer* buf = Buffer::Cast(m_first);
+            size_t left = buf->length() - m_first_offset;
+
+            if (bytes < 0 || (size_t)bytes >= left) {
+                if (m_first_offset == 0)
+                    retVal = m_first;
+                else
+                    retVal = new Buffer(buf->data() + m_first_offset, left);
+                m_first.Release();
+                m_first_offset = 0;
+                return 0;
+            }
+
+            retVal = new Buffer(buf->data() + m_first_offset, bytes);
+            m_first_offset += bytes;
+            return 0;
+        }
+
+        return m_rest->readBuffer(bytes, retVal, ac);
+    }
+
+    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    {
+        return m_rest->writeBuffer(data, ac);
+    }
+
+    virtual result_t flush(AsyncEvent* ac)
+    {
+        return m_rest->flush(ac);
+    }
+
+    virtual result_t close(AsyncEvent* ac)
+    {
+        return m_rest->close(ac);
+    }
+
+private:
+    obj_ptr<Buffer_base> m_first;
+    obj_ptr<Stream_base> m_rest;
+    size_t m_first_offset = 0;
+};
 
 LruCache<obj_ptr<Http2Session>> HttpClient::s_h2sessions;
 std::unordered_map<exlib::string, HttpClient::H2PendingEntry*> HttpClient::s_h2_pending;
@@ -1400,12 +1464,14 @@ public:
 
         m_reuse = false;
         m_h2PoolKey.clear();
+        m_h2_reused_session = false;
 
         // Check for existing H2 session before creating a new TCP connection
         if (m_ssl && m_hc->m_enableH2) {
             m_h2PoolKey = build_h2_pool_key(m_connUrl, m_http_proxy, m_sslhost, m_hc->m_context.get());
             m_h2session = m_hc->get_h2session(m_h2PoolKey);
             if (m_h2session && !m_h2session->m_destroyed && !m_h2session->m_closed) {
+                m_h2_reused_session = true;
                 m_conn = m_h2session->m_conn;
                 return next(h2_wait_settings);
             }
@@ -1870,12 +1936,14 @@ public:
 
         // Get response headers from the H2 stream
         obj_ptr<NObject> h2_headers = m_h2stream->m_headers;
+        int32_t resp_status = 0;
         if (h2_headers) {
             // Extract :status
             Variant status_var;
             if (h2_headers->get(":status", status_var) == 0) {
                 exlib::string status_str = status_var.string();
-                resp->set_statusCode(atoi(status_str.c_str()));
+                resp_status = atoi(status_str.c_str());
+                resp->set_statusCode(resp_status);
             }
 
             // Copy regular headers to HttpResponse
@@ -1893,6 +1961,45 @@ public:
         resp->m_message->m_bodyStream = m_h2stream;
 
         m_retVal = resp;
+        if (should_probe_h2_body(resp_status))
+            return next(h2_probe_body);
+        return next(requested);
+    }
+
+    ON_STATE(asyncRequest, h2_probe_body)
+    {
+        return m_h2stream->readBuffer(-1, m_h2buf, next(h2_probe_done));
+    }
+
+    ON_STATE(asyncRequest, h2_probe_done)
+    {
+        if (n == CALL_RETURN_NULL) {
+            bool stream_lost_after_headers = !m_h2stream->m_recv_end
+                && (m_h2stream->m_closed || m_h2stream->m_destroyed
+                    || (m_h2session && (m_h2session->m_closed || m_h2session->m_destroyed)));
+
+            if (stream_lost_after_headers && m_h2_retry_count == 0) {
+                m_h2_retry_count++;
+                if (m_h2session && !m_h2PoolKey.empty())
+                    m_hc->remove_h2session(m_h2PoolKey, m_h2session);
+                m_h2buf.Release();
+                m_h2stream.Release();
+                m_h2session.Release();
+                m_conn.Release();
+                m_retVal.Release();
+                next(prepare);
+                return 0;
+            }
+
+            return next(requested);
+        }
+
+        if (m_h2buf) {
+            HttpResponse* resp = static_cast<HttpResponse*>(static_cast<HttpResponse_base*>(m_retVal.get()));
+            resp->m_message->m_bodyStream = new H2PrefetchedBodyStream(m_h2buf, m_h2stream);
+            m_h2buf.Release();
+        }
+
         return next(requested);
     }
 
@@ -2129,10 +2236,13 @@ public:
 
     bool can_retry_h2_request()
     {
-        if (!m_h2session || m_h2_retry_count > 0)
+        if (!m_h2session)
             return false;
 
-        if (!(at(h2_submit_no_body) || at(h2_submit_with_body)
+        if (m_h2_retry_count > 0)
+            return false;
+
+        if (!(at(h2_wait_settings) || at(h2_submit_no_body) || at(h2_submit_with_body)
                 || at(h2_request_sent) || at(h2_wait_headers)))
             return false;
 
@@ -2141,6 +2251,21 @@ public:
             return false;
 
         return !qstricmp(method.c_str(), "GET") || !qstricmp(method.c_str(), "HEAD");
+    }
+
+    bool should_probe_h2_body(int32_t status)
+    {
+        if (!m_h2session || !m_h2stream || !m_h2_reused_session || m_h2_retry_count > 0)
+            return false;
+
+        if (status == 204 || status == 304)
+            return false;
+
+        exlib::string method;
+        if (!m_req || m_req->get_method(method) < 0)
+            return false;
+
+        return !qstricmp(method.c_str(), "GET");
     }
 
     int32_t complete()
@@ -2197,6 +2322,7 @@ private:
     exlib::string m_h2_path;
     std::vector<std::pair<exlib::string, exlib::string>> m_h2_hdrs;
     bool m_h2_endStream = true;
+    bool m_h2_reused_session = false;
     bool m_is_h2_leader = false;
     int32_t m_http1_retry_count = 0;
     int32_t m_h2_retry_count = 0;

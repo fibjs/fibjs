@@ -57,7 +57,7 @@ public:
     int submit_settings(const nghttp2_settings_entry* iv, size_t niv)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_settings(m_session, NGHTTP2_FLAG_NONE, iv, niv);
+        int rv = m_session ? nghttp2_submit_settings(m_session, NGHTTP2_FLAG_NONE, iv, niv) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -66,7 +66,7 @@ public:
         const nghttp2_data_provider* data_prd)
     {
         m_lock.lock();
-        int32_t rv = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
+        int32_t rv = m_session ? nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -77,7 +77,7 @@ public:
         const nghttp2_data_provider* data_prd, exlib::string& output)
     {
         m_lock.lock();
-        int32_t rv = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
+        int32_t rv = m_session ? nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr) : NGHTTP2_ERR_INVALID_STATE;
         if (rv > 0) {
             const uint8_t* data;
             ssize_t len;
@@ -99,7 +99,7 @@ public:
         int32_t& stream_id, exlib::string& output, F&& on_submit)
     {
         m_lock.lock();
-        stream_id = nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr);
+        stream_id = m_session ? nghttp2_submit_request(m_session, nullptr, nva, nvlen, data_prd, nullptr) : NGHTTP2_ERR_INVALID_STATE;
         if (stream_id > 0) {
             on_submit(stream_id);
 
@@ -118,7 +118,7 @@ public:
         const nghttp2_data_provider* data_prd)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_response(m_session, stream_id, nva, nvlen, data_prd);
+        int rv = m_session ? nghttp2_submit_response(m_session, stream_id, nva, nvlen, data_prd) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -126,8 +126,8 @@ public:
     int submit_headers(int32_t stream_id, const nghttp2_nv* nva, size_t nvlen)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_headers(m_session, NGHTTP2_FLAG_NONE,
-            stream_id, nullptr, nva, nvlen, nullptr);
+        int rv = m_session ? nghttp2_submit_headers(m_session, NGHTTP2_FLAG_NONE,
+            stream_id, nullptr, nva, nvlen, nullptr) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -135,7 +135,7 @@ public:
     int submit_trailer(int32_t stream_id, const nghttp2_nv* nva, size_t nvlen)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_trailer(m_session, stream_id, nva, nvlen);
+        int rv = m_session ? nghttp2_submit_trailer(m_session, stream_id, nva, nvlen) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -143,7 +143,7 @@ public:
     int submit_rst_stream(int32_t stream_id, uint32_t error_code)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_rst_stream(m_session, NGHTTP2_FLAG_NONE, stream_id, error_code);
+        int rv = m_session ? nghttp2_submit_rst_stream(m_session, NGHTTP2_FLAG_NONE, stream_id, error_code) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -151,8 +151,8 @@ public:
     int submit_goaway(int32_t last_stream_id, uint32_t error_code)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_goaway(m_session, NGHTTP2_FLAG_NONE,
-            last_stream_id, error_code, nullptr, 0);
+        int rv = m_session ? nghttp2_submit_goaway(m_session, NGHTTP2_FLAG_NONE,
+            last_stream_id, error_code, nullptr, 0) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -160,7 +160,7 @@ public:
     int submit_ping()
     {
         m_lock.lock();
-        int rv = nghttp2_submit_ping(m_session, NGHTTP2_FLAG_NONE, nullptr);
+        int rv = m_session ? nghttp2_submit_ping(m_session, NGHTTP2_FLAG_NONE, nullptr) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -168,8 +168,8 @@ public:
     int submit_window_update(int32_t stream_id, int32_t window_size_increment)
     {
         m_lock.lock();
-        int rv = nghttp2_submit_window_update(m_session, NGHTTP2_FLAG_NONE,
-            stream_id, window_size_increment);
+        int rv = m_session ? nghttp2_submit_window_update(m_session, NGHTTP2_FLAG_NONE,
+            stream_id, window_size_increment) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -177,7 +177,7 @@ public:
     int resume_data(int32_t stream_id)
     {
         m_lock.lock();
-        int rv = nghttp2_session_resume_data(m_session, stream_id);
+        int rv = m_session ? nghttp2_session_resume_data(m_session, stream_id) : NGHTTP2_ERR_INVALID_STATE;
         m_lock.unlock();
         return rv;
     }
@@ -190,6 +190,10 @@ public:
         // All _emit calls in callbacks are fire-and-forget (post_task),
         // so they never re-acquire m_lock — no deadlock risk.
         m_lock.lock();
+        if (!m_session) {
+            m_lock.unlock();
+            return NGHTTP2_ERR_INVALID_STATE;
+        }
         size_t off = 0;
         ssize_t rv = 0;
 
@@ -214,6 +218,10 @@ public:
         ssize_t len;
 
         m_lock.lock();
+        if (!m_session) {
+            m_lock.unlock();
+            return NGHTTP2_ERR_INVALID_STATE;
+        }
         while ((len = nghttp2_session_mem_send(m_session, &data)) > 0)
             output.append((const char*)data, len);
         m_lock.unlock();
@@ -224,17 +232,17 @@ public:
     uint32_t get_setting(bool remote, int32_t id)
     {
         m_lock.lock();
-        uint32_t val = remote
+        uint32_t val = !m_session ? 0 : (remote
             ? nghttp2_session_get_remote_settings(m_session, (nghttp2_settings_id)id)
-            : nghttp2_session_get_local_settings(m_session, (nghttp2_settings_id)id);
+            : nghttp2_session_get_local_settings(m_session, (nghttp2_settings_id)id));
         m_lock.unlock();
         return val;
     }
 
     operator bool() const { return m_session != nullptr; }
 
-    int want_read() { return nghttp2_session_want_read(m_session); }
-    int want_write() { return nghttp2_session_want_write(m_session); }
+    int want_read() { return m_session ? nghttp2_session_want_read(m_session) : 0; }
+    int want_write() { return m_session ? nghttp2_session_want_write(m_session) : 0; }
 
 private:
     nghttp2_session* m_session;

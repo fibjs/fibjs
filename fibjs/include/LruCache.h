@@ -199,8 +199,12 @@ private:
             m_used.erase(item->m_used_iter);
             m_expired.erase(item->m_expired_iter);
 
-            m_map.erase(item->m_map_iter);
+            // Write the sentinel BEFORE erasing from the map: the map holds
+            // the only reference to the item, so m_map.erase() may free it.
+            // Touching item->m_map_iter after that would be a use-after-free.
+            auto mit = item->m_map_iter;
             item->m_map_iter = m_map.end();
+            m_map.erase(mit);
         }
     }
 
