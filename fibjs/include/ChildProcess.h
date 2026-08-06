@@ -76,6 +76,7 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal);
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal);
+    virtual result_t get_stdio(v8::Local<v8::Array>& retVal);
     virtual result_t resize(int32_t cols, int32_t rows);
     virtual result_t get_cols(int32_t& retVal);
     virtual result_t get_rows(int32_t& retVal);
@@ -112,9 +113,11 @@ public:
     exlib::Event m_ev;
     obj_ptr<ValueHolder> m_vholder;
 
-    obj_ptr<UVStream> m_stdio[4];
+    // stdio slots 0-5: 0=stdin, 1=stdout, 2=stderr, 3-5=extra pipes
+    // (libuv allows up to 3 extra pipe fds beyond the standard three)
+    obj_ptr<UVStream> m_stdio[6];
 
-    uv_stdio_container_t stdios[4];
+    uv_stdio_container_t stdios[6];
     uv_process_options_t uv_options;
     uv_process_t m_process;
 

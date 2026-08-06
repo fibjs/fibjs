@@ -138,6 +138,15 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     readonly stderr: Class_Stream;
 
     /**
+     * @description 读取当前对象指向进程的标准 IO 对象列表
+     * 
+     *      数组中包含子进程的标准 IO 流,与 spawn 时传入的 stdio 选项对应。管道项为
+     *      Stream 对象,其他项为 null。
+     *      
+     */
+    readonly stdio: any[];
+
+    /**
      * @description 查询和绑定进程退出事件，相当于 on("exit", func); 
      */
     on(event: "exit", listener: ()=>void): this;

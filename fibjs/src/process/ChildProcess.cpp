@@ -141,8 +141,8 @@ result_t ChildProcess::create_pipe(int32_t idx)
     stdios[idx].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
     stdios[idx].data.stream = (uv_stream_t*)&m_stdio[idx]->m_pipe;
 
-    if (idx == 3)
-        uv_options.stdio_count = 4;
+    if (idx + 1 > (int32_t)uv_options.stdio_count)
+        uv_options.stdio_count = idx + 1;
 
     return 0;
 }
@@ -154,7 +154,12 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     v8::Local<v8::Context> context = isolate->context();
     int32_t i;
 
-    Variant stddefs[3];
+    // libuv allows up to 3 extra pipe fds beyond the standard three (0-2),
+    // so stdio array entries 3-5 are supported (chromium/playwright use 5).
+    enum { MAX_STDIO = 6 };
+
+    Variant stddefs[MAX_STDIO];
+    int32_t count = 3;
     v8::Local<v8::Value> v;
     hr = GetConfigValue(options, "stdio", v);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
@@ -170,7 +175,10 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
             v8::Local<v8::Array> a;
             hr = GetArgumentValue(isolate, v, a, true);
             if (hr >= 0) {
-                for (i = 0; i < 3; i++)
+                count = a->Length();
+                if (count > MAX_STDIO)
+                    count = MAX_STDIO;
+                for (i = 0; i < count; i++)
                     stddefs[i] = JSValue(a->Get(context, i));
             } else {
                 for (i = 0; i < 3; i++)
@@ -180,17 +188,17 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     }
 
     uv_options.stdio = stdios;
-    uv_options.stdio_count = 3;
+    uv_options.stdio_count = 0;
 
     int32_t pty_cnt = 0;
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < count; i++)
         if (stddefs[i].type() == Variant::VT_String && stddefs[i].string() == "pty")
             pty_cnt++;
 
-    if (pty_cnt == 3) {
+    if (pty_cnt == count) {
         m_pty = true;
 
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < count; i++) {
             stdios[i].flags = UV_INHERIT_FD;
             stdios[i].data.fd = i;
         }
@@ -206,7 +214,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     if (pty_cnt > 0)
         return CHECK_ERROR(Runtime::setError("ChildProcess: every element of stdio must be \'pty\'."));
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < count; i++) {
         if (stddefs[i].type() == Variant::VT_Integer
             || stddefs[i].type() == Variant::VT_Long
             || stddefs[i].type() == Variant::VT_Number) {
@@ -241,6 +249,9 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
             }
         }
     }
+
+    if (uv_options.stdio_count < count)
+        uv_options.stdio_count = count;
 
     if (fork && m_ipc < 0) {
         m_ipc = 3;
@@ -692,6 +703,22 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
         return CHECK_ERROR(CALL_RETURN_NULL);
 
     retVal = m_stdio[2];
+
+    return 0;
+}
+
+result_t ChildProcess::get_stdio(v8::Local<v8::Array>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    retVal = v8::Array::New(isolate->m_isolate, 6);
+    for (int32_t i = 0; i < 6; i++) {
+        if (m_stdio[i])
+            retVal->Set(context, i, m_stdio[i]->wrap());
+        else
+            retVal->Set(context, i, v8::Null(isolate->m_isolate));
+    }
 
     return 0;
 }

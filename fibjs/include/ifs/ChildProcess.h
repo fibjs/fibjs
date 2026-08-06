@@ -41,6 +41,7 @@ public:
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_stderr(obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t get_stdio(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t ref(obj_ptr<ChildProcess_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<ChildProcess_base>& retVal) = 0;
 
@@ -71,6 +72,7 @@ public:
     static void s_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stderr(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_stdio(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -113,6 +115,7 @@ inline ClassInfo& ChildProcess_base::class_info()
         { "stdin", s_get_stdin, block_set, false },
         { "stdout", s_get_stdout, block_set, false },
         { "stderr", s_get_stderr, block_set, false },
+        { "stdio", s_get_stdio, block_set, false },
         { "onexit", s_get_onexit, s_set_onexit, false },
         { "onmessage", s_get_onmessage, s_set_onmessage, false },
         { "onspawn", s_get_onspawn, s_set_onspawn, false },
@@ -344,6 +347,20 @@ inline void ChildProcess_base::s_get_stderr(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(0, 0);
 
     hr = pInst->get_stderr(vr);
+
+    METHOD_RETURN();
+}
+
+inline void ChildProcess_base::s_get_stdio(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_stdio(vr);
 
     METHOD_RETURN();
 }

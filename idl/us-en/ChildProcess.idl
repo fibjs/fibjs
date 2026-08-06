@@ -85,6 +85,14 @@ interface ChildProcess : EventEmitter
      */
     readonly Stream stderr;
 
+    /*! @brief Read the standard IO object list of the process pointed to by the current object
+
+     The array contains the standard IO streams of the child process, corresponding to
+     the stdio option passed to spawn. Pipe entries are Stream objects, other entries
+     are null.
+     */
+    readonly Array stdio;
+
     /*! @brief Query and bind process exit event, equivalent to on("exit", func); */
     event exit();
 
