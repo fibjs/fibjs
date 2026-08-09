@@ -465,7 +465,7 @@ public:
 
     bool isBackgroundWrite(AsyncEvent* ac)
     {
-        return is_stdio_fd(m_fd) && ac->isSync() && ac->callType() == AsyncEvent::kAsyncCall;
+        return (is_stdio_fd(m_fd) || m_nonblockWrite) && ac->isSync() && ac->callType() == AsyncEvent::kAsyncCall;
     }
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
@@ -599,6 +599,12 @@ public:
 public:
     int32_t m_fd;
     int32_t m_timeout = -1;
+    // When true, synchronous JS write() calls are fire-and-forget (non-blocking),
+    // matching Node's child-process stdio pipes. This preserves byte order for
+    // framed protocols (e.g. CDP over --remote-debugging-pipe): consecutive
+    // write() calls in a fiber enqueue to the uv write queue without the fiber
+    // yielding between them, so concurrent writers cannot interleave their bytes.
+    bool m_nonblockWrite = false;
 
 public:
     union {
@@ -671,6 +677,7 @@ public:
         if (hr < 0)
             return hr;
 
+        stream->m_nonblockWrite = true;
         retVal = stream;
 
         return 0;
@@ -684,6 +691,7 @@ public:
         if (ret < 0)
             return ret;
 
+        stream->m_nonblockWrite = true;
         retVal = stream;
 
         return 0;
