@@ -73,12 +73,17 @@ void JSFiber::FiberProcRunJavascript(void* p)
     isolate->m_isolate->DiscardThreadSpecificMetadata();
 }
 
-void JSFiber::start()
+void JSFiber::start(bool urgent)
 {
     Ref();
-    holder()->sync([this]() -> int {
+    auto func = [this]() -> int {
         return js_invoke();
-    });
+    };
+
+    if (urgent)
+        holder()->sync_urgent(func);
+    else
+        holder()->sync(func);
 }
 
 result_t JSFiber::join()

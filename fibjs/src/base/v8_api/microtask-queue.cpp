@@ -37,19 +37,24 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
-
     do {
-        // Dispatch tasks from index 1 onwards to fibers first
-        for (intptr_t i = allow_same_turn_reentry ? 1 : 0; i < queue->size_; i++) {
+        bool inline_first_task = allow_same_turn_reentry && queue->size_ == 1 && m_urgentJobs.empty() && m_jobs.empty();
+
+        // Dispatch tasks that cannot be run immediately to fibers first. The
+        // fast inline path is only used while the JS job queues are empty;
+        // otherwise it can let a promise chain overtake already queued events.
+        for (intptr_t i = inline_first_task ? 1 : 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
-            sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
+            sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), this, _isolate]() -> int {
                 JSFiber::EnterJsScope s;
 
                 std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);
                 queue->EnqueueMicrotask(i::Cast<i::Microtask>(i::Tagged<i::Object>(*addr)));
 
                 std::optional<v8::MicrotasksScope> microtasks_scope;
+                m_microtaskDepth++;
                 queue->RunMicrotasks(_isolate);
+                m_microtaskDepth--;
                 _isolate->ClearKeptObjects();
 
                 api_internal::DisposeGlobal(addr);
@@ -58,11 +63,13 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
             });
         }
 
-        if (allow_same_turn_reentry) {
+        if (inline_first_task) {
             // Run the first microtask directly in the current context
             if (queue->size_ > 0) {
                 queue->size_ = 1;
+                m_microtaskDepth++;
                 queue->RunMicrotasks(_isolate);
+                m_microtaskDepth--;
             }
         } else
             queue->size_ = 0;

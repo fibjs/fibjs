@@ -143,7 +143,6 @@ public:
         m_sem.post();
     }
 
-public:
     enum class MicrotaskCheckpointReason {
         kRegularCheckpoint,
         kJsScopeLeave
@@ -334,6 +333,7 @@ public:
     exlib::Semaphore m_sem;
     exlib::LockedList<exlib::linkitem> m_urgentJobs;
     exlib::LockedList<exlib::linkitem> m_jobs;
+    int32_t m_microtaskDepth = 0;
     exlib::atomic m_ref;
     int32_t m_currentFibers;
     int32_t m_idleFibers;

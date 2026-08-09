@@ -57,14 +57,14 @@ public:
 
 public:
     static void FiberProcRunJavascript(void* p);
-    void start();
+    void start(bool urgent = false);
 
     static JSFiber* current();
     result_t js_invoke();
 
     template <typename T>
     void New(v8::Local<v8::Function> func, T* args, int32_t nArgCount,
-        v8::Local<v8::Object> pThis)
+        v8::Local<v8::Object> pThis, bool urgent = false)
     {
         Isolate* isolate = holder();
         int32_t i;
@@ -80,7 +80,7 @@ public:
         if (fb && !fb->m_async_ctx.IsEmpty())
             m_async_ctx.Reset(isolate->m_isolate, fb->m_async_ctx.Get(isolate->m_isolate));
 
-        start();
+        start(urgent);
     }
 
     template <typename T>
@@ -96,14 +96,14 @@ public:
 
     template <typename T>
     static result_t New(v8::Local<v8::Function> func, OptArgs args,
-        obj_ptr<T>& retVal)
+        obj_ptr<T>& retVal, bool urgent = false)
     {
         Isolate* isolate = Isolate::current(func);
         std::vector<v8::Local<v8::Value>> datas;
         args.GetData(datas);
 
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, datas.data(), args.Length(), fb->wrap(isolate));
+        fb->New(func, datas.data(), args.Length(), fb->wrap(isolate), urgent);
         retVal = fb;
 
         return 0;

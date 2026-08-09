@@ -484,7 +484,8 @@ result_t process_base::chdir(exlib::string directory)
 result_t process_base::nextTick(v8::Local<v8::Function> func, OptArgs args)
 {
     obj_ptr<Fiber_base> retVal;
-    return JSFiber::New(func, args, retVal);
+    Isolate* isolate = Isolate::current(func);
+    return JSFiber::New(func, args, retVal, isolate->m_microtaskDepth == 0);
 }
 
 result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
