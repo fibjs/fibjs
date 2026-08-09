@@ -82,7 +82,7 @@ public:
     static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal);
     static result_t hash(exlib::string algorithm, Buffer_base* data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
-    static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal);
     static result_t randomUUID(v8::Local<v8::Object> options, exlib::string& retVal);
@@ -174,7 +174,6 @@ public:
     static void s_static_proofVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Buffer_base*, Buffer_base*, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -237,7 +236,7 @@ inline ClassInfo& crypto_base::class_info()
         { "createCertificateRequest", s_static_createCertificateRequest, true, ClassData::ASYNC_SYNC },
         { "diffieHellman", s_static_diffieHellman, true, ClassData::ASYNC_SYNC },
         { "hash", s_static_hash, true, ClassData::ASYNC_SYNC },
-        { "randomBytes", s_static_randomBytes, true, ClassData::ASYNC_ASYNC },
+        { "randomBytes", s_static_randomBytes, true, ClassData::ASYNC_SYNC },
         { "randomFill", s_static_randomFill, true, ClassData::ASYNC_ASYNC },
         { "getRandomValues", s_static_getRandomValues, true, ClassData::ASYNC_SYNC },
         { "randomUUID", s_static_randomUUID, true, ClassData::ASYNC_SYNC },
@@ -640,18 +639,15 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Buffer_base> vr;
 
-    ASYNC_METHOD_ENTER("crypto.randomBytes");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, 16);
 
-    if (!cb.IsEmpty())
-        hr = acb_randomBytes(v0, cb, args);
-    else
-        hr = ac_randomBytes(v0, vr);
+    hr = randomBytes(v0, vr);
 
-    ASYNC_METHOD_RETURN();
+    METHOD_RETURN();
 }
 
 inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args)

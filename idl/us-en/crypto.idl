@@ -243,7 +243,7 @@ module crypto
      @param size Specify the size of the generated random number
      @return Return the generated random number
      */
-    static Buffer randomBytes(Integer size = 16) async;
+    static Buffer randomBytes(Integer size = 16);
 
     /*! @brief Fill the specified Buffer with random numbers, using havege generator
      @param buffer Specify the Buffer to generate

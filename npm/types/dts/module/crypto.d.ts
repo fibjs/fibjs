@@ -323,24 +323,6 @@ declare module 'crypto' {
      */
     function randomBytes(size?: number): Class_Buffer;
 
-    function randomBytes(size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 生成指定尺寸的随机数，使用 havege 生成器
-     *      @param size 指定生成的随机数尺寸
-     *      @return 返回生成的随机数
-     *      
-     */
-    function randomBytesSync(size?: number): Class_Buffer;
-
-    /**
-     * @description 生成指定尺寸的随机数，使用 havege 生成器
-     *      @param size 指定生成的随机数尺寸
-     *      @return 返回生成的随机数
-     *      
-     */
-    function randomBytesAsync(size?: number): Promise<Class_Buffer>;
-
     /**
      * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
      *      @param buffer 指定生成的 Buffer
