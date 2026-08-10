@@ -87,6 +87,17 @@ declare class Class_HttpCookie extends Class_object {
     parse(header: string): void;
 
     /**
+     * @description 解析给定的字符串，填充 cookie 对象，不对 name 和 value 进行 URL 解码
+     * 
+     *      按照 RFC 6265，cookie 值是不透明字符串，Set-Cookie 头中的 %XX 应当原样保留。
+     *      解析服务端发来的原始 Set-Cookie 头时请使用本方法；
+     *      parse 方法会进行 URL 解码，与 toString 保持往返。
+     *      @param header 指定需要解析的 header 字符串
+     *     
+     */
+    parseRaw(header: string): void;
+
+    /**
      * @description 检测给定的 url 是否匹配当前设置
      *      @param url 指定测试的 url
      *      @return 匹配成功返回 true

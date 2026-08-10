@@ -77,6 +77,15 @@ interface HttpCookie : object
     */
     parse(String header);
 
+    /*! @brief Parse the given string and fill the cookie object without URL-decoding name and value
+
+     Per RFC 6265, cookie values are opaque strings; %XX sequences in a Set-Cookie
+     header must be preserved verbatim. Use this method to parse raw Set-Cookie
+     headers from remote servers. parse() URL-decodes and stays reversible with toString().
+     @param header Specify the header string to parse
+    */
+    parseRaw(String header);
+
     /*! @brief Check if the given url matches the current settings
      @param url Specify the url to test
      @return Returns true if match succeeds

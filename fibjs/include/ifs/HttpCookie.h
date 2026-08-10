@@ -23,6 +23,7 @@ public:
     static result_t _new(v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string name, exlib::string value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t parse(exlib::string header) = 0;
+    virtual result_t parseRaw(exlib::string header) = 0;
     virtual result_t match(exlib::string url, bool& retVal) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t set_name(exlib::string newVal) = 0;
@@ -46,6 +47,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_parseRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_match(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_name(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,6 +71,7 @@ inline ClassInfo& HttpCookie_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "parse", s_parse, false, ClassData::ASYNC_SYNC },
+        { "parseRaw", s_parseRaw, false, ClassData::ASYNC_SYNC },
         { "match", s_match, false, ClassData::ASYNC_SYNC }
     };
 
@@ -147,6 +150,20 @@ inline void HttpCookie_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
 
     hr = pInst->parse(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpCookie_base::s_parseRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpCookie_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->parseRaw(v0);
 
     METHOD_VOID();
 }

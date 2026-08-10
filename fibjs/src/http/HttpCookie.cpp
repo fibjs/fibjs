@@ -39,7 +39,20 @@ result_t HttpCookie_base::_new(exlib::string name, exlib::string value,
     return 0;
 }
 
+// 公开 API：解析 cookie 字符串并对 name/value 做 URL 解码，
+// 保持与 toString() 的往返语义（历史行为，测试锁定）。
+// 注意：解析远端 Set-Cookie 原始值请用 parseRaw（不解码）。
 result_t HttpCookie::parse(exlib::string header)
+{
+    return parse_ex(header, true);
+}
+
+result_t HttpCookie::parseRaw(exlib::string header)
+{
+    return parse_ex(header, false);
+}
+
+result_t HttpCookie::parse_ex(exlib::string header, bool bDecode)
 {
     _parser p(header);
     exlib::string key, value;
@@ -49,10 +62,16 @@ result_t HttpCookie::parse(exlib::string header)
     p.getWord(tmp, '=');
     if (!p.want('=') || tmp.empty())
         return CHECK_ERROR(Runtime::setError("HttpCookie: bad cookie format."));
-    Url::decodeURI(tmp, m_name);
+    if (bDecode)
+        Url::decodeURI(tmp, m_name);
+    else
+        m_name = tmp;
 
     p.getWord(tmp, ';');
-    Url::decodeURI(tmp, m_value);
+    if (bDecode)
+        Url::decodeURI(tmp, m_value);
+    else
+        m_value = tmp;
 
     while (p.want(';')) {
         p.skipSpace();

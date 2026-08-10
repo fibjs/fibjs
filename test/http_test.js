@@ -798,6 +798,34 @@ describe("http", () => {
             });
         });
 
+        it("parseRaw keeps %XX verbatim (RFC 6265)", () => {
+            // parse 会做 URL 解码（与 toString 往返）
+            var c = new http.Cookie();
+            c.parse("dual-cookie-test.session_token=realToken.payload%3D; Path=/");
+            assert.equal(c.name, "dual-cookie-test.session_token");
+            assert.equal(c.value, "realToken.payload=");
+
+            // parseRaw 原样保留 %XX（解析远端 Set-Cookie 用）
+            var c2 = new http.Cookie();
+            c2.parseRaw("dual-cookie-test.session_token=realToken.payload%3D; Path=/");
+            assert.equal(c2.name, "dual-cookie-test.session_token");
+            assert.equal(c2.value, "realToken.payload%3D");
+            assert.equal(c2.path, "/");
+
+            // 属性解析与 parse 一致
+            var c3 = new http.Cookie();
+            c3.parseRaw("test=value; expires=Mon, 21 Dec 2020 13:31:30 GMT; domain=.baoz.me; path=/rpc; secure; HttpOnly");
+            assert.deepEqual(cookie_data(c3), {
+                name: "test",
+                value: "value",
+                expires: new Date("2020-12-21T13:31:30Z"),
+                domain: ".baoz.me",
+                path: "/rpc",
+                secure: true,
+                httpOnly: true
+            });
+        });
+
         var match_cases = [
             [{
                 name: "test",
@@ -4584,6 +4612,95 @@ describe("http", () => {
             assert.equal(http.requestSync("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").firstHeader("test"),
                 "test1");
         })
+    });
+
+    describe("cookie jar: explicit Cookie header and %-encoded values (regression)", () => {
+        // 回归测试：同一个 http.Client 先"登录"（Set-Cookie 进入 jar），
+        // 再显式传 Cookie 头发请求时，fibjs 会同时自动附加 jar 中的同名
+        // cookie → 服务端收到两个 Cookie 头；且 jar 存储会把 %3D 解码成 =，
+        // 导致回发的 cookie 值被破坏（如 better-auth 的 session_token）。
+        var svr;
+        var jarClient;
+        const cookiePort = 8894 + base_port;
+        const SESSION_COOKIE = "dual-cookie-test.session_token=realToken.payload%3D";
+
+        before(() => {
+            svr = new http.Server(cookiePort, (r) => {
+                if (r.address === "/login") {
+                    r.response.appendHeader("set-cookie", SESSION_COOKIE + "; Path=/; HttpOnly");
+                    r.response.writeHead(200, {
+                        "Content-Type": "application/json"
+                    });
+                    r.response.write('{"success":true}');
+                    return;
+                }
+
+                // 回显原始 Cookie 头：allHeader 保留重复头，firstHeader 只取第一个
+                r.response.json({
+                    count: r.allHeader("cookie").length,
+                    values: r.allHeader("cookie"),
+                    first: r.firstHeader("cookie")
+                });
+            });
+            svr.start();
+
+            test_util.push(svr.socket);
+            jarClient = new http.Client();
+        });
+
+        function login(client) {
+            var lr = client.requestSync("POST", "http://127.0.0.1:" + cookiePort + "/login", {
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: "{}"
+            });
+            assert.equal(lr.statusCode, 200);
+            return (lr.firstHeader("set-cookie") || "").split(";")[0];
+        }
+
+        function echo(client, cookie, tag) {
+            var headers = {
+                "Content-Type": "application/json"
+            };
+            if (cookie !== null)
+                headers.Cookie = cookie;
+
+            var r = client.requestSync("POST", "http://127.0.0.1:" + cookiePort + "/echo-" + tag, {
+                headers,
+                body: "{}"
+            });
+            assert.equal(r.statusCode, 200);
+            return r.json();
+        }
+
+        it("explicit Cookie header must not be duplicated with jar cookies", () => {
+            var cookie = login(jarClient);
+
+            // 同一 client：显式传 Cookie（jar 中已有同名 cookie）
+            var j = echo(jarClient, cookie, "explicit-1");
+            assert.equal(j.count, 1, "服务端收到多个 Cookie 头: " + JSON.stringify(j.values));
+            assert.equal(j.values[0], cookie);
+
+            // 同一 client：不显式传（jar 自动附加，值必须原样保留 %3D）
+            j = echo(jarClient, null, "jar");
+            assert.equal(j.count, 1);
+            assert.equal(j.values[0], cookie, "jar 中的 cookie 值被破坏: " + JSON.stringify(j.values));
+
+            // 再显式一次，确认稳定
+            j = echo(jarClient, cookie, "explicit-2");
+            assert.equal(j.count, 1);
+            assert.equal(j.values[0], cookie);
+        });
+
+        it("explicit Cookie header on a fresh client (empty jar)", () => {
+            var cookie = login(jarClient);
+            var fresh = new http.Client();
+
+            var j = echo(fresh, cookie, "fresh-explicit");
+            assert.equal(j.count, 1);
+            assert.equal(j.values[0], cookie);
+        });
     });
 
     describe("body stream", () => {

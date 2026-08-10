@@ -734,7 +734,9 @@ result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
             str = v.string();
 
             cookie = new HttpCookie();
-            if (cookie->parse(str) >= 0)
+            // 不解析 URL 编码：RFC 6265 中 cookie 值是不透明字符串，
+            // Set-Cookie 里的 %XX（如 better-auth 的 base64 session token）必须原样存储、原样回发。
+            if (cookie->parseRaw(str) >= 0)
                 cookies->append(cookie);
         }
 

@@ -23,6 +23,7 @@ public:
 public:
     // HttpCookie_base
     virtual result_t parse(exlib::string header);
+    virtual result_t parseRaw(exlib::string header);
     virtual result_t match(exlib::string url, bool& retVal);
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t set_name(exlib::string newVal);
@@ -45,6 +46,11 @@ public:
 
 public:
     result_t fill(v8::Local<v8::Object> opts, bool bBase);
+
+private:
+    // parse/parseRaw 的公共实现；bDecode=true 保持公开 parse 与 toString
+    // 的往返解码语义（历史行为，测试锁定）。
+    result_t parse_ex(exlib::string header, bool bDecode);
 
 private:
     exlib::string m_name;

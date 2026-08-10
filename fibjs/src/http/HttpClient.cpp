@@ -1424,9 +1424,16 @@ public:
         bool enableCookie = false;
         m_hc->get_enableCookie(enableCookie);
         if (enableCookie) {
-            m_hc->get_cookie(m_url, cookie);
-            if (cookie.length() > 0)
-                m_req->appendHeader("Cookie", cookie);
+            // 用户显式提供了 Cookie 头时不再自动附加 jar 中的 cookie，
+            // 避免服务端收到两个 Cookie 头（与浏览器/Node 行为一致）。
+            bool bHasCookie = false;
+            if (m_o->headers)
+                m_o->headers->has("Cookie", bHasCookie);
+            if (!bHasCookie) {
+                m_hc->get_cookie(m_url, cookie);
+                if (cookie.length() > 0)
+                    m_req->appendHeader("Cookie", cookie);
+            }
         }
 
         m_req->set_keepAlive(m_o->keepAlive);
