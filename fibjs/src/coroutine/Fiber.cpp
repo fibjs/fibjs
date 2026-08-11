@@ -10,6 +10,7 @@
 #include "ifs/os.h"
 #include "ifs/process.h"
 #include "options.h"
+#include "EventEmitter.h"
 
 namespace fibjs {
 
@@ -165,6 +166,54 @@ JSFiber* JSFiber::current()
     return s_current;
 }
 
+// Handle unhandled promise rejections left when the outermost JS scope exits.
+// Aligns with node >= 15: when a promise has no handler and process has no
+// 'unhandledRejection' listener, log the error and terminate the process with
+// exit code 1 (skipping 'beforeExit'). When a listener exists, dispatch the
+// event with (reason, promise) instead and keep running.
+static void handleUnhandledPromiseRejections(Isolate* isolate,
+    std::vector<std::pair<v8::Global<v8::Value>, v8::Global<v8::Value>>>&& errors)
+{
+    // std::function requires a copyable callable, so share the move-only
+    // error list through a shared_ptr.
+    auto pErrors = std::make_shared<std::vector<std::pair<v8::Global<v8::Value>, v8::Global<v8::Value>>>>(std::move(errors));
+
+    isolate->sync([isolate, pErrors]() -> int {
+        JSFiber::EnterJsScope s;
+        JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+
+        int32_t count = 0;
+        t.listenerCount("unhandledRejection", count);
+
+        if (count > 0) {
+            for (auto& e : *pErrors) {
+                v8::Local<v8::Value> args[2] = {
+                    e.second.Get(isolate->m_isolate),
+                    e.first.Get(isolate->m_isolate)
+                };
+                bool r;
+                t._emit("unhandledRejection", args, 2, r);
+            }
+            return 0;
+        }
+
+        for (auto& e : *pErrors) {
+            v8::Local<v8::Value> reason = e.second.Get(isolate->m_isolate);
+            if (reason->IsNativeError())
+                errorLog(GetException(reason, false, true));
+            else
+                errorLog(isolate->toString(reason));
+        }
+
+        // Worker isolate crash semantics (propagating the error to the master)
+        // belong to the deferred D2 work; here we keep the log-only behavior.
+        if (!isolate->m_parent_worker)
+            process_base::exit(1);
+
+        return 0;
+    });
+}
+
 result_t JSFiber::js_invoke()
 {
     EnterJsScope s(this);
@@ -219,7 +268,7 @@ JSFiber::EnterJsScope::~EnterJsScope()
 
     isolate->m_js_scope_depth--;
 
-    // Only log unhandled promise rejections when the outermost JS scope exits,
+    // Only handle unhandled promise rejections when the outermost JS scope exits,
     // giving inner scopes' callers a chance to attach .catch() handlers.
     if (isolate->m_js_scope_depth == 0 && !isolate->m_promise_error.IsEmpty()) {
         v8::Local<v8::Context> _context = isolate->context();
@@ -227,21 +276,25 @@ JSFiber::EnterJsScope::~EnterJsScope()
         JSArray ks = _promise_error->GetPropertyNames(_context);
         int32_t len = ks->Length();
 
+        std::vector<std::pair<v8::Global<v8::Value>, v8::Global<v8::Value>>> errors;
         for (int32_t i = 0; i < len; i++) {
             JSValue v = _promise_error->Get(_context, JSValue(ks->Get(_context, i)));
             if (v->IsArray()) {
                 v8::Local<v8::Array> o = v.As<v8::Array>();
-                v = o->Get(_context, 1);
-
-                if (v->IsNativeError())
-                    errorLog(GetException(v, false, true));
-                else
-                    errorLog(isolate->toString(v));
+                v8::Local<v8::Value> promise = o->Get(_context, 0).FromMaybe(v8::Local<v8::Value>());
+                v8::Local<v8::Value> reason = o->Get(_context, 1).FromMaybe(v8::Local<v8::Value>());
+                if (!reason.IsEmpty())
+                    errors.emplace_back(
+                        v8::Global<v8::Value>(isolate->m_isolate, promise),
+                        v8::Global<v8::Value>(isolate->m_isolate, reason));
             }
         }
 
         isolate->m_promise_error.Reset();
         isolate->m_promise_error_no = 0;
+
+        if (!errors.empty())
+            handleUnhandledPromiseRejections(isolate, std::move(errors));
     }
 
     m_pFiber->m_quit.set();

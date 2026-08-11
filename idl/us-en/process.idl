@@ -17,6 +17,15 @@
 
  process.exitCode is passed as the only parameter value to the `beforeExit` event listener's callback function. If the process is about to terminate due to an explicit reason, such as directly calling process.exit or throwing an uncaught exception, the `beforeExit` event will not be triggered.
 
+ ### unhandledRejection Event
+ **When a Promise is rejected without any error handler attached, the `unhandledRejection` event will be triggered**
+ ```JavaScript
+ process.on('unhandledRejection', (reason, promise) => {});
+ ```
+ The callback function of the `unhandledRejection` event listener has two parameters: the first is the rejection reason `reason`, and the second is the rejected `promise` object.
+
+ If no listener is bound to the `unhandledRejection` event, fibjs will print the error and terminate the process with exit code 1 (consistent with node >= 15 behavior), and the `beforeExit` event will not be triggered.
+
  ### exit Event
  **When fibjs exits, the `exit` event will be triggered, and once all listeners bound to the `exit` event are executed, the process will terminate**
  ```JavaScript

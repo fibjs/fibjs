@@ -30,6 +30,7 @@ run("./util_test.js");
 run("./ts_strip_test.js");
 run("./types_test.js");
 run("./promise_test.js");
+run("./unhandled_rejection_test.js");
 run("./microtask_test.js");
 run("./xml_test.js");
 run("./querySelector_test.js");
