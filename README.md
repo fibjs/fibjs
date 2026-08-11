@@ -44,4 +44,4 @@ If you have any question, please open an issue [here](https://github.com/fibjs/f
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=fibjs/fibjs&type=Date)](https://star-history.com/#fibjs/fibjs&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=fibjs/fibjs&type=Date)](https://star-history.dera.page/#fibjs/fibjs&Date)
