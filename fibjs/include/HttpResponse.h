@@ -63,6 +63,7 @@ public:
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
     virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
+    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     virtual result_t json(Variant& retVal, AsyncEvent* ac);
     virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
     virtual result_t pack(Variant& retVal, AsyncEvent* ac);

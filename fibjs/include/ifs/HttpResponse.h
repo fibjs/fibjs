@@ -44,6 +44,8 @@ public:
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_redirected(bool& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t json(Variant& retVal, AsyncEvent* ac) = 0;
     static result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal);
     static result_t redirect(exlib::string url, int32_t status, obj_ptr<HttpResponse_base>& retVal);
     static result_t error(obj_ptr<HttpResponse_base>& retVal);
@@ -70,9 +72,14 @@ public:
     static void s_get_url(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_redirected(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE3(HttpResponse_base, json, v8::Local<v8::Value>, v8::Local<v8::Object>, Variant);
+    ASYNC_MEMBERVALUE1(HttpResponse_base, json, Variant);
 };
 }
 
@@ -85,6 +92,7 @@ inline ClassInfo& HttpResponse_base::class_info()
         { "writeHead", s_writeHead, false, ClassData::ASYNC_SYNC },
         { "addCookie", s_addCookie, false, ClassData::ASYNC_SYNC },
         { "redirect", s_redirect, false, ClassData::ASYNC_SYNC },
+        { "json", s_json, false, ClassData::ASYNC_ASYNC },
         { "json", s_static_json, true, ClassData::ASYNC_SYNC },
         { "redirect", s_static_redirect, true, ClassData::ASYNC_SYNC },
         { "error", s_static_error, true, ClassData::ASYNC_SYNC }
@@ -393,6 +401,33 @@ inline void HttpResponse_base::s_get_type(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->get_type(vr);
 
     METHOD_RETURN();
+}
+
+inline void HttpResponse_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Variant vr;
+
+    ASYNC_METHOD_INSTANCE(HttpResponse_base);
+    ASYNC_METHOD_ENTER("HttpResponse.json");
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_json(v0, v1, cb, args);
+    else
+        hr = pInst->ac_json(v0, v1, vr);
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_json(cb, args);
+    else
+        hr = pInst->ac_json(vr);
+
+    ASYNC_METHOD_RETURN();
 }
 
 inline void HttpResponse_base::s_static_json(const v8::FunctionCallbackInfo<v8::Value>& args)

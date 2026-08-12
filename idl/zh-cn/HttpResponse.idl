@@ -94,6 +94,16 @@ interface HttpResponse : HttpMessage
     /*! @brief 响应类型（"basic"、"cors"、"error" 等），覆盖 Message.type */
     readonly String type;
 
+    /*! @brief 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
+     @param data 要序列化为 JSON 的数据
+     @param options 选项对象，支持 status、statusText、headers
+     */
+    Variant json(Value data, Object options = {}) async;
+
+    /*! @brief 以 JSON 编码解析消息中的数据
+     */
+    Variant json() async;
+
     /*! @brief 创建一个 JSON 响应（静态工厂）
      @param data 要序列化为 JSON 的数据
      @param options 选项对象，支持 status、statusText、headers

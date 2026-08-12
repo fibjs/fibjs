@@ -94,6 +94,16 @@ interface HttpResponse : HttpMessage
     /*! @brief Response type ("basic", "cors", "error", etc.), overrides Message.type */
     readonly String type;
 
+    /*! @brief Write given data as JSON to the body, optionally setting the response status and headers
+     @param data The data to serialize as JSON
+     @param options Options object, supports status, statusText, headers
+     */
+    Variant json(Value data, Object options = {}) async;
+
+    /*! @brief Parse the message data as JSON
+     */
+    Variant json() async;
+
     /*! @brief Create a JSON response (static factory)
      @param data The data to serialize as JSON
      @param options Options object, supports status, statusText, headers

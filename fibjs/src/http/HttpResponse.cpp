@@ -135,6 +135,51 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEve
     return m_message->json(data, retVal, ac);
 }
 
+result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        // Sync phase (V8-safe): let m_message encode the body into m_ctx[0],
+        // then pack the options into m_ctx[1]. The async phase applies them.
+        result_t hr = m_message->json(data, retVal, ac);
+        if (hr != CALL_E_NOSYNC)
+            return hr;
+
+        obj_ptr<HttpResponse::ResponseOptions> opts;
+        hr = HttpResponse::ResponseOptions::load(options, opts);
+        if (hr < 0)
+            return hr;
+
+        // Normalize headers to a C++ object: the v8::Local alternative is
+        // unusable in the async phase.
+        if (opts->headers.has_value() && std::holds_alternative<v8::Local<v8::Object>>(opts->headers.value())) {
+            obj_ptr<Headers> hdrs = new Headers();
+            hdrs->append(std::get<v8::Local<v8::Object>>(opts->headers.value()));
+            opts->headers = hdrs;
+        }
+
+        ac->m_ctx.resize(2);
+        ac->m_ctx[1] = opts;
+        return CALL_E_NOSYNC;
+    }
+
+    // Async phase (C++-only, no V8 access): apply status / statusText /
+    // headers, then let m_message write the encoded body (which also sets
+    // Content-Type: application/json).
+    if (ac->m_ctx.size() > 1) {
+        obj_ptr<HttpResponse::ResponseOptions> opts = (HttpResponse::ResponseOptions*)ac->m_ctx[1].object();
+        if (opts->status.has_value())
+            set_statusCode(opts->status.value());
+        if (opts->statusText.has_value())
+            set_statusMessage(opts->statusText.value());
+        // appendHeader keeps any headers set before json(); the JSON body
+        // write below sets/overrides Content-Type.
+        if (opts->headers.has_value() && std::holds_alternative<obj_ptr<Headers_base>>(opts->headers.value()))
+            appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
+    }
+
+    return m_message->json(data, retVal, ac);
+}
+
 result_t HttpResponse::json(Variant& retVal, AsyncEvent* ac)
 {
     return m_message->json(retVal, ac);

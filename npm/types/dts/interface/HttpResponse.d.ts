@@ -131,6 +131,52 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     readonly type: string;
 
     /**
+     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
+     *      @param data 要序列化为 JSON 的数据
+     *      @param options 选项对象，支持 status、statusText、headers
+     *      
+     */
+    json(data: any, options?: FIBJS.GeneralObject): any;
+
+    json(data: any, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
+     *      @param data 要序列化为 JSON 的数据
+     *      @param options 选项对象，支持 status、statusText、headers
+     *      
+     */
+    jsonSync(data: any, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
+     *      @param data 要序列化为 JSON 的数据
+     *      @param options 选项对象，支持 status、statusText、headers
+     *      
+     */
+    jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
+
+    /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      
+     */
+    json(): any;
+
+    json(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      
+     */
+    jsonSync(): any;
+
+    /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      
+     */
+    jsonAsync(): Promise<any>;
+
+    /**
      * @description 创建一个 JSON 响应（静态工厂）
      *      @param data 要序列化为 JSON 的数据
      *      @param options 选项对象，支持 status、statusText、headers

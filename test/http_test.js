@@ -1532,6 +1532,66 @@ describe("http", () => {
         assert.deepEqual(rep.json(), v);
     });
 
+    it('json with options (status/statusText/headers)', () => {
+        var v = {
+            a: 100
+        };
+
+        var rep = new http.Response();
+
+        // single param: plain JSON body write (compat)
+        rep.json(v);
+        assert.equal(rep.firstHeader('Content-Type'), "application/json");
+        assert.deepEqual(rep.json(), v);
+
+        // with options: status + headers applied, body written
+        var rep2 = new http.Response();
+        rep2.json(v, {
+            status: 201,
+            statusText: "Created",
+            headers: {
+                "X-Custom": "yes"
+            }
+        });
+        assert.equal(rep2.status, 201);
+        assert.equal(rep2.statusMessage, "Created");
+        assert.equal(rep2.firstHeader('Content-Type'), "application/json");
+        assert.equal(rep2.firstHeader('X-Custom'), "yes");
+        assert.deepEqual(rep2.json(), v);
+
+        // existing headers are preserved (append semantics)
+        var rep3 = new http.Response();
+        rep3.setHeader('X-Pre', 'pre');
+        rep3.json(v, { status: 202, headers: { "X-Custom": "yes" } });
+        assert.equal(rep3.status, 202);
+        assert.equal(rep3.firstHeader('X-Pre'), 'pre');
+        assert.equal(rep3.firstHeader('X-Custom'), 'yes');
+        assert.equal(rep3.firstHeader('Content-Type'), 'application/json');
+
+        // server round-trip: status + headers reach the client
+        var logs = [];
+        var svr = new http.Server(0, async (req) => {
+            if (req.address === '/ok') {
+                await req.response.json({ ok: 1 });
+            } else {
+                await req.response.json({ nf: 1 }, { status: 404, headers: { 'X-Custom': 'yes' } });
+            }
+        });
+        svr.start();
+        var port = svr.socket.localPort;
+
+        var r1 = http.getSync(`http://127.0.0.1:${port}/ok`, { headers: { Connection: 'close' } });
+        assert.equal(r1.status, 200);
+        assert.deepEqual(r1.json(), { ok: 1 });
+
+        var r2 = http.getSync(`http://127.0.0.1:${port}/nf`, { headers: { Connection: 'close' } });
+        assert.equal(r2.status, 404);
+        assert.equal(r2.headers['X-Custom'], 'yes');
+        assert.deepEqual(r2.json(), { nf: 1 });
+
+        svr.stop();
+    });
+
     it('pack', () => {
         var v = {
             a: 100,
