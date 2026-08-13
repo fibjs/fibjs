@@ -1080,6 +1080,93 @@ describe("mq", () => {
             for (k in p2r_host_tests)
                 test_one_host(k);
 
+            it("named params keep positional semantics", () => {
+                var params;
+                var rt = new mq.Routing({ "/users/:userId/posts/:slug": function (req) {
+                    params = req.params;
+                }});
+                var m = new mq.Message();
+
+                m.value = '/users/123/posts/hello%20world';
+                mq.invoke(rt, m);
+
+                assert.equal(params.length, 2);
+                assert.equal(params[0], '123');
+                assert.equal(params[1], 'hello world');
+                assert.equal(params.userId, '123');
+                assert.equal(params.slug, 'hello world');
+            });
+
+            it("named params edge cases", () => {
+                var lastParams;
+                var rt = new mq.Routing({
+                    "/users/:userId/posts/:slug": function (req) {
+                        lastParams = req.params;
+                    }
+                });
+
+                var m = new mq.Message();
+                m.value = '/users/123/posts/hello%20world';
+                mq.invoke(rt, m);
+                assert.equal(lastParams.length, 2);
+                assert.equal(lastParams[0], '123');
+                assert.equal(lastParams[1], 'hello world');
+                assert.equal(lastParams.userId, '123');
+                assert.equal(lastParams.slug, 'hello world');
+
+                m = new mq.Message();
+                m.value = '/users/456/posts/world';
+                mq.invoke(rt, m);
+                assert.equal(lastParams.length, 2);
+                assert.equal(lastParams[0], '456');
+                assert.equal(lastParams[1], 'world');
+                assert.equal(lastParams.userId, '456');
+                assert.equal(lastParams.slug, 'world');
+
+                var duplicateParams;
+                var duplicateRt = new mq.Routing({
+                    "/:id/:id": function (req) {
+                        duplicateParams = req.params;
+                    }
+                });
+
+                m = new mq.Message();
+                m.value = '/alpha/beta';
+                mq.invoke(duplicateRt, m);
+                assert.equal(duplicateParams.length, 2);
+                assert.equal(duplicateParams[0], 'alpha');
+                assert.equal(duplicateParams[1], 'beta');
+                assert.equal(duplicateParams.id, 'alpha');
+
+                var literalColonParams;
+                var literalColonRt = new mq.Routing({
+                    "/v1/:name/:version": function (req) {
+                        literalColonParams = req.params;
+                    }
+                });
+
+                m = new mq.Message();
+                m.value = '/v1/alpha/1.2.3';
+                mq.invoke(literalColonRt, m);
+                assert.equal(literalColonParams.name, 'alpha');
+                assert.equal(literalColonParams.version, '1.2.3');
+
+                var nestedParams;
+                var nestedRt = new mq.Routing({
+                    "/projects/:projectId/settings/:section": function (req) {
+                        nestedParams = req.params;
+                    }
+                });
+
+                m = new mq.Message();
+                m.value = '/projects/alpha/settings/profile';
+                mq.invoke(nestedRt, m);
+                assert.equal(nestedParams.projectId, 'alpha');
+                assert.equal(nestedParams.section, 'profile');
+                assert.equal(nestedParams[0], 'alpha');
+                assert.equal(nestedParams[1], 'profile');
+            });
+
             // Verify res is appended after route params when message is HttpRequest
             describe("HttpRequest route args include res", () => {
                 it("no capture groups: handler receives (req, res)", () => {

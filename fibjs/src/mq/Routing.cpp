@@ -14,6 +14,68 @@
 
 namespace fibjs {
 
+static void load_route_group_names(pcre2_code* re, Routing::route_info& info)
+{
+    uint32_t name_count = 0;
+    uint32_t entry_size = 0;
+    PCRE2_SPTR name_table = NULL;
+
+    if (pcre2_pattern_info(re, PCRE2_INFO_NAMECOUNT, &name_count) != 0 || name_count == 0)
+        return;
+
+    if (pcre2_pattern_info(re, PCRE2_INFO_NAMEENTRYSIZE, &entry_size) != 0 || entry_size == 0)
+        return;
+
+    if (pcre2_pattern_info(re, PCRE2_INFO_NAMETABLE, &name_table) != 0 || name_table == NULL)
+        return;
+
+    for (uint32_t i = 0; i < name_count; i++) {
+        PCRE2_SPTR entry = name_table + i * entry_size;
+        int32_t group_no = (entry[0] << 8) | entry[1];
+        exlib::string name((const char*)(entry + 2));
+
+        info.group_names[group_no] = name;
+    }
+}
+
+static exlib::string add_named_capture(const exlib::string& re, const exlib::string& name)
+{
+    size_t len = re.length();
+
+    for (size_t i = 0; i < len; i++) {
+        if (re[i] != '(')
+            continue;
+
+        if (i > 0 && re[i - 1] == '\\')
+            continue;
+
+        if (i + 1 < len && re[i + 1] == '?')
+            continue;
+
+        return re.substr(0, i + 1) + "?<" + name + ">" + re.substr(i + 1);
+    }
+
+    return re;
+}
+
+static void clear_named_params(NArray* list)
+{
+    std::vector<exlib::string> keys;
+
+    keys.reserve(list->m_keys.size());
+    for (auto& entry : list->m_keys)
+        keys.push_back(entry.first);
+
+    for (auto& key : keys) {
+        list->remove(key);
+    }
+}
+
+static void set_named_param(NArray* list, const exlib::string& name, Variant value)
+{
+    list->add(name, value);
+}
+
 result_t Routing_base::_new(v8::Local<v8::Object> map,
     obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -44,6 +106,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 {
     int32_t i, j;
     int32_t rc = 0;
+    Isolate* isolate = holder();
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     pcre2_match_data* match_data = pcre2_match_data_create(RE_SIZE, NULL);
 
@@ -96,6 +159,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             msg->get_params(list);
             list->resize(0);
+            clear_named_params(list);
 
             if (rc > 1) {
                 int32_t levelCount[RE_SIZE] = { 0 };
@@ -130,12 +194,23 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         Variant vUndefined;
                         for (i = 0; i < rc; i++)
                             if (level[i] == p) {
+                                const exlib::string* name = NULL;
+                                std::unordered_map<int32_t, exlib::string>::const_iterator name_index = r->m_info.group_names.find(i);
+
+                                if (name_index != r->m_info.group_names.end())
+                                    name = &name_index->second;
+
                                 if (ovector[i * 2 + 1] - ovector[i * 2] > 0) {
-                                    exlib::string p;
-                                    Url::decodeURI(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]), p);
-                                    list->append(p);
-                                } else
+                                    exlib::string param_value;
+                                    Url::decodeURI(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]), param_value);
+                                    list->append(param_value);
+                                    if (name)
+                                        set_named_param(list, *name, param_value);
+                                } else {
                                     list->append(vUndefined);
+                                    if (name)
+                                        set_named_param(list, *name, vUndefined);
+                                }
                             }
                     }
                 }
@@ -182,7 +257,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
     return 0;
 }
 
-exlib::string Routing::path2RegExp(exlib::string pattern)
+exlib::string Routing::path2RegExp(exlib::string pattern, route_info* info)
 {
     size_t len = pattern.length();
 
@@ -213,8 +288,21 @@ exlib::string Routing::path2RegExp(exlib::string pattern)
             else
                 last_ch = 0;
 
+            bool hasName = false;
+            bool allowNamedCapture = false;
+
             if (ch == ':') {
-                p.getKeyWord(str);
+                if (p.getKeyWord(str) > 0) {
+                    hasName = true;
+                    if (info)
+                        allowNamedCapture = info->named_groups.insert(str).second;
+                    else
+                        allowNamedCapture = true;
+                } else {
+                    res.append(1, ':');
+                    continue;
+                }
+
                 re = (last_ch == '.') ? "[^\\.]+" : "[^/]+";
                 re1 = re + "?";
                 ch = p.get();
@@ -265,7 +353,10 @@ exlib::string Routing::path2RegExp(exlib::string pattern)
             } else
                 re = "((?:" + re1 + "))";
 
-            res.append(re);
+            if (info && hasName && allowNamedCapture)
+                res.append(add_named_capture(re, str));
+            else
+                res.append(re);
         }
     }
 
@@ -273,7 +364,7 @@ exlib::string Routing::path2RegExp(exlib::string pattern)
     return res;
 }
 
-exlib::string Routing::host2RegExp(exlib::string pattern)
+exlib::string Routing::host2RegExp(exlib::string pattern, route_info* info)
 {
     size_t len = pattern.length();
 
@@ -311,10 +402,11 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     PCRE2_SIZE erroffset;
     pcre2_code* re;
     bool bSub = false;
+    route_info info;
 
     if (pattern.length() > 0 && pattern[0] != '^') {
         if (!qstricmp(method.c_str(), "HOST"))
-            pattern = host2RegExp(pattern);
+            pattern = host2RegExp(pattern, &info);
         else {
             bool isRoute = false;
             hdlr->isRouting(isRoute);
@@ -330,7 +422,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
                 bSub = true;
             }
 
-            pattern = path2RegExp(pattern);
+            pattern = path2RegExp(pattern, &info);
         }
     }
 
@@ -344,6 +436,8 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
         return CHECK_ERROR(Runtime::setError(buf));
     }
 
+    load_route_group_names(re, info);
+
     int32_t no = (int32_t)m_array.size();
 
     char strBuf[32];
@@ -351,7 +445,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
 
     SetPrivate(strBuf, hdlr->wrap());
 
-    obj_ptr<rule> r = new rule(method, re, hdlr, bSub);
+    obj_ptr<rule> r = new rule(method, re, hdlr, bSub, info);
     m_array.insert(m_array.begin(), r);
 
     retVal = this;

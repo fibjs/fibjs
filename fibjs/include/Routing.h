@@ -10,19 +10,28 @@
 #include "ifs/Routing.h"
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2/pcre2.h>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace fibjs {
 
 class Routing : public Routing_base {
 public:
+    class route_info {
+    public:
+        std::unordered_map<int32_t, exlib::string> group_names;
+        std::unordered_set<exlib::string> named_groups;
+    };
+
     class rule : public obj_base {
     public:
-        rule(exlib::string method, pcre2_code* re, Handler_base* hdlr, bool bSub)
+        rule(exlib::string method, pcre2_code* re, Handler_base* hdlr, bool bSub, const route_info& info)
             : m_method(method)
             , m_re(re)
             , m_hdlr(hdlr)
             , m_bSub(bSub)
+            , m_info(info)
         {
         }
 
@@ -36,6 +45,7 @@ public:
         pcre2_code* m_re;
         obj_ptr<Handler_base> m_hdlr;
         bool m_bSub;
+        route_info m_info;
     };
 
 public:
@@ -69,8 +79,8 @@ public:
 
 public:
     result_t _append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
-    static exlib::string host2RegExp(exlib::string pattern);
-    static exlib::string path2RegExp(exlib::string pattern);
+    static exlib::string host2RegExp(exlib::string pattern, route_info* info = NULL);
+    static exlib::string path2RegExp(exlib::string pattern, route_info* info = NULL);
 
 private:
     std::vector<obj_ptr<rule>> m_array;
