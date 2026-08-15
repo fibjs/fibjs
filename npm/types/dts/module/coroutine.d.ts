@@ -5,11 +5,23 @@
 /// <reference path="../interface/Event.d.ts" />
 /// <reference path="../interface/Fiber.d.ts" />
 /**
- * @description 并发控制模块
+ * @description 并发控制模块，提供纤程（fiber）的创建、调度、并发执行与同步原语
  * 
- * `coroutine` 模块提供了一个用于控制 `fiber` 执行顺序的 API。它允许开发者手动切换 `fiber`，从而实现协作式多任务。`coroutine` 模块的一个重要的函数是 `sleep` 函数，它允许当前正在执行的 `fiber` 让出 CPU，让其他 `fiber` 运行。
+ *  `coroutine` 模块基于协作式多任务模型：纤程按需主动让出 CPU（如调用 `sleep` 或等待 I/O），而非由系统抢占调度。模块提供以下能力：
+ * 
+ *  - **纤程管理**：`start` 启动纤程，`current` 获取当前纤程，`fibers` 查询运行中的纤程；
+ *  - **并发执行**：`parallel` 并行执行一组函数或处理一组数据，可限制并发数量；
+ *  - **调度控制**：`sleep` 暂停当前纤程，让出 CPU 供其他纤程运行；
+ *  - **同步原语**：`Lock` 锁、`Semaphore` 信号量、`Condition` 条件变量、`Event` 事件对象。
+ * 
+ *  引用方式：
+ * 
+ *  ```JavaScript
+ *  const coroutine = require('coroutine');
+ *  ```
  * 
  *  以下是一个简单的示例代码，演示了如何使用 `coroutine` 模块：
+ * 
  *  ```JavaScript
  *  const coroutine = require('coroutine');
  * 
@@ -28,7 +40,8 @@
  *  coroutine.start(foo);
  *  coroutine.start(bar);
  *  ```
- *  在上面的代码中，我们定义了两个函数 `foo` 和 `bar`，然后使用 `coroutine.start` 函数启动两个 `fiber`。在每个 `fiber` 中，我们使用 `coroutine.sleep` 函数来让出 CPU，让其他 `fiber` 运行。
+ * 
+ *  在上面的代码中，我们定义了两个函数 `foo` 和 `bar`，然后使用 `coroutine.start` 函数启动两个纤程。在每个纤程中，我们使用 `coroutine.sleep` 函数来让出 CPU，让其他纤程运行。
  *  
  */
 declare module 'coroutine' {
@@ -54,6 +67,8 @@ declare module 'coroutine' {
 
     /**
      * @description 启动一个纤程并返回纤程对象
+     * 
+     *      args 中的参数将在纤程内传递给函数。新纤程与当前纤程并发运行。
      *      @param func 制定纤程执行的函数
      *      @param args 可变参数序列，此序列会在纤程内传递给函数
      *      @return 返回纤程对象
@@ -63,6 +78,8 @@ declare module 'coroutine' {
 
     /**
      * @description 并行执行一组函数，并等待返回
+     * 
+     *      所有函数执行完毕后返回，返回数组与 funcs 顺序对应。fibers 指定并发纤程数量，缺省为 -1，启用与 funcs 数量相同的纤程。
      *      @param funcs 并行执行的函数数组
      *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
      *      @return 返回函数执行结果的数组
@@ -72,6 +89,8 @@ declare module 'coroutine' {
 
     /**
      * @description 并行执行一个函数处理一组数据，并等待返回
+     * 
+     *      datas 中的每个元素作为参数调用 func，全部完成后返回结果数组。fibers 指定并发纤程数量，缺省为 -1，启用与 datas 数量相同的纤程。
      *      @param datas 并行执行的数据数组
      *      @param func 并行执行的函数
      *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 datas 数量相同 fiber
@@ -82,6 +101,8 @@ declare module 'coroutine' {
 
     /**
      * @description 并行执行一个函数多次，并等待返回
+     * 
+     *      函数被执行 num 次，返回 num 个执行结果的数组。fibers 指定并发纤程数量，缺省为 -1，启用与任务数量相同的纤程。
      *      @param func 并行执行的函数数
      *      @param num 重复任务数量
      *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
@@ -92,6 +113,8 @@ declare module 'coroutine' {
 
     /**
      * @description 并行执行一组函数，并等待返回
+     * 
+     *      每个参数视为一个待执行函数，全部执行完毕后返回结果数组。
      *      @param funcs 一组并行执行的函数
      *      @return 返回函数执行结果的数组
      *      
@@ -107,6 +130,8 @@ declare module 'coroutine' {
 
     /**
      * @description 暂停当前纤程指定的时间
+     * 
+     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
      *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      *      
      */
@@ -116,6 +141,8 @@ declare module 'coroutine' {
 
     /**
      * @description 暂停当前纤程指定的时间
+     * 
+     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
      *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      *      
      */
@@ -123,6 +150,8 @@ declare module 'coroutine' {
 
     /**
      * @description 暂停当前纤程指定的时间
+     * 
+     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
      *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      *      
      */

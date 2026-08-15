@@ -7,102 +7,102 @@
  */
 module os_constants_signals
 {
-    /**/
+    /*! @brief 挂断信号，终端关闭时发送 */
     const SIGHUP = 1;
 
-    /**/
+    /*! @brief 中断信号，通常由 CTRL+C 触发 */
     const SIGINT = 2;
 
-    /**/
+    /*! @brief 退出信号，通常由 CTRL+\ 触发 */
     const SIGQUIT = 3;
 
-    /**/
+    /*! @brief 非法指令 */
     const SIGILL = 4;
 
-    /**/
+    /*! @brief 陷阱信号，用于调试 */
     const SIGTRAP = 5;
 
-    /**/
+    /*! @brief 中止信号，调用 abort() 时发送 */
     const SIGABRT = 6;
 
-    /**/
+    /*! @brief 与 SIGABRT 相同 */
     const SIGIOT = 6;
 
-    /**/
+    /*! @brief 总线错误 */
     const SIGBUS = 7;
 
-    /**/
+    /*! @brief 浮点异常 */
     const SIGFPE = 8;
 
-    /**/
+    /*! @brief 强制终止信号，不可捕获或忽略 */
     const SIGKILL = 9;
 
-    /**/
+    /*! @brief 用户自定义信号 1 */
     const SIGUSR1 = 10;
 
-    /**/
+    /*! @brief 段错误，访问无效内存 */
     const SIGSEGV = 11;
 
-    /**/
+    /*! @brief 用户自定义信号 2 */
     const SIGUSR2 = 12;
 
-    /**/
+    /*! @brief 管道破裂，写入无读取端的管道 */
     const SIGPIPE = 13;
 
-    /**/
+    /*! @brief 定时器到期信号 */
     const SIGALRM = 14;
 
-    /**/
+    /*! @brief 终止信号，通常由 kill 命令发送 */
     const SIGTERM = 15;
 
-    /**/
+    /*! @brief 协处理器栈错误 */
     const SIGSTKFLT = 16;
 
-    /**/
+    /*! @brief 子进程停止或终止 */
     const SIGCHLD = 17;
 
-    /**/
+    /*! @brief 继续运行被停止的进程 */
     const SIGCONT = 18;
 
-    /**/
+    /*! @brief 停止进程，不可捕获或忽略 */
     const SIGSTOP = 19;
 
-    /**/
+    /*! @brief 终端停止信号，通常由 CTRL+Z 触发 */
     const SIGTSTP = 20;
 
-    /**/
+    /*! @brief 后台进程读取终端 */
     const SIGTTIN = 21;
 
-    /**/
+    /*! @brief 后台进程写入终端 */
     const SIGTTOU = 22;
 
-    /**/
+    /*! @brief 套接字上有紧急数据 */
     const SIGURG = 23;
 
-    /**/
+    /*! @brief CPU 时间超限 */
     const SIGXCPU = 24;
 
-    /**/
+    /*! @brief 文件大小超限 */
     const SIGXFSZ = 25;
 
-    /**/
+    /*! @brief 虚拟定时器到期 */
     const SIGVTALRM = 26;
 
-    /**/
+    /*! @brief 性能剖析定时器到期 */
     const SIGPROF = 27;
 
-    /**/
+    /*! @brief 终端窗口大小变化 */
     const SIGWINCH = 28;
 
-    /**/
+    /*! @brief 异步 I/O 就绪 */
     const SIGIO = 29;
 
-    /**/
+    /*! @brief 与 SIGIO 相同 */
     const SIGPOLL = 29;
 
-    /**/
+    /*! @brief 电源故障 */
     const SIGPWR = 30;
 
-    /**/
+    /*! @brief 无效的系统调用 */
     const SIGSYS = 31;
 };

@@ -9,4 +9,3 @@ var idlFolder = path.join(__dirname, `../idl/${idlLang}`);
 var defs = parser(idlFolder);
 
 generator(defs, 'zh-CN', 'zh-cn');
-generator(defs, 'en', 'us-en');

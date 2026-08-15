@@ -12,36 +12,53 @@
 /// <reference path="../interface/HttpRepeater.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description http 模块封装了 HTTP 请求和响应的处理，让我们可以轻松地创建一个 http 服务器，也可以模拟客户端发起 http 请求。使用 http 模块，开发者可以很方便地编写和处理 HTTP 协议相关的代码
+ * @description http 模块提供 HTTP 服务端与客户端能力，可用于创建 HTTP/HTTPS 服务器、发起 HTTP 请求、处理请求与响应消息、管理 Cookie 等场景
  * 
- * 下面是一个简单的例子，创建一个 Web 服务器，返回一个 hello world 的响应信息：
+ *  模块的主要能力：
  * 
- * ```JavaScript
- * const http = require('http');
+ *  - **服务端**：`http.Server`、`http.HttpsServer`、`http.createServer` 创建服务器；`http.fileHandler` 以静态文件响应请求；`http.Repeater` 转发请求；
+ *  - **客户端**：`http.Client` 创建带 Cookie 管理的客户端；`http.requestSync`、`http.getSync` 等函数同步发起请求；`http.request`、`http.get` 等事件风格请求；`http.fetch` 按 Web Fetch 标准发送请求；
+ *  - **消息对象**：`http.Request`(HttpRequest)、`http.Response`(HttpResponse)、`http.Headers`、`http.Cookie`；
+ *  - **通用信息**：`http.STATUS_CODES` 状态码集合、`http.METHODS` 方法列表。
  * 
- * const server = new http.Server(8080, function(request) {
- *   request.response.write('Hello World!');
- * });
+ *  模块级属性(`keepAlive`、`timeout`、`enableCookie`、`autoRedirect`、`enableEncoding`、`enableH2`、`maxHeadersCount`、`maxHeaderSize`、`maxChunkSize`、`maxBodySize`、`userAgent`、`poolTimeout`、`maxFreeSockets`)为所有 HttpClient 的默认配置，修改后对后续请求全局生效。
  * 
- * server.start();
- * ```
+ *  客户端请求提供两种风格：
  * 
- * 这个例子中，我们引入 http 模块，然后定义了一个 http 服务器对象，并绑定到本地 8080 端口号。当有请求发送到这个端口号，响应会被设置为字符串 “Hello World!”。
+ *  - **同步风格**：`http.requestSync`、`http.getSync`、`http.postSync` 等函数，直接返回 HttpResponse 对象；
+ *  - **事件风格**：`http.request`、`http.get`、`http.post` 等函数，返回 HttpRequest 对象，需调用 `end()` 发送请求，通过回调或 `'response'` 事件接收响应。
  * 
- * 同时 http 模块还包含客户端对象，http.Client 模拟浏览器环境缓存 cookie，并在访问 url 的时候携带对应的 cookie 的 http 客户端对象。你可以用 http.Client 访问 http 接口请求、进行 http 下载等等一系列 http 相关的操作。下面是 http.Client 的应用示例：
+ *  下面是一个简单的例子，创建一个 Web 服务器，返回一个 hello world 的响应信息：
  * 
- * ```JavaScript
- * var http = require('http');
+ *  ```JavaScript
+ *  const http = require('http');
  * 
- * var httpClient = new http.Client();
- * httpClient.get('http://fibjs.org');
- * ```
+ *  const server = new http.Server(8080, function(request) {
+ *    request.response.write('Hello World!');
+ *  });
  * 
- * 在上面的示例中，创建了一个 http.Client 对象，然后调用 `get` 方法想 fibjs.org 发起了 http GET 请求。
+ *  server.start();
+ *  ```
  * 
- * 另外，http.Client 还有其他一些属性和方法可以被调用，如 `cookies` 等
+ *  这个例子中，我们引入 http 模块，然后定义了一个 http 服务器对象，并绑定到本地 8080 端口号。当有请求发送到这个端口号，响应会被设置为字符串 “Hello World!”。
  * 
- * https 模块是 http 模块的别名，使用 `require('https')` 同样可以得到 http 模块。
+ *  客户端请求示例：
+ * 
+ *  ```JavaScript
+ *  var http = require('http');
+ * 
+ *  // 同步请求，直接返回响应
+ *  var resp = http.getSync('http://fibjs.org');
+ *  console.log(resp.body.readAll().toString());
+ * 
+ *  // 事件风格请求，需调用 end() 发送
+ *  var req = http.get('http://fibjs.org', {}, function(resp) {
+ *      console.log(resp.body.readAll().toString());
+ *  });
+ *  req.end();
+ *  ```
+ * 
+ *  https 模块是 http 模块的别名，使用 `require('https')` 同样可以得到 http 模块。
  * 
  */
 declare module 'http' {
@@ -51,7 +68,7 @@ declare module 'http' {
     const Request: typeof Class_HttpRequest;
 
     /**
-     * @description Node.js 兼容别名，等同于 HttpRequest 
+     * @description 兼容别名，等同于 HttpRequest 
      */
     const IncomingMessage: typeof Class_HttpRequest;
 
@@ -61,7 +78,7 @@ declare module 'http' {
     const Response: typeof Class_HttpResponse;
 
     /**
-     * @description Node.js 兼容别名，等同于 HttpResponse 
+     * @description 兼容别名，等同于 HttpResponse 
      */
     const ServerResponse: typeof Class_HttpResponse;
 
@@ -137,7 +154,7 @@ declare module 'http' {
     const STATUS_CODES: FIBJS.GeneralObject;
 
     /**
-     * @description 返回 Node.js HTTP 模块支持的所有 HTTP 方法名称（大写）的数组。 
+     * @description 返回 HTTP 协议支持的所有方法名称（大写）的数组。 
      */
     const METHODS: any[];
 
@@ -234,6 +251,7 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，并返回结果
+     * 
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -245,7 +263,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
-     *          "path": "", // Node.js 兼容的 pathname 别名，用于 request 选项。
+     *          "path": "", // pathname 的别名，用于 request 选项。
      *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
@@ -322,6 +340,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -333,7 +353,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
-     *          "path": "", // Node.js 兼容的 pathname 别名，用于 request 选项。
+     *          "path": "", // pathname 的别名，用于 request 选项。
      *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "timeout": 0, // 请求超时时间（毫秒），缺省使用客户端默认设置
      *          "query": {},
@@ -355,6 +375,8 @@ declare module 'http' {
 
     /**
      * @description 请求 opts 指定的 url，并返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -385,6 +407,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，并返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -416,6 +440,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param method 指定 http 请求方法：GET, POST 等
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
@@ -427,6 +453,8 @@ declare module 'http' {
 
     /**
      * @description 请求 opts 指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -436,6 +464,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -446,6 +476,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -455,6 +487,8 @@ declare module 'http' {
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param method 指定 http 请求方法：GET, POST 等
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -494,6 +528,8 @@ declare module 'http' {
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -521,6 +557,8 @@ declare module 'http' {
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -531,6 +569,8 @@ declare module 'http' {
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -569,6 +609,8 @@ declare module 'http' {
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -599,6 +641,8 @@ declare module 'http' {
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -609,6 +653,8 @@ declare module 'http' {
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -647,6 +693,8 @@ declare module 'http' {
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -674,6 +722,8 @@ declare module 'http' {
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -684,6 +734,8 @@ declare module 'http' {
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -722,6 +774,8 @@ declare module 'http' {
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -752,6 +806,8 @@ declare module 'http' {
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -762,6 +818,8 @@ declare module 'http' {
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -800,6 +858,8 @@ declare module 'http' {
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -830,6 +890,8 @@ declare module 'http' {
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -840,6 +902,8 @@ declare module 'http' {
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -878,6 +942,8 @@ declare module 'http' {
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -905,6 +971,8 @@ declare module 'http' {
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -915,6 +983,8 @@ declare module 'http' {
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
+     * 
+     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象

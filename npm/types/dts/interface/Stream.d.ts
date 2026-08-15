@@ -5,7 +5,18 @@
 /**
  * @description 流操作对象，用于二进制数据流读写
  * 
- * Stream 为基础对象，用于为流处理定义标准借口，不能独立创建 
+ * Stream 为基础对象，用于为流处理定义标准接口，不能独立创建。FileStream、MemoryStream、Socket 等具体流对象均继承自 Stream。
+ * 
+ * 流对象提供以下能力：
+ * 
+ *  - **读取**：`read`、`readBuffer` 读取指定大小数据，`readAll` 读取剩余全部数据；可通过 `setEncoding` 设置编码使 `read` 返回字符串；
+ *  - **写入**：`write`、`writeBuffer` 写入数据，`copyTo` 复制数据到目标流；
+ *  - **事件**：`data`、`close`、`error` 事件（继承自 EventEmitter）；
+ *  - **生命周期**：`flush` 刷新数据、`end` 结束写入、`close` 关闭流、`destroy` 销毁流；
+ *  - **进程控制**：`ref`/`unref` 控制流对象是否阻止 fibjs 进程退出；
+ *  - **兼容接口**：`resume`、`pause`、`pipe`、`unpipe`、`getReader`（WHATWG ReadableStreamDefaultReader 兼容）。
+ * 
+ * 读取方法在无数据可读或连接中断时返回 null。 
  */
 declare class Class_Stream extends Class_EventEmitter {
     /**

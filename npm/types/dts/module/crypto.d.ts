@@ -12,7 +12,19 @@
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../module/subtle.d.ts" />
 /**
- * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块 
+ * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块
+ * 
+ *  模块的主要能力：
+ * 
+ *  - **摘要**：`createHash`、`createHmac`、`hash` 计算消息摘要与 HMAC；
+ *  - **对称加密**：`createCipher`/`createCipheriv`、`createDecipher`/`createDecipheriv`；
+ *  - **非对称加密**：`createSign`/`sign`、`createVerify`/`verify`、`privateEncrypt`/`publicDecrypt` 等公私钥加解密；
+ *  - **密钥管理**：`createPrivateKey`、`createPublicKey`、`createSecretKey`、`generateKeyPair` 生成与导入密钥；
+ *  - **密钥交换**：`createECDH`、`diffieHellman`、`hkdf`、`pbkdf2`、`scrypt` 派生与交换密钥；
+ *  - **随机数**：`randomBytes`、`randomFill`、`getRandomValues`、`randomUUID`；
+ *  - **证书**：`X509Certificate`、`createCertificateRequest`；
+ *  - **其他**：`getHashes`/`getCiphers`/`getCurves` 查询支持列表，`timingSafeEqual` 常量时间比较，BBS 签名（`bbsSign`/`bbsVerify`/`proofGen`/`proofVerify`）。
+ *  
  */
 declare module 'crypto' {
     /**

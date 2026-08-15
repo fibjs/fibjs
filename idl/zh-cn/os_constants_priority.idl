@@ -7,21 +7,21 @@
  */
 module os_constants_priority
 {
-    /**/
+    /*! @brief 低优先级 */
     const PRIORITY_LOW = 19;
 
-    /**/
+    /*! @brief 低于正常优先级 */
     const PRIORITY_BELOW_NORMAL = 10;
 
-    /**/
+    /*! @brief 正常优先级 */
     const PRIORITY_NORMAL = 0;
 
-    /**/
+    /*! @brief 高于正常优先级 */
     const PRIORITY_ABOVE_NORMAL = -7;
 
-    /**/
+    /*! @brief 高优先级 */
     const PRIORITY_HIGH = -14;
 
-    /**/
+    /*! @brief 最高优先级 */
     const PRIORITY_HIGHEST = -20;
 };

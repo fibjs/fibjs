@@ -6,53 +6,61 @@
  * 
  *  console 模块是一个核心模块，它提供了类似于浏览器中 console 对象的功能，可以将信息输出到控制台，方便调试和输出信息。
  * 
+ *  模块的主要能力：
+ * 
+ *  - **分级日志**：`log`、`debug`、`info`、`notice`、`warn`、`error`、`crit`、`alert` 按严重程度分级输出，通过 `loglevel` 过滤；`trace` 输出调用堆栈；
+ *  - **输出设备管理**：`add`/`use` 将输出发送到 console、syslog、event、nslog、file 等设备，`reset` 恢复默认；
+ *  - **格式化输出**：`dir` 以 JSON 格式输出对象，`table` 以表格输出，`print` 输出不记日志且不换行；
+ *  - **交互**：`readLine` 读取用户输入，`getpass` 读取密码，`moveTo`/`hideCursor`/`showCursor`/`clear` 控制光标与屏幕；
+ *  - **计时**：`time`/`timeElapse`/`timeEnd` 计时代码执行时间。
+ * 
  *  console 模块中最常用的方法是 log()，该方法可以将任何 JavaScript 值打印到控制台，并自动添加换行符。除了 log() 方法外，还有 info()、warn()、error() 方法，分别用于输出信息、警告和错误，它们的功能和 log() 方法基本相同，只是在控制台中显示的样式不同。
  * 
  *  console 模块还提供了 dir() 方法，用于将一个对象的属性和方法以可读性更强的形式输出到控制台，方便调试复杂的对象。另外，还有 time() 和 timeEnd() 方法，用于在控制台中计时代码执行的时间，并输出时间差。
  * 
- *  除了以上常用的方法，console 模块还提供了一些其他的方法，如 assert()、notic()、trace() 等，可以在不同的情况下方便地进行调试和信息输出。
+ *  除了以上常用的方法，console 模块还提供了一些其他的方法，如 assert()、notice()、trace() 等，可以在不同的情况下方便地进行调试和信息输出。
  * 
  *  console 模块是一个非常实用的模块，可以在开发过程中提高调试效率，方便快捷地输出各种信息。
  *  
  */
 declare module 'console' {
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，致命错误，最严重级别 
      */
     export const FATAL: 0;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，警报级别 
      */
     export const ALERT: 1;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，严重错误级别 
      */
     export const CRIT: 2;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，错误级别 
      */
     export const ERROR: 3;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，警告级别 
      */
     export const WARN: 4;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，提示级别 
      */
     export const NOTICE: 5;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，信息级别 
      */
     export const INFO: 6;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，调试级别 
      */
     export const DEBUG: 7;
 
@@ -62,7 +70,7 @@ declare module 'console' {
     export const PRINT: 9;
 
     /**
-     * @description loglevel 级别常量 
+     * @description loglevel 级别常量，全部输出，缺省级别 
      */
     export const NOTSET: 10;
 

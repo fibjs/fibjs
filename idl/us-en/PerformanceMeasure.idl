@@ -1,6 +1,0 @@
-/*! @brief PerformanceMeasure interface provides detailed information for performance measure records.*/
-interface PerformanceMeasure : PerformanceEntry
-{
-    /*! @brief Detailed information of the performance measure record. */
-    readonly Value detail;
-};

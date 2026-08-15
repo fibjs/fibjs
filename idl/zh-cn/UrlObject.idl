@@ -1,10 +1,10 @@
 /*! @brief URL 对象，实现 WHATWG URL 标准，用于解析、构造和操作 URL
 
-UrlObject 提供了完整的 URL 处理功能，兼容现代 Web 标准和 Node.js URL API。它支持 URL 的解析、构造、修改和格式化，并提供了丰富的属性和方法来操作 URL 的各个组成部分。
+UrlObject 提供了完整的 URL 处理功能，兼容现代 Web 标准 URL API。它支持 URL 的解析、构造、修改和格式化，并提供了丰富的属性和方法来操作 URL 的各个组成部分。
 
 ## 主要特性
 
-- **标准兼容**: 实现 WHATWG URL 标准和 Node.js URL API
+- **标准兼容**: 实现 WHATWG URL 标准
 - **Unicode 支持**: 完整支持国际化域名 (IDN) 和 Unicode 字符
 - **查询参数**: 集成 URLSearchParams 提供强大的查询参数操作
 - **路径处理**: 自动处理路径规范化和相对路径解析

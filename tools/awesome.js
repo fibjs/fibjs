@@ -53,4 +53,4 @@ list = list.replace(/- \[(.+?)\]\((.+?)\)/g, (s, s1, s2) => {
 });
 
 fs.writeTextFile(path.join(docsFolder, 'README.md'), list);
-fs.writeTextFile(path.join(docsFolder, 'SUMMARY.md'), ls.join('\n'));
+fs.writeTextFile(path.join(docsFolder, 'INDEX.md'), ls.join('\n'));

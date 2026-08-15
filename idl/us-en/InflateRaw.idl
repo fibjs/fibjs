@@ -1,8 +1,0 @@
-/*! @brief InflateRaw decompression codec, decompress deflate algorithm compressed data (raw format) */
-interface InflateRaw : ZlibCodec
-{
-    /*! @brief InflateRaw constructor
-     @param opts Decompression options
-     */
-    InflateRaw(Object opts = {});
-};

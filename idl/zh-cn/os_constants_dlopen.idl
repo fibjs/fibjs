@@ -7,18 +7,18 @@
  */
 module os_constants_dlopen
 {
-    /**/
+    /*! @brief 延迟绑定，符号在使用时才解析 */
     const RTLD_LAZY = 1;
 
-    /**/
+    /*! @brief 立即绑定，加载时解析全部符号 */
     const RTLD_NOW = 2;
 
-    /**/
+    /*! @brief 符号对后续加载的库全局可见 */
     const RTLD_GLOBAL = 256;
 
-    /**/
+    /*! @brief 符号仅对当前库可见 */
     const RTLD_LOCAL = 0;
 
-    /**/
+    /*! @brief 优先使用库自身的符号 */
     const RTLD_DEEPBIND = 8;
 };

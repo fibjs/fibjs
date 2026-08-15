@@ -1,8 +1,32 @@
-/*! @brief 网络访问模块
+/*! @brief net 模块提供网络基础能力，包括建立 TCP 连接、域名解析、IP 地址检测、创建 TCP 服务器等，是 http、tls、smtp 等网络模块的基础
 
- 基础模块。可用于创建和操作网络资源，引用方式：
+ 模块的主要能力：
+
+ - **连接**：`connect` 以多种形式建立 TCP 连接，支持 `tcp://`、`ssl://`、`unix:`、`pipe://` 协议；
+ - **解析**：`resolve`、`ip`、`ipv6` 查询主机名的地址；
+ - **服务器**：`createServer` 创建 TCP 服务器；
+ - **检测**：`isIP`、`isIPv4`、`isIPv6` 检测 IP 地址格式；
+ - **对象别名**：`Socket`、`Smtp`、`TcpServer`、`Url`。
+
+ 引用方式：
+
  ```JavaScript
  var net = require('net');
+ ```
+
+ 建立 TCP 连接示例：
+
+ ```JavaScript
+ var net = require('net');
+
+ // 指定端口与主机
+ var sock = net.connect(80, 'example.com');
+ sock.send('GET / HTTP/1.0\r\n\r\n');
+ console.log(sock.recv());
+ sock.close();
+
+ // 使用 URL 形式，支持 tcp:// 与 ssl:// 协议
+ var ssl = net.connect('ssl://example.com:443');
  ```
  */
 module net
@@ -28,19 +52,21 @@ module net
     static Object info();
 
     /*! @brief 查询给定的主机名的地址
+
+     family 指定返回的地址族，取值为 AF_INET 或 AF_INET6，其他取值抛出异常。
      @param name 指定主机名
      @param family 指定查询返回类型，缺省为 AF_INET
      @return 返回查询的 ip 字符串
      */
     static String resolve(String name, Integer family = AF_INET) async;
 
-    /*! @brief 快速查询的主机地址，等效与 resolve(name)
+    /*! @brief 快速查询的主机地址，等效于 resolve(name)
      @param name 指定主机名
      @return 返回查询的 ip 字符串
      */
     static String ip(String name) async;
 
-    /*! @brief 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
+    /*! @brief 快速查询的主机 ipv6 地址，等效于 resolve(name, net.AF_INET6)
      @param name 指定主机名
      @return 返回查询的 ipv6 字符串
      */
@@ -63,6 +89,9 @@ module net
 
     /*! @brief 建立一个连接，并在连接建立后触发 connect 事件
      @param options 指定连接选项对象，可以包含以下属性：
+      - port: 指定对方端口
+      - host: 指定对方地址或主机名
+      - timeout: 指定超时时间，单位是毫秒，默认为 0
      @param connectListener 指定 once 的 connect 事件监听器
      @return 返回连接的 Socket 对象
      */

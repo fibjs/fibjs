@@ -2,7 +2,7 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description ZlibCodec 是 zlib 压缩解压缩编解码器的基类，提供 Node.js 兼容的 zlib 类构造函数接口
+ * @description ZlibCodec 是 zlib 压缩解压缩编解码器的基类，提供 zlib 类构造函数接口
  * 
  *  ZlibCodec 继承自 EventEmitter，可被用于 minizlib 等 npm 包。子类包括 Gzip、Gunzip、Deflate、Inflate、DeflateRaw、InflateRaw、Unzip。
  * 

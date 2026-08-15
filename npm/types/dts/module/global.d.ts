@@ -30,6 +30,14 @@
 /// <reference path="../interface/Timer.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
+ * 
+ *  全局对象提供以下能力：
+ * 
+ *  - **Web 标准对象**：`Buffer`、`URL`、`URLSearchParams`、`Blob`、`File`、`Headers`、`FormData`、`Request`、`Response`、`TextDecoder`、`TextEncoder`、`AbortController`、`AbortSignal`、`Event`、`EventTarget`、`MessagePort`、`MessageChannel`、`WebSocket`、`DOMParser`、`XMLSerializer` 等；
+ *  - **核心模块**：`console`、`process`、`performance`、`crypto`；
+ *  - **模块加载**：`require` 加载模块、`run` 运行脚本；
+ *  - **定时器**：`setTimeout`、`setInterval`、`setImmediate` 等，行为与 timers 模块同名函数一致；
+ *  - **工具函数**：`btoa`/`atob` 编解码、`structuredClone` 深拷贝、`fetch` 发送请求、`queueMicrotask` 排入微任务。
  */
 declare module 'global' {
     /**
@@ -254,9 +262,9 @@ declare module 'global' {
     function require(id: string): any;
 
     /**
-     * @description 在指定的时间后调用函数
+     * @description 在指定的时间后调用函数，行为与 timers 模块同名函数一致
      *     @param callback 指定回调函数
-     *     @param timeout 指定延时的时间，以毫秒为单位。超过 2^31 的话,立即执行。
+     *     @param timeout 指定延时的时间，以毫秒为单位，缺省为 1；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *     @param args 额外的参数，传入到指定的 callback 内，可选。
      *     @return 返回定时器对象
      *     
@@ -271,9 +279,9 @@ declare module 'global' {
     function clearTimeout(t: any): void;
 
     /**
-     * @description 每间隔指定的时间后调用函数
+     * @description 每间隔指定的时间后调用函数，行为与 timers 模块同名函数一致
      *      @param callback 指定回调函数
-     *      @param timeout 指定间隔的时间，以毫秒为单位。超过 2^31 的话,立即执行。
+     *      @param timeout 指定间隔的时间，以毫秒为单位；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *      @param args 额外的参数，传入到指定的 callback 内，可选。
      *      @return 返回定时器对象
      *     
@@ -304,7 +312,7 @@ declare module 'global' {
      *      ```
      *      这段代码中，第 8 行的循环并不会因为 cnt 的改变而结束，因为 JavaScript 在优化代码时会认定在这个循环过程中 cnt 不会被改变。
      *      @param callback 指定回调函数
-     *      @param timeout 指定间隔的时间，以毫秒为单位。超过 2^31 的话,立即执行。
+     *      @param timeout 指定间隔的时间，以毫秒为单位；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *      @param args 额外的参数，传入到指定的 callback 内，可选。
      *      @return 返回定时器对象
      *     

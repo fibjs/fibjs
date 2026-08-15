@@ -1,8 +1,0 @@
-/*! @brief Unzip decompression codec, auto-detect gzip or deflate format and decompress */
-interface Unzip : ZlibCodec
-{
-    /*! @brief Unzip constructor
-     @param opts Decompression options
-     */
-    Unzip(Object opts = {});
-};

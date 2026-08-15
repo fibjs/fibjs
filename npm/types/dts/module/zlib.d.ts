@@ -74,37 +74,37 @@ declare module 'zlib' {
     const constants: typeof import ('zlib_constants');
 
     /**
-     * ! Node.js 兼容的 Gzip 压缩类 
+     * ! Gzip 压缩类 
      */
     const Gzip: typeof Class_Gzip;
 
     /**
-     * ! Node.js 兼容的 Gunzip 解压缩类 
+     * ! Gunzip 解压缩类 
      */
     const Gunzip: typeof Class_Gunzip;
 
     /**
-     * ! Node.js 兼容的 Deflate 压缩类 
+     * ! Deflate 压缩类 
      */
     const Deflate: typeof Class_Deflate;
 
     /**
-     * ! Node.js 兼容的 Inflate 解压缩类 
+     * ! Inflate 解压缩类 
      */
     const Inflate: typeof Class_Inflate;
 
     /**
-     * ! Node.js 兼容的 DeflateRaw 压缩类 
+     * ! DeflateRaw 压缩类 
      */
     const DeflateRaw: typeof Class_DeflateRaw;
 
     /**
-     * ! Node.js 兼容的 InflateRaw 解压缩类 
+     * ! InflateRaw 解压缩类 
      */
     const InflateRaw: typeof Class_InflateRaw;
 
     /**
-     * ! Node.js 兼容的 Unzip 自动检测解压缩类 
+     * ! Unzip 自动检测解压缩类 
      */
     const Unzip: typeof Class_Unzip;
 

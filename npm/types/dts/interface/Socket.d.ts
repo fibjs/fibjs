@@ -4,10 +4,17 @@
 /**
  * @description 网络套接口对象
  * 
- *  Socket 属于 net 模块，创建方法
+ *  Socket 属于 net 模块，提供 TCP、unix socket 与 Windows pipe 的连接、监听与收发能力，创建方法：
  *  ```JavaScript
  *  var s = new net.Socket();
  *  ```
+ * 
+ *  Socket 继承自 Stream，具备流式读写能力，并提供以下网络特性：
+ * 
+ *  - **连接**：`connect` 以多种形式建立连接，连接成功后可用 `send`/`recv` 收发数据；
+ *  - **服务端**：`bind` 绑定地址与端口，`listen` 开始监听，`accept` 接受连接；
+ *  - **调优**：`setKeepAlive` 保持活动机制、`setNoDelay` 禁用 Nagle 算法、`setTimeout`/`timeout` 超时控制；
+ *  - **状态**：`remoteAddress`/`remotePort`/`localAddress`/`localPort` 查询连接地址信息，`isAlive` 检查连接可用性。
  *  
  */
 declare class Class_Socket extends Class_Stream {
@@ -117,7 +124,7 @@ declare class Class_Socket extends Class_Stream {
      *       - host: 指定对方地址或主机名
      *       - timeout: 指定超时时间，单位是毫秒，默认为 0
      * 
-     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param options 指定连接选项对象
      *      @return 返回连接的 Socket 对象
      *     
      */
@@ -133,7 +140,7 @@ declare class Class_Socket extends Class_Stream {
      *       - host: 指定对方地址或主机名
      *       - timeout: 指定超时时间，单位是毫秒，默认为 0
      * 
-     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param options 指定连接选项对象
      *      @return 返回连接的 Socket 对象
      *     
      */
@@ -147,7 +154,7 @@ declare class Class_Socket extends Class_Stream {
      *       - host: 指定对方地址或主机名
      *       - timeout: 指定超时时间，单位是毫秒，默认为 0
      * 
-     *      @param options 指定连接选项对象，可以包含以下属性：
+     *      @param options 指定连接选项对象
      *      @return 返回连接的 Socket 对象
      *     
      */

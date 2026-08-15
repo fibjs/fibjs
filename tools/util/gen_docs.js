@@ -193,17 +193,39 @@ module.exports = function (defs, docsFolder) {
     function gen_summary() {
         var _summary = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/SUMMARY.md'), "utf8"));
 
-        fs.writeFileSync(path.join(docsFolder, "module", "SUMMARY.md"), _summary({
+        var moduleSummary = _summary({
             title: '基础模块',
             defs: defs,
-            type: 'module'
-        }));
+            type: 'module',
+            prefix: 'manual/module/'
+        });
 
-        fs.writeFileSync(path.join(docsFolder, "object", "SUMMARY.md"), _summary({
+        var objectSummary = _summary({
             title: '内置对象',
             defs: defs,
-            type: 'interface'
-        }));
+            type: 'interface',
+            prefix: 'manual/object/'
+        });
+
+        // 聚合手动维护的 INDEX.md，生成根目录总 SUMMARY.md
+        // 结构：# 分组标题 + 列表，供 docs/webpack.config.js 按标题分组提取导航
+        var docsRoot = path.resolve(docsFolder, '..');
+        var summary = [];
+
+        function appendIndex(name, title) {
+            var indexFile = path.join(docsRoot, name, 'INDEX.md');
+            if (fs.existsSync(indexFile))
+                summary.push('# ' + title + '\n\n' + fs.readFileSync(indexFile, 'utf8').trim());
+            else
+                console.warn('[gen_docs] ' + path.join(name, 'INDEX.md') + ' not found, skipped');
+        }
+
+        appendIndex('guide', '开发指南');
+        summary.push('# 基础模块\n\n' + moduleSummary.trim());
+        summary.push('# 内置对象\n\n' + objectSummary.trim());
+        appendIndex('awesome', '社区模块');
+
+        fs.writeFileSync(path.join(docsRoot, 'SUMMARY.md'), summary.join('\n\n') + '\n');
     }
 
     function gen_readme() {

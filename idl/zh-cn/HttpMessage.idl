@@ -95,13 +95,13 @@ interface HttpMessage : Message
      */
     removeHeader(String name);
 
-    /*! @brief 查询指定键值的第一个消息头，兼容 Node.js
+    /*! @brief 查询指定键值的第一个消息头
      @param name 指定要查询的键值
      @return 返回键值所对应的值，若不存在，则返回 undefined
      */
     Value getHeader(String name);
 
-    /*! @brief 查询全部消息头，兼容 Node.js
+    /*! @brief 查询全部消息头
      @return 返回全部消息头的键值对
      */
     NObject getHeaders();

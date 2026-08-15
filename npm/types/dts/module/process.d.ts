@@ -3,6 +3,16 @@
 /**
  * @description 进程处理模块，用以管理当前进程的资源
  * 
+ *  模块的主要能力：
+ * 
+ *  - **进程信息**：`argv`、`execArgv`、`version`、`execPath`、`arch`、`platform`、`pid`、`ppid`、`env` 等属性；
+ *  - **进程控制**：`exit` 退出进程、`exitCode` 退出码、`cwd`/`chdir` 工作路径、`umask`、`uptime`、`hrtime` 计时、`kill` 发送信号；
+ *  - **资源报告**：`cpuUsage`、`memoryUsage`、`resourceUsage`；
+ *  - **调度**：`nextTick` 启动纤程执行函数；
+ *  - **标准流**：`stdin`、`stdout`、`stderr`；
+ *  - **父子进程通信**：`send`、`disconnect`、`connected`；
+ *  - **进程事件**：`beforeExit`、`exit`、`unhandledRejection`、`warning`、信号事件（详见下文）。
+ * 
  *  引用方法：
  *  ```JavaScript
  *  var process = require('process');
@@ -95,7 +105,7 @@ declare module 'process' {
     const platform: string;
 
     /**
-     * @description 返回当前构建的发布元数据，name 设为 'node' 以兼容 Node.js 生态 
+     * @description 返回当前构建的发布元数据，name 设为 'node' 
      */
     const release: FIBJS.GeneralObject;
 
@@ -283,7 +293,9 @@ declare module 'process' {
     function resourceUsage(): FIBJS.GeneralObject;
 
     /**
-     * @description 启动一个纤程
+     * @description 启动一个纤程执行指定的函数
+     * 
+     *      回调在当前同步代码执行完毕后启动,多个 nextTick 回调按注册顺序执行;args 中的参数将传递给函数。
      *      @param func 制定纤程执行的函数
      *      @param args 可变参数序列，此序列会在纤程内传递给函数
      *      

@@ -1,6 +1,6 @@
 /*! @brief URL 处理模块，提供 URL 解析、格式化、文件路径转换和国际化域名处理等功能
 
-url 模块实现了完整的 URL 处理功能，兼容 WHATWG URL 标准和传统 Node.js API。
+url 模块实现了完整的 URL 处理功能，兼容 WHATWG URL 标准与传统 URL API。
 它提供了 URL 对象、URLSearchParams 对象以及各种实用的 URL 操作函数。
 
 ## 主要功能

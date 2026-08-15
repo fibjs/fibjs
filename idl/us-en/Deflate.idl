@@ -1,8 +1,0 @@
-/*! @brief Deflate compression codec, compress data using deflate algorithm (zlib format) */
-interface Deflate : ZlibCodec
-{
-    /*! @brief Deflate constructor
-     @param opts Compression options
-     */
-    Deflate(Object opts = {});
-};

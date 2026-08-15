@@ -7,9 +7,7 @@ const path = require('path')
 
 const ejs = require('ejs');
 
-var { translate } = require('../translate');
-
-const IDL_LANG = process.env.FIBJS_IDL_LANG || 'us-en';
+const IDL_LANG = process.env.FIBJS_IDL_LANG || 'zh-CN';
 const LOG_PREFIX = `[generator]`;
 
 // Escape string value for IDL output
@@ -75,15 +73,7 @@ const ejs_tpl_module_member_object = ejs.compile(fs.readFileSync(path.resolve(__
 const ejs_tpl_module_member_method = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/module_member_method.idl.ejs'), "utf8"));
 
 function normalizeIDLTextFromModuleDef(mdef, idlLang = IDL_LANG) {
-    const _translate = (input) => {
-        if (idlLang === 'zh-CN') return input;
-
-        return translate(input, {
-            format: 'text',
-            from: 'zh-CN',
-            to: idlLang
-        });
-    };
+    const _translate = (input) => input;
 
     return ejs_tpl_module({
         declare: mdef.declare,
@@ -136,15 +126,7 @@ const ejs_tpl_interface_member_operator = ejs.compile(fs.readFileSync(path.resol
 const ejs_tpl_interface_member_event = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/interface_member_event.idl.ejs'), "utf8"));
 
 function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
-    const _translate = (input) => {
-        if (idlLang === 'zh-CN') return input;
-
-        return translate(input, {
-            format: 'text',
-            from: 'zh-CN',
-            to: idlLang
-        });
-    };
+    const _translate = (input) => input;
 
     return ejs_tpl_interface({
         declare: mdef.declare,

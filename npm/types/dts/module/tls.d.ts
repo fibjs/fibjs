@@ -6,7 +6,19 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 tls/ssl 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
+ * @description tls 模块是 fibjs 内置的加密模块，用于建立 tls/ssl 加密网络连接，提供加密验证，确保客户端和服务器之间的连接是安全的
+ * 
+ *  模块的主要能力：
+ * 
+ *  - **安全上下文**：`createSecureContext` 创建 SecureContext 对象，维护 CA 证书、证书链、私钥等 TLS 配置；
+ *  - **服务器**：`createServer` 创建 TLSServer，支持指定 SecureContext 或直接传 TLS 选项；
+ *  - **客户端**：`connect` 以多种形式建立 tls/ssl 连接，支持 URL、端口与主机名、选项对象三种形式；
+ *  - **对象别名**：`TLSSocket`、`Handler`（TLSHandler）、`Server`（TLSServer）。
+ * 
+ *  引用方式：
+ *  ```JavaScript
+ *  var tls = require('tls');
+ *  ```
  *  
  */
 declare module 'tls' {

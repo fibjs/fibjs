@@ -77,7 +77,7 @@ declare class Class_AsyncResource extends Class_object {
     /**
      * @description 将此资源标记为已销毁
      * 
-     *      在 fibjs 中这是一个空操作，但为了与 Node.js API 兼容而保留。
+     *      在 fibjs 中这是一个空操作，为兼容既有 API 调用而保留。
      * 
      *      @return 返回此 AsyncResource 的引用
      *     

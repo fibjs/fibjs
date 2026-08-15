@@ -143,7 +143,7 @@ declare class Class_HttpMessage extends Class_Message {
     removeHeader(name: string): void;
 
     /**
-     * @description 查询指定键值的第一个消息头，兼容 Node.js
+     * @description 查询指定键值的第一个消息头
      *      @param name 指定要查询的键值
      *      @return 返回键值所对应的值，若不存在，则返回 undefined
      *      
@@ -151,7 +151,7 @@ declare class Class_HttpMessage extends Class_Message {
     getHeader(name: string): any;
 
     /**
-     * @description 查询全部消息头，兼容 Node.js
+     * @description 查询全部消息头
      *      @return 返回全部消息头的键值对
      *      
      */

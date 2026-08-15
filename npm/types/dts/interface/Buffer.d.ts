@@ -7,6 +7,12 @@
  *  ```JavaScript
  *  var buf = new Buffer();
  *  ```
+ * 
+ *  Buffer 提供 `Buffer.alloc`、`Buffer.from`、`Buffer.concat` 等静态方法，以及读写、查找、切片、编码转换等实例方法。
+ * 
+ *  注意：`slice` 方法返回的新缓存对象与原对象**不共享内存**，对新对象的修改不会影响原对象。
+ * 
+ *  支持的编码格式包括："hex"、"base32"、"base58"、"base64"、"utf8"，以及 iconv 模块支持的全部字符集。
  *  
  */
 declare class Class_Buffer extends Class_object {
@@ -149,7 +155,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 拼接多个缓存区中的数据
      *      @param buflist 待拼接的Buffer数组
-     *      @param cutLength 截取多少个Buffer对象
+     *      @param cutLength 截取的字节数，缺省为 -1，表示拼接全部数据
      *      @return 拼接后产生的新 Buffer 对象
      *     
      */
@@ -208,7 +214,7 @@ declare class Class_Buffer extends Class_object {
      * @description 比较 buf1 和 buf2, 往往用于 Buffer 实例之间的排序. 该方式等价于 buf1.compare(buf2).
      *     @param buf1 待比较的 buf
      *     @param buf2 待比较的 buf
-     *     @return 返回比较字节长度
+     *     @return 返回比较结果：buf1 小于 buf2 返回 -1，相等返回 0，大于返回 1
      *      
      */
     static compare(buf1: Class_Buffer, buf2: Class_Buffer): number;
@@ -311,8 +317,8 @@ declare class Class_Buffer extends Class_object {
 
     /**
      * @description 从源缓存对象区域拷贝数据到目标缓存对象区域
-     *      @param src 目标缓存对象
-     *      @param start 源缓存对象开始字节位置
+     *      @param src 源缓存对象
+     *      @param start 目标缓存对象的写入起始位置
      *      @return 拷贝的数据字节长度
      *      
      */
@@ -722,6 +728,8 @@ declare class Class_Buffer extends Class_object {
 
     /**
      * @description 返回一个新缓存对象，包含指定起始到缓存结尾的数据
+     * 
+     *      返回的新缓存对象与原对象不共享内存，修改互不影响。
      *      @param start 指定范围的起始，缺省从头开始
      *      @return 返回新的缓存对象
      *      
@@ -730,6 +738,8 @@ declare class Class_Buffer extends Class_object {
 
     /**
      * @description 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+     * 
+     *      返回的新缓存对象与原对象不共享内存，修改互不影响。
      *      @param start 指定范围的起始
      *      @param end 指定范围的结束
      *      @return 返回新的缓存对象

@@ -134,6 +134,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
      *      @param data 要序列化为 JSON 的数据
      *      @param options 选项对象，支持 status、statusText、headers
+     *      @return 此方法不会返回数据
      *      
      */
     json(data: any, options?: FIBJS.GeneralObject): any;
@@ -144,6 +145,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
      *      @param data 要序列化为 JSON 的数据
      *      @param options 选项对象，支持 status、statusText、headers
+     *      @return 此方法不会返回数据
      *      
      */
     jsonSync(data: any, options?: FIBJS.GeneralObject): any;
@@ -152,12 +154,14 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
      *      @param data 要序列化为 JSON 的数据
      *      @param options 选项对象，支持 status、statusText、headers
+     *      @return 此方法不会返回数据
      *      
      */
     jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
      * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
      *      
      */
     json(): any;
@@ -166,12 +170,14 @@ declare class Class_HttpResponse extends Class_HttpMessage {
 
     /**
      * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
      *      
      */
     jsonSync(): any;
 
     /**
      * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
      *      
      */
     jsonAsync(): Promise<any>;
