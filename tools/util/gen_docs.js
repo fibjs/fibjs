@@ -208,21 +208,35 @@ module.exports = function (defs, docsFolder) {
         });
 
         // 聚合手动维护的 INDEX.md，生成根目录总 SUMMARY.md
-        // 结构：# 分组标题 + 列表，供 docs/webpack.config.js 按标题分组提取导航
+        // 结构：# Summary + ## 分组标题 + 列表，符合 GitBook SUMMARY.md 规范
+        //（首行 # Summary 为书标题，## 分组为 Part；docs/webpack.config.js 按 ## 标题分组提取导航）
         var docsRoot = path.resolve(docsFolder, '..');
-        var summary = [];
+        var summary = ['# Summary'];
+
+        // INDEX.md 位于分组子目录（如 guide/、awesome/），其链接相对该目录；
+        // 合并进根目录 SUMMARY.md 时需加上分组目录前缀，否则链接指向错误位置
+        function rewriteLinks(content, name) {
+            return content.split('\n').map(function (line) {
+                return line.replace(/\[([^\]]*)\]\(([^)]*)\)/g, function (s, title, target) {
+                    if (/^(https?:|#|\/)/.test(target))
+                        return s;
+
+                    return '[' + title + '](' + name + '/' + target.replace(/^\.\//, '') + ')';
+                });
+            }).join('\n');
+        }
 
         function appendIndex(name, title) {
             var indexFile = path.join(docsRoot, name, 'INDEX.md');
             if (fs.existsSync(indexFile))
-                summary.push('# ' + title + '\n\n' + fs.readFileSync(indexFile, 'utf8').trim());
+                summary.push('## ' + title + '\n\n' + rewriteLinks(fs.readFileSync(indexFile, 'utf8').trim(), name));
             else
                 console.warn('[gen_docs] ' + path.join(name, 'INDEX.md') + ' not found, skipped');
         }
 
         appendIndex('guide', '开发指南');
-        summary.push('# 基础模块\n\n' + moduleSummary.trim());
-        summary.push('# 内置对象\n\n' + objectSummary.trim());
+        summary.push('## 基础模块\n\n' + moduleSummary.trim());
+        summary.push('## 内置对象\n\n' + objectSummary.trim());
         appendIndex('awesome', '社区模块');
 
         fs.writeFileSync(path.join(docsRoot, 'SUMMARY.md'), summary.join('\n\n') + '\n');
