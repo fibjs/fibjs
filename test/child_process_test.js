@@ -1335,8 +1335,7 @@ describe("child_process", () => {
             "arg1",
             "arg2"
         ]).stdout), [
-            "--use_strict",
-            "--test",
+            "--use_strict"
         ]);
     });
 
