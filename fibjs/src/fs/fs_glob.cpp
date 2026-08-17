@@ -301,11 +301,51 @@ static obj_ptr<DirEntry> createDirEntry(const exlib::string& name, const exlib::
     return dirent;
 }
 
+// Split the first path component off a pattern, e.g. "a/b*.js" -> "a", "b*.js".
+static void splitFirstPatternComponent(const exlib::string& remaining, exlib::string& first, exlib::string& rest)
+{
+    for (size_t i = 0; i < remaining.length(); i++) {
+        if (isPathSlash(remaining[i])) {
+            first = remaining.substr(0, i);
+            rest = remaining.substr(i + 1);
+            return;
+        }
+    }
+
+    first = remaining;
+    rest.clear();
+}
+
+// Whether a match can still exist under a directory named entryName.
+// The first unconsumed pattern component must match the directory name,
+// or be ** (which matches any number of path segments).
+static bool canRecurseInto(const exlib::string& entryName, const exlib::string& remaining)
+{
+    if (remaining.empty())
+        return false;
+
+    exlib::string first, rest;
+
+    splitFirstPatternComponent(remaining, first, rest);
+
+    if (first == "**")
+        return true;
+
+    return matchesGlob(entryName, first, isWindows);
+}
+
 // Simplified recursive function to walk directory tree and collect matching files
+//
+// `remaining` holds the pattern components that are still unconsumed for
+// pruning: a match below a directory requires the first remaining component
+// to match the directory name (or be **), so the walk only descends when
+// that holds. Otherwise a pattern like "test/test.js" would recursively
+// scan the whole tree instead of just the "test" directory.
 static void walkDirectorySimple(
     const exlib::string& basePath,
     const exlib::string& currentPath,
     const exlib::string& pattern,
+    const exlib::string& remaining,
     const std::vector<exlib::string>& excludePatterns,
     std::set<GlobResult>& results,
     bool withFileTypes = false,
@@ -428,9 +468,17 @@ static void walkDirectorySimple(
             }
         }
 
-        // If it's a directory, continue walking
-        if (dirent.type == UV_DIRENT_DIR) {
-            walkDirectorySimple(basePath, relativePath, pattern, excludePatterns, results, withFileTypes, depth + 1, maxDepth);
+        // If it's a directory, continue walking when the pattern can still
+        // match something below it.
+        if (dirent.type == UV_DIRENT_DIR && canRecurseInto(entryName, remaining)) {
+            exlib::string nextRemaining = remaining;
+            exlib::string first, rest;
+
+            splitFirstPatternComponent(remaining, first, rest);
+            if (first != "**")
+                nextRemaining = rest;
+
+            walkDirectorySimple(basePath, relativePath, pattern, nextRemaining, excludePatterns, results, withFileTypes, depth + 1, maxDepth);
         }
     }
 }
@@ -625,7 +673,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
                 // Use temporary results set for this pattern
                 std::set<GlobResult> tempResults;
-                walkDirectorySimple(basePath, "", relativePattern, excludePatterns, tempResults, withFileTypes);
+                walkDirectorySimple(basePath, "", relativePattern, relativePattern, excludePatterns, tempResults, withFileTypes);
 
                 // Convert relative results to absolute using os_join
                 for (const auto& result : tempResults) {
@@ -651,7 +699,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
         }
 
         // Handle relative patterns
-        walkDirectorySimple(cwd, "", normalizedPattern, excludePatterns, results, withFileTypes);
+        walkDirectorySimple(cwd, "", normalizedPattern, normalizedPattern, excludePatterns, results, withFileTypes);
     }
 
     // Convert set to sorted array

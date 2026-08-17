@@ -155,6 +155,8 @@ static void printHelp()
          "\n"
          "  --check [options] <files>   run TypeScript type checker.\n"
          "\n"
+         "  --test [files|dirs|globs]   run test files with the built-in test module.\n"
+         "\n"
          "  --v8-options                print v8 command line options.\n"
          "\n"
          "Documentation can be found at http://fibjs.org\n");
