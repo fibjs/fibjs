@@ -14,17 +14,24 @@ const http = require('http');
 
 const outputFile = path.join(__dirname, '../fibjs/scripts/opt_tools/check.js');
 
+// TypeScript version to bundle. Pinned to the 6.x line on purpose:
+// the same-name shadowing patch below (and the check-only bundle format)
+// targets the 6.x JS compiler structure. TypeScript 7.x ships a native
+// Go compiler whose package layout has no lib/_tsc.js, so it is not
+// supported yet. Override with TSC_VERSION if needed.
+const TSC_VERSION = process.env.TSC_VERSION || '6.0.2';
+
 // Download and extract TypeScript from npm
 function downloadTypeScript() {
-    console.log('Fetching TypeScript package info from npm...');
+    console.log(`Fetching TypeScript ${TSC_VERSION} package info from npm...`);
     
     // Get package info
-    const res = http.getSync('https://registry.npmjs.org/typescript/latest');
+    const res = http.getSync('https://registry.npmjs.org/typescript/' + TSC_VERSION);
     const pkgInfo = res.json();
     const version = pkgInfo.version;
     const tarballUrl = pkgInfo.dist.tarball;
     
-    console.log(`Latest TypeScript version: ${version}`);
+    console.log(`TypeScript version: ${version}`);
     console.log(`Downloading from: ${tarballUrl}`);
     
     // Download tarball
@@ -188,23 +195,59 @@ function main() {
     console.log('\nStripping emit/transform/watch/build code...');
     tscCode = stripEmitCode(tscCode);
 
-    // Replace the final executeCommandLine call to force --noEmit
+    // Patch out the same-name shadowing rule: stock tsc drops a .js file from
+    // the program when a same-named .ts/.tsx file exists in the project (it
+    // assumes the .js is the emitted output of the .ts). fibjs --check runs
+    // with --allowJs by default and checks both files, so the shadowing is
+    // removed here. The patch neutralizes the two calls in
+    // getFileNamesFromConfigSpecs() that implement the priority-extension
+    // filtering during tsconfig include collection.
+    console.log('Patching out same-name shadowing rule...');
+    const shadowingPatch = [
+        '      // fibjs patch: skip the same-name shadowing check, so a .js file is',
+        '      // still included even when a same-named .ts/.tsx file is in the project',
+        '      // (stock tsc treats the .js as the emitted output of the .ts and drops it).',
+        '      if (false && hasFileWithHigherPriorityExtension(file, literalFileMap, wildcardFileMap, supportedExtensions, keyMapper)) {',
+        '        continue;',
+        '      }',
+        '      // (removed) removeWildcardFilesWithLowerPriorityExtension(file, wildcardFileMap, supportedExtensions, keyMapper);',
+        '      const key = keyMapper(file);',
+    ].join('\n');
+    const shadowingOriginal = [
+        '      if (hasFileWithHigherPriorityExtension(file, literalFileMap, wildcardFileMap, supportedExtensions, keyMapper)) {',
+        '        continue;',
+        '      }',
+        '      removeWildcardFilesWithLowerPriorityExtension(file, wildcardFileMap, supportedExtensions, keyMapper);',
+        '      const key = keyMapper(file);',
+    ].join('\n');
+    if (!tscCode.includes(shadowingOriginal)) {
+        console.error('WARNING: could not find same-name shadowing code to patch!');
+    }
+    else {
+        tscCode = tscCode.replace(shadowingOriginal, shadowingPatch);
+    }
+
+    // Replace the final executeCommandLine call to force --noEmit, --allowJs
+    // and --allowImportingTsExtensions for check mode.
     // NOTE: In fibjs, process.argv is a read-only getter that returns a new array
-    // on each access, so we cannot modify it. Instead we inject --noEmit directly
+    // on each access, so we cannot modify it. Instead we inject the flags directly
     // into sys.args before calling executeCommandLine.
+    const checkModeFlags = `// Force --noEmit, --allowImportingTsExtensions and --allowJs for check mode
+// (fibjs process.argv is a read-only getter, so we patch sys.args directly)
+if (!sys.args.some(function(a) { return a === "--noEmit"; })) {
+    sys.args.unshift("--noEmit");
+}
+if (!sys.args.some(function(a) { return a === "--allowImportingTsExtensions"; })) {
+    sys.args.unshift("--allowImportingTsExtensions");
+}
+if (!sys.args.some(function(a) { return a === "--allowJs"; })) {
+    sys.args.unshift("--allowJs");
+}
+executeCommandLine(sys, noop, sys.args);
+`;
     tscCode = tscCode.replace(
         'executeCommandLine(sys, noop, sys.args);',
-        [
-            '// Force --noEmit and --allowImportingTsExtensions for check-only mode',
-            '// (fibjs process.argv is a read-only getter, so we patch sys.args directly)',
-            'if (!sys.args.some(function(a) { return a === "--noEmit"; })) {',
-            '    sys.args.unshift("--noEmit");',
-            '}',
-            'if (!sys.args.some(function(a) { return a === "--allowImportingTsExtensions"; })) {',
-            '    sys.args.unshift("--allowImportingTsExtensions");',
-            '}',
-            'executeCommandLine(sys, noop, sys.args);',
-        ].join('\n')
+        checkModeFlags
     );
 
     // Generate the check.js file with header that patches fs module
@@ -219,6 +262,11 @@ function main() {
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * 
  * Usage: fibjs --check [options] <files...>
+ *
+ * The TypeScript checker runs with --allowJs enabled by default, so both
+ * .ts and .js files are checked (syntax and type errors). The bundled
+ * compiler is patched to skip the same-name shadowing rule (stock tsc
+ * drops a .js file when a same-named .ts file exists in the project).
  */
 
 (function() {

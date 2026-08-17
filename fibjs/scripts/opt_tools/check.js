@@ -9,6 +9,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * 
  * Usage: fibjs --check [options] <files...>
+ *
+ * The TypeScript checker runs with --allowJs enabled by default, so both
+ * .ts and .js files are checked (syntax and type errors). The bundled
+ * compiler is patched to skip the same-name shadowing rule (stock tsc
+ * drops a .js file when a same-named .ts file exists in the project).
  */
 
 (function() {
@@ -39738,10 +39743,13 @@ function getFileNamesFromConfigSpecs(configFileSpecs, basePath, options, host, e
         }
         continue;
       }
-      if (hasFileWithHigherPriorityExtension(file, literalFileMap, wildcardFileMap, supportedExtensions, keyMapper)) {
+      // fibjs patch: skip the same-name shadowing check, so a .js file is
+      // still included even when a same-named .ts/.tsx file is in the project
+      // (stock tsc treats the .js as the emitted output of the .ts and drops it).
+      if (false && hasFileWithHigherPriorityExtension(file, literalFileMap, wildcardFileMap, supportedExtensions, keyMapper)) {
         continue;
       }
-      removeWildcardFilesWithLowerPriorityExtension(file, wildcardFileMap, supportedExtensions, keyMapper);
+      // (removed) removeWildcardFilesWithLowerPriorityExtension(file, wildcardFileMap, supportedExtensions, keyMapper);
       const key = keyMapper(file);
       if (!literalFileMap.has(key) && !wildcardFileMap.has(key)) {
         wildcardFileMap.set(key, file);
@@ -109674,7 +109682,7 @@ if (sys.tryEnableSourceMapsForHost && /^development$/i.test(sys.getEnvironmentVa
 if (sys.setBlocking) {
   sys.setBlocking();
 }
-// Force --noEmit and --allowImportingTsExtensions for check-only mode
+// Force --noEmit, --allowImportingTsExtensions and --allowJs for check mode
 // (fibjs process.argv is a read-only getter, so we patch sys.args directly)
 if (!sys.args.some(function(a) { return a === "--noEmit"; })) {
     sys.args.unshift("--noEmit");
@@ -109682,5 +109690,9 @@ if (!sys.args.some(function(a) { return a === "--noEmit"; })) {
 if (!sys.args.some(function(a) { return a === "--allowImportingTsExtensions"; })) {
     sys.args.unshift("--allowImportingTsExtensions");
 }
+if (!sys.args.some(function(a) { return a === "--allowJs"; })) {
+    sys.args.unshift("--allowJs");
+}
 executeCommandLine(sys, noop, sys.args);
+
 //# sourceMappingURL=_tsc.js.map

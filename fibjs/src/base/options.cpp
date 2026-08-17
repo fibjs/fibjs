@@ -153,7 +153,11 @@ static void printHelp()
          "  --cov[=filename]            collect code coverage information (only work on the main Worker).\n"
          "  --cov-process               generate code coverage analysis report.\n"
          "\n"
-         "  --check [options] <files>   run TypeScript type checker.\n"
+         "  --check [options] <files>   run the TypeScript checker on the given\n"
+         "                              .ts/.js files (or the project when no files\n"
+         "                              are given). --allowJs is enabled by default,\n"
+         "                              so JavaScript files are checked too.\n"
+         "  -c                          alias for --check.\n"
          "\n"
          "  --test [files|dirs|globs]   run test files with the built-in test module.\n"
          "\n"
@@ -192,6 +196,12 @@ void options(int32_t& pos, char* argv[])
 
             if (opt_tools[j].name)
                 break;
+        } else if (!qstrcmp(arg, "-c")) {
+            // Alias for --check (Node compatible). Rewrite the argument so the
+            // rest of the pipeline (opt_tools lookup in run_main) sees --check.
+            static char check_arg[] = "--check";
+            argv[i] = check_arg;
+            break;
         }
 
         if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
