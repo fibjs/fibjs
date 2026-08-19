@@ -167,9 +167,10 @@ public:
     result_t requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(HttpRequest::Options* o, AsyncEvent* ac);
     result_t fire_request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
-        obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
+        obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac, bool auto_send = false);
     result_t fire_callback_request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
-        v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac);
+        v8::Local<v8::Function> callback, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac,
+        bool auto_send = false);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
         Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac, bool streaming);

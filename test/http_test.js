@@ -6246,15 +6246,15 @@ describe("http", () => {
         });
 
         describe("http.get(url, callback)", () => {
-            it("returns HttpRequest and callback receives response", (done) => {
+            it("auto-sends without end() and callback receives response (D-005)", (done) => {
                 var req = http.get(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
                         assert.equal(r.text(), "/hello");
                     });
                 });
-                req.end();
                 assert.ok(req);
+                // D-005: http.get 自动发送请求,无需手动调用 end()(与 Node.js http.get 一致)
             });
         });
 
@@ -6266,7 +6266,70 @@ describe("http", () => {
                     done(() => {
                         assert.equal(r.text(), "get-opts");
                     });
-                }).end();
+                });
+            });
+        });
+
+        describe("http.get/head auto-send without end() (D-005)", () => {
+            it("http.get(url) event style without end() emits response", (done) => {
+                var req = http.get(url("/hello"));
+                req.on("response", (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+                // 不调用 end():http.get 自动发送
+            });
+
+            it("http.head(url, callback) without end()", (done) => {
+                http.head(url("/echo-method"), (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                    });
+                });
+                // 不调用 end():http.head 自动发送
+            });
+
+            it("http.head(url) event style without end() emits response", (done) => {
+                var req = http.head(url("/echo-method"));
+                req.on("response", (r) => {
+                    done(() => {
+                        assert.equal(r.statusCode, 200);
+                    });
+                });
+                // 不调用 end():http.head 自动发送
+            });
+
+            it("http.get(url, callback) + end() still works (backward compat)", (done) => {
+                var req = http.get(url("/hello"), (r) => {
+                    done(() => {
+                        assert.equal(r.text(), "/hello");
+                    });
+                });
+                req.end(); // 旧模式:显式 end() 应保持无害
+            });
+
+            it("http.request(url, callback) without end() does NOT send", (done) => {
+                var fired = false;
+                var req = http.request(url("/hello"), (r) => {
+                    fired = true;
+                });
+                coroutine.sleep(500);
+                assert.equal(fired, false); // 与 Node.js http.request 一致:需手动 end()
+                req.end(); // 完成请求,避免悬挂
+                done();
+            });
+
+            it("http.post(url, callback) without end() does NOT send", (done) => {
+                var fired = false;
+                var req = http.post(url("/echo-body"), (r) => {
+                    fired = true;
+                });
+                coroutine.sleep(500);
+                assert.equal(fired, false); // post 需 write body 后手动 end()
+                req.end();
+                done();
             });
         });
 

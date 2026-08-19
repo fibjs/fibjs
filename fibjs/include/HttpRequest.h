@@ -147,6 +147,7 @@ public:
         obj_ptr<HttpRequest> req;
         obj_ptr<ValueHolder> req_holder;
         bool is_async = false;
+        bool auto_send = false; // D-005: get/head 便捷方法自动发送,无需手动 end()
         obj_ptr<HttpClient_base> agent;
 
         // Cast to concrete AbortSignal for internal C++ use (addAbortCallback / clearAbort).

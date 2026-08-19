@@ -26,7 +26,7 @@
  *  客户端请求提供两种风格：
  * 
  *  - **同步风格**：`http.requestSync`、`http.getSync`、`http.postSync` 等函数，直接返回 HttpResponse 对象；
- *  - **事件风格**：`http.request`、`http.get`、`http.post` 等函数，返回 HttpRequest 对象，需调用 `end()` 发送请求，通过回调或 `'response'` 事件接收响应。
+ *  - **事件风格**：`http.request`、`http.get`、`http.post` 等函数，返回 HttpRequest 对象，通过回调或 `'response'` 事件接收响应；其中 `http.get`、`http.head` 自动发送请求（与 Node.js `http.get` 一致），`http.request` 及 post/put/del/patch 需调用 `end()` 发送请求。
  * 
  *  下面是一个简单的例子，创建一个 Web 服务器，返回一个 hello world 的响应信息：
  * 
@@ -529,7 +529,7 @@ declare module 'http' {
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`；响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -558,7 +558,7 @@ declare module 'http' {
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -570,7 +570,7 @@ declare module 'http' {
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
@@ -943,7 +943,7 @@ declare module 'http' {
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`；响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -972,7 +972,7 @@ declare module 'http' {
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
@@ -984,7 +984,7 @@ declare module 'http' {
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
      * 
-     *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
+     *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
