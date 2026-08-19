@@ -30,6 +30,14 @@ if (process.env.FIBJS_TEST_MYSQL) {
     };
 }
 
+// MySQL 5.7 (低版本认证协议 mysql_native_password) - 通过 FIBJS_TEST_MYSQL57 环境变量控制
+if (process.env.FIBJS_TEST_MYSQL57) {
+    sql_server.mysql57 = {
+        desc: '[mysql57] sql db universal test (low-version auth protocol)',
+        conn_str: process.env.FIBJS_TEST_MYSQL57,
+    };
+}
+
 // MSSQL - 通过 FIBJS_TEST_MSSQL 环境变量控制
 // 连接格式: mssql://sa:password@host:port/test
 if (process.env.FIBJS_TEST_MSSQL) {
@@ -60,6 +68,7 @@ describe("db", () => {
                     break;
                 case 'mssql':
                 case 'mysql':
+                case 'mysql57':
                     conn.execute(`CREATE DATABASE IF NOT EXISTS \`${DBNAME}\``);
                     break;
                 case 'dm':
@@ -535,6 +544,7 @@ describe("db", () => {
 
         switch (type) {
             case 'mysql':
+            case 'mysql57':
                 // Test MySQL specific data types and return values
                 it("MySQL data types", () => {
                     // Drop table if exists

@@ -1,6 +1,6 @@
 #!/bin/bash
 # fibjs 全数据库覆盖测试脚本
-# 支持 Linux (Docker Compose 4 库) / macOS (brew PG+MySQL) / Windows (预装 PG+MySQL, Docker MSSQL)
+# 支持 Linux (Docker Compose 5 库) / macOS (brew PG+MySQL) / Windows (预装 PG+MySQL, Docker MSSQL)
 # 
 # 环境变量:
 #   BUILD_OS, BUILD_ARCH, BUILD_TYPE - 由 actions-env.sh 设置
@@ -34,7 +34,7 @@ echo "=== Platform: $OS ==="
 echo "=== Binary: $BIN ==="
 
 # ============================================================
-# Linux: Docker Compose 启动全部 4 个数据库
+# Linux: Docker Compose 启动全部 5 个数据库
 # ============================================================
 if [ "$OS" = "linux" ]; then
     echo "=== Starting database containers ==="
@@ -53,6 +53,14 @@ if [ "$OS" = "linux" ]; then
     echo -n "Waiting for MySQL..."
     for i in $(seq 1 60); do
         if docker exec fibjs-db-test-mysql mysqladmin ping -h localhost -u root -proot_test --silent 2>/dev/null; then
+            echo " ready!"; break
+        fi
+        echo -n "."; sleep 2
+    done
+
+    echo -n "Waiting for MySQL 5.7..."
+    for i in $(seq 1 60); do
+        if docker exec fibjs-db-test-mysql57 mysqladmin ping -h localhost -u root -proot_test --silent 2>/dev/null; then
             echo " ready!"; break
         fi
         echo -n "."; sleep 2
@@ -95,9 +103,10 @@ if [ "$OS" = "linux" ]; then
     fi
     export LD_LIBRARY_PATH="$DM_DRV_DIR:${LD_LIBRARY_PATH}"
 
-    # 全部 4 个数据库
+    # 全部 5 个数据库 (mysql57 验证低版本认证协议 mysql_native_password)
     export FIBJS_TEST_PSQL="psql://fibjs:fibjs_test@localhost:5432/test"
     export FIBJS_TEST_MYSQL="mysql://root:root_test@localhost:3306/test"
+    export FIBJS_TEST_MYSQL57="mysql://root:root_test@localhost:3307/test"
     export FIBJS_TEST_MSSQL="mssql://sa:Test_1234@localhost:1433/test"
     export FIBJS_TEST_DM="dm://SYSDBA:123456789@localhost:5236/test"
 
@@ -249,6 +258,7 @@ echo ""
 echo "=== Database environment variables ==="
 echo "FIBJS_TEST_PSQL=${FIBJS_TEST_PSQL:-'(not set)'}"
 echo "FIBJS_TEST_MYSQL=${FIBJS_TEST_MYSQL:-'(not set)'}"
+echo "FIBJS_TEST_MYSQL57=${FIBJS_TEST_MYSQL57:-'(not set)'}"
 echo "FIBJS_TEST_MSSQL=${FIBJS_TEST_MSSQL:-'(not set)'}"
 echo "FIBJS_TEST_DM=${FIBJS_TEST_DM:-'(not set)'}"
 
