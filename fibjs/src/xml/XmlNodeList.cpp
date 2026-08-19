@@ -535,12 +535,12 @@ result_t XmlNodeList::keys(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
         if (index >= m_childs.size()) {
-            cb(false);
+            cb(0, false);
             return;
         }
 
         retVal = (int32_t)index;
-        cb(true);
+        cb(0, true);
     });
     return 0;
 }
@@ -549,12 +549,12 @@ result_t XmlNodeList::values(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
         if (index >= m_childs.size()) {
-            cb(false);
+            cb(0, false);
             return;
         }
 
         retVal = m_childs[index]->m_node;
-        cb(true);
+        cb(0, true);
     });
     return 0;
 }
@@ -563,7 +563,7 @@ result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
         if (index >= m_childs.size()) {
-            cb(false);
+            cb(0, false);
             return;
         }
 
@@ -572,7 +572,7 @@ result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
         array->append(m_childs[index]->m_node);
 
         retVal = array;
-        cb(true);
+        cb(0, true);
     });
     return 0;
 }

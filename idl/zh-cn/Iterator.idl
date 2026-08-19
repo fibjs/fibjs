@@ -9,4 +9,10 @@ interface Iterator : object
     /*! @brief 迭代下一个元素
      @return 返回下一个元素，或者标记迭代结束 */
     (Variant value, Boolean done) next() async;
+
+    /*! @brief 终止迭代，释放迭代器持有的全部资源（幂等，可安全重复调用）
+      for...of / for await...of 提前退出时会由 JS 引擎自动调用
+     @param value 忽略的参数，用于兼容 JS 迭代协议中 return(value) 的调用
+     @return 返回 {done: true} 标记迭代结束 */
+    (Boolean done) return(Value value = undefined);
 };

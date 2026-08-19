@@ -756,7 +756,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
             "host": true,
             "assert": true,
             "export": true,
-            "delete": true
+            "delete": true,
+            "return": true
         };
 
         return ckws.hasOwnProperty(n) ? "_" + n : n;

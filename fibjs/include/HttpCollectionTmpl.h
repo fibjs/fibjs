@@ -299,12 +299,12 @@ public:
         sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(false);
+                cb(0, false);
                 return;
             }
 
             retVal = m_map[index].first;
-            cb(true);
+            cb(0, true);
         });
         return 0;
     }
@@ -314,12 +314,12 @@ public:
         sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(false);
+                cb(0, false);
                 return;
             }
 
             retVal = m_map[index].second;
-            cb(true);
+            cb(0, true);
         });
         return 0;
     }
@@ -329,7 +329,7 @@ public:
         sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(false);
+                cb(0, false);
                 return;
             }
 
@@ -339,7 +339,7 @@ public:
             array->append(m_map[index].second);
 
             retVal = array;
-            cb(true);
+            cb(0, true);
         });
         return 0;
     }

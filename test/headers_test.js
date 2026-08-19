@@ -263,6 +263,239 @@ describe("Headers API", () => {
         assert.strictEqual(result.value, undefined);
     });
 
+    it("Headers.values() return() protocol", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2'
+        });
+
+        const iterator = headers.values();
+
+        // return() exists per JS iterator protocol
+        assert.strictEqual(typeof iterator.return, 'function');
+
+        // Partially consume
+        const first = iterator.next();
+        assert.strictEqual(first.done, false);
+
+        // Explicit return() terminates the iterator and returns {done:true}
+        const ret = iterator.return();
+        assert.strictEqual(ret.done, true);
+
+        // Idempotent: next() is always done after return()
+        const r1 = iterator.next();
+        assert.strictEqual(r1.done, true);
+        const r2 = iterator.next();
+        assert.strictEqual(r2.done, true);
+
+        // return() can be called again safely
+        iterator.return();
+        const r3 = iterator.next();
+        assert.strictEqual(r3.done, true);
+    });
+
+    it("Headers for...of early break calls return()", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2'
+        });
+
+        // break out of the loop immediately - engine calls return()
+        let count = 0;
+        for (const v of headers.values()) {
+            count++;
+            break;
+        }
+        assert.strictEqual(count, 1);
+
+        // early return inside a function
+        (function() {
+            for (const v of headers.values())
+                return;
+        })();
+
+        // return with a value - engine calls return(value)
+        const ret = (function() {
+            for (const v of headers.values())
+                return 'early';
+        })();
+        assert.strictEqual(ret, 'early');
+
+        // break after consuming several items
+        let consumed = 0;
+        for (const v of headers.entries()) {
+            consumed++;
+            if (consumed >= 2)
+                break;
+        }
+        assert.strictEqual(consumed, 2);
+    });
+
+    it("Headers iterator return() after exhaustion", () => {
+        const headers = new Headers({
+            'x-test': 'value1'
+        });
+
+        const iterator = headers.values();
+
+        // Exhaust naturally
+        iterator.next();
+        const done = iterator.next();
+        assert.strictEqual(done.done, true);
+
+        // return() after natural exhaustion is a no-op
+        const ret = iterator.return();
+        assert.strictEqual(ret.done, true);
+        const r = iterator.next();
+        assert.strictEqual(r.done, true);
+    });
+
+    it("Headers iterator return() on empty iterator", () => {
+        const headers = new Headers();
+
+        const iterator = headers.values();
+
+        // Empty iterator is immediately done
+        const first = iterator.next();
+        assert.strictEqual(first.done, true);
+
+        // return() on an already-exhausted empty iterator is safe
+        const ret = iterator.return();
+        assert.strictEqual(ret.done, true);
+        assert.strictEqual(iterator.next().done, true);
+    });
+
+    it("Headers iterator independence after return()", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2',
+            'z-test': 'value3'
+        });
+
+        const it1 = headers.values();
+        const it2 = headers.values();
+
+        // Partially consume it1, then close it
+        it1.next();
+        it1.return();
+
+        // it2 is unaffected and can be fully consumed
+        const values = [];
+        let result = it2.next();
+        while (!result.done) {
+            values.push(result.value);
+            result = it2.next();
+        }
+        values.sort();
+        assert.deepEqual(values, ['value1', 'value2', 'value3']);
+
+        // it1 stays closed
+        assert.strictEqual(it1.next().done, true);
+    });
+
+    it("Headers for...of throw calls return()", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2'
+        });
+
+        const iterator = headers.values();
+
+        // Throw inside the loop body - engine must close the iterator
+        assert.throws(() => {
+            for (const v of iterator)
+                throw new Error('boom');
+        }, /boom/);
+
+        // Iterator must be closed after the throw
+        const r = iterator.next();
+        assert.strictEqual(r.done, true);
+    });
+
+    it("Headers return() ignores arguments", () => {
+        const headers = new Headers({
+            'x-test': 'value1'
+        });
+
+        // V8 passes a value argument on `return x` statements
+        const iterator = headers.values();
+        const ret = iterator.return(123);
+        assert.strictEqual(ret.done, true);
+        assert.strictEqual(iterator.next().done, true);
+
+        // Same for object arguments
+        const it2 = headers.values();
+        it2.return({ custom: true });
+        assert.strictEqual(it2.next().done, true);
+    });
+
+    it("Headers main iterator and keys()/entries() return()", () => {
+        const headers = new Headers({
+            'x-test': 'value1'
+        });
+
+        // Main iterator (Symbol.iterator) exposes return()
+        const main = headers[Symbol.iterator]();
+        assert.strictEqual(typeof main.return, 'function');
+        main.next();
+        main.return();
+        assert.strictEqual(main.next().done, true);
+
+        // keys() and entries() iterators also expose return()
+        const keys = headers.keys();
+        const entries = headers.entries();
+        assert.strictEqual(typeof keys.return, 'function');
+        assert.strictEqual(typeof entries.return, 'function');
+        keys.return();
+        entries.return();
+        assert.strictEqual(keys.next().done, true);
+        assert.strictEqual(entries.next().done, true);
+    });
+
+    it("Headers nested for...of break closes inner iterator only", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2'
+        });
+
+        const outer = headers.values();
+
+        let innerConsumed = 0;
+        for (const v of outer) {
+            for (const e of headers.entries()) {
+                innerConsumed++;
+                break; // only closes the inner iterator
+            }
+            break; // then closes the outer iterator
+        }
+        assert.strictEqual(innerConsumed, 1);
+
+        // Outer iterator was closed by break
+        assert.strictEqual(outer.next().done, true);
+
+        // A fresh iterator still works
+        let count = 0;
+        for (const v of headers.values())
+            count++;
+        assert.strictEqual(count, 2);
+    });
+
+    it("Headers closed iterator in for...of yields nothing", () => {
+        const headers = new Headers({
+            'x-test': 'value1',
+            'y-test': 'value2'
+        });
+
+        const iterator = headers.values();
+        iterator.return();
+
+        // for...of over a closed iterator terminates immediately
+        let count = 0;
+        for (const v of iterator)
+            count++;
+        assert.strictEqual(count, 0);
+    });
+
     it("Headers.entries() iterator", () => {
         const headers = new Headers({
             'content-type': 'text/plain',

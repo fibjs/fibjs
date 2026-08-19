@@ -32,8 +32,7 @@
         "querystring",
         "rtc",
         "tls",
-        "url",
-        "ws"
+        "url"
     ],
     "Encoding": [
         "base32",

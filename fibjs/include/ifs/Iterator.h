@@ -38,11 +38,28 @@ public:
         Variant value;
         bool done;
     };
+    class ReturnType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            retVal->Set(context, isolate->NewString("done"), GetReturnValue(isolate, done)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, done));
+        }
+
+    public:
+        bool done;
+    };
 
 public:
     // Iterator_base
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -58,6 +75,7 @@ public:
 public:
     static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_next(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__return(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(Iterator_base, next, obj_ptr<NextType>);
@@ -69,7 +87,8 @@ inline ClassInfo& Iterator_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC },
-        { "next", s_next, false, ClassData::ASYNC_ASYNC }
+        { "next", s_next, false, ClassData::ASYNC_ASYNC },
+        { "return", s__return, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -112,5 +131,21 @@ inline void Iterator_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->ac_next(vr);
 
     ASYNC_METHOD_RETURN();
+}
+
+inline void Iterator_base::s__return(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ReturnType> vr;
+
+    METHOD_INSTANCE(Iterator_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+
+    hr = pInst->_return(v0, vr);
+
+    METHOD_RETURN();
 }
 }
