@@ -1,10 +1,9 @@
 const path = require("path");
 const http = require('http');
-const ws = require("ws");
 const child_process = require('child_process');
 
 const svr = new http.Server(8081, {
-    '/shell': ws.upgrade(socket => {
+    '/shell': WebSocket.upgrade(socket => {
         // 检测默认shell
         const defaultShell = process.env.SHELL || '/bin/bash';
         const isZsh = defaultShell.includes('zsh');
@@ -39,7 +38,7 @@ const svr = new http.Server(8081, {
 
             // Handle child process output (PTY combines stdout and stderr)
             child.stdout.on('data', (data) => {
-                if (socket.readyState === ws.OPEN) {
+                if (socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
                         type: 'data',
                         data: data.toString()
@@ -49,7 +48,7 @@ const svr = new http.Server(8081, {
 
             // Handle child process exit
             child.on('exit', (code, signal) => {
-                if (socket.readyState === ws.OPEN) {
+                if (socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
                         type: 'data',
                         data: `\r\nProcess exited with code: ${code}\r\n`
@@ -61,7 +60,7 @@ const svr = new http.Server(8081, {
             // Handle child process errors
             child.on('error', (error) => {
                 console.error('Child process error:', error);
-                if (socket.readyState === ws.OPEN) {
+                if (socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
                         type: 'data',
                         data: `\r\nProcess error: ${error.message}\r\n`
