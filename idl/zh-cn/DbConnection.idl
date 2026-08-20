@@ -98,4 +98,31 @@ interface DbConnection : object
      @return 返回格式化之后的 sql 命令
      */
     String format(String sql, ...args);
+
+    /*! @brief 编译一条 SQL 为预编译语句（单语句），支持按条读取
+
+     @param sql 指定查询语句
+     @return 返回预编译语句对象
+     */
+    Statement prepare(String sql) async;
+
+    /*! @brief 执行并按条返回迭代器（等价 stmt.iterate(...args)）
+
+     推荐使用 for...of 遍历（break/异常自动释放游标）：
+
+     ```js
+     for (var row of conn.iterate('SELECT * FROM log WHERE ts > ?', ts)) {
+         process(row);    // 同一时刻只驻留一行
+     }
+     // break/异常/跑完均自动释放游标，连接立即可复用
+     ```
+
+     手动调用 next()/return() 是危险操作，必须自行保证异常与提前结束时调用
+     return() 释放游标，否则游标泄漏会占用连接。
+
+     @param sql 指定查询语句
+     @param args 绑定参数
+     @return 返回行迭代器，逐行产生行对象，内存有界
+     */
+    Iterator iterate(String sql, ...args) async;
 };

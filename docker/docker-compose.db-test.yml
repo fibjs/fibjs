@@ -38,11 +38,11 @@ services:
     restart: unless-stopped
 
   # MySQL 5.7 (低版本认证协议验证: 默认 mysql_native_password)
-  # 5.7 默认 latin1, 显式 utf8mb4 与 8.x 行为对齐, 保证测试套件可比
+  # 5.7 默认 latin1, 显式 utf8mb4 与 8.x 行为对齐; max_allowed_packet 对齐 8.x 默认 64M
   mysql57:
     image: mysql:5.7
     container_name: fibjs-db-test-mysql57
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci"]
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci", "--max_allowed_packet=64M"]
     environment:
       MYSQL_ROOT_PASSWORD: root_test
       MYSQL_DATABASE: test

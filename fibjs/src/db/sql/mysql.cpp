@@ -73,11 +73,10 @@ void API_resultRowBegin(void* result)
     ((DBResult*)result)->beginRow();
 }
 
-int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* value,
-    size_t cbValue)
+// 列类型转换（execute 回调与 Statement 游标共用）
+void mysql::columnValue(const UMTypeInfo* ti, const UINT8* value,
+    size_t cbValue, Variant& v)
 {
-    Variant v;
-
     if (value) {
         switch (ti->type) {
         case MFTYPE_NULL:
@@ -128,7 +127,14 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
     } else {
         v.setNull();
     }
+}
 
+int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* value,
+    size_t cbValue)
+{
+    Variant v;
+
+    mysql::columnValue(ti, (const UINT8*)value, cbValue, v);
     ((DBResult*)result)->rowValue(icolumn, v);
     return true;
 }
@@ -157,6 +163,234 @@ UMConnectionCAPI capi = {
     API_createResult, API_resultSetField, API_resultRowBegin,
     API_resultRowValue, API_resultRowEnd, API_destroyResult, API_resultOK
 };
+
+// ---------------------------------------------------------------------------
+// MySQL Statement 游标实现（文本协议 + 客户端转义绑定 + 驱动流式状态机）
+// ---------------------------------------------------------------------------
+
+// 把 Variant 参数按 MySQL 字面量语义转义拼入 SQL（与 db_format 对齐）：
+//   number → 裸数字；boolean → true/false；null/undefined → NULL；
+//   Buffer → 0x hex；其他 → '...'（' 与 \ 转义）
+static void appendMySQLValue(exlib::string& str, Variant& v)
+{
+    switch (v.type()) {
+    case Variant::VT_Null:
+    case Variant::VT_Undefined:
+        str.append("NULL", 4);
+        break;
+
+    case Variant::VT_Boolean:
+        str.append(v.boolVal() ? "true" : "false",
+            v.boolVal() ? 4 : 5);
+        break;
+
+    case Variant::VT_Integer:
+    case Variant::VT_Long:
+    case Variant::VT_Number: {
+        exlib::string s;
+        v.toString(s);
+        str.append(s);
+        break;
+    }
+
+    case Variant::VT_Object: {
+        object_base* obj = v.object();
+        if (obj && obj->class_info().isInstance(Buffer_base::class_info())) {
+            obj_ptr<Buffer> buf = (Buffer*)obj;
+            exlib::string hex;
+            buf->hex(hex);
+            str.append("0x", 2);
+            str.append(hex);
+        } else {
+            exlib::string s;
+            v.toString(s);
+            str.append(mysql::escape_string(s));
+        }
+        break;
+    }
+
+    default: {
+        exlib::string s;
+        v.toString(s);
+        str.append(mysql::escape_string(s));
+        break;
+    }
+    }
+}
+
+// 按 ? 占位符顺序替换参数（与 db_format::format 语义一致）
+static result_t formatMySQL(const char* sql, std::vector<Variant>& args,
+    exlib::string& retVal)
+{
+    exlib::string str;
+    const char *p, *p1;
+    size_t cnt = 0;
+
+    while (*sql) {
+        p = p1 = sql;
+        while (*p1 && *p1 != '?')
+            p1++;
+
+        str.append(p, p1 - p);
+
+        if (*p1) {
+            p1++;
+
+            if (cnt < args.size())
+                appendMySQLValue(str, args[cnt]);
+            else
+                str.append(1, '?');
+
+            cnt++;
+        }
+
+        sql = p1;
+    }
+
+    retVal = str;
+    return 0;
+}
+
+class MySQLStmtImpl : public Statement::impl {
+public:
+    MySQLStmtImpl(mysql* db, exlib::string sql)
+        : m_db(db)
+        , m_sql(sql)
+        , m_conn(NULL)
+        , m_fieldCount(0)
+        , m_open(false)
+        , m_okResult(NULL)
+    {
+    }
+
+    virtual ~MySQLStmtImpl()
+    {
+        reset();
+    }
+
+    virtual result_t open(std::vector<Variant>& args, bool& hasResult)
+    {
+        reset(); // 防御：上次游标未释放
+
+        exlib::string full;
+        result_t hr = formatMySQL(m_sql.c_str(), args, full);
+        if (hr < 0)
+            return hr;
+
+        m_conn = (Connection*)m_db->m_conn;
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_CLOSED);
+
+        int st = m_conn->beginQuery(full.c_str(), full.length());
+        if (st < 0)
+            return m_db->error();
+
+        if (st == 0) {
+            // OK 包：无结果集；affected/insertId 经 takeResult 读取
+            m_okResult = m_conn->takeResult();
+            hasResult = false;
+            m_db->m_activeStmt = 1;
+            return 0;
+        }
+
+        m_fieldCount = m_conn->fieldCount();
+        hasResult = true;
+        m_open = true;
+        m_db->m_activeStmt = 1;
+        return 0;
+    }
+
+    virtual result_t fetchRow(NObject* row, bool& done)
+    {
+        if (!m_conn || !m_open)
+            return CHECK_ERROR(CALL_E_CLOSED);
+
+        int r = m_conn->nextRow();
+        if (r < 0)
+            return m_db->error();
+
+        if (r == 0) {
+            done = true;
+            m_open = false;
+            return 0;
+        }
+
+        for (int32_t i = 0; i < m_fieldCount; i++) {
+            size_t len = 0;
+            const UINT8* value = m_conn->columnValue(i, &len);
+            Variant v;
+            mysql::columnValue(&m_conn->fieldInfo(i), value, len, v);
+            row->add(m_conn->fieldName(i), v);
+        }
+        return 0;
+    }
+
+    virtual result_t runResult(int64_t& changes, int64_t& lastInsertId)
+    {
+        if (m_okResult) {
+            DBResult* res = (DBResult*)m_okResult;
+            changes = res->m_affected;
+            lastInsertId = res->m_insertId;
+            capi.destroyResult(m_okResult);
+            m_okResult = NULL;
+        }
+        return 0;
+    }
+
+    virtual result_t columns(obj_ptr<NArray>& retVal)
+    {
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
+            "MySQL: columns() requires server-side prepared statements (v2)"));
+    }
+
+    // 游标复位：drain 剩余结果并释放并发保护（连接保持可用），impl 保留
+    virtual void reset()
+    {
+        if (m_conn) {
+            // abortResult 幂等：RS_NONE 时直接返回；RS_ROWSET（含 EOF 后，
+            // 状态未复位）释放 beginQuery 持有的并发保护并 drain 剩余
+            // 结果集，连接可继续复用。
+            m_conn->abortResult();
+            if (m_okResult) {
+                capi.destroyResult(m_okResult);
+                m_okResult = NULL;
+            }
+            m_conn = NULL;
+        }
+        m_open = false;
+        m_fieldCount = 0;
+        m_db->m_activeStmt = 0;
+    }
+
+    // 彻底释放（Statement 销毁时）；无服务端句柄，reset 即释放
+    virtual void close()
+    {
+        reset();
+    }
+
+private:
+    mysql* m_db;
+    exlib::string m_sql;
+    Connection* m_conn;
+    int32_t m_fieldCount;
+    bool m_open;
+    void* m_okResult;
+};
+
+result_t mysql::prepareStmt(db_tmpl<MySQL_base, mysql>* db,
+    exlib::string sql, obj_ptr<Statement_base>& retVal)
+{
+    if (!db->m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
+            "MySQL: database is closed."));
+
+    // v1：文本协议 + 客户端转义绑定；编译推迟到 Statement 打开时
+    // （无服务端预编译，SQL 每次执行时拼串发送）
+    obj_ptr<Statement> stmt = new Statement(sql,
+        new MySQLStmtImpl((mysql*)db, sql));
+    retVal = stmt;
+    return 0;
+}
 
 // ----------------------------------------------------------------------------------
 
@@ -256,6 +490,9 @@ result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
 {
     if (!m_conn)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+
+    if (m_activeStmt)
+        return db_stmt_busy_error();
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);

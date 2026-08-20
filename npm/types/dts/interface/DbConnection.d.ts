@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Statement.d.ts" />
 /**
  * @description DBConnection 是数据库连接的基类，用于建立和维护一个数据库连接会话。其实现了连接的基本操作，并作为派生类的基础。同时支持开始事务、提交事务、回滚事务等操作。 
  * 
@@ -267,6 +268,57 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     format(sql: string, ...args: any[]): string;
+
+    /**
+     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * 
+     *      @param sql 指定查询语句
+     *      @return 返回预编译语句对象
+     *      
+     */
+    prepare(sql: string): Class_Statement;
+
+    prepare(sql: string, callback: (err: Error | undefined | null, retVal: Class_Statement)=>any): void;
+
+    /**
+     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * 
+     *      @param sql 指定查询语句
+     *      @return 返回预编译语句对象
+     *      
+     */
+    prepareSync(sql: string): Class_Statement;
+
+    /**
+     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * 
+     *      @param sql 指定查询语句
+     *      @return 返回预编译语句对象
+     *      
+     */
+    prepareAsync(sql: string): Promise<Class_Statement>;
+
+    /**
+     * @description 执行并按条返回迭代器（等价 stmt.iterate(...args)）
+     * 
+     *      推荐使用 for...of 遍历（break/异常自动释放游标）：
+     * 
+     *      ```js
+     *      for (var row of conn.iterate('SELECT * FROM log WHERE ts > ?', ts)) {
+     *          process(row);    // 同一时刻只驻留一行
+     *      }
+     *      // break/异常/跑完均自动释放游标，连接立即可复用
+     *      ```
+     * 
+     *      手动调用 next()/return() 是危险操作，必须自行保证异常与提前结束时调用
+     *      return() 释放游标，否则游标泄漏会占用连接。
+     * 
+     *      @param sql 指定查询语句
+     *      @param args 绑定参数
+     *      @return 返回行迭代器，逐行产生行对象，内存有界
+     *      
+     */
+    iterate(sql: string, ...args: any[]): Iterator<any>;
 
 }
 

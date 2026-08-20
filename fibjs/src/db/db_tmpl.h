@@ -10,8 +10,20 @@
 #include "object.h"
 #include "ifs/db.h"
 #include "Buffer.h"
+#include "Statement.h"
 
 namespace fibjs {
+
+// 连接级活动游标互斥的统一错误：Statement 游标（迭代器）未释放时，
+// execute 等受影响调用立即失败并说明原因。
+// 游标释放途径：迭代器耗尽 / 调用迭代器 return() / for...of 结束或 break
+inline result_t db_stmt_busy_error()
+{
+    return CHECK_ERROR(Runtime::setError(CALL_E_BUSY,
+        "A statement cursor is active on this connection; release the iterator "
+        "(call iterator.return() or finish the for...of iteration) before "
+        "executing other statements"));
+}
 
 template <class impl>
 class db_format {
@@ -131,10 +143,14 @@ class db_tmpl : public base {
 public:
     db_tmpl()
         : m_conn(NULL)
+        , m_activeStmt(0)
     {
     }
 
 public:
+    // 连接级活动游标互斥：Statement 打开期间同连接其他 execute/prepare 报 BUSY
+    int32_t m_activeStmt;
+
     result_t format(exlib::string sql, OptArgs args, exlib::string& retVal)
     {
         return db_format<impl>::format(sql.c_str(), args, retVal);
@@ -217,6 +233,9 @@ public:
 
     result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
+        if (m_activeStmt)
+            return CHECK_ERROR(Runtime::setError(CALL_E_BUSY, "A statement cursor is active on this connection"));
+
         return CALL_E_INVALID_CALL;
     }
 
@@ -333,6 +352,58 @@ public:
         retVal.append(1, '\'');
 
         return retVal;
+    }
+
+public:
+    // 编译一条 SQL 为预编译语句（单语句）。同一连接同一时刻只允许一个
+    // 活动游标：游标未释放时禁止再 prepare 新语句（含 conn.iterate）。
+    result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal,
+        AsyncEvent* ac)
+    {
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (m_activeStmt)
+            return db_stmt_busy_error();
+
+        return impl::prepareStmt(this, sql, retVal);
+    }
+
+    // 便捷入口：执行并按条返回迭代器（等价 stmt.iterate(...args)）
+    result_t iterate(exlib::string sql, OptArgs args,
+        obj_ptr<Iterator_base>& retVal, AsyncEvent* ac)
+    {
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        if (ac->isSync()) {
+            // 主线程：v8 参数 → Variant（fiber 中不得触碰 v8）
+            ac->m_ctx.resize(args.Length() + 1);
+            ac->m_ctx[0] = sql;
+            Isolate* isolate = Isolate::current();
+            for (int32_t i = 0; i < args.Length(); i++) {
+                result_t hr = GetArgumentValue(isolate, args[i], ac->m_ctx[i + 1]);
+                if (hr < 0)
+                    return hr;
+            }
+            return CHECK_ERROR(CALL_E_LONGSYNC);
+        }
+
+        obj_ptr<Statement_base> stmt;
+        result_t hr = prepare(ac->m_ctx[0].string(), stmt, ac);
+        if (hr < 0)
+            return hr;
+
+        // fiber 中：从 m_ctx 取出 Variant 参数（m_ctx[0] 是 SQL）
+        std::vector<Variant> params;
+        params.reserve(ac->m_ctx.size() - 1);
+        for (size_t i = 1; i < ac->m_ctx.size(); i++)
+            params.push_back(ac->m_ctx[i]);
+
+        return ((Statement*)(Statement_base*)stmt)->iteratePrepared(params, retVal);
     }
 
 public:

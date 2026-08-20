@@ -8,10 +8,14 @@
 #pragma once
 
 #include "ifs/SQLite.h"
+#include "../Statement.h"
 #include <sqlite/sqlite3.h>
+#include <vector>
 #include "../db_tmpl.h"
 
 namespace fibjs {
+
+class SQLiteStmtImpl;
 
 class SQLite : public db_tmpl<SQLite_base, SQLite> {
 public:
@@ -41,6 +45,13 @@ public:
     result_t open(const char* file);
     int vec_init();
 
+    // 引擎实现：创建预编译语句（编译在 prepare 时完成）
+    static result_t prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
+        exlib::string sql, obj_ptr<Statement_base>& retVal);
+
+    // 列类型转换（execute 与游标共用）
+    static void columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v);
+
 public:
     static exlib::string escape_binary(Buffer* bin)
     {
@@ -57,8 +68,13 @@ public:
     }
 
 private:
+    friend class SQLiteStmtImpl;
+    void finalizeStmt(sqlite3_stmt* stmt);
+
+private:
     exlib::string m_file;
     int32_t m_nCmdTimeout;
+    std::vector<SQLiteStmtImpl*> m_stmts; // 活跃游标（连接关闭时级联 close）
 };
 
 } /* namespace fibjs */

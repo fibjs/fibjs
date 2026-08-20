@@ -172,6 +172,8 @@ typedef int32_t result_t;
 #define CALL_E_PERMIT (CALL_E_MAX - 26)
 // Object closed.
 #define CALL_E_CLOSED (CALL_E_MAX - 27)
+// Resource is busy (e.g. an active cursor on the connection).
+#define CALL_E_BUSY (CALL_E_MAX - 28)
 
 #define CALL_E_MIN (CALL_E_MAX - 100)
 

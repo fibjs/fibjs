@@ -24,6 +24,13 @@ public:
             });
     }
 
+    static result_t prepareStmt(db_tmpl<Odbc_tmpl, dm>* db,
+        exlib::string sql, obj_ptr<Statement_base>& retVal)
+    {
+        static const OdbcEscape esc = { Odbc::escape_string, Odbc::escape_binary };
+        return odbc_prepareStmt(db->m_conn, &db->m_activeStmt, sql, esc, retVal);
+    }
+
 public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal)
@@ -39,7 +46,7 @@ public:
 
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
-        return odbc_execute(m_conn, sql, retVal, ac);
+        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, ac);
     }
 
     virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)

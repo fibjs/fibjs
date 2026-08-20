@@ -81,6 +81,12 @@ SQLRETURN SQL_API SQLExecDirectW(SQLHSTMT StatementHandle, SQLWCHAR* StatementTe
     return s_SQLExecDirectW(StatementHandle, StatementText, TextLength);
 }
 
+SQLRETURN SQL_API SQLPrepareW(SQLHSTMT StatementHandle, SQLWCHAR* StatementText, SQLINTEGER TextLength)
+{
+    odbc_func(SQLPrepareW);
+    return s_SQLPrepareW(StatementHandle, StatementText, TextLength);
+}
+
 SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT StatementHandle, SQLSMALLINT* ColumnCount)
 {
     odbc_func(SQLNumResultCols);

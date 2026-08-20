@@ -15,6 +15,9 @@
 
 namespace fibjs {
 
+class Statement_base;
+class Iterator_base;
+
 class DbConnection_base : public object_base {
     DECLARE_CLASS(DbConnection_base);
 
@@ -33,6 +36,8 @@ public:
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
+    virtual result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t iterate(exlib::string sql, OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -57,6 +62,8 @@ public:
     static void s_trans(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_prepare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_iterate(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER0(DbConnection_base, close);
@@ -68,8 +75,13 @@ public:
     ASYNC_MEMBER1(DbConnection_base, rollback, exlib::string);
     ASYNC_MEMBERVALUE2(DbConnection_base, execute, exlib::string, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE2(DbConnection_base, prepare, exlib::string, obj_ptr<Statement_base>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, iterate, exlib::string, OptArgs, obj_ptr<Iterator_base>);
 };
 }
+
+#include "ifs/Statement.h"
+#include "ifs/Iterator.h"
 
 namespace fibjs {
 inline ClassInfo& DbConnection_base::class_info()
@@ -84,7 +96,9 @@ inline ClassInfo& DbConnection_base::class_info()
         { "rollback", s_rollback, false, ClassData::ASYNC_ASYNC },
         { "trans", s_trans, false, ClassData::ASYNC_SYNC },
         { "execute", s_execute, false, ClassData::ASYNC_ASYNC },
-        { "format", s_format, false, ClassData::ASYNC_SYNC }
+        { "format", s_format, false, ClassData::ASYNC_SYNC },
+        { "prepare", s_prepare, false, ClassData::ASYNC_ASYNC },
+        { "iterate", s_iterate, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -302,5 +316,44 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
     hr = pInst->format(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void DbConnection_base::s_prepare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Statement_base> vr;
+
+    ASYNC_METHOD_INSTANCE(DbConnection_base);
+    ASYNC_METHOD_ENTER("DbConnection.prepare");
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_prepare(v0, cb, args);
+    else
+        hr = pInst->ac_prepare(v0, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void DbConnection_base::s_iterate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    ASYNC_METHOD_INSTANCE(DbConnection_base);
+    ASYNC_METHOD_ENTER("DbConnection.iterate");
+
+    METHOD_OVER(-1, 1);
+
+    ARG(exlib::string, 0);
+    ARG_LIST(1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_iterate(v0, v1, cb, args);
+    else
+        hr = pInst->ac_iterate(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
 }
 }

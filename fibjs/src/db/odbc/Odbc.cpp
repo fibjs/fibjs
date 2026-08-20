@@ -29,7 +29,6 @@ static exlib::string normalize_identifier(exlib::string str)
     bool has_alpha = false;
     bool has_lower = false;
     bool has_upper = false;
-
     for (size_t i = 0; i < str.length(); i++) {
         unsigned char ch = (unsigned char)str[i];
         if (ch >= 'a' && ch <= 'z') {
@@ -323,10 +322,17 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
 }
 
-result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+// 共享列值读取（execute 与 Statement 游标共用；实现在文件后部）
+static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
+    Variant& v);
+
+result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!conn)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
+
+    if (activeStmt && *activeStmt)
+        return db_stmt_busy_error();
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -404,110 +410,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                 for (int32_t i = 0; i < columns; i++) {
                     Variant v;
 
-                    switch (types[i]) {
-                    case SQL_INTEGER:
-                    case SQL_SMALLINT:
-                    case SQL_TINYINT: {
-                        int32_t value = 0;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else
-                            v = value;
-                        break;
-                    }
-                    case SQL_NUMERIC:
-                    case SQL_DECIMAL:
-                    case SQL_BIGINT:
-                    case SQL_FLOAT:
-                    case SQL_REAL:
-                    case SQL_DOUBLE: {
-                        double value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else
-                            v = value;
-                        break;
-                    }
-                    case SQL_BIT: {
-                        // Handle boolean type
-                        char value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BIT, &value, sizeof(value), &len);
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else
-                            v = value != 0;
-                        break;
-                    }
-                    case SQL_DATETIME:
-                    case SQL_TIMESTAMP: {
-                        TIMESTAMP_STRUCT value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else {
-                            date_t d;
-                            d.create(value.year, value.month, value.day, value.hour, value.minute,
-                                value.second, value.fraction / 1000000);
-                            d.toUTC();
-                            v = d;
-                        }
-                        break;
-                    }
-                    case SQL_BINARY:
-                    case SQL_VARBINARY:
-                    case SQL_LONGVARBINARY: {
-                        exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), 0, &len);
-                        if (hr < 0)
-                            break;
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else {
-                            value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), len, &len);
-                            if (hr >= 0)
-                                v = new Buffer(value.c_str(), value.length());
-                        }
-                        break;
-                    }
-                    default: {
-                        exlib::wstring value;
-                        exlib::wstring chunk;
-                        const SQLLEN chunkChars = 4096;
-                        SQLLEN valueChars = 0;
-
-                        chunk.resize(chunkChars + 1);
-                        do {
-                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, chunk.data(),
-                                (chunkChars + 1) * sizeof(SQLWCHAR), &len);
-                            if (hr < 0)
-                                break;
-                            if (len == SQL_NULL_DATA) {
-                                v.setNull();
-                                break;
-                            }
-
-                            SQLLEN copiedChars = len == SQL_NO_TOTAL
-                                ? wstrlen_limited(chunk.data(), chunkChars)
-                                : (hr == SQL_SUCCESS_WITH_INFO ? chunkChars : len / sizeof(SQLWCHAR));
-                            if (copiedChars > chunkChars)
-                                copiedChars = chunkChars;
-
-                            if (copiedChars > 0) {
-                                SQLLEN oldChars = valueChars;
-                                valueChars += copiedChars;
-                                value.resize(valueChars);
-                                memcpy(value.data() + oldChars, chunk.data(), copiedChars * sizeof(SQLWCHAR));
-                            }
-                        } while (hr == SQL_SUCCESS_WITH_INFO);
-
-                        if (hr >= 0 && len != SQL_NULL_DATA)
-                            v = utf16to8String(value);
-                        break;
-                    }
-                    }
+                    hr = odbc_fetchValue(stmt, i + 1, types[i], v);
                     if (hr < 0)
                         break;
 
@@ -542,6 +445,437 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
     SQLFreeStmt(stmt, SQL_DROP);
 
     return hr;
+}
+
+// ---------------------------------------------------------------------------
+// ODBC Statement 游标实现（SQLPrepare + SQLFetch 逐行读取）
+// ---------------------------------------------------------------------------
+
+// 按列类型取一列值（execute 与 Statement 游标共用）
+static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
+    Variant& v)
+{
+    SQLRETURN hr;
+    SQLLEN len;
+
+    switch (type) {
+    case SQL_INTEGER:
+    case SQL_SMALLINT:
+    case SQL_TINYINT: {
+        int32_t value = 0;
+        hr = SQLGetData(stmt, col, SQL_C_SLONG, &value, sizeof(value), &len);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        if (len == SQL_NULL_DATA)
+            v.setNull();
+        else
+            v = value;
+        break;
+    }
+    case SQL_NUMERIC:
+    case SQL_DECIMAL:
+    case SQL_BIGINT:
+    case SQL_FLOAT:
+    case SQL_REAL:
+    case SQL_DOUBLE: {
+        double value;
+        hr = SQLGetData(stmt, col, SQL_C_DOUBLE, &value, sizeof(value), &len);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        if (len == SQL_NULL_DATA)
+            v.setNull();
+        else
+            v = value;
+        break;
+    }
+    case SQL_BIT: {
+        char value;
+        hr = SQLGetData(stmt, col, SQL_C_BIT, &value, sizeof(value), &len);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        if (len == SQL_NULL_DATA)
+            v.setNull();
+        else
+            v = value != 0;
+        break;
+    }
+    case SQL_DATETIME:
+    case SQL_TIMESTAMP: {
+        TIMESTAMP_STRUCT value;
+        hr = SQLGetData(stmt, col, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        if (len == SQL_NULL_DATA)
+            v.setNull();
+        else {
+            date_t d;
+            d.create(value.year, value.month, value.day, value.hour, value.minute,
+                value.second, value.fraction / 1000000);
+            d.toUTC();
+            v = d;
+        }
+        break;
+    }
+    case SQL_BINARY:
+    case SQL_VARBINARY:
+    case SQL_LONGVARBINARY: {
+        exlib::string value;
+        hr = SQLGetData(stmt, col, SQL_C_BINARY, value.data(), 0, &len);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        if (len == SQL_NULL_DATA)
+            v.setNull();
+        else {
+            value.resize(len);
+            hr = SQLGetData(stmt, col, SQL_C_BINARY, value.data(), len, &len);
+            if (hr < 0)
+                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            v = new Buffer(value.c_str(), value.length());
+        }
+        break;
+    }
+    default: {
+        // 大文本 4096 字符分块
+        exlib::wstring value;
+        exlib::wstring chunk;
+        const SQLLEN chunkChars = 4096;
+        SQLLEN valueChars = 0;
+
+        chunk.resize(chunkChars + 1);
+        do {
+            hr = SQLGetData(stmt, col, SQL_C_WCHAR, chunk.data(),
+                (chunkChars + 1) * sizeof(SQLWCHAR), &len);
+            if (hr < 0)
+                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            if (len == SQL_NULL_DATA) {
+                v.setNull();
+                break;
+            }
+
+            SQLLEN copiedChars = len == SQL_NO_TOTAL
+                ? wstrlen_limited(chunk.data(), chunkChars)
+                : (hr == SQL_SUCCESS_WITH_INFO ? chunkChars : len / sizeof(SQLWCHAR));
+            if (copiedChars > chunkChars)
+                copiedChars = chunkChars;
+
+            if (copiedChars > 0) {
+                SQLLEN oldChars = valueChars;
+                valueChars += copiedChars;
+                value.resize(valueChars);
+                memcpy(value.data() + oldChars, chunk.data(), copiedChars * sizeof(SQLWCHAR));
+            }
+        } while (hr == SQL_SUCCESS_WITH_INFO);
+
+        if (len != SQL_NULL_DATA)
+            v = utf16to8String(value);
+        break;
+    }
+    }
+
+    return 0;
+}
+
+// 引擎转义回调：Variant → SQL 字面量（各引擎的 escape 规则不同）
+// OdbcEscape 定义在 Odbc.h
+
+// 通用转义（SQL 标准：' → ''；二进制 → 0x hex）
+static exlib::string odbcEscapeString(exlib::string v)
+{
+    exlib::string retVal;
+    const char* str = v.c_str();
+    int32_t sz = (int32_t)v.length();
+
+    retVal.append(1, '\'');
+    for (int32_t i = 0; i < sz; i++) {
+        if (str[i] == '\'')
+            retVal.append(1, '\'');
+        retVal.append(1, str[i]);
+    }
+    retVal.append(1, '\'');
+    return retVal;
+}
+
+static exlib::string odbcEscapeBinary(Buffer* bin)
+{
+    exlib::string retVal;
+    exlib::string s;
+
+    bin->hex(s);
+    retVal.append("0x", 2);
+    retVal.append(s);
+    return retVal;
+}
+
+// 把 Variant 参数按 SQL 字面量语义拼入（与 db_format 对齐）
+static void odbcFormatValue(exlib::string& str, Variant& v,
+    const OdbcEscape& esc)
+{
+    switch (v.type()) {
+    case Variant::VT_Null:
+    case Variant::VT_Undefined:
+        str.append("NULL", 4);
+        break;
+
+    case Variant::VT_Boolean:
+        str.append(v.boolVal() ? "1" : "0", 1);
+        break;
+
+    case Variant::VT_Integer:
+    case Variant::VT_Long:
+    case Variant::VT_Number: {
+        exlib::string s;
+        v.toString(s);
+        str.append(s);
+        break;
+    }
+
+    case Variant::VT_Object: {
+        object_base* obj = v.object();
+        if (obj && obj->class_info().isInstance(Buffer_base::class_info())) {
+            obj_ptr<Buffer> buf = (Buffer*)obj;
+            str.append(esc.binary(buf));
+        } else {
+            exlib::string s;
+            v.toString(s);
+            str.append(esc.string(s));
+        }
+        break;
+    }
+
+    default: {
+        exlib::string s;
+        v.toString(s);
+        str.append(esc.string(s));
+        break;
+    }
+    }
+}
+
+static result_t odbcFormatSQL(const char* sql, std::vector<Variant>& args,
+    const OdbcEscape& esc, exlib::string& retVal)
+{
+    exlib::string str;
+    const char *p, *p1;
+    size_t cnt = 0;
+
+    while (*sql) {
+        p = p1 = sql;
+        while (*p1 && *p1 != '?')
+            p1++;
+
+        str.append(p, p1 - p);
+
+        if (*p1) {
+            p1++;
+
+            if (cnt < args.size())
+                odbcFormatValue(str, args[cnt], esc);
+            else
+                str.append(1, '?');
+
+            cnt++;
+        }
+
+        sql = p1;
+    }
+
+    retVal = str;
+    return 0;
+}
+
+class OdbcStmtImpl : public Statement::impl {
+public:
+    OdbcStmtImpl(void* conn, int32_t* activeStmt, exlib::string sql,
+        const OdbcEscape& esc)
+        : m_conn(conn)
+        , m_activeStmt(activeStmt)
+        , m_sql(sql)
+        , m_esc(esc)
+        , m_stmt(NULL)
+        , m_columns(0)
+    {
+    }
+
+    virtual ~OdbcStmtImpl()
+    {
+        close();
+    }
+
+    virtual result_t open(std::vector<Variant>& args, bool& hasResult)
+    {
+        reset(); // 防御：上次游标未释放
+
+        exlib::string full;
+        result_t hr = odbcFormatSQL(m_sql.c_str(), args, m_esc, full);
+        if (hr < 0)
+            return hr;
+
+        SQLRETURN sqlhr = SQLAllocStmt(m_conn, &m_stmt);
+        if (sqlhr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, m_conn)));
+
+        exlib::wstring wsql(utf8to16String(full));
+        sqlhr = SQLPrepareW(m_stmt, (SQLWCHAR*)wsql.c_str(),
+            (SQLINTEGER)wsql.length());
+        if (sqlhr < 0) {
+            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            SQLFreeStmt(m_stmt, SQL_DROP);
+            m_stmt = NULL;
+            return CHECK_ERROR(Runtime::setError(err));
+        }
+
+        sqlhr = SQLExecute(m_stmt);
+        if (sqlhr < 0) {
+            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            SQLFreeStmt(m_stmt, SQL_DROP);
+            m_stmt = NULL;
+            return CHECK_ERROR(Runtime::setError(err));
+        }
+
+        // 列元数据（执行后可用）
+        SQLSMALLINT columns = 0;
+        sqlhr = SQLNumResultCols(m_stmt, &columns);
+        if (sqlhr < 0) {
+            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            SQLFreeStmt(m_stmt, SQL_DROP);
+            m_stmt = NULL;
+            return CHECK_ERROR(Runtime::setError(err));
+        }
+
+        m_columns = columns;
+        m_types.resize(m_columns);
+        m_names.resize(m_columns);
+
+        for (int32_t i = 0; i < m_columns; i++) {
+            SQLSMALLINT buflen;
+            SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
+            sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_NAME, buf,
+                SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
+            if (sqlhr < 0) {
+                exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+                SQLFreeStmt(m_stmt, SQL_DROP);
+                m_stmt = NULL;
+                return CHECK_ERROR(Runtime::setError(err));
+            }
+
+            m_names[i] = normalize_identifier(
+                utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
+
+            sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_TYPE, NULL, 0,
+                NULL, &m_types[i]);
+            if (sqlhr < 0) {
+                exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+                SQLFreeStmt(m_stmt, SQL_DROP);
+                m_stmt = NULL;
+                return CHECK_ERROR(Runtime::setError(err));
+            }
+
+            if (m_types[i] == SQL_VARCHAR) {
+                SQLSMALLINT blen;
+                SQLWCHAR bbuf[SQL_MAX_COLUMN_NAME_LEN];
+                sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_TYPE_NAME,
+                    bbuf, SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &blen, NULL);
+                if (sqlhr >= 0) {
+                    exlib::string typeName = utf16to8String(
+                        (const char16_t*)bbuf, blen / sizeof(SQLWCHAR));
+                    if (typeName == "boolean" || typeName == "bool")
+                        m_types[i] = SQL_BIT;
+                }
+            }
+        }
+
+        hasResult = (m_columns > 0);
+        if (m_activeStmt)
+            *m_activeStmt = 1;
+        return 0;
+    }
+
+    virtual result_t fetchRow(NObject* row, bool& done)
+    {
+        if (!m_stmt)
+            return CHECK_ERROR(CALL_E_CLOSED);
+
+        SQLRETURN hr = SQLFetch(m_stmt);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, m_stmt)));
+        if (hr == SQL_NO_DATA) {
+            done = true;
+            return 0;
+        }
+
+        for (int32_t i = 0; i < m_columns; i++) {
+            Variant v;
+            result_t hr2 = odbc_fetchValue(m_stmt, i + 1, m_types[i], v);
+            if (hr2 < 0)
+                return hr2;
+            row->add(m_names[i], v);
+        }
+        return 0;
+    }
+
+    virtual result_t runResult(int64_t& changes, int64_t& lastInsertId)
+    {
+        if (!m_stmt)
+            return CHECK_ERROR(CALL_E_CLOSED);
+
+        SQLLEN affected = 0;
+        SQLRowCount(m_stmt, &affected);
+        changes = (int64_t)affected;
+        return 0;
+    }
+
+    virtual result_t columns(obj_ptr<NArray>& retVal)
+    {
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
+            "ODBC: columns() requires a prepared statement (v2)"));
+    }
+
+    // 游标复位：释放 HSTMT（连接保持可用），impl 保留可复用
+    virtual void reset()
+    {
+        if (m_stmt) {
+            SQLFreeStmt(m_stmt, SQL_CLOSE);
+            SQLFreeStmt(m_stmt, SQL_DROP);
+            m_stmt = NULL;
+        }
+        m_columns = 0;
+        m_types.clear();
+        m_names.clear();
+        if (m_activeStmt)
+            *m_activeStmt = 0;
+    }
+
+    // 彻底释放（Statement 销毁时）
+    virtual void close()
+    {
+        reset();
+    }
+
+private:
+    void* m_conn;
+    int32_t* m_activeStmt;
+    exlib::string m_sql;
+    OdbcEscape m_esc;
+    SQLHSTMT m_stmt;
+    SQLSMALLINT m_columns;
+    std::vector<SQLLEN> m_types;
+    std::vector<exlib::string> m_names;
+};
+
+// 通用转义回调（odbc 引擎默认）
+static const OdbcEscape odbcEscape = { odbcEscapeString, odbcEscapeBinary };
+
+result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
+    const OdbcEscape& esc, obj_ptr<Statement_base>& retVal)
+{
+    if (!conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
+            "ODBC: database is closed."));
+
+    obj_ptr<Statement> stmt = new Statement(sql,
+        new OdbcStmtImpl(conn, activeStmt, sql, esc));
+    retVal = stmt;
+    return 0;
 }
 
 result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)

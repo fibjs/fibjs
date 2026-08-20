@@ -1,4 +1,4 @@
-var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var { describe, xdescribe, it, before, after, beforeEach, afterEach } = require('node:test');
 var assert = require('assert');
 
 var db = require('db');
@@ -542,6 +542,285 @@ describe("db", () => {
             });
         });
 
+        // ------------------------------------------------------------------
+        // 流式查询（Statement）：get/all/run/iterate + 复用/中止语义
+        // 注意：binary 测试循环 delete+insert 后 test 表只剩 t1=1 的行，
+        // 这里 before() 重建干净数据（t1=1123, t2='哈哈哈哈', t3=DDDDDDDDDD）
+        // ------------------------------------------------------------------
+        describe("statement", () => {
+            before(() => {
+                conn.execute('delete from test');
+                conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 1123,
+                    '哈哈哈哈', new Buffer('DDDDDDDDDD'), new Date('1998-04-14 12:12:12'));
+
+                // 大结果集迭代用表：100 行，交叉连接产出 10000 行
+                try {
+                    conn.execute('drop table test_big');
+                } catch (e) { }
+                if (conn.type == 'mssql')
+                    conn.execute('create table test_big(id INT IDENTITY PRIMARY KEY, v int)');
+                else if (conn.type == 'dm')
+                    conn.execute('create table test_big(id INT IDENTITY(1,1) PRIMARY KEY, v int)');
+                else if (conn.type == 'psql')
+                    conn.execute('create table test_big(id SERIAL PRIMARY KEY, v int)');
+                else if (conn.type == 'SQLite')
+                    conn.execute('create table test_big(id INTEGER PRIMARY KEY AUTOINCREMENT, v int)');
+                else
+                    conn.execute('create table test_big(id INTEGER AUTO_INCREMENT PRIMARY KEY, v int)');
+
+                for (var i = 0; i < 100; i++)
+                    conn.execute('insert into test_big(v) values(?)', i);
+            });
+
+            after(() => {
+                try {
+                    conn.execute('drop table test_big');
+                } catch (e) { }
+            });
+
+            it("prepare get with params", () => {
+                var stmt = conn.prepare('select * from test where t1 = ?');
+                var r = stmt.get(1123);
+                assert.equal(r.t1, 1123);
+                assert.equal(r.t2, '哈哈哈哈');
+
+                // 无结果 → undefined
+                var r2 = stmt.get(999999);
+                assert.equal(r2, undefined);
+
+                // 同一 stmt 复用
+                var r3 = stmt.get(1123);
+                assert.equal(r3.t2, '哈哈哈哈');
+            });
+
+            it("prepare get with buffer param", () => {
+                var b = new Buffer('DDDDDDDDDD');
+                var r = conn.prepare('select * from test where t3 = ?').get(b);
+                assert.equal(r.t1, 1123);
+            });
+
+            it("prepare get with date param", () => {
+                var d = new Date('1998-04-14 12:12:12');
+                var r = conn.prepare('select * from test where t4 = ?').get(d);
+                assert.equal(r.t1, 1123);
+            });
+
+            it("prepare all", () => {
+                var rows = conn.prepare('select * from test order by t0').all();
+                assert.greaterThan(rows.length, 0);
+                assert.equal(rows[0].t1, 1123);
+            });
+
+            it("prepare run changes", () => {
+                var rr = conn.prepare("update test set t2 = 'stmt_run' where t1 = ?").run(1123);
+                assert.greaterThan(Number(rr.changes), 0);
+                // 还原
+                conn.execute("update test set t2 = '哈哈哈哈' where t1 = 1123");
+            });
+
+            it("prepare iterate", () => {
+                var it = conn.prepare('select * from test order by t0').iterate();
+                var n = 0;
+                while (true) {
+                    var nr = it.next();
+                    if (nr.done)
+                        break;
+                    n++;
+                    // t0 列在 SQLite 下为 null（AUTO_INCREMENT 非 SQLite 关键字，
+                    // 被并入类型名，无自增语义）；断言数据列而非主键列
+                    assert.notEqual(nr.value.t1, undefined);
+                }
+                assert.greaterThan(n, 0);
+            });
+
+            it("iterate abort reuses connection", () => {
+                var it = conn.prepare('select * from test order by t0').iterate();
+                var nr = it.next();
+                assert.equal(nr.done, false);
+                it.return(); // 提前 break：释放游标
+
+                // 同连接立即执行新查询（drain 后连接可复用）
+                var rs = conn.execute('select count(*) as n from test');
+                assert.greaterThan(Number(rs[0].n), 0);
+            });
+
+            it("iterate big result then abort", () => {
+                // 大数据量结果集迭代 2 行后中止，验证 drain 语义
+                // order by 需限定表名：交叉连接下 t0 在 MySQL 中列名歧义
+                var it = conn.prepare('select * from test, test as x order by test.t0').iterate();
+                it.next();
+                it.next();
+                it.return();
+
+                var rs = conn.execute('select 1 as n');
+                assert.equal(Number(rs[0].n), 1);
+            });
+
+            it("conn.iterate convenience", () => {
+                var it = conn.iterate('select * from test where t1 = ?', 1123);
+                var nr = it.next();
+                assert.equal(nr.done, false);
+                assert.equal(nr.value.t2, '哈哈哈哈');
+                it.return();
+            });
+
+            it("sourceSQL", () => {
+                var stmt = conn.prepare('select * from test');
+                assert.equal(stmt.sourceSQL, 'select * from test');
+            });
+
+            it("close idempotent", () => {
+                var stmt = conn.prepare('select * from test');
+                stmt.close();
+                stmt.close();
+            });
+
+            it("stmt reuse with alternating params", () => {
+                var stmt = conn.prepare('select * from test where t1 = ?');
+                assert.equal(stmt.get(1123).t2, '哈哈哈哈');
+                assert.equal(stmt.get(999999), undefined); // 无结果
+                assert.equal(stmt.get(1123).t2, '哈哈哈哈'); // 复用
+                assert.equal(stmt.get(999999), undefined);
+            });
+
+            it("all with params", () => {
+                var rows = conn.prepare('select * from test where t1 = ?').all(1123);
+                assert.equal(rows.length, 1);
+                assert.equal(rows[0].t2, '哈哈哈哈');
+
+                // 有结果集但 0 行 → 空数组
+                var rows2 = conn.prepare('select * from test where t1 = ?').all(999999);
+                assert.equal(rows2.length, 0);
+            });
+
+            it("null params", () => {
+                // test_null 表含一行全 NULL（insert 测试写入）
+                var r = conn.prepare('select * from test_null where t1 is ?').get(null);
+                assert.ok(r);
+                assert.isNull(r.t1);
+                assert.isNull(r.t2);
+            });
+
+            it("string params with quotes and backslashes", () => {
+                // 参数转义：引号/反斜杠/中文/空串
+                var values = ["it's", 'back\\slash', '中文"引号"', "a'b\"c\\d", ''];
+                values.forEach(v => {
+                    var r = conn.prepare('select ? as v').get(v);
+                    assert.equal(r.v, v);
+                });
+            });
+
+            it("get without params", () => {
+                var r = conn.prepare('select 1 as n').get();
+                assert.equal(Number(r.n), 1);
+            });
+
+            it("run insert returns changes", () => {
+                var rr = conn.prepare("insert into test(t1, t2, t3, t4) values(?,?,?,?)")
+                    .run(2, 'stmt_insert', new Buffer('xx'), new Date());
+                assert.greaterThan(Number(rr.changes), 0);
+
+                var rs = conn.execute('select * from test where t1 = 2');
+                assert.equal(rs.length, 1);
+                assert.equal(rs[0].t2, 'stmt_insert');
+
+                conn.execute('delete from test where t1 = 2');
+            });
+
+            it("iterate for-of", () => {
+                var n = 0;
+                for (var row of conn.iterate('select * from test order by t1')) {
+                    n++;
+                    assert.notEqual(row.t1, undefined);
+                }
+                assert.equal(n, 1);
+            });
+
+            it("for-of break releases cursor", () => {
+                // for...of break 会调用迭代器 return() → 游标自动释放
+                var n = 0;
+                for (var row of conn.iterate('select * from test_big')) {
+                    n++;
+                    if (n == 2)
+                        break;
+                }
+                assert.equal(n, 2);
+
+                var rs = conn.execute('select count(*) as n from test_big');
+                assert.greaterThan(Number(rs[0].n), 0);
+            });
+
+            it("iterate large result set", () => {
+                // 100 x 100 = 10000 行流式迭代
+                var it = conn.prepare('select a.v from test_big a, test_big b').iterate();
+                var n = 0;
+                while (true) {
+                    var nr = it.next();
+                    if (nr.done)
+                        break;
+                    n++;
+                }
+                assert.equal(n, 10000);
+            });
+
+            it("multiple statements sequential", () => {
+                var stmt1 = conn.prepare('select * from test where t1 = ?');
+                var stmt2 = conn.prepare('select * from test where t1 = ?');
+                assert.equal(stmt1.get(1123).t1, 1123);
+                assert.equal(stmt2.get(1123).t1, 1123);
+                assert.equal(stmt1.get(1123).t1, 1123);
+                stmt1.close();
+                stmt2.close();
+            });
+
+            it("active cursor blocks execute/prepare", () => {
+                // 游标（迭代器）未释放期间：execute/prepare/conn.iterate/事务
+                // 均立即报错并说明原因；释放后连接立即可复用
+                var it = conn.prepare('select * from test_big').iterate();
+                var nr = it.next();
+                assert.equal(nr.done, false);
+
+                var err = null;
+                try {
+                    conn.execute('select 1 as n');
+                } catch (e) {
+                    err = e;
+                }
+                assert.ok(err, 'execute should fail with active cursor');
+                assert.ok(err.message.indexOf('cursor') >= 0,
+                    'error should explain cursor: ' + err.message);
+
+                err = null;
+                try {
+                    conn.prepare('select 1 as n');
+                } catch (e) {
+                    err = e;
+                }
+                assert.ok(err, 'prepare should fail with active cursor');
+
+                err = null;
+                try {
+                    conn.iterate('select 1 as n');
+                } catch (e) {
+                    err = e;
+                }
+                assert.ok(err, 'conn.iterate should fail with active cursor');
+
+                err = null;
+                try {
+                    conn.begin();
+                } catch (e) {
+                    err = e;
+                }
+                assert.ok(err, 'begin should fail with active cursor');
+
+                // 释放游标后连接立即可复用
+                it.return();
+                var rs = conn.execute('select 1 as n');
+                assert.equal(Number(rs[0].n), 1);
+            });
+        });
+
         switch (type) {
             case 'mysql':
             case 'mysql57':
@@ -717,6 +996,60 @@ describe("db", () => {
 
                     // Clean up
                     conn.execute('DROP TABLE test_mysql_types');
+                });
+
+                // 大包往返: 16MB+ 数据触发协议 0xffffff 分包 (发送 + 接收)
+                // 服务器需 max_allowed_packet >= 64M (8.x 默认; 5.7 需显式配置);
+                // 客户端 tx/rx 缓冲需 >= 单行大小
+                it("large text packet roundtrip (16MB+)", () => {
+                    conn.txBufferSize = 32 * 1024 * 1024;
+                    conn.rxBufferSize = 32 * 1024 * 1024;
+
+                    var size = 16 * 1024 * 1024 + 100; // > 0xffffff 触发续包
+                    var pattern = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    var s = pattern.repeat(Math.ceil(size / pattern.length)).slice(0, size);
+
+                    // 参数拼串后 SQL > 16MB: 发送分包; 结果集 16MB+ 行: 接收分包
+                    var rs = conn.execute('select ? as v', s);
+                    var v = rs[0].v;
+                    assert.equal(typeof v, 'string');
+                    assert.equal(v.length, size);
+                    // 分块校验 (全量比较 16MB)
+                    for (var i = 0; i < size; i += 8192) {
+                        var n = Math.min(8192, size - i);
+                        assert.equal(v.slice(i, i + n), s.slice(i, i + n));
+                    }
+                });
+
+                it("large binary roundtrip via table (16MB+)", () => {
+                    // Buffer 参数经 hex 转义, SQL 膨胀 2 倍 → 需要更大 tx 缓冲
+                    conn.txBufferSize = 64 * 1024 * 1024;
+                    conn.rxBufferSize = 32 * 1024 * 1024;
+
+                    var size = 16 * 1024 * 1024 + 100;
+                    var big = Buffer.alloc(size);
+                    for (var i = 0; i < size; i++)
+                        big[i] = i & 0xff;
+
+                    try {
+                        conn.execute('drop table test_large_blob');
+                    } catch (e) { }
+
+                    conn.execute('create table test_large_blob(id int, data LONGBLOB)');
+                    // INSERT 参数转义拼串 > 16MB: 发送分包
+                    conn.execute('insert into test_large_blob values(1, ?)', big);
+
+                    // 16MB+ BLOB 行: 接收分包; LONGBLOB 列返回 Buffer
+                    var rs = conn.execute('select data from test_large_blob where id = 1');
+                    var v = rs[0].data;
+                    assert.ok(v instanceof Buffer);
+                    assert.equal(v.length, size);
+                    for (var i = 0; i < size; i += 8192) {
+                        var n = Math.min(8192, size - i);
+                        assert.deepEqual(v.slice(i, i + n), big.slice(i, i + n));
+                    }
+
+                    conn.execute('drop table test_large_blob');
                 });
                 break;
             case 'psql':
