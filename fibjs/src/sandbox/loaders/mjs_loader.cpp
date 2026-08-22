@@ -139,8 +139,20 @@ public:
             return hr;
         }
 
-        // Evaluate the module
+        // Evaluate the module. m_eval_evaluating must be > 0 around Evaluate()
+        // so that Isolate::RunMicrotasks defers microtask dispatch while the
+        // module graph DFS is in progress (same as esm_importer::evaluate).
+        // Otherwise a TLA continuation dispatched to another fiber can fulfill
+        // a dependency while this module is still kEvaluating and crash V8 with
+        // "Check failed: status() >= kEvaluatingAsync." in SourceTextModule::GetCycleRoot.
+        //
+        // Note: a separate counter (not m_module_evaluating) is used so that
+        // global require keeps working inside the evaluated module body, as
+        // fibjs allows require() in -e code (see eval_test.js).
+        m_isolate->m_eval_evaluating++;
         v8::Local<v8::Value> result = root_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
+        m_isolate->m_eval_evaluating--;
+
         if (result.IsEmpty()) {
             saveModule();
             return CALL_E_JAVASCRIPT;

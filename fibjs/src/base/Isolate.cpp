@@ -32,7 +32,7 @@ static exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_iso_id;
 static exlib::atomic s_iso_count;
 
-Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
+Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur, bool allow_microtasks)
     : m_isolate((cur ? cur : Isolate::current()))
 {
     m_fb = JSFiber::current();
@@ -45,7 +45,20 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     m_fb->m_c_entry_fp_ = _fi.entry_fp;
     m_fb->m_handler_ = _fi.handle;
 
-    m_isolate->RunMicrotasks(Isolate::MicrotaskCheckpointReason::kRegularCheckpoint);
+    // V8 module evaluation is a DFS over the module graph. fibjs sync-style
+    // APIs can suspend the current fiber from inside a module body; running a
+    // regular checkpoint at that exact suspend point may resume a TLA
+    // dependency and finish its async-module execution while the importer is
+    // still kEvaluating, which trips V8's GetCycleRoot status CHECK.
+    //
+    // Defer this pre-suspend checkpoint during module evaluation. Explicit
+    // promise waits (Isolate::await) opt back in because their caller is
+    // intentionally waiting for promise reactions to make progress, e.g.
+    // sync require(esm) from fibjs -e code.
+    if (allow_microtasks
+        && (m_isolate->m_module_evaluating == 0 && m_isolate->m_eval_evaluating == 0
+            || m_isolate->m_allow_module_evaluation_microtasks > 0))
+        m_isolate->RunMicrotasks(Isolate::MicrotaskCheckpointReason::kRegularCheckpoint);
 }
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()

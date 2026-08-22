@@ -359,6 +359,14 @@ describe('eval (-e)', () => {
             }).trim();
             assert.equal(result, '200');
         });
+
+        it('static import TLA dependency while sibling blocks in ESM package', () => {
+            var result = child_process.execFileSync(cmd, ['-e', "import { value } from './tla_blocking_root.js'; console.log(value)"], {
+                encoding: 'utf8',
+                cwd: esmPkgDir
+            }).trim();
+            assert.equal(result, '42');
+        });
     });
 
     describe('CommonJS-style variables', () => {

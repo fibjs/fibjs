@@ -31,12 +31,14 @@ namespace fibjs {
 void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 {
     bool allow_same_turn_reentry = (reason == MicrotaskCheckpointReason::kJsScopeLeave);
-
-    if (m_module_evaluating > 0 && allow_same_turn_reentry)
-        return;
-
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
+
+    if ((m_module_evaluating > 0 || m_eval_evaluating > 0)
+        && allow_same_turn_reentry
+        && m_allow_module_evaluation_microtasks == 0)
+        return;
+
     do {
         bool inline_first_task = allow_same_turn_reentry && queue->size_ == 1 && m_urgentJobs.empty() && m_jobs.empty();
 

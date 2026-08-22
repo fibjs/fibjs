@@ -51,7 +51,7 @@ class Isolate : public exlib::linkitem {
 public:
     class SnapshotJsScope {
     public:
-        SnapshotJsScope(Isolate* cur = NULL);
+        SnapshotJsScope(Isolate* cur = NULL, bool allow_microtasks = true);
         ~SnapshotJsScope();
 
     public:
@@ -66,8 +66,8 @@ public:
 
     class LeaveJsScope : public SnapshotJsScope {
     public:
-        LeaveJsScope(Isolate* cur = NULL)
-            : SnapshotJsScope(cur)
+        LeaveJsScope(Isolate* cur = NULL, bool allow_microtasks = true)
+            : SnapshotJsScope(cur, allow_microtasks)
             , unlocker(m_isolate->m_isolate)
         {
         }
@@ -359,7 +359,15 @@ public:
     bool m_enable_FileSystem;
     bool m_safe_buffer;
 
+    // Module evaluation (via require()/import()) in progress: microtask
+    // dispatch is deferred and global require is disabled while > 0.
     std::atomic<int32_t> m_module_evaluating { 0 };
+
+    // Module evaluation via eval()/-e in progress: microtask dispatch is
+    // deferred while > 0, but global require stays available inside the
+    // evaluated module body (fibjs allows require in -e code).
+    std::atomic<int32_t> m_eval_evaluating { 0 };
+    int32_t m_allow_module_evaluation_microtasks = 0;
 
     // Promise error tracking (per-isolate, shared across fibers)
     v8::Global<v8::Array> m_promise_error;
