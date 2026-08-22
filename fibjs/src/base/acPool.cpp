@@ -184,6 +184,41 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v
         v->to_args(m_isolate, args);
 }
 
+// async 方法返回的 Promise 统一挂 Symbol.asyncIterator（按 Isolate 缓存包装函数）。
+// 包装函数以 promise 为 this，返回一个 async 迭代器：next/return 先 await promise
+// 得到真实结果，再取结果的 asyncIterator（迭代器走原生 async 协议，避免
+// Async-from-Sync 对 next() 返回 Promise 的死循环问题）。
+// 效果：for await (var row of connP.iterate(...)) 可直接消费。
+static v8::Local<v8::Function> get_async_iterable_fn(Isolate* isolate)
+{
+    if (isolate->m_asyncIterFn.IsEmpty()) {
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::String> source = isolate->NewString(
+            "(function () {"
+            "    var self = this;"
+            "    return {"
+            "        next: function (v) {"
+            "            return self.then(function (it) {"
+            "                var iter = (it && it[Symbol.asyncIterator]) ? it[Symbol.asyncIterator]() : it;"
+            "                return iter.next(v);"
+            "            });"
+            "        },"
+            "        return: function (v) {"
+            "            return self.then(function (it) {"
+            "                var iter = (it && it[Symbol.asyncIterator]) ? it[Symbol.asyncIterator]() : it;"
+            "                return (iter && iter.return) ? iter.return(v) : { done: true };"
+            "            });"
+            "        }"
+            "    };"
+            "})");
+        v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
+        v8::Local<v8::Value> fn = script->Run(context).ToLocalChecked();
+        isolate->m_asyncIterFn.Reset(isolate->m_isolate, fn.As<v8::Function>());
+    }
+
+    return isolate->m_asyncIterFn.Get(isolate->m_isolate);
+}
+
 void AsyncCallBack::processPromiseResult()
 {
     v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
@@ -303,7 +338,15 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
 {
     if (m_is_promise) {
         v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
-        args.GetReturnValue().Set(resolver->GetPromise());
+        v8::Local<v8::Promise> promise = resolver->GetPromise();
+        args.GetReturnValue().Set(promise);
+
+        // 给 Promise 挂 Symbol.asyncIterator（自适应包装，见 get_async_iterable_fn）：
+        // for await (var row of connP.iterate(...)) 可直接消费 async 方法的返回值
+        promise->Set(m_isolate->context(),
+            v8::Symbol::GetAsyncIterator(m_isolate->m_isolate),
+            get_async_iterable_fn(m_isolate))
+            .IsJust();
 
         if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
             if (hr == CALL_E_EXCEPTION) {

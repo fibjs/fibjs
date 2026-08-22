@@ -166,8 +166,10 @@ describe("db", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t0 INT IDENTITY PRIMARY KEY, t1 int, t2 nvarchar(128), t3 VARBINARY(100), t4 datetime);');
             else if (conn.type == 'dm') {
-                conn.execute('create table test(t0 INT IDENTITY(1,1) PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
-                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+                // DM BLOB 不支持 = 比较（Oracle 兼容行为），t3 用 VARBINARY 以支持
+                // where t3 = ? 的 prepare/buffer 参数用例
+                conn.execute('create table test(t0 INT IDENTITY(1,1) PRIMARY KEY, t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
+                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 VARBINARY(100) NULL, t4 datetime NULL);');
             } else {
                 if (conn.type == 'psql') {
                     conn.execute('create table test(t0 SERIAL PRIMARY KEY, t1 int, t2 varchar(128), t3 BYTEA, t4 timestamp);');
@@ -578,6 +580,12 @@ describe("db", () => {
                 } catch (e) { }
             });
 
+            // 每个 it 结束后主动 GC：及时回收未显式 return() 的迭代器，
+            // 释放残留游标，避免 GC 延迟导致的连锁失败（隔离真实用例失败面）
+            afterEach(() => {
+                gc();
+            });
+
             it("prepare get with params", () => {
                 var stmt = conn.prepare('select * from test where t1 = ?');
                 var r = stmt.get(1123);
@@ -818,6 +826,41 @@ describe("db", () => {
                 it.return();
                 var rs = conn.execute('select 1 as n');
                 assert.equal(Number(rs[0].n), 1);
+            });
+
+            it("for await async iteration", async () => {
+                // sync 连接 for await（Async-from-Sync / @asyncIterator 协议）
+                var rows = [];
+                for await (var row of conn.iterate('select * from test order by t1')) {
+                    rows.push(row.t1);
+                }
+                assert.deepEqual(rows, [1123]);
+
+                // promise 连接（db.promises）：iterate 返回值可直接被 for await 消费
+                // （Promise 上自动挂 Symbol.asyncIterator，await 自身后取迭代器）
+                var connP = await db.promises.open(conn_str);
+                var rows2 = [];
+                for await (var row of connP.iterate('select * from test order by t1')) {
+                    rows2.push(row.t1);
+                }
+                assert.deepEqual(rows2, [1123]);
+                connP.close();
+            });
+
+            it("for await break releases cursor", async () => {
+                // sync 连接：break 自动调用迭代器 return() → 游标释放
+                for await (var row of conn.iterate('select * from test_big'))
+                    break;
+                var rs = conn.execute('select count(*) as n from test_big');
+                assert.greaterThan(Number(rs[0].n), 0);
+
+                // promise 连接：同样在 break 后连接可复用
+                var connP = await db.promises.open(conn_str);
+                for await (var row of connP.iterate('select * from test_big'))
+                    break;
+                var n = await connP.execute('select count(*) as n from test_big');
+                assert.greaterThan(Number(n[0].n), 0);
+                connP.close();
             });
         });
 

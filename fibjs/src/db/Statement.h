@@ -182,6 +182,15 @@ public:
         return 0;
     }
 
+    // 异步迭代器：返回自身。async 原型（db.promises 连接）下 next()
+    // 返回 Promise<{done,value}>，for await 走原生 async 迭代器协议；
+    // sync 原型下 next() 返回普通 {done,value}，for await 同样可用。
+    virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
+    {
+        retVal = this;
+        return 0;
+    }
+
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac);
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal);
 

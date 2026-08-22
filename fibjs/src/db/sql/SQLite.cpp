@@ -170,10 +170,6 @@ public:
         sqlite3_reset(m_stmt);
         sqlite3_clear_bindings(m_stmt);
 
-        fprintf(stderr, "DBG sqlite open: args.size=%zu\n", args.size());
-        for (size_t i = 0; i < args.size(); i++)
-            fprintf(stderr, "DBG sqlite open: arg[%zu] type=%d\n", i, (int)args[i].type());
-
         for (size_t i = 0; i < args.size(); i++) {
             result_t hr = bindValue(m_stmt, (int32_t)i + 1, args[i]);
             if (hr < 0)

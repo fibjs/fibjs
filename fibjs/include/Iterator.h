@@ -44,6 +44,14 @@ public:
         return 0;
     }
 
+    // 异步迭代器：返回自身。sync 原型下 next() 返回普通 {done,value}，
+    // async 原型下返回 Promise<{done,value}>，两者均可被 for await 消费。
+    virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
+    {
+        retVal = this;
+        return 0;
+    }
+
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
     {
         close();

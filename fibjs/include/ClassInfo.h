@@ -227,6 +227,9 @@ public:
         if (!qstrcmp("iterator", name + 1))
             return v8::Symbol::GetIterator(isolate->m_isolate);
 
+        if (!qstrcmp("asyncIterator", name + 1))
+            return v8::Symbol::GetAsyncIterator(isolate->m_isolate);
+
         if (!qstrcmp("toStringTag", name + 1))
             return v8::Symbol::GetToStringTag(isolate->m_isolate);
 

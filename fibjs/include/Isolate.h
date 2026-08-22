@@ -294,6 +294,10 @@ public:
     // JS pipe function from internal/pipe.js, stored for C++ native objects to call
     v8::Global<v8::Function> m_pipe_fn;
 
+    // async 方法返回迭代器对象时，挂到返回 Promise 上的 Symbol.asyncIterator 包装函数
+    // （让 for await (var row of conn.iterate(...)) 在 promise 风格下可直接消费）
+    v8::Global<v8::Function> m_asyncIterFn;
+
     int32_t call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
         v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
 

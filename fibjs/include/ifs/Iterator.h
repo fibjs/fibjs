@@ -58,6 +58,7 @@ public:
 public:
     // Iterator_base
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac) = 0;
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal) = 0;
 
@@ -74,6 +75,7 @@ public:
 
 public:
     static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_symbol_asyncIterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_next(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__return(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -87,6 +89,7 @@ inline ClassInfo& Iterator_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC },
+        { "@asyncIterator", s_symbol_asyncIterator, false, ClassData::ASYNC_SYNC },
         { "next", s_next, false, ClassData::ASYNC_ASYNC },
         { "return", s__return, false, ClassData::ASYNC_SYNC }
     };
@@ -112,6 +115,20 @@ inline void Iterator_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER(0, 0);
 
     hr = pInst->symbol_iterator(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Iterator_base::s_symbol_asyncIterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_INSTANCE(Iterator_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->symbol_asyncIterator(vr);
 
     METHOD_RETURN();
 }

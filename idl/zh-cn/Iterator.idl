@@ -6,6 +6,16 @@ interface Iterator : object
     */
     Iterator @iterator();
 
+    /*! @brief 查询当前对象元素的异步迭代器
+
+     for await...of 遍历时由 JS 引擎调用；返回的迭代器 next() 在
+     异步（promise）风格下返回 Promise<{ done, value }>，
+     同步风格下返回普通 { done, value }，两者均可被 for await 消费。
+
+     @return 返回当前对象元素的异步迭代器
+    */
+    Iterator @asyncIterator();
+
     /*! @brief 迭代下一个元素
      @return 返回下一个元素，或者标记迭代结束 */
     (Variant value, Boolean done) next() async;

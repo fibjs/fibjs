@@ -67,6 +67,9 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
+        if (m_activeStmt)
+            return db_stmt_busy_error();
+
         obj_ptr<NArray> retVal;
 
         if (point.empty())
@@ -84,12 +87,17 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
+        if (m_activeStmt)
+            return db_stmt_busy_error();
+
         obj_ptr<NArray> retVal;
 
         if (point.empty()) {
             result_t r = execute("COMMIT", retVal, ac);
-            odbc_set_autocommit(m_conn, true);
-            return r;
+            if (r < 0)
+                return r;
+
+            return odbc_set_autocommit(m_conn, true);
         }
 
         // DM does not support RELEASE SAVEPOINT, just ignore it
@@ -104,12 +112,17 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
+        if (m_activeStmt)
+            return db_stmt_busy_error();
+
         obj_ptr<NArray> retVal;
 
         if (point.empty()) {
             result_t r = execute("ROLLBACK", retVal, ac);
-            odbc_set_autocommit(m_conn, true);
-            return r;
+            if (r < 0)
+                return r;
+
+            return odbc_set_autocommit(m_conn, true);
         }
 
         exlib::string str("ROLLBACK TO SAVEPOINT " + point);
