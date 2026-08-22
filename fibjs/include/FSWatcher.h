@@ -20,6 +20,9 @@
 #include "Stat.h"
 #include "AsyncUV.h"
 
+#include <map>
+#include <vector>
+
 namespace fibjs {
 
 class FSWatcher : public FSWatcher_base {
@@ -37,6 +40,7 @@ public:
         , m_persistent(persistent)
         , m_recursive(recursive)
         , m_encoding(encoding)
+        , m_self_recursive(false)
     {
         memset(&m_fs_handle, 0, sizeof(m_fs_handle));
         m_fs_handle.data = this;
@@ -53,7 +57,9 @@ public:
         // Ensure handle is closed in destructor
         if (m_started && !m_closed) {
             m_closed = true;
-            if (!uv_is_closing((uv_handle_t*)&m_fs_handle)) {
+            if (m_self_recursive) {
+                closeRecursive();
+            } else if (!uv_is_closing((uv_handle_t*)&m_fs_handle)) {
                 uv_fs_event_stop(&m_fs_handle);
             }
         }
@@ -144,22 +150,27 @@ public:
             // Ref the object for UV callback
             Ref();
 
-            int32_t uv_err_no = uv_fs_event_init(s_uv_loop, &m_fs_handle);
-            if (uv_err_no != 0) {
-                Unref();
-                if (m_persistent)
-                    isolate_unref();
-                m_holder.Release();
-                return uv_err_no;
+            int32_t uv_err_no;
+
+            if (m_recursive && needSelfRecursive()) {
+                // libuv's inotify backend does not support UV_FS_EVENT_RECURSIVE.
+                // Implement recursive watching ourselves (see FSWatcher.cpp).
+                uv_err_no = startRecursive();
+            } else {
+                uv_err_no = uv_fs_event_init(s_uv_loop, &m_fs_handle);
+                if (uv_err_no == 0) {
+                    m_fs_handle.data = this;
+
+                    uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_filename.c_str(),
+                        m_recursive ? UV_FS_EVENT_RECURSIVE : 0);
+
+                    if (uv_err_no != 0)
+                        uv_close((uv_handle_t*)&m_fs_handle, on_uv_close);
+                }
             }
 
-            m_fs_handle.data = this;
-
-            uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_filename.c_str(), 
-                m_recursive ? UV_FS_EVENT_RECURSIVE : 0);
-            
             if (uv_err_no != 0) {
-                uv_close((uv_handle_t*)&m_fs_handle, on_uv_close);
+                Unref();
                 if (m_persistent)
                     isolate_unref();
                 m_holder.Release();
@@ -189,7 +200,9 @@ public:
 
         if (m_started) {
             uv_call([&] {
-                if (!uv_is_closing((uv_handle_t*)&m_fs_handle)) {
+                if (m_self_recursive) {
+                    closeRecursive();
+                } else if (!uv_is_closing((uv_handle_t*)&m_fs_handle)) {
                     uv_fs_event_stop(&m_fs_handle);
                     uv_close((uv_handle_t*)&m_fs_handle, on_uv_close);
                 }
@@ -223,6 +236,37 @@ public:
     const char* get_target() { return m_filename.c_str(); }
     bool isPersistent() { return m_persistent; }
     bool isRecursiveForDir() { return m_recursive; }
+
+private:
+    struct WatchItem {
+        FSWatcher* owner;
+        uv_fs_event_t handle;
+        exlib::string abs_path; /* absolute path of the watched entry */
+        exlib::string rel_path; /* path relative to the watch root ("" for root) */
+        bool is_dir;
+        bool is_root;
+    };
+
+    std::map<exlib::string, WatchItem*> m_items; /* recursive mode: abs_path -> item */
+    bool m_self_recursive;                       /* recursive mode implemented in FSWatcher.cpp */
+
+    /* true on platforms where libuv does not support UV_FS_EVENT_RECURSIVE */
+    static bool needSelfRecursive();
+
+    /* self-implemented recursive watching (Linux): one inotify watcher per entry,
+     * new directories are registered by rescanning on directory change events,
+     * mirroring how Node.js implements recursive watch where libuv cannot. */
+    int32_t startRecursive();
+    void closeRecursive();
+    static void item_cb(uv_fs_event_t* handle, const char* filename, int events, int status);
+    static void item_close_cb(uv_handle_t* handle);
+    void onItemEvent(WatchItem* item, const char* filename, int events, int status);
+    void rescanDir(WatchItem* item, bool emit_new);
+    WatchItem* addItem(const exlib::string& abs_path, const exlib::string& rel_path, bool is_dir);
+    bool removeItem(WatchItem* item);
+    void emitChange(const char* type, const exlib::string& rel_path, bool also_only);
+    static bool isDirectory(const exlib::string& path);
+    static bool pathExists(const exlib::string& path);
 
 private:
     uv_fs_event_t m_fs_handle;

@@ -52,9 +52,44 @@ const ensureDirectoryExisted = (dirpath) => {
     }
 };
 
-const support_watch_recursive = ['win32', 'darwin'].includes(process.platform);
+const support_watch_recursive = ['win32', 'darwin', 'linux'].includes(process.platform);
+const isLinux = process.platform === 'linux';
 // iOS simulator FSEvents doesn't return the filename when watching directories
 const support_watch_directory_filename = process.platform !== 'ios';
+
+// Collect events from a watcher until the predicate is satisfied (or timeout).
+// Returns the collected [eventType, filename] pairs.
+const collectEvents = (rootDir, options, action, predicate, timeout = 5000) => {
+    return new Promise((resolve, reject) => {
+        const events = [];
+        const watcher = fs.watch(rootDir, options, (eventType, filename) => {
+            events.push([eventType, String(filename == null ? '' : filename)]);
+            if (predicate(events)) {
+                clearTimeout(timer);
+                watcher.close();
+                resolve(events);
+            }
+        });
+        const timer = setTimeout(() => {
+            watcher.close();
+            reject(new Error(`Timeout waiting for events, got: ${JSON.stringify(events)}`));
+        }, timeout);
+        try {
+            action();
+        } catch (e) {
+            clearTimeout(timer);
+            watcher.close();
+            reject(e);
+        }
+    });
+};
+
+// Assert that the collected events contain every expected relative path.
+const assertEventsContain = (events, expected) => {
+    const names = events.map(([, f]) => f);
+    for (const name of expected)
+        assert.ok(names.includes(name), `missing '${name}' in ${JSON.stringify(names)}`);
+};
 
 describe('fs.watch', () => {
     const basedir = path.resolve(__dirname);
@@ -385,6 +420,191 @@ describe('fs.watch', () => {
 
                 await closePromise;
                 assert.ok(changeCount >= 1);
+            });
+
+            it('should report every entry created in the same tick (mkdir -p + writes)', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    // The whole tree is created before the event loop gets a
+                    // chance to deliver any event (regression: deep/nested and
+                    // the files used to be lost on Linux).
+                    fs.mkdirSync(path.join(rootDir, 'deep', 'nested'), { recursive: true });
+                    fs.writeFileSync(path.join(rootDir, 'deep', 'nested', 'b.txt'), 'x');
+                    fs.writeFileSync(path.join(rootDir, 'deep', 'nested', 'c.txt'), 'y');
+                }, (evs) => {
+                    const names = evs.map(([, f]) => f);
+                    return names.includes('deep') && names.includes('deep/nested') &&
+                        names.includes('deep/nested/b.txt') && names.includes('deep/nested/c.txt');
+                });
+
+                assertEventsContain(events, ['deep', 'deep/nested', 'deep/nested/b.txt', 'deep/nested/c.txt']);
+            });
+
+            it('should watch a file created in an existing subdirectory', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'nested');
+                ensureDirectoryExisted(nestedDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    createFile(path.join(nestedDir, 'file.txt'), 'new');
+                }, (evs) => evs.some(([, f]) => f === 'nested/file.txt'));
+
+                assertEventsContain(events, ['nested/file.txt']);
+            });
+
+            it('should watch a file created inside a new subdirectory', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    const sub = path.join(rootDir, 'sub');
+                    fs.mkdirSync(sub);
+                    createFile(path.join(sub, 'file.txt'), 'new');
+                }, (evs) => {
+                    const names = evs.map(([, f]) => f);
+                    return names.includes('sub') && names.includes('sub/file.txt');
+                });
+
+                assertEventsContain(events, ['sub', 'sub/file.txt']);
+            });
+
+            it('should watch updates of an existing nested file', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'a', 'b');
+                ensureDirectoryExisted(nestedDir);
+                createFile(path.join(nestedDir, 'file.txt'), 'initial');
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    writeFile(path.join(nestedDir, 'file.txt'), 'updated');
+                }, (evs) => evs.some(([, f]) => f === 'a/b/file.txt'));
+
+                assertEventsContain(events, ['a/b/file.txt']);
+            });
+
+            it('should watch deletion of a nested file', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'nested');
+                ensureDirectoryExisted(nestedDir);
+                const filePath = path.join(nestedDir, 'file.txt');
+                createFile(filePath, 'to delete');
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    delFile(filePath);
+                }, (evs) => evs.some(([, f]) => f === 'nested/file.txt'));
+
+                assertEventsContain(events, ['nested/file.txt']);
+            });
+
+            it('should watch deletion of a nested directory tree', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'deep', 'nested');
+                ensureDirectoryExisted(nestedDir);
+                createFile(path.join(nestedDir, 'file.txt'), 'content');
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    rmFile(path.join(rootDir, 'deep', 'nested'));
+                }, (evs) => evs.some(([, f]) => f === 'deep/nested'));
+
+                assertEventsContain(events, ['deep/nested']);
+            });
+
+            it('should watch a deep chain of directories created one by one', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    fs.mkdirSync(path.join(rootDir, 'a'));
+                    fs.mkdirSync(path.join(rootDir, 'a', 'b'));
+                    fs.mkdirSync(path.join(rootDir, 'a', 'b', 'c'));
+                    createFile(path.join(rootDir, 'a', 'b', 'c', 'f.txt'), 'x');
+                }, (evs) => {
+                    const names = evs.map(([, f]) => f);
+                    return names.includes('a') && names.includes('a/b') &&
+                        names.includes('a/b/c') && names.includes('a/b/c/f.txt');
+                });
+
+                assertEventsContain(events, ['a', 'a/b', 'a/b/c', 'a/b/c/f.txt']);
+            });
+
+            it('should watch renaming of a nested directory', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'nested');
+                ensureDirectoryExisted(nestedDir);
+                createFile(path.join(nestedDir, 'file.txt'), 'content');
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    fs.renameSync(nestedDir, path.join(rootDir, 'nested2'));
+                }, (evs) => evs.some(([, f]) => f === 'nested'));
+
+                assertEventsContain(events, ['nested']);
+            });
+
+            it('should watch direct children of the watched directory', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    createFile(path.join(rootDir, 'top.txt'), 'x');
+                }, (evs) => evs.some(([, f]) => f === 'top.txt'));
+
+                assertEventsContain(events, ['top.txt']);
+            });
+
+            it('should keep watching entries created after the watcher is attached', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = await collectEvents(rootDir, { recursive: true }, () => {
+                    // First tick: build the tree; second tick: modify a file inside it.
+                    fs.mkdirSync(path.join(rootDir, 'deep', 'nested'), { recursive: true });
+                    fs.writeFileSync(path.join(rootDir, 'deep', 'nested', 'b.txt'), 'x');
+                    setTimeout(() => {
+                        writeFile(path.join(rootDir, 'deep', 'nested', 'b.txt'), 'y');
+                    }, 300);
+                }, (evs) => {
+                    const names = evs.map(([, f]) => f);
+                    return names.includes('deep/nested/b.txt');
+                });
+
+                assertEventsContain(events, ['deep', 'deep/nested', 'deep/nested/b.txt']);
+            });
+
+            (isLinux ? it : it.skip)('should not emit events for pre-existing entries on start', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                const nestedDir = path.join(rootDir, 'deep', 'nested');
+                ensureDirectoryExisted(nestedDir);
+                createFile(path.join(nestedDir, 'b.txt'), 'x');
+
+                const events = [];
+                const watcher = fs.watch(rootDir, { recursive: true }, (eventType, filename) => {
+                    events.push(String(filename == null ? '' : filename));
+                });
+
+                await sleep(400);
+                watcher.close();
+
+                assert.deepStrictEqual(events, []);
+            });
+
+            it('should stop watching after close() with recursive option', async (t) => {
+                const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
+                ensureDirectoryExisted(rootDir);
+
+                const events = [];
+                const watcher = fs.watch(rootDir, { recursive: true }, (eventType, filename) => {
+                    events.push(String(filename == null ? '' : filename));
+                });
+
+                await sleep(100);
+                watcher.close();
+
+                await sleep(100);
+                createFile(path.join(rootDir, 'after-close.txt'));
+
+                await sleep(200);
+                assert.deepStrictEqual(events, []);
             });
         });
     }
