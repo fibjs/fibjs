@@ -469,7 +469,7 @@ function fetch_leveled_module_info(m, v, parent) {
                     install_log('fetch package.json:', m, "=>", git_pkgjson_uri);
                     pkg_githubtype_module_infos[m] = pkgjson_info = json_parse_response(git_r);
                 } catch (error) {
-                    console.warn(`error occured when try to fetch package.json from '${git_pkgjson_uri}' for '${m}'`)
+                    console.warn(`error occurred when try to fetch package.json from '${git_pkgjson_uri}' for '${m}'`)
                     throw new Error(`[package/${m}] error detail: \n${error.message}\n${error.stack}`)
                 }
 
