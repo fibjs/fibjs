@@ -183,12 +183,12 @@ public:
 
         obj_ptr<NArray> retVal;
 
-        // Write transactions use BEGIN IMMEDIATE: with deferred BEGIN in WAL mode,
-        // a "read then write" lock upgrade bypasses the busy handler and fails
-        // immediately with BUSY/BUSY_SNAPSHOT (SQLite recommends IMMEDIATE for
-        // write transactions; the Django sqlite backend does the same).
+        // Standard SQL transaction start. Note: BEGIN IMMEDIATE is a
+        // SQLite-specific optimization (WAL write locking) and lives in the
+        // SQLite engine override — do not put it here, it breaks other engines
+        // (PostgreSQL/MySQL/ODBC reject "BEGIN IMMEDIATE").
         if (point.empty())
-            return execute("BEGIN IMMEDIATE", retVal, ac);
+            return execute("BEGIN", retVal, ac);
 
         exlib::string str("SAVEPOINT " + point);
         return execute(str, retVal, ac);

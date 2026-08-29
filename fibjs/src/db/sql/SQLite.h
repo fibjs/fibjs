@@ -31,6 +31,26 @@ public:
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t begin(exlib::string point, AsyncEvent* ac)
+    {
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        obj_ptr<NArray> retVal;
+
+        // Write transactions use BEGIN IMMEDIATE: with deferred BEGIN in WAL mode,
+        // a "read then write" lock upgrade bypasses the busy handler and fails
+        // immediately with BUSY/BUSY_SNAPSHOT (SQLite recommends IMMEDIATE for
+        // write transactions; the Django sqlite backend does the same).
+        if (point.empty())
+            return execute("BEGIN IMMEDIATE", retVal, ac);
+
+        exlib::string str("SAVEPOINT " + point);
+        return execute(str, retVal, ac);
+    }
     virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
 
