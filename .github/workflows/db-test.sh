@@ -82,6 +82,14 @@ if [ "$OS" = "linux" ]; then
         echo -n "."; sleep 2
     done
 
+    echo -n "Waiting for KingbaseES V9..."
+    for i in $(seq 1 90); do
+        if docker exec fibjs-db-test-kingbase bash -c 'export PATH=$PATH:/home/kingbase/install/kingbase/bin; export LD_LIBRARY_PATH=/home/kingbase/install/kingbase/lib; sys_isready -h /tmp -p 54321 -d kingbase' 2>/dev/null | grep -q 'accepting connections'; then
+            echo " ready!"; break
+        fi
+        echo -n "."; sleep 2
+    done
+
     echo ""
     echo "=== Installing ODBC drivers (Linux) ==="
     sudo apt-get update -qq
@@ -103,8 +111,9 @@ if [ "$OS" = "linux" ]; then
     fi
     export LD_LIBRARY_PATH="$DM_DRV_DIR:${LD_LIBRARY_PATH}"
 
-    # 全部 5 个数据库 (mysql57 验证低版本认证协议 mysql_native_password)
+    # 全部 6 个数据库 (mysql57 验证低版本认证协议 mysql_native_password; psql_kb 为 KingbaseES V9)
     export FIBJS_TEST_PSQL="psql://fibjs:fibjs_test@localhost:5432/test"
+    export FIBJS_TEST_PSQL_KB="psql://SYSTEM:12345678ab@localhost:54321/test"
     export FIBJS_TEST_MYSQL="mysql://root:root_test@localhost:3306/test"
     export FIBJS_TEST_MYSQL57="mysql://root:root_test@localhost:3307/test"
     export FIBJS_TEST_MSSQL="mssql://sa:Test_1234@localhost:1433/test"
@@ -257,6 +266,7 @@ odbcinst -q -d 2>/dev/null || echo "(odbcinst not available, using system ODBC)"
 echo ""
 echo "=== Database environment variables ==="
 echo "FIBJS_TEST_PSQL=${FIBJS_TEST_PSQL:-'(not set)'}"
+echo "FIBJS_TEST_PSQL_KB=${FIBJS_TEST_PSQL_KB:-'(not set)'}"
 echo "FIBJS_TEST_MYSQL=${FIBJS_TEST_MYSQL:-'(not set)'}"
 echo "FIBJS_TEST_MYSQL57=${FIBJS_TEST_MYSQL57:-'(not set)'}"
 echo "FIBJS_TEST_MSSQL=${FIBJS_TEST_MSSQL:-'(not set)'}"

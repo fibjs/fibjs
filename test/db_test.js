@@ -21,6 +21,15 @@ if (process.env.FIBJS_TEST_PSQL) {
     };
 }
 
+// KingbaseES V9 (pg 模式: 标准 pg_* 目录, 通过 psql 引擎直接兼容) - 通过 FIBJS_TEST_PSQL_KB 环境变量控制
+// 连接格式: psql://user:password@host:port/test
+if (process.env.FIBJS_TEST_PSQL_KB) {
+    sql_server.psql_kb = {
+        desc: '[psql_kb] KingbaseES V9 (pg mode) sql db universal test',
+        conn_str: process.env.FIBJS_TEST_PSQL_KB,
+    };
+}
+
 // MySQL - 通过 FIBJS_TEST_MYSQL 环境变量控制
 // 连接格式: mysql://root:password@host:port/test
 if (process.env.FIBJS_TEST_MYSQL) {
@@ -64,6 +73,7 @@ describe("db", () => {
         var initDb = () => {
             switch (type) {
                 case 'psql':
+                case 'psql_kb':
                     conn.execute(`SELECT 'CREATE DATABASE ${DBNAME}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DBNAME}')`)
                     break;
                 case 'mssql':
@@ -1096,6 +1106,7 @@ describe("db", () => {
                 });
                 break;
             case 'psql':
+            case 'psql_kb':
                 // Test PostgreSQL specific data types and return values
                 it("PostgreSQL data types", () => {
                     // Drop table if exists

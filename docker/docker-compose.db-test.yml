@@ -93,3 +93,24 @@ services:
       retries: 15
       start_period: 30s
     restart: unless-stopped
+
+  # KingbaseES V9 (pg 模式: 标准 pg_* 目录, psql 引擎直接兼容)
+  # 注意: pg 模式下必须 ENABLE_CI=no, 否则 initdb 报错 "case-insensitive should only be enabled in oracle mode"
+  kingbase:
+    image: if010/kingbase:v009r001c001b0025
+    container_name: fibjs-db-test-kingbase
+    environment:
+      NEED_START: "yes"
+      DB_USER: SYSTEM
+      DB_PASSWORD: "12345678ab"
+      DB_MODE: pg
+      ENABLE_CI: "no"
+    ports:
+      - "54321:54321"
+    healthcheck:
+      test: ["CMD-SHELL", "export PATH=$$PATH:/home/kingbase/install/kingbase/bin; export LD_LIBRARY_PATH=/home/kingbase/install/kingbase/lib; sys_isready -h /tmp -p 54321 -d kingbase"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+    restart: unless-stopped

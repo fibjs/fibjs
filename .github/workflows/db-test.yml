@@ -20,7 +20,7 @@ on:
     # 允许手动触发
 
 jobs:
-  # Linux amd64: Docker Compose 启动全部 5 个 (PG/MySQL/MySQL5.7/MSSQL/DM)
+  # Linux amd64: Docker Compose 启动全部 6 个 (PG/KingbaseES V9/MySQL/MySQL5.7/MSSQL/DM)
   db-test-linux:
     runs-on: ubuntu-22.04
     steps:
