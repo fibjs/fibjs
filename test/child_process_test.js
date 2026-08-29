@@ -1990,6 +1990,86 @@ describe("child_process", () => {
         });
     });
 
+    // Node-compatible exit/close event args when the child is killed by a signal.
+    // Node baseline: both events emit (null, signalName). fibjs used to emit
+    // (0, signalName) on 'exit' (code 0 masked the crash) and (-11, signalName)
+    // on 'close' (negative signal value as code).
+    (process.platform == "win32" || isIOS ? describe.skip : describe)("signal death", () => {
+        function spawnKillMe() {
+            return child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_kill_me.js')], {
+                stdio: 'ignore'
+            });
+        }
+
+        function captureEvents(p) {
+            var events = [];
+            p.on('exit', (code, signal) => events.push(['exit', code, signal]));
+            p.on('close', (code, signal) => events.push(['close', code, signal]));
+            return events;
+        }
+
+        function waitBothEvents(events) {
+            for (var i = 0; i < 100 && events.length < 2; i++)
+                coroutine.sleep(10);
+            return events;
+        }
+
+        it("normal exit 0 reports (0, null) on exit and close", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_spawn_event.js')], {
+                stdio: 'ignore'
+            });
+            var events = captureEvents(p);
+            p.join();
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', 0, null],
+                ['close', 0, null]
+            ]);
+        });
+
+        it("custom exit code 124 reports (124, null) on exit and close", () => {
+            var p = child_process.spawn(cmd, ['-e', 'process.exit(124)'], {
+                stdio: 'ignore'
+            });
+            var events = captureEvents(p);
+            p.join();
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', 124, null],
+                ['close', 124, null]
+            ]);
+        });
+
+        it("killed by SIGKILL reports (null, SIGKILL) on exit and close", () => {
+            var p = spawnKillMe();
+            var events = captureEvents(p);
+            coroutine.sleep(200); // Ensure the child is running
+            p.kill('SIGKILL');
+            p.join();
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', null, 'SIGKILL'],
+                ['close', null, 'SIGKILL']
+            ]);
+        });
+
+        it("killed by SIGSEGV reports (null, SIGSEGV) on exit and close", () => {
+            var p = spawnKillMe();
+            var events = captureEvents(p);
+            coroutine.sleep(200); // Ensure the child is running
+            p.kill('SIGSEGV');
+            p.join();
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', null, 'SIGSEGV'],
+                ['close', null, 'SIGSEGV']
+            ]);
+        });
+
+        it("join returns negative signal code for signal death", () => {
+            var p = spawnKillMe();
+            coroutine.sleep(200); // Ensure the child is running
+            p.kill('SIGKILL');
+            assert.equal(p.join(), -9);
+        });
+    });
+
     (isIOS ? xit : it)("unref", () => {
         var t1 = new Date().getTime();
         // Start the main script that will spawn child process and call unref

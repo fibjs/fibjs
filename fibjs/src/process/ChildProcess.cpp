@@ -70,10 +70,13 @@ void ChildProcess::emit_close()
 {
     Variant args[2];
 
-    args[0] = m_exitCode;
     if (m_exitCode < 0) {
+        // Killed by a signal: report null code and the signal name,
+        // matching Node's close event semantics.
+        args[0].setNull();
         args[1] = signo_string(-m_exitCode);
     } else {
+        args[0] = m_exitCode;
         args[1].setNull();
     }
 
@@ -103,12 +106,17 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
 
     Variant args[2];
 
-    args[0] = (double)exit_status;
     if (term_signal) {
         exit_status = -term_signal;
+        // Killed by a signal: report null code and the signal name,
+        // matching Node's exit event semantics. The negative signal code is
+        // kept in m_exitCode for join()/spawnSync() internal use.
+        args[0].setNull();
         args[1] = signo_string(term_signal);
-    } else
+    } else {
+        args[0] = (double)exit_status;
         args[1].setNull();
+    }
 
     cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
