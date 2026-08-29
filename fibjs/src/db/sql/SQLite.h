@@ -20,7 +20,7 @@ class SQLiteStmtImpl;
 class SQLite : public db_tmpl<SQLite_base, SQLite> {
 public:
     SQLite()
-        : m_nCmdTimeout(10000)
+        : m_nCmdTimeout(5000)
     {
     }
 
@@ -45,11 +45,12 @@ public:
     result_t open(const char* file);
     int vec_init();
 
-    // 引擎实现：创建预编译语句（编译在 prepare 时完成）
+    // Engine implementation: create a prepared statement (compilation happens
+    // at prepare time)
     static result_t prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
         exlib::string sql, obj_ptr<Statement_base>& retVal);
 
-    // 列类型转换（execute 与游标共用）
+    // Column type conversion (shared by execute and the cursor)
     static void columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v);
 
 public:
@@ -74,7 +75,7 @@ private:
 private:
     exlib::string m_file;
     int32_t m_nCmdTimeout;
-    std::vector<SQLiteStmtImpl*> m_stmts; // 活跃游标（连接关闭时级联 close）
+    std::vector<SQLiteStmtImpl*> m_stmts; // active cursors (closed in cascade on connection close)
 };
 
 } /* namespace fibjs */

@@ -14,9 +14,11 @@
 
 namespace fibjs {
 
-// 连接级活动游标互斥的统一错误：Statement 游标（迭代器）未释放时，
-// execute 等受影响调用立即失败并说明原因。
-// 游标释放途径：迭代器耗尽 / 调用迭代器 return() / for...of 结束或 break
+// Unified error for the per-connection active-cursor mutex: while a Statement
+// cursor (iterator) is open, affected calls such as execute fail immediately
+// with an explanatory message.
+// Cursor release paths: iterator exhaustion / iterator.return() / for...of
+// finishing or breaking
 inline result_t db_stmt_busy_error()
 {
     return CHECK_ERROR(Runtime::setError(CALL_E_BUSY,
@@ -148,7 +150,8 @@ public:
     }
 
 public:
-    // 连接级活动游标互斥：Statement 打开期间同连接其他 execute/prepare 报 BUSY
+    // Per-connection active-cursor mutex: while a Statement is open, other
+    // execute/prepare calls on the same connection report BUSY
     int32_t m_activeStmt;
 
     result_t format(exlib::string sql, OptArgs args, exlib::string& retVal)
@@ -180,8 +183,12 @@ public:
 
         obj_ptr<NArray> retVal;
 
+        // Write transactions use BEGIN IMMEDIATE: with deferred BEGIN in WAL mode,
+        // a "read then write" lock upgrade bypasses the busy handler and fails
+        // immediately with BUSY/BUSY_SNAPSHOT (SQLite recommends IMMEDIATE for
+        // write transactions; the Django sqlite backend does the same).
         if (point.empty())
-            return execute("BEGIN", retVal, ac);
+            return execute("BEGIN IMMEDIATE", retVal, ac);
 
         exlib::string str("SAVEPOINT " + point);
         return execute(str, retVal, ac);
@@ -355,8 +362,9 @@ public:
     }
 
 public:
-    // 编译一条 SQL 为预编译语句（单语句）。同一连接同一时刻只允许一个
-    // 活动游标：游标未释放时禁止再 prepare 新语句（含 conn.iterate）。
+    // Compile a SQL string into a prepared statement (single statement). Only one
+    // active cursor is allowed per connection at a time: preparing a new
+    // statement (including conn.iterate) is forbidden while a cursor is open.
     result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal,
         AsyncEvent* ac)
     {
@@ -372,7 +380,8 @@ public:
         return impl::prepareStmt(this, sql, retVal);
     }
 
-    // 便捷入口：执行并按条返回迭代器（等价 stmt.iterate(...args)）
+    // Convenience entry: execute and return a row iterator (equivalent to
+    // stmt.iterate(...args))
     result_t iterate(exlib::string sql, OptArgs args,
         obj_ptr<Iterator_base>& retVal, AsyncEvent* ac)
     {
@@ -380,7 +389,7 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (ac->isSync()) {
-            // 主线程：v8 参数 → Variant（fiber 中不得触碰 v8）
+            // Main thread: convert v8 args to Variant (must not touch v8 in a fiber)
             ac->m_ctx.resize(args.Length() + 1);
             ac->m_ctx[0] = sql;
             Isolate* isolate = Isolate::current();
@@ -397,7 +406,7 @@ public:
         if (hr < 0)
             return hr;
 
-        // fiber 中：从 m_ctx 取出 Variant 参数（m_ctx[0] 是 SQL）
+        // In fiber: take the Variant args from m_ctx (m_ctx[0] is the SQL)
         std::vector<Variant> params;
         params.reserve(ac->m_ctx.size() - 1);
         for (size_t i = 1; i < ac->m_ctx.size(); i++)

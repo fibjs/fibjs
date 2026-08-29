@@ -14,11 +14,7 @@
 
 namespace fibjs {
 
-#define SQLITE_OPEN_FLAGS SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_NOMUTEX
-
-int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms);
-int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
-    sqlite3_stmt** ppStmt, const char** pzTail, int32_t ms);
+#define SQLITE_OPEN_FLAGS SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX
 
 result_t db_base::openSQLite(exlib::string connString,
     obj_ptr<SQLite_base>& retVal, AsyncEvent* ac)
@@ -48,7 +44,6 @@ result_t db_base::openSQLite(exlib::string connString,
 
 result_t SQLite::open(const char* file)
 {
-    sqlite3_enable_shared_cache(1);
     if (sqlite3_open_v2(file, (sqlite3**)&m_conn, SQLITE_OPEN_FLAGS, 0)) {
         result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file));
         sqlite3_close((sqlite3*)m_conn);
@@ -56,12 +51,23 @@ result_t SQLite::open(const char* file)
         return hr;
     }
 
+    // Lock waiting is delegated to SQLite's official busy handler: file-lock
+    // contention between processes or between connections in the same process
+    // retries with backoff for up to `timeout` ms (SQLite runs on a dedicated
+    // thread, so the event loop is unaffected).
+    // Shared cache is not used: in WAL mode reads never block writes, and
+    // writer-vs-writer is serialized by the WAL write lock, so table-level
+    // locks are unnecessary.
+    sqlite3_busy_timeout((sqlite3*)m_conn, m_nCmdTimeout);
+
     vec_init();
 
-    obj_ptr<NArray> retVal;
-    cc_execute("PRAGMA journal_mode=WAL;", retVal);
-    cc_execute("PRAGMA synchronous=normal;", retVal);
-    cc_execute("PRAGMA temp_store=memory;", retVal);
+    // Per-connection PRAGMA settings (these three have no C API, SQL only).
+    // Errors are ignored to keep the previous behavior: e.g. when the
+    // filesystem does not support WAL, it silently falls back to rollback mode.
+    sqlite3_exec((sqlite3*)m_conn,
+        "PRAGMA journal_mode=WAL; PRAGMA synchronous=normal; PRAGMA temp_store=memory;",
+        0, 0, 0);
 
     m_file = file;
 
@@ -72,7 +78,7 @@ SQLite::~SQLite()
 {
     if (m_conn)
         async([conn = (sqlite3*)m_conn]() {
-            // v2: 未 finalize 的 stmt 会在其释放时自动完成关闭
+            // v2: statements not yet finalized are closed automatically on release
             sqlite3_close_v2(conn);
         });
 }
@@ -83,7 +89,7 @@ result_t SQLite::get_type(exlib::string& retVal)
     return 0;
 }
 
-// 列值类型转换（execute 与 Statement 游标共用）
+// Column value conversion (shared by execute and the Statement cursor)
 void SQLite::columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v)
 {
     switch (sqlite3_column_type(stmt, i)) {
@@ -140,7 +146,7 @@ void SQLite::columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v)
 }
 
 // ---------------------------------------------------------------------------
-// Statement 游标实现
+// Statement cursor implementation
 // ---------------------------------------------------------------------------
 
 class SQLiteStmtImpl : public Statement::impl {
@@ -178,9 +184,10 @@ public:
 
         hasResult = (m_columns > 0);
         if (!hasResult) {
-            // 无结果集语句（INSERT/UPDATE/DELETE/DDL）：立即执行到完成，
-            // 否则 sqlite3_changes 取不到本次语句的影响数。
-            int32_t r = sqlite3_step_sleep(m_stmt, m_db->m_nCmdTimeout);
+            // Statements without a result set (INSERT/UPDATE/DELETE/DDL): run
+            // to completion immediately, otherwise sqlite3_changes cannot
+            // report the affected count of this statement.
+            int32_t r = sqlite3_step(m_stmt);
             if (r != SQLITE_DONE) {
                 if (r == SQLITE_ERROR)
                     return CHECK_ERROR(Runtime::setError(
@@ -199,7 +206,7 @@ public:
         if (!m_stmt)
             return CHECK_ERROR(CALL_E_CLOSED);
 
-        int32_t r = sqlite3_step_sleep(m_stmt, m_db->m_nCmdTimeout);
+        int32_t r = sqlite3_step(m_stmt);
         if (r == SQLITE_ROW) {
             for (int32_t i = 0; i < m_columns; i++) {
                 Variant v;
@@ -212,7 +219,7 @@ public:
 
         done = true;
         if (r == SQLITE_DONE) {
-            reset(); // 游标复位：impl 保留，Statement 可复用
+            reset(); // cursor reset: impl is retained, Statement can be reused
             return 0;
         }
 
@@ -245,7 +252,8 @@ public:
         return 0;
     }
 
-    // 游标复位：每次执行/迭代结束调用；impl 保留，可再次 open()
+    // Cursor reset: called after each execute/iteration; the impl is retained
+    // and can be open()ed again
     virtual void reset()
     {
         if (m_stmt)
@@ -253,7 +261,7 @@ public:
         m_db->m_activeStmt = 0;
     }
 
-    // 彻底释放（仅 Statement 销毁时调用）
+    // Full release (only called when the Statement is destroyed)
     virtual void close()
     {
         if (m_stmt) {
@@ -278,7 +286,8 @@ public:
 private:
     static result_t bindValue(sqlite3_stmt* stmt, int32_t idx, Variant& v)
     {
-        // Variant 已由主线程从 v8 转换（fiber 中安全，不触碰 v8）
+        // Variant was already converted from v8 on the main thread (safe in a
+        // fiber, no v8 access)
         switch (v.type()) {
         case Variant::VT_Integer:
             sqlite3_bind_int64(stmt, idx, v.intVal());
@@ -308,7 +317,8 @@ private:
             break;
 
         case Variant::VT_Date: {
-            // stashArgs 已在主线程把 Date 转成 SQL 字符串；此处防御性兜底
+            // stashArgs already converted Date to a SQL string on the main
+            // thread; this is a defensive fallback
             exlib::string s;
             v.toString(s);
             sqlite3_bind_text(stmt, idx, s.c_str(), (int32_t)s.length(),
@@ -359,9 +369,8 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
     sqlite3_stmt* stmt = NULL;
     const char* pTail = NULL;
 
-    if (sqlite3_prepare_sleep((sqlite3*)db->m_conn, sql.c_str(),
-            (int32_t)sql.length(), &stmt, &pTail,
-            ((SQLite*)db)->m_nCmdTimeout)) {
+    if (sqlite3_prepare_v2((sqlite3*)db->m_conn, sql.c_str(),
+            (int32_t)sql.length(), &stmt, &pTail)) {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)db->m_conn)));
         if (stmt)
             sqlite3_finalize(stmt);
@@ -371,7 +380,7 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
     if (!stmt)
         return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
 
-    // prepare 只接受单语句
+    // prepare accepts a single statement only
     while (qisspace(*pTail))
         pTail++;
     if (*pTail) {
@@ -393,7 +402,8 @@ result_t SQLite::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    // 级联关闭活跃游标（finalize 未释放的 stmt），避免 sqlite3_close 失败
+    // Cascade-close active cursors (finalize statements not yet released) to
+    // keep sqlite3_close from failing
     std::vector<SQLiteStmtImpl*> stmts;
     stmts.swap(m_stmts);
     for (size_t i = 0; i < stmts.size(); i++)
@@ -406,46 +416,6 @@ result_t SQLite::close(AsyncEvent* ac)
     return 0;
 }
 
-inline int32_t _busy(int32_t ms, int32_t count)
-{
-    static const int32_t delays[] = { 1, 2, 5, 10, 15, 20, 25, 25, 25, 50, 50, 100 };
-
-    int32_t delay;
-
-    if (count < (int32_t)ARRAYSIZE(delays))
-        delay = delays[count];
-    else
-        delay = delays[ARRAYSIZE(delays) - 1];
-
-    if (delay > ms)
-        delay = ms;
-
-    coroutine_base::cc_sleep(delay);
-    return delay;
-}
-
-int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms)
-{
-    int32_t count = 0;
-    while (true) {
-        int32_t r = sqlite3_step(stmt);
-        if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
-            return r;
-        ms -= _busy(ms, count++);
-    }
-}
-
-int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
-    sqlite3_stmt** ppStmt, const char** pzTail, int32_t ms)
-{
-    int32_t count = 0;
-    while (true) {
-        int32_t r = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
-        if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
-            return r;
-        ms -= _busy(ms, count++);
-    }
-}
 
 result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
@@ -465,7 +435,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
     do {
         sqlite3_stmt* stmt = 0;
 
-        if (sqlite3_prepare_sleep((sqlite3*)m_conn, pStr, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
+        if (sqlite3_prepare_v2((sqlite3*)m_conn, pStr, sLen, &stmt, &pStr1)) {
             result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
             if (stmt)
                 sqlite3_finalize(stmt);
@@ -490,7 +460,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
             }
 
             while (true) {
-                int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
+                int32_t r = sqlite3_step(stmt);
                 if (r == SQLITE_ROW) {
                     res->beginRow();
                     for (i = 0; i < columns; i++) {
@@ -509,7 +479,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
                 }
             }
         } else {
-            int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
+            int32_t r = sqlite3_step(stmt);
             if (r == SQLITE_DONE)
                 res = new DBResult(0, sqlite3_changes((sqlite3*)m_conn),
                     sqlite3_last_insert_rowid((sqlite3*)m_conn));
@@ -565,6 +535,10 @@ result_t SQLite::set_timeout(int32_t newVal)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     m_nCmdTimeout = newVal;
+
+    // Sync the busy handler wait budget (0 means no waiting, immediate BUSY)
+    sqlite3_busy_timeout((sqlite3*)m_conn, newVal);
+
     return 0;
 }
 
@@ -591,6 +565,10 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
         result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg(db2), c_str));
         return hr;
     }
+
+    // backup_step's file-lock waiting goes through the destination connection's
+    // busy handler
+    sqlite3_busy_timeout(db2, m_nCmdTimeout);
 
     pBackup = sqlite3_backup_init(db2, "main", (sqlite3*)m_conn, "main");
     if (pBackup) {
