@@ -13,7 +13,8 @@ namespace fibjs {
 result_t Statement::get(OptArgs args, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        // 主线程：v8 参数 → Variant 存 ac->m_ctx（fiber 中不得触碰 v8）
+        // Main thread: v8 args → Variant stored in ac->m_ctx (must not touch v8
+        // in a fiber)
         result_t hr = stashArgs(args, ac);
         if (hr < 0)
             return hr;
@@ -34,7 +35,7 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncEvent* ac)
             return hr;
         }
 
-        // 无结果时 retVal 保持默认（undefined）
+        // Leave retVal at its default (undefined) when there is no result
         if (!done)
             retVal = row;
     }
@@ -72,7 +73,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac)
             arr->append(row);
         }
     } else {
-        // 无结果集：与 execute 语义一致，附加 affected/insertId
+        // No result set: same semantics as execute, attach affected/insertId
         int64_t changes = 0;
         int64_t lastInsertId = 0;
         hr = m_impl->runResult(changes, lastInsertId);
@@ -105,7 +106,8 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    // 丢弃结果集（run 语义：只关心影响统计）；若是有结果集的查询，逐行耗尽
+    // Discard the result set (run semantics: only the impact stats matter);
+    // for queries with a result set, drain it row by row
     if (hasResult) {
         while (true) {
             obj_ptr<NObject> row;
@@ -125,8 +127,9 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    // NObject 是 fibjs 封装（内部处理 v8 上下文），在协程中安全；
-    // 不直接创建裸 v8::Object（fiber 中创建 v8 value 会崩溃）。
+    // NObject is a fibjs wrapper (handles the v8 context internally) and is
+    // safe in a coroutine; do not create a bare v8::Object here (creating v8
+    // values inside a fiber crashes).
     obj_ptr<NObject> o = new NObject();
     o->add("changes", changes);
     o->add("lastInsertRowid", lastInsertId);
@@ -155,7 +158,7 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
     if (hr < 0)
         return hr;
 
-    // 无结果集：返回空迭代器（done 立即为 true）
+    // No result set: return an empty iterator (done is immediately true)
     if (!hasResult) {
         finish();
         retVal = new StatementIterator(this);
@@ -212,7 +215,7 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
     retVal = new NextType();
     if (done) {
         retVal->done = true;
-        close(); // finish：游标复位，impl 保留
+        close(); // finish: reset the cursor, keep the impl
     } else
         retVal->value = row;
 
@@ -221,7 +224,7 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
 
 result_t StatementIterator::_return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
 {
-    // for await 提前 break 时由 JS 引擎调用：释放游标
+    // Called by the JS engine when for await breaks early: release the cursor
     close();
 
     retVal = new ReturnType();

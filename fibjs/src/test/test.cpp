@@ -453,7 +453,8 @@ public:
                     }
                 }
 
-                // 判断是否是 describe：有 describe_block 或已经展开的 subs，且没有 it 的 block
+                // Determine whether this is a describe: has a describe_block or
+                // expanded subs, and no it block
                 if (p1->m_status && (p1->m_subs.size() || !p1->m_describe_block.IsEmpty() || (p1->m_block.IsEmpty() && p1->m_level != _case::TEST_TODO))) {
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;

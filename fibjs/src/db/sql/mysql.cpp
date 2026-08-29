@@ -73,7 +73,7 @@ void API_resultRowBegin(void* result)
     ((DBResult*)result)->beginRow();
 }
 
-// 列类型转换（execute 回调与 Statement 游标共用）
+// Column type conversion (shared by execute callbacks and Statement cursor)
 void mysql::columnValue(const UMTypeInfo* ti, const UINT8* value,
     size_t cbValue, Variant& v)
 {
@@ -165,12 +165,14 @@ UMConnectionCAPI capi = {
 };
 
 // ---------------------------------------------------------------------------
-// MySQL Statement 游标实现（文本协议 + 客户端转义绑定 + 驱动流式状态机）
+// MySQL Statement cursor implementation (text protocol + client-side escaped
+// binding + driver streaming state machine)
 // ---------------------------------------------------------------------------
 
-// 把 Variant 参数按 MySQL 字面量语义转义拼入 SQL（与 db_format 对齐）：
-//   number → 裸数字；boolean → true/false；null/undefined → NULL；
-//   Buffer → 0x hex；其他 → '...'（' 与 \ 转义）
+// Escape a Variant argument into SQL using MySQL literal semantics (aligned
+// with db_format):
+//   number → bare number; boolean → true/false; null/undefined → NULL;
+//   Buffer → 0x hex; others → '...' (with ' and \ escaped)
 static void appendMySQLValue(exlib::string& str, Variant& v)
 {
     switch (v.type()) {
@@ -218,7 +220,8 @@ static void appendMySQLValue(exlib::string& str, Variant& v)
     }
 }
 
-// 按 ? 占位符顺序替换参数（与 db_format::format 语义一致）
+// Replace arguments in ? placeholder order (same semantics as
+// db_format::format)
 static result_t formatMySQL(const char* sql, std::vector<Variant>& args,
     exlib::string& retVal)
 {
@@ -270,7 +273,7 @@ public:
 
     virtual result_t open(std::vector<Variant>& args, bool& hasResult)
     {
-        reset(); // 防御：上次游标未释放
+        reset(); // defensive: previous cursor was not released
 
         exlib::string full;
         result_t hr = formatMySQL(m_sql.c_str(), args, full);
@@ -286,7 +289,8 @@ public:
             return m_db->error();
 
         if (st == 0) {
-            // OK 包：无结果集；affected/insertId 经 takeResult 读取
+            // OK packet: no result set; affected/insertId are read via
+            // takeResult
             m_okResult = m_conn->takeResult();
             hasResult = false;
             m_db->m_activeStmt = 1;
@@ -343,13 +347,15 @@ public:
             "MySQL: columns() requires server-side prepared statements (v2)"));
     }
 
-    // 游标复位：drain 剩余结果并释放并发保护（连接保持可用），impl 保留
+    // Cursor reset: drain the remaining result and release the concurrency
+    // guard (connection stays usable); impl is retained
     virtual void reset()
     {
         if (m_conn) {
-            // abortResult 幂等：RS_NONE 时直接返回；RS_ROWSET（含 EOF 后，
-            // 状态未复位）释放 beginQuery 持有的并发保护并 drain 剩余
-            // 结果集，连接可继续复用。
+            // abortResult is idempotent: returns immediately in RS_NONE state;
+            // in RS_ROWSET (including post-EOF with the state not yet reset) it
+            // releases the concurrency guard held by beginQuery and drains the
+            // remaining result set, so the connection can be reused.
             m_conn->abortResult();
             if (m_okResult) {
                 capi.destroyResult(m_okResult);
@@ -362,7 +368,8 @@ public:
         m_db->m_activeStmt = 0;
     }
 
-    // 彻底释放（Statement 销毁时）；无服务端句柄，reset 即释放
+    // Full release (when the Statement is destroyed); no server-side handle,
+    // reset is the release
     virtual void close()
     {
         reset();
@@ -384,8 +391,9 @@ result_t mysql::prepareStmt(db_tmpl<MySQL_base, mysql>* db,
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
             "MySQL: database is closed."));
 
-    // v1：文本协议 + 客户端转义绑定；编译推迟到 Statement 打开时
-    // （无服务端预编译，SQL 每次执行时拼串发送）
+    // v1: text protocol + client-side escaped binding; compilation is deferred
+    // until the Statement opens (no server-side prepared statements, the SQL is
+    // assembled and sent on each execution)
     obj_ptr<Statement> stmt = new Statement(sql,
         new MySQLStmtImpl((mysql*)db, sql));
     retVal = stmt;

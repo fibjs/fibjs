@@ -39,9 +39,9 @@ result_t HttpCookie_base::_new(exlib::string name, exlib::string value,
     return 0;
 }
 
-// 公开 API：解析 cookie 字符串并对 name/value 做 URL 解码，
-// 保持与 toString() 的往返语义（历史行为，测试锁定）。
-// 注意：解析远端 Set-Cookie 原始值请用 parseRaw（不解码）。
+// Public API: parse a cookie string with URL-decoding of name/value, keeping
+// the round-trip semantics with toString() (historical, test-locked).
+// Note: for raw remote Set-Cookie values use parseRaw (no decoding).
 result_t HttpCookie::parse(exlib::string header)
 {
     return parse_ex(header, true);

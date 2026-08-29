@@ -14,9 +14,9 @@ namespace fibjs {
 
 class Iterator : public Iterator_base {
 public:
-    // (err, has_value): err == 0 且 has_value == true  => 正常取值
-    //                    err == 0 且 has_value == false => 迭代结束
-    //                    err < 0                        => 失败，抛给调用方
+    // (err, has_value): err == 0 && has_value == true  => value available
+    //                    err == 0 && has_value == false => iteration done
+    //                    err < 0                        => failed, thrown to caller
     typedef std::function<void(result_t, bool)> IteratorCallback;
     typedef std::function<void(size_t, Variant&, IteratorCallback)> IteratorFunc;
     typedef std::function<void()> IteratorEndFunc;
@@ -44,8 +44,9 @@ public:
         return 0;
     }
 
-    // 异步迭代器：返回自身。sync 原型下 next() 返回普通 {done,value}，
-    // async 原型下返回 Promise<{done,value}>，两者均可被 for await 消费。
+    // Async iterator: returns itself. On the sync prototype next() returns a
+    // plain {done,value}; on the async prototype it returns Promise<{done,value}>.
+    // Both can be consumed by for await.
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
@@ -75,17 +76,18 @@ public:
         retVal = new NextType();
         m_proc(m_index++, retVal->value,
             [this, &retVal, ac](result_t err, bool has_value) {
-                if (m_done) // 已被 return()/close 提前终止，丢弃迟到的回调
+                if (m_done) // already terminated by return()/close, drop the late callback
                     return;
                 retVal->done = m_done = !has_value;
-                ac->post(err); // err < 0 => JS 侧 next() 抛异常
+                ac->post(err); // err < 0 => next() throws on the JS side
             });
 
         return CALL_E_PENDDING;
     }
 
 public:
-    // 幂等关闭：释放 m_onclose 持有的资源；之后 next() 恒返回 {done:true}
+    // Idempotent close: releases resources held by m_onclose; after this,
+    // next() always returns {done:true}
     void close()
     {
         if (!m_done) {
@@ -96,9 +98,9 @@ public:
     }
 
 private:
-    obj_ptr<object_base> m_obj; // 保证宿主对象存活
+    obj_ptr<object_base> m_obj; // keeps the host object alive
     IteratorFunc m_proc;
-    IteratorEndFunc m_onclose; // 可选；HttpCollection/XmlNodeList 传 nullptr
+    IteratorEndFunc m_onclose; // optional; HttpCollection/XmlNodeList pass nullptr
     size_t m_index;
     bool m_done;
 };

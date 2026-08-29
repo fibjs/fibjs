@@ -184,11 +184,13 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v
         v->to_args(m_isolate, args);
 }
 
-// async 方法返回的 Promise 统一挂 Symbol.asyncIterator（按 Isolate 缓存包装函数）。
-// 包装函数以 promise 为 this，返回一个 async 迭代器：next/return 先 await promise
-// 得到真实结果，再取结果的 asyncIterator（迭代器走原生 async 协议，避免
-// Async-from-Sync 对 next() 返回 Promise 的死循环问题）。
-// 效果：for await (var row of connP.iterate(...)) 可直接消费。
+// Promises returned by async methods get a unified Symbol.asyncIterator
+// (wrapper function cached per Isolate). The wrapper takes the promise as
+// `this` and returns an async iterator whose next/return first await the
+// promise to get the real result, then take its asyncIterator (the iterator
+// follows the native async protocol, avoiding the Async-from-Sync infinite
+// loop on next() returning a Promise).
+// Effect: for await (var row of connP.iterate(...)) works directly.
 static v8::Local<v8::Function> get_async_iterable_fn(Isolate* isolate)
 {
     if (isolate->m_asyncIterFn.IsEmpty()) {
@@ -341,8 +343,9 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
         v8::Local<v8::Promise> promise = resolver->GetPromise();
         args.GetReturnValue().Set(promise);
 
-        // 给 Promise 挂 Symbol.asyncIterator（自适应包装，见 get_async_iterable_fn）：
-        // for await (var row of connP.iterate(...)) 可直接消费 async 方法的返回值
+        // Install Symbol.asyncIterator on the Promise (adaptive wrapper, see
+        // get_async_iterable_fn): for await (var row of connP.iterate(...))
+        // can consume the return value of async methods directly
         promise->Set(m_isolate->context(),
             v8::Symbol::GetAsyncIterator(m_isolate->m_isolate),
             get_async_iterable_fn(m_isolate))

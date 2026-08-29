@@ -1342,8 +1342,9 @@ public:
             }
         }
 
-        // D-005: get/head 便捷方法(auto_send)自动发送请求,无需手动 end(),
-        // 与 Node.js http.get 一致;http.request 等保持手动 end() 语义。
+        // D-005: get/head convenience methods (auto_send) send the request
+        // automatically without a manual end(); consistent with Node.js
+        // http.get; http.request etc. keep the manual end() semantics.
         if (m_o->is_async && m_o->req && !m_o->auto_send)
             next(wait_end);
         else
@@ -1426,8 +1427,9 @@ public:
         bool enableCookie = false;
         m_hc->get_enableCookie(enableCookie);
         if (enableCookie) {
-            // 用户显式提供了 Cookie 头时不再自动附加 jar 中的 cookie，
-            // 避免服务端收到两个 Cookie 头（与浏览器/Node 行为一致）。
+            // When the user explicitly provides a Cookie header, do not also
+            // attach cookies from the jar, to avoid the server receiving two
+            // Cookie headers (consistent with browser/Node behavior).
             bool bHasCookie = false;
             if (m_o->headers)
                 m_o->headers->has("Cookie", bHasCookie);
@@ -2595,7 +2597,8 @@ result_t HttpClient::request(v8::Local<v8::Object> opts, v8::Local<v8::Function>
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     if (ac->isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("GET", url, opts, msg, ac, true);
@@ -2611,7 +2614,8 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     if (ac->isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac, true);
@@ -2627,7 +2631,8 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
@@ -2786,7 +2791,7 @@ result_t HttpClient::headSync(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     if (ac->isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("HEAD", url, opts, msg, ac, true);
@@ -2802,7 +2807,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     if (ac->isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, ac, true);
@@ -2818,7 +2823,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     if (ac->isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
@@ -2906,7 +2911,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     AsyncEvent ac(Isolate::current());
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_request("GET", url, opts, msg, &ac, true);
@@ -2920,7 +2926,8 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     AsyncEvent ac(Isolate::current());
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("GET", url, opts, callback, msg, &ac, true);
@@ -2934,7 +2941,8 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.get 自动发送请求(与 Node.js http.get 一致),无需手动 end()
+    // D-005: http.get sends automatically (consistent with Node.js http.get),
+    // no manual end() needed
     AsyncEvent ac(Isolate::current());
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;
@@ -3021,7 +3029,7 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_request("HEAD", url, opts, msg, &ac, true);
@@ -3035,7 +3043,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, &ac, true);
@@ -3049,7 +3057,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
     obj_ptr<HttpRequest_base>& retVal)
 {
-    // D-005: http.head 自动发送请求,无需手动 end()
+    // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;

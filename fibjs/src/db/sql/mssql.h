@@ -27,7 +27,7 @@ public:
     static result_t prepareStmt(db_tmpl<Odbc_tmpl, mssql>* db,
         exlib::string sql, obj_ptr<Statement_base>& retVal)
     {
-        // mssql 字符串用 N'...' 前缀转义；二进制用 0x hex
+        // mssql strings are escaped with an N'...' prefix; binaries use 0x hex
         static const OdbcEscape esc = { escape_string, Odbc::escape_binary };
         return odbc_prepareStmt(db->m_conn, &db->m_activeStmt, sql, esc, retVal);
     }

@@ -322,7 +322,8 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
 }
 
-// 共享列值读取（execute 与 Statement 游标共用；实现在文件后部）
+// Shared column value fetch (used by execute and Statement cursor;
+// implemented later in this file)
 static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     Variant& v);
 
@@ -448,10 +449,10 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
 }
 
 // ---------------------------------------------------------------------------
-// ODBC Statement 游标实现（SQLPrepare + SQLFetch 逐行读取）
+// ODBC Statement cursor implementation (SQLPrepare + row-by-row SQLFetch)
 // ---------------------------------------------------------------------------
 
-// 按列类型取一列值（execute 与 Statement 游标共用）
+// Fetch one column value by type (shared by execute and Statement cursor)
 static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     Variant& v)
 {
@@ -535,7 +536,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         break;
     }
     default: {
-        // 大文本 4096 字符分块
+        // Large text fetched in 4096-character chunks
         exlib::wstring value;
         exlib::wstring chunk;
         const SQLLEN chunkChars = 4096;
@@ -575,10 +576,10 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     return 0;
 }
 
-// 引擎转义回调：Variant → SQL 字面量（各引擎的 escape 规则不同）
-// OdbcEscape 定义在 Odbc.h
+// Engine escape callbacks: Variant → SQL literal (each engine has different
+// escape rules). OdbcEscape is defined in Odbc.h
 
-// 通用转义（SQL 标准：' → ''；二进制 → 0x hex）
+// Generic escaping (SQL standard: ' → ''; binary → 0x hex)
 static exlib::string odbcEscapeString(exlib::string v)
 {
     exlib::string retVal;
@@ -606,7 +607,8 @@ static exlib::string odbcEscapeBinary(Buffer* bin)
     return retVal;
 }
 
-// 把 Variant 参数按 SQL 字面量语义拼入（与 db_format 对齐）
+// Assemble Variant args into SQL using literal semantics (aligned with
+// db_format)
 static void odbcFormatValue(exlib::string& str, Variant& v,
     const OdbcEscape& esc)
 {
@@ -703,7 +705,7 @@ public:
 
     virtual result_t open(std::vector<Variant>& args, bool& hasResult)
     {
-        reset(); // 防御：上次游标未释放
+        reset(); // defensive: previous cursor was not released
 
         exlib::string full;
         result_t hr = odbcFormatSQL(m_sql.c_str(), args, m_esc, full);
@@ -732,7 +734,7 @@ public:
             return CHECK_ERROR(Runtime::setError(err));
         }
 
-        // 列元数据（执行后可用）
+        // Column metadata (available after execution)
         SQLSMALLINT columns = 0;
         sqlhr = SQLNumResultCols(m_stmt, &columns);
         if (sqlhr < 0) {
@@ -830,7 +832,8 @@ public:
             "ODBC: columns() requires a prepared statement (v2)"));
     }
 
-    // 游标复位：释放 HSTMT（连接保持可用），impl 保留可复用
+    // Cursor reset: release the HSTMT (connection stays usable), impl is
+    // retained for reuse
     virtual void reset()
     {
         if (m_stmt) {
@@ -845,7 +848,7 @@ public:
             *m_activeStmt = 0;
     }
 
-    // 彻底释放（Statement 销毁时）
+    // Full release (when the Statement is destroyed)
     virtual void close()
     {
         reset();
@@ -862,7 +865,7 @@ private:
     std::vector<exlib::string> m_names;
 };
 
-// 通用转义回调（odbc 引擎默认）
+// Generic escape callbacks (odbc engine default)
 static const OdbcEscape odbcEscape = { odbcEscapeString, odbcEscapeBinary };
 
 result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,

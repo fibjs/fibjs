@@ -41,12 +41,14 @@ public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
 
-    // 引擎实现：创建预编译语句。v1 走文本协议 + 客户端转义绑定
-    // （Statement 打开时把 Variant 参数转义拼入 SQL，再走驱动流式状态机）。
+    // Engine implementation: create a prepared statement. v1 uses the text
+    // protocol + client-side escaped binding (Variant args are escaped into the
+    // SQL when the Statement opens, then driven through the streaming state
+    // machine).
     static result_t prepareStmt(db_tmpl<MySQL_base, mysql>* db,
         exlib::string sql, obj_ptr<Statement_base>& retVal);
 
-    // 列类型转换（execute 回调与 Statement 游标共用）
+    // Column type conversion (shared by execute callbacks and Statement cursor)
     static void columnValue(const UMTypeInfo* ti, const UINT8* value,
         size_t cbValue, Variant& v);
 

@@ -48,8 +48,8 @@ public:
     result_t fill(v8::Local<v8::Object> opts, bool bBase);
 
 private:
-    // parse/parseRaw 的公共实现；bDecode=true 保持公开 parse 与 toString
-    // 的往返解码语义（历史行为，测试锁定）。
+    // Shared implementation of parse/parseRaw; bDecode=true keeps the round-trip
+    // decoding semantics of the public parse and toString (historical, test-locked).
     result_t parse_ex(exlib::string header, bool bDecode);
 
 private:

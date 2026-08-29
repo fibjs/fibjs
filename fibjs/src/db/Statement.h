@@ -15,37 +15,45 @@ namespace fibjs {
 
 class StatementIterator;
 
-/*! @brief 预编译语句对象，可反复执行，支持按条读取。
+/*! @brief Prepared statement object: reusable, supports row-by-row reads.
 
-各引擎通过注入 impl（游标能力）接入：prepare 时编译，open 时绑定参数并
-执行，fetchRow 逐行抓取。get/all/run/iterate/close 的公共语义在此实现。
+Engines plug in through an injected impl (cursor capability): compilation
+happens at prepare time, binding and execution at open, and fetchRow pulls
+rows one by one. The shared semantics of get/all/run/iterate/close are
+implemented here.
 */
 class Statement : public Statement_base {
 public:
-    // 引擎游标接口
+    // Engine cursor interface
     class impl {
     public:
         virtual ~impl() {}
 
-        // 绑定参数并执行；hasResult=true 表示有结果集可逐行读取。
-        // 调用后游标处于打开状态（连接级互斥由引擎负责）。
-        // args 已由主线程从 v8 转换为 Variant（fiber 中安全）。
+        // Bind args and execute; hasResult=true means a result set is available
+        // for row-by-row reads. The cursor is left open on return (the engine
+        // is responsible for the connection-level mutex).
+        // args were already converted from v8 to Variant on the main thread
+        // (safe in a fiber).
         virtual result_t open(std::vector<Variant>& args, bool& hasResult) = 0;
 
-        // 抓取一行填充 row（列名 → 值）；done=true 表示耗尽（游标自动释放）。
+        // Fetch one row into row (column name → value); done=true means
+        // exhausted (cursor released automatically).
         virtual result_t fetchRow(NObject* row, bool& done) = 0;
 
-        // 无结果集语句的受影响行数与自增 id。
+        // Affected-row count and auto-increment id for statements without a
+        // result set.
         virtual result_t runResult(int64_t& changes, int64_t& lastInsertId) = 0;
 
-        // 列元数据（不执行语句）。
+        // Column metadata (does not execute the statement).
         virtual result_t columns(obj_ptr<NArray>& retVal) = 0;
 
-        // 游标复位：每次执行/迭代结束后调用，释放连接级占用；
-        // impl 保留，可再次 open()（引擎在此实现 drain 等语义）。
+        // Cursor reset: called after each execute/iteration, releases the
+        // connection-level occupancy; the impl is retained and can be open()ed
+        // again (engines implement drain-like semantics here).
         virtual void reset() = 0;
 
-        // 彻底释放底层句柄（幂等），仅 Statement 销毁时调用。
+        // Fully release the underlying handle (idempotent); only called when
+        // the Statement is destroyed.
         virtual void close() = 0;
     };
 
@@ -62,7 +70,7 @@ public:
         closeImpl();
     }
 
-    // 迭代器访问：抓取一行 / 中止并释放游标
+    // Iterator access: fetch one row / abort and release the cursor
     result_t fetchRow(obj_ptr<NObject>& row, bool& done)
     {
         if (!m_impl)
@@ -72,7 +80,8 @@ public:
         return m_impl->fetchRow(row, done);
     }
 
-    // 执行/迭代结束：释放游标占用，impl 保留供复用
+    // Execute/iteration finished: release the cursor occupancy, keep the impl
+    // for reuse
     void finish()
     {
         if (m_active) {
@@ -97,19 +106,21 @@ public:
     virtual result_t get_sourceSQL(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
 
-    // 内部：用主线程已转换好的参数打开游标并返回迭代器（conn.iterate 使用）
+    // Internal: open the cursor with args already converted on the main thread
+    // and return an iterator (used by conn.iterate)
     result_t iteratePrepared(std::vector<Variant>& args,
         obj_ptr<Iterator_base>& retVal);
 
 public:
-    // 供引擎 prepare 使用
+    // For engine prepare
     exlib::string& sql() { return m_sql; }
 
 private:
-    // 主线程（isSync 分支）把 v8 参数转换为 Variant 存到 ac->m_ctx：
-    // 中间参数挂在每次调用独立的 AsyncEvent 上（fiber 重入时同一 ac），
-    // fiber 中只读 m_ctx，不触碰 v8。Date 在此转成 SQL 字符串
-    // （Variant 的 date_t 无公开访问接口）。
+    // On the main thread (isSync branch), convert v8 args to Variant stored in
+    // ac->m_ctx: intermediate args are attached to the per-call AsyncEvent (the
+    // same ac on fiber re-entry), and the fiber only reads m_ctx without
+    // touching v8. Date is converted to a SQL string here (Variant's date_t has
+    // no public accessor).
     result_t stashArgs(OptArgs args, AsyncEvent* ac)
     {
         ac->m_ctx.resize(args.Length());
@@ -160,7 +171,8 @@ private:
     bool m_active;
 };
 
-/*! @brief Statement 的行迭代器：直接实现 Iterator_base，next() 在协程内抓行。 */
+/*! @brief Row iterator of a Statement: implements Iterator_base directly,
+next() fetches a row inside the coroutine. */
 class StatementIterator : public Iterator_base {
 public:
     StatementIterator(Statement* stmt)
@@ -182,9 +194,10 @@ public:
         return 0;
     }
 
-    // 异步迭代器：返回自身。async 原型（db.promises 连接）下 next()
-    // 返回 Promise<{done,value}>，for await 走原生 async 迭代器协议；
-    // sync 原型下 next() 返回普通 {done,value}，for await 同样可用。
+    // Async iterator: returns itself. On the async prototype (db.promises
+    // connections) next() returns Promise<{done,value}> and for await uses the
+    // native async iterator protocol; on the sync prototype next() returns a
+    // plain {done,value}, which for await also accepts.
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;

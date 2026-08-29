@@ -27,13 +27,15 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac);
 result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
 result_t odbc_set_autocommit(void* conn, bool on);
 
-// ODBC Statement：引擎转义回调（各引擎 SQL 字面量规则不同）
+// ODBC Statement: engine escape callbacks (each engine has different SQL
+// literal rules)
 struct OdbcEscape {
     exlib::string (*string)(exlib::string);
     exlib::string (*binary)(Buffer*);
 };
 
-// 创建 ODBC 预编译语句（v1：SQLPrepare + 客户端转义绑定，无服务端参数绑定）
+// Create an ODBC prepared statement (v1: SQLPrepare + client-side escaped
+// binding, no server-side parameter binding)
 result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     const OdbcEscape& esc, obj_ptr<Statement_base>& retVal);
 
@@ -53,7 +55,7 @@ public:
         });
     }
 
-    // 通用 SQL 字面量转义（' → ''；二进制 → 0x hex），供各引擎复用
+    // Generic SQL literal escaping (' → ''; binary → 0x hex), shared by engines
     static exlib::string escape_string(exlib::string v)
     {
         exlib::string retVal;

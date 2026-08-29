@@ -91,7 +91,7 @@ private:
     obj_ptr<JSTimer> m_timer;
     std::atomic_bool m_aborted = false;
     exlib::string m_reason;
-    bool m_has_value_reason = false; // 标识是否使用了 v8::Value reason
+    bool m_has_value_reason = false; // whether a v8::Value reason was used
 };
 
 // Timer subclass that aborts an AbortSignal when it fires.

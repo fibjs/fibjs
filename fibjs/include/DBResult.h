@@ -23,7 +23,7 @@ public:
     }
 
 public:
-    // OK 包统计（Statement runResult 读取）
+    // OK-packet stats (read by Statement runResult)
     int64_t m_affected;
     int64_t m_insertId;
 
