@@ -153,11 +153,12 @@ module fs
      删除参数可以包含以下值：
      ```JavaScript
      {
-         recursive: false // specify whether all subdirectories and files should be removed. Default: false
+         recursive: false, // specify whether all subdirectories and files should be removed. Default: false
+         force: false // whether to ignore nonexistent paths. Default: false
      }
      ```
 
-     recursive 为 false 时，文件与空目录均可被删除；recursive 为 true 时递归删除目录及其全部内容。路径不存在时抛出异常。
+     recursive 为 false 时，仅能删除文件与符号链接，删除目录将抛出 EISDIR 异常；recursive 为 true 时递归删除目录及其全部内容，符号链接仅删除链接本身而不会跟随目标。路径不存在时抛出 ENOENT 异常，force 为 true 时忽略不存在的路径。
      @param path 指定要删除的目录名
      @param opt 指定删除参数
      */

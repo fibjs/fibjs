@@ -673,23 +673,43 @@ describe('fs', () => {
         assert.equal(fs.exists(test_file), false);
     });
 
-    it("rm removes empty directory", () => {
+    it("rm throws EISDIR on empty directory without recursive", () => {
         var test_dir = path.join(homedir, 'rm_empty_dir_test' + vmid);
+
+        // Clean up leftovers from previous runs
+        try {
+            fs.rmdir(test_dir, { recursive: true });
+        } catch (e) { }
 
         // Create an empty directory
         fs.mkdir(test_dir);
         assert.equal(fs.exists(test_dir), true);
 
-        // Remove directory using rm
-        fs.rm(test_dir);
+        // Node.js behavior: rm without recursive must not delete directories
+        var err = null;
+        try {
+            fs.rm(test_dir);
+        } catch (e) {
+            err = e;
+        }
+        assert.ok(err, 'should throw');
+        assert.equal(err.code, 'EISDIR');
 
-        // Verify directory is removed
-        assert.equal(fs.exists(test_dir), false);
+        // Directory should still exist
+        assert.equal(fs.exists(test_dir), true);
+
+        // Clean up
+        fs.rm(test_dir, { recursive: true });
     });
 
     it("rm throws error for non-empty directory without recursive", () => {
         var test_dir = path.join(homedir, 'rm_non_empty_test' + vmid);
         var test_file = path.join(test_dir, 'file.txt');
+
+        // Clean up leftovers from previous runs
+        try {
+            fs.rmdir(test_dir, { recursive: true });
+        } catch (e) { }
 
         // Create directory with file
         fs.mkdir(test_dir);
@@ -2040,4 +2060,141 @@ describe('fs', () => {
         });
     });
 
+    describe("rmSync (Node.js compatibility)", () => {
+        var rm_base = path.join(homedir, 'rm_sync_compat_test' + vmid);
+
+        function rmBase() {
+            fs.rmSync(rm_base, { recursive: true, force: true });
+            fs.mkdir(rm_base, { recursive: true });
+            return rm_base;
+        }
+
+        function catchError(fn) {
+            try {
+                fn();
+                return null;
+            } catch (e) {
+                return e;
+            }
+        }
+
+        it("rmSync removes a single file", () => {
+            var base = rmBase();
+            var f = path.join(base, 'a.txt');
+            fs.writeFile(f, 'x');
+            fs.rmSync(f);
+            assert.equal(fs.exists(f), false);
+        });
+
+        it("rmSync with recursive removes a file too", () => {
+            var base = rmBase();
+            var f = path.join(base, 'b.txt');
+            fs.writeFile(f, 'x');
+            fs.rmSync(f, { recursive: true });
+            assert.equal(fs.exists(f), false);
+        });
+
+        it("rmSync with recursive removes a directory tree", () => {
+            var base = rmBase();
+            var d = path.join(base, 'tree');
+            fs.mkdir(path.join(d, 'a', 'b'), { recursive: true });
+            fs.writeFile(path.join(d, 'a', 'b', 'c.txt'), 'x');
+            fs.writeFile(path.join(d, 'root.txt'), 'x');
+            fs.rmSync(d, { recursive: true });
+            assert.equal(fs.exists(d), false);
+        });
+
+        it("rmSync with recursive removes empty directory", () => {
+            var base = rmBase();
+            var d = path.join(base, 'emptydir_rec');
+            fs.mkdir(d);
+            fs.rmSync(d, { recursive: true });
+            assert.equal(fs.exists(d), false);
+        });
+
+        it("rmSync without recursive throws EISDIR on empty directory", () => {
+            var base = rmBase();
+            var d = path.join(base, 'emptydir');
+            fs.mkdir(d);
+            var err = catchError(() => fs.rmSync(d));
+            assert.ok(err, 'should throw');
+            assert.equal(err.code, 'EISDIR');
+            assert.equal(fs.exists(d), true);
+        });
+
+        it("rmSync without recursive throws EISDIR on non-empty directory", () => {
+            var base = rmBase();
+            var d = path.join(base, 'nonemptydir');
+            fs.mkdir(d);
+            fs.writeFile(path.join(d, 'f.txt'), 'x');
+            var err = catchError(() => fs.rmSync(d));
+            assert.ok(err, 'should throw');
+            assert.equal(err.code, 'EISDIR');
+            assert.equal(fs.exists(d), true);
+        });
+
+        it("rmSync throws ENOENT for nonexistent path", () => {
+            var base = rmBase();
+            var err = catchError(() => fs.rmSync(path.join(base, 'nope')));
+            assert.ok(err, 'should throw');
+            assert.equal(err.code, 'ENOENT');
+        });
+
+        it("rmSync with force ignores nonexistent path", () => {
+            var base = rmBase();
+            fs.rmSync(path.join(base, 'nope'), { force: true });
+        });
+
+        it("rmSync with force and recursive ignores nonexistent path", () => {
+            var base = rmBase();
+            fs.rmSync(path.join(base, 'nope'), { force: true, recursive: true });
+        });
+
+        if (!win) {
+            it("rmSync removes symlink to file and keeps target", () => {
+                var base = rmBase();
+                var target = path.join(base, 'real.txt');
+                var link = path.join(base, 'link.txt');
+                fs.writeFile(target, 'x');
+                fs.symlink(target, link);
+                fs.rmSync(link);
+                assert.equal(fs.exists(link), false);
+                assert.equal(fs.exists(target), true);
+            });
+
+            it("rmSync recursive removes only the symlink, not the target directory contents", () => {
+                var base = rmBase();
+                var target = path.join(base, 'linktarget');
+                var link = path.join(base, 'linkdir');
+                var precious = path.join(target, 'precious.txt');
+                fs.mkdir(target);
+                fs.writeFile(precious, 'x');
+                fs.symlink(target, link);
+                fs.rmSync(link, { recursive: true });
+                assert.equal(fs.exists(link), false);
+                assert.equal(fs.exists(precious), true);
+            });
+
+            it("rmSync recursive removes dangling symlink", () => {
+                var base = rmBase();
+                var link = path.join(base, 'dangling');
+                fs.symlink(path.join(base, 'does-not-exist'), link);
+                fs.rmSync(link, { recursive: true });
+                assert.equal(fs.exists(link), false);
+            });
+
+            it("rmSync recursive does not follow symlinks inside a directory", () => {
+                var base = rmBase();
+                var outside = path.join(base, 'outside');
+                var inside = path.join(base, 'inside');
+                fs.mkdir(outside);
+                fs.mkdir(inside);
+                fs.writeFile(path.join(outside, 'precious.txt'), 'x');
+                fs.symlink(outside, path.join(inside, 'mylink'));
+                fs.rmSync(inside, { recursive: true });
+                assert.equal(fs.exists(inside), false);
+                assert.equal(fs.exists(path.join(outside, 'precious.txt')), true);
+            });
+        }
+    });
 });

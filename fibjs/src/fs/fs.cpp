@@ -1080,10 +1080,11 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
 
 class AsyncUVRM : public uv_fs_t {
 public:
-    AsyncUVRM(exlib::string path, bool rmFile, AsyncEvent* ac)
+    AsyncUVRM(exlib::string path, bool rmFile, bool force, AsyncEvent* ac)
         : m_ac(ac)
         , m_path(path)
         , m_rmFile(rmFile)
+        , m_force(force)
     {
     }
 
@@ -1100,7 +1101,12 @@ public:
 
         if (ret < 0) {
             // Path doesn't exist or other error
-            pThis->m_ac->apost(ret);
+            if (pThis->m_force && ret == UV_ENOENT) {
+                // force: silently ignore nonexistent paths (Node.js behavior)
+                pThis->m_ac->apost(0);
+            } else {
+                pThis->m_ac->apost(ret);
+            }
             delete pThis;
             return;
         }
@@ -1131,13 +1137,10 @@ public:
             }
             return;
         } else {
-            if (!pThis->m_rmFile) {
-                // rmdir does not delete non-directory entries
-                pThis->m_ac->apost(UV_ENOTDIR);
-                delete pThis;
-                return;
-            }
-            // Other types (symlinks, etc.), try to unlink
+            // Symlinks and other special files: unlink directly.
+            // Node.js lstats entries and removes symlinks without
+            // following them, so recursive removal must not touch
+            // the symlink target.
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
@@ -1225,7 +1228,7 @@ public:
 
         if (entry.second == UV_DIRENT_DIR) {
             // For directories, create a new AsyncUVRM instance
-            AsyncUVRM* subRemover = new AsyncUVRM(entry_path, m_rmFile, new SubDirEvent(this));
+            AsyncUVRM* subRemover = new AsyncUVRM(entry_path, m_rmFile, m_force, new SubDirEvent(this));
             int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
             if (ret != 0) {
                 m_ac->apost(ret);
@@ -1268,6 +1271,7 @@ private:
     AsyncEvent* m_ac;
     exlib::string m_path;
     bool m_rmFile;
+    bool m_force;
     std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
 };
 
@@ -1309,44 +1313,58 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_stat(s_uv_loop, new AsyncUVRM(path, false, ac), path.c_str(), AsyncUVRM::cb_stat);
+        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, false, false, ac), path.c_str(), AsyncUVRM::cb_stat);
     });
 }
 
 result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(2);
 
         bool recursive = false;
         GetConfigValue(opt, "recursive", recursive);
         ac->m_ctx[0] = recursive;
 
+        bool force = false;
+        GetConfigValue(opt, "force", force);
+        ac->m_ctx[1] = force;
+
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     bool recursive = ac->m_ctx[0].boolVal();
+    bool force = ac->m_ctx[1].boolVal();
 
     result_t hr = normalize_file_path_like(path, path);
     if (hr < 0)
         return hr;
 
     if (!recursive) {
-        // Try to unlink first (for files)
+        // Non-recursive rm only removes files and symlinks.
+        // Match Node.js: directories throw EISDIR and nonexistent
+        // paths are ignored when force is true.
         AutoReq req;
-        int32_t ret = uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+        int32_t ret = uv_fs_lstat(NULL, &req, path.c_str(), NULL);
         if (ret < 0) {
-            // If unlink fails, try rmdir (for directories)
-            uv_fs_req_cleanup(&req);
-            return uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
+            if (force && ret == UV_ENOENT)
+                return 0;
+            return ret;
         }
-        return ret;
+
+        if (S_ISDIR(req.statbuf.st_mode)) {
+            uv_fs_req_cleanup(&req);
+            return UV_EISDIR;
+        }
+
+        uv_fs_req_cleanup(&req);
+        return uv_fs_unlink(NULL, &req, path.c_str(), NULL);
     }
 
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_stat(s_uv_loop, new AsyncUVRM(path, true, ac), path.c_str(), AsyncUVRM::cb_stat);
+        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, true, force, ac), path.c_str(), AsyncUVRM::cb_stat);
     });
 }
 
