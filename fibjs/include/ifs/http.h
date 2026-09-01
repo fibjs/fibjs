@@ -66,6 +66,7 @@ public:
     static result_t get_maxFreeSockets(int32_t& retVal);
     static result_t set_maxFreeSockets(int32_t newVal);
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
+    static result_t fileHandler(exlib::string root, v8::Local<v8::Object> options, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
@@ -679,6 +680,13 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
 
     ARG(exlib::string, 0);
     OPT_ARG(bool, 1, false);
+
+    hr = fileHandler(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = fileHandler(v0, v1, vr);
 

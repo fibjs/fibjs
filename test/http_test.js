@@ -2806,6 +2806,190 @@ describe("http", () => {
             });
         });
 
+        describe("cache control", () => {
+            var cacheFolder = path.join(__dirname, 'http_files/cache_control');
+            var subFolder = path.join(cacheFolder, 'sub');
+            var filePath = path.join(cacheFolder, 'index.html');
+            var jsPath = path.join(cacheFolder, 'app.js');
+            var subPath = path.join(subFolder, 'page.html');
+
+            function cc_test(hdlr, url, headers) {
+                var req = new http.Request();
+                req.value = url;
+                if (headers)
+                    req.appendHeader(headers);
+                hdlr.invoke(req);
+                return req.response;
+            }
+
+            function clean() {
+                [filePath, jsPath, subPath].forEach(f => {
+                    try {
+                        fs.unlink(f);
+                    } catch (e) { };
+                });
+                [subFolder, cacheFolder].forEach(d => {
+                    try {
+                        fs.rmdir(d);
+                    } catch (e) { };
+                });
+            }
+
+            before(() => {
+                clean();
+                fs.mkdir(cacheFolder);
+                fs.mkdir(subFolder);
+                fs.writeFile(filePath, 'this is cache control index');
+                fs.writeFile(jsPath, 'console.log(1)');
+                fs.writeFile(subPath, 'sub page');
+            });
+
+            after(clean);
+
+            it("maxAge", () => {
+                var h = new http.fileHandler(cacheFolder, { maxAge: 3600 });
+                var rep = cc_test(h, '/app.js');
+                assert.equal(200, rep.statusCode);
+                assert.equal('public, max-age=3600', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("maxAge with immutable", () => {
+                var h = new http.fileHandler(cacheFolder, { maxAge: 31536000, immutable: true });
+                var rep = cc_test(h, '/app.js');
+                assert.equal('public, max-age=31536000, immutable', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("headers rule: html not cached", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    headers: { '**/*.html': { 'Cache-Control': 'no-cache' } }
+                });
+                var rep = cc_test(h, '/index.html');
+                assert.equal('no-cache', rep.firstHeader('Cache-Control'));
+                rep.clear();
+
+                rep = cc_test(h, '/app.js');
+                assert.isNull(rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("headers rule matches directory index", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    headers: { '**/*.html': { 'Cache-Control': 'no-cache' } }
+                });
+                var rep = cc_test(h, '/');
+                assert.equal(200, rep.statusCode);
+                assert.equal('no-cache', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("headers rule matches nested path", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    headers: { '**/*.html': { 'Cache-Control': 'no-cache' } }
+                });
+                var rep = cc_test(h, '/sub/page.html');
+                assert.equal('no-cache', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("global maxAge fills when rule has no Cache-Control", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    maxAge: 60,
+                    headers: { '**/*.html': { 'X-Custom': '1' } }
+                });
+                var rep = cc_test(h, '/index.html');
+                assert.equal('public, max-age=60', rep.firstHeader('Cache-Control'));
+                assert.equal('1', rep.firstHeader('X-Custom'));
+                rep.clear();
+            });
+
+            it("first matching rule wins", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    headers: {
+                        '**/*': { 'Cache-Control': 'max-age=1' },
+                        '**/*.html': { 'Cache-Control': 'no-cache' }
+                    }
+                });
+                var rep = cc_test(h, '/index.html');
+                assert.equal('max-age=1', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("cacheControl false disables auto headers", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    maxAge: 3600,
+                    cacheControl: false,
+                    headers: { '**/*.html': { 'Cache-Control': 'no-cache' } }
+                });
+                var rep = cc_test(h, '/app.js');
+                assert.isNull(rep.firstHeader('Cache-Control'));
+                rep.clear();
+
+                rep = cc_test(h, '/index.html');
+                assert.equal('no-cache', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("304 keeps cache headers", () => {
+                var h = new http.fileHandler(cacheFolder, { maxAge: 3600 });
+                var stat = fs.stat(jsPath);
+                var rep = cc_test(h, '/app.js', { 'If-Modified-Since': stat.mtime.toGMTString() });
+                assert.equal(304, rep.statusCode);
+                assert.equal('public, max-age=3600', rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("autoindex ignores headers rules", () => {
+                var h = new http.fileHandler(cacheFolder, {
+                    autoIndex: true,
+                    headers: { '**/*': { 'Cache-Control': 'no-cache' } }
+                });
+                var rep = cc_test(h, '/sub/');
+                assert.equal(200, rep.statusCode);
+                assert.equal('text/html', rep.firstHeader('Content-Type'));
+                assert.isNull(rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("404 has no cache headers", () => {
+                var h = new http.fileHandler(cacheFolder, { maxAge: 3600 });
+                var rep = cc_test(h, '/not_found.js');
+                assert.equal(404, rep.statusCode);
+                assert.isNull(rep.firstHeader('Cache-Control'));
+                rep.clear();
+            });
+
+            it("legacy autoIndex signature unchanged", () => {
+                var h = new http.fileHandler(cacheFolder, true);
+                var rep = cc_test(h, '/sub/');
+                assert.equal(200, rep.statusCode);
+                rep.clear();
+            });
+
+            it("headers set via real http server", () => {
+                var svr = new http.Server(0, http.fileHandler(cacheFolder, {
+                    maxAge: 3600,
+                    headers: { '**/*.html': { 'Cache-Control': 'no-cache' } }
+                }));
+                svr.start();
+                try {
+                    var port = svr.socket.localPort;
+
+                    var rep = http.getSync('http://127.0.0.1:' + port + '/index.html');
+                    assert.equal(200, rep.statusCode);
+                    assert.equal('no-cache', rep.firstHeader('Cache-Control'));
+                    rep.body.readAll();
+
+                    rep = http.getSync('http://127.0.0.1:' + port + '/app.js');
+                    assert.equal('public, max-age=3600', rep.firstHeader('Cache-Control'));
+                    rep.body.readAll();
+                } finally {
+                    svr.stop();
+                }
+            });
+        });
+
         describe("MIME type detection", () => {
             var mimeTestFolder = path.join(__dirname, 'http_files/mime');
             var mimeHandler = new http.fileHandler(mimeTestFolder);

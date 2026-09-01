@@ -26,6 +26,11 @@ result_t http_base::fileHandler(exlib::string root, bool autoIndex, obj_ptr<Hand
     return HttpFileHandler::create(root, autoIndex, retVal);
 }
 
+result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> options, obj_ptr<Handler_base>& retVal)
+{
+    return HttpFileHandler::create(root, options, retVal);
+}
+
 result_t HttpFileHandler::create(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal)
 {
     exlib::string root_;
@@ -41,6 +46,104 @@ result_t HttpFileHandler::create(exlib::string root, bool autoIndex, obj_ptr<Han
 
     retVal = new HttpFileHandler(root_, isDir, autoIndex);
     return 0;
+}
+
+result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> options, obj_ptr<Handler_base>& retVal)
+{
+    exlib::string root_;
+    obj_ptr<Stat_base> stat;
+
+    path_base::normalize(root, root_);
+    result_t hr = fs_base::ac_stat(root_, stat);
+    if (hr != 0)
+        return hr;
+
+    bool isDir;
+    stat->isDirectory(isDir);
+
+    std::optional<bool> autoIndex;
+    std::optional<int64_t> maxAge;
+    std::optional<bool> immutable;
+    std::optional<bool> cacheControl;
+
+    GetConfigValue(options, "autoIndex", autoIndex);
+    GetConfigValue(options, "maxAge", maxAge);
+    GetConfigValue(options, "immutable", immutable);
+    GetConfigValue(options, "cacheControl", cacheControl);
+
+    obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root_, isDir, autoIndex.value_or(false));
+    hdlr->m_cacheControl = cacheControl.value_or(true);
+    hdlr->m_maxAge = maxAge.value_or(0);
+    hdlr->m_immutable = immutable.value_or(false);
+
+    v8::Local<v8::Value> headersVal;
+    if (GetConfigValue(options, "headers", headersVal) == 0 && IsJSObject(headersVal)) {
+        v8::Local<v8::Object> headersObj = headersVal.As<v8::Object>();
+        Isolate* isolate = Isolate::current(headersObj);
+        v8::Local<v8::Context> context = isolate->context();
+
+        v8::Local<v8::Array> keys = headersObj->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+        uint32_t len = keys.IsEmpty() ? 0 : keys->Length();
+
+        for (uint32_t i = 0; i < len; i++) {
+            v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> val = headersObj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (!key->IsString() || !IsJSObject(val))
+                continue;
+
+            exlib::string pattern;
+            GetArgumentValue(isolate, key, pattern);
+
+            HeaderRule rule(MinimatchPattern(pattern, false));
+
+            v8::Local<v8::Object> headerMap = val.As<v8::Object>();
+            v8::Local<v8::Array> hkeys = headerMap->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+            uint32_t hlen = hkeys.IsEmpty() ? 0 : hkeys->Length();
+
+            for (uint32_t j = 0; j < hlen; j++) {
+                v8::Local<v8::Value> hkey = hkeys->Get(context, j).FromMaybe(v8::Local<v8::Value>());
+                v8::Local<v8::Value> hval = headerMap->Get(context, hkey).FromMaybe(v8::Local<v8::Value>());
+                if (!hkey->IsString())
+                    continue;
+
+                exlib::string name, value;
+                GetArgumentValue(isolate, hkey, name);
+                GetArgumentValue(isolate, hval, value);
+                if (name.empty())
+                    continue;
+
+                rule.headers.emplace_back(std::move(name), std::move(value));
+            }
+
+            if (!rule.headers.empty())
+                hdlr->m_headers.push_back(std::move(rule));
+        }
+    }
+
+    retVal = hdlr;
+    return 0;
+}
+
+void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_base* rep)
+{
+    exlib::string str;
+
+    for (auto& rule : m_headers) {
+        if (rule.pattern.match(target)) {
+            for (auto& h : rule.headers)
+                rep->setHeader(h.first, h.second);
+            break;
+        }
+    }
+
+    if (m_cacheControl && m_maxAge > 0 && rep->firstHeader("Cache-Control", str) == CALL_RETURN_NULL) {
+        char s[64];
+        if (m_immutable)
+            snprintf(s, sizeof(s), "public, max-age=%lld, immutable", (long long)m_maxAge);
+        else
+            snprintf(s, sizeof(s), "public, max-age=%lld", (long long)m_maxAge);
+        rep->appendHeader("Cache-Control", s);
+    }
 }
 
 result_t HttpFileHandler::isRouting(bool& retVal)
@@ -215,6 +318,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             exlib::string str;
 
             m_stat->get_mtime(d);
+
+            {
+                exlib::string target = m_index ? "index.html" : m_value;
+                while (!target.empty() && target[0] == '/')
+                    target = target.substr(1);
+
+                m_pThis->applyHeaders(target, m_rep);
+            }
 
             exlib::string lastModified;
             if (m_req->firstHeader("If-Modified-Since", lastModified)

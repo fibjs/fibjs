@@ -162,6 +162,24 @@ module http
      */
     static Handler fileHandler(String root, Boolean autoIndex = false);
 
+    /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
+
+     fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
+     从而避免重复压缩带来服务器负载。
+
+     options 支持以下配置：
+     - autoIndex: 是否支持浏览目录文件，缺省为 false
+     - maxAge: 全局默认缓存时间（秒），大于 0 时自动为响应生成 Cache-Control: public, max-age=N，缺省为 0
+     - immutable: 为 true 时在自动生成的 Cache-Control 中附加 immutable 指令，仅当 maxAge 大于 0 时生效
+     - cacheControl: 是否自动生成 Cache-Control 头，缺省为 true，设为 false 时 maxAge/immutable 不生效
+     - headers: 按 glob 模式声明响应头，格式为 { pattern: { 头名: 值 } }，按声明顺序匹配，首个命中生效；
+       模式匹配相对 URL 路径（无前导 /），目录请求自动补 index.html，语法与 path.matchesGlob 相同
+     @param root 文件根路径
+     @param options 配置选项
+     @return 返回一个静态文件处理器用于处理 http 消息
+     */
+    static Handler fileHandler(String root, Object options = {});
+
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象
