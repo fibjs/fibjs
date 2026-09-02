@@ -24,6 +24,12 @@ namespace fibjs {
 
 DECLARE_MODULE(test);
 
+// Kill all child processes still running, return the number signalled.
+// Defined in process/ChildProcess.cpp: declared here instead of including
+// ChildProcess.h because that header #undef's stdout/stderr, which the
+// watchdog report code below relies on.
+int32_t child_process_kill_alive_children();
+
 class _case;
 
 static int32_t s_slow = 75;
@@ -983,6 +989,31 @@ public:
             // Timer fired while the process is still alive => abnormal hang:
             // collect diagnostics and force exit (124)
             report_watchdog(isolate);
+
+            // Clean up leaked child processes before the force exit: spawned
+            // children are separate OS processes and would survive _exit(124),
+            // then keep running after the test run (holding ports, etc.) and
+            // interfere with later test runs.
+            int32_t killed = child_process_kill_alive_children();
+
+            if (killed > 0) {
+                char buf[128];
+
+                snprintf(buf, sizeof(buf),
+                    "[test-watchdog] killed %d leaked child process(es)\n", killed);
+
+                fputs(buf, stderr);
+                fflush(stderr);
+
+                if (!s_watchdog_log.empty()) {
+                    FILE* f = fopen(s_watchdog_log.c_str(), "a");
+                    if (f) {
+                        fputs(buf, f);
+                        fclose(f);
+                    }
+                }
+            }
+
             process_base::exit(124);
 
             return 0;

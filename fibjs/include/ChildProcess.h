@@ -91,6 +91,18 @@ public:
     static int32_t spawn(uv_process_t* process, const uv_process_options_t* options);
     result_t spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork);
 
+    // Registry of children that are still running (spawned ok, not exited yet):
+    // pids are registered after a successful spawn and removed in OnExit.
+    // killAliveChildren() snapshots the pids under a lock and SIGKILLs them, so
+    // it can be called from any thread (used by the test watchdog right before
+    // a force exit, so leaked children do not survive the parent).
+    static void registerChild(int32_t pid);
+    static void unregisterChild(int32_t pid);
+
+    // Send SIGKILL to every still-running child. Returns the number of children
+    // signalled.
+    static int32_t killAliveChildren();
+
 public:
     static result_t async_spawn(exlib::string command, v8::Local<v8::Array> args,
         v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncEvent* ac);

@@ -21,6 +21,8 @@ var child_process = require('child_process');
 var path = require('path');
 var util = require('util');
 var io = require('io');
+var fs = require('fs');
+var coroutine = require('coroutine');
 
 const FIXTURE_DIR = path.join(__dirname, 'test_proc_files');
 
@@ -103,6 +105,33 @@ function parseWatchdogReport(r) {
     });
 
     return report;
+}
+
+// Liveness probe: process.kill(pid, 0) throws when the pid is gone. On Linux a
+// zombie (state Z in /proc/pid/stat) is treated as gone too: the process is
+// dead and merely awaits reaping by init (container PID 1 may not reap).
+function pidAlive(pid) {
+    try {
+        process.kill(pid, 0);
+    } catch (e) {
+        return false;
+    }
+
+    if (process.platform === 'linux') {
+        try {
+            // state is the first field after "comm)" — comm itself may contain
+            // ')', so read from the LAST occurrence
+            var stat = fs.readFileSync('/proc/' + pid + '/stat', 'utf8');
+            var idx = stat.lastIndexOf(') ');
+            var state = idx >= 0 ? stat.charAt(idx + 2) : '';
+            return state !== 'Z';
+        } catch (e) {
+            // /proc entry already gone
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Run a fixture subprocess and wait for it to exit.
@@ -266,6 +295,26 @@ describe("test framework process-level behavior", () => {
             "expect 1 residual fiber (blocked join), got: " + JSON.stringify(report.fibers));
         assert.ok(report.fibers[0].stack.includes('ChildProcess.join'),
             "expect residual fiber stack to point at ChildProcess.join, got: " + JSON.stringify(report.fibers));
+
+        // The watchdog must kill the leaked child before exiting 124: without
+        // this cleanup the child is orphaned and keeps running (holding ports,
+        // consuming CPU) and can interfere with later test runs.
+        var pidLine = r.stdout.find(l => l.startsWith('LEAKED_CHILD_PID='));
+        assert.ok(pidLine, "expect leaked child pid line in stdout, got: " + JSON.stringify(r.stdout));
+        var childPid = parseInt(pidLine.split('=')[1]);
+        assert.ok(childPid > 0, "expect a valid leaked child pid, got: " + JSON.stringify(pidLine));
+
+        assert.ok(r.stderr.some(l => l.includes('killed 1 leaked child process(es)')),
+            "expect watchdog child-cleanup line in stderr, got: " + JSON.stringify(r.stderr));
+
+        // Poll briefly: the SIGKILLed child must disappear (zombie tolerated,
+        // it is dead and only awaits reaping)
+        var deadline = Date.now() + 3000;
+        var stillAlive = true;
+        while (Date.now() < deadline && (stillAlive = pidAlive(childPid)))
+            coroutine.sleep(50);
+        assert.equal(stillAlive, false,
+            "leaked child process " + childPid + " must be killed by the watchdog");
     });
 
     // P0: when failure and hang coexist, watchdog exit code 124 wins over failure code 1

@@ -12,6 +12,7 @@
 #include "UVStream.h"
 #include "AbortController.h"
 #include <signal.h>
+#include <mutex>
 
 #ifndef _WIN32
 #include <sys/ioctl.h>
@@ -45,6 +46,59 @@ struct KillTimer {
             self->cp->m_stdio[2]->close(nullptr);
     }
 };
+
+// Children that are still running: pids are registered right after a
+// successful spawn (uv loop thread) and removed in OnExit (PTY children
+// funnel through the same uv_process_t exit_cb). killAliveChildren() only
+// snapshots under the lock and then SIGKILLs, so it can run on any thread
+// (the test watchdog does not depend on the uv loop being responsive).
+static std::vector<int32_t> s_aliveChildren;
+static std::mutex s_aliveLock;
+
+void ChildProcess::registerChild(int32_t pid)
+{
+    std::lock_guard<std::mutex> l(s_aliveLock);
+    s_aliveChildren.push_back(pid);
+}
+
+void ChildProcess::unregisterChild(int32_t pid)
+{
+    std::lock_guard<std::mutex> l(s_aliveLock);
+    for (auto it = s_aliveChildren.begin(); it != s_aliveChildren.end(); it++)
+        if (*it == pid) {
+            s_aliveChildren.erase(it);
+            break;
+        }
+}
+
+int32_t ChildProcess::killAliveChildren()
+{
+    std::vector<int32_t> pids;
+
+    {
+        std::lock_guard<std::mutex> l(s_aliveLock);
+        pids = s_aliveChildren;
+    }
+
+    int32_t n = 0;
+
+    for (int32_t pid : pids)
+#ifdef SIGKILL
+        if (uv_kill(pid, SIGKILL) == 0)
+#else
+        if (uv_kill(pid, 9) == 0)
+#endif
+            n++;
+
+    return n;
+}
+
+// Bridge for the test watchdog (src/test/test.cpp), which cannot include
+// ChildProcess.h because that header #undef's stdout/stderr.
+int32_t child_process_kill_alive_children()
+{
+    return ChildProcess::killAliveChildren();
+}
 
 void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
@@ -94,6 +148,8 @@ void ChildProcess::emit_close()
 void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_signal)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
+
+    unregisterChild(handle->pid);
 
     // Stop the kill timer if active (both OnExit and timer run in uv loop)
     if (cp->m_killTimer) {
@@ -474,6 +530,8 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
         if (err < 0)
             uv_close((uv_handle_t*)&m_process, on_uv_close);
         else {
+            registerChild(m_process.pid);
+
             _emit("spawn");
 
             // Start kill timer in the same uv loop iteration as spawn,
