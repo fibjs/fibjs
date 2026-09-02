@@ -5647,6 +5647,69 @@ describe("http", () => {
         });
     });
 
+    describe("H2 leader/waiter: concurrent first connections", () => {
+        // Regression test for "[20009] Invalid procedure call." when several
+        // requests race to establish the FIRST connection to an HTTPS host
+        // that negotiates http/1.1 (ALPN != h2):
+        //
+        //   1. The first fiber becomes the H2 handshake leader (h2_acquire),
+        //      the others queue as waiters (h2_wait_settings) and suspend.
+        //   2. The leader learns ALPN != h2 and wakes the waiters with
+        //      CALL_E_INVALID_CALL via h2_fail().
+        //   3. The waiter's error() must fall back to an independent
+        //      connection. The old check `at(h2_wait_settings)` could never
+        //      match there: AsyncState only switches m_state when the parked
+        //      handler is re-entered, so while queued the machine still
+        //      reports prepare(). The waiter then surfaced [20009] instead of
+        //      performing the request.
+
+        function startHttpsServer() {
+            var s = new http.HttpsServer({ cert: crt, key: pk1.privateKey, port: 0 }, (req) => {
+                req.response.write('ok');
+            });
+            s.start();
+            test_util.push(s.socket);
+            return s;
+        }
+
+        function concurrentGets(hc, url, n) {
+            return new Promise((resolve) => {
+                var results = [];
+                var left = n;
+                for (var i = 0; i < n; i++) {
+                    coroutine.start(() => {
+                        try {
+                            var r = hc.getSync(url);
+                            assert.equal(r.text(), 'ok');
+                            results.push('ok');
+                        } catch (e) {
+                            results.push(String(e.message || e));
+                        }
+                        if (--left === 0)
+                            resolve(results);
+                    });
+                }
+            });
+        }
+
+        it("all concurrent first requests succeed without [20009]", async () => {
+            var svr = startHttpsServer();
+            try {
+                var url = 'https://localhost:' + svr.socket.localPort + '/';
+                for (var round = 0; round < 3; round++) {
+                    // Fresh client per round: empty pool forces concurrent
+                    // first connections (leader/waiter race) every round.
+                    var hc = new http.Client({ ca: ca });
+                    var results = await concurrentGets(hc, url, 4);
+                    var bad = results.filter((r) => r !== 'ok');
+                    assert.deepEqual(bad, [], 'round ' + round + ' failures: ' + JSON.stringify(bad));
+                }
+            } finally {
+                svr.stop();
+            }
+        });
+    });
+
     // Phase 3: listen() mode — no-port constructor + listen()
     // ─────────────────────────────────────────────────────────────────────────
     describe("HttpServer listen() mode", () => {

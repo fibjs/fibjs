@@ -1491,6 +1491,12 @@ public:
             // Try to become the H2 handshake leader for this URL.
             // If another fiber is already doing the handshake, queue up and wait.
             if (!m_hc->h2_acquire(m_h2PoolKey, &m_h2session, &m_conn, this)) {
+                // Marked BEFORE suspending: when the leader wakes us, error()
+                // runs while the state machine is still parked in prepare()
+                // (AsyncState only switches m_state on the next loop pass), so
+                // at(h2_wait_settings) can never be true there. Use the flag
+                // instead to recognize the queued-waiter wake-up.
+                m_h2_waiting = true;
                 next(h2_wait_settings);
                 return CALL_E_PENDDING;
             }
@@ -1781,6 +1787,9 @@ public:
 
     ON_STATE(asyncRequest, h2_wait_settings)
     {
+        // Woken normally by the leader (h2_complete): we are no longer waiting.
+        m_h2_waiting = false;
+
         if (!m_h2session->m_remote_settings_ready.load(std::memory_order_acquire))
             m_h2session->m_remote_settings_event.wait();
 
@@ -2167,13 +2176,24 @@ public:
             return 0;
         }
 
-        // H2 waiter woken with CALL_E_INVALID_CALL means ALPN was not h2.
-        // Fall back to independent connection by retrying from prepare.
-        if (v == CALL_E_INVALID_CALL && at(h2_wait_settings)) {
-            m_h2session.Release();
-            m_conn.Release();
-            next(prepare);
-            return 0;
+        // H2 waiter woken by the leader before its handshake finished:
+        //   - CALL_E_INVALID_CALL: ALPN negotiated http/1.1, so there is no H2
+        //     session to use. Fall back to an independent HTTPS connection.
+        //   - other transport errors: the leader's connect/TLS/session failed;
+        //     the waiter has not attempted its own connection yet, so give it
+        //     one independent retry from prepare.
+        // NOTE: at(h2_wait_settings) cannot be used here — AsyncState switches
+        // m_state only when the parked handler is re-entered, so while queued
+        // the machine still reports prepare(). The flag is set before parking.
+        if (m_h2_waiting) {
+            m_h2_waiting = false;
+            if (can_retry_transport_error(v)) {
+                m_h2session.Release();
+                m_conn.Release();
+                next(prepare);
+                return 0;
+            }
+            return v;
         }
 
         if (can_retry_transport_error(v) && can_retry_h2_request()) {
@@ -2335,6 +2355,7 @@ private:
     bool m_h2_endStream = true;
     bool m_h2_reused_session = false;
     bool m_is_h2_leader = false;
+    bool m_h2_waiting = false;
     int32_t m_http1_retry_count = 0;
     int32_t m_h2_retry_count = 0;
 };
