@@ -10,6 +10,8 @@
 #include "ifs/XmlElement.h"
 #include "ifs/XmlDocumentFragment.h"
 #include "DOMTokenList.h"
+#include "CSSStyleDeclaration.h"
+#include "DOMStringMap.h"
 #include "XmlNodeMixin.h"
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
@@ -87,6 +89,26 @@ public:
     virtual result_t get_tagName(exlib::string& retVal);
     virtual result_t get_id(exlib::string& retVal);
     virtual result_t set_id(exlib::string newVal);
+    virtual result_t get_src(exlib::string& retVal);
+    virtual result_t set_src(exlib::string newVal);
+    virtual result_t get_alt(exlib::string& retVal);
+    virtual result_t set_alt(exlib::string newVal);
+    virtual result_t get_href(exlib::string& retVal);
+    virtual result_t set_href(exlib::string newVal);
+    virtual result_t get_title(exlib::string& retVal);
+    virtual result_t set_title(exlib::string newVal);
+    virtual result_t get_value(exlib::string& retVal);
+    virtual result_t set_value(exlib::string newVal);
+    virtual result_t get_name(exlib::string& retVal);
+    virtual result_t set_name(exlib::string newVal);
+    virtual result_t get_type(exlib::string& retVal);
+    virtual result_t set_type(exlib::string newVal);
+    virtual result_t get_rel(exlib::string& retVal);
+    virtual result_t set_rel(exlib::string newVal);
+    virtual result_t get_target(exlib::string& retVal);
+    virtual result_t set_target(exlib::string newVal);
+    virtual result_t get_placeholder(exlib::string& retVal);
+    virtual result_t set_placeholder(exlib::string newVal);
     virtual result_t get_innerHTML(exlib::string& retVal);
     virtual result_t set_innerHTML(exlib::string newVal);
     virtual result_t get_outerHTML(exlib::string& retVal);
@@ -94,7 +116,8 @@ public:
     virtual result_t get_className(exlib::string& retVal);
     virtual result_t set_className(exlib::string newVal);
     virtual result_t get_classList(obj_ptr<DOMTokenList_base>& retVal);
-    virtual result_t get_dataset(v8::Local<v8::Object>& retVal);
+    virtual result_t get_style(obj_ptr<CSSStyleDeclaration_base>& retVal);
+    virtual result_t get_dataset(obj_ptr<DOMStringMap_base>& retVal);
     virtual result_t get_content(obj_ptr<XmlDocumentFragment_base>& retVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);
     virtual result_t hasAttributes(bool& retVal);
@@ -306,6 +329,8 @@ private:
     exlib::string m_namespaceURI;
     obj_ptr<XmlNamedNodeMap> m_attrs;
     obj_ptr<DOMTokenList_base> m_classList;
+    obj_ptr<CSSStyleDeclaration_base> m_style; // cached CSSStyleDeclaration for the style attribute
+    obj_ptr<DOMStringMap_base> m_dataset; // cached DOMStringMap for data-* attributes
     obj_ptr<XmlDocumentFragment_base> m_content; // cached content for <template> elements
 };
 

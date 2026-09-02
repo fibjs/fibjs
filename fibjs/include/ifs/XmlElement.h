@@ -18,6 +18,8 @@ namespace fibjs {
 
 class XmlNode_base;
 class DOMTokenList_base;
+class DOMStringMap_base;
+class CSSStyleDeclaration_base;
 class XmlDocumentFragment_base;
 class XmlNamedNodeMap_base;
 class XmlAttr_base;
@@ -35,6 +37,26 @@ public:
     virtual result_t get_tagName(exlib::string& retVal) = 0;
     virtual result_t get_id(exlib::string& retVal) = 0;
     virtual result_t set_id(exlib::string newVal) = 0;
+    virtual result_t get_src(exlib::string& retVal) = 0;
+    virtual result_t set_src(exlib::string newVal) = 0;
+    virtual result_t get_alt(exlib::string& retVal) = 0;
+    virtual result_t set_alt(exlib::string newVal) = 0;
+    virtual result_t get_href(exlib::string& retVal) = 0;
+    virtual result_t set_href(exlib::string newVal) = 0;
+    virtual result_t get_title(exlib::string& retVal) = 0;
+    virtual result_t set_title(exlib::string newVal) = 0;
+    virtual result_t get_value(exlib::string& retVal) = 0;
+    virtual result_t set_value(exlib::string newVal) = 0;
+    virtual result_t get_name(exlib::string& retVal) = 0;
+    virtual result_t set_name(exlib::string newVal) = 0;
+    virtual result_t get_type(exlib::string& retVal) = 0;
+    virtual result_t set_type(exlib::string newVal) = 0;
+    virtual result_t get_rel(exlib::string& retVal) = 0;
+    virtual result_t set_rel(exlib::string newVal) = 0;
+    virtual result_t get_target(exlib::string& retVal) = 0;
+    virtual result_t set_target(exlib::string newVal) = 0;
+    virtual result_t get_placeholder(exlib::string& retVal) = 0;
+    virtual result_t set_placeholder(exlib::string newVal) = 0;
     virtual result_t get_innerHTML(exlib::string& retVal) = 0;
     virtual result_t set_innerHTML(exlib::string newVal) = 0;
     virtual result_t get_outerHTML(exlib::string& retVal) = 0;
@@ -42,7 +64,8 @@ public:
     virtual result_t get_className(exlib::string& retVal) = 0;
     virtual result_t set_className(exlib::string newVal) = 0;
     virtual result_t get_classList(obj_ptr<DOMTokenList_base>& retVal) = 0;
-    virtual result_t get_dataset(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_dataset(obj_ptr<DOMStringMap_base>& retVal) = 0;
+    virtual result_t get_style(obj_ptr<CSSStyleDeclaration_base>& retVal) = 0;
     virtual result_t get_content(obj_ptr<XmlDocumentFragment_base>& retVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
     virtual result_t hasAttributes(bool& retVal) = 0;
@@ -94,6 +117,26 @@ public:
     static void s_get_tagName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_id(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_id(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_src(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_src(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_alt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_alt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_href(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_href(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_title(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_title(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_value(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_value(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_name(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_rel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_rel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_target(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_target(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_placeholder(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_placeholder(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_innerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_innerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_outerHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -102,6 +145,7 @@ public:
     static void s_set_className(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_classList(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_style(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_content(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_attributes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasAttributes(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -136,6 +180,8 @@ public:
 }
 
 #include "ifs/DOMTokenList.h"
+#include "ifs/DOMStringMap.h"
+#include "ifs/CSSStyleDeclaration.h"
 #include "ifs/XmlDocumentFragment.h"
 #include "ifs/XmlNamedNodeMap.h"
 #include "ifs/XmlAttr.h"
@@ -181,11 +227,22 @@ inline ClassInfo& XmlElement_base::class_info()
         { "localName", s_get_localName, block_set, false },
         { "tagName", s_get_tagName, block_set, false },
         { "id", s_get_id, s_set_id, false },
+        { "src", s_get_src, s_set_src, false },
+        { "alt", s_get_alt, s_set_alt, false },
+        { "href", s_get_href, s_set_href, false },
+        { "title", s_get_title, s_set_title, false },
+        { "value", s_get_value, s_set_value, false },
+        { "name", s_get_name, s_set_name, false },
+        { "type", s_get_type, s_set_type, false },
+        { "rel", s_get_rel, s_set_rel, false },
+        { "target", s_get_target, s_set_target, false },
+        { "placeholder", s_get_placeholder, s_set_placeholder, false },
         { "innerHTML", s_get_innerHTML, s_set_innerHTML, false },
         { "outerHTML", s_get_outerHTML, s_set_outerHTML, false },
         { "className", s_get_className, s_set_className, false },
         { "classList", s_get_classList, block_set, false },
         { "dataset", s_get_dataset, block_set, false },
+        { "style", s_get_style, block_set, false },
         { "content", s_get_content, block_set, false },
         { "attributes", s_get_attributes, block_set, false }
     };
@@ -299,6 +356,286 @@ inline void XmlElement_base::s_set_id(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
+inline void XmlElement_base::s_get_src(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_src(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_src(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_src(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_alt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_alt(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_alt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_alt(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_href(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_href(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_href(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_href(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_title(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_title(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_title(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_title(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_value(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_value(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_value(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_value(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_name(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_name(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_name(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_type(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_type(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_type(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_rel(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_rel(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_rel(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_rel(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_target(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_target(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_target(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_target(v0);
+
+    METHOD_VOID();
+}
+
+inline void XmlElement_base::s_get_placeholder(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_placeholder(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_set_placeholder(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->set_placeholder(v0);
+
+    METHOD_VOID();
+}
+
 inline void XmlElement_base::s_get_innerHTML(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
@@ -399,7 +736,7 @@ inline void XmlElement_base::s_get_classList(const v8::FunctionCallbackInfo<v8::
 
 inline void XmlElement_base::s_get_dataset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<DOMStringMap_base> vr;
 
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
@@ -407,6 +744,20 @@ inline void XmlElement_base::s_get_dataset(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(0, 0);
 
     hr = pInst->get_dataset(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_get_style(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<CSSStyleDeclaration_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_style(vr);
 
     METHOD_RETURN();
 }

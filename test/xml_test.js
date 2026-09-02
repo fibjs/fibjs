@@ -3143,13 +3143,28 @@ describe('xml', () => {
             // Original element should be detached (no parent)
             assert.equal(div.parentNode, null);
 
-            // Test outerHTML on element without parent (should throw error per MDN spec)
+            // Test outerHTML on element without parent: per WHATWG HTML 8.5.5 the
+            // setter is a silent no-op (no exception) when the element has no parent.
             var orphan = hdoc.createElement("div");
             orphan.textContent = "orphan";
-            assert.throws(() => {
-                orphan.outerHTML = "<span>replaced</span>";
-            });
+            orphan.outerHTML = "<span>replaced</span>";
             assert.equal(orphan.parentNode, null);
+            assert.equal(orphan.outerHTML, '<div>orphan</div>');
+        });
+
+        it("outerHTML on the document element throws", () => {
+            // Per WHATWG HTML 8.5.5, the only throwing case is a parent that is
+            // a Document (NoModificationAllowedError in browsers).
+            var hdoc = parseHtml("<html><body></body></html>");
+            assert.throws(() => {
+                hdoc.documentElement.outerHTML = "<p>new root</p>";
+            });
+
+            // Same for XML documents: the root element's parent is the document.
+            var xdoc = parse("<root/>");
+            assert.throws(() => {
+                xdoc.documentElement.outerHTML = "<other/>";
+            });
         });
 
         it("textContent", () => {
@@ -3278,6 +3293,485 @@ describe('xml', () => {
 
     if (!isBrowser) {
         describe('fibjs', () => {
+            describe('cssom style', () => {
+                it("element.style basic reflection", () => {
+                    var hdoc = parseHtml('<img id="i" style="max-width:100%">');
+                    var img = hdoc.getElementById("i");
+
+                    assert.equal(typeof img.style, "object");
+                    assert.equal(img.style.cssText, "max-width:100%");
+                    assert.equal(img.style.getPropertyValue("max-width"), "100%");
+                    assert.equal(img.style.maxWidth, "100%");
+                    assert.equal(img.style.width, "");
+                });
+
+                it("cssText assignment reflects to attribute", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.style.cssText = "max-width: 100%; height: auto;";
+
+                    assert.equal(div.getAttribute("style"), "max-width: 100%; height: auto;");
+                    assert.equal(div.style.getPropertyValue("height"), "auto");
+                });
+
+                it("camelCase property write appends and reads back", () => {
+                    var hdoc = parseHtml('<img id="i">');
+                    var img = hdoc.getElementById("i");
+                    img.style.cssText = "max-width: 100%; height: auto;";
+                    img.style.width = "400px";
+
+                    assert.equal(img.style.width, "400px");
+                    assert.equal(img.getAttribute("style"), "max-width: 100%; height: auto; width: 400px;");
+
+                    delete img.style.width;
+                    assert.equal(img.style.width, "");
+                    assert.equal(img.style.getPropertyValue("width"), "");
+                    assert.equal(img.getAttribute("style"), "max-width: 100%; height: auto;");
+                });
+
+                it("setProperty / getPropertyValue / priority / removeProperty", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.setProperty("position", "absolute", "important");
+                    assert.equal(div.style.getPropertyValue("position"), "absolute");
+                    assert.equal(div.style.getPropertyPriority("position"), "important");
+                    assert.equal(div.style.cssText, "position: absolute !important;");
+
+                    assert.equal(div.style.removeProperty("position"), "absolute");
+                    assert.equal(div.style.getPropertyPriority("position"), "");
+
+                    // Invalid priority is a no-op
+                    div.style.setProperty("display", "block", "bogus");
+                    assert.equal(div.style.getPropertyValue("display"), "");
+
+                    // Empty value removes the property
+                    div.style.setProperty("display", "none");
+                    div.style.setProperty("display", "");
+                    assert.equal(div.style.getPropertyValue("display"), "");
+                });
+
+                it("custom properties (--*)", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.setProperty("--gap", "8px");
+                    assert.equal(div.style.getPropertyValue("--gap"), "8px");
+                    assert.equal(div.style.getPropertyValue("--GAP"), "");
+                    assert.ok(div.style.cssText.indexOf("--gap: 8px") >= 0);
+                });
+
+                it("length and item", () => {
+                    var hdoc = parseHtml('<div id="d" style="color: red; width: 1px"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    assert.equal(div.style.length, 2);
+                    assert.equal(div.style.item(0), "color");
+                    assert.equal(div.style.item(1), "width");
+                });
+
+                it("empty cssText removes the attribute", () => {
+                    var hdoc = parseHtml('<div id="d" style="color: red"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.style.cssText = "";
+
+                    assert.equal(div.getAttribute("style"), null);
+                    assert.equal(div.style.cssText, "");
+                });
+
+                it("values with semicolons in url() and quotes", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.style.cssText = "background: url('data:image/png;base64,AAA;BBB==') no-repeat; font-family: \"A; B\", serif;";
+
+                    assert.equal(div.style.getPropertyValue("background"), "url('data:image/png;base64,AAA;BBB==') no-repeat");
+                    assert.equal(div.style.getPropertyValue("font-family"), "\"A; B\", serif");
+                });
+
+                it("style object identity is stable and cloneNode copies attribute", () => {
+                    var hdoc = parseHtml('<img id="i" style="width: 1px; color: blue">');
+                    var img = hdoc.getElementById("i");
+
+                    assert.equal(img.style === img.style, true);
+
+                    var clone = img.cloneNode(true);
+                    assert.equal(clone.getAttribute("style"), "width: 1px; color: blue");
+                    assert.equal(clone.style.getPropertyValue("color"), "blue");
+                });
+
+                it("xml mode style access throws", () => {
+                    var xdoc = parse("<root/>");
+                    var el = xdoc.documentElement;
+                    assert.throws(() => {
+                        el.style;
+                    });
+                });
+
+                it("duplicate declarations follow cascade semantics", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    // Later plain declaration overrides earlier one and moves to
+                    // the end (browser CSSOM behavior)
+                    div.style.cssText = "color: red; background: blue; color: green;";
+                    assert.equal(div.getAttribute("style"), "background: blue; color: green;");
+
+                    // A plain declaration cannot override an earlier !important one
+                    div.style.cssText = "color: red !important; color: blue;";
+                    assert.equal(div.getAttribute("style"), "color: red !important;");
+
+                    // An !important declaration overrides a plain one
+                    div.style.cssText = "color: red; color: blue !important;";
+                    assert.equal(div.getAttribute("style"), "color: blue !important;");
+                    assert.equal(div.style.getPropertyPriority("color"), "important");
+
+                    // Same rule applies to custom properties (case-sensitive)
+                    div.style.cssText = "--x: 1; --x: 2;";
+                    assert.equal(div.getAttribute("style"), "--x: 2;");
+
+                    // Property names are case-insensitive for standard properties
+                    div.style.cssText = "COLOR: red; color: blue;";
+                    assert.equal(div.getAttribute("style"), "color: blue;");
+                });
+
+                it("!important parsing variants", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.cssText = "width: 1px !IMPORTANT; height: 2px  !important;";
+                    assert.equal(div.style.getPropertyPriority("width"), "important");
+                    assert.equal(div.style.getPropertyPriority("height"), "important");
+                    assert.equal(div.style.getPropertyValue("width"), "1px");
+
+                    // Setting a plain value clears the priority (no error)
+                    div.style.width = "3px";
+                    assert.equal(div.style.getPropertyPriority("width"), "");
+                    assert.equal(div.style.getPropertyValue("width"), "3px");
+
+                    // setProperty with priority keeps it
+                    div.style.setProperty("width", "4px", "important");
+                    assert.equal(div.style.getPropertyPriority("width"), "important");
+                });
+
+                it("sloppy declaration blocks are tolerated", () => {
+                    var hdoc = parseHtml('<div id="d" style="color: red"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.cssText = "";
+                    assert.equal(div.getAttribute("style"), null);
+
+                    div.style.cssText = "   \n\t  ";
+                    assert.equal(div.getAttribute("style"), null);
+
+                    div.style.cssText = ";;color: red;;";
+                    assert.equal(div.getAttribute("style"), "color: red;");
+
+                    // Segments without a colon or with an empty name are dropped
+                    div.style.cssText = ":value; color; color: blue; garbage";
+                    assert.equal(div.getAttribute("style"), "color: blue;");
+                });
+
+                it("strings, comments and nested parentheses in values", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.cssText = 'content: "a; /* not a comment */ b";';
+                    assert.equal(div.style.getPropertyValue("content"), '"a; /* not a comment */ b"');
+
+                    div.style.cssText = "transform: translate(calc(100% - 20px), 0) scale(1.2);";
+                    assert.equal(div.style.getPropertyValue("transform"), "translate(calc(100% - 20px), 0) scale(1.2)");
+
+                    div.style.cssText = "background-image: linear-gradient(to right, red 0%, blue 100%);";
+                    assert.equal(div.style.getPropertyValue("background-image"), "linear-gradient(to right, red 0%, blue 100%)");
+
+                    // Comments outside strings are stripped
+                    div.style.cssText = "color: red; /* comment */ width: 1px;";
+                    assert.equal(div.getAttribute("style"), "color: red; width: 1px;");
+                });
+
+                it("numeric values are coerced to strings", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.opacity = 0.5;
+                    assert.equal(div.style.opacity, "0.5");
+                    assert.equal(div.getAttribute("style"), "opacity: 0.5;");
+
+                    div.style.cssText = "";
+                    div.style.zIndex = 3;
+                    assert.equal(div.style.zIndex, "3");
+                });
+
+                it("external attribute changes stay in sync", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.style.cssText = "color: red; width: 1px;";
+                    div.removeAttribute("style");
+                    assert.equal(div.style.cssText, "");
+                    assert.equal(div.style.getPropertyValue("color"), "");
+                    assert.equal(div.style.length, 0);
+
+                    div.setAttribute("style", "height: 2px");
+                    assert.equal(div.style.cssText, "height: 2px");
+                    div.style.height = "3px";
+                    assert.equal(div.getAttribute("style"), "height: 3px;");
+                });
+
+                it("item/length boundaries and delete semantics", () => {
+                    var hdoc = parseHtml('<div id="d" style="color: red; width: 1px"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    assert.equal(div.style.length, 2);
+                    assert.equal(div.style.item(-1), "");
+                    assert.equal(div.style.item(2), "");
+                    assert.equal(div.style.item(99), "");
+
+                    // Deleting a missing property is a no-op returning true
+                    assert.equal(delete div.style.nope, true);
+                    assert.equal(div.style.cssText, "color: red; width: 1px");
+
+                    assert.equal(delete div.style.width, true);
+                    assert.equal(div.style.length, 1);
+                    assert.equal(div.style.getPropertyValue("width"), "");
+                });
+
+                it("cloned elements get an independent style object", () => {
+                    var hdoc = parseHtml('<img id="i" style="color: red">');
+                    var img = hdoc.getElementById("i");
+                    var clone = img.cloneNode(true);
+
+                    assert.equal(img.style === clone.style, false);
+                    clone.style.color = "blue";
+
+                    assert.equal(img.style.getPropertyValue("color"), "red");
+                    assert.equal(clone.style.getPropertyValue("color"), "blue");
+                    assert.equal(img.getAttribute("style"), "color: red");
+                    assert.equal(clone.getAttribute("style"), "color: blue;");
+                });
+            });
+
+            describe('dataset writeback', () => {
+                it("assignment reflects to data-* attribute", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset.sourceHash = "abc";
+                    div.dataset.pluginType = "mermaid";
+
+                    assert.equal(div.getAttribute("data-source-hash"), "abc");
+                    assert.equal(div.getAttribute("data-plugin-type"), "mermaid");
+                    assert.equal(div.dataset.sourceHash, "abc");
+                });
+
+                it("modify and delete", () => {
+                    var hdoc = parseHtml('<div id="d" data-x="old"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset.x = "new";
+                    assert.equal(div.getAttribute("data-x"), "new");
+
+                    delete div.dataset.x;
+                    assert.equal(div.getAttribute("data-x"), null);
+                    assert.equal(div.dataset.x, undefined);
+                });
+
+                it("empty string assignment removes attribute", () => {
+                    var hdoc = parseHtml('<div id="d" data-x="v"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.dataset.x = "";
+                    assert.equal(div.getAttribute("data-x"), null);
+                });
+
+                it("dash round-trip preserves unusual attribute names", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset["a-B"] = "v1";
+                    assert.equal(div.getAttribute("data-a--b"), "v1");
+
+                    div.dataset["test-"] = "v2";
+                    assert.equal(div.getAttribute("data-test-"), "v2");
+                });
+
+                it("numeric key reads data-<index> attribute", () => {
+                    var hdoc = parseHtml('<div id="d" data-123="c"></div>');
+                    var div = hdoc.getElementById("d");
+                    assert.equal(div.dataset["123"], "c");
+                });
+
+                it("key round-trips with punctuation and digits", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset["a.b"] = "dot";
+                    assert.equal(div.getAttribute("data-a.b"), "dot");
+
+                    div.dataset["a:b"] = "colon";
+                    assert.equal(div.getAttribute("data-a:b"), "colon");
+
+                    div.dataset["my_value"] = "underscore";
+                    assert.equal(div.getAttribute("data-my_value"), "underscore");
+
+                    div.dataset["item2name"] = "digit";
+                    assert.equal(div.getAttribute("data-item2name"), "digit");
+
+                    // Reads come back through the same mapping
+                    assert.equal(div.dataset["a.b"], "dot");
+                    assert.equal(div.dataset["my_value"], "underscore");
+                    assert.equal(div.dataset.item2name, "digit");
+                });
+
+                it("value coercion and removal semantics", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset.x = 123;
+                    assert.equal(div.getAttribute("data-x"), "123");
+
+                    div.dataset.flag = true;
+                    assert.equal(div.getAttribute("data-flag"), "true");
+
+                    // null/undefined/empty string all remove the attribute
+                    div.dataset.x = "v";
+                    div.dataset.x = null;
+                    assert.equal(div.getAttribute("data-x"), null);
+
+                    div.dataset.y = "v";
+                    div.dataset.y = undefined;
+                    assert.equal(div.getAttribute("data-y"), null);
+
+                    // Deleting a missing key is a no-op returning true
+                    assert.equal(delete div.dataset.nope, true);
+                    assert.equal(div.dataset.nope, undefined);
+                });
+
+                it("Object.keys reflects current data attributes", () => {
+                    var hdoc = parseHtml('<div id="d" data-a="1"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    div.dataset.sourceHash = "abc";
+                    var keys = Object.keys(div.dataset);
+                    assert.equal(keys.length, 2);
+                    assert.ok(keys.indexOf("a") >= 0);
+                    assert.ok(keys.indexOf("sourceHash") >= 0);
+
+                    delete div.dataset.sourceHash;
+                    div.removeAttribute("data-a");
+                    assert.equal(Object.keys(div.dataset).length, 0);
+                });
+
+                it("numeric keys are read-only", () => {
+                    var hdoc = parseHtml('<div id="d"></div>');
+                    var div = hdoc.getElementById("d");
+
+                    // Numeric string keys go through the indexed handler which is
+                    // read-only (v8 has no indexed deleter); writes throw.
+                    assert.throws(() => {
+                        div.dataset["123"] = "x";
+                    });
+                    assert.equal(div.getAttribute("data-123"), null);
+                });
+            });
+
+            describe('attribute reflection', () => {
+                it("src/alt assignment reflects and serializes", () => {
+                    var hdoc = parseHtml('<body></body>');
+                    var img = hdoc.createElement("img");
+                    img.src = "data:image/png;base64,AAAA";
+                    img.alt = "diagram";
+
+                    assert.equal(img.getAttribute("src"), "data:image/png;base64,AAAA");
+                    assert.equal(img.getAttribute("alt"), "diagram");
+                    assert.equal(img.src, "data:image/png;base64,AAAA");
+                    assert.ok(img.outerHTML.indexOf('src="data:image/png;base64,AAAA"') >= 0);
+                    assert.ok(img.outerHTML.indexOf('alt="diagram"') >= 0);
+                });
+
+                it("common attribute reflection", () => {
+                    var hdoc = parseHtml('<body></body>');
+                    var el = hdoc.createElement("a");
+
+                    el.href = "target.md";
+                    el.title = "t";
+                    el.rel = "noopener";
+                    el.target = "_blank";
+
+                    assert.equal(el.getAttribute("href"), "target.md");
+                    assert.equal(el.getAttribute("title"), "t");
+                    assert.equal(el.getAttribute("rel"), "noopener");
+                    assert.equal(el.getAttribute("target"), "_blank");
+                    assert.equal(el.href, "target.md");
+                    assert.equal(el.title, "t");
+
+                    var input = hdoc.createElement("input");
+                    input.value = "v";
+                    input.name = "n";
+                    input.type = "checkbox";
+                    input.placeholder = "p";
+                    assert.equal(input.getAttribute("value"), "v");
+                    assert.equal(input.getAttribute("name"), "n");
+                    assert.equal(input.getAttribute("type"), "checkbox");
+                    assert.equal(input.getAttribute("placeholder"), "p");
+                });
+
+                it("empty assignment removes attribute", () => {
+                    var hdoc = parseHtml('<div id="d" title="t"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.title = "";
+                    assert.equal(div.getAttribute("title"), null);
+                });
+
+                it("reflection reads unset attributes as empty string", () => {
+                    var hdoc = parseHtml('<body></body>');
+                    var img = hdoc.createElement("img");
+                    var input = hdoc.createElement("input");
+
+                    assert.equal(img.src, "");
+                    assert.equal(img.alt, "");
+                    assert.equal(input.value, "");
+                    assert.equal(input.name, "");
+                });
+
+                it("numeric assignment is coerced", () => {
+                    var hdoc = parseHtml('<body></body>');
+                    var el = hdoc.createElement("div");
+                    el.title = 123;
+                    assert.equal(el.getAttribute("title"), "123");
+                    assert.equal(el.title, "123");
+                });
+
+                it("removeAttribute is reflected as empty string", () => {
+                    var hdoc = parseHtml('<div id="d" title="t" href="#x"></div>');
+                    var div = hdoc.getElementById("d");
+                    div.removeAttribute("title");
+                    div.removeAttribute("href");
+                    assert.equal(div.title, "");
+                    assert.equal(div.href, "");
+                    assert.equal(div.getAttribute("title"), null);
+                });
+
+                it("cloned elements copy reflected attributes", () => {
+                    var hdoc = parseHtml('<body></body>');
+                    var img = hdoc.createElement("img");
+                    img.src = "data:image/png;base64,AAAA";
+                    img.alt = "diagram";
+
+                    var clone = img.cloneNode(true);
+                    assert.equal(clone.src, "data:image/png;base64,AAAA");
+                    assert.equal(clone.alt, "diagram");
+                });
+
+                it("reflection also works on xml-mode elements (fibjs superset)", () => {
+                    var xdoc = parse("<root/>");
+                    var el = xdoc.documentElement;
+                    el.setAttribute("src", "x");
+                    assert.equal(el.src, "x");
+                    el.src = "y";
+                    assert.equal(el.getAttribute("src"), "y");
+                });
+            });
+
             it("XML constants", () => {
                 assert.equal(xml.ELEMENT_NODE, 1);
                 assert.equal(xml.ATTRIBUTE_NODE, 2);

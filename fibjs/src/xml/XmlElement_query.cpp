@@ -1054,18 +1054,53 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                     return false; // not an input element
                 }
             } else if (comp.value == "disabled") {
-                // Check if form element is disabled
+                // Check if form element is disabled. Per HTML semantics the
+                // disabled state propagates: options inside a disabled select
+                // or optgroup are disabled as well.
                 exlib::string tagName;
                 element->get_tagName(tagName);
-                if (qstricmp(tagName.c_str(), "INPUT") == 0 || qstricmp(tagName.c_str(), "BUTTON") == 0 || qstricmp(tagName.c_str(), "SELECT") == 0 || qstricmp(tagName.c_str(), "TEXTAREA") == 0 || qstricmp(tagName.c_str(), "OPTION") == 0) {
-                    bool hasDisabled;
-                    element->hasAttribute("disabled", hasDisabled);
-                    if (!hasDisabled) {
-                        return false;
-                    }
-                } else {
+                bool isOption = !qstricmp(tagName.c_str(), "OPTION");
+                bool isOptgroup = !qstricmp(tagName.c_str(), "OPTGROUP");
+                if (!isOption && !isOptgroup
+                    && qstricmp(tagName.c_str(), "INPUT") != 0
+                    && qstricmp(tagName.c_str(), "BUTTON") != 0
+                    && qstricmp(tagName.c_str(), "SELECT") != 0
+                    && qstricmp(tagName.c_str(), "TEXTAREA") != 0)
                     return false; // not a form element
+
+                bool hasDisabled;
+                element->hasAttribute("disabled", hasDisabled);
+                if (hasDisabled)
+                    return true;
+
+                // Propagate disabled state from an ancestor select/optgroup to
+                // option/optgroup elements. A disabled optgroup stops the
+                // propagation chain at that point (returns true); otherwise
+                // walk up to the enclosing select.
+                if (isOption || isOptgroup) {
+                    obj_ptr<XmlElement_base> parentEl;
+                    result_t hr = element->get_parentElement(parentEl);
+
+                    while (hr == 0 && parentEl) {
+                        exlib::string parentTag;
+                        parentEl->get_tagName(parentTag);
+                        if (!qstricmp(parentTag.c_str(), "OPTGROUP")) {
+                            parentEl->hasAttribute("disabled", hasDisabled);
+                            if (hasDisabled)
+                                return true;
+                            // fall through: check the enclosing select
+                        } else if (!qstricmp(parentTag.c_str(), "SELECT")) {
+                            parentEl->hasAttribute("disabled", hasDisabled);
+                            return hasDisabled;
+                        }
+
+                        obj_ptr<XmlElement_base> next;
+                        hr = parentEl->get_parentElement(next);
+                        parentEl = next;
+                    }
                 }
+
+                return false;
             } else if (comp.value == "first-of-type") {
                 // Check if this is the first element of its type
                 exlib::string tagName;

@@ -35,6 +35,8 @@ class MessagePort_base;
 class MessageChannel_base;
 class CryptoKey_base;
 class DOMParser_base;
+class CSSStyleDeclaration_base;
+class DOMStringMap_base;
 class XMLSerializer_base;
 class XmlDocument_base;
 class WebSocket_base;
@@ -125,6 +127,8 @@ public:
 #include "ifs/MessageChannel.h"
 #include "ifs/CryptoKey.h"
 #include "ifs/DOMParser.h"
+#include "ifs/CSSStyleDeclaration.h"
+#include "ifs/DOMStringMap.h"
 #include "ifs/XMLSerializer.h"
 #include "ifs/XmlDocument.h"
 #include "ifs/WebSocket.h"
@@ -177,6 +181,8 @@ inline ClassInfo& global_base::class_info()
         { "MessageChannel", MessageChannel_base::class_info },
         { "CryptoKey", CryptoKey_base::class_info },
         { "DOMParser", DOMParser_base::class_info },
+        { "CSSStyleDeclaration", CSSStyleDeclaration_base::class_info },
+        { "DOMStringMap", DOMStringMap_base::class_info },
         { "XMLSerializer", XMLSerializer_base::class_info },
         { "XMLDocument", XmlDocument_base::class_info },
         { "WebSocket", WebSocket_base::class_info },

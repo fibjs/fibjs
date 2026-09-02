@@ -19,6 +19,8 @@
 /// <reference path="../interface/MessageChannel.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../interface/DOMParser.d.ts" />
+/// <reference path="../interface/CSSStyleDeclaration.d.ts" />
+/// <reference path="../interface/DOMStringMap.d.ts" />
 /// <reference path="../interface/XMLSerializer.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /// <reference path="../interface/WebSocket.d.ts" />
@@ -139,6 +141,16 @@ declare module 'global' {
      * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 
      */
     const DOMParser: typeof Class_DOMParser;
+
+    /**
+     * @description CSSStyleDeclaration 接口，表示元素的 style 属性对应的 CSS 声明块，参见 CSSStyleDeclaration 对象 
+     */
+    const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
+
+    /**
+     * @description DOMStringMap 接口，表示元素 data-* 属性的键值映射，参见 DOMStringMap 对象 
+     */
+    const DOMStringMap: typeof Class_DOMStringMap;
 
     /**
      * @description XMLSerializer 接口，用于将 DOM 节点序列化为字符串，参见 XMLSerializer 对象 

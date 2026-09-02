@@ -1302,9 +1302,12 @@ describe('querySelector', () => {
             assert.equal(checkedInputs.length, 1);
             assert.equal(checkedInputs[0].getAttribute('value'), 'one');
 
-            // Test :disabled pseudo-class
+            // Test :disabled pseudo-class. Note: an option inside a disabled
+            // select is disabled too (state propagates from the select), so the
+            // count is 6: text input, button, select, option (propagated),
+            // disabled option, textarea.
             const disabledElements = rootElement.querySelectorAll(':disabled');
-            assert.equal(disabledElements.length, 5); // text input, button, select, option, textarea
+            assert.equal(disabledElements.length, 6);
 
             // Test attribute selectors with form elements
             const radioInputs = rootElement.querySelectorAll('input[type="radio"]');
@@ -1313,6 +1316,58 @@ describe('querySelector', () => {
             const submitButton = rootElement.querySelector('input[type="submit"], button[type="submit"]');
             assert.notEqual(submitButton, null);
             assert.equal(submitButton.id, 'submit1');
+        });
+
+        it("disabled state propagates from select/optgroup to options", () => {
+            // Helper: collect element ids matched by :disabled within a scope
+            function disabledIds(scope) {
+                const els = scope.querySelectorAll(':disabled');
+                const ids = [];
+                for (let i = 0; i < els.length; i++) {
+                    ids.push(els[i].getAttribute('id'));
+                }
+                return ids.join(',');
+            }
+
+            // A disabled select disables its optgroup and every option inside
+            const m1 = testDoc.createElement('div');
+            m1.setAttribute('id', 'm1');
+            m1.innerHTML = '<select id="s1" disabled><optgroup id="g1"><option id="o1">A</option></optgroup><option id="o2">B</option></select>';
+            rootElement.appendChild(m1);
+            assert.equal(disabledIds(m1), 's1,g1,o1,o2');
+
+            // A disabled optgroup disables its options but not the select or
+            // sibling options
+            const m2 = testDoc.createElement('div');
+            m2.setAttribute('id', 'm2');
+            m2.innerHTML = '<select id="s2"><optgroup id="g2" disabled><option id="o3">C</option></optgroup><option id="o4">D</option><option id="o5" disabled>E</option></select>';
+            rootElement.appendChild(m2);
+            assert.equal(disabledIds(m2), 'g2,o3,o5');
+            assert.equal(m2.querySelector('#o4').matches(':disabled'), false);
+            assert.equal(m2.querySelector('#s2').matches(':disabled'), false);
+
+            // An option inside a disabled optgroup which itself lives inside a
+            // disabled select is still disabled (chain propagation)
+            const m3 = testDoc.createElement('div');
+            m3.setAttribute('id', 'm3');
+            m3.innerHTML = '<select id="s3" disabled><optgroup id="g3"><option id="o6">F</option></optgroup></select>';
+            rootElement.appendChild(m3);
+            assert.equal(disabledIds(m3), 's3,g3,o6');
+
+            // Everything enabled: nothing matches
+            const m4 = testDoc.createElement('div');
+            m4.setAttribute('id', 'm4');
+            m4.innerHTML = '<select id="s4"><optgroup id="g4"><option id="o7">G</option></optgroup></select>';
+            rootElement.appendChild(m4);
+            assert.equal(disabledIds(m4), '');
+            assert.equal(m4.querySelector('#g4').matches(':disabled'), false);
+
+            // Non-form elements never match :disabled, even with the attribute
+            const m5 = testDoc.createElement('div');
+            m5.setAttribute('id', 'm5');
+            m5.innerHTML = '<div id="d1" disabled></div><input id="i1"/>';
+            rootElement.appendChild(m5);
+            assert.equal(disabledIds(m5), '');
         });
 
         it("should handle complex form selectors", () => {

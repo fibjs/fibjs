@@ -22,6 +22,46 @@ interface XmlElement : XmlNode
     */
     String id;
 
+    /*! 查询和设置元素的 src 属性，仅在 html 模式有效。读取时返回 style 之外的常规属性值，写入时同步到属性，空字符串删除属性
+    */
+    String src;
+
+    /*! 查询和设置元素的 alt 属性，仅在 html 模式有效
+    */
+    String alt;
+
+    /*! 查询和设置元素的 href 属性，仅在 html 模式有效
+    */
+    String href;
+
+    /*! 查询和设置元素的 title 属性，仅在 html 模式有效
+    */
+    String title;
+
+    /*! 查询和设置元素的 value 属性，仅在 html 模式有效
+    */
+    String value;
+
+    /*! 查询和设置元素的 name 属性，仅在 html 模式有效
+    */
+    String name;
+
+    /*! 查询和设置元素的 type 属性，仅在 html 模式有效
+    */
+    String type;
+
+    /*! 查询和设置元素的 rel 属性，仅在 html 模式有效
+    */
+    String rel;
+
+    /*! 查询和设置元素的 target 属性，仅在 html 模式有效
+    */
+    String target;
+
+    /*! 查询和设置元素的 placeholder 属性，仅在 html 模式有效
+    */
+    String placeholder;
+
     /*! 查询和设置选定元素后代的 HTML 文本，仅在 html 模式有效。查询时，返回元素节点内所有子节点的 HTML 编码；设置时，删除所有子节点，并用指定的 HTML 解码后替换它们。
     */
     String innerHTML;
@@ -38,9 +78,15 @@ interface XmlElement : XmlNode
     */
     readonly DOMTokenList classList;
 
-    /*! @brief 返回一个对象，包含元素所有 data-* 属性的键值对，仅在 html 模式有效。属性名会从 data-xxx-yyy 格式转换为 xxxYyy 驼峰格式
+    /*! @brief 返回一个 DOMStringMap 对象，包含元素所有 data-* 属性的键值对，仅在 html 模式有效。属性名会从 data-xxx-yyy 格式转换为 xxxYyy 驼峰格式，对对象的读写会实时同步到元素的 data-* 属性
     */
-    readonly Object dataset;
+    readonly DOMStringMap dataset;
+
+    /*! @brief 返回元素的 style 属性对应的 CSSStyleDeclaration 对象，仅在 html 模式有效
+
+    通过该对象可以读取或修改元素的内联样式，修改结果会同步到元素的 style 属性，并反映在 outerHTML/innerHTML 序列化中。CSS 属性名使用驼峰格式，例如 style.maxWidth 对应 max-width。
+    */
+    readonly CSSStyleDeclaration style;
 
     /*! @brief 返回 template 元素的内容，仅对 template 元素有效，返回一个包含其子节点的 DocumentFragment
     */

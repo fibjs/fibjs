@@ -147,6 +147,35 @@ result_t XmlElement::set_id(exlib::string newVal)
     return setAttribute("id", newVal);
 }
 
+// HTML attribute reflection for common element attributes: reading returns the
+// attribute value (or empty string), writing syncs to the attribute (empty
+// string removes it), mirroring browser behavior for e.g. img.src / input.value.
+#define IMPL_ATTR_REFLECT(name)                           \
+    result_t XmlElement::get_##name(exlib::string& retVal) \
+    {                                                      \
+        getAttribute(#name, retVal);                       \
+        return 0;                                          \
+    }                                                      \
+    result_t XmlElement::set_##name(exlib::string newVal)   \
+    {                                                      \
+        if (newVal.empty())                                \
+            return removeAttribute(#name);                 \
+        return setAttribute(#name, newVal);                \
+    }
+
+IMPL_ATTR_REFLECT(src)
+IMPL_ATTR_REFLECT(alt)
+IMPL_ATTR_REFLECT(href)
+IMPL_ATTR_REFLECT(title)
+IMPL_ATTR_REFLECT(value)
+IMPL_ATTR_REFLECT(name)
+IMPL_ATTR_REFLECT(type)
+IMPL_ATTR_REFLECT(rel)
+IMPL_ATTR_REFLECT(target)
+IMPL_ATTR_REFLECT(placeholder)
+
+#undef IMPL_ATTR_REFLECT
+
 result_t XmlElement::get_innerHTML(exlib::string& retVal)
 {
     // For template elements, innerHTML reflects the content's children
@@ -228,10 +257,17 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
+    // WHATWG HTML 8.5.5: if the element has no parent, the setter silently
+    // does nothing; only a Document parent throws NoModificationAllowedError.
     obj_ptr<XmlNode_base> parent;
     result_t hr = get_parentNode(parent);
     if (hr < 0 || parent == NULL)
-        return CHECK_ERROR(Runtime::setError("XmlElement: This element has no parent node."));
+        return 0;
+
+    int32_t parentType;
+    parent->get_nodeType(parentType);
+    if (parentType == xml_base::C_DOCUMENT_NODE)
+        return CHECK_ERROR(Runtime::setError("XmlElement: The element is a direct child of a document."));
 
     // Parse the new HTML content
     obj_ptr<XmlDocument> doc = new XmlDocument(false);
@@ -284,64 +320,27 @@ result_t XmlElement::get_classList(obj_ptr<DOMTokenList_base>& retVal)
     return 0;
 }
 
-// Convert data-xxx-yyy to xxxYyy (camelCase)
-// Per MDN spec: dash followed by lowercase letter -> remove dash, uppercase letter
-// Other dashes are preserved
-static exlib::string dataAttrToCamelCase(const exlib::string& name)
-{
-    // name starts with "data-", remove it
-    exlib::string result;
-
-    for (size_t i = 5; i < name.length(); i++) {
-        char c = name[i];
-        if (c == '-' && i + 1 < name.length()) {
-            char next = name[i + 1];
-            if (next >= 'a' && next <= 'z') {
-                // Dash followed by lowercase: remove dash, uppercase the letter
-                result += (next - 'a' + 'A');
-                i++; // skip the next character as we've processed it
-            } else {
-                // Dash not followed by lowercase: keep the dash
-                result += c;
-            }
-        } else {
-            result += c;
-        }
-    }
-
-    return result;
-}
-
-result_t XmlElement::get_dataset(v8::Local<v8::Object>& retVal)
+result_t XmlElement::get_style(obj_ptr<CSSStyleDeclaration_base>& retVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+    if (!m_style)
+        m_style = new CSSStyleDeclaration(this);
 
-    int32_t len;
-    m_attrs->get_length(len);
+    retVal = m_style;
+    return 0;
+}
 
-    for (int32_t i = 0; i < len; i++) {
-        obj_ptr<XmlAttr_base> attr;
-        m_attrs->item(i, attr);
+result_t XmlElement::get_dataset(obj_ptr<DOMStringMap_base>& retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
 
-        exlib::string name;
-        attr->get_nodeName(name);
+    if (!m_dataset)
+        m_dataset = new DOMStringMap(this);
 
-        // Check if attribute name starts with "data-"
-        if (name.length() > 5 && name.substr(0, 5) == "data-") {
-            exlib::string camelName = dataAttrToCamelCase(name);
-            exlib::string value;
-            attr->get_nodeValue(value);
-
-            obj->Set(context, isolate->NewString(camelName), isolate->NewString(value)).IsJust();
-        }
-    }
-
-    retVal = obj;
+    retVal = m_dataset;
     return 0;
 }
 
