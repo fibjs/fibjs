@@ -468,6 +468,133 @@ describe("child_process", () => {
         assert.equal(stdout.readLine(), "hello, exec1");
     });
 
+    describe("fork silent option", () => {
+        var silentChild = path.join(__dirname, 'process', 'exec_silent.js');
+        var silentHarness = path.join(__dirname, 'process', 'exec_silent_harness.js');
+
+        // inherit 模式的用例不需要子进程打印，加静默标记避免污染套件日志
+        function quietEnv() {
+            var env = {};
+            Object.keys(process.env).forEach(k => env[k] = process.env[k]);
+            env.CP_SILENT_QUIET = '1';
+            return env;
+        }
+
+        it("silent:true pipes child stdio", () => {
+            var p = child_process.fork(silentChild, { silent: true });
+
+            // silent:true 时 stdin/stdout/stderr 都是管道
+            assert.exist(p.stdin);
+            assert.exist(p.stdout);
+            assert.exist(p.stderr);
+
+            var stdout = new io.BufferedStream(p.stdout);
+            var stderr = new io.BufferedStream(p.stderr);
+
+            assert.deepEqual(stdout.readLines(), [
+                "silent-out-1",
+                "silent-out-2"
+            ]);
+            assert.deepEqual(stderr.readLines(), [
+                "silent-err-1",
+                "silent-err-2"
+            ]);
+
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+
+        it("silent:true child output is not written to parent stdio", () => {
+            // 通过 harness 监控父进程侧的输出：harness 以 silent:true fork 子进程，
+            // 若 silent 失效，子进程的输出会原样泄漏到 harness 的 stdout/stderr，
+            // 外层 spawnSync 捕获后即可发现。harness 自身只上报 base64 编码的
+            // 管道内容（HARNESS-OUT/HARNESS-ERR），因此任何非 HARNESS- 行都
+            // 只能是泄漏的子进程输出。
+            var r = child_process.spawnSync(cmd, [silentHarness]);
+            assert.equal(r.status, 0, "harness 应正常退出（silent 失效时退出码为 2）");
+
+            // fibjs 同步 API 的空输出为 null（node 为 ''），统一按空串处理
+            var out = r.stdout == null ? '' : r.stdout.toString('utf8');
+            var err = r.stderr == null ? '' : r.stderr.toString('utf8');
+
+            // stderr 必须为空：子进程的任何 stderr 泄漏都会出现在这里
+            assert.equal(err, '', "子进程 stderr 泄漏到了父进程 stderr: " + JSON.stringify(err));
+
+            // stdout 只允许 HARNESS-OUT:/HARNESS-ERR: 两行报告
+            var lines = out.split('\n').filter(l => l.length > 0);
+            var leaked = lines.filter(l => !/^HARNESS-(OUT|ERR):[A-Za-z0-9+/=]*$/.test(l));
+            assert.deepEqual(leaked, [], "子进程输出泄漏到了父进程 stdout: " + JSON.stringify(leaked));
+
+            // 管道内容应完整到达（base64 解码后与预期一致）
+            var payload = { OUT: '', ERR: '' };
+            lines.forEach(l => {
+                var m = /^HARNESS-(OUT|ERR):(.*)$/.exec(l);
+                if (m)
+                    payload[m[1]] += m[2];
+            });
+            var outText = Buffer.from(payload.OUT, 'base64').toString('utf8');
+            var errText = Buffer.from(payload.ERR, 'base64').toString('utf8');
+            assert.deepEqual(outText.split('\n').filter(l => l.length > 0), ["silent-out-1", "silent-out-2"]);
+            assert.deepEqual(errText.split('\n').filter(l => l.length > 0), ["silent-err-1", "silent-err-2"]);
+        });
+
+        it("default fork inherits stdio", () => {
+            var p = child_process.fork(silentChild, { env: quietEnv() });
+
+            assert.equal(p.stdin, null);
+            assert.equal(p.stdout, null);
+            assert.equal(p.stderr, null);
+
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+
+        it("silent:false inherits stdio", () => {
+            var p = child_process.fork(silentChild, { silent: false, env: quietEnv() });
+
+            assert.equal(p.stdin, null);
+            assert.equal(p.stdout, null);
+            assert.equal(p.stderr, null);
+
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+
+        it("explicit stdio overrides silent", () => {
+            var p = child_process.fork(silentChild, {
+                silent: true,
+                stdio: 'inherit',
+                env: quietEnv()
+            });
+
+            // Node 语义：提供 stdio 时 silent 不生效
+            assert.equal(p.stdin, null);
+            assert.equal(p.stdout, null);
+            assert.equal(p.stderr, null);
+
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+
+        it("silent:true keeps ipc channel working", () => {
+            var p = child_process.fork(silentChild, { silent: true });
+            var got = false;
+
+            p.on('message', m => {
+                if (m === 'ready')
+                    got = true;
+            });
+
+            for (var i = 0; i < 2000 && !got; i++)
+                coroutine.sleep(1);
+
+            assert.equal(got, true);
+
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+    });
+
     const isAndroid = process.platform === 'android';
     
     if (!process.env.QEMU_LD_PREFIX && !isAndroid) {

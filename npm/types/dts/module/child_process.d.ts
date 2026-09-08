@@ -323,6 +323,7 @@ declare module 'child_process' {
      *      {
      *         "cwd": "", // working directory of the child process, default to current directory
      *         "stdio": Array | String, // configure the pipes that are established between the parent and child process
+     *         "silent": false, // if true, stdin, stdout and stderr of the child will be piped to the parent, otherwise they will be inherited (fork only, ignored when stdio is provided)
      *         "env": {}, // key-value pairs of environment variables to add to the child's environment
      *         "detached": false, // child process will be a leader of a new process group, default to false
      *         "uid": 0, // configure the user identity of the process
@@ -348,6 +349,7 @@ declare module 'child_process' {
      *      {
      *         "cwd": "", // working directory of the child process, default to current directory
      *         "stdio": Array | String, // configure the pipes that are established between the parent and child process
+     *         "silent": false, // if true, stdin, stdout and stderr of the child will be piped to the parent, otherwise they will be inherited (fork only, ignored when stdio is provided)
      *         "env": {}, // key-value pairs of environment variables to add to the child's environment
      *         "detached": false, // child process will be a leader of a new process group, default to false
      *         "uid": 0, // configure the user identity of the process

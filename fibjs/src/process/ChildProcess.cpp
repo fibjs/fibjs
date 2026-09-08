@@ -227,8 +227,13 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     v8::Local<v8::Value> v;
     hr = GetConfigValue(options, "stdio", v);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        // fork 默认 stdio 为 inherit（与 Node 一致）；silent:true 时改为 pipe。
+        // Node 语义：silent 仅在未显式提供 stdio 时生效，spawn 没有 silent 选项。
+        bool silent = false;
+        GetConfigValue(options, "silent", silent);
+
         for (i = 0; i < 3; i++)
-            stddefs[i] = fork ? "inherit" : "pipe";
+            stddefs[i] = fork ? (silent ? "pipe" : "inherit") : "pipe";
     } else {
         exlib::string s;
         hr = GetArgumentValue(isolate, v, s, true);

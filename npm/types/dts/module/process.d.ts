@@ -303,20 +303,20 @@ declare module 'process' {
     function nextTick(func: (...args: any[])=>any, ...args: any[]): void;
 
     /**
-     * @description 获取指定名称的内建模块，模块不存在时返回 undefined
-     *      @param id 指定要获取的内建模块名称，可省略或包含 "node:" 前缀，也支持子路径，如 "path"、"node:path/posix"、"fs/promises"
-     *      @return 返回内建模块对象，模块不存在时返回 undefined
-     *      
-     */
-    function getBuiltinModule(id: string): any;
-
-    /**
      * @description 获取指定名称的内部模块
      *      @param name 指定要查询的内部模块名称
      *      @return 返回指定的内部模块
      *      
      */
     function binding(name: string): any;
+
+    /**
+     * @description 获取指定名称的内建模块，模块不存在时返回 undefined
+     *      @param id 指定要获取的内建模块名称，可省略或包含 "node:" 前缀，也支持子路径，如 "path"、"node:path/posix"、"fs/promises"
+     *      @return 返回内建模块对象，模块不存在时返回 undefined
+     *      
+     */
+    function getBuiltinModule(id: string): any;
 
     /**
      * @description 查询当前进程的组 id
