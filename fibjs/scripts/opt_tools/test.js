@@ -13,11 +13,10 @@
  *
  * Supported options (mirroring node):
  *
- *   --test-name-pattern=<regex>           (not supported yet, ignored with a
- *                                         warning)
- *   --test-skip-pattern=<regex>           (not supported yet, ignored with a
- *                                         warning)
- *   --test-reporter=<name>                only the default spec-like reporter
+ *   --test-name-pattern=<regex>     run only tests whose name (or the name of
+ *                                   an enclosing describe) matches; repeatable
+ *   --test-skip-pattern=<regex>      (unknown to node v23, warn as unknown)
+ *   --test-reporter=<name>           only the default spec-like reporter
  *                                         is supported; other names are
  *                                         ignored with a warning
  *   --test-reporter-destination=<dest>    only stdout is supported
@@ -218,7 +217,6 @@ function buildTestFileList(patterns, cwd) {
 // options that take a value (--opt=value or --opt value)
 const VALUE_OPTIONS = [
     'test-name-pattern',
-    'test-skip-pattern',
     'test-reporter',
     'test-reporter-destination',
     'test-concurrency',
@@ -237,14 +235,16 @@ const BOOL_OPTIONS = [
 
 // options that are recognized but not supported: warn once and continue
 const UNSUPPORTED = {
-    'test-name-pattern': 'test name filtering is not supported yet',
-    'test-skip-pattern': 'test skip filtering is not supported yet',
     'test-timeout': 'per-test timeouts are not supported yet',
     'test-coverage': 'coverage is not supported by the test runner (use --cov)',
     'test-watch': 'watch mode is not supported yet',
     'test-global-setup': 'global setup is not supported yet',
     'test-rerun-failures': 'rerun failures is not supported yet'
 };
+
+// Key on the global where the compiled --test-name-pattern RegExps are stored
+// for the test engine (test.cpp reads it at run time). Non-enumerable.
+const NAME_PATTERNS_KEY = '__fibjs_test_name_patterns';
 
 function parseArgs(argv) {
     const opts = {
@@ -255,6 +255,7 @@ function parseArgs(argv) {
         concurrency: undefined,
         timeout: undefined,
         isolation: undefined,
+        namePatterns: undefined,
         warnings: []
     };
 
@@ -328,6 +329,16 @@ function applyValueOption(opts, name, value) {
         case 'test-isolation':
             opts.isolation = value;
             break;
+        case 'test-name-pattern':
+            try {
+                if (opts.namePatterns === undefined)
+                    opts.namePatterns = [];
+                opts.namePatterns.push(new RegExp(value));
+            } catch (e) {
+                console.error(`--test-name-pattern must be a valid regular expression: '${value}'`);
+                process.exit(1);
+            }
+            break;
         default:
             break;
     }
@@ -368,6 +379,9 @@ Run test files with the built-in test module.
                                   glob patterns are also accepted
 
 Options:
+  --test-name-pattern=<regex>     run only tests whose name matches the regex
+                                  (repeatable; a matching describe name runs
+                                  its whole subtree, like node --test)
   --test-reporter=<name>          reporter name (only 'spec' is supported)
   --test-reporter-destination=<d> reporter destination (only 'stdout')
   --test-concurrency=<n>          accepted for compatibility; files run
@@ -398,6 +412,14 @@ function main() {
 
     for (const w of opts.warnings)
         console.error(`warning: ${w}`);
+
+    // Hand the compiled patterns to the test engine (read once, at run time).
+    if (opts.namePatterns !== undefined && opts.namePatterns.length > 0) {
+        Object.defineProperty(globalThis, NAME_PATTERNS_KEY, {
+            configurable: true,
+            value: opts.namePatterns
+        });
+    }
 
     const cwd = process.cwd();
     const files = buildTestFileList(opts.patterns, cwd);

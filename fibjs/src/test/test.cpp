@@ -40,6 +40,10 @@ public:
     obj_ptr<_case> m_describe;
     _case* m_running = NULL;
 
+    // Compiled RegExp[] from --test-name-pattern (opt_tools/test.js stores it
+    // on the global before loading test files; read once at run_test time)
+    QuickArray<v8::Global<v8::RegExp>> m_name_patterns;
+
     static TestData* current()
     {
         Isolate* isolate = Isolate::current();
@@ -205,6 +209,62 @@ public:
         return 0;
     }
 
+    static bool matches_any(TestData* td, const exlib::string& name)
+    {
+        if (!td->m_name_patterns.size())
+            return false;
+
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::String> str = isolate->NewString(name);
+
+        for (int32_t i = 0; i < (int32_t)td->m_name_patterns.size(); i++) {
+            v8::Local<v8::RegExp> re = td->m_name_patterns[i].Get(isolate->m_isolate);
+            v8::Local<v8::Object> v = re->Exec(context, str).FromMaybe(v8::Local<v8::Object>());
+            if (!v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    // --test-name-pattern gate: whether any test below this suite would stay
+    // visible. Describe blocks are expanded on the way (expand_describe is
+    // idempotent: it clears the block before invoking the callback), mirroring
+    // Node, where suite callbacks always run but hooks and tests only for
+    // visible content.
+    static bool suite_visible(TestData* td, _case* p)
+    {
+        if (!p->m_describe_block.IsEmpty())
+            p->expand_describe();
+
+        for (int32_t i = 0; i < (int32_t)p->m_subs.size(); i++) {
+            _case* s = p->m_subs[i];
+
+            if (!s->m_chain_matched && !p->m_chain_matched && td->m_name_patterns.size())
+                s->m_chain_matched = matches_any(td, s->m_title);
+            if (s->m_chain_matched)
+                return true;
+            if (s->m_level == _case::TEST_SKIP)
+                continue; // skipped subtrees never expand/run; under the name
+                          // filter they are invisible like in Node
+            if (s->m_level < p->m_run_level) {
+                // Below the run level (only-marked parents): leaves on the
+                // counted-skip path stay visible; suites never expand here.
+                if (s->m_level == _case::TEST_NORMAL && !s->m_block.IsEmpty())
+                    return true;
+                continue;
+            }
+            if (!s->m_block.IsEmpty())
+                continue; // chain-miss leaf that would run: pruned (incl.
+                          // only/todo marked ones, Node parity)
+            if (suite_visible(td, s))
+                return true; // describe/todo suite: children may still match
+        }
+
+        return false;
+    }
+
     static result_t run(int32_t mode, v8::Local<v8::Object>& retVal)
     {
         TestData* td = TestData::current();
@@ -277,6 +337,33 @@ public:
 
                 p1 = p->m_subs[p->m_pos++];
                 bool is_todo_case = (p1->m_level == _case::TEST_TODO);
+
+                // --test-name-pattern (chain rule, Node parity): a node runs
+                // when the pattern matches any title on the root chain. Nodes
+                // that do not match are invisible: not executed, not counted,
+                // not printed (explicit skip/todo marks included, like Node).
+                if (td->m_name_patterns.size()) {
+                    if (p->m_chain_matched)
+                        p1->m_chain_matched = true;
+                    else
+                        p1->m_chain_matched = matches_any(td, p1->m_title);
+
+                    if (!p1->m_chain_matched) {
+                        if (!p1->m_block.IsEmpty() || is_todo_case) {
+                            // Leaf: prune, unless it sits on the counted-skip
+                            // path (normal tests below the run level, e.g.
+                            // under only-marked parents).
+                            bool counted_skip = (p1->m_level == _case::TEST_NORMAL && p1->m_level < p->m_run_level);
+                            if (!counted_skip)
+                                continue;
+                        } else if (p1->m_level != _case::TEST_SKIP && p1->m_level >= p->m_run_level) {
+                            // Suite: keep it only when a visible test remains
+                            // below (expanding describe blocks on the way).
+                            if (!suite_visible(td, p1))
+                                continue;
+                        }
+                    }
+                }
 
                 if (!p1->m_block.IsEmpty() || is_todo_case) {
                     // Parent before/describe block failed: this test fails directly
@@ -634,6 +721,11 @@ private:
     int32_t m_todo = 0;
 
     bool m_status = true;
+
+    // --test-name-pattern chain rule: a title on the root chain matched.
+    // Computed when the node is picked during the run and reused by the
+    // suite_visible gate and by the node's own children.
+    bool m_chain_matched = false;
 
     // Flag for a failed before/describe block: all its tests fail
     // (Node before-failure semantics)
@@ -1061,9 +1153,27 @@ void run_test(int32_t mode)
     if (env_log && *env_log)
         s_watchdog_log = env_log;
 
-    isolate->sync([isolate, mode]() -> int {
+    isolate->sync([isolate, mode, td]() -> int {
         v8::HandleScope handle_scope(isolate->m_isolate);
         JSFiber::EnterJsScope s;
+
+        // --test-name-pattern: opt_tools/test.js stores the compiled RegExp[]
+        // on the global (non-enumerable) before loading test files.
+        v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Value> v = _context->Global()
+                                     ->Get(_context, isolate->NewString("__fibjs_test_name_patterns"))
+                                     .FromMaybe(v8::Local<v8::Value>());
+        if (!v.IsEmpty() && v->IsArray()) {
+            v8::Local<v8::Array> arr = v.As<v8::Array>();
+            for (uint32_t i = 0; i < arr->Length(); i++) {
+                v8::Local<v8::Value> e = arr->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
+                if (!e.IsEmpty() && e->IsRegExp()) {
+                    int32_t n = (int32_t)td->m_name_patterns.size();
+                    td->m_name_patterns.resize(n + 1);
+                    td->m_name_patterns[n].Reset(isolate->m_isolate, e.As<v8::RegExp>());
+                }
+            }
+        }
 
         v8::Local<v8::Object> ret;
         result_t hr = _case::run(mode, ret);
