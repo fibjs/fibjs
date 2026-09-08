@@ -368,5 +368,62 @@ describe('process', () => {
             });
         });
     });
+
+    describe("getBuiltinModule (Node.js compatibility)", () => {
+        it("is a function", () => {
+            assert.isFunction(process.getBuiltinModule);
+        });
+
+        it("returns undefined for non builtin modules", () => {
+            assert.isUndefined(process.getBuiltinModule('not/a/builtin'));
+            assert.isUndefined(process.getBuiltinModule('node:not/a/builtin'));
+            assert.isUndefined(process.getBuiltinModule(''));
+            assert.isUndefined(process.getBuiltinModule('internal/test/binding'));
+        });
+
+        it("returns the same module object as require for natives", () => {
+            assert.strictEqual(process.getBuiltinModule('path'), require('path'));
+            assert.strictEqual(process.getBuiltinModule('node:path'), require('node:path'));
+            assert.strictEqual(process.getBuiltinModule('fs'), require('fs'));
+            assert.strictEqual(process.getBuiltinModule('node:process'), require('process'));
+            assert.strictEqual(process.getBuiltinModule('buffer'), require('buffer'));
+        });
+
+        it("supports path sub-path modules", () => {
+            assert.strictEqual(process.getBuiltinModule('path/posix'), require('path').posix);
+            assert.strictEqual(process.getBuiltinModule('node:path/posix'), require('path').posix);
+            assert.strictEqual(process.getBuiltinModule('path/win32'), require('path').win32);
+            assert.strictEqual(process.getBuiltinModule('node:path/win32'), require('path').win32);
+
+            assert.strictEqual(process.getBuiltinModule('node:path/posix').sep, '/');
+            assert.strictEqual(process.getBuiltinModule('node:path/win32').sep, '\\');
+        });
+
+        it("supports assert/strict and util/types", () => {
+            assert.ok(process.getBuiltinModule('assert/strict'));
+            assert.ok(process.getBuiltinModule('node:assert/strict'));
+            assert.ok(process.getBuiltinModule('util/types'));
+            assert.ok(process.getBuiltinModule('node:util/types'));
+        });
+
+        it("supports promise-flavored sub-path modules", () => {
+            assert.ok(process.getBuiltinModule('fs/promises'));
+            assert.ok(process.getBuiltinModule('node:fs/promises'));
+            assert.ok(process.getBuiltinModule('dns/promises'));
+        });
+
+        it("supports embedded JS builtin modules", () => {
+            assert.ok(process.getBuiltinModule('stream'));
+            assert.ok(process.getBuiltinModule('stream/web'));
+            assert.ok(process.getBuiltinModule('readline/promises'));
+            assert.ok(process.getBuiltinModule('timers/promises'));
+        });
+
+        it("keeps module identity with require for embedded modules", () => {
+            assert.strictEqual(process.getBuiltinModule('stream/web'), require('stream/web'));
+            assert.strictEqual(process.getBuiltinModule('node:stream/web'), require('node:stream/web'));
+            assert.strictEqual(process.getBuiltinModule('timers/promises'), require('timers/promises'));
+        });
+    });
 });
 

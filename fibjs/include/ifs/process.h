@@ -58,6 +58,7 @@ public:
     static result_t resourceUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
+    static result_t getBuiltinModule(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t getgid(int32_t& retVal);
     static result_t getuid(int32_t& retVal);
     static result_t setgid(int32_t id);
@@ -112,6 +113,7 @@ public:
     static void s_static_resourceUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getBuiltinModule(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getgid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -143,6 +145,7 @@ inline ClassInfo& process_base::class_info()
         { "resourceUsage", s_static_resourceUsage, true, ClassData::ASYNC_SYNC },
         { "nextTick", s_static_nextTick, true, ClassData::ASYNC_SYNC },
         { "binding", s_static_binding, true, ClassData::ASYNC_SYNC },
+        { "getBuiltinModule", s_static_getBuiltinModule, true, ClassData::ASYNC_SYNC },
         { "getgid", s_static_getgid, true, ClassData::ASYNC_SYNC },
         { "getuid", s_static_getuid, true, ClassData::ASYNC_SYNC },
         { "setgid", s_static_setgid, true, ClassData::ASYNC_SYNC },
@@ -598,6 +601,21 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 0);
 
     hr = binding(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_getBuiltinModule(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = getBuiltinModule(v0, vr);
 
     METHOD_RETURN();
 }

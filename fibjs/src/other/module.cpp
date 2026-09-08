@@ -36,6 +36,23 @@ result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
         pModule = pModule->m_next;
     }
 
+    // Add sub-path builtin modules (Node.js compatibility)
+    static const char* s_subpaths[] = {
+        "assert/strict", "util/types",
+        "path/posix", "path/win32",
+        "fs/promises", "dns/promises",
+        "stream/promises", "timers/promises", "readline/promises",
+        "stream/web"
+    };
+
+    for (size_t i = 0; i < sizeof(s_subpaths) / sizeof(s_subpaths[0]); i++) {
+        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(s_subpaths[i])).IsJust();
+
+        exlib::string node_name = "node:";
+        node_name.append(s_subpaths[i]);
+        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(node_name)).IsJust();
+    }
+
     retVal = builtinModules;
     return 0;
 }

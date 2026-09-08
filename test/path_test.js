@@ -1572,17 +1572,19 @@ describe('path', () => {
         assert.strictEqual(require('path').posix, path.posix);
         assert.strictEqual(require('path').win32, path.win32);
 
-        // Test alternative import methods (if supported)
-        try {
-            assert.strictEqual(require('path/posix'), require('path').posix);
-        } catch (e) {
-            // path/posix import may not be supported in fibjs
-        }
+        // Test alternative import methods (Node.js compatibility)
+        assert.strictEqual(require('path/posix'), path.posix);
+        assert.strictEqual(require('node:path/posix'), path.posix);
+        assert.strictEqual(require('path/win32'), path.win32);
+        assert.strictEqual(require('node:path/win32'), path.win32);
 
-        try {
-            assert.strictEqual(require('path/win32'), require('path').win32);
-        } catch (e) {
-            // path/win32 import may not be supported in fibjs
+        // On each platform the default path module is the matching flavor
+        if (isWindows) {
+            assert.strictEqual(require('path'), path.win32);
+            assert.strictEqual(require('path/win32'), require('path'));
+        } else {
+            assert.strictEqual(require('path'), path.posix);
+            assert.strictEqual(require('path/posix'), require('path'));
         }
     });
 

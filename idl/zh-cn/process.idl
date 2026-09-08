@@ -243,6 +243,12 @@ module process : EventEmitter
      */
     static Value binding(String name);
 
+    /*! @brief 获取指定名称的内建模块，模块不存在时返回 undefined
+     @param id 指定要获取的内建模块名称，可省略或包含 "node:" 前缀，也支持子路径，如 "path"、"node:path/posix"、"fs/promises"
+     @return 返回内建模块对象，模块不存在时返回 undefined
+     */
+    static Value getBuiltinModule(String id);
+
     /*! @brief 查询当前进程的组 id
      @return 返回当前进程的组 id
      */

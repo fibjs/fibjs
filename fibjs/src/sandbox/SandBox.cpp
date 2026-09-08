@@ -234,6 +234,18 @@ result_t SandBox::addBuiltinModules()
             InstallModule("node:util" PATH_SLASH_STR "types", types);
         }
 
+        if (name == "path") {
+            v8::Local<v8::Object> posix = path_posix_base::class_info().getModule(isolate);
+            InstallModule("path" PATH_SLASH_STR "posix", posix);
+            InstallModule("fibjs:path" PATH_SLASH_STR "posix", posix);
+            InstallModule("node:path" PATH_SLASH_STR "posix", posix);
+
+            v8::Local<v8::Object> win32 = path_win32_base::class_info().getModule(isolate);
+            InstallModule("path" PATH_SLASH_STR "win32", win32);
+            InstallModule("fibjs:path" PATH_SLASH_STR "win32", win32);
+            InstallModule("node:path" PATH_SLASH_STR "win32", win32);
+        }
+
         pModule = pModule->m_next;
     }
 

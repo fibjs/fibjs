@@ -630,5 +630,19 @@ describe("module", () => {
             assert.ok(Array.isArray(module.builtinModules));
             assert.ok(module.builtinModules.includes('buffer'));
         });
+
+        it("should contain sub-path builtin modules", () => {
+            var module = require('module');
+            var builtins = module.builtinModules;
+
+            assert.ok(builtins.includes('path/posix'));
+            assert.ok(builtins.includes('node:path/posix'));
+            assert.ok(builtins.includes('path/win32'));
+            assert.ok(builtins.includes('node:path/win32'));
+            assert.ok(builtins.includes('assert/strict'));
+            assert.ok(builtins.includes('util/types'));
+            assert.ok(builtins.includes('fs/promises'));
+            assert.ok(builtins.includes('timers/promises'));
+        });
     });
 });

@@ -16,6 +16,7 @@
 #include "UVStream.h"
 #include "BufferedStream.h"
 #include "ChildProcess.h"
+#include "SandBox.h"
 #include <vector>
 #include <signal.h>
 #include "options.h"
@@ -41,6 +42,8 @@ inline int32_t _umask(int32_t m)
 #endif
 
 namespace fibjs {
+
+extern exlib::string s_root;
 
 DECLARE_MODULE_WITH_CONSTRUCTOR_EX(process, process);
 
@@ -508,6 +511,80 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
     }
 
     return 0;
+}
+
+static RootModule* findNativeModule(exlib::string name)
+{
+    RootModule* pModule = RootModule::g_root;
+
+    while (pModule) {
+        if (name == pModule->name())
+            return pModule;
+        pModule = pModule->m_next;
+    }
+
+    return NULL;
+}
+
+static bool isBuiltinModuleName(Isolate* isolate, exlib::string name)
+{
+    const char* q = name.c_str();
+    size_t len = name.length();
+
+    // Native builtin modules such as "path" or "fs", plus the "buffer" module
+    if (findNativeModule(name) || name == "buffer")
+        return true;
+
+    // Fixed sub-path builtin modules
+    if (name == "assert/strict" || name == "util/types" || name == "path/posix" ||
+        name == "path/win32")
+        return true;
+
+    // "<native>/promises" sub-path modules. A native module exposing a promise
+    // flavored module object, such as "fs/promises" or "dns/promises", qualifies.
+    if (len > 9 && !qstrcmp(q + len - 9, "/promises")) {
+        RootModule* pModule = findNativeModule(exlib::string(q, len - 9));
+        if (pModule) {
+            v8::Local<v8::Object> mod = pModule->getModule(isolate);
+            v8::Local<v8::Context> context = isolate->context();
+            v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises"))
+                                                .FromMaybe(v8::Local<v8::Value>());
+            if (!promises.IsEmpty() && promises->IsObject())
+                return true;
+        }
+    }
+
+    // Embedded JS builtin modules such as "stream", "readline/promises" or
+    // "timers/promises", except internal ones
+    for (intptr_t i = 0; opt_tools[i].name; i++)
+        if (!qstrcmp(opt_tools[i].name, q)) {
+            const char* n = opt_tools[i].name;
+
+            return qstrcmp(n, "internal/", 9) && qstrcmp(n, "opt_tools/", 10) &&
+                qstrcmp(n, "_stream_", 8);
+        }
+
+    return false;
+}
+
+result_t process_base::getBuiltinModule(exlib::string id, v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    // Builtin module ids may be given with or without the "node:" prefix.
+    // NOTE: must not assign from a pointer into the string itself (aliasing),
+    // use substr() to build the stripped copy.
+    exlib::string name = id;
+    if (!qstrcmp(name.c_str(), "node:", 5))
+        name = name.substr(5);
+
+    // Not a builtin module, return undefined instead of throwing
+    if (!isBuiltinModuleName(isolate, name))
+        return 0;
+
+    // Resolve through the top-level sandbox so that the returned module object
+    // is identical to the one returned by require(id)
+    return isolate->m_topSandbox->require(id, s_root, retVal, true);
 }
 
 result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::Object> options)
