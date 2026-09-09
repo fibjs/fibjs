@@ -423,5 +423,33 @@ declare module 'net' {
      */
     function isIPv6(ip?: string): boolean;
 
+    /**
+     * @description 查询 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
+     *      @return 返回当前默认值，缺省为 true
+     *     
+     */
+    function getDefaultAutoSelectFamily(): boolean;
+
+    /**
+     * @description 设置 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
+     *      @param enabled 指定默认值，必须为布尔值
+     *     
+     */
+    function setDefaultAutoSelectFamily(enabled: boolean): void;
+
+    /**
+     * @description 查询默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
+     *      @return 返回当前默认超时时间，单位毫秒，缺省为 250
+     *     
+     */
+    function getDefaultAutoSelectFamilyAttemptTimeout(): number;
+
+    /**
+     * @description 设置默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
+     *      @param milliseconds 指定默认超时时间，单位毫秒，必须为大于等于 10 的整数
+     *     
+     */
+    function setDefaultAutoSelectFamilyAttemptTimeout(milliseconds: number): void;
+
 }
 

@@ -57,6 +57,10 @@ public:
     static result_t isIP(exlib::string ip, int32_t& retVal);
     static result_t isIPv4(exlib::string ip, bool& retVal);
     static result_t isIPv6(exlib::string ip, bool& retVal);
+    static result_t getDefaultAutoSelectFamily(bool& retVal);
+    static result_t setDefaultAutoSelectFamily(bool enabled);
+    static result_t getDefaultAutoSelectFamilyAttemptTimeout(int32_t& retVal);
+    static result_t setDefaultAutoSelectFamilyAttemptTimeout(int32_t milliseconds);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -83,6 +87,10 @@ public:
     static void s_static_isIP(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getDefaultAutoSelectFamily(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setDefaultAutoSelectFamily(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getDefaultAutoSelectFamilyAttemptTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setDefaultAutoSelectFamilyAttemptTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(net_base, resolve, exlib::string, int32_t, exlib::string);
@@ -122,7 +130,11 @@ inline ClassInfo& net_base::class_info()
         { "backend", s_static_backend, true, ClassData::ASYNC_SYNC },
         { "isIP", s_static_isIP, true, ClassData::ASYNC_SYNC },
         { "isIPv4", s_static_isIPv4, true, ClassData::ASYNC_SYNC },
-        { "isIPv6", s_static_isIPv6, true, ClassData::ASYNC_SYNC }
+        { "isIPv6", s_static_isIPv6, true, ClassData::ASYNC_SYNC },
+        { "getDefaultAutoSelectFamily", s_static_getDefaultAutoSelectFamily, true, ClassData::ASYNC_SYNC },
+        { "setDefaultAutoSelectFamily", s_static_setDefaultAutoSelectFamily, true, ClassData::ASYNC_SYNC },
+        { "getDefaultAutoSelectFamilyAttemptTimeout", s_static_getDefaultAutoSelectFamilyAttemptTimeout, true, ClassData::ASYNC_SYNC },
+        { "setDefaultAutoSelectFamilyAttemptTimeout", s_static_setDefaultAutoSelectFamilyAttemptTimeout, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -448,5 +460,57 @@ inline void net_base::s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>&
     hr = isIPv6(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void net_base::s_static_getDefaultAutoSelectFamily(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getDefaultAutoSelectFamily(vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_static_setDefaultAutoSelectFamily(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = setDefaultAutoSelectFamily(v0);
+
+    METHOD_VOID();
+}
+
+inline void net_base::s_static_getDefaultAutoSelectFamilyAttemptTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getDefaultAutoSelectFamilyAttemptTimeout(vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_static_setDefaultAutoSelectFamilyAttemptTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = setDefaultAutoSelectFamilyAttemptTimeout(v0);
+
+    METHOD_VOID();
 }
 }

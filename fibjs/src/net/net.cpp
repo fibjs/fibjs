@@ -31,6 +31,41 @@ result_t net_base::set_use_uv_socket(bool newVal)
     return 0;
 }
 
+// Node.js >= 18.13 net module: autoSelectFamily default options.
+// fibjs connect() does not perform family autodetection yet, but the defaults
+// must exist and be queryable so Node-style consumers (e.g. playwright-core
+// >= 1.63, which reads them at module init) can load unmodified.
+static bool s_autoSelectFamily = true;
+static int32_t s_autoSelectFamilyAttemptTimeout = 250;
+
+result_t net_base::getDefaultAutoSelectFamily(bool& retVal)
+{
+    retVal = s_autoSelectFamily;
+    return 0;
+}
+
+result_t net_base::setDefaultAutoSelectFamily(bool enabled)
+{
+    s_autoSelectFamily = enabled;
+    return 0;
+}
+
+result_t net_base::getDefaultAutoSelectFamilyAttemptTimeout(int32_t& retVal)
+{
+    retVal = s_autoSelectFamilyAttemptTimeout;
+    return 0;
+}
+
+result_t net_base::setDefaultAutoSelectFamilyAttemptTimeout(int32_t milliseconds)
+{
+    if (milliseconds < 10)
+        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE,
+            "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got %d.", milliseconds));
+
+    s_autoSelectFamilyAttemptTimeout = milliseconds;
+    return 0;
+}
+
 result_t net_base::info(v8::Local<v8::Object>& retVal)
 {
     return os_base::networkInterfaces(retVal);

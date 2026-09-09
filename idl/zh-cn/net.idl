@@ -204,4 +204,24 @@ module net
      @return 如果是 IPv6 则返回 true.否则返回 false
     */
     static Boolean isIPv6(String ip = "");
+
+    /*! @brief 查询 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
+     @return 返回当前默认值，缺省为 true
+    */
+    static Boolean getDefaultAutoSelectFamily();
+
+    /*! @brief 设置 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
+     @param enabled 指定默认值，必须为布尔值
+    */
+    static setDefaultAutoSelectFamily(Boolean enabled);
+
+    /*! @brief 查询默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
+     @return 返回当前默认超时时间，单位毫秒，缺省为 250
+    */
+    static Integer getDefaultAutoSelectFamilyAttemptTimeout();
+
+    /*! @brief 设置默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
+     @param milliseconds 指定默认超时时间，单位毫秒，必须为大于等于 10 的整数
+    */
+    static setDefaultAutoSelectFamilyAttemptTimeout(Integer milliseconds);
 };
