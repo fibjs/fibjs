@@ -81,30 +81,125 @@ function testSummary(stdout) {
 }
 
 // Parse the watchdog report (stderr text lines), returns { fibers, nativeObjects },
-// matching the report format (see report_watchdog)
+// matching the report format (see report_watchdog). The report is one tagged
+// header line plus an untagged body (the watchdog writes it in one block and
+// exits right after), with sections:
+//
+//   [test-watchdog] process alive 10000ms after test run ended
+//   fibers: N
+//     fiber #<id> (stack_usage=<n>):
+//       at <frame> (file:line:col)          <- indented by the stack formatter
+//   nativeObjects (after gc):
+//     # count includes derived classes, direct = instances of the exact class
+//     object: 1986
+//     <tree glyphs>Stream: 60 (direct: 4)
+//     <tree glyphs><tree glyphs>Socket: 42
+//   memory: rss=... heapTotal=... heapUsed=... external=... ExtStrings=...
+//
+// nativeObjects is a depth-first walk of the class tree, so each line is
+// indented by three columns per level (tree glyphs U+251C/U+2514/U+2500 for the
+// branch, U+2502 for continuation): the indentation encodes the inheritance
+// chain and is decoded back into depth/parent below.
 function parseWatchdogReport(r) {
     var stderr = r.stderr;
     var report = { fibers: [], nativeObjects: [] };
 
-    // Fiber blocks (fiber #N + stack lines) and native object counts (indented lines)
+    var start = stderr.findIndex(l => l.startsWith('[test-watchdog]'));
+    if (start < 0)
+        return report;
+
+    var section = '';
     var curFiber = null;
-    stderr.forEach(l => {
-        if (l.startsWith('[test-watchdog] fiber #')) {
-            var m2 = /fiber #(\d+) \(stack_usage=(\d+)\)/.exec(l);
-            curFiber = m2 ? { id: parseInt(m2[1]), stackUsage: parseInt(m2[2]), stack: '' } : null;
-            if (curFiber)
+    var stack = []; // ancestors of the line being parsed: [{ indent, node }]
+
+    stderr.slice(start + 1).forEach(l => {
+        if (/^fibers: \d+$/.test(l)) {
+            section = 'fibers';
+            return;
+        }
+
+        if (l === 'nativeObjects (after gc):') {
+            section = 'native';
+            return;
+        }
+
+        if (/^memory: /.test(l)) {
+            section = '';
+            return;
+        }
+
+        if (section === 'fibers') {
+            var m = /^ {2}fiber #(\d+) \(stack_usage=(\d+)\):$/.exec(l);
+
+            if (m) {
+                curFiber = { id: parseInt(m[1]), stackUsage: parseInt(m[2]), stack: '' };
                 report.fibers.push(curFiber);
-        } else if (l.startsWith('[test-watchdog]       ')) {
-            if (curFiber)
-                curFiber.stack += (curFiber.stack ? '\n' : '') + l.substring('[test-watchdog]       '.length);
-        } else if (l.startsWith('[test-watchdog]   ')) {
-            var m3 = /^   (\S+): (\d+)$/.exec(l.substring('[test-watchdog]'.length));
-            if (m3)
-                report.nativeObjects.push({ class: m3[1], objects: parseInt(m3[2]) });
+            } else if (curFiber && /^ {4}/.test(l)) {
+                // stack frames come pre-indented (4 spaces) from traceInfo
+                curFiber.stack += (curFiber.stack ? '\n' : '') + l.substring(4);
+            } else
+                curFiber = null;
+            return;
+        }
+
+        if (section === 'native') {
+            // tree line: <indent><glyphs>Class: N (direct: M)
+            var m2 = /^([\s\u2502\u251c\u2514\u2500]*?)(\S+): (\d+)(?: \(direct: (\d+)\))?$/.exec(l);
+            if (!m2)
+                return; // legend line, blanks
+
+            var node = { class: m2[2], objects: parseInt(m2[3]), depth: 0, parent: null };
+            if (m2[4] !== undefined)
+                node.direct = parseInt(m2[4]);
+
+            // indentation defines the tree: drop ancestors that are not deeper
+            // than the current line, the top of the stack is the parent
+            var indent = m2[1].length;
+            while (stack.length && stack[stack.length - 1].indent >= indent)
+                stack.pop();
+
+            node.depth = stack.length;
+            if (stack.length)
+                node.parent = stack[stack.length - 1].node.class;
+
+            stack.push({ indent: indent, node: node });
+            report.nativeObjects.push(node);
         }
     });
 
     return report;
+}
+
+// Verify the native object tree returned by parseWatchdogReport: a class count
+// includes its derived classes, so every parent count must equal the sum of its
+// children's counts plus the instances of its exact class ('direct', annotated
+// only when positive). Returns the number of classes seen below the root.
+function assertClassTree(report) {
+    var nodes = report.nativeObjects;
+    var childSum = {};
+    var nested = 0;
+
+    assert.ok(nodes.length > 0, "expect a native object tree, got: " + JSON.stringify(report));
+    assert.equal(nodes[0].depth, 0, "expect the root first, got: " + JSON.stringify(nodes[0]));
+
+    nodes.forEach(o => {
+        if (o.depth === 0)
+            return;
+        nested++;
+        childSum[o.parent] = (childSum[o.parent] || 0) + o.objects;
+    });
+
+    nodes.forEach(o => {
+        if (childSum[o.class] === undefined)
+            return;
+
+        var direct = o.objects - childSum[o.class];
+        assert.ok(direct >= 0, o.class + ": children (" + childSum[o.class]
+            + ") exceed the class count (" + o.objects + ")");
+        assert.equal(o.direct || 0, direct, o.class + ": direct mismatch, got: " + JSON.stringify(o));
+    });
+
+    return nested;
 }
 
 // Liveness probe: process.kill(pid, 0) throws when the pid is gone. On Linux a
@@ -231,6 +326,8 @@ describe("test framework process-level behavior", () => {
         assert.ok(report.nativeObjects.some(o => o.class === 'Timer' && o.objects >= 1),
             "expect leaked Timer in report, got: " + JSON.stringify(report.nativeObjects));
 
+        assertClassTree(report);
+
         // Residual fibers: watchdog itself is excluded, no leaked fiber in this scene
         assert.equal(report.fibers.length, 0,
             "expect no residual fiber, got: " + JSON.stringify(report.fibers));
@@ -252,6 +349,24 @@ describe("test framework process-level behavior", () => {
             "expect leaked Socket class, got: " + JSON.stringify(report.nativeObjects));
         assert.ok(report.nativeObjects.some(o => o.class === 'TcpServer'),
             "expect leaked TcpServer class, got: " + JSON.stringify(report.nativeObjects));
+
+        // Hierarchy: the report paints the class tree (indentation = inheritance
+        // depth), so each count sits under its base class instead of being a flat
+        // list of class names
+        assert.ok(assertClassTree(report) > 0,
+            "expect a nested class tree, got: " + JSON.stringify(report.nativeObjects));
+
+        var root = report.nativeObjects[0];
+        assert.equal(root.class, 'object', "expect object_base as the root, got: " + JSON.stringify(root));
+
+        var socket = report.nativeObjects.find(o => o.class === 'Socket');
+        var tcpServer = report.nativeObjects.find(o => o.class === 'TcpServer');
+        assert.ok(socket && tcpServer,
+            "expect Socket and TcpServer in the report, got: " + JSON.stringify(report.nativeObjects));
+        assert.equal(socket.parent, 'Stream',
+            "expect Socket nested under Stream, got: " + JSON.stringify(socket));
+        assert.equal(tcpServer.parent, 'EventEmitter',
+            "expect TcpServer nested under EventEmitter, got: " + JSON.stringify(tcpServer));
     });
 
     // P0: leaked worker_threads Worker

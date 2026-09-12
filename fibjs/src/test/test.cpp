@@ -913,10 +913,24 @@ static exlib::string s_watchdog_log;
 
 extern exlib::atomic g_ExtStringCount;
 
-// Recursively collect the nested structure from ClassInfo::dump:
-// {class, objects, inherits:[...]}
+// Tree glyphs used to paint the class hierarchy: "├─ ", "└─ ", "│  ". Written
+// as UTF-8 escapes to keep the sources ASCII-only (same convention as
+// util_format_table.cpp); the runtime strings are regular UTF-8.
+static const char s_tree_branch[] = "\xe2\x94\x9c\xe2\x94\x80 ";
+static const char s_tree_last[] = "\xe2\x94\x94\xe2\x94\x80 ";
+static const char s_tree_bar[] = "\xe2\x94\x82  ";
+
+// Recursively paint the class tree returned by ClassInfo::dump():
+// {class, objects, inherits:[child, ...]}
+//
+// 'objects' counts every live instance of the class *and* of any derived class
+// (each constructor in the inheritance chain bumps its own class counter), so a
+// child count is a subset of its parent count. Painting the tree makes that
+// relation readable, and 'direct' (= own count - sum of the child counts) is the
+// number of instances of the exact class: a class that shows 'direct' is where
+// instances actually sit, classes without it are pure roll-ups of their children.
 static void collect_native_objects(v8::Local<v8::Value> v, v8::Local<v8::Context> ctx, Isolate* isolate,
-    exlib::string& report)
+    exlib::string& report, const exlib::string& indent, const char* branch, bool is_last)
 {
     if (!v->IsObject())
         return;
@@ -924,23 +938,57 @@ static void collect_native_objects(v8::Local<v8::Value> v, v8::Local<v8::Context
     v8::Local<v8::Object> o = v.As<v8::Object>();
     v8::Local<v8::Value> cls = o->Get(ctx, isolate->NewString("class")).FromMaybe(v8::Local<v8::Value>());
     v8::Local<v8::Value> count = o->Get(ctx, isolate->NewString("objects")).FromMaybe(v8::Local<v8::Value>());
-
-    if (!cls.IsEmpty() && !count.IsEmpty()) {
-        exlib::string cls_name = isolate->toString(cls);
-
-        report.append("[test-watchdog]   ");
-        report.append(cls_name);
-        report.append(": ");
-        report.append(isolate->toString(count));
-        report.append(1, '\n');
-    }
-
     v8::Local<v8::Value> inherits = o->Get(ctx, isolate->NewString("inherits")).FromMaybe(v8::Local<v8::Value>());
+
+    if (cls.IsEmpty() || !cls->IsString() || count.IsEmpty() || !count->IsInt32())
+        return;
+
+    v8::Local<v8::Array> arr;
+    uint32_t children = 0;
+
     if (!inherits.IsEmpty() && inherits->IsArray()) {
-        v8::Local<v8::Array> arr = inherits.As<v8::Array>();
-        for (uint32_t i = 0; i < arr->Length(); i++)
-            collect_native_objects(arr->Get(ctx, i).ToLocalChecked(), ctx, isolate, report);
+        arr = inherits.As<v8::Array>();
+        children = arr->Length();
     }
+
+    char buf[64];
+    int32_t cnt = count->Int32Value(ctx).FromMaybe(0);
+    int32_t direct = cnt;
+
+    for (uint32_t i = 0; i < children; i++) {
+        v8::Local<v8::Value> child = arr->Get(ctx, i).FromMaybe(v8::Local<v8::Value>());
+        v8::Local<v8::Value> child_count;
+
+        if (!child.IsEmpty() && child->IsObject())
+            child_count = child.As<v8::Object>()->Get(ctx, isolate->NewString("objects")).FromMaybe(v8::Local<v8::Value>());
+
+        if (!child_count.IsEmpty() && child_count->IsInt32())
+            direct -= child_count->Int32Value(ctx).FromMaybe(0);
+    }
+
+    report.append(indent);
+    report.append(branch);
+    report.append(isolate->toString(cls));
+    report.append(": ");
+    snprintf(buf, sizeof(buf), "%d", cnt);
+    report.append(buf);
+
+    if (children && direct > 0) {
+        snprintf(buf, sizeof(buf), " (direct: %d)", direct);
+        report.append(buf);
+    }
+    report.append(1, '\n');
+
+    exlib::string child_indent(indent);
+
+    // Children of the root line up under its name, deeper levels extend the
+    // vertical bar of a parent that is not the last of its siblings
+    if (*branch)
+        child_indent.append(is_last ? "   " : s_tree_bar);
+
+    for (uint32_t i = 0; i < children; i++)
+        collect_native_objects(arr->Get(ctx, i).FromMaybe(v8::Local<v8::Value>()), ctx, isolate,
+            report, child_indent, i + 1 == children ? s_tree_last : s_tree_branch, i + 1 == children);
 }
 
 // Hang diagnostic report: fibers + stack, native object counts after GC, memory info
@@ -949,81 +997,85 @@ static void report_watchdog(Isolate* isolate)
     exlib::string report;
     char buf[256];
 
-    report.append("=== fibjs test watchdog: process alive ");
+    // The tag is printed once, as the header of the whole block: the lines below
+    // are all watchdog output, so they do not need a per-line prefix
+    report.append("[test-watchdog] process alive ");
     snprintf(buf, sizeof(buf), "%d", s_watchdog_ms);
     report.append(buf);
-    report.append("ms after test run ended ===\n");
+    report.append("ms after test run ended\n");
 
     // 1) Force GC: also drains the isolate's m_weak pending-delete list
     //    (fb_GCCallback), so nativeObjects reflects objects that are truly alive
     isolate->m_isolate->LowMemoryNotification();
 
-    // 2) Alive fibers and their stacks
-    int32_t fiber_count = 0;
+    // 2) Alive fibers and their stacks: the count first, then one block per
+    //    fiber (the watchdog's own diagnostic fiber is excluded)
     int64_t self_id = -1;
     JSFiber* self = JSFiber::current();
     if (self)
         self->get_id(self_id);
 
+    int32_t fiber_count = 0;
     exlib::linkitem* p = isolate->m_fibers.head();
 
     while (p) {
         JSFiber* fb = (JSFiber*)p;
         int64_t id;
-        int32_t usage;
-        exlib::string stack;
 
         fb->get_id(id);
+        if (id != self_id)
+            fiber_count++;
 
-        // Exclude the watchdog's own diagnostic fiber, report only leaked residual fibers
-        if (id == self_id) {
-            p = p->m_next;
-            continue;
-        }
-
-        fb->get_stack_usage(usage);
-        fb->get_stack(stack);
-
-        report.append("[test-watchdog] fiber #");
-        snprintf(buf, sizeof(buf), "%lld", (long long)id);
-        report.append(buf);
-        report.append(" (stack_usage=");
-        snprintf(buf, sizeof(buf), "%d", usage);
-        report.append(buf);
-        report.append("):\n");
-
-        size_t pos = 0;
-        while (pos < stack.length()) {
-            size_t nl = stack.find('\n', pos);
-
-            report.append("[test-watchdog]   ");
-            if (nl == exlib::string::npos) {
-                report.append(stack.substr(pos, stack.length() - pos));
-                pos = stack.length();
-            } else {
-                report.append(stack.substr(pos, nl - pos));
-                pos = nl + 1;
-            }
-            report.append(1, '\n');
-        }
-
-        fiber_count++;
         p = p->m_next;
     }
 
-    report.append("[test-watchdog] fibers: ");
-    snprintf(buf, sizeof(buf), "%d", fiber_count);
+    snprintf(buf, sizeof(buf), "fibers: %d\n", fiber_count);
     report.append(buf);
-    report.append(1, '\n');
 
-    // 3) Native object counts per class (after GC)
+    p = isolate->m_fibers.head();
+
+    while (p) {
+        JSFiber* fb = (JSFiber*)p;
+        int64_t id;
+
+        fb->get_id(id);
+
+        if (id != self_id) {
+            int32_t usage;
+            exlib::string stack;
+
+            fb->get_stack_usage(usage);
+            fb->get_stack(stack);
+
+            snprintf(buf, sizeof(buf), "  fiber #%lld (stack_usage=%d):\n", (long long)id, usage);
+            report.append(buf);
+
+            // Frames come pre-indented ("    at ...") from traceInfo, keep them
+            // verbatim so a pasted stack stays readable
+            if (!stack.empty()) {
+                report.append(stack);
+                report.append(1, '\n');
+            }
+        }
+
+        p = p->m_next;
+    }
+
+    // 3) Native object counts per class (after GC), painted as the class tree:
+    //    a class count includes its derived classes, 'direct' marks the classes
+    //    that hold instances of their exact type (see collect_native_objects)
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> objs;
 
-    report.append("[test-watchdog] nativeObjects (after gc):\n");
+    report.append("nativeObjects (after gc):\n");
     object_base::class_info().dump(objs);
-    if (!objs.IsEmpty())
-        collect_native_objects(objs, _context, isolate, report);
+
+    if (objs.IsEmpty())
+        report.append("  (none)\n");
+    else {
+        report.append("  # count includes derived classes, direct = instances of the exact class\n");
+        collect_native_objects(objs, _context, isolate, report, "  ", "", true);
+    }
 
     // 4) Memory info
     size_t rss = 0;
@@ -1031,7 +1083,7 @@ static void report_watchdog(Isolate* isolate)
     v8::HeapStatistics hs;
     isolate->m_isolate->GetHeapStatistics(&hs);
 
-    report.append("[test-watchdog] memory: rss=");
+    report.append("memory: rss=");
     snprintf(buf, sizeof(buf), "%zu", rss);
     report.append(buf);
     report.append(" heapTotal=");
