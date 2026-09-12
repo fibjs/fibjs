@@ -185,6 +185,9 @@ enum ErrorType {
     kReferenceError,
     kURIError,
     kEvalError,
+    // DOMException based types (WHATWG)
+    kAbortError,
+    kTimeoutError,
 };
 
 #ifndef _WIN32

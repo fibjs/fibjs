@@ -343,7 +343,6 @@ describe("FormData API", () => {
 
         it("FormData constructor - mixed File and file-like objects", () => {
             const fileData = new Blob(['File content'], { type: 'text/plain' });
-
             // Real File object
             const realFile = new File([fileData], 'real.txt', {
                 type: 'text/plain',
@@ -371,13 +370,8 @@ describe("FormData API", () => {
             assert.strictEqual(retrievedRealFile instanceof File, true);
             assert.strictEqual(retrievedRealFile.name, 'real.txt');
 
-            // File-like object should be converted to File object (smart conversion)
-            const retrievedFileLike = formData.get('fileLikeObject');
-            assert.strictEqual(typeof retrievedFileLike, 'object');
-            assert.strictEqual(retrievedFileLike instanceof File, true);
-            assert.strictEqual(retrievedFileLike.name, 'fake.pdf');
-            assert.strictEqual(retrievedFileLike.type, 'application/pdf');
-            assert.strictEqual(retrievedFileLike.size, 4); // Size of the Uint8Array data
+            // A plain object is not a Blob, so it is coerced to a string (WHATWG FormData)
+            assert.strictEqual(formData.get('fileLikeObject'), '[object Object]');
 
             // Normal field should remain as string
             assert.strictEqual(formData.get('normalField'), 'regular value');
@@ -502,7 +496,8 @@ describe("FormData API", () => {
             // Verify all text fields
             assert.strictEqual(reconstructedFormData.get('simple_text'), 'Simple value');
             assert.strictEqual(reconstructedFormData.get('unicode_text'), '测试中文字符 🎉');
-            assert.strictEqual(reconstructedFormData.get('special_chars'), 'Value with\nnewlines\tand\rspecial chars');
+            // multiline values are normalized to CRLF by the multipart serializer (HTML spec)
+            assert.strictEqual(reconstructedFormData.get('special_chars'), 'Value with\r\nnewlines\tand\r\nspecial chars');
             assert.strictEqual(reconstructedFormData.get('empty_field'), '');
 
             // Verify multiple values
@@ -1282,9 +1277,9 @@ Line 3 with special chars: áéíóú`;
 
             const result = encoded.textSync();
 
-            // Values should be preserved as-is (no URL encoding in multipart)
+            // Values are written as-is except for line break normalization (HTML spec)
             assert.ok(result.includes('中文测试 🌟'));
-            assert.ok(result.includes('Line 1\nLine 2\rLine 3\r\n'));
+            assert.ok(result.includes('Line 1\r\nLine 2\r\nLine 3\r\n'));
             assert.ok(result.includes('"quoted" and \'single\''));
             assert.ok(result.includes('!@#$%^&*()'));
         });
@@ -2006,7 +2001,7 @@ Line 3 with special chars: áéíóú`;
                 lastModified: 1640995200000
             });
 
-            // Initialize FormData with File objects and a plain object that should cause error
+            // Initialize FormData with File objects and a nested plain object
             const initObject = {
                 description: 'Multi-file upload test',
                 textFile: textFile,
@@ -2019,10 +2014,17 @@ Line 3 with special chars: áéíóú`;
                 }
             };
 
-            // Should throw error due to plain object 'metadata'
-            assert.throws(() => {
-                new FormData(initObject);
-            }, /FormData: Cannot convert metadata to string or File/);
+            const formData = new FormData(initObject);
+
+            // Nested plain objects are converted to strings (WHATWG FormData)
+            assert.strictEqual(formData.get('metadata'), '[object Object]');
+
+            // File entries are preserved
+            ['textFile', 'imageFile', 'pdfFile'].forEach((key) => {
+                assert.strictEqual(formData.get(key) instanceof File, true);
+            });
+            assert.strictEqual(formData.getAll('fileArray').length, 2);
+            formData.getAll('fileArray').forEach((f) => assert.strictEqual(f instanceof File, true));
         });
 
         it("FormData constructor - nested object with File properties", () => {
@@ -2041,10 +2043,12 @@ Line 3 with special chars: áéíóú`;
                 directFile: nestedFile
             };
 
-            // Should throw error due to plain object 'user'
-            assert.throws(() => {
-                new FormData(initObject);
-            }, /FormData: Cannot convert user to string or File/);
+            const formData = new FormData(initObject);
+
+            // Nested objects are stringified, only top level Blob/File values become file entries
+            assert.strictEqual(formData.get('user'), '[object Object]');
+            assert.strictEqual(formData.get('directFile') instanceof File, true);
+            assert.strictEqual(formData.get('directFile').name, 'nested.txt');
         });
 
         it("FormData constructor - File with empty content", () => {
@@ -2102,15 +2106,25 @@ Line 3 with special chars: áéíóú`;
         it("FormData - empty field names", () => {
             const formData = new FormData();
 
-            if (!isFibjs) {
-                formData.append('', 'empty name');
-                assert.strictEqual(formData.get(''), 'empty name');
-                assert.strictEqual(formData.has(''), true);
-            } else {
-                assert.throws(() => {
-                    formData.append('', 'empty name');
-                });
-            }
+            // WHATWG FormData allows empty field names
+            formData.append('', 'empty name');
+            assert.strictEqual(formData.get(''), 'empty name');
+            assert.strictEqual(formData.has(''), true);
+
+            formData.append('', 'second value');
+            assert.deepStrictEqual(formData.getAll(''), ['empty name', 'second value']);
+
+            formData.set('', 'replaced');
+            assert.deepStrictEqual(formData.getAll(''), ['replaced']);
+
+            // empty names must survive encoding and parsing
+            const reparsed = new FormData(formData.encode('multipart/form-data'));
+            assert.strictEqual(reparsed.get(''), 'replaced');
+            assert.strictEqual(reparsed.has(''), true);
+
+            formData.delete('');
+            assert.strictEqual(formData.has(''), false);
+            assert.strictEqual(formData.get(''), null);
         });
 
         it("FormData - very long field names and values", () => {
@@ -2167,11 +2181,10 @@ Line 3 with special chars: áéíóú`;
 
             const sym = Symbol('test');
 
-            if (!isFibjs) {
-                assert.throws(() => {
-                    formData.append('symbol', sym);
-                }, TypeError, 'Cannot convert a Symbol value to a string');
-            }
+            // Converting a Symbol to a string throws a TypeError (WHATWG WebIDL USVString)
+            assert.throws(() => {
+                formData.append('symbol', sym);
+            }, TypeError, 'Cannot convert a Symbol value to a string');
         });
     });
 
@@ -2353,6 +2366,114 @@ Line 3 with special chars: áéíóú`;
 
             // Should have correct prototype chain
             assert.strictEqual(Object.getPrototypeOf(formData), FormData.prototype);
+        });
+
+        it("FormData - filename argument requires a Blob (WHATWG)", () => {
+            const formData = new FormData();
+
+            // the third argument is only allowed when the value is a Blob/File
+            assert.throws(() => {
+                formData.append('field', 'plain string', 'file.txt');
+            }, TypeError);
+
+            assert.throws(() => {
+                formData.set('field', 'plain string', 'file.txt');
+            }, TypeError);
+
+            // a real Blob is accepted
+            formData.append('field', new Blob(['x'], { type: 'text/plain' }), 'file.txt');
+            assert.strictEqual(formData.get('field') instanceof File, true);
+            assert.strictEqual(formData.get('field').name, 'file.txt');
+        });
+
+        it("FormData - object values are coerced to strings (WHATWG)", () => {
+            const formData = new FormData();
+
+            formData.append('plain', {});
+            formData.append('map', new Map());
+
+            assert.strictEqual(formData.get('plain'), '[object Object]');
+            assert.strictEqual(formData.get('map'), '[object Map]');
+
+            // objects without a usable toString still throw a TypeError
+            assert.throws(() => {
+                formData.append('nullproto', Object.create(null));
+            });
+        });
+
+        it("FormData - multipart escapes quotes and normalizes line breaks", () => {
+            const formData = new FormData();
+            formData.append('na"me', 'line1\nline2');
+            formData.append('file', new Blob(['x'], { type: 'text/plain' }), 'a"b.txt');
+
+            const body = formData.encode('multipart/form-data').textSync();
+
+            assert.ok(body.indexOf('name="na%22me"') >= 0, body.slice(0, 200));
+            assert.ok(body.indexOf('filename="a%22b.txt"') >= 0);
+            assert.ok(body.indexOf('line1\r\nline2') >= 0);
+        });
+
+        it("FormData - empty filename stays a file entry", () => {
+            const formData = new FormData();
+            formData.append('file', new Blob(['x'], { type: 'text/plain' }), '');
+
+            const reparsed = new FormData(formData.encode('multipart/form-data'));
+            const file = reparsed.get('file');
+
+            assert.strictEqual(file instanceof File, true);
+            assert.strictEqual(file.name, '');
+        });
+
+        it("FormData - multipart round trip keeps files and text fields", () => {
+            const formData = new FormData();
+            formData.append('text', 'value');
+            formData.append('file', new Blob(['content'], { type: 'text/plain' }), 'a.txt');
+
+            const reparsed = new FormData(formData.encode('multipart/form-data'));
+
+            assert.strictEqual(reparsed.get('text'), 'value');
+            assert.strictEqual(reparsed.get('file') instanceof File, true);
+            assert.strictEqual(reparsed.get('file').name, 'a.txt');
+            assert.strictEqual(reparsed.get('file').textSync(), 'content');
+        });
+
+        it("FormData - sort() orders entries by name", () => {
+            if (!isFibjs)
+                return; // fibjs extension, not part of the WHATWG API
+
+            const formData = new FormData();
+            formData.append('b', '2');
+            formData.append('a', '1');
+            formData.append('b', '3');
+
+            // entries keep insertion order until sort() is called explicitly
+            assert.deepStrictEqual([...formData.keys()], ['b', 'a', 'b']);
+
+            formData.sort();
+
+            assert.deepStrictEqual([...formData.keys()], ['a', 'b', 'b']);
+            assert.strictEqual(formData.get('b'), '2');
+            assert.deepStrictEqual(formData.getAll('b'), ['2', '3']);
+        });
+
+        it("FormData - encoded escapes are decoded on parse", () => {
+            const formData = new FormData();
+            formData.append('na"me', 'value');
+            formData.append('breaks\r\nname', 'v2');
+            formData.append('file', new Blob(['x'], { type: 'text/plain' }), 'a"b.txt');
+
+            const reparsed = new FormData(formData.encode('multipart/form-data'));
+
+            // %22 / %0D / %0A are decoded back (HTML spec, same as undici)
+            assert.strictEqual(reparsed.get('na"me'), 'value');
+            assert.strictEqual(reparsed.get('breaks\r\nname'), 'v2');
+            assert.strictEqual(reparsed.get('file').name, 'a"b.txt');
+
+            // other percent sequences are kept verbatim
+            const raw = new FormData();
+            raw.append('keep%41as', 'v');
+            const rawReparsed = new FormData(raw.encode('multipart/form-data'));
+            assert.strictEqual(rawReparsed.get('keep%41as'), 'v');
         });
     });
 

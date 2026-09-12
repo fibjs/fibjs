@@ -129,6 +129,23 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
     constructor(init: Class_URLSearchParams);
 
     /**
+     * @description URLSearchParams 构造函数，使用给定的可迭代对象初始化参数容器
+     * 
+     *      任何实现了迭代器协议的对象（如 Map、Set、FormData、URLSearchParams）都会被展开为
+     *      [name, value] 序列后写入，与 Web 标准的 URLSearchParams 构造函数一致；
+     *      元素不是键值对时抛出 TypeError。
+     * 
+     *      @param init 初始化用的可迭代对象，每个元素为一个包含参数名和参数值的数组
+     *      
+     */
+    constructor(init: any);
+
+    /**
+     * @description 查询参数对的数量（同名多值会分别计数，与 Web 标准一致） 
+     */
+    readonly size: number;
+
+    /**
      * @description 检查容器内是否存在指定参数名和参数值的组合
      *      @param name 指定要检查的参数名
      *      @param value 指定要检查的参数值，当传入 undefined 时行为与 has(name) 相同

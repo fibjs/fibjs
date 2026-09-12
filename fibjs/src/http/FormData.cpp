@@ -60,37 +60,25 @@ result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal
 
 result_t FormData::append(exlib::string name, Variant value)
 {
-    if (name.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
-
     int32_t vt = value.type();
 
     if (vt != Variant::VT_String) {
         if (vt == Variant::VT_JSValue || vt == Variant::VT_Object) {
-            Isolate* isolate = holder();
-            obj_ptr<File_base> file;
-            result_t hr = GetArgumentValue(isolate, value, file);
-            if (hr >= 0) {
+            // WHATWG FormData: only a real Blob/File becomes a file entry,
+            // every other value is converted to a string.
+            v8::Local<v8::Value> v = value;
+
+            obj_ptr<File_base> file = File_base::getInstance(v);
+            if (file) {
                 value = file;
             } else {
-                obj_ptr<Blob_base> blob;
-                hr = GetArgumentValue(isolate, value, blob);
-                if (hr >= 0) {
+                obj_ptr<Blob_base> blob = Blob_base::getInstance(v);
+                if (blob)
                     return append(name, blob.get());
-                } else {
-                    // Check if this is a plain object without meaningful toString
-                    v8::Local<v8::Value> v = value;
-                    if (IsJSObject(v)) {
-                        v8::Local<v8::Object> o = v.As<v8::Object>();
-                        if (!o->HasOwnProperty(isolate->context(), isolate->NewString("toString")).FromMaybe(false)) {
-                            return Runtime::setError("FormData: Cannot convert " + name + " to string or File");
-                        }
-                    }
 
-                    exlib::string s;
-                    value.toString(s);
-                    value = s;
-                }
+                exlib::string s;
+                value.toString(s);
+                value = s;
             }
         } else {
             exlib::string s;
@@ -99,15 +87,13 @@ result_t FormData::append(exlib::string name, Variant value)
         }
     }
 
+    m_sorted = false;
     m_map.emplace_back(name, value);
     return 0;
 }
 
 result_t FormData::append(exlib::string name, Blob_base* value)
 {
-    if (name.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
-
     obj_ptr<File_base> file = File_base::getInstance(value);
     if (!file) {
         obj_ptr<File> fileObj = new File();
@@ -121,16 +107,25 @@ result_t FormData::append(exlib::string name, Blob_base* value)
         file = fileObj;
     }
 
+    m_sorted = false;
     m_map.emplace_back(name, file);
 
     return 0;
 }
 
+result_t FormData::append(exlib::string name, Variant value, exlib::string filename)
+{
+    // WHATWG FormData: the filename argument is only allowed for Blob/File values.
+    obj_ptr<Blob_base> blob = Blob_base::getInstance((v8::Local<v8::Value>)value);
+    if (!blob)
+        return Runtime::setError(kTypeError,
+            "Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.");
+
+    return append(name, blob.get(), filename);
+}
+
 result_t FormData::append(exlib::string name, Blob_base* value, exlib::string filename)
 {
-    if (name.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
-
     obj_ptr<File> fileObj = new File();
 
     obj_ptr<File_base> file = File_base::getInstance(value);
@@ -145,6 +140,7 @@ result_t FormData::append(exlib::string name, Blob_base* value, exlib::string fi
     d.now();
     fileObj->m_lastModified = d.date();
 
+    m_sorted = false;
     m_map.emplace_back(name, fileObj);
 
     return 0;
@@ -152,22 +148,21 @@ result_t FormData::append(exlib::string name, Blob_base* value, exlib::string fi
 
 result_t FormData::set(exlib::string name, Blob_base* value)
 {
-    if (name.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
-
     remove(name);
     append(name, value);
 
     return 0;
 }
 
-result_t FormData::set(exlib::string name, Blob_base* value, exlib::string filename)
+result_t FormData::set(exlib::string name, Variant value, exlib::string filename)
 {
-    if (name.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "FormData: field name must not be empty.");
+    obj_ptr<Blob_base> blob = Blob_base::getInstance((v8::Local<v8::Value>)value);
+    if (!blob)
+        return Runtime::setError(kTypeError,
+            "Failed to execute 'set' on 'FormData': parameter 2 is not of type 'Blob'.");
 
     remove(name);
-    append(name, value, filename);
+    append(name, blob.get(), filename);
 
     return 0;
 }

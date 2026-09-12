@@ -2,6 +2,7 @@
 /// <reference path="../interface/Message.d.ts" />
 /// <reference path="../interface/Headers.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
+/// <reference path="../interface/FormData.d.ts" />
 /**
  * @description http 基础消息对象  
  */
@@ -173,6 +174,41 @@ declare class Class_HttpMessage extends Class_Message {
      *      
      */
     addTrailers(headers: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 依据 Content-Type 将消息体解析为 FormData
+     * 
+     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
+     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     * 
+     *      @return 返回解析后的 FormData 对象
+     *      
+     */
+    formData(): Class_FormData;
+
+    formData(callback: (err: Error | undefined | null, retVal: Class_FormData)=>any): void;
+
+    /**
+     * @description 依据 Content-Type 将消息体解析为 FormData
+     * 
+     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
+     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     * 
+     *      @return 返回解析后的 FormData 对象
+     *      
+     */
+    formDataSync(): Class_FormData;
+
+    /**
+     * @description 依据 Content-Type 将消息体解析为 FormData
+     * 
+     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
+     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     * 
+     *      @return 返回解析后的 FormData 对象
+     *      
+     */
+    formDataAsync(): Promise<Class_FormData>;
 
 }
 

@@ -36,9 +36,9 @@ public:
     static result_t _new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(exlib::string name, Blob_base* value) = 0;
-    virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename) = 0;
+    virtual result_t append(exlib::string name, Variant value, exlib::string filename) = 0;
     virtual result_t set(exlib::string name, Blob_base* value) = 0;
-    virtual result_t set(exlib::string name, Blob_base* value, exlib::string filename) = 0;
+    virtual result_t set(exlib::string name, Variant value, exlib::string filename) = 0;
     virtual result_t encode(exlib::string type, obj_ptr<Blob_base>& retVal) = 0;
 
 public:
@@ -176,10 +176,10 @@ inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(3, 3);
 
     ARG(exlib::string, 0);
-    ARG(obj_ptr<Blob_base>, 1);
+    ARG(Variant, 1);
     ARG(exlib::string, 2);
 
-    hr = pInst->append(v0, v1.get(), v2);
+    hr = pInst->append(v0, v1, v2);
 
     METHOD_OVER(1, 1);
 
@@ -225,10 +225,10 @@ inline void FormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(3, 3);
 
     ARG(exlib::string, 0);
-    ARG(obj_ptr<Blob_base>, 1);
+    ARG(Variant, 1);
     ARG(exlib::string, 2);
 
-    hr = pInst->set(v0, v1.get(), v2);
+    hr = pInst->set(v0, v1, v2);
 
     METHOD_OVER(1, 1);
 

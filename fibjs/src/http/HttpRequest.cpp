@@ -327,6 +327,11 @@ result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, Asy
     return m_message->arrayBuffer(retVal, ac);
 }
 
+result_t HttpRequest::formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac)
+{
+    return m_message->formData(retVal, ac);
+}
+
 result_t HttpRequest::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
     return m_message->json(data, retVal, ac);

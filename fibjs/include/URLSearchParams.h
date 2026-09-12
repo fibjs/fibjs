@@ -15,11 +15,12 @@ namespace fibjs {
 class URLSearchParams : public HttpCollectionTmpl<URLSearchParams_base, true> {
 public:
     URLSearchParams()
-        : HttpCollectionTmpl<URLSearchParams_base, true>(true)
+        : HttpCollectionTmpl<URLSearchParams_base, true>(true, true, false)
     {
     }
 
 public:
+    result_t get_size(int32_t& retVal);
     result_t toString(exlib::string& retVal);
     result_t has(exlib::string name, v8::Local<v8::Value> value, bool& retVal);
     result_t _delete(exlib::string name, v8::Local<v8::Value> value);

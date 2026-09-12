@@ -15,7 +15,7 @@ namespace fibjs {
 class FormData : public HttpCollectionTmpl<FormData_base, true> {
 public:
     FormData()
-        : HttpCollectionTmpl<FormData_base, true>(true)
+        : HttpCollectionTmpl<FormData_base, true>(true, true, false)
     {
     }
 
@@ -26,10 +26,14 @@ public:
 public:
     // FormData_base
     virtual result_t append(exlib::string name, Blob_base* value);
-    virtual result_t append(exlib::string name, Blob_base* value, exlib::string filename);
+    virtual result_t append(exlib::string name, Variant value, exlib::string filename);
     virtual result_t set(exlib::string name, Blob_base* value);
-    virtual result_t set(exlib::string name, Blob_base* value, exlib::string filename);
+    virtual result_t set(exlib::string name, Variant value, exlib::string filename);
     virtual result_t encode(exlib::string type, obj_ptr<Blob_base>& retVal);
+
+public:
+    // internal helper: append a Blob/File with an explicit filename
+    result_t append(exlib::string name, Blob_base* value, exlib::string filename);
 
 public:
     result_t init(FormData_base* init)

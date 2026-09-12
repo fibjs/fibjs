@@ -7,10 +7,10 @@ const os = require('os');
 const path = require('path');
 const { pathToFileURL } = require('node:url');
 
-// fibjs throws TypeError for abort/timeout; Node.js throws DOMException (AbortError/TimeoutError)
+// WHATWG: abort/timeout reject with a DOMException named AbortError / TimeoutError
 const isFibjs = !!process.versions?.fibjs;
-const abortErrorName = isFibjs ? 'TypeError' : 'AbortError';
-const timeoutErrorName = isFibjs ? 'TypeError' : 'TimeoutError';
+const abortErrorName = 'AbortError';
+const timeoutErrorName = 'TimeoutError';
 const fibjsNet = isFibjs ? require('net') : null;
 const fibjsIo = isFibjs ? require('io') : null;
 const coroutine = isFibjs ? require('coroutine') : null;
@@ -47,6 +47,150 @@ describe("web fetch", () => {
 
         it("FormData exists on globalThis", () => {
             assert.strictEqual(typeof globalThis.FormData, 'function');
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1.5 Request body encoding (WHATWG BodyInit)
+    // ─────────────────────────────────────────────────────────────────────────
+    describe("fetch - request body encoding", () => {
+        let ctx;
+
+        before(async () => {
+            ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end(req.headers['content-type'] || '(none)');
+            });
+        });
+
+        after(() => ctx.server.close());
+
+        it("FormData body is sent as multipart/form-data with a boundary", async () => {
+            const form = new FormData();
+            form.append('name', 'value');
+
+            const resp = await fetch(ctx.baseUrl, { method: 'POST', body: form });
+
+            assert.match(await resp.text(), /^multipart\/form-data; boundary=.+/);
+        });
+
+        it("FormData body with a Blob is sent as multipart/form-data", async () => {
+            const form = new FormData();
+            form.append('file', new Blob(['content'], { type: 'text/plain' }), 'a.txt');
+
+            const resp = await fetch(ctx.baseUrl, { method: 'POST', body: form });
+
+            assert.match(await resp.text(), /^multipart\/form-data; boundary=.+/);
+        });
+
+        it("new Request(url, { body: FormData }) sets multipart Content-Type", () => {
+            const form = new FormData();
+            form.append('name', 'value');
+
+            const req = new Request(ctx.baseUrl, { method: 'POST', body: form });
+
+            assert.match(req.headers.get('content-type'), /^multipart\/form-data; boundary=.+/);
+        });
+
+        it("new Response(FormData) sets multipart Content-Type", () => {
+            const form = new FormData();
+            form.append('name', 'value');
+
+            assert.match(new Response(form).headers.get('content-type'), /^multipart\/form-data; boundary=.+/);
+        });
+
+        it("string body is sent as text/plain;charset=UTF-8", async () => {
+            const resp = await fetch(ctx.baseUrl, { method: 'POST', body: 'hello' });
+
+            assert.strictEqual(await resp.text(), 'text/plain;charset=UTF-8');
+        });
+
+        it("URLSearchParams body is sent as urlencoded", async () => {
+            const resp = await fetch(ctx.baseUrl, { method: 'POST', body: new URLSearchParams({ a: '1' }) });
+
+            assert.match(await resp.text(), /^application\/x-www-form-urlencoded/);
+        });
+
+        it("explicit multipart Content-Type boundary is preserved", async () => {
+            const form = new FormData();
+            form.append('name', 'value');
+
+            const resp = await fetch(ctx.baseUrl, {
+                method: 'POST',
+                body: form,
+                headers: { 'Content-Type': 'multipart/form-data; boundary=custom' }
+            });
+
+            assert.strictEqual(await resp.text(), 'multipart/form-data; boundary=custom');
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // 1.6 Body.formData()
+    // ─────────────────────────────────────────────────────────────────
+    describe("fetch - Body.formData()", () => {
+        it("parses a multipart body", async () => {
+            const form = new FormData();
+            form.append('field', 'value');
+            form.append('file', new Blob(['content'], { type: 'text/plain' }), 'a.txt');
+
+            // the Blob type carries the boundary, Response picks it up as Content-Type
+            const resp = new Response(form.encode('multipart/form-data'));
+            const parsed = await resp.formData();
+
+            assert.strictEqual(parsed.get('field'), 'value');
+            assert.strictEqual(parsed.get('file') instanceof File, true);
+            assert.strictEqual(parsed.get('file').name, 'a.txt');
+        });
+
+        it("parses a urlencoded body", async () => {
+            const resp = new Response('a=1&b=hello%20world', {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            const parsed = await resp.formData();
+
+            assert.strictEqual(parsed.get('a'), '1');
+            assert.strictEqual(parsed.get('b'), 'hello world');
+        });
+
+        it("rejects a non-form Content-Type with TypeError", async () => {
+            const resp = new Response('{"a":1}', {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            await assert.rejects(() => resp.formData(), TypeError);
+        });
+
+        it("rejects a multipart Content-Type without boundary", async () => {
+            const resp = new Response('x', {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            await assert.rejects(() => resp.formData(), TypeError);
+        });
+
+        it("parses a fetched multipart response", async () => {
+            const form = new FormData();
+            form.append('name', 'value');
+            form.append('file', new Blob(['content'], { type: 'text/plain' }), 'a.txt');
+
+            const encoded = form.encode('multipart/form-data');
+            const body = await encoded.text();
+
+            const ctx2 = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': encoded.type });
+                res.end(body);
+            });
+
+            try {
+                const resp = await fetch(ctx2.baseUrl);
+                const parsed = await resp.formData();
+
+                assert.strictEqual(parsed.get('name'), 'value');
+                assert.strictEqual(parsed.get('file') instanceof File, true);
+            } finally {
+                ctx2.server.close();
+            }
         });
     });
 
@@ -630,13 +774,13 @@ describe("web fetch", () => {
         it("encoded query params", async () => {
             const resp = await fetch(ctx.baseUrl + '/search?q=' + encodeURIComponent('hello world'));
             const data = await resp.json();
-            assert.ok(data.url.includes('hello%20world') || data.url.includes('hello+world'));
+            assert.ok(data.url.includes('hello%20world'), data.url);
         });
 
         it("path with special characters", async () => {
             const resp = await fetch(ctx.baseUrl + '/path/with%20space');
             const data = await resp.json();
-            assert.ok(data.url.includes('/path/with'));
+            assert.ok(data.url.includes('/path/with%20space'), data.url);
         });
     });
 
@@ -749,8 +893,7 @@ describe("web fetch", () => {
             h.append('X-Multi', 'a');
             h.append('X-Multi', 'b');
             const val = h.get('x-multi');
-            assert.ok(val.includes('a'));
-            assert.ok(val.includes('b'));
+            assert.strictEqual(val, 'a, b');
         });
 
         it("set replaces value", () => {

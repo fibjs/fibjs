@@ -32,6 +32,8 @@ public:
     static result_t _new(v8::Local<v8::Object> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Array> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(URLSearchParams_base* init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Variant init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t has(exlib::string name, v8::Local<v8::Value> value, bool& retVal) = 0;
     virtual result_t _delete(exlib::string name, v8::Local<v8::Value> value) = 0;
 
@@ -41,6 +43,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_size(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__delete(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -54,9 +57,13 @@ inline ClassInfo& URLSearchParams_base::class_info()
         { "delete", s__delete, false, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "size", s_get_size, block_set, false }
+    };
+
     static ClassData s_cd = {
         "URLSearchParams", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &HttpCollection_base::class_info(),
         false
     };
@@ -105,6 +112,12 @@ inline void URLSearchParams_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     hr = _new(v0.get(), vr, args.This());
 
+    METHOD_OVER(1, 1);
+
+    ARG(Variant, 0);
+
+    hr = _new(v0, vr, args.This());
+
     CONSTRUCT_RETURN();
 }
 
@@ -138,7 +151,27 @@ inline result_t URLSearchParams_base::load(v8::Local<v8::Value> v, obj_ptr<URLSe
 
     hr = _new(v0.get(), vr, args.This());
 
+    METHOD_OVER(1, 1);
+
+    ARG(Variant, 0);
+
+    hr = _new(v0, vr, args.This());
+
     LOAD_RETURN();
+}
+
+inline void URLSearchParams_base::s_get_size(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(URLSearchParams_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_size(vr);
+
+    METHOD_RETURN();
 }
 
 inline void URLSearchParams_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)

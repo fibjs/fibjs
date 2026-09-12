@@ -631,17 +631,19 @@ describe("http", () => {
             assert.ok(p.has("foo"));
         });
 
-        it("keys/values/entries iterate in sorted order (uppercase before lowercase)", () => {
+        it("keys/values/entries iterate in insertion order (case-sensitive)", () => {
             var p = new URLSearchParams();
             p.append("foo", "1");
             p.append("Bar", "2");
             p.append("Baz", "3");
             p.append("FOO", "4");
 
-            // ASCII byte order: B(66) < F(70) < b(98) < f(102)
-            // Bar < Baz < FOO < foo
+            // WHATWG URL keeps the list order; sort() is opt-in and case-sensitive
+            assert.deepEqual(Array.from(p.keys()), ["foo", "Bar", "Baz", "FOO"]);
+            assert.deepEqual(Array.from(p.values()), ["1", "2", "3", "4"]);
+
+            p.sort();
             assert.deepEqual(Array.from(p.keys()), ["Bar", "Baz", "FOO", "foo"]);
-            assert.deepEqual(Array.from(p.values()), ["2", "3", "4", "1"]);
         });
 
         it("toString() preserves original case of keys", () => {
@@ -3514,6 +3516,8 @@ describe("http", () => {
                     assert.ok(responseText.includes("/request:"));
                     assert.ok(responseText.includes("field1"));
                     assert.ok(responseText.includes("value1"));
+                    // FormData is serialized as multipart/form-data (WHATWG)
+                    assert.ok(responseText.includes('Content-Disposition: form-data; name="field1"'));
                 });
 
                 it("complex JSON data", () => {
@@ -3579,17 +3583,17 @@ describe("http", () => {
                     assert.equal(response.text(), "/request:body takes priority");
                 });
 
-                it("object body (URLEncoded)", () => {
-                    // 测试对象作为 body 时的处理（应该被序列化为 URLEncoded）
+                it("object body is serialized as multipart/form-data", () => {
+                    // 对象 body 缺省按 multipart 表单发送，服务端 req.form 可直接读取
                     var response = http.requestSync("POST", "http://127.0.0.1:" + (8882 + base_port) + "/request_url:", {
                         body: {
-                            key1: "value1",
+                            test_field: "field value",
                             key2: "value2"
                         }
                     });
                     var responseText = response.text();
                     assert.ok(responseText.includes("/request_url:"));
-                    // Object may be stringified, so just check it's processed
+                    assert.ok(responseText.includes("field value"), responseText);
                 });
 
                 it("array body conversion", () => {
@@ -3627,6 +3631,17 @@ describe("http", () => {
                 before(() => {
                     // Create a server to check request headers
                     headerCheckSvr = new http.Server(headerCheckPort, (r) => {
+                        if (r.address === "/form") {
+                            var keys = [];
+                            try {
+                                for (var k of r.form.keys())
+                                    keys.push(k);
+                            } catch (e) {
+                                keys.push("ERR:" + e.message);
+                            }
+                            r.response.write(JSON.stringify(keys));
+                            return;
+                        }
                         var contentType = r.firstHeader("Content-Type") || "not-set";
                         r.response.write(contentType);
                     });
@@ -3700,6 +3715,78 @@ describe("http", () => {
                         }
                     });
                     assert.equal(response.text(), "multipart/form-data; boundary=custom");
+                });
+
+                it("FormData body without Content-Type uses multipart/form-data", () => {
+                    var formData = new FormData();
+                    formData.append("field", "value");
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: formData
+                    });
+                    var contentType = response.text();
+                    assert.ok(/^multipart\/form-data; boundary=/.test(contentType), contentType);
+                });
+
+                it("FormData body with Blob uses multipart/form-data", () => {
+                    var formData = new FormData();
+                    formData.append("field", "value");
+                    formData.append("file", new Blob(["file content"], { type: "text/plain" }), "a.txt");
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: formData
+                    });
+                    var contentType = response.text();
+                    assert.ok(/^multipart\/form-data; boundary=/.test(contentType), contentType);
+                });
+
+                it("FormData body with bare multipart Content-Type gets a boundary", () => {
+                    var formData = new FormData();
+                    formData.append("field", "value");
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: formData,
+                        headers: {
+                            "Content-Type": "multipart/form-data"
+                        }
+                    });
+                    var contentType = response.text();
+                    assert.ok(/^multipart\/form-data; boundary=/.test(contentType), contentType);
+                });
+
+                it("multipart escaped field names are decoded by the server", () => {
+                    var formData = new FormData();
+                    formData.append('na"me', 'value');
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/form", {
+                        body: formData
+                    });
+                    assert.deepEqual(JSON.parse(response.text()), ['na"me']);
+                });
+
+                it("object body keeps an explicit non-form Content-Type", () => {
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: { key1: "value1" },
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    assert.equal(response.text(), "application/json");
+                });
+
+                it("object body without Content-Type uses multipart/form-data", () => {
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: { field: "value" }
+                    });
+                    var contentType = response.text();
+                    assert.ok(/^multipart\/form-data; boundary=/.test(contentType), contentType);
+                });
+
+                it("object body with Blob uses multipart/form-data", () => {
+                    var response = http.requestSync("POST", "http://127.0.0.1:" + headerCheckPort + "/", {
+                        body: {
+                            field: "value",
+                            file: new Blob(["file content"], { type: "text/plain" })
+                        }
+                    });
+                    var contentType = response.text();
+                    assert.ok(/^multipart\/form-data; boundary=/.test(contentType), contentType);
                 });
 
                 it("Buffer body with manual application/octet-stream", () => {

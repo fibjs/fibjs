@@ -296,6 +296,14 @@ result_t Message::json(Variant& retVal, AsyncEvent* ac)
     }, ac))->post(0);
 }
 
+result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new asyncConsumeBody(this, std::move(fn), ac))->post(0);
+}
+
 result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {

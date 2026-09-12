@@ -133,10 +133,36 @@ exlib::string getResultMessage(result_t hr)
 #endif
 }
 
+// Build a DOMException instance (falls back to an Error with a name property
+// when the runtime does not expose the DOMException global).
+static v8::Local<v8::Value> MakeDOMException(Isolate* isolate, const char* name, exlib::string msg)
+{
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> ctor;
+
+    if (context->Global()->Get(context, isolate->NewString("DOMException")).ToLocal(&ctor)
+        && ctor->IsFunction()) {
+        v8::Local<v8::Value> args[] = { isolate->NewString(msg), isolate->NewString(name) };
+        v8::Local<v8::Value> e;
+        if (ctor.As<v8::Function>()->NewInstance(context, 2, args).ToLocal(&e))
+            return e;
+    }
+
+    v8::Local<v8::Value> e = v8::Exception::Error(isolate->NewString(msg));
+    e.As<v8::Object>()->Set(context, isolate->NewString("name"), isolate->NewString(name)).IsJust();
+    return e;
+}
+
 static v8::Local<v8::Value> MakeException(Isolate* isolate, ErrorType et, exlib::string msg)
 {
     v8::Local<v8::String> v8msg = isolate->NewString(msg);
     switch (et) {
+    case kAbortError:
+        return MakeDOMException(isolate, "AbortError",
+            msg.empty() ? "The operation was aborted." : msg);
+    case kTimeoutError:
+        return MakeDOMException(isolate, "TimeoutError",
+            msg.empty() ? "The operation timed out." : msg);
     case kTypeError:
         return v8::Exception::TypeError(v8msg);
     case kRangeError:

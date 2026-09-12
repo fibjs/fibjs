@@ -17,7 +17,7 @@ namespace fibjs {
 class HttpCollection : public HttpCollectionTmpl<HttpCollection_base> {
 public:
     HttpCollection(bool string_only = true)
-        : HttpCollectionTmpl<HttpCollection_base>(string_only)
+        : HttpCollectionTmpl<HttpCollection_base>(string_only, true)
     {
     }
 

@@ -28,6 +28,47 @@ describe("URLSearchParams Test Suite", () => {
             assert.strictEqual(params.get('baz'), 'qux');
         });
 
+        it("should create URLSearchParams from any iterable (Map / FormData / Set)", () => {
+            // WebIDL: the init argument may be a sequence of pairs
+            const fromMap = new URLSearchParams(new Map([['foo', 'bar'], ['baz', 'qux']]));
+            assert.strictEqual(fromMap.toString(), 'foo=bar&baz=qux');
+
+            const form = new FormData();
+            form.append('name', '张三');
+            form.append('tag', 'a');
+            form.append('tag', 'b');
+            assert.strictEqual(new URLSearchParams(form).toString(), 'name=%E5%BC%A0%E4%B8%89&tag=a&tag=b');
+
+            const fromSet = new URLSearchParams(new Set([['one', '1'], ['two', '2']]));
+            assert.strictEqual(fromSet.toString(), 'one=1&two=2');
+
+            const copy = new URLSearchParams(fromMap);
+            assert.strictEqual(copy.toString(), fromMap.toString());
+
+            // file values are stringified, like browsers/Node
+            const withFile = new FormData();
+            withFile.append('a', '1');
+            withFile.append('file', new Blob(['x'], { type: 'text/plain' }), 'a.txt');
+            assert.strictEqual(new URLSearchParams(withFile).toString(), 'a=1&file=%5Bobject+File%5D');
+        });
+
+        it("should reject iterable elements that are not pairs", () => {
+            assert.throws(() => new URLSearchParams(new Set([['three']])), TypeError);
+        });
+
+        it("should report the number of pairs via size", () => {
+            const params = new URLSearchParams('a=1&b=2&a=3');
+            assert.strictEqual(params.size, 3); // duplicates are counted
+
+            params.append('c', '4');
+            assert.strictEqual(params.size, 4);
+
+            params.delete('a');
+            assert.strictEqual(params.size, 2);
+
+            assert.strictEqual(new URLSearchParams().size, 0);
+        });
+
         it("should handle leading question mark", () => {
             const params = new URLSearchParams('?foo=bar&baz=qux');
             assert.strictEqual(params.get('foo'), 'bar');
@@ -144,14 +185,8 @@ describe("URLSearchParams Test Suite", () => {
     describe("Edge Cases", () => {
         it("should handle empty keys and values", () => {
             const params = new URLSearchParams('=value&key=&=');
-            if (isFibjs) {
-                assert.throws(() => {
-                    params.get('');
-                });
-            }
-            else {
-                assert.strictEqual(params.get(''), 'value');
-            }
+            // empty names are valid (WHATWG URL)
+            assert.strictEqual(params.get(''), 'value');
             assert.strictEqual(params.get('key'), '');
         });
 
@@ -188,7 +223,8 @@ describe("URLSearchParams Test Suite", () => {
             for (const [key, value] of params) {
                 entries.push([key, value]);
             }
-            assert.deepStrictEqual(entries, [['a', '1'], ['a', '3'], ['b', '2']]);
+            // iteration keeps list order (WHATWG URL), it does not sort
+            assert.deepStrictEqual(entries, [['a', '1'], ['b', '2'], ['a', '3']]);
         });
 
         it("should iterate with forEach", () => {
@@ -197,25 +233,67 @@ describe("URLSearchParams Test Suite", () => {
             params.forEach((value, key) => {
                 collected.push([key, value]);
             });
-            assert.deepStrictEqual(collected, [['baz', 'qux'], ['foo', 'bar']]);
+            assert.deepStrictEqual(collected, [['foo', 'bar'], ['baz', 'qux']]);
         });
 
         it("should iterate keys", () => {
             const params = new URLSearchParams('a=1&b=2&a=3');
             const keys = Array.from(params.keys());
-            assert.deepStrictEqual(keys, ['a', 'a', 'b']);
+            assert.deepStrictEqual(keys, ['a', 'b', 'a']);
         });
 
         it("should iterate values", () => {
             const params = new URLSearchParams('a=1&b=2&a=3');
             const values = Array.from(params.values());
-            assert.deepStrictEqual(values, ['1', '3', '2']);
+            assert.deepStrictEqual(values, ['1', '2', '3']);
         });
 
         it("should iterate entries", () => {
             const params = new URLSearchParams('foo=bar&baz=qux');
             const entries = Array.from(params.entries());
-            assert.deepStrictEqual(entries, [['baz', 'qux'], ['foo', 'bar']]);
+            assert.deepStrictEqual(entries, [['foo', 'bar'], ['baz', 'qux']]);
+        });
+
+        it("iteration must not reorder the list", () => {
+            const params = new URLSearchParams();
+            params.append('b', '2');
+            params.append('a', '1');
+
+            assert.strictEqual(params.toString(), 'b=2&a=1');
+
+            // reading the entries must not change the serialization
+            assert.deepStrictEqual(Array.from(params.keys()), ['b', 'a']);
+            assert.deepStrictEqual(Array.from(params.entries()), [['b', '2'], ['a', '1']]);
+            params.forEach(() => { });
+            assert.strictEqual(params.toString(), 'b=2&a=1');
+
+            const url = new URL('https://example.com/?b=2&a=1');
+            Array.from(url.searchParams.keys());
+            assert.strictEqual(url.href, 'https://example.com/?b=2&a=1');
+        });
+
+        it("sort() orders the list and updates the serialization", () => {
+            const params = new URLSearchParams();
+            params.append('b', '2');
+            params.append('a', '1');
+            params.append('b', '3');
+
+            params.sort();
+
+            assert.deepStrictEqual(Array.from(params.keys()), ['a', 'b', 'b']);
+            assert.strictEqual(params.toString(), 'a=1&b=2&b=3');
+        });
+
+        it("allows empty parameter names", () => {
+            const params = new URLSearchParams();
+            params.append('', 'value');
+
+            assert.strictEqual(params.get(''), 'value');
+            assert.strictEqual(params.has(''), true);
+            assert.strictEqual(params.toString(), '=value');
+
+            const parsed = new URLSearchParams('=value');
+            assert.strictEqual(parsed.get(''), 'value');
         });
     });
 

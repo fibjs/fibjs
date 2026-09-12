@@ -153,6 +153,13 @@ result_t AbortSignal::do_abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_
 result_t AbortSignal::throwIfAborted()
 {
     if (m_aborted) {
+        // WHATWG: throw the abort reason, which is a DOMException named
+        // AbortError (or TimeoutError for AbortSignal.timeout()) by default.
+        if (!m_has_value_reason) {
+            if (m_reason == "TimeoutError")
+                return Runtime::setError(kTimeoutError, "The operation timed out.");
+            return Runtime::setError(kAbortError, "The operation was aborted.");
+        }
         return Runtime::setError(m_reason);
     }
     return 0;

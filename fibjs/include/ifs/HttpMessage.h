@@ -19,6 +19,7 @@ namespace fibjs {
 class Message_base;
 class Headers_base;
 class Stream_base;
+class FormData_base;
 
 class HttpMessage_base : public Message_base {
     DECLARE_CLASS(HttpMessage_base);
@@ -58,6 +59,7 @@ public:
     virtual result_t get_headersSent(bool& retVal) = 0;
     virtual result_t get_trailers(obj_ptr<Headers_base>& retVal) = 0;
     virtual result_t addTrailers(v8::Local<v8::Object> headers) = 0;
+    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -98,11 +100,16 @@ public:
     static void s_get_headersSent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_trailers(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addTrailers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_formData(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE1(HttpMessage_base, formData, obj_ptr<FormData_base>);
 };
 }
 
 #include "ifs/Headers.h"
 #include "ifs/Stream.h"
+#include "ifs/FormData.h"
 
 namespace fibjs {
 inline ClassInfo& HttpMessage_base::class_info()
@@ -116,7 +123,8 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC },
         { "getHeader", s_getHeader, false, ClassData::ASYNC_SYNC },
         { "getHeaders", s_getHeaders, false, ClassData::ASYNC_SYNC },
-        { "addTrailers", s_addTrailers, false, ClassData::ASYNC_SYNC }
+        { "addTrailers", s_addTrailers, false, ClassData::ASYNC_SYNC },
+        { "formData", s_formData, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -568,5 +576,22 @@ inline void HttpMessage_base::s_addTrailers(const v8::FunctionCallbackInfo<v8::V
     hr = pInst->addTrailers(v0);
 
     METHOD_VOID();
+}
+
+inline void HttpMessage_base::s_formData(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<FormData_base> vr;
+
+    ASYNC_METHOD_INSTANCE(HttpMessage_base);
+    ASYNC_METHOD_ENTER("HttpMessage.formData");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_formData(cb, args);
+    else
+        hr = pInst->ac_formData(vr);
+
+    ASYNC_METHOD_RETURN();
 }
 }

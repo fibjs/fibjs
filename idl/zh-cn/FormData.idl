@@ -78,10 +78,10 @@ interface FormData : HttpCollection
      向表单中追加一个字段。如果同名字段已存在，则不会覆盖，允许同名多值。
 
      @param name 指定要添加的字段名
-     @param value 指定要添加的 Blob
+     @param value 指定要添加的 Blob/File，传入其他类型将抛出 TypeError
      @param filename 指定要添加的文件名
     */
-    append(String name, Blob value, String filename);
+    append(String name, Variant value, String filename);
 
     /*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
         
@@ -97,10 +97,10 @@ interface FormData : HttpCollection
      设置表单字段。如果同名字段已存在，则只保留第一个并覆盖，移除其余同名字段。
 
      @param name 指定要设定的字段名
-     @param value 指定要设定的 Blob
+     @param value 指定要设定的 Blob/File，传入其他类型将抛出 TypeError
      @param filename 指定要设定的文件名
     */
-    set(String name, Blob value, String filename);
+    set(String name, Variant value, String filename);
 
     /*! @brief 将当前表单数据编码为 Buffer 对象
 

@@ -18,10 +18,12 @@ namespace fibjs {
 template <typename BaseType, bool case_sensitive = false>
 class HttpCollectionTmpl : public BaseType {
 public:
-    HttpCollectionTmpl(bool string_only)
+    HttpCollectionTmpl(bool string_only, bool allow_empty_name = false, bool sort_on_iterate = true)
         : m_string_only(string_only)
         , m_lowercase_keys(false)
         , m_sorted(true)
+        , m_allow_empty_name(allow_empty_name)
+        , m_sort_on_iterate(sort_on_iterate)
     {
         m_map.reserve(16); // reserve space instead of resize
     }
@@ -37,7 +39,7 @@ public:
 
     result_t first(exlib::string name, Variant& retVal)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         for (size_t i = 0; i < m_map.size(); i++) {
@@ -82,7 +84,7 @@ public:
 
     result_t append(exlib::string name, Variant value)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         if (m_lowercase_keys) {
@@ -174,7 +176,7 @@ public:
 
     result_t set(exlib::string name, Variant value)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         remove(name);
@@ -207,7 +209,7 @@ public:
 
     result_t has(exlib::string name, bool& retVal)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         retVal = false;
@@ -238,7 +240,7 @@ public:
 
     result_t remove(exlib::string name)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         auto it = std::remove_if(m_map.begin(), m_map.end(),
@@ -251,7 +253,7 @@ public:
 
     result_t _delete(exlib::string name)
     {
-        if (name.empty())
+        if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
         return remove(name);
@@ -279,7 +281,8 @@ public:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
 
-        sort();
+        if (m_sort_on_iterate)
+            sort();
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
             v8::Local<v8::Value> key = isolate->NewString(_pair.first);
@@ -296,7 +299,8 @@ public:
 
     result_t keys(obj_ptr<Iterator_base>& retVal)
     {
-        sort();
+        if (m_sort_on_iterate)
+            sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(0, false);
@@ -311,7 +315,8 @@ public:
 
     result_t values(obj_ptr<Iterator_base>& retVal)
     {
-        sort();
+        if (m_sort_on_iterate)
+            sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(0, false);
@@ -326,7 +331,8 @@ public:
 
     result_t entries(obj_ptr<Iterator_base>& retVal)
     {
-        sort();
+        if (m_sort_on_iterate)
+            sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
                 cb(0, false);
@@ -443,6 +449,42 @@ public:
         }
 
         retVal = map;
+        return 0;
+    }
+
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
+    {
+        // Serialize the container entries only. The default object_base::toJSON
+        // copies every enumerable property, which would also pick up class
+        // getters such as URLSearchParams.size.
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+
+        for (size_t i = 0; i < m_map.size(); i++) {
+            pair& _pair = m_map[i];
+            v8::Local<v8::Name> name = isolate->NewString(_pair.first);
+
+            JSValue existing = o->Get(context, name);
+            if (existing.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            v8::Local<v8::Value> value = _pair.second;
+
+            if (existing->IsUndefined()) {
+                o->Set(context, name, value).IsJust();
+            } else if (existing->IsArray()) {
+                v8::Local<v8::Array> arr = existing.As<v8::Array>();
+                arr->Set(context, arr->Length(), value).IsJust();
+            } else {
+                v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, 2);
+                arr->Set(context, 0, existing).IsJust();
+                arr->Set(context, 1, value).IsJust();
+                o->Set(context, name, arr).IsJust();
+            }
+        }
+
+        retVal = o;
         return 0;
     }
 
@@ -576,6 +618,10 @@ public:
         bool found_eq;
 
         while (nSize) {
+            // WHATWG urlencoded parser: an empty byte sequence between two
+            // separators is skipped, while an empty name is kept.
+            bool hasSegment = !(nSize >= sep_len && !qstrcmp(pstr, sep, sep_len));
+
             pstrTemp = pstr;
             found_eq = false;
 
@@ -608,7 +654,7 @@ public:
                 nSize--;
             }
 
-            if (!strKey.empty()) {
+            if (hasSegment) {
                 if (pstr > pstrTemp)
                     decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strValue, true);
                 else
@@ -620,7 +666,7 @@ public:
                 pstr += sep_len;
             }
 
-            if (!strKey.empty()) {
+            if (hasSegment) {
                 result_t hr = append(strKey, strValue);
                 if (hr < 0)
                     return hr;
@@ -642,6 +688,8 @@ public:
     bool m_string_only;
     bool m_lowercase_keys;
     bool m_sorted;
+    bool m_allow_empty_name;
+    bool m_sort_on_iterate;
 };
 
 }

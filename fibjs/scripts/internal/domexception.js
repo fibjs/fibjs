@@ -52,6 +52,11 @@ class DOMException {
     get [Symbol.toStringTag]() {
         return 'DOMException';
     }
+
+    // WebIDL stringifier: "name: message" (or just the name for an empty message)
+    toString() {
+        return this.message ? `${this.name}: ${this.message}` : this.name;
+    }
 }
 
 // Legacy error code constants (static class properties)

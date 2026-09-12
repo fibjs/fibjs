@@ -105,6 +105,45 @@ static bool parseBoundary(const char* contentType, exlib::string& boundary)
     return true;
 }
 
+// Decode the escapes written by the multipart/form-data encoder
+// (HTML spec: %0A, %0D and %22 in names and filenames only)
+static void unescapeMultipartParam(exlib::string& str)
+{
+    exlib::string out;
+    out.reserve(str.length());
+
+    for (size_t i = 0; i < str.length(); i++) {
+        char c = str[i];
+
+        if (c == '%' && i + 2 < str.length()) {
+            char c1 = str[i + 1];
+            char c2 = str[i + 2];
+
+            if (c1 == '0' && c2 == 'A') {
+                out.append("\n");
+                i += 2;
+                continue;
+            }
+
+            if (c1 == '0' && c2 == 'D') {
+                out.append("\r");
+                i += 2;
+                continue;
+            }
+
+            if (c1 == '2' && c2 == '2') {
+                out.append("\"");
+                i += 2;
+                continue;
+            }
+        }
+
+        out.append(&c, 1);
+    }
+
+    str = out;
+}
+
 result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
 {
     Buffer* buffer = Buffer::Cast(init);
@@ -141,6 +180,8 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
         strFileName.clear();
         strContentType.clear();
         strContentTransferEncoding.clear();
+        bool hasName = false;
+        bool hasFilename = false;
 
         while (nSize > 0) {
             ch = *szQueryString++;
@@ -194,6 +235,8 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
                         p1++;
 
                     strName.assign(p2, (size_t)(p1 - p2));
+                    unescapeMultipartParam(strName);
+                    hasName = true;
 
                     if (p1 < p && *p1 == '\"')
                         p1++;
@@ -224,6 +267,8 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
                         }
 
                         strFileName.assign(p2, (size_t)(p1 - p2));
+                        unescapeMultipartParam(strFileName);
+                        hasFilename = true;
                     }
                 } else if (p1 + 13 < p && !qstricmp(p1, "Content-Type:", 13)) {
                     p1 += 13;
@@ -273,10 +318,10 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
                 p--;
         }
 
-        if (!strName.empty()) {
+        if (hasName) {
             size_t uiSize = (size_t)(p - p1);
 
-            if (strFileName.empty()) {
+            if (!hasFilename) {
                 // Store text field content, not empty string
                 m_map.emplace_back(strName, exlib::string(p1, uiSize));
             } else {
@@ -346,57 +391,115 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
             boundary = boundaryBuf;
         }
 
-        // First pass: calculate total size needed
-        size_t totalSize = 0;
+        // Prepare every part once, so that the size pass and the write pass
+        // always agree even when escaping changes the length of a field.
+        struct Part {
+            exlib::string name;
+            exlib::string filename;
+            exlib::string content_type;
+            exlib::string text;
+            obj_ptr<Buffer_base> data;
+            bool is_file = false;
+        };
+
+        // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#multipart/form-data-encoding-algorithm
+        auto escapeParam = [](exlib::string s) {
+            exlib::string out;
+            out.reserve(s.length());
+            for (size_t i = 0; i < s.length(); i++) {
+                char c = s[i];
+                if (c == '\n')
+                    out.append("%0A");
+                else if (c == '\r')
+                    out.append("%0D");
+                else if (c == '"')
+                    out.append("%22");
+                else
+                    out.append(&c, 1);
+            }
+            return out;
+        };
+
+        auto normalizeLinefeeds = [](exlib::string s) {
+            exlib::string out;
+            out.reserve(s.length());
+            for (size_t i = 0; i < s.length(); i++) {
+                char c = s[i];
+                if (c == '\r') {
+                    if (i + 1 < s.length() && s[i + 1] == '\n')
+                        i++;
+                    out.append("\r\n");
+                } else if (c == '\n') {
+                    out.append("\r\n");
+                } else {
+                    out.append(&c, 1);
+                }
+            }
+            return out;
+        };
+
+        std::vector<Part> parts;
+        parts.reserve(m_map.size());
 
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
+            Part part;
+
+            part.name = escapeParam(normalizeLinefeeds(_pair.first));
+
+            if (_pair.second.type() == Variant::VT_String) {
+                part.text = normalizeLinefeeds(_pair.second.string());
+            } else {
+                obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
+                if (!file) {
+                    return Runtime::setError(kTypeError,
+                        "FormData encode: field '" + _pair.first + "' is not a valid file object");
+                }
+
+                part.is_file = true;
+                file->get_name(part.filename);
+                part.filename = escapeParam(part.filename);
+                file->get_type(part.content_type);
+                if (part.content_type.empty())
+                    part.content_type = "application/octet-stream";
+                part.data = file.As<File>()->m_impl.getBuffer();
+            }
+
+            parts.push_back(part);
+        }
+
+        // First pass: calculate total size needed
+        size_t totalSize = 0;
+
+        for (size_t i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
 
             // Boundary delimiter: "--" + boundary + "\r\n"
             totalSize += 2 + boundary.length() + 2;
 
-            if (_pair.second.type() == Variant::VT_String) {
-                // Text field
+            if (!part.is_file) {
                 // Content-Disposition header
                 totalSize += 38; // "Content-Disposition: form-data; name=\""
-                totalSize += _pair.first.length();
+                totalSize += part.name.length();
                 totalSize += 5; // "\"\r\n\r\n"
                 // Content
-                totalSize += _pair.second.string().length();
+                totalSize += part.text.length();
                 totalSize += 2; // "\r\n"
             } else {
-                // File field - must be a File object
-                obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
-                if (!file) {
-                    return Runtime::setError("FormData encode: invalid file object");
-                }
-
-                exlib::string filename;
-                file->get_name(filename);
-
-                exlib::string contentType;
-                file->get_type(contentType);
-                if (contentType.empty()) {
-                    contentType = "application/octet-stream";
-                }
-
                 // Content-Disposition header
                 totalSize += 38; // "Content-Disposition: form-data; name=\""
-                totalSize += _pair.first.length();
+                totalSize += part.name.length();
                 totalSize += 13; // "\"; filename=\""
-                totalSize += filename.length();
+                totalSize += part.filename.length();
                 totalSize += 3; // "\"\r\n"
 
                 // Content-Type header
                 totalSize += 14; // "Content-Type: "
-                totalSize += contentType.length();
+                totalSize += part.content_type.length();
                 totalSize += 4; // "\r\n\r\n"
 
-                // Get file size for total calculation (getBuffer is zero-copy)
-                File* filePtr = file.As<File>();
-                obj_ptr<Buffer_base> fileBuffer = filePtr->m_impl.getBuffer();
                 int32_t fileSize;
-                fileBuffer->get_length(fileSize);
+                part.data->get_length(fileSize);
                 totalSize += fileSize;
                 totalSize += 2; // "\r\n"
             }
@@ -410,8 +513,8 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
         uint8_t* bufPtr = resultBuffer->data();
         size_t offset = 0;
 
-        for (size_t i = 0; i < m_map.size(); i++) {
-            pair& _pair = m_map[i];
+        for (size_t i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
 
             // Write boundary delimiter
             memcpy(bufPtr + offset, "--", 2);
@@ -421,44 +524,31 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
             memcpy(bufPtr + offset, "\r\n", 2);
             offset += 2;
 
-            if (_pair.second.type() == Variant::VT_String) {
+            if (!part.is_file) {
                 // Text field
                 const char* header = "Content-Disposition: form-data; name=\"";
                 memcpy(bufPtr + offset, header, 38);
                 offset += 38;
-                memcpy(bufPtr + offset, _pair.first.c_str(), _pair.first.length());
-                offset += _pair.first.length();
+                memcpy(bufPtr + offset, part.name.c_str(), part.name.length());
+                offset += part.name.length();
                 memcpy(bufPtr + offset, "\"\r\n\r\n", 5);
                 offset += 5;
 
-                exlib::string content = _pair.second.string();
-                memcpy(bufPtr + offset, content.c_str(), content.length());
-                offset += content.length();
+                memcpy(bufPtr + offset, part.text.c_str(), part.text.length());
+                offset += part.text.length();
                 memcpy(bufPtr + offset, "\r\n", 2);
                 offset += 2;
             } else {
                 // File field
-                obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
-
-                exlib::string filename;
-                file->get_name(filename);
-
-                exlib::string contentType;
-                file->get_type(contentType);
-                if (contentType.empty()) {
-                    contentType = "application/octet-stream";
-                }
-
-                // Write Content-Disposition header
                 const char* header1 = "Content-Disposition: form-data; name=\"";
                 memcpy(bufPtr + offset, header1, 38);
                 offset += 38;
-                memcpy(bufPtr + offset, _pair.first.c_str(), _pair.first.length());
-                offset += _pair.first.length();
+                memcpy(bufPtr + offset, part.name.c_str(), part.name.length());
+                offset += part.name.length();
                 memcpy(bufPtr + offset, "\"; filename=\"", 13);
                 offset += 13;
-                memcpy(bufPtr + offset, filename.c_str(), filename.length());
-                offset += filename.length();
+                memcpy(bufPtr + offset, part.filename.c_str(), part.filename.length());
+                offset += part.filename.length();
                 memcpy(bufPtr + offset, "\"\r\n", 3);
                 offset += 3;
 
@@ -466,19 +556,16 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
                 const char* header2 = "Content-Type: ";
                 memcpy(bufPtr + offset, header2, 14);
                 offset += 14;
-                memcpy(bufPtr + offset, contentType.c_str(), contentType.length());
-                offset += contentType.length();
+                memcpy(bufPtr + offset, part.content_type.c_str(), part.content_type.length());
+                offset += part.content_type.length();
                 memcpy(bufPtr + offset, "\r\n\r\n", 4);
                 offset += 4;
 
-                // Write file content (getBuffer is zero-copy, called when needed)
-                File* filePtr = file.As<File>();
-                obj_ptr<Buffer_base> fileBuffer = filePtr->m_impl.getBuffer();
+                // Write file content (getBuffer is zero-copy)
                 int32_t fileSize;
-                fileBuffer->get_length(fileSize);
+                part.data->get_length(fileSize);
                 if (fileSize > 0) {
-                    // Copy binary data directly from buffer
-                    Buffer* fileBuf = fileBuffer.As<Buffer>();
+                    Buffer* fileBuf = part.data.As<Buffer>();
                     memcpy(bufPtr + offset, fileBuf->data(), fileSize);
                     offset += fileSize;
                 }

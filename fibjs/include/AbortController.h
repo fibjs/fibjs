@@ -48,6 +48,12 @@ public:
         return m_aborted;
     }
 
+    // true when the signal was aborted by AbortSignal.timeout()
+    bool is_timeout_abort() const
+    {
+        return m_aborted && !m_has_value_reason && m_reason == "TimeoutError";
+    }
+
     void addAbortCallback(std::function<void()> callback)
     {
         // check-and-push must be atomic to avoid missing a callback that fires

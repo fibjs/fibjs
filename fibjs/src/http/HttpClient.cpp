@@ -46,6 +46,19 @@
 
 namespace fibjs {
 
+// WHATWG Fetch: an aborted fetch rejects with a DOMException named AbortError,
+// or TimeoutError when the signal came from AbortSignal.timeout().
+// Note: no v8 handles are touched here, this may run outside a handle scope.
+static result_t setAbortError(AbortSignal_base* signal)
+{
+    AbortSignal* s = signal ? static_cast<AbortSignal*>(signal) : NULL;
+
+    if (s && s->is_timeout_abort())
+        return Runtime::setError(kTimeoutError, "The operation timed out.");
+
+    return Runtime::setError(kAbortError, "The operation was aborted.");
+}
+
 static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal)
 {
     exlib::string path;
@@ -1373,7 +1386,7 @@ public:
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted)
-                return CHECK_ERROR(Runtime::setError("AbortError"));
+                return CHECK_ERROR(setAbortError(m_o->signal.get()));
         }
 
         bool _domain = false;
@@ -2219,7 +2232,7 @@ public:
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted) {
-                Runtime::setError(kTypeError, "AbortError");
+                setAbortError(m_o->signal.get());
                 v = CALL_E_EXCEPTION;
             }
         }
@@ -2373,7 +2386,7 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
         bool aborted;
         o->signal->get_aborted(aborted);
         if (aborted)
-            return CHECK_ERROR(Runtime::setError(kTypeError, "AbortError"));
+            return CHECK_ERROR(setAbortError(o->signal.get()));
     }
 
     if (o->u->protocol() == "file:")
@@ -2432,14 +2445,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 }
 
 result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac,
-    v8::Local<v8::Function> callback, bool skip_body)
+    v8::Local<v8::Function> callback, bool skip_body, bool urlEncodedDefault)
 {
     ac->m_ctx.resize(1);
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
     o->agent = this;
 
-    result_t hr = o->from_opts(method, url, opts, true, false, skip_body);
+    result_t hr = o->from_opts(method, url, opts, urlEncodedDefault, false, skip_body);
     if (hr < 0)
         return hr;
 
@@ -3105,10 +3118,19 @@ public:
 
     virtual int32_t error(int32_t v) override
     {
-        // Per Fetch spec, all fetch errors are TypeErrors
+        // Per Fetch spec, network errors are TypeErrors; an abort however keeps
+        // its AbortError/TimeoutError DOMException. Note that errType()/errMessage()
+        // consume the pending error state, so it must be restored explicitly.
+        ErrorType et = (v == CALL_E_EXCEPTION) ? Runtime::errType() : kError;
         exlib::string msg = (v == CALL_E_EXCEPTION)
             ? Runtime::errMessage()
             : getResultMessage(v);
+
+        if (et == kAbortError || et == kTimeoutError) {
+            Runtime::setError(et, CALL_E_EXCEPTION, msg);
+            return CALL_E_EXCEPTION;
+        }
+
         Runtime::setError(kTypeError, msg);
         return CALL_E_EXCEPTION;
     }
@@ -3120,7 +3142,7 @@ public:
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted) {
-                Runtime::setError(kTypeError, "AbortError");
+                setAbortError(m_o->signal.get());
                 return CALL_E_EXCEPTION;
             }
         }
@@ -3176,8 +3198,10 @@ result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     // Sync phase: parse v8::Local opts into ac->m_ctx as a single Options object.
+    // fetch follows the WHATWG defaults (string body -> text/plain;charset=UTF-8),
+    // http.request keeps the historical urlencoded default.
     if (ac->isSync())
-        return get_request_opts("GET", url, opts, ac);
+        return get_request_opts("GET", url, opts, ac, v8::Local<v8::Function>(), false, false);
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     return (new asyncFetch(o, retVal, ac))->post(0);
@@ -3194,7 +3218,7 @@ result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts
         obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
         o->agent = this;
 
-        result_t hr = o->from_opts(req_method, "", opts, true, true);
+        result_t hr = o->from_opts(req_method, "", opts, false, true);
         if (hr < 0)
             return hr;
 

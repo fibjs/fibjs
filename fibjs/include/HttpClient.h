@@ -163,7 +163,8 @@ public:
     result_t init(v8::Local<v8::Object> options);
     bool should_bypass_proxy(exlib::string hostname, int32_t port);
     result_t get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac,
-        v8::Local<v8::Function> callback = v8::Local<v8::Function>(), bool skip_body = false);
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>(), bool skip_body = false,
+        bool urlEncodedDefault = true);
     result_t requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(HttpRequest::Options* o, AsyncEvent* ac);
     result_t fire_request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,

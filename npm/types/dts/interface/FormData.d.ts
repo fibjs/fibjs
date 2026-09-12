@@ -98,11 +98,11 @@ declare class Class_FormData extends Class_HttpCollection {
      *      向表单中追加一个字段。如果同名字段已存在，则不会覆盖，允许同名多值。
      * 
      *      @param name 指定要添加的字段名
-     *      @param value 指定要添加的 Blob
+     *      @param value 指定要添加的 Blob/File，传入其他类型将抛出 TypeError
      *      @param filename 指定要添加的文件名
      *     
      */
-    append(name: string, value: Class_Blob, filename: string): void;
+    append(name: string, value: any, filename: string): void;
 
     /**
      * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
@@ -121,11 +121,11 @@ declare class Class_FormData extends Class_HttpCollection {
      *      设置表单字段。如果同名字段已存在，则只保留第一个并覆盖，移除其余同名字段。
      * 
      *      @param name 指定要设定的字段名
-     *      @param value 指定要设定的 Blob
+     *      @param value 指定要设定的 Blob/File，传入其他类型将抛出 TypeError
      *      @param filename 指定要设定的文件名
      *     
      */
-    set(name: string, value: Class_Blob, filename: string): void;
+    set(name: string, value: any, filename: string): void;
 
     /**
      * @description 将当前表单数据编码为 Buffer 对象

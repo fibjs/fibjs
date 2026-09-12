@@ -10,6 +10,7 @@
 #include "Message.h"
 #include "HttpCollection.h"
 #include "Headers.h"
+#include "ifs/FormData.h"
 #include "ifs/BufferedStream.h"
 
 namespace fibjs {
@@ -47,6 +48,7 @@ public:
     virtual result_t json(Variant& retVal, AsyncEvent* ac);
     virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
     virtual result_t pack(Variant& retVal, AsyncEvent* ac);
+    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac);
 
 public:
     result_t get_protocol(exlib::string& retVal);

@@ -82,6 +82,9 @@ public:
     // Clone this message - must be implemented by concrete subclasses
     virtual result_t clone(obj_ptr<Message_base>& retVal);
 
+    // Consume the message body once and hand the bytes to fn (internal helper).
+    result_t consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncEvent* ac);
+
     // Helper method to copy base Message properties to another Message instance
     void copyTo(Message* target);
     int32_t m_type;
