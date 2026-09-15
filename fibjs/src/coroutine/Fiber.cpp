@@ -49,11 +49,17 @@ void JSFiber::FiberProcRunJavascript(void* p)
                 isolate->m_idleFibers--;
             }
 
+            // Keep a spare worker fiber parked so a newly posted job always has
+            // someone to run it. With thread affinity all these fibers live on
+            // the isolate's dedicated service, so they share one OS thread.
             if (isolate->m_idleFibers == 0) {
                 isolate->m_currentFibers++;
                 isolate->m_idleFibers++;
 
-                exlib::Service::CreateFiber(FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
+                if (isolate->m_jsAffinity)
+                    exlib::Service::CreateFiber(isolate->m_jsService, FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
+                else
+                    exlib::Service::CreateFiber(FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
             }
 
             {
@@ -251,6 +257,9 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     m_pFiber->m_bind_thread = exlib::Thread_base::current();
 
     Isolate* isolate = m_pFiber->holder();
+
+    if (isolate->m_jsAffinity)
+        isolate->check_js_thread();
 
     isolate->m_fibers.putTail(m_pFiber);
     isolate->m_js_scope_depth++;

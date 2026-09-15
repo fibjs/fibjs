@@ -347,6 +347,18 @@ public:
 
     int64_t m_fid;
 
+    // Set when g_js_thread_affinity is on: all JS of this isolate runs inside
+    // fiber(s) created on m_jsService, a dedicated single-thread service, so
+    // the OS thread that executes JS never changes. Other (C++) fibers keep
+    // using the shared service pool.
+    bool m_jsAffinity = false;
+    exlib::Service* m_jsService = NULL;
+
+    // Development aid: abort when some native path enters a JS scope of this
+    // isolate on a thread other than its dedicated one. Enabled with
+    // FIBJS_JS_THREAD_AFFINITY_CHECK=1.
+    void check_js_thread();
+
     int64_t m_flake_tm;
     int32_t m_flake_host;
     int32_t m_flake_count;

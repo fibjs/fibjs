@@ -34,6 +34,15 @@ extern bool g_openssl_legacy_provider;
 
 extern bool g_use_env_proxy;
 
+// Every isolate runs all of its JS on one dedicated OS thread by default, which
+// matches the Node.js contract that N-API addons assume (one napi_env == one OS
+// thread) and keeps addons that store state in OS thread-local storage working.
+//
+// Pass --no-js-thread-affinity to schedule the fibers of one isolate across the
+// shared thread pool again: more JS parallelism for CPU bound fibers, but
+// thread-local state inside an addon is not reliable.
+extern bool g_js_thread_affinity;
+
 struct OptData {
     const char* name;
     int32_t size;

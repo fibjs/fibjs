@@ -230,7 +230,46 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     if (g_use_env_proxy)
         m_httpclient->setEnvProxy();
 
-    exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
+    if (g_js_thread_affinity) {
+        // Pin all JS of this isolate to one OS thread, so N-API addons that keep
+        // state in thread-local storage observe a stable thread (the contract
+        // every addon written for Node.js assumes).
+        m_jsAffinity = true;
+        m_jsService = exlib::Service::createDedicated();
+        exlib::Service::CreateFiber(m_jsService, FiberProcIsolate, this, stack_size * 1024, "JSFiber");
+    } else
+        exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
+}
+
+void Isolate::check_js_thread()
+{
+    static int32_t s_check = -1;
+
+    if (s_check < 0) {
+        const char* v = ::getenv("FIBJS_JS_THREAD_AFFINITY_CHECK");
+        s_check = (v && *v && *v != '0') ? 1 : 0;
+    }
+
+    if (s_check != 1)
+        return;
+
+    if (exlib::OSThread::current() == m_jsService)
+        return;
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, "!!! THREAD AFFINITY VIOLATED !!!\n");
+    fprintf(stderr, "  isolate %p entered a JS scope on %p, but its dedicated thread is %p\n",
+        (void*)this, (void*)exlib::OSThread::current(), (void*)m_jsService);
+    fprintf(stderr, "  This means some native path runs JS outside FiberProcRunJavascript.\n");
+    fflush(stderr);
+
+    exlib::string stack = traceInfo(m_isolate, 30);
+
+    if (!stack.empty())
+        fprintf(stderr, "%s\n", stack.c_str());
+
+    fflush(stderr);
+    abort();
 }
 
 Isolate* Isolate::current()

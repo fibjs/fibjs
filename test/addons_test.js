@@ -2335,6 +2335,92 @@ describe('addons api', () => {
             ev.wait();
         }
     });
+
+    // fibjs runs the JS fibers of one isolate on a pool of worker threads, so an
+    // addon that keeps state in OS thread-local storage sees that state only on
+    // the thread that wrote it. This addon models the napi-rs pattern of caching
+    // every class constructor in a `thread_local` map at module registration.
+    it('test_thread_local', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_thread_local.node'));
+        const binding = module.exports;
+
+        // Module registration ran exactly once, on the require() thread.
+        assert.strictEqual(binding.registrationCount(), 1);
+        const registrationThread = binding.registrationThreadId();
+        assert.strictEqual(typeof registrationThread, 'number');
+
+        // Process-global state is visible from every thread.
+        assert.strictEqual(binding.setGlobal(0x1234), 0);
+        assert.strictEqual(binding.getGlobal(), 0x1234);
+
+        // Invariant: the constructor lookup only succeeds on the thread that ran
+        // module registration, because the registry lives in thread-local storage.
+        function checkLookupOnCurrentThread(tid) {
+            let lookupOk = true;
+
+            try {
+                binding.lookupClass('CanvasRenderingContext2D');
+            } catch (e) {
+                lookupOk = false;
+                assert.strictEqual(e.code, 'InvalidArg');
+                assert.ok(/Failed to get constructor of class/.test(e.message));
+            }
+
+            assert.strictEqual(lookupOk, tid === registrationThread);
+        }
+
+        const firstThread = binding.threadId();
+        checkLookupOnCurrentThread(firstThread);
+        binding.resetTls(0x5A5A);
+        assert.strictEqual(binding.getTls(), 0x5A5A);
+
+        // Suspend the fiber. fibjs resumes it on whichever worker thread of the
+        // isolate becomes free first, so it may come back on another thread.
+        coroutine.sleep(1);
+
+        const secondThread = binding.threadId();
+        checkLookupOnCurrentThread(secondThread);
+
+        if (secondThread === firstThread) {
+            // Same thread: the thread-local value written before the suspension
+            // is still there.
+            assert.strictEqual(binding.getTls(), 0x5A5A);
+        }
+
+        // Same invariant for freshly started fibers. Whether the scheduler keeps
+        // them on the registration thread or not, the lookup result must always
+        // agree with the thread the fiber is running on.
+        const fibers = [];
+        const observations = [];
+        for (let i = 0; i < 16; i++) {
+            fibers.push(coroutine.start(function () {
+                coroutine.sleep(1);
+
+                const tid = binding.threadId();
+                let lookupOk = true;
+                try {
+                    binding.lookupClass('CanvasRenderingContext2D');
+                } catch (e) {
+                    lookupOk = false;
+                    assert.strictEqual(e.code, 'InvalidArg');
+                }
+
+                observations.push({
+                    tid: tid,
+                    lookupOk: lookupOk
+                });
+            }));
+        }
+        fibers.forEach(f => f.join());
+
+        assert.strictEqual(observations.length, 16);
+        for (const observation of observations)
+            assert.strictEqual(observation.lookupOk,
+                observation.tid === registrationThread);
+    });
 });
 
 
