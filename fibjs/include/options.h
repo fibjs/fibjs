@@ -56,4 +56,13 @@ struct OptData {
 };
 
 extern const OptData opt_tools[];
+
+// Embedded JS modules (opt_tools) which are visible to user code, such as
+// "stream", "readline" or "timers/promises". Modules stored under these
+// prefixes are internal helpers and must not be exposed.
+inline bool is_user_opt_tool(const char* name)
+{
+    return qstrcmp(name, "internal/", 9) != 0 && qstrcmp(name, "opt_tools/", 10) != 0 &&
+        qstrcmp(name, "_stream_", 8) != 0;
+}
 }

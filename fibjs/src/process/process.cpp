@@ -535,9 +535,11 @@ static bool isBuiltinModuleName(Isolate* isolate, exlib::string name)
     if (findNativeModule(name) || name == "buffer")
         return true;
 
-    // Fixed sub-path builtin modules
-    if (name == "assert/strict" || name == "util/types" || name == "path/posix" ||
-        name == "path/win32")
+    // Modules created by the sandbox itself instead of a native module:
+    // "module" is built by SandBox::initModule, the sub-path modules by
+    // SandBox::addBuiltinModules
+    if (name == "module" || name == "assert/strict" || name == "util/types" ||
+        name == "path/posix" || name == "path/win32")
         return true;
 
     // "<native>/promises" sub-path modules. A native module exposing a promise
@@ -557,12 +559,8 @@ static bool isBuiltinModuleName(Isolate* isolate, exlib::string name)
     // Embedded JS builtin modules such as "stream", "readline/promises" or
     // "timers/promises", except internal ones
     for (intptr_t i = 0; opt_tools[i].name; i++)
-        if (!qstrcmp(opt_tools[i].name, q)) {
-            const char* n = opt_tools[i].name;
-
-            return qstrcmp(n, "internal/", 9) && qstrcmp(n, "opt_tools/", 10) &&
-                qstrcmp(n, "_stream_", 8);
-        }
+        if (!qstrcmp(opt_tools[i].name, q))
+            return is_user_opt_tool(opt_tools[i].name);
 
     return false;
 }
@@ -571,15 +569,21 @@ result_t process_base::getBuiltinModule(exlib::string id, v8::Local<v8::Value>& 
 {
     Isolate* isolate = Isolate::current();
 
-    // Builtin module ids may be given with or without the "node:" prefix.
+    // Builtin module ids may be given with or without the "node:" prefix,
+    // "fibjs:" is accepted as well for symmetry with require()
     // NOTE: must not assign from a pointer into the string itself (aliasing),
     // use substr() to build the stripped copy.
     exlib::string name = id;
     if (!qstrcmp(name.c_str(), "node:", 5))
         name = name.substr(5);
+    else if (!qstrcmp(name.c_str(), "fibjs:", 6))
+        name = name.substr(6);
 
     // Not a builtin module, return undefined instead of throwing
     if (!isBuiltinModuleName(isolate, name))
+        return 0;
+
+    if (!isolate->m_topSandbox)
         return 0;
 
     // Resolve through the top-level sandbox so that the returned module object

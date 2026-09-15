@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/module.h"
+#include "options.h"
 
 namespace fibjs {
 
@@ -23,7 +24,7 @@ result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
     builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("buffer")).IsJust();
     builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("node:buffer")).IsJust();
 
-    // Add all other builtin modules
+    // Add all other native builtin modules
     while (pModule) {
         const char* name = pModule->name();
         builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(name)).IsJust();
@@ -36,13 +37,30 @@ result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
         pModule = pModule->m_next;
     }
 
+    // "module" is created by SandBox::initModule instead of a native module
+    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("module")).IsJust();
+    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("node:module")).IsJust();
+
+    // Add the embedded JS builtin modules, such as "stream", "readline" or
+    // "timers/promises"
+    for (intptr_t i = 0; opt_tools[i].name; i++) {
+        const char* name = opt_tools[i].name;
+
+        if (!is_user_opt_tool(name))
+            continue;
+
+        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(name)).IsJust();
+
+        exlib::string node_name = "node:";
+        node_name.append(name);
+        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(node_name)).IsJust();
+    }
+
     // Add sub-path builtin modules (Node.js compatibility)
     static const char* s_subpaths[] = {
         "assert/strict", "util/types",
         "path/posix", "path/win32",
-        "fs/promises", "dns/promises",
-        "stream/promises", "timers/promises", "readline/promises",
-        "stream/web"
+        "fs/promises", "dns/promises"
     };
 
     for (size_t i = 0; i < sizeof(s_subpaths) / sizeof(s_subpaths[0]); i++) {

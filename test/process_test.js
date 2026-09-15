@@ -389,6 +389,20 @@ describe('process', () => {
             assert.strictEqual(process.getBuiltinModule('buffer'), require('buffer'));
         });
 
+        it("supports the module builtin", () => {
+            assert.strictEqual(process.getBuiltinModule('module'), require('module'));
+            assert.strictEqual(process.getBuiltinModule('node:module'), require('module'));
+            assert.strictEqual(process.getBuiltinModule('fibjs:module'), require('module'));
+            assert.isFunction(process.getBuiltinModule('module').createRequire);
+            assert.ok(Array.isArray(process.getBuiltinModule('module').builtinModules));
+        });
+
+        it("accepts the fibjs: prefix", () => {
+            assert.strictEqual(process.getBuiltinModule('fibjs:fs'), require('fibjs:fs'));
+            assert.isFunction(process.getBuiltinModule('fibjs:stream'));
+            assert.isUndefined(process.getBuiltinModule('fibjs:not/a/builtin'));
+        });
+
         it("supports path sub-path modules", () => {
             assert.strictEqual(process.getBuiltinModule('path/posix'), require('path').posix);
             assert.strictEqual(process.getBuiltinModule('node:path/posix'), require('path').posix);

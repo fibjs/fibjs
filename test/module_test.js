@@ -644,5 +644,26 @@ describe("module", () => {
             assert.ok(builtins.includes('fs/promises'));
             assert.ok(builtins.includes('timers/promises'));
         });
+
+        it("should contain the module builtin and the embedded JS modules", () => {
+            var module = require('module');
+            var builtins = module.builtinModules;
+
+            assert.ok(builtins.includes('module'));
+            assert.ok(builtins.includes('node:module'));
+            assert.ok(builtins.includes('stream'));
+            assert.ok(builtins.includes('node:stream'));
+            assert.ok(builtins.includes('readline'));
+            assert.ok(builtins.includes('stream/web'));
+            assert.ok(builtins.includes('diagnostics_channel'));
+            assert.ok(builtins.includes('inspector'));
+        });
+
+        it("should not contain duplicated entries", () => {
+            var module = require('module');
+            var builtins = module.builtinModules;
+
+            assert.strictEqual(builtins.length, new Set(builtins).size);
+        });
     });
 });

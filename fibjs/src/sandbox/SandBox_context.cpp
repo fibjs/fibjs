@@ -252,9 +252,11 @@ void SandBox::initModule()
         (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
 
-    add("module", _mod);
-    add("node:module", _mod);
-    add("fibjs:module", _mod);
+    // InstallModule is used instead of add() so that every prefix returns the
+    // very same module object, as it does for all other builtin modules
+    InstallModule("module", _mod);
+    InstallModule("node:module", _mod);
+    InstallModule("fibjs:module", _mod);
 }
 
 }
