@@ -222,7 +222,7 @@ struct napi_env__ {
     CHECK_ARG((env), (src));                                                   \
     auto maybe = v8impl::V8LocalValueFromJsValue((src))->To##type((context));  \
     CHECK_MAYBE_EMPTY((env), maybe, (status));                                 \
-    (result) = maybe.ToLocalChecked();                                         \
+    RETURN_STATUS_IF_FALSE((env), maybe.ToLocal(&(result)), (status));         \
   } while (0)
 
 #define CHECK_TO_TYPE_WITH_PREAMBLE(env, type, context, result, src, status)   \
@@ -230,7 +230,8 @@ struct napi_env__ {
     CHECK_ARG_WITH_PREAMBLE((env), (src));                                     \
     auto maybe = v8impl::V8LocalValueFromJsValue((src))->To##type((context));  \
     CHECK_MAYBE_EMPTY_WITH_PREAMBLE((env), maybe, (status));                   \
-    (result) = maybe.ToLocalChecked();                                         \
+    RETURN_STATUS_IF_FALSE_WITH_PREAMBLE(                                      \
+        (env), maybe.ToLocal(&(result)), (status));                            \
   } while (0)
 
 #define CHECK_TO_FUNCTION(env, result, src)                                    \

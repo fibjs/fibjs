@@ -808,7 +808,11 @@ napi_status NAPI_CDECL napi_make_callback(napi_env env,
     } else {
         CHECK_MAYBE_EMPTY(env, callback_result, napi_generic_failure);
         if (result != nullptr) {
-            *result = v8impl::JsValueFromV8LocalValue(callback_result.ToLocalChecked());
+            v8::Local<v8::Value> callback_value;
+            RETURN_STATUS_IF_FALSE(env,
+                callback_result.ToLocal(&callback_value),
+                napi_generic_failure);
+            *result = v8impl::JsValueFromV8LocalValue(callback_value);
         }
     }
 
@@ -827,7 +831,8 @@ napi_status NAPI_CDECL napi_create_buffer(napi_env env,
 
     CHECK_MAYBE_EMPTY(env, maybe, napi_generic_failure);
 
-    v8::Local<v8::Object> buffer = maybe.ToLocalChecked();
+    v8::Local<v8::Object> buffer;
+    RETURN_STATUS_IF_FALSE(env, maybe.ToLocal(&buffer), napi_generic_failure);
 
     *result = v8impl::JsValueFromV8LocalValue(buffer);
 
@@ -865,7 +870,9 @@ napi_status NAPI_CDECL napi_create_external_buffer(napi_env env,
 
     CHECK_MAYBE_EMPTY(env, maybe, napi_generic_failure);
 
-    *result = v8impl::JsValueFromV8LocalValue(maybe.ToLocalChecked());
+    v8::Local<v8::Object> buffer;
+    RETURN_STATUS_IF_FALSE(env, maybe.ToLocal(&buffer), napi_generic_failure);
+    *result = v8impl::JsValueFromV8LocalValue(buffer);
     return GET_RETURN_STATUS(env);
     // Tell coverity that 'finalizer' should not be freed when we return
     // as it will be deleted when the buffer to which it is associated
@@ -886,7 +893,8 @@ napi_status NAPI_CDECL napi_create_buffer_copy(napi_env env,
 
     CHECK_MAYBE_EMPTY(env, maybe, napi_generic_failure);
 
-    v8::Local<v8::Object> buffer = maybe.ToLocalChecked();
+    v8::Local<v8::Object> buffer;
+    RETURN_STATUS_IF_FALSE(env, maybe.ToLocal(&buffer), napi_generic_failure);
     *result = v8impl::JsValueFromV8LocalValue(buffer);
 
     if (result_data != nullptr) {

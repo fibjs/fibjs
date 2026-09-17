@@ -597,17 +597,27 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     v8::Local<v8::Context> context = isolate->context();
 
     if (warning->IsString() || warning->IsStringObject()) {
-        warning = v8::Exception::Error(warning.As<v8::String>());
+        v8::Local<v8::String> msg = warning->ToString(context).FromMaybe(v8::Local<v8::String>());
+        if (msg.IsEmpty())
+            return CALL_E_TYPEMISMATCH;
+        warning = v8::Exception::Error(msg);
     } else if (!warning->IsNativeError())
         return CALL_E_BADVARTYPE;
     v8::Local<v8::Object> opts = warning.As<v8::Object>();
+    if (opts.IsEmpty())
+        return CALL_E_BADVARTYPE;
 
     exlib::string type("Warning");
     GetConfigValue(options, "type", type, true);
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
 
-    opts->Set(context, isolate->NewString("code"), options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>())).IsJust();
-    opts->Set(context, isolate->NewString("detail"), options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>())).IsJust();
+    v8::Local<v8::Value> code = options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>());
+    if (!code.IsEmpty())
+        opts->Set(context, isolate->NewString("code"), code).IsJust();
+
+    v8::Local<v8::Value> detail = options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>());
+    if (!detail.IsEmpty())
+        opts->Set(context, isolate->NewString("detail"), detail).IsJust();
 
     v8::Local<v8::Value> v = opts;
     (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
@@ -621,10 +631,15 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string t
     v8::Local<v8::Context> context = isolate->context();
 
     if (warning->IsString() || warning->IsStringObject()) {
-        warning = v8::Exception::Error(warning.As<v8::String>());
+        v8::Local<v8::String> msg = warning->ToString(context).FromMaybe(v8::Local<v8::String>());
+        if (msg.IsEmpty())
+            return CALL_E_TYPEMISMATCH;
+        warning = v8::Exception::Error(msg);
     } else if (!warning->IsNativeError())
         return CALL_E_BADVARTYPE;
     v8::Local<v8::Object> opts = warning.As<v8::Object>();
+    if (opts.IsEmpty())
+        return CALL_E_BADVARTYPE;
 
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
     opts->Set(context, isolate->NewString("code"), isolate->NewString(code)).IsJust();

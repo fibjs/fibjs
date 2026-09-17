@@ -431,6 +431,9 @@ struct async_context {
 inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
     v8::Local<v8::Function> callback, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
 {
+    if (isolate->IsExecutionTerminating())
+        return v8::Local<v8::Value>();
+
     // Observe the following two subtleties:
     //
     // 1. The environment is retrieved from the callback function's context.
@@ -438,10 +441,20 @@ inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8
     //
     // Because of the AssignToContext() call in src/node_contextify.cc,
     // the two contexts need not be the same.
-    Environment* env = Environment::GetCurrent(callback->GetCreationContext().ToLocalChecked());
-    CHECK_NOT_NULL(env);
-    v8::Context::Scope context_scope(env->context());
-    v8::MaybeLocal<v8::Value> ret = callback->Call(env->context(), recv, argc, argv);
+    v8::Local<v8::Context> callback_context;
+    if (!callback->GetCreationContext().ToLocal(&callback_context) || callback_context.IsEmpty())
+        return v8::Local<v8::Value>();
+
+    Environment* env = Environment::GetCurrent(callback_context);
+    if (env == nullptr || !env->can_call_into_js())
+        return v8::Local<v8::Value>();
+
+    v8::Local<v8::Context> env_context = env->context();
+    if (env_context.IsEmpty())
+        return v8::Local<v8::Value>();
+
+    v8::Context::Scope context_scope(env_context);
+    v8::MaybeLocal<v8::Value> ret = callback->Call(env_context, recv, argc, argv);
     if (ret.IsEmpty()) {
         // This is only for legacy compatibility and we may want to look into
         // removing/adjusting it.
@@ -453,10 +466,16 @@ inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8
 inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
     v8::Local<v8::String> symbol, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
 {
+    if (isolate->IsExecutionTerminating())
+        return v8::Local<v8::Value>();
+
     // Check can_call_into_js() first because calling Get() might do so.
-    Environment* env = Environment::GetCurrent(recv->GetCreationContext().ToLocalChecked());
-    CHECK_NOT_NULL(env);
-    if (!env->can_call_into_js())
+    v8::Local<v8::Context> recv_context;
+    if (!recv->GetCreationContext().ToLocal(&recv_context) || recv_context.IsEmpty())
+        return v8::Local<v8::Value>();
+
+    Environment* env = Environment::GetCurrent(recv_context);
+    if (env == nullptr || !env->can_call_into_js())
         return v8::Local<v8::Value>();
 
     v8::Local<v8::Value> callback_v;
@@ -474,7 +493,9 @@ inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8
 inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
     const char* method, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
 {
-    v8::Local<v8::String> method_string = v8::String::NewFromUtf8(isolate, method).ToLocalChecked();
+    v8::Local<v8::String> method_string;
+    if (!v8::String::NewFromUtf8(isolate, method).ToLocal(&method_string))
+        return v8::Local<v8::Value>();
     return MakeCallback(isolate, recv, method_string, argc, argv, asyncContext);
 }
 

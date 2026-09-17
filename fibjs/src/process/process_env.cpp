@@ -118,7 +118,12 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
     if (isolate->m_env.IsEmpty()) {
         v8::Local<v8::FunctionTemplate> templ = v8::FunctionTemplate::New(isolate->m_isolate);
         templ->InstanceTemplate()->SetHandler(v8::NamedPropertyHandlerConfiguration(GetEnv, SetEnv, QueryEnv, DelEnv, EnumEnv));
-        v8::Local<v8::Object> o = templ->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
+        v8::Local<v8::Function> ctor;
+        v8::Local<v8::Object> o;
+        if (!templ->GetFunction(context).ToLocal(&ctor)
+            || !ctor->NewInstance(context).ToLocal(&o))
+            return CALL_E_JAVASCRIPT;
+
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else

@@ -54,8 +54,12 @@ inline v8::Local<v8::Map> cloneAsyncContext(Isolate* isolate)
             v8::MaybeLocal<v8::Value> maybeValue = entries->Get(context, i + 1);
             if (maybeValue.IsEmpty())
                 return v8::Local<v8::Map>();
-            v8::Local<v8::Value> key = maybeKey.ToLocalChecked();
-            v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
+            v8::Local<v8::Value> key;
+            if (!maybeKey.ToLocal(&key))
+                return v8::Local<v8::Map>();
+            v8::Local<v8::Value> value;
+            if (!maybeValue.ToLocal(&value))
+                return v8::Local<v8::Map>();
             v8::MaybeLocal<v8::Map> setResult = newCtx->Set(context, key, value);
             if (setResult.IsEmpty())
                 return v8::Local<v8::Map>();

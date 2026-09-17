@@ -43,7 +43,7 @@
         CHECK_ARG((env), (src));                                                    \
         auto maybe = v8impl::V8LocalValueFromJsValue((src)) -> To##type((context)); \
         CHECK_MAYBE_EMPTY((env), maybe, (status));                                  \
-        (result) = maybe.ToLocalChecked();                                          \
+        RETURN_STATUS_IF_FALSE((env), maybe.ToLocal(&(result)), (status));          \
     } while (0)
 
 #define CHECK_TO_OBJECT(env, context, result, src) \
@@ -61,7 +61,7 @@
             v8::NewStringType::kInternalized,                                      \
             static_cast<int>(len));                                                \
         CHECK_MAYBE_EMPTY((env), str_maybe, napi_generic_failure);                 \
-        (result) = str_maybe.ToLocalChecked();                                     \
+        RETURN_STATUS_IF_FALSE((env), str_maybe.ToLocal(&(result)), napi_generic_failure); \
     } while (0)
 
 #define CHECK_NEW_FROM_UTF8(env, result, str) \
@@ -117,7 +117,7 @@
         CHECK_ARG_WITH_PREAMBLE((env), (src));                                      \
         auto maybe = v8impl::V8LocalValueFromJsValue((src)) -> To##type((context)); \
         CHECK_MAYBE_EMPTY_WITH_PREAMBLE((env), maybe, (status));                    \
-        (result) = maybe.ToLocalChecked();                                          \
+        RETURN_STATUS_IF_FALSE_WITH_PREAMBLE((env), maybe.ToLocal(&(result)), (status)); \
     } while (0)
 
 #define CHECK_TO_OBJECT_WITH_PREAMBLE(env, context, result, src) \
@@ -152,8 +152,11 @@
 inline v8::Local<v8::Private> napi_private_key(v8::Local<v8::Context> context, const char* name)
 {
     v8::Isolate* isolate = context->GetIsolate();
-    return v8::Private::ForApi(isolate,
-        v8::String::NewFromUtf8(isolate, name).FromMaybe(v8::Local<v8::String>()));
+    v8::Local<v8::String> key_name;
+    if (!v8::String::NewFromUtf8(isolate, name).ToLocal(&key_name) || key_name.IsEmpty())
+        return v8::Local<v8::Private>();
+
+    return v8::Private::ForApi(isolate, key_name);
 }
 
 #define NAPI_PRIVATE_KEY(context, suffix) napi_private_key(context, #suffix)

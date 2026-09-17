@@ -442,8 +442,9 @@ namespace {
         RETURN_STATUS_IF_FALSE(env, value->IsObject(), napi_invalid_arg);
         v8::Local<v8::Object> obj = value.As<v8::Object>();
 
-        auto val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-                       .ToLocalChecked();
+        auto maybe_val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper));
+        CHECK_MAYBE_EMPTY(env, maybe_val, napi_generic_failure);
+        v8::Local<v8::Value> val = maybe_val.ToLocalChecked();
         RETURN_STATUS_IF_FALSE(env, val->IsExternal(), napi_invalid_arg);
         Reference* reference = static_cast<v8impl::Reference*>(val.As<v8::External>()->Value());
 
@@ -452,8 +453,11 @@ namespace {
         }
 
         if (action == RemoveWrap) {
-            CHECK(obj->DeletePrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-                      .FromJust());
+            auto maybe_deleted = obj->DeletePrivate(
+                context, NAPI_PRIVATE_KEY(context, wrapper));
+            CHECK_MAYBE_NOTHING(env, maybe_deleted, napi_generic_failure);
+            RETURN_STATUS_IF_FALSE(
+                env, maybe_deleted.FromJust(), napi_generic_failure);
             if (reference->ownership() == Ownership::kUserland) {
                 // When the wrap is been removed, the finalizer should be reset.
                 reference->ResetFinalizer();
@@ -668,10 +672,9 @@ namespace {
         v8::Local<v8::Object> obj = value.As<v8::Object>();
 
         // If we've already wrapped this object, we error out.
-        RETURN_STATUS_IF_FALSE(
-            env,
-            !obj->HasPrivate(context, NAPI_PRIVATE_KEY(context, wrapper)).FromJust(),
-            napi_invalid_arg);
+        auto maybe_has = obj->HasPrivate(context, NAPI_PRIVATE_KEY(context, wrapper));
+        CHECK_MAYBE_NOTHING(env, maybe_has, napi_generic_failure);
+        RETURN_STATUS_IF_FALSE(env, !maybe_has.FromJust(), napi_invalid_arg);
 
         v8impl::Reference* reference = nullptr;
         if (result != nullptr) {
@@ -700,10 +703,12 @@ namespace {
                 finalize_cb == nullptr ? nullptr : finalize_hint);
         }
 
-        CHECK(obj->SetPrivate(context,
-                     NAPI_PRIVATE_KEY(context, wrapper),
-                     v8::External::New(env->isolate, reference))
-                  .FromJust());
+        auto maybe_set = obj->SetPrivate(context,
+            NAPI_PRIVATE_KEY(context, wrapper),
+            v8::External::New(env->isolate, reference));
+        CHECK_MAYBE_NOTHING(env, maybe_set, napi_generic_failure);
+        RETURN_STATUS_IF_FALSE(
+            env, maybe_set.FromJust(), napi_generic_failure);
 
         return GET_RETURN_STATUS(env);
     }
@@ -1110,8 +1115,10 @@ napi_define_class(napi_env env,
     }
 
     v8::Local<v8::Context> context = env->context();
+    v8::MaybeLocal<v8::Function> maybe_klass = tpl->GetFunction(context);
+    CHECK_MAYBE_EMPTY(env, maybe_klass, napi_generic_failure);
     *result = v8impl::JsValueFromV8LocalValue(
-        scope.Escape(tpl->GetFunction(context).ToLocalChecked()));
+        scope.Escape(maybe_klass.ToLocalChecked()));
 
     if (static_property_count > 0) {
         std::vector<napi_property_descriptor> static_descriptors;
@@ -2383,7 +2390,9 @@ napi_status NAPI_CDECL napi_get_value_int32(napi_env env,
 
         // Empty context: https://github.com/nodejs/node/issues/14379
         v8::Local<v8::Context> context;
-        *result = val->Int32Value(context).FromJust();
+        auto maybe_int32 = val->Int32Value(context);
+        CHECK_MAYBE_NOTHING(env, maybe_int32, napi_generic_failure);
+        *result = maybe_int32.FromJust();
     }
 
     return napi_clear_last_error(env);
@@ -2409,7 +2418,9 @@ napi_status NAPI_CDECL napi_get_value_uint32(napi_env env,
 
         // Empty context: https://github.com/nodejs/node/issues/14379
         v8::Local<v8::Context> context;
-        *result = val->Uint32Value(context).FromJust();
+        auto maybe_uint32 = val->Uint32Value(context);
+        CHECK_MAYBE_NOTHING(env, maybe_uint32, napi_generic_failure);
+        *result = maybe_uint32.FromJust();
     }
 
     return napi_clear_last_error(env);
@@ -2443,7 +2454,9 @@ napi_status NAPI_CDECL napi_get_value_int64(napi_env env,
     if (std::isfinite(doubleValue)) {
         // Empty context: https://github.com/nodejs/node/issues/14379
         v8::Local<v8::Context> context;
-        *result = val->IntegerValue(context).FromJust();
+        auto maybe_int64 = val->IntegerValue(context);
+        CHECK_MAYBE_NOTHING(env, maybe_int64, napi_generic_failure);
+        *result = maybe_int64.FromJust();
     } else {
         *result = 0;
     }
@@ -3709,7 +3722,9 @@ napi_status NAPI_CDECL napi_detach_arraybuffer(napi_env env,
     RETURN_STATUS_IF_FALSE(
         env, it->IsDetachable(), napi_detachable_arraybuffer_expected);
 
-    it->Detach(v8::Local<v8::Value>()).Check();
+    auto maybe_detached = it->Detach(v8::Local<v8::Value>());
+    RETURN_STATUS_IF_FALSE(
+        env, maybe_detached.FromMaybe(false), napi_generic_failure);
 
     return napi_clear_last_error(env);
 }

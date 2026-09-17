@@ -24,7 +24,7 @@ static void setDefaultEncoding(v8::Local<v8::Object>& options, const char* encod
     v8::Local<v8::String> key = isolate->NewString("encoding");
 
     if (!options->Has(context, key).FromMaybe(false))
-        options->Set(context, key, isolate->NewString(encoding)).Check();
+        options->Set(context, key, isolate->NewString(encoding)).FromMaybe(false);
 }
 
 // Helper function to throw execSync/execFileSync error when child process exits with non-zero code
@@ -35,10 +35,11 @@ static void throwExecSyncError(const exlib::string& command, int32_t exitCode,
     v8::Local<v8::Context> context = isolate->context();
 
     exlib::string error_msg = "Command failed: " + command;
-    v8::Local<v8::Object> error_obj = v8::Exception::Error(
-        isolate->NewString(error_msg))
-                                          ->ToObject(context)
-                                          .ToLocalChecked();
+    v8::Local<v8::Object> error_obj;
+    if (!v8::Exception::Error(isolate->NewString(error_msg))
+             ->ToObject(context)
+             .ToLocal(&error_obj))
+        return;
 
     // Set error properties to match Node.js behavior
     error_obj->Set(context, isolate->NewString("status"),
