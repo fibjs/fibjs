@@ -2488,6 +2488,48 @@ describe('addons api', () => {
         for (const observation of observations)
             assert.strictEqual(observation.lookupOk,
                 observation.tid === registrationThread);
+
+        // Async work completion must also run on the registration thread, or a
+        // napi-rs style thread-local registry would be invisible there too.
+        {
+            const ev = new coroutine.Event();
+            let observation = null;
+
+            binding.runAsync(function (tid, registry, registryThread) {
+                observation = {
+                    tid: tid,
+                    registry: registry,
+                    registryThread: registryThread
+                };
+                ev.set();
+            });
+
+            ev.wait();
+            assert.strictEqual(observation.tid, registrationThread);
+            assert.strictEqual(observation.registry, 0x52454743);
+            assert.strictEqual(observation.registryThread, registrationThread);
+        }
+
+        // The same invariant for threadsafe-function dispatch: the JS marshaller
+        // callback must see the same TLS-backed class registry.
+        {
+            const ev = new coroutine.Event();
+            let observation = null;
+
+            binding.runThreadsafe(function (tid, registry, registryThread) {
+                observation = {
+                    tid: tid,
+                    registry: registry,
+                    registryThread: registryThread
+                };
+                ev.set();
+            });
+
+            ev.wait();
+            assert.strictEqual(observation.tid, registrationThread);
+            assert.strictEqual(observation.registry, 0x52454743);
+            assert.strictEqual(observation.registryThread, registrationThread);
+        }
     });
 });
 

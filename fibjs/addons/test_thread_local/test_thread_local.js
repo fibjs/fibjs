@@ -150,7 +150,39 @@ if (lookup.first_error)
         + ' (code=' + lookup.first_error.code + ')');
 
 // ---------------------------------------------------------------------------
-// 4. Contrast: process-global state is never affected.
+// 4. Async callback paths must observe the same thread-local registry.
+// ---------------------------------------------------------------------------
+function check_async_callback(trigger) {
+    const ev = new coroutine.Event();
+    let result = null;
+
+    trigger(function (thread, registry, registry_tid) {
+        result = {
+            thread: thread,
+            registry: registry,
+            registry_tid: registry_tid,
+        };
+        ev.set();
+    });
+
+    ev.wait();
+    return result;
+}
+
+const asyncWork = check_async_callback(binding.runAsync);
+const tsfn = check_async_callback(binding.runThreadsafe);
+
+console.log('');
+console.log('[4] async callback paths:');
+console.log('    async work complete thread    : ' + asyncWork.thread);
+console.log('    async work registry           : ' + asyncWork.registry);
+console.log('    async work registry thread    : ' + asyncWork.registry_tid);
+console.log('    TSFN call_js thread           : ' + tsfn.thread);
+console.log('    TSFN registry                 : ' + tsfn.registry);
+console.log('    TSFN registry thread          : ' + tsfn.registry_tid);
+
+// ---------------------------------------------------------------------------
+// 5. Contrast: process-global state is never affected.
 // ---------------------------------------------------------------------------
 let global_lost = 0;
 for (let i = 0; i < 20; i++) {
@@ -166,7 +198,14 @@ console.log('[4] process-global value lost    : ' + global_lost + ' / 20');
 // Summary
 // ---------------------------------------------------------------------------
 console.log('');
-if (tls.lost === 0 && lookup.failed === 0) {
+if (tls.lost === 0
+    && lookup.failed === 0
+    && asyncWork.thread === reg_tid
+    && asyncWork.registry === 0x52454743
+    && asyncWork.registry_tid === reg_tid
+    && tsfn.thread === reg_tid
+    && tsfn.registry === 0x52454743
+    && tsfn.registry_tid === reg_tid) {
     console.log('RESULT: no thread-local loss observed in this run.');
     console.log('        (retry a few times, the scheduler placement is probabilistic)');
 } else {

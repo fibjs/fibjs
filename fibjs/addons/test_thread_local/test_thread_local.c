@@ -52,9 +52,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <node_api.h>
+#include <uv.h>
 #include "../common.h"
 
 #ifdef _WIN32
@@ -97,11 +99,28 @@ static int64_t s_registration_count;
 /* Real process-global state, for contrast. */
 static int64_t s_global_value;
 
+typedef struct {
+    napi_async_work work;
+    napi_ref cb_ref;
+} async_work_ctx;
+
+typedef struct {
+    napi_threadsafe_function tsfn;
+    uv_thread_t thread;
+} tsfn_ctx;
+
 static napi_value create_int64(napi_env env, int64_t value)
 {
     napi_value result;
     NODE_API_CALL(env, napi_create_int64(env, value, &result));
     return result;
+}
+
+static void create_thread_snapshot_argv(napi_env env, napi_value argv[3])
+{
+    argv[0] = create_int64(env, os_thread_id());
+    argv[1] = create_int64(env, tls_registry);
+    argv[2] = create_int64(env, tls_registry_tid);
 }
 
 static napi_value ThreadId(napi_env env, napi_callback_info info)
@@ -174,6 +193,130 @@ static napi_value RegistryThreadId(napi_env env, napi_callback_info info)
     return create_int64(env, tls_registry_tid);
 }
 
+static void async_execute(napi_env env, void* data)
+{
+    (void)env;
+    (void)data;
+}
+
+static void async_complete(napi_env env, napi_status status, void* data)
+{
+    async_work_ctx* ctx = (async_work_ctx*)data;
+    napi_value cb;
+    napi_value undefined;
+    napi_value argv[3];
+
+    if (status == napi_ok) {
+        NODE_API_CALL_RETURN_VOID(env, napi_get_reference_value(env, ctx->cb_ref, &cb));
+        NODE_API_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+        create_thread_snapshot_argv(env, argv);
+        NODE_API_CALL_RETURN_VOID(env, napi_call_function(env, undefined, cb, 3, argv, NULL));
+    }
+
+    NODE_API_CALL_RETURN_VOID(env, napi_delete_reference(env, ctx->cb_ref));
+    NODE_API_CALL_RETURN_VOID(env, napi_delete_async_work(env, ctx->work));
+    free(ctx);
+}
+
+static napi_value RunAsync(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1];
+    napi_value resource_name;
+    async_work_ctx* ctx = NULL;
+
+    NODE_API_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+    NODE_API_ASSERT(env, argc == 1, "RunAsync expects one callback argument");
+
+    ctx = (async_work_ctx*)malloc(sizeof(async_work_ctx));
+    NODE_API_ASSERT(env, ctx != NULL, "malloc async_work_ctx");
+
+    NODE_API_CALL(env, napi_create_reference(env, args[0], 1, &ctx->cb_ref));
+    NODE_API_CALL(env, napi_create_string_utf8(env,
+                           "ThreadLocalAsyncWork", NAPI_AUTO_LENGTH, &resource_name));
+    NODE_API_CALL(env, napi_create_async_work(env,
+                           NULL,
+                           resource_name,
+                           async_execute,
+                           async_complete,
+                           ctx,
+                           &ctx->work));
+    NODE_API_CALL(env, napi_queue_async_work(env, ctx->work));
+
+    return NULL;
+}
+
+static void tsfn_call_js(napi_env env, napi_value cb, void* context, void* data)
+{
+    (void)context;
+    (void)data;
+
+    if (env == NULL || cb == NULL)
+        return;
+
+    napi_value undefined;
+    napi_value argv[3];
+    NODE_API_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+    create_thread_snapshot_argv(env, argv);
+    NODE_API_CALL_RETURN_VOID(env, napi_call_function(env, undefined, cb, 3, argv, NULL));
+}
+
+static void tsfn_thread_main(void* data)
+{
+    tsfn_ctx* ctx = (tsfn_ctx*)data;
+    napi_status status = napi_call_threadsafe_function(ctx->tsfn, NULL, napi_tsfn_blocking);
+
+    if (status != napi_ok && status != napi_closing) {
+        napi_fatal_error("thread_local tsfn", NAPI_AUTO_LENGTH,
+            "napi_call_threadsafe_function failed", NAPI_AUTO_LENGTH);
+    }
+
+    napi_release_threadsafe_function(ctx->tsfn, napi_tsfn_release);
+}
+
+static void tsfn_finalize(napi_env env, void* data, void* hint)
+{
+    tsfn_ctx* ctx = (tsfn_ctx*)data;
+    (void)env;
+    (void)hint;
+    uv_thread_join(&ctx->thread);
+    free(ctx);
+}
+
+static napi_value RunThreadsafe(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1];
+    napi_value resource_name;
+    tsfn_ctx* ctx = NULL;
+
+    NODE_API_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+    NODE_API_ASSERT(env, argc == 1, "RunThreadsafe expects one callback argument");
+
+    ctx = (tsfn_ctx*)malloc(sizeof(tsfn_ctx));
+    NODE_API_ASSERT(env, ctx != NULL, "malloc tsfn_ctx");
+
+    NODE_API_CALL(env, napi_create_string_utf8(env,
+                           "ThreadLocalTSFN", NAPI_AUTO_LENGTH, &resource_name));
+    NODE_API_CALL(env, napi_create_threadsafe_function(env,
+                           args[0],
+                           NULL,
+                           resource_name,
+                           0,
+                           1,
+                           ctx,
+                           tsfn_finalize,
+                           NULL,
+                           tsfn_call_js,
+                           &ctx->tsfn));
+
+    NODE_API_ASSERT(env,
+        uv_thread_create(&ctx->thread, tsfn_thread_main, ctx) == 0,
+        "TSFN thread creation");
+
+    return NULL;
+}
+
 /*
  * Faithful analogue of napi-rs' `get_class_constructor`: the lookup goes to the
  * thread-local registry and fails when the calling OS thread is not the one
@@ -217,6 +360,8 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NODE_API_PROPERTY("getGlobal", GetGlobal),
         DECLARE_NODE_API_PROPERTY("lookupClass", LookupClass),
         DECLARE_NODE_API_PROPERTY("registryThreadId", RegistryThreadId),
+        DECLARE_NODE_API_PROPERTY("runAsync", RunAsync),
+        DECLARE_NODE_API_PROPERTY("runThreadsafe", RunThreadsafe),
     };
 
     // Module registration runs on the thread that executed `require()`.
