@@ -91,6 +91,14 @@ declare class Class_Worker extends Class_EventEmitter {
     postMessage(data: any): void;
 
     /**
+     * @description 向对端线程发送消息，并转移指定的对象，
+     *      @param data 指定发送的消息内容
+     *      @param transfer 需要转移的对象数组（ArrayBuffer 等），转移后原对象在发送方不可再使用
+     *
+     */
+    postMessage(data: any, transfer: any[]): void;
+
+    /**
      * @description 终止 worker
      *
      *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。

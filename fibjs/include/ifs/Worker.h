@@ -27,6 +27,7 @@ public:
     static result_t _new(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_threadId(int32_t& retVal) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
+    virtual result_t postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer) = 0;
     virtual result_t terminate(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t ref() = 0;
     virtual result_t unref() = 0;
@@ -147,6 +148,13 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Value>, 0);
 
     hr = pInst->postMessage(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+
+    hr = pInst->postMessage(v0, v1);
 
     METHOD_VOID();
 }

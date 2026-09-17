@@ -328,6 +328,34 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
+    it('transfers an ArrayBuffer through postMessage(value, transferList)', (done) => {
+        const finish = doneOnce(done);
+        const worker = new globalThis.Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.on("message", (message) => parentPort.postMessage({',
+            '  received: Array.from(new Uint8Array(message.buf))',
+            '}));'
+        ].join('\n'), { eval: true });
+
+        const buf = new ArrayBuffer(4);
+        new Uint8Array(buf).set([1, 2, 3, 4]);
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                assert.deepStrictEqual(message.received, [1, 2, 3, 4]);
+                assert.strictEqual(buf.byteLength, 0);
+            } catch (err) {
+                finish(err);
+                return;
+            }
+
+            worker.terminate().then(() => finish(), finish);
+        });
+
+        worker.postMessage({ buf }, [buf]);
+    });
+
     it('exposes Node-like module state in the main thread', () => {
         assert.strictEqual(isFibjs, true);
         assert.strictEqual(isMainThread, true);
