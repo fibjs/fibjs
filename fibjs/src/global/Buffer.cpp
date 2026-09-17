@@ -1722,10 +1722,4 @@ result_t Buffer::base64(exlib::string& retVal)
     return base64_base::encode(buf, false, retVal);
 }
 
-result_t Buffer::unbind(obj_ptr<object_base>& retVal)
-{
-    retVal = new Buffer(this);
-    return 0;
-}
-
 }

@@ -57,7 +57,10 @@ public:
 
 public:
     // object_base
-    virtual result_t unbind(obj_ptr<object_base>& retVal);
+    virtual result_t stop()
+    {
+        return abort();
+    }
 
 public:
     // Stream_base

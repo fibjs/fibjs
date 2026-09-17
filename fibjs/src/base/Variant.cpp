@@ -126,34 +126,6 @@ Variant::operator v8::Local<v8::Value>() const
         exlib::string& str = strVal();
         return isolate->NewString(str);
     }
-    case VT_UNBOUND_ARRAY: {
-        v8::Local<v8::Array> a;
-        int32_t len, i;
-        UNBIND_DATA* data;
-
-        len = m_Val.buffer.cnt;
-        data = (UNBIND_DATA*)m_Val.buffer.data;
-        a = v8::Array::New(isolate->m_isolate, len);
-
-        for (i = 0; i < len; i++)
-            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>()).IsJust();
-
-        return a;
-    }
-    case VT_UNBOUND_OBJECT: {
-        v8::Local<v8::Object> o;
-        int32_t len, i;
-        UNBIND_DATA* data;
-
-        len = m_Val.buffer.cnt;
-        data = (UNBIND_DATA*)m_Val.buffer.data;
-        o = v8::Object::New(isolate->m_isolate);
-
-        for (i = 0; i < len; i++)
-            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>()).IsJust();
-
-        return o;
-    }
     }
 
     return v8::Null(isolate->m_isolate);
@@ -331,11 +303,6 @@ void Variant::toString(exlib::string& retVal) const
         break;
     }
 
-    case VT_UNBOUND_ARRAY:
-    case VT_UNBOUND_OBJECT:
-        retVal = "[Object]";
-        break;
-
     case VT_JSON:
         retVal = strVal();
         break;
@@ -353,88 +320,4 @@ void Variant::toJSON()
     }
 }
 
-result_t Variant::unbind()
-{
-    result_t hr;
-
-    switch (type()) {
-    case VT_Object: {
-        object_base* obj = (object_base*)m_Val.objVal;
-        obj_ptr<object_base> obj1;
-
-        if (obj == NULL)
-            break;
-
-        hr = obj->unbind(obj1);
-        if (hr < 0)
-            return hr;
-
-        m_Val.objVal->Unref();
-        m_Val.objVal = obj1;
-        m_Val.objVal->Ref();
-
-        break;
-    }
-    case VT_JSValue: {
-        v8::Local<v8::Value> v = operator v8::Local<v8::Value>();
-        v8::Local<v8::Object> o;
-        v8::Local<v8::Array> a;
-        int32_t len, i;
-        UNBIND_DATA* data;
-        Isolate* isolate = Isolate::current();
-
-        if (GetArgumentValue(isolate, v, a, true) >= 0) {
-            clear();
-            set_type(VT_UNBOUND_ARRAY);
-
-            v8::Local<v8::Context> context = a->GetCreationContextChecked();
-            len = a->Length();
-
-            m_Val.buffer.cnt = len;
-            if (len > 0) {
-                m_Val.buffer.data = data = new UNBIND_DATA[len];
-
-                for (i = 0; i < len; i++)
-                    data[i].v = JSValue(a->Get(context, i));
-            }
-        } else if (GetArgumentValue(isolate, v, o, true) >= 0) {
-            clear();
-            set_type(VT_UNBOUND_OBJECT);
-
-            v8::Local<v8::Context> context = o->GetCreationContextChecked();
-            JSArray ks = o->GetPropertyNames(context);
-            len = ks->Length();
-
-            m_Val.buffer.cnt = len;
-            if (len > 0) {
-                m_Val.buffer.data = data = new UNBIND_DATA[len];
-                for (i = 0; i < len; i++) {
-                    JSValue k = ks->Get(context, i);
-                    GetArgumentValue(isolate, k, data[i].k);
-                    data[i].v = JSValue(o->Get(context, k));
-                }
-            }
-        } else
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
-
-        for (i = 0; i < len; i++) {
-            hr = data[i].v.unbind();
-            if (hr < 0)
-                return hr;
-        }
-
-        break;
-    }
-    default:
-        break;
-    }
-
-    return 0;
-}
-
-void Variant::clearUnbind()
-{
-    if (m_Val.buffer.cnt > 0)
-        delete[] (UNBIND_DATA*)m_Val.buffer.data;
-}
 }

@@ -63,8 +63,6 @@ public:
         VT_JSValue,
         VT_JSON,
         VT_MSGPACK,
-        VT_UNBOUND_ARRAY,
-        VT_UNBOUND_OBJECT,
         VT_Type = 255
     };
 
@@ -168,9 +166,7 @@ public:
     {
         Type _t = type();
 
-        if (_t == VT_UNBOUND_ARRAY || _t == VT_UNBOUND_OBJECT)
-            clearUnbind();
-        else if (_t == VT_String || _t == VT_JSON || _t == VT_MSGPACK)
+        if (_t == VT_String || _t == VT_JSON || _t == VT_MSGPACK)
             strVal().~basic_string();
         else if (_t == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
@@ -213,8 +209,6 @@ public:
             new (m_Val.arrayBuffer) std::shared_ptr<v8::BackingStore>(*reinterpret_cast<const std::shared_ptr<v8::BackingStore>*>(v.m_Val.arrayBuffer));
             return *this;
         }
-
-        ex_assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
 
         clear();
         set_type(_t);
@@ -527,9 +521,6 @@ public:
         } else
             strVal() = v;
     }
-
-    int32_t unbind();
-    void clearUnbind();
 
     object_base* object() const
     {

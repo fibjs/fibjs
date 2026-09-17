@@ -407,18 +407,16 @@ public:
         return 0;
     }
 
-    virtual result_t unbind(obj_ptr<object_base>& retVal)
-    {
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
-
     result_t unbind_dispose(obj_ptr<object_base>& retVal)
     {
         Isolate* isolate = holder();
         v8::Isolate* v8_isolate = isolate->m_isolate;
 
-        if (m_isJSObject & JSOBJECT_JSHANDLE)
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
+        if (m_isJSObject & JSOBJECT_JSHANDLE) {
+            v8::Local<v8::Object> o = v8::Local<v8::Object>::New(v8_isolate, handle_);
+            if (!o.IsEmpty())
+                o->SetAlignedPointerInInternalField(0, 0);
+        }
 
         clear_handle();
 

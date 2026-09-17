@@ -533,11 +533,6 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return m_aio.read(bytes, retVal, ac, false, m_timeout);
 }
 
-result_t Socket::unbind(obj_ptr<object_base>& retVal)
-{
-    return unbind_dispose(retVal);
-}
-
 extern void setKeepAlive(SOCKET sockfd, int32_t enable, int32_t initialDelay, int32_t keepInterval, int32_t keepCount);
 extern void setNoDelay(SOCKET sockfd, int32_t enable);
 

@@ -194,7 +194,6 @@ public:
     // object
     virtual v8::Local<v8::Object> wrap(Isolate* isolate, v8::Local<v8::Object> o = v8::Local<v8::Object>());
     virtual result_t equals(object_base* expected, bool& retVal);
-    virtual result_t unbind(obj_ptr<object_base>& retVal);
 
 public:
     // Buffer_base
