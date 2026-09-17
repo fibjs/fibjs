@@ -123,7 +123,10 @@ public:
 
         result_t add(v8::Local<v8::Array> keys)
         {
-            v8::Local<v8::Context> context = keys->GetCreationContextChecked();
+            v8::Local<v8::Context> context;
+            if (!keys->GetCreationContext().ToLocal(&context))
+                context = Isolate::current(keys)->context();
+
             result_t hr;
             int32_t i;
 
@@ -141,7 +144,9 @@ public:
             if (kvs->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            v8::Local<v8::Context> context = kvs->GetCreationContextChecked();
+            v8::Local<v8::Context> context;
+            if (!kvs->GetCreationContext().ToLocal(&context))
+                context = Isolate::current(kvs)->context();
 
             JSArray keys = kvs->GetPropertyNames(context);
 

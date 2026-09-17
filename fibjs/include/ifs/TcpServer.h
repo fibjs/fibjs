@@ -29,7 +29,7 @@ public:
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            v8::Local<v8::Context> context = isolate->context();
             retVal->Set(context, isolate->NewString("address"), GetReturnValue(isolate, address)).Check();
             retVal->Set(context, isolate->NewString("family"), GetReturnValue(isolate, family)).Check();
             retVal->Set(context, isolate->NewString("port"), GetReturnValue(isolate, port)).Check();

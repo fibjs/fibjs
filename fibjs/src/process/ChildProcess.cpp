@@ -363,12 +363,17 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         hr = process_base::get_env(opt_envs);
         if (hr < 0)
             return hr;
-    } else if (opt_envs_v->IsObject())
-        opt_envs = opt_envs_v->ToObject(context).ToLocalChecked();
-    else
+    } else if (opt_envs_v->IsObject()) {
+        if (!opt_envs_v->ToObject(context).ToLocal(&opt_envs))
+            return CALL_E_JAVASCRIPT;
+    } else
         return CALL_E_TYPEMISMATCH;
 
-    JSArray keys = opt_envs->GetPropertyNames(opt_envs->GetCreationContextChecked());
+    v8::Local<v8::Context> env_context;
+    if (!opt_envs->GetCreationContext().ToLocal(&env_context))
+        env_context = context;
+
+    JSArray keys = opt_envs->GetPropertyNames(env_context);
     int32_t len, sz, idx;
 
     sz = len = (int32_t)keys->Length();

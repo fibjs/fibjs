@@ -96,7 +96,10 @@ static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& ac
     if (i == -1)
         return false;
 
-    v8::Local<v8::Context> context = act->GetCreationContextChecked();
+    v8::Local<v8::Context> context;
+    if (!act->GetCreationContext().ToLocal(&context))
+        return false;
+
     JSArray keys = act->GetPropertyNames(context);
     int32_t len = (int32_t)keys->Length();
 

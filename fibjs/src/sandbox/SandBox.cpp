@@ -133,8 +133,14 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
         v8::Local<v8::Array> keys;
         if (global->GetOwnPropertyNames(_context).ToLocal(&keys)) {
             for (uint32_t i = 0; i < keys->Length(); i++) {
-                v8::Local<v8::Value> key = keys->Get(_context, i).ToLocalChecked();
-                v8::Local<v8::Value> val = global->Get(_context, key).ToLocalChecked();
+                v8::Local<v8::Value> key;
+                if (!keys->Get(_context, i).ToLocal(&key))
+                    break;
+
+                v8::Local<v8::Value> val;
+                if (!global->Get(_context, key).ToLocal(&val))
+                    break;
+
                 if (val == global)
                     val = _global;
                 if (!_global->Set(_context, key, val).FromMaybe(false))
@@ -267,7 +273,10 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
-    v8::Local<v8::Context> context = mods->GetCreationContextChecked();
+    v8::Local<v8::Context> context;
+    if (!mods->GetCreationContext().ToLocal(&context))
+        context = holder()->context();
+
     JSArray ks = mods->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -293,7 +302,12 @@ result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    m->Delete(m->GetCreationContextChecked(), holder()->NewString(id)).IsJust();
+
+    v8::Local<v8::Context> context;
+    if (!m->GetCreationContext().ToLocal(&context))
+        context = holder()->context();
+
+    m->Delete(context, holder()->NewString(id)).IsJust();
 
     return 0;
 }
@@ -302,7 +316,12 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    retVal = m->Has(m->GetCreationContextChecked(), holder()->NewString(id)).FromMaybe(false);
+
+    v8::Local<v8::Context> context;
+    if (!m->GetCreationContext().ToLocal(&context))
+        context = holder()->context();
+
+    retVal = m->Has(context, holder()->NewString(id)).FromMaybe(false);
 
     return 0;
 }
@@ -322,13 +341,17 @@ static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v
     v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     if (!isFrozen(isolate->m_isolate, obj)) {
-        v8::Local<v8::Context> context = obj->GetCreationContextChecked();
+        v8::Local<v8::Context> context;
+        if (!obj->GetCreationContext().ToLocal(&context))
+            return 0;
         obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
 
         JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
             v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices);
         for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
-            v8::Local<v8::Value> k = names->Get(context, i).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> k;
+            if (!names->Get(context, i).ToLocal(&k) || k.IsEmpty())
+                continue;
             v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
             if (!v.IsEmpty() && v->IsObject() && !v->Equals(context, root).FromMaybe(false))
                 deepFreeze(isolate, v, root);
@@ -353,7 +376,16 @@ result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     v8::Local<v8::Object> _global = GetPrivate("_global").As<v8::Object>();
-    retVal = _global->GetCreationContextChecked()->GetEmbedderData(kSandboxObject).As<v8::Object>();
+
+    v8::Local<v8::Context> context;
+    if (!_global->GetCreationContext().ToLocal(&context))
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    v8::Local<v8::Value> sandbox_obj = context->GetEmbedderData(kSandboxObject);
+    if (sandbox_obj.IsEmpty() || !sandbox_obj->IsObject())
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = sandbox_obj.As<v8::Object>();
     return 0;
 }
 

@@ -25,7 +25,7 @@ public:
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            v8::Local<v8::Context> context = isolate->context();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
             retVal->Set(context, isolate->NewString("exitCode"), GetReturnValue(isolate, exitCode)).Check();
@@ -47,7 +47,7 @@ public:
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            v8::Local<v8::Context> context = isolate->context();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
             retVal->Set(context, isolate->NewString("exitCode"), GetReturnValue(isolate, exitCode)).Check();
@@ -69,7 +69,7 @@ public:
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            v8::Local<v8::Context> context = isolate->context();
             retVal->Set(context, isolate->NewString("pid"), GetReturnValue(isolate, pid)).Check();
             retVal->Set(context, isolate->NewString("output"), GetReturnValue(isolate, output)).Check();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();

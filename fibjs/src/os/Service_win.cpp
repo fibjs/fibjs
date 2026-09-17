@@ -258,9 +258,12 @@ static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
             v8::Local<v8::Function> func;
 
             v = srv->GetPrivate("worker");
-            if (!v.IsEmpty()) {
+            if (!v.IsEmpty() && v->IsFunction()) {
                 func = v.As<v8::Function>();
-                func->Call(func->GetCreationContextChecked(), srv->wrap(), 0, &v).IsEmpty();
+
+                v8::Local<v8::Context> func_context;
+                if (func->GetCreationContext().ToLocal(&func_context))
+                    func->Call(func_context, srv->wrap(), 0, &v).IsEmpty();
             }
 
             ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);

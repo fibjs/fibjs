@@ -106,11 +106,15 @@ public:
 
     result_t append(v8::Local<v8::Object> map)
     {
-        v8::Local<v8::Context> context = map->GetCreationContextChecked();
+        Isolate* isolate = Isolate::current(map);
+
+        v8::Local<v8::Context> context;
+        if (!map->GetCreationContext().ToLocal(&context))
+            context = isolate->context();
+
         JSArray ks = map->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
-        Isolate* isolate = Isolate::current(context);
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(context, i);
@@ -134,7 +138,10 @@ public:
 
     result_t append(exlib::string name, v8::Local<v8::Array> values)
     {
-        v8::Local<v8::Context> context = values->GetCreationContextChecked();
+        v8::Local<v8::Context> context;
+        if (!values->GetCreationContext().ToLocal(&context))
+            context = Isolate::current(values)->context();
+
         int32_t len = values->Length();
         int32_t i;
 
@@ -155,7 +162,9 @@ public:
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> entry = entries->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> entry;
+            if (!entries->Get(context, i).ToLocal(&entry))
+                return CALL_E_JAVASCRIPT;
             if (!entry->IsArray())
                 return CALL_E_BADVARTYPE;
 
@@ -163,8 +172,15 @@ public:
             if (pair->Length() != 2)
                 return CALL_E_BADVARTYPE;
 
-            exlib::string key = isolate->toString(pair->Get(context, 0).ToLocalChecked());
-            Variant value = (Variant)pair->Get(context, 1).ToLocalChecked();
+            v8::Local<v8::Value> keyValue;
+            if (!pair->Get(context, 0).ToLocal(&keyValue))
+                return CALL_E_JAVASCRIPT;
+            exlib::string key = isolate->toString(keyValue);
+
+            v8::Local<v8::Value> pairValue;
+            if (!pair->Get(context, 1).ToLocal(&pairValue))
+                return CALL_E_JAVASCRIPT;
+            Variant value = (Variant)pairValue;
 
             result_t hr = append(key, value);
             if (hr < 0)
@@ -185,11 +201,15 @@ public:
 
     result_t set(v8::Local<v8::Object> map)
     {
-        v8::Local<v8::Context> context = map->GetCreationContextChecked();
+        Isolate* isolate = Isolate::current(map);
+
+        v8::Local<v8::Context> context;
+        if (!map->GetCreationContext().ToLocal(&context))
+            context = isolate->context();
+
         JSArray ks = map->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
-        Isolate* isolate = Isolate::current(context);
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(context, i);
@@ -224,7 +244,10 @@ public:
 
     result_t set(exlib::string name, v8::Local<v8::Array> values)
     {
-        v8::Local<v8::Context> context = values->GetCreationContextChecked();
+        v8::Local<v8::Context> context;
+        if (!values->GetCreationContext().ToLocal(&context))
+            context = Isolate::current(values)->context();
+
         int32_t len = values->Length();
         int32_t i;
 

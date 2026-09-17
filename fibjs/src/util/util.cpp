@@ -179,7 +179,7 @@ static result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     if (!isFrozen(isolate->m_isolate, obj)) {
-        v8::Local<v8::Context> _context = obj->GetCreationContextChecked();
+        v8::Local<v8::Context> _context = isolate->context();
         if (obj->SetIntegrityLevel(_context, v8::IntegrityLevel::kFrozen).IsNothing())
             return CALL_E_JAVASCRIPT;
 

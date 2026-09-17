@@ -988,7 +988,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     ts.push('    public:');
                     ts.push('        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)');
                     ts.push('        {');
-                    ts.push('            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();');
+                    ts.push('            v8::Local<v8::Context> context = isolate->context();');
 
                     fn.type.forEach(t => {
                         ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate, ${t.name})).Check();`);

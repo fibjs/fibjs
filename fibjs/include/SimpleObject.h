@@ -33,11 +33,15 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        v8::Local<v8::Context> context = m->GetCreationContextChecked();
+        Isolate* isolate = holder();
+
+        v8::Local<v8::Context> context;
+        if (!m->GetCreationContext().ToLocal(&context))
+            context = isolate->context();
+
         JSArray ks = m->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
-        Isolate* isolate = holder();
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(context, i);

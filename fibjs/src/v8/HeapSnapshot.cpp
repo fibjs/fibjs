@@ -63,7 +63,9 @@ result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retV
     isolate->m_isolate->LowMemoryNotification();
     s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
-    test->Call(test->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 0, NULL).IsEmpty();
+    v8::Local<v8::Context> test_context;
+    if (test->GetCreationContext().ToLocal(&test_context))
+        test->Call(test_context, v8::Undefined(isolate->m_isolate), 0, NULL).IsEmpty();
 
     isolate->m_isolate->LowMemoryNotification();
     s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());

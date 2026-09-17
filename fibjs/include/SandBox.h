@@ -116,7 +116,11 @@ public:
         {
             if (sb->m_global) {
                 v8::Local<v8::Object> _global = v8::Local<v8::Object>::Cast(sb->GetPrivate("_global"));
-                _context = _global->GetCreationContextChecked();
+                // NOTE: must stay the sandbox global's *creation* context.
+                // Isolate::current()->context() is the outer context and would
+                // silently run sandbox code against the wrong global.
+                if (!_global->GetCreationContext().ToLocal(&_context))
+                    return;
                 _context->Enter();
             }
         }

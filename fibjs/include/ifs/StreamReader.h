@@ -25,7 +25,7 @@ public:
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            v8::Local<v8::Context> context = isolate->context();
             retVal->Set(context, isolate->NewString("done"), GetReturnValue(isolate, done)).Check();
             retVal->Set(context, isolate->NewString("value"), GetReturnValue(isolate, value)).Check();
         }

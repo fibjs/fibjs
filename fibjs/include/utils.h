@@ -983,7 +983,13 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     if (proto->IsNull())
         return true;
 
-    v8::Local<v8::Context> _context = o->GetCreationContextChecked();
+    // NOTE: must use the value's own creation context. A sandbox/vm value keeps
+    // its own Object.prototype in embedder slot kObjectPrototype, so comparing
+    // against the current isolate's context yields a false negative.
+    v8::Local<v8::Context> _context;
+    if (!o->GetCreationContext().ToLocal(&_context))
+        return false;
+
     JSValue expected = _context->GetEmbedderData(kObjectPrototype);
     if (!expected->Equals(_context, proto).FromMaybe(false))
         return false;
@@ -1000,7 +1006,12 @@ inline bool IsJSBuffer(v8::Local<v8::Value> v, bool strict = true)
         return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    v8::Local<v8::Context> _context = o->GetCreationContextChecked();
+
+    // NOTE: must use the value's own creation context (see IsJSObject).
+    v8::Local<v8::Context> _context;
+    if (!o->GetCreationContext().ToLocal(&_context))
+        return false;
+
     JSValue proto = _context->GetEmbedderData(kBufferPrototype);
     if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
         return false;
@@ -1074,7 +1085,9 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     std::vector<T> r = std::vector<T>();
 
     for (uint32_t i = 0; i < arr->Length(); i++) {
-        v8::Local<v8::Value> v1 = arr->Get(context, i).ToLocalChecked();
+        v8::Local<v8::Value> v1;
+        if (!arr->Get(context, i).ToLocal(&v1))
+            return CALL_E_JAVASCRIPT;
         T n;
         result_t hr = GetArgumentValue(isolate, v1, n, false);
         if (hr < 0)

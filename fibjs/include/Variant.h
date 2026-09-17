@@ -31,7 +31,12 @@ inline void extend(const v8::Local<v8::Object> src,
     v8::Local<v8::Object>& dest, bool bDataOnly = true)
 {
     TryCatch try_catch;
-    v8::Local<v8::Context> context = src->GetCreationContextChecked();
+
+    // NOTE: src may come from another context (sandbox/vm); use its own.
+    v8::Local<v8::Context> context;
+    if (!src->GetCreationContext().ToLocal(&context))
+        return;
+
     JSArray ks = src->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;

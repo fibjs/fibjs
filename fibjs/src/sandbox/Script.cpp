@@ -103,7 +103,10 @@ result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, v8::Loca
     if (global.IsEmpty())
         return CALL_E_BADVARTYPE;
 
-    v8::Local<v8::Context> _context = global->GetCreationContextChecked();
+    v8::Local<v8::Context> _context;
+    if (!global->GetCreationContext().ToLocal(&_context))
+        return CALL_E_BADVARTYPE;
+
     _context->Enter();
     result_t hr = runInThisContext(opts, retVal);
     _context->Exit();
@@ -122,7 +125,11 @@ result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<
         return hr;
 
     vm_get_global(contextObject, global);
-    v8::Local<v8::Context> _context = global->GetCreationContextChecked();
+
+    v8::Local<v8::Context> _context;
+    if (global.IsEmpty() || !global->GetCreationContext().ToLocal(&_context))
+        return CALL_E_BADVARTYPE;
+
     _context->Enter();
     hr = runInThisContext(opts, retVal);
     _context->Exit();

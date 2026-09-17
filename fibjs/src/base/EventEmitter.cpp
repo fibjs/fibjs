@@ -226,7 +226,10 @@ result_t EventEmitter_base::addAbortListener(EventEmitter_base* signal, v8::Loca
 
 void JSTrigger::initEv()
 {
-    context = o->GetCreationContextChecked();
+    // NOTE: o may live in another context (sandbox/vm); prefer its own.
+    if (!o->GetCreationContext().ToLocal(&context))
+        context = Isolate::current(isolate)->context();
+
     JSValue obj = o->GetPrivate(context, v8::Private::ForApi(isolate, NewString("_ev")));
     if (obj->IsUndefined() || obj->IsNull()) {
         events = v8::Object::New(isolate);

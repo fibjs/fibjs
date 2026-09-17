@@ -99,7 +99,9 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
     retVal = buf;
 
     int32_t sz = (int32_t)buf->length();
-    v8::Local<v8::Context> context = datas->GetCreationContextChecked();
+    v8::Local<v8::Context> context;
+    if (!datas->GetCreationContext().ToLocal(&context))
+        context = Isolate::current()->context();
     Isolate* isolate = Isolate::current(context);
 
     if (sz) {

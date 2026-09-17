@@ -47,7 +47,9 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
 {
     StringBuffer bufs;
 
-    v8::Local<v8::Context> context = obj->GetCreationContextChecked();
+    v8::Local<v8::Context> context;
+    if (!obj->GetCreationContext().ToLocal(&context))
+        context = Isolate::current()->context();
     Isolate* isolate = Isolate::current(context);
 
     JSArray ks = obj->GetPropertyNames(context);

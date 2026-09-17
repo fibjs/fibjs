@@ -575,8 +575,12 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Object>& ret
     if (_require->IsFunction()) {
         v8::Local<v8::Function> func = _require.As<v8::Function>();
 
+        v8::Local<v8::Context> func_context;
+        if (!func->GetCreationContext().ToLocal(&func_context))
+            return CALL_E_JAVASCRIPT;
+
         v8::Local<v8::Value> arg = isolate->NewString(id);
-        v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
+        v8::Local<v8::Value> result = func->Call(func_context, wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
         if (result.IsEmpty())
             return CALL_E_JAVASCRIPT;
 

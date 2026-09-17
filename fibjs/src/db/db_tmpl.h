@@ -122,7 +122,14 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), pThis->wrap(), 1, &v).FromMaybe(v8::Local<v8::Value>());
+    v8::Local<v8::Context> func_context;
+    if (!func->GetCreationContext().ToLocal(&func_context)) {
+        METHOD_NAME("DbConnection.rollback");
+        pThis->ac_rollback(point);
+        return CALL_E_JAVASCRIPT;
+    }
+
+    v8::Local<v8::Value> result = func->Call(func_context, pThis->wrap(), 1, &v).FromMaybe(v8::Local<v8::Value>());
 
     if (result.IsEmpty()) {
         METHOD_NAME("DbConnection.rollback");
