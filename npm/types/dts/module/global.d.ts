@@ -17,6 +17,7 @@
 /// <reference path="../interface/MessageEvent.d.ts" />
 /// <reference path="../interface/MessagePort.d.ts" />
 /// <reference path="../interface/MessageChannel.d.ts" />
+/// <reference path="../interface/Worker.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../interface/DOMParser.d.ts" />
 /// <reference path="../interface/CSSStyleDeclaration.d.ts" />
@@ -35,7 +36,7 @@
  *
  *  全局对象提供以下能力：
  *
- *  - **Web 标准对象**：`Buffer`、`URL`、`URLSearchParams`、`Blob`、`File`、`Headers`、`FormData`、`Request`、`Response`、`TextDecoder`、`TextEncoder`、`AbortController`、`AbortSignal`、`Event`、`EventTarget`、`MessagePort`、`MessageChannel`、`WebSocket`、`DOMParser`、`XMLSerializer` 等；
+ *  - **Web 标准对象**：`Buffer`、`URL`、`URLSearchParams`、`Blob`、`File`、`Headers`、`FormData`、`Request`、`Response`、`TextDecoder`、`TextEncoder`、`AbortController`、`AbortSignal`、`Event`、`EventTarget`、`MessagePort`、`MessageChannel`、`Worker`、`WebSocket`、`DOMParser`、`XMLSerializer` 等；
  *  - **核心模块**：`console`、`process`、`performance`、`crypto`；
  *  - **模块加载**：`require` 加载模块、`run` 运行脚本；
  *  - **定时器**：`setTimeout`、`setInterval`、`setImmediate` 等，行为与 timers 模块同名函数一致；
@@ -131,6 +132,20 @@ declare module 'global' {
      * @description MessageChannel 对象，提供一对已连接的 MessagePort 对象
      */
     const MessageChannel: typeof Class_MessageChannel;
+
+    /**
+     * @description Worker 对象，用于创建子线程
+     *
+     *    与 `worker_threads.Worker` 为同一个类，语义完全一致；等价于 `require('worker_threads').Worker`：
+     *
+     *    ```JavaScript
+     *    const worker = new Worker(__dirname + '/worker.js');
+     *    worker.on('message', (msg) => console.log(msg));
+     *    worker.postMessage('hello');
+     *    ```
+     *
+     */
+    const Worker: typeof Class_Worker;
 
     /**
      * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能

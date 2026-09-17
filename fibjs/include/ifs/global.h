@@ -33,6 +33,7 @@ class EventEmitter_base;
 class MessageEvent_base;
 class MessagePort_base;
 class MessageChannel_base;
+class Worker_base;
 class CryptoKey_base;
 class DOMParser_base;
 class CSSStyleDeclaration_base;
@@ -125,6 +126,7 @@ public:
 #include "ifs/MessageEvent.h"
 #include "ifs/MessagePort.h"
 #include "ifs/MessageChannel.h"
+#include "ifs/Worker.h"
 #include "ifs/CryptoKey.h"
 #include "ifs/DOMParser.h"
 #include "ifs/CSSStyleDeclaration.h"
@@ -179,6 +181,7 @@ inline ClassInfo& global_base::class_info()
         { "MessageEvent", MessageEvent_base::class_info },
         { "MessagePort", MessagePort_base::class_info },
         { "MessageChannel", MessageChannel_base::class_info },
+        { "Worker", Worker_base::class_info },
         { "CryptoKey", CryptoKey_base::class_info },
         { "DOMParser", DOMParser_base::class_info },
         { "CSSStyleDeclaration", CSSStyleDeclaration_base::class_info },

@@ -251,6 +251,47 @@ describe('worker_threads fibjs target behavior', () => {
         fs.rmSync(fixtureRoot, { recursive: true, force: true });
     });
 
+    it('exposes globalThis.Worker as the same class as worker_threads.Worker', () => {
+        assert.strictEqual(typeof globalThis.Worker, 'function');
+        assert.strictEqual(globalThis.Worker, Worker);
+        assert.strictEqual(globalThis.Worker.prototype, Worker.prototype);
+    });
+
+    it('runs a worker created through globalThis.Worker', (done) => {
+        const finish = doneOnce(done);
+        const worker = new globalThis.Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.on("message", (message) => parentPort.postMessage({',
+            '  echo: message,',
+            '  globalWorker: typeof globalThis.Worker,',
+            '  sameClass: globalThis.Worker === require("worker_threads").Worker',
+            '}));'
+        ].join('\n'), { eval: true });
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                assert.deepStrictEqual(message, {
+                    echo: 'ping',
+                    globalWorker: 'function',
+                    sameClass: true
+                });
+                worker.terminate().then((exitCode) => {
+                    try {
+                        assert.strictEqual(exitCode, 1);
+                        finish();
+                    } catch (err) {
+                        finish(err);
+                    }
+                }, finish);
+            } catch (err) {
+                finish(err);
+            }
+        });
+
+        worker.postMessage('ping');
+    });
+
     it('resolves terminate() with the exit code without blocking', (done) => {
         const finish = doneOnce(done);
         const worker = new globalThis.Worker('setInterval(() => {}, 50);', { eval: true });
