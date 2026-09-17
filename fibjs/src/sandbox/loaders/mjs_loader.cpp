@@ -62,7 +62,9 @@ public:
         if (root_module.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!v8::Promise::Resolver::New(_context).ToLocal(&resolver))
+            return CALL_E_JAVASCRIPT;
         m_resolver.Reset(m_isolate->m_isolate, resolver);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
@@ -200,8 +202,11 @@ public:
 
         if (!IsEmpty(exports)) {
             // For cached modules, directly return the exports
-            v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
-            resolver->Resolve(_context, exports).IsJust();
+            v8::Local<v8::Promise::Resolver> resolver;
+            if (!v8::Promise::Resolver::New(_context).ToLocal(&resolver))
+                return v8::MaybeLocal<v8::Promise>();
+            if (!resolver->Resolve(_context, exports).FromMaybe(false))
+                return v8::MaybeLocal<v8::Promise>();
 
             return resolver->GetPromise();
         }
@@ -217,7 +222,9 @@ public:
         mod->Set(_context, strExports, mod_exports).IsJust();
         mod->Set(_context, m_isolate->NewString("filename"), strModule).IsJust();
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!v8::Promise::Resolver::New(_context).ToLocal(&resolver))
+            return v8::MaybeLocal<v8::Promise>();
         m_resolver.Reset(m_isolate->m_isolate, resolver);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
@@ -243,8 +250,12 @@ public:
         }
 
         hr = evaluate(id, mod, root_module);
-        if (hr >= 0)
-            return m_resolver.Get(m_isolate->m_isolate)->GetPromise();
+        if (hr >= 0) {
+            v8::Local<v8::Promise::Resolver> resolver = m_resolver.Get(m_isolate->m_isolate);
+            if (resolver.IsEmpty())
+                return v8::MaybeLocal<v8::Promise>();
+            return resolver->GetPromise();
+        }
 
         saveModule();
 
@@ -467,8 +478,12 @@ private:
         }
 
         if (!IsEmpty(exports)) {
-            v8::Local<v8::Object> obj = exports->ToObject(_context).ToLocalChecked();
-            v8::Local<v8::Array> names = obj->GetPropertyNames(_context).ToLocalChecked();
+            v8::Local<v8::Object> obj;
+            if (!exports->ToObject(_context).ToLocal(&obj))
+                return v8::Local<v8::Module>();
+            v8::Local<v8::Array> names;
+            if (!obj->GetPropertyNames(_context).ToLocal(&names))
+                return v8::Local<v8::Module>();
             int length = names->Length();
             std::vector<v8::Local<v8::String>> export_names;
 
@@ -487,7 +502,12 @@ private:
             if (hasDefault)
                 export_names.push_back(strDefault);
             for (int i = 0; i < length; ++i) {
-                v8::Local<v8::String> name = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
+                v8::Local<v8::Value> name_val;
+                if (!names->Get(_context, i).ToLocal(&name_val))
+                    return v8::Local<v8::Module>();
+                v8::Local<v8::String> name;
+                if (!name_val->ToString(_context).ToLocal(&name))
+                    return v8::Local<v8::Module>();
                 v8::String::Utf8Value sname(m_isolate->m_isolate, name);
                 if (qstrcmp(*sname, "default"))
                     export_names.push_back(name);
@@ -505,6 +525,8 @@ private:
                 // For CJS: use exports object itself as default
                 if (isESMNamespace) {
                     v8::Local<v8::Value> defaultValue = obj->Get(_context, strDefault).FromMaybe(v8::Local<v8::Value>());
+                    if (defaultValue.IsEmpty())
+                        return v8::Local<v8::Module>();
                     module->SetSyntheticModuleExport(m_isolate->m_isolate, strDefault, defaultValue).IsJust();
                 } else {
                     module->SetSyntheticModuleExport(m_isolate->m_isolate, strDefault, exports).IsJust();
@@ -648,10 +670,17 @@ private:
             return CALL_E_JAVASCRIPT;
         }
 
+        if (!result->IsPromise())
+            return CALL_E_JAVASCRIPT;
+
         v8::Local<v8::Promise> promise = result.As<v8::Promise>();
-        promise->Then(_context,
-                   v8::Function::New(_context, promise_then, wrap(m_isolate)).ToLocalChecked(),
-                   v8::Function::New(_context, promise_reject, wrap(m_isolate)).ToLocalChecked())
+
+        v8::Local<v8::Function> on_then, on_reject;
+        if (!v8::Function::New(_context, promise_then, wrap(m_isolate)).ToLocal(&on_then)
+            || !v8::Function::New(_context, promise_reject, wrap(m_isolate)).ToLocal(&on_reject))
+            return CALL_E_JAVASCRIPT;
+
+        promise->Then(_context, on_then, on_reject)
             .FromMaybe(v8::Local<v8::Promise>());
 
         return 0;
@@ -662,8 +691,11 @@ private:
     {
         v8::Isolate* isolate = context->GetIsolate();
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
-        resolver->Resolve(context, v8::Undefined(isolate)).ToChecked();
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!v8::Promise::Resolver::New(context).ToLocal(&resolver))
+            return v8::MaybeLocal<v8::Value>();
+        if (!resolver->Resolve(context, v8::Undefined(isolate)).FromMaybe(false))
+            return v8::MaybeLocal<v8::Value>();
         return resolver->GetPromise();
     }
 
@@ -700,6 +732,8 @@ private:
         v8::Local<v8::Value> result = module->GetModuleNamespace();
 
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
+        if (resolver.IsEmpty())
+            return;
         resolver->Resolve(context, result).IsJust();
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
@@ -726,6 +760,8 @@ private:
 
         obj_ptr<esm_importer> impoter = esm_importer::getInstance(args.Data());
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
+        if (resolver.IsEmpty())
+            return;
         resolver->Reject(context, args[0]).IsJust();
 
         SandBox::module_map_iter& root_module = impoter->module_refs[0];

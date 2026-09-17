@@ -115,6 +115,10 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
         v8::Local<v8::Context> context = isolate->context();
 
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
+        if (callback.IsEmpty()) {
+            m_running = false;
+            return 0;
+        }
 
         while (true) {
             std::vector<obj_ptr<PerformanceEntry_base>> entries;

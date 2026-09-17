@@ -396,14 +396,22 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     retVal = v8::Object::New(isolate->m_isolate);
 
     v8::Local<v8::Object> ms = mods();
-    v8::Local<v8::Context> context = ms->GetCreationContextChecked();
+
+    v8::Local<v8::Context> context;
+    if (!ms->GetCreationContext().ToLocal(&context))
+        return CALL_E_INVALID_CALL;
+
     JSArray ks = ms->GetPropertyNames(context);
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");
 
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(context, i);
-        retVal->Set(context, k, JSValue(JSValue(ms->Get(context, k)).As<v8::Object>()->Get(context, mgetter))).IsJust();
+        JSValue mod = ms->Get(context, k);
+        if (mod.IsEmpty() || !mod->IsObject())
+            continue;
+
+        retVal->Set(context, k, JSValue(mod.As<v8::Object>()->Get(context, mgetter))).IsJust();
     }
 
     return 0;

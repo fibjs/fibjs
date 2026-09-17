@@ -35,7 +35,14 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
             stacks->Set(context, cnt++, NewString(isolate, stack)).IsJust();
     }
 
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty() || !data->IsObject())
+        return;
+
+    v8::Local<v8::Object> _data = data.As<v8::Object>();
+    if (_data.IsEmpty())
+        return;
+
     if (cnt > 0) {
         exlib::string str;
         json_base::encode(stacks, str);
@@ -47,8 +54,14 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     date_t d;
     d.now();
-    if (d.date() > JSValue(_data->Get(context, NewString(isolate, "_time")))->NumberValue(isolate->GetCurrentContext()).FromMaybe(0))
-        Timer_base::getInstance(args.This())->clear();
+    v8::Local<v8::Value> timeValue;
+    if (_data->Get(context, NewString(isolate, "_time")).ToLocal(&timeValue)
+        && !timeValue.IsEmpty()
+        && d.date() > timeValue->NumberValue(isolate->GetCurrentContext()).FromMaybe(0)) {
+        obj_ptr<Timer_base> timer = Timer_base::getInstance(args.This());
+        if (timer)
+            timer->clear();
+    }
 }
 
 result_t v8_base::start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal)

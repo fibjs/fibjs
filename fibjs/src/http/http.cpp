@@ -256,9 +256,9 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
 
     // Create restore function using native callback with captured data in an array
     v8::Local<v8::Array> data = v8::Array::New(isolate->m_isolate, 3);
-    data->Set(isolate->context(), 0, isolate->NewString(old_http_proxy)).FromJust();
-    data->Set(isolate->context(), 1, isolate->NewString(old_https_proxy)).FromJust();
-    data->Set(isolate->context(), 2, isolate->NewString(old_no_proxy)).FromJust();
+    data->Set(isolate->context(), 0, isolate->NewString(old_http_proxy)).FromMaybe(false);
+    data->Set(isolate->context(), 1, isolate->NewString(old_https_proxy)).FromMaybe(false);
+    data->Set(isolate->context(), 2, isolate->NewString(old_no_proxy)).FromMaybe(false);
 
     v8::MaybeLocal<v8::Function> maybeFunc = v8::Function::New(
         isolate->context(),

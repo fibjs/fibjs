@@ -135,12 +135,12 @@ static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
     v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Context> context = isolate->context();
 
-    info->Set(context, isolate->NewString("name"), isolate->NewString(lowercase_name)).Check();
-    info->Set(context, isolate->NewString("nid"), v8::Integer::New(isolate->m_isolate, nid)).Check();
-    info->Set(context, isolate->NewString("blockSize"), v8::Integer::New(isolate->m_isolate, block_size)).Check();
-    info->Set(context, isolate->NewString("ivLength"), v8::Integer::New(isolate->m_isolate, iv_length)).Check();
-    info->Set(context, isolate->NewString("keyLength"), v8::Integer::New(isolate->m_isolate, key_length)).Check();
-    info->Set(context, isolate->NewString("mode"), isolate->NewString(GetCipherMode(mode))).Check();
+    info->Set(context, isolate->NewString("name"), isolate->NewString(lowercase_name)).FromMaybe(false);
+    info->Set(context, isolate->NewString("nid"), v8::Integer::New(isolate->m_isolate, nid)).FromMaybe(false);
+    info->Set(context, isolate->NewString("blockSize"), v8::Integer::New(isolate->m_isolate, block_size)).FromMaybe(false);
+    info->Set(context, isolate->NewString("ivLength"), v8::Integer::New(isolate->m_isolate, iv_length)).FromMaybe(false);
+    info->Set(context, isolate->NewString("keyLength"), v8::Integer::New(isolate->m_isolate, key_length)).FromMaybe(false);
+    info->Set(context, isolate->NewString("mode"), isolate->NewString(GetCipherMode(mode))).FromMaybe(false);
 
     retVal = info;
     return 0;

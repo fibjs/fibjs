@@ -49,12 +49,17 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
                 JSFiber::EnterJsScope s;
 
                 v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
+                if (cb.IsEmpty()) {
+                    delete data_;
+                    return 0;
+                }
+
                 v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);
 
-                data->Set(isolate->context(), isolate->NewString("local_ufrag"), isolate->NewString(data_->local_ufrag)).Check();
-                data->Set(isolate->context(), isolate->NewString("remote_ufrag"), isolate->NewString(data_->remote_ufrag)).Check();
-                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->address)).Check();
-                data->Set(isolate->context(), isolate->NewString("port"), v8::Number::New(isolate->m_isolate, data_->port)).Check();
+                data->Set(isolate->context(), isolate->NewString("local_ufrag"), isolate->NewString(data_->local_ufrag)).FromMaybe(false);
+                data->Set(isolate->context(), isolate->NewString("remote_ufrag"), isolate->NewString(data_->remote_ufrag)).FromMaybe(false);
+                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->address)).FromMaybe(false);
+                data->Set(isolate->context(), isolate->NewString("port"), v8::Number::New(isolate->m_isolate, data_->port)).FromMaybe(false);
                 delete data_;
 
                 v8::Local<v8::Value> argv[] = { data };

@@ -88,7 +88,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
         isolate->m_isolate, isolate->NewString("isModule"));
     JSValue isModuleVal = module->GetPrivate(_context, strIsModule);
     if (!isModuleVal.IsEmpty() && isModuleVal->IsTrue()
-        && retVal->IsModuleNamespaceObject()) {
+        && !retVal.IsEmpty() && retVal->IsModuleNamespaceObject()) {
         v8::Local<v8::Object> ns_obj = retVal.As<v8::Object>();
         v8::Local<v8::String> strDefault = isolate->NewString("default");
         v8::Local<v8::String> strEsModule = isolate->NewString("__esModule");
@@ -290,13 +290,20 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                     }
                 } else if (exports->IsObject()) {
                     o = exports.As<v8::Object>();
-                    v8::Local<v8::Array> keys = o->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+                    v8::Local<v8::Array> keys;
+                    if (!o->GetPropertyNames(context).ToLocal(&keys))
+                        return false;
                     int32_t len = keys->Length();
 
                     if (script_name.empty()) {
                         JSValue def_value1;
                         for (int32_t i = 0; i < len; i++) {
-                            v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
+                            v8::Local<v8::Value> key_val;
+                            if (!keys->Get(context, i).ToLocal(&key_val))
+                                continue;
+                            v8::Local<v8::String> key;
+                            if (!key_val->ToString(context).ToLocal(&key))
+                                continue;
                             exlib::string skey = isolate->toString(key);
 
                             if (skey == "." || skey == "node" || skey == "default") {
@@ -321,7 +328,12 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                         size_t best_key_len = 0;
 
                         for (int32_t i = 0; i < len; i++) {
-                            v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
+                            v8::Local<v8::Value> key_val;
+                            if (!keys->Get(context, i).ToLocal(&key_val))
+                                continue;
+                            v8::Local<v8::String> key;
+                            if (!key_val->ToString(context).ToLocal(&key))
+                                continue;
                             exlib::string skey = isolate->toString(key);
 
                             if (skey == "." || skey == "require" || skey == "import" || skey == "node" || skey == "default")

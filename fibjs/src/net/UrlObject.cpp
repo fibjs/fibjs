@@ -614,15 +614,21 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
         ada::url_search_params search_params;
 
         v8::Local<v8::Object> obj = newVal.As<v8::Object>();
-        v8::Local<v8::Array> keys = obj->GetPropertyNames(holder()->context()).ToLocalChecked();
+        v8::Local<v8::Array> keys;
+        if (!obj->GetPropertyNames(holder()->context()).ToLocal(&keys))
+            return CALL_E_JAVASCRIPT;
         int32_t len = keys->Length();
 
         if (len == 0)
             return 0;
 
         for (uint32_t i = 0; i < len; i++) {
-            v8::Local<v8::Value> key = keys->Get(holder()->context(), i).ToLocalChecked();
-            v8::Local<v8::Value> value = obj->Get(holder()->context(), key).ToLocalChecked();
+            v8::Local<v8::Value> key;
+            if (!keys->Get(holder()->context(), i).ToLocal(&key))
+                return CALL_E_JAVASCRIPT;
+            v8::Local<v8::Value> value;
+            if (!obj->Get(holder()->context(), key).ToLocal(&value))
+                return CALL_E_JAVASCRIPT;
 
             exlib::string k, v;
             result_t hr = GetArgumentValue(holder(), key, k, false);

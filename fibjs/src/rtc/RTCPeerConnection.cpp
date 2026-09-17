@@ -471,23 +471,23 @@ result_t RTCPeerConnection::get_remoteFingerprint(v8::Local<v8::Object>& retVal)
 
     switch (fingerprint.algorithm) {
     case rtc::CertificateFingerprint::Algorithm::Sha1:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-1")).Check();
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-1")).FromMaybe(false);
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha224:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-224")).Check();
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-224")).FromMaybe(false);
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha256:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-256")).Check();
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-256")).FromMaybe(false);
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha384:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-384")).Check();
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-384")).FromMaybe(false);
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha512:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-512")).Check();
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-512")).FromMaybe(false);
         break;
     }
 
-    obj->Set(context, isolate->NewString("fingerprint"), isolate->NewString(fingerprint.value)).Check();
+    obj->Set(context, isolate->NewString("fingerprint"), isolate->NewString(fingerprint.value)).FromMaybe(false);
 
     retVal = obj;
 

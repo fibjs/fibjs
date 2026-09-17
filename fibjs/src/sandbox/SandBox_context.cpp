@@ -33,7 +33,12 @@ static void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
+    v8::Local<v8::Value> data = args.Data();
+    v8::Local<v8::Object> _mod;
+    if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
+        ThrowResult(CALL_E_JAVASCRIPT);
+        return;
+    }
     JSValue path = _mod->Get(context, isolate->NewString("_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
@@ -80,7 +85,12 @@ static void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
+    v8::Local<v8::Value> data = args.Data();
+    v8::Local<v8::Object> _mod;
+    if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
+        ThrowResult(CALL_E_JAVASCRIPT);
+        return;
+    }
     JSValue path = _mod->Get(context, isolate->NewString("_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
@@ -126,7 +136,12 @@ static void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
+    v8::Local<v8::Value> data = args.Data();
+    v8::Local<v8::Object> _mod;
+    if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
+        ThrowResult(CALL_E_JAVASCRIPT);
+        return;
+    }
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
 

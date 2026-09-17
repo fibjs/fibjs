@@ -67,7 +67,7 @@ result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> context
 {
     Isolate* isolate = Isolate::current(contextifiedObject);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromJust();
+    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
     return runInContext(code, contextifiedObject, opts, retVal);
 }
 
@@ -87,7 +87,7 @@ result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> cont
 {
     Isolate* isolate = Isolate::current(contextObject);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromJust();
+    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
     return runInNewContext(code, contextObject, opts, retVal);
 }
 
@@ -107,7 +107,7 @@ result_t vm_base::runInThisContext(exlib::string code, exlib::string filename,
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromJust();
+    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
     return runInThisContext(code, opts, retVal);
 }
 

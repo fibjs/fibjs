@@ -154,6 +154,9 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
     }
 
     v8::Local<v8::UnboundScript> ub_script = v8::Local<v8::UnboundScript>::New(isolate->m_isolate, m_script);
+    if (ub_script.IsEmpty())
+        return CALL_E_INVALID_CALL;
+
     v8::Local<v8::Script> script = ub_script->BindToCurrentContext();
     v8::MaybeLocal<v8::Value> result;
 
@@ -182,6 +185,8 @@ result_t Script::createCachedData(obj_ptr<Buffer_base>& retVal)
     }
 
     v8::Local<v8::UnboundScript> ub_script = v8::Local<v8::UnboundScript>::New(isolate->m_isolate, m_script);
+    if (ub_script.IsEmpty())
+        return CALL_E_INVALID_CALL;
 
     std::unique_ptr<v8::ScriptCompiler::CachedData> new_cached_data;
     new_cached_data.reset(v8::ScriptCompiler::CreateCodeCache(ub_script));

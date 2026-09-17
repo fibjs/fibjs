@@ -85,7 +85,7 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Value> v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
-    if (v.IsEmpty())
+    if (v.IsEmpty() || !v->IsFunction())
         return CALL_E_JAVASCRIPT;
 
     JSFunction func = v.As<v8::Function>();
