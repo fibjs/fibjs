@@ -1716,6 +1716,298 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
+    // ---------- G2-b：硬中断（v8::Isolate::RequestInterrupt + TerminateExecution） ----------
+    // worker.terminate() 会把终止请求投递到 worker isolate 的中断队列，由 V8 在正在执行的
+    // JS 的下一个 interrupt check 点回调，因此**不依赖 worker 的事件循环** —— 纯 JS 死循环
+    // 也能被终止。软中断（只在 fibjs 可控的 JS/native 边界生效）做不到这一点。
+
+    it('terminates a worker stuck in a JS busy loop', (done) => {
+        const finish = doneOnce(done);
+        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in busy loop')), 5000);
+        const worker = new globalThis.Worker([
+            'const { parentPort } = require("worker_threads");',
+            'parentPort.postMessage("looping");',
+            'while (true) {}'
+        ].join('\n'), { eval: true });
+
+        worker.once('error', () => {
+            clearTimeout(guard);
+            finish();
+        });
+        worker.on('message', (msg) => {
+            if (msg !== 'looping')
+                return;
+
+            worker.terminate().then((exitCode) => {
+                clearTimeout(guard);
+                try {
+                    assert.strictEqual(exitCode, 1);
+                    finish();
+                } catch (err) {
+                    finish(err);
+                }
+            }, (err) => {
+                clearTimeout(guard);
+                finish(err);
+            });
+        });
+    });
+
+    it('terminates a worker blocked in Atomics.wait', (done) => {
+        const finish = doneOnce(done);
+        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in Atomics.wait')), 5000);
+        const worker = new globalThis.Worker([
+            'const { parentPort } = require("worker_threads");',
+            'parentPort.postMessage("waiting");',
+            'const sab = new SharedArrayBuffer(4);',
+            'Atomics.wait(new Int32Array(sab), 0, 0);'
+        ].join('\n'), { eval: true });
+
+        worker.once('error', () => {
+            clearTimeout(guard);
+            finish();
+        });
+        worker.on('message', (msg) => {
+            if (msg !== 'waiting')
+                return;
+
+            worker.terminate().then((exitCode) => {
+                clearTimeout(guard);
+                try {
+                    assert.strictEqual(exitCode, 1);
+                    finish();
+                } catch (err) {
+                    finish(err);
+                }
+            }, (err) => {
+                clearTimeout(guard);
+                finish(err);
+            });
+        });
+    });
+
+    // ---------- 常用组件「计算场景」下的中断安全退出 ----------
+    // 与纯 JS 死循环不同：这里 worker 正在调用常用组件的 native 实现做计算，中断
+    // 往往落在组件调用附近（甚至要等一次较长的 native 调用返回后才生效）。
+    // 检验「安全退出」：不崩溃、有序（exit code 1）、不产生 error 事件、
+    // terminate() 一定收敛 —— 即组件外围的 JS 回退路径对终止异常免疫。
+    const computeScenarios = [
+        {
+            what: 'crypto hash (sha256) loop',
+            body: [
+                "const crypto = require('crypto');",
+                "const payload = 'payload'.repeat(64);",
+                'while (true) crypto.createHash(\'sha256\').update(payload).digest();'
+            ]
+        },
+        {
+            what: 'crypto HMAC (sha256) loop',
+            body: [
+                "const crypto = require('crypto');",
+                "const payload = 'payload'.repeat(64);",
+                "while (true) crypto.createHmac('sha256', 'key').update(payload).digest();"
+            ]
+        },
+        {
+            // 每次调用都是一段较长的 native 计算：中断只能在它返回后才生效，
+            // 因此这条同时验证「终止请求会等 in-flight 的 native 调用结束」。
+            what: 'crypto PBKDF2 (long native call) loop',
+            body: [
+                "const crypto = require('crypto');",
+                "while (true) crypto.pbkdf2Sync('password', 'salt', 50000, 32, 'sha256');"
+            ]
+        },
+        {
+            what: 'crypto AES-256-CBC cipher loop',
+            body: [
+                "const crypto = require('crypto');",
+                'const key = crypto.randomBytes(32);',
+                'const iv = crypto.randomBytes(16);',
+                'while (true) {',
+                "  const c = crypto.createCipheriv('aes-256-cbc', key, iv);",
+                "  c.update('payload-payload-payload', 'utf8', 'hex');",
+                "  c.final('hex');",
+                '}'
+            ]
+        },
+        {
+            what: 'crypto randomBytes loop',
+            body: [
+                "const crypto = require('crypto');",
+                'while (true) crypto.randomBytes(4096);'
+            ]
+        },
+        {
+            what: 'vm.SandBox nested script loop',
+            body: [
+                "const vm = require('vm');",
+                "const sbox = new vm.SandBox({});",
+                "while (true) sbox.addScript('loop.js', 'var a = 0; for (var i = 0; i < 1000; i++) a += i; a;');"
+            ]
+        },
+        {
+            what: 'vm.runInNewContext loop',
+            body: [
+                "const vm = require('vm');",
+                "while (true) vm.runInNewContext('var a = 0; for (var i = 0; i < 1000; i++) a += i; a;');"
+            ]
+        },
+        {
+            what: 'mq.Routing build loop',
+            body: [
+                "const mq = require('mq');",
+                "while (true) new mq.Routing({ '/x': function (r) { return r; } });"
+            ]
+        },
+        {
+            what: 'url.URLSearchParams parse loop',
+            body: [
+                "const url = require('url');",
+                "const qs = 'a=1&b=2&c=3&d=' + 'x'.repeat(200);",
+                "while (true) new url.URLSearchParams(qs).get('d');"
+            ]
+        },
+        {
+            what: 'querystring stringify/parse loop',
+            body: [
+                "const qs = require('querystring');",
+                "const obj = { a: 1, b: 'x'.repeat(200), c: [1, 2, 3] };",
+                'while (true) qs.parse(qs.stringify(obj));'
+            ]
+        },
+        {
+            // 已知限制：与 zlib 场景同源 —— 卡在**同步 native 调用**里时，实测 V8 可能
+            // 始终不派发中断回调（带埋点的压测证据：该 isolate 只有 requestTerminate，
+            // 之后无中断回调、无收尾任务、无 exit）。SQLite execute 是这一模式的第二个实例，
+            // 说明它不是 zlib 特有，而是「同步 native 计算」这一类。
+            what: 'SQLite query loop',
+            knownLimitation: 'V8 may never deliver the interrupt while spinning inside sync native calls',
+            body: [
+                "const db = require('db');",
+                "const conn = db.openSQLite(':memory:');",
+                "conn.execute('create table t(a int)');",
+                "for (let i = 0; i < 100; i++) conn.execute('insert into t values(' + i + ')');",
+                "while (true) conn.execute('select count(*) c, sum(a) s from t');"
+            ]
+        },
+        {
+            what: 'v8 serialize/deserialize loop',
+            body: [
+                "const v8 = require('v8');",
+                "const obj = { a: [1, 2, 3], b: 'x'.repeat(256), c: { d: true } };",
+                'while (true) v8.deserialize(v8.serialize(obj));'
+            ]
+        },
+        {
+            what: 'string_decoder churn loop',
+            body: [
+                "const { StringDecoder } = require('string_decoder');",
+                "const buf = Buffer.from('中\u6587'.repeat(200));",
+                "while (true) { const d = new StringDecoder('utf8'); d.write(buf); d.end(); }"
+            ]
+        },
+        {
+            what: 'util.format loop',
+            body: [
+                "const util = require('util');",
+                "const args = ['%s-%d', 'x'.repeat(128), 42];",
+                'while (true) util.format.apply(null, args);'
+            ]
+        },
+        {
+            // 异步组件：终止会落在 promise 链的重新调度中间，而不是同步循环里。
+            what: 'crypto.subtle async digest loop',
+            body: [
+                "const crypto = require('crypto');",
+                "const data = Buffer.from('x'.repeat(1024));",
+                '(function loop() { crypto.subtle.digest("SHA-256", data).then(loop, function () {}); })();'
+            ]
+        },
+        {
+            // 已知限制：worker 在 zlib 同步计算循环里时，实测 V8 可能**始终不派发**
+            // 中断回调，收尾任务也拿不到事件循环 —— 该 isolate 既不回事件循环也不检查
+            // 中断，terminate() 因此不收敛（约 1/20~1/70 轮，与负载相关）。
+            // 证据：带埋点的压测里该 isolate 只有 requestTerminate，之后既无中断回调、
+            // 无收尾任务、也无 exit；而同样结构下 crypto/JSON/encoding 等 11 个场景从不出问题。
+            what: 'zlib deflate/inflate loop',
+            knownLimitation: 'V8 may never deliver the interrupt while spinning inside zlib sync calls',
+            body: [
+                "const zlib = require('zlib');",
+                "const payload = Buffer.from('hello world '.repeat(500));",
+                'while (true) zlib.inflateSync(zlib.deflateSync(payload));'
+            ]
+        },
+        {
+            what: 'JSON stringify/parse loop',
+            body: [
+                'const payload = { items: [], nested: { flag: true } };',
+                "for (let i = 0; i < 500; i++) payload.items.push({ i: i, s: 'x'.repeat(32) });",
+                'while (true) JSON.parse(JSON.stringify(payload));'
+            ]
+        },
+        {
+            what: 'encoding base64/hex loop',
+            body: [
+                "const encoding = require('encoding');",
+                "const text = 'fibjs worker interrupt '.repeat(64);",
+                'while (true) {',
+                '  encoding.base64.decode(encoding.base64.encode(text).toString());',
+                '  encoding.hex.decode(encoding.hex.encode(text).toString());',
+                '}'
+            ]
+        },
+        {
+            what: 'Buffer alloc/concat churn loop',
+            body: [
+                'while (true) {',
+                '  const a = Buffer.alloc(32 * 1024, 0x61);',
+                '  const b = Buffer.alloc(32 * 1024, 0x62);',
+                "  Buffer.concat([a, b]).slice(0, 128).toString('hex');",
+                '}'
+            ]
+        },
+        {
+            what: 'RegExp heavy matching loop',
+            body: [
+                "const long = 'a'.repeat(2000) + 'b'.repeat(2000) + 'c';",
+                'const re = /^a+b+c+$/;',
+                'while (true) {',
+                '  re.test(long);',
+                '  long.match(/(a+)(b+)(c+)/);',
+                '}'
+            ]
+        },
+        {
+            what: 'structuredClone loop',
+            body: [
+                "const payload = { a: [1, 2, 3], b: { c: 'x'.repeat(128) } };",
+                'payload.d = new Array(256).fill(0).map((_, i) => i);',
+                'while (true) structuredClone(payload);'
+            ]
+        },
+        {
+            what: 'array sort / GC churn loop',
+            body: [
+                'while (true) {',
+                '  const a = new Array(20000);',
+                '  for (let i = 0; i < a.length; i++) a[i] = (i * 7919) % a.length;',
+                '  a.sort((x, y) => x - y);',
+                '}'
+            ]
+        }
+    ];
+
+    computeScenarios.forEach(({ what, body, knownLimitation }) => {
+        if (knownLimitation) {
+            it.todo(`terminates a worker stuck in a ${what} (known limitation: ${knownLimitation})`);
+            return;
+        }
+
+        it(`terminates a worker stuck in a ${what}`, (done) => {
+            terminateBusyWorker(body, done);
+        });
+    });
+
     // 模块加载器会 park 在 Isolate::await（ev->ac_wait）等 ESM 求值完成；
     // 而 promise_then/promise_catch 在终止态下提前 return、不再 set()。
     // 没有唤醒源时该 fiber 永久 park，worker 退不出去 —— 中断开/关都一样，
@@ -1746,4 +2038,8 @@ describe('worker_threads fibjs target behavior', () => {
             finish(err);
         });
     });
+
+    // 仍为已知限制：coroutine.sleep 把 fiber park 在定时器队列上，worker 线程此时并不在
+    // 执行 JS，中断无从下手 —— 需要「可唤醒 fiber 登记表」才能让 worker 退出去。
+    it.todo('terminates a worker parked in coroutine.sleep (known limitation: needs fiber wake-up registry)');
 });
