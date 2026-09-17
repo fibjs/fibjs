@@ -2,45 +2,45 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
 /**
- * @description DBConnection 是数据库连接的基类，用于建立和维护一个数据库连接会话。其实现了连接的基本操作，并作为派生类的基础。同时支持开始事务、提交事务、回滚事务等操作。 
- * 
+ * @description DBConnection 是数据库连接的基类，用于建立和维护一个数据库连接会话。其实现了连接的基本操作，并作为派生类的基础。同时支持开始事务、提交事务、回滚事务等操作。
+ *
  * DBConnection 的子类包括：Odbc、MySQL、SQLite，通过实例化每个子类，我们可以很方便地访问不同种类的数据库。
- * 
+ *
  * DBConnection 不能直接创建，只能通过 db.open 等方法创建，例如：
- * 
+ *
  * ```js
  * var db = require("db");
  * var conn = db.open("mysql://root:123456@localhost:3306/test");
  * ```
- * 
+ *
  */
 declare class Class_DbConnection extends Class_object {
     /**
-     * @description 查询当前连接数据库类型 
+     * @description 查询当前连接数据库类型
      */
     readonly type: string;
 
     /**
-     * @description 关闭当前数据库连接 
+     * @description 关闭当前数据库连接
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前数据库连接 
+     * @description 关闭当前数据库连接
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前数据库连接 
+     * @description 关闭当前数据库连接
      */
     closeAsync(): Promise<void>;
 
     /**
      * @description 选择当前数据库连接的缺省数据库
      * 	 @param dbName 指定数据库名
-     * 	 
+     *
      */
     use(dbName: string): void;
 
@@ -49,22 +49,22 @@ declare class Class_DbConnection extends Class_object {
     /**
      * @description 选择当前数据库连接的缺省数据库
      * 	 @param dbName 指定数据库名
-     * 	 
+     *
      */
     useSync(dbName: string): void;
 
     /**
      * @description 选择当前数据库连接的缺省数据库
      * 	 @param dbName 指定数据库名
-     * 	 
+     *
      */
     useAsync(dbName: string): Promise<void>;
 
     /**
      * @description 获取当前数据库中所有表的信息
-     * 
+     *
      *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
-     *      
+     *
      */
     getTables(): any[];
 
@@ -72,26 +72,26 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 获取当前数据库中所有表的信息
-     * 
+     *
      *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
-     *      
+     *
      */
     getTablesSync(): any[];
 
     /**
      * @description 获取当前数据库中所有表的信息
-     * 
+     *
      *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
-     *      
+     *
      */
     getTablesAsync(): Promise<any[]>;
 
     /**
      * @description 获取指定表的详细信息
-     * 
+     *
      *      @param tableName 指定要查询的表名
      *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
-     *      
+     *
      */
     getTableInfo(tableName: string): any[];
 
@@ -99,27 +99,27 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 获取指定表的详细信息
-     * 
+     *
      *      @param tableName 指定要查询的表名
      *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
-     *      
+     *
      */
     getTableInfoSync(tableName: string): any[];
 
     /**
      * @description 获取指定表的详细信息
-     * 
+     *
      *      @param tableName 指定要查询的表名
      *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
-     *      
+     *
      */
     getTableInfoAsync(tableName: string): Promise<any[]>;
 
     /**
      * @description 在当前数据库连接上启动一个事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     begin(point?: string): void;
 
@@ -127,25 +127,25 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 在当前数据库连接上启动一个事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     beginSync(point?: string): void;
 
     /**
      * @description 在当前数据库连接上启动一个事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     beginAsync(point?: string): Promise<void>;
 
     /**
      * @description 提交当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     commit(point?: string): void;
 
@@ -153,25 +153,25 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 提交当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     commitSync(point?: string): void;
 
     /**
      * @description 提交当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     commitAsync(point?: string): Promise<void>;
 
     /**
      * @description 回滚当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     rollback(point?: string): void;
 
@@ -179,53 +179,53 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 回滚当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     rollbackSync(point?: string): void;
 
     /**
      * @description 回滚当前数据库连接上的事务
-     *     
+     *
      *      @param point 指定事务的名称，缺省不指定
-     *     
+     *
      */
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
+     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚
      *      func 执行有三种结果：
      *      * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
      *      * 函数返回 false，此时事务将回滚
      *      * 函数运行错误，事务自动回滚
-     * 
+     *
      *      @param func 以事务方式执行的函数
      *      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
-     *     
+     *
      */
     trans(func: (...args: any[])=>any): boolean;
 
     /**
-     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
+     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚
      *      func 执行有三种结果：
      *      * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
      *      * 函数返回 false，此时事务将回滚
      *      * 函数运行错误，事务自动回滚
-     * 
+     *
      *      @param point 指定事务的名称
      *      @param func 以事务方式执行的函数
      *      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
-     *     
+     *
      */
     trans(point: string, func: (...args: any[])=>any): boolean;
 
     /**
      * @description 执行一个 sql 命令，并返回执行结果
-     * 
+     *
      *      @param sql 字符串
      *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
-     *      
+     *
      */
     execute(sql: string): any[];
 
@@ -233,48 +233,48 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 执行一个 sql 命令，并返回执行结果
-     * 
+     *
      *      @param sql 字符串
      *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
-     *      
+     *
      */
     executeSync(sql: string): any[];
 
     /**
      * @description 执行一个 sql 命令，并返回执行结果
-     * 
+     *
      *      @param sql 字符串
      *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
-     *      
+     *
      */
     executeAsync(sql: string): Promise<any[]>;
 
     /**
      * @description 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
-     * 
+     *
      *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
      *      @param args 可选参数列表
      *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
-     *      
+     *
      */
     execute(sql: string, ...args: any[]): any[];
 
     /**
      * @description 格式化一个 sql 命令，并返回格式化结果
-     * 
+     *
      *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
      *      @param args 可选参数列表
      *      @return 返回格式化之后的 sql 命令
-     *      
+     *
      */
     format(sql: string, ...args: any[]): string;
 
     /**
      * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
-     * 
+     *
      *      @param sql 指定查询语句
      *      @return 返回预编译语句对象
-     *      
+     *
      */
     prepare(sql: string): Class_Statement;
 
@@ -282,41 +282,41 @@ declare class Class_DbConnection extends Class_object {
 
     /**
      * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
-     * 
+     *
      *      @param sql 指定查询语句
      *      @return 返回预编译语句对象
-     *      
+     *
      */
     prepareSync(sql: string): Class_Statement;
 
     /**
      * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
-     * 
+     *
      *      @param sql 指定查询语句
      *      @return 返回预编译语句对象
-     *      
+     *
      */
     prepareAsync(sql: string): Promise<Class_Statement>;
 
     /**
      * @description 执行并按条返回迭代器（等价 stmt.iterate(...args)）
-     * 
+     *
      *      推荐使用 for...of 遍历（break/异常自动释放游标）：
-     * 
+     *
      *      ```js
      *      for (var row of conn.iterate('SELECT * FROM log WHERE ts > ?', ts)) {
      *          process(row);    // 同一时刻只驻留一行
      *      }
      *      // break/异常/跑完均自动释放游标，连接立即可复用
      *      ```
-     * 
+     *
      *      手动调用 next()/return() 是危险操作，必须自行保证异常与提前结束时调用
      *      return() 释放游标，否则游标泄漏会占用连接。
-     * 
+     *
      *      @param sql 指定查询语句
      *      @param args 绑定参数
      *      @return 返回行迭代器，逐行产生行对象，内存有界
-     *      
+     *
      */
     iterate(sql: string, ...args: any[]): Iterator<any>;
 

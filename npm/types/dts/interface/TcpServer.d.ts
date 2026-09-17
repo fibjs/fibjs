@@ -4,14 +4,14 @@
 /// <reference path="../interface/Socket.d.ts" />
 /**
  * @description TcpServer` 是高并发的 TCP Socket 服务器，可以用来创建一个初始状态下已经与客户端建立了 TCP 连接的 TCP 服务器
- * 
+ *
  * 使用 `TcpServer` 对象可以迅速创建一个多纤程并发处理的 TCP 服务器。当有客户端连接到这个监听的地址时，回调函数会被调用并返回一个新的被连接的 `Socket` 对象，我们可以使用这个对象来往客户端发送或接收 TCP 报文。
- * 
+ *
  * 下面是一个基于 `TcpServer` 对象来实现的回写客户端 TCP 报文的具体示例：
- * 
+ *
  * ```JavaScript
  * const net = require("net");
- * 
+ *
  * function onConnect(conn) {
  *   console.log(`new client accepted! local:${conn.localAddress}, remote:${conn.remoteAddress}`);
  *   const data = conn.read();
@@ -21,21 +21,21 @@
  *   }
  *   conn.close();
  * }
- * 
+ *
  * new net.TcpServer('0.0.0.0', 8080, onConnect).start();
  * console.log('server is running on port: 8080');
  * ```
  * 在上述代码中，我们创建了一个 `TcpServer` 对象并通过回调函数 `onConnect` 来处理接收到的客户端请求信息，将其中的数据回写到客户端。
- * 
+ *
  * 当启动这个服务时，它将监听 `8080` 端口上面的所有 IP 地址和请求，当你通过 `telnet` 或者其他客户端工具连接到该服务时，你将会看到服务打印连接信息，并将你发送来的每一条请求原样发送回去。
- *  
+ *
  */
 declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description TcpServer 构造函数，在所有本机地址侦听
      *     @param port 指定 tcp 服务器侦听端口
      *     @param listener 指定 tcp 接收到的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    
+     *
      */
     constructor(port: number, listener: Class_Handler);
 
@@ -44,20 +44,20 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
      *     @param port 指定 tcp 服务器侦听端口
      *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    
+     *
      */
     constructor(addr: string, port: number, listener: Class_Handler);
 
     /**
      * @description TcpServer 构造函数
-     * 
+     *
      *      options 支持以下属性：
      *      - address: 指定监听的地址，可选，默认在所有地址监听
      *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
-     * 
+     *
      *     @param options 服务器选项
      *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    
+     *
      */
     constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
 
@@ -65,19 +65,19 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description TcpServer 构造函数
      *     @param addr 指定 unix socket 或者 Windows pipe 服务器侦听地址
      *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    
+     *
      */
     constructor(addr: string, listener: Class_Handler);
 
     /**
      * @description TcpServer 构造函数，不绑定端口，需调用 listen() 启动
      *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    
+     *
      */
     constructor(listener: Class_Handler);
 
     /**
-     * @description 启动当前服务器 
+     * @description 启动当前服务器
      */
     start(): void;
 
@@ -86,7 +86,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port 指定 TCP 服务器侦听端口
      *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
      *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
-     *     
+     *
      */
     listen(port: number, addr?: string, backlog?: number): void;
 
@@ -97,7 +97,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port 指定 TCP 服务器侦听端口
      *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
      *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
-     *     
+     *
      */
     listenSync(port: number, addr?: string, backlog?: number): void;
 
@@ -106,53 +106,53 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port 指定 TCP 服务器侦听端口
      *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
      *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
-     *     
+     *
      */
     listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器 
+     * @description 关闭 socket中止正在运行的服务器
      */
     stop(): void;
 
     stop(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器 
+     * @description 关闭 socket中止正在运行的服务器
      */
     stopSync(): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器 
+     * @description 关闭 socket中止正在运行的服务器
      */
     stopAsync(): Promise<void>;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
      */
     closeSync(): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名 
+     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
      */
     closeAsync(): Promise<void>;
 
     /**
      * @description 返回一个包含服务器绑定地址、地址族和端口的对象。用于获取操作系统分配的地址时查找实际端口。
      *      @return 返回服务器绑定的地址、地址族和端口
-     *     
+     *
      */
     address(): [address: string, family: string, port: number];
 
     /**
-     * @description 服务器当前侦听的 Socket 对象  
+     * @description 服务器当前侦听的 Socket 对象 
      */
     readonly socket: Class_Socket;
 
@@ -162,29 +162,29 @@ declare class Class_TcpServer extends Class_EventEmitter {
     timeout: number;
 
     /**
-     * @description 服务器当前事件处理接口对象 
+     * @description 服务器当前事件处理接口对象
      */
     handler: Class_Handler;
 
     /**
-     * @description 调用 start() 并完成绑定后触发 
+     * @description 调用 start() 并完成绑定后触发
      */
     on(event: "listening", listener: ()=>void): this;
 
     /**
      * @description 建立新 TCP 连接时触发
      *      @param socket 新建立的 Socket 连接对象
-     *     
+     *
      */
     on(event: "connection", listener: ()=>void): this;
 
     /**
-     * @description 发生错误时触发 
+     * @description 发生错误时触发
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 服务器关闭后触发 
+     * @description 服务器关闭后触发
      */
     on(event: "close", listener: ()=>void): this;
 

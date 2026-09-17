@@ -2,40 +2,40 @@
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
  * @description URLSearchParams 是一个专门用于处理 URL 查询参数的容器类，继承自 HttpCollection
- * 
+ *
  * URLSearchParams 实现了标准的 URLSearchParams API，用于解析和操作 URL 查询字符串。它提供了完整的查询参数管理功能，支持标准的查询参数操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除参数。
- * 
+ *
  * URLSearchParams 支持以下几种使用方式：
- * 
+ *
  * 1. 作为全局 URLSearchParams API 使用（Web 标准）：
- * 
+ *
  * ```JavaScript
  * // Create empty URLSearchParams object
  * const params = new URLSearchParams();
- * 
+ *
  * // Initialize with query string
  * const params = new URLSearchParams('name=John&age=30&city=Beijing');
- * 
+ *
  * // Initialize with object
  * const params = new URLSearchParams({
  *     name: 'John',
  *     age: '30',
  *     city: 'Beijing'
  * });
- * 
+ *
  * // Initialize with array
  * const params = new URLSearchParams([
  *     ['name', 'John'],
  *     ['age', '30'],
  *     ['city', 'Beijing']
  * ]);
- * 
+ *
  * // Copy from another URLSearchParams object
  * const copy = new URLSearchParams(params);
  * ```
- * 
+ *
  * URLSearchParams API 标准方法示例：
- * 
+ *
  * ```JavaScript
  * // Standard URLSearchParams API methods
  * params.set('name', 'Alice');
@@ -47,101 +47,101 @@
  * params.has('hobby', 'reading'); // true
  * params.delete('city');
  * params.delete('hobby', 'coding');
- * 
+ *
  * // Convert to string
  * params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
- * 
+ *
  * // Iterator support
  * for (const [name, value] of params) {
  *     console.log(`${name}: ${value}`);
  * }
- * 
+ *
  * // Iterate over keys
  * for (const name of params.keys()) {
  *     console.log(name);
  * }
- * 
+ *
  * // Iterate over values
  * for (const value of params.values()) {
  *     console.log(value);
  * }
- * 
+ *
  * // forEach method
  * params.forEach((value, name) => {
  *     console.log(`${name}: ${value}`);
  * });
- * 
+ *
  * // Sort parameters
  * params.sort();
  * ```
- * 
+ *
  * fibjs 扩展方法示例（继承自 HttpCollection）：
- * 
+ *
  * ```JavaScript
  * // Add multiple values (without overwriting existing)
  * params.add('tags', 'javascript');
- * 
+ *
  * // Get first value
  * const firstName = params.first('name');
- * 
+ *
  * // Get all values
  * const allHobbies = params.all('hobby');
- * 
+ *
  * // Set multiple values
  * params.set('colors', ['red', 'green', 'blue']);
  * ```
- * 
+ *
  * URLSearchParams 自动处理 URL 编码和解码，完全遵循 Web 标准 URLSearchParams API 规范。
- *  
+ *
  */
 declare class Class_URLSearchParams extends Class_HttpCollection {
     /**
-     * @description URLSearchParams 构造函数，创建一个新的空查询参数容器 
+     * @description URLSearchParams 构造函数，创建一个新的空查询参数容器
      */
     constructor();
 
     /**
      * @description URLSearchParams 构造函数，使用给定的查询字符串初始化参数容器
      *      @param init 初始化用的查询字符串，如 "name=value&key=val"
-     *      
+     *
      */
     constructor(init: string);
 
     /**
      * @description URLSearchParams 构造函数，使用给定的对象初始化参数容器
      *      @param init 初始化用的参数对象，键为参数名，值为参数值
-     *      
+     *
      */
     constructor(init: FIBJS.GeneralObject);
 
     /**
      * @description URLSearchParams 构造函数，使用给定的数组初始化参数容器
      *      @param init 初始化用的参数数组，每个元素为一个包含参数名和参数值的数组
-     *      
+     *
      */
     constructor(init: any[]);
 
     /**
      * @description URLSearchParams 构造函数，使用给定的 URLSearchParams 对象初始化参数容器
      *      @param init 初始化用的 URLSearchParams 对象
-     *      
+     *
      */
     constructor(init: Class_URLSearchParams);
 
     /**
      * @description URLSearchParams 构造函数，使用给定的可迭代对象初始化参数容器
-     * 
+     *
      *      任何实现了迭代器协议的对象（如 Map、Set、FormData、URLSearchParams）都会被展开为
      *      [name, value] 序列后写入，与 Web 标准的 URLSearchParams 构造函数一致；
      *      元素不是键值对时抛出 TypeError。
-     * 
+     *
      *      @param init 初始化用的可迭代对象，每个元素为一个包含参数名和参数值的数组
-     *      
+     *
      */
     constructor(init: any);
 
     /**
-     * @description 查询参数对的数量（同名多值会分别计数，与 Web 标准一致） 
+     * @description 查询参数对的数量（同名多值会分别计数，与 Web 标准一致）
      */
     readonly size: number;
 
@@ -150,7 +150,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      @param name 指定要检查的参数名
      *      @param value 指定要检查的参数值，当传入 undefined 时行为与 has(name) 相同
      *      @return 返回指定参数名和参数值组合是否存在
-     *      
+     *
      */
     has(name: string, value: any): boolean;
 
@@ -158,7 +158,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      * @description 删除指定参数名和参数值的组合
      *      @param name 指定要删除的参数名
      *      @param value 指定要删除的参数值，当传入 undefined 时行为与 delete(name) 相同
-     *      
+     *
      */
     delete(name: string, value: any): void;
 

@@ -9,9 +9,9 @@
 /// <reference path="../interface/StatsWatcher.d.ts" />
 /**
  * @description fs 模块提供文件系统操作能力，包括文件与目录的读写、创建、删除、权限修改、状态查询、路径解析、文件监视等，可用于构建文件管理、日志、配置持久化等场景
- * 
+ *
  *  模块的主要能力：
- * 
+ *
  *  - **路径与存在性**：`exists`、`access`、`realpath`、`readlink`、`symlink`、`link`；
  *  - **目录操作**：`mkdir`、`mkdtemp`、`rmdir`、`rm`、`readdir`、`glob`；
  *  - **文件操作**：`readFile`、`writeFile`、`appendFile`、`rename`、`copyFile`、`cp`、`truncate`、`unlink`、`chmod`、`chown`、`utimes`；
@@ -19,90 +19,90 @@
  *  - **文件流**：`openFile`、`openTextStream`、`createReadStream`、`createWriteStream`；
  *  - **文件监视**：`watch`、`watchFile`、`unwatchFile`；
  *  - **zip 虚拟文件系统**：`setZipFS`、`clearZipFS`。
- * 
+ *
  *  模块内函数均为同步/回调一体的 async 风格：不传回调函数时同步执行并返回结果；传入回调函数时异步执行，回调接收 `(err, result)` 参数：
- * 
+ *
  *  ```JavaScript
  *  var fs = require('fs');
- * 
+ *
  *  // 同步方式
  *  var content = fs.readFile('test.txt', 'utf8');
  *  console.log(content);
- * 
+ *
  *  // 回调方式
  *  fs.readFile('test.txt', 'utf8', (err, content) => {
  *      if (err) throw err;
  *      console.log(content);
  *  });
  *  ```
- * 
+ *
  *  文件读写函数遵循以下约定：
- * 
+ *
  *  - `readFile` 缺省返回 Buffer 对象，指定 `encoding` 后按编码解码返回字符串；
  *  - `writeFile` 缺省以覆盖方式写入，`appendFile` 以追加方式写入；
  *  - 打开文件的 `flags` 参数支持 `'r'`、`'r+'`、`'w'`、`'w+'`、`'a'`、`'a+'` 六种方式，也可使用 `fs.constants` 中的整数标志按位组合。
- * 
+ *
  *  文件监视能力由两组 API 提供：
- * 
+ *
  *  - `fs.watch(filename)` 返回 FSWatcher 对象，监听文件系统事件，支持 `'change'`、`'changeonly'`、`'renameonly'` 三个事件；
  *  - `fs.watchFile(target)` 返回 StatsWatcher 对象，周期性检查文件状态变化，回调接收 `(curStats, prevStats)` 参数；`fs.unwatchFile(target)` 停止监视。
- * 
+ *
  *  示例：
- * 
+ *
  *  ```JavaScript
  *  var fs = require('fs');
- * 
+ *
  *  // 写入并读取文本文件
  *  fs.writeFile('hello.txt', 'hello, world!');
  *  console.log(fs.readFile('hello.txt', 'utf8'));
- * 
+ *
  *  // 创建目录并列出内容
  *  fs.mkdir('data', { recursive: true });
  *  var files = fs.readdir('data');
  *  console.log(files);
  *  ```
- * 
+ *
  *  一些注意点:
- * 
+ *
  *  - 运行 `fs.watch(filename)` 会返回一个继承自 EventEmitter 的 watcher, 它支持 'change', 'changeonly', 'renameonly' 三个事件
  *  - `fs.watchFile(target)` 和 `fs.unwatchFile(target)` 依然可以成对使用
  *  - `fs.watchFile(target)` 会返回一个继承自 EventEmitter 的 StatsWatcher 对象, 调用 `fs.unwatchFile(target)` 等价于调用 `StatsWatcher.close()`.
  *  - 因为 uv 在 Linux 上的实现, `fs.watch` 的 `recursive` 选项仅在 win32/darwin 被稳定支持. 你依然可以尝试在 Linux 中尝试使用 `fs.watch('/path/to', { recursive: true }, handler)`, 但可能会发现 `handler` 被回调的时机与你预期的有差异
- *  
+ *
  */
 declare module 'fs' {
     /**
-     * @description seek 方式常量，移动到绝对位置 
+     * @description seek 方式常量，移动到绝对位置
      */
     export const SEEK_SET: 0;
 
     /**
-     * @description seek 方式常量，移动到当前位置的相对位置 
+     * @description seek 方式常量，移动到当前位置的相对位置
      */
     export const SEEK_CUR: 1;
 
     /**
-     * @description seek 方式常量，移动到文件结尾的相对位置 
+     * @description seek 方式常量，移动到文件结尾的相对位置
      */
     export const SEEK_END: 2;
 
     /**
-     * ! fs模块的常量对象，参见 fs_constants 
+     * ! fs模块的常量对象，参见 fs_constants
      */
     const constants: typeof import ('fs_constants');
 
     /**
-     * @description Stat 类的别名，参见 Stat 
+     * @description Stat 类的别名，参见 Stat
      */
     const Stats: typeof Class_Stat;
 
     /**
      * @description 查询指定的文件或目录是否存在
-     * 
+     *
      *      路径不存在时返回 false 而非抛出异常。
      *      @param path 指定要查询的路径
      *      @return 返回 True 表示文件或目录存在
-     *      
+     *
      */
     function exists(path: string): boolean;
 
@@ -110,31 +110,31 @@ declare module 'fs' {
 
     /**
      * @description 查询指定的文件或目录是否存在
-     * 
+     *
      *      路径不存在时返回 false 而非抛出异常。
      *      @param path 指定要查询的路径
      *      @return 返回 True 表示文件或目录存在
-     *      
+     *
      */
     function existsSync(path: string): boolean;
 
     /**
      * @description 查询指定的文件或目录是否存在
-     * 
+     *
      *      路径不存在时返回 false 而非抛出异常。
      *      @param path 指定要查询的路径
      *      @return 返回 True 表示文件或目录存在
-     *      
+     *
      */
     function existsAsync(path: string): Promise<boolean>;
 
     /**
      * @description 查询用户对指定的文件的权限
-     * 
+     *
      *      mode 指定要检查的权限，取值为 fs.constants 中 F_OK、R_OK、W_OK、X_OK 的组合，缺省为 F_OK（检查文件是否存在）。权限检查失败时抛出异常。
      *      @param path 指定要查询的路径
      *      @param mode 指定查询的权限，默认为文件是否存在
-     *      
+     *
      */
     function access(path: string, mode?: number): void;
 
@@ -142,21 +142,21 @@ declare module 'fs' {
 
     /**
      * @description 查询用户对指定的文件的权限
-     * 
+     *
      *      mode 指定要检查的权限，取值为 fs.constants 中 F_OK、R_OK、W_OK、X_OK 的组合，缺省为 F_OK（检查文件是否存在）。权限检查失败时抛出异常。
      *      @param path 指定要查询的路径
      *      @param mode 指定查询的权限，默认为文件是否存在
-     *      
+     *
      */
     function accessSync(path: string, mode?: number): void;
 
     /**
      * @description 查询用户对指定的文件的权限
-     * 
+     *
      *      mode 指定要检查的权限，取值为 fs.constants 中 F_OK、R_OK、W_OK、X_OK 的组合，缺省为 F_OK（检查文件是否存在）。权限检查失败时抛出异常。
      *      @param path 指定要查询的路径
      *      @param mode 指定查询的权限，默认为文件是否存在
-     *      
+     *
      */
     function accessAsync(path: string, mode?: number): Promise<void>;
 
@@ -164,7 +164,7 @@ declare module 'fs' {
      * @description 创建硬链接文件，Windows 不支持此方法
      *      @param oldPath 源文件
      *      @param newPath 将要被创建的文件
-     *      
+     *
      */
     function link(oldPath: string, newPath: string): void;
 
@@ -174,7 +174,7 @@ declare module 'fs' {
      * @description 创建硬链接文件，Windows 不支持此方法
      *      @param oldPath 源文件
      *      @param newPath 将要被创建的文件
-     *      
+     *
      */
     function linkSync(oldPath: string, newPath: string): void;
 
@@ -182,16 +182,16 @@ declare module 'fs' {
      * @description 创建硬链接文件，Windows 不支持此方法
      *      @param oldPath 源文件
      *      @param newPath 将要被创建的文件
-     *      
+     *
      */
     function linkAsync(oldPath: string, newPath: string): Promise<void>;
 
     /**
      * @description 删除指定的文件
-     * 
+     *
      *      文件不存在时抛出异常。若路径指向目录，行为由平台决定，删除目录请使用 rmdir 或 rm。
      *      @param path 指定要删除的路径
-     *      
+     *
      */
     function unlink(path: string): void;
 
@@ -199,29 +199,29 @@ declare module 'fs' {
 
     /**
      * @description 删除指定的文件
-     * 
+     *
      *      文件不存在时抛出异常。若路径指向目录，行为由平台决定，删除目录请使用 rmdir 或 rm。
      *      @param path 指定要删除的路径
-     *      
+     *
      */
     function unlinkSync(path: string): void;
 
     /**
      * @description 删除指定的文件
-     * 
+     *
      *      文件不存在时抛出异常。若路径指向目录，行为由平台决定，删除目录请使用 rmdir 或 rm。
      *      @param path 指定要删除的路径
-     *      
+     *
      */
     function unlinkAsync(path: string): Promise<void>;
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      mode 指定目录权限，Windows 忽略此参数；目录已存在时抛出异常，可通过 recursive 选项创建多级目录。
      *      @param path 指定要创建的目录名
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
-     *      
+     *
      */
     function mkdir(path: string, mode?: number): void;
 
@@ -229,27 +229,27 @@ declare module 'fs' {
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      mode 指定目录权限，Windows 忽略此参数；目录已存在时抛出异常，可通过 recursive 选项创建多级目录。
      *      @param path 指定要创建的目录名
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
-     *      
+     *
      */
     function mkdirSync(path: string, mode?: number): void;
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      mode 指定目录权限，Windows 忽略此参数；目录已存在时抛出异常，可通过 recursive 选项创建多级目录。
      *      @param path 指定要创建的目录名
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
-     *      
+     *
      */
     function mkdirAsync(path: string, mode?: number): Promise<void>;
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      创建参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -259,7 +259,7 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要创建的目录名
      *      @param opt 指定创建参数
-     *      
+     *
      */
     function mkdir(path: string, opt: FIBJS.GeneralObject): void;
 
@@ -267,7 +267,7 @@ declare module 'fs' {
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      创建参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -277,13 +277,13 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要创建的目录名
      *      @param opt 指定创建参数
-     *      
+     *
      */
     function mkdirSync(path: string, opt: FIBJS.GeneralObject): void;
 
     /**
      * @description 创建一个目录
-     * 
+     *
      *      创建参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -293,17 +293,17 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要创建的目录名
      *      @param opt 指定创建参数
-     *      
+     *
      */
     function mkdirAsync(path: string, opt: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description 创建一个唯一的临时目录
-     * 
+     *
      *      临时目录创建在系统的临时目录下，目录名以 prefix 开头并附加随机后缀。
      *      @param prefix 指定临时目录名称的前缀
      *      @return 返回创建的临时目录的路径
-     *      
+     *
      */
     function mkdtemp(prefix: string): string;
 
@@ -311,27 +311,27 @@ declare module 'fs' {
 
     /**
      * @description 创建一个唯一的临时目录
-     * 
+     *
      *      临时目录创建在系统的临时目录下，目录名以 prefix 开头并附加随机后缀。
      *      @param prefix 指定临时目录名称的前缀
      *      @return 返回创建的临时目录的路径
-     *      
+     *
      */
     function mkdtempSync(prefix: string): string;
 
     /**
      * @description 创建一个唯一的临时目录
-     * 
+     *
      *      临时目录创建在系统的临时目录下，目录名以 prefix 开头并附加随机后缀。
      *      @param prefix 指定临时目录名称的前缀
      *      @return 返回创建的临时目录的路径
-     *      
+     *
      */
     function mkdtempAsync(prefix: string): Promise<string>;
 
     /**
      * @description 删除一个目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -340,7 +340,7 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rmdir(path: string, opt?: FIBJS.GeneralObject): void;
 
@@ -348,7 +348,7 @@ declare module 'fs' {
 
     /**
      * @description 删除一个目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -357,13 +357,13 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rmdirSync(path: string, opt?: FIBJS.GeneralObject): void;
 
     /**
      * @description 删除一个目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -372,13 +372,13 @@ declare module 'fs' {
      *      ```
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rmdirAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description 删除一个文件或目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -386,11 +386,11 @@ declare module 'fs' {
      *          force: false // whether to ignore nonexistent paths. Default: false
      *      }
      *      ```
-     * 
+     *
      *      recursive 为 false 时，仅能删除文件与符号链接，删除目录将抛出 EISDIR 异常；recursive 为 true 时递归删除目录及其全部内容，符号链接仅删除链接本身而不会跟随目标。路径不存在时抛出 ENOENT 异常，force 为 true 时忽略不存在的路径。
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rm(path: string, opt?: FIBJS.GeneralObject): void;
 
@@ -398,7 +398,7 @@ declare module 'fs' {
 
     /**
      * @description 删除一个文件或目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -406,17 +406,17 @@ declare module 'fs' {
      *          force: false // whether to ignore nonexistent paths. Default: false
      *      }
      *      ```
-     * 
+     *
      *      recursive 为 false 时，仅能删除文件与符号链接，删除目录将抛出 EISDIR 异常；recursive 为 true 时递归删除目录及其全部内容，符号链接仅删除链接本身而不会跟随目标。路径不存在时抛出 ENOENT 异常，force 为 true 时忽略不存在的路径。
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rmSync(path: string, opt?: FIBJS.GeneralObject): void;
 
     /**
      * @description 删除一个文件或目录
-     * 
+     *
      *      删除参数可以包含以下值：
      *      ```JavaScript
      *      {
@@ -424,21 +424,21 @@ declare module 'fs' {
      *          force: false // whether to ignore nonexistent paths. Default: false
      *      }
      *      ```
-     * 
+     *
      *      recursive 为 false 时，仅能删除文件与符号链接，删除目录将抛出 EISDIR 异常；recursive 为 true 时递归删除目录及其全部内容，符号链接仅删除链接本身而不会跟随目标。路径不存在时抛出 ENOENT 异常，force 为 true 时忽略不存在的路径。
      *      @param path 指定要删除的目录名
      *      @param opt 指定删除参数
-     *      
+     *
      */
     function rmAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description 重新命名一个文件
-     * 
+     *
      *      文件不存在或目标已存在时抛出异常。
      *      @param from 指定更名的文件
      *      @param to 指定要修改的新文件名
-     *      
+     *
      */
     function rename(from: string, to: string): void;
 
@@ -446,36 +446,36 @@ declare module 'fs' {
 
     /**
      * @description 重新命名一个文件
-     * 
+     *
      *      文件不存在或目标已存在时抛出异常。
      *      @param from 指定更名的文件
      *      @param to 指定要修改的新文件名
-     *      
+     *
      */
     function renameSync(from: string, to: string): void;
 
     /**
      * @description 重新命名一个文件
-     * 
+     *
      *      文件不存在或目标已存在时抛出异常。
      *      @param from 指定更名的文件
      *      @param to 指定要修改的新文件名
-     *      
+     *
      */
     function renameAsync(from: string, to: string): Promise<void>;
 
     /**
      * @description 将 src 拷贝到 dest。 默认情况下，如果 dest 已经存在，则覆盖它。
-     * 
+     *
      *      mode 是一个可选的整数，指定拷贝操作的行为。 可以创建由两个或更多个值按位或组成的掩码（比如 fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE）。
      *      - fs.constants.COPYFILE_EXCL - 如果 dest 已存在，则拷贝操作将失败。
      *      - fs.constants.COPYFILE_FICLONE - 拷贝操作将尝试创建写时拷贝（copy-on-write）链接。如果平台不支持写时拷贝，则使用后备的拷贝机制。
      *      - fs.constants.COPYFILE_FICLONE_FORCE - 拷贝操作将尝试创建写时拷贝链接。如果平台不支持写时拷贝，则拷贝操作将失败。
-     * 
+     *
      *      @param from 指定要拷贝的源文件名
      *      @param to 指定要拷贝的目标文件名
      *      @param mode 指定拷贝操作的修饰符，缺省为 0
-     *      
+     *
      */
     function copyFile(from: string, to: string, mode?: number): void;
 
@@ -483,39 +483,39 @@ declare module 'fs' {
 
     /**
      * @description 将 src 拷贝到 dest。 默认情况下，如果 dest 已经存在，则覆盖它。
-     * 
+     *
      *      mode 是一个可选的整数，指定拷贝操作的行为。 可以创建由两个或更多个值按位或组成的掩码（比如 fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE）。
      *      - fs.constants.COPYFILE_EXCL - 如果 dest 已存在，则拷贝操作将失败。
      *      - fs.constants.COPYFILE_FICLONE - 拷贝操作将尝试创建写时拷贝（copy-on-write）链接。如果平台不支持写时拷贝，则使用后备的拷贝机制。
      *      - fs.constants.COPYFILE_FICLONE_FORCE - 拷贝操作将尝试创建写时拷贝链接。如果平台不支持写时拷贝，则拷贝操作将失败。
-     * 
+     *
      *      @param from 指定要拷贝的源文件名
      *      @param to 指定要拷贝的目标文件名
      *      @param mode 指定拷贝操作的修饰符，缺省为 0
-     *      
+     *
      */
     function copyFileSync(from: string, to: string, mode?: number): void;
 
     /**
      * @description 将 src 拷贝到 dest。 默认情况下，如果 dest 已经存在，则覆盖它。
-     * 
+     *
      *      mode 是一个可选的整数，指定拷贝操作的行为。 可以创建由两个或更多个值按位或组成的掩码（比如 fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE）。
      *      - fs.constants.COPYFILE_EXCL - 如果 dest 已存在，则拷贝操作将失败。
      *      - fs.constants.COPYFILE_FICLONE - 拷贝操作将尝试创建写时拷贝（copy-on-write）链接。如果平台不支持写时拷贝，则使用后备的拷贝机制。
      *      - fs.constants.COPYFILE_FICLONE_FORCE - 拷贝操作将尝试创建写时拷贝链接。如果平台不支持写时拷贝，则拷贝操作将失败。
-     * 
+     *
      *      @param from 指定要拷贝的源文件名
      *      @param to 指定要拷贝的目标文件名
      *      @param mode 指定拷贝操作的修饰符，缺省为 0
-     *      
+     *
      */
     function copyFileAsync(from: string, to: string, mode?: number): Promise<void>;
 
     /**
      * @description 将 src 异步地复制到 dest，包括子目录和文件。
-     * 
+     *
      *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
-     * 
+     *
      *      opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -527,7 +527,7 @@ declare module 'fs' {
      *      @param src 指定要复制的源路径
      *      @param dest 指定要复制到的目标路径
      *      @param opts 指定复制参数
-     *      
+     *
      */
     function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
 
@@ -535,9 +535,9 @@ declare module 'fs' {
 
     /**
      * @description 将 src 异步地复制到 dest，包括子目录和文件。
-     * 
+     *
      *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
-     * 
+     *
      *      opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -549,15 +549,15 @@ declare module 'fs' {
      *      @param src 指定要复制的源路径
      *      @param dest 指定要复制到的目标路径
      *      @param opts 指定复制参数
-     *      
+     *
      */
     function cpSync(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
 
     /**
      * @description 将 src 异步地复制到 dest，包括子目录和文件。
-     * 
+     *
      *      如果 src 是一个目录，则默认情况下不会递归复制目录，需要设置 recursive 为 true。
-     * 
+     *
      *      opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -569,7 +569,7 @@ declare module 'fs' {
      *      @param src 指定要复制的源路径
      *      @param dest 指定要复制到的目标路径
      *      @param opts 指定复制参数
-     *      
+     *
      */
     function cpAsync(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
 
@@ -577,7 +577,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，Windows 不支持此方法
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function chmod(path: string, mode: number): void;
 
@@ -587,7 +587,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，Windows 不支持此方法
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function chmodSync(path: string, mode: number): void;
 
@@ -595,7 +595,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，Windows 不支持此方法
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function chmodAsync(path: string, mode: number): Promise<void>;
 
@@ -603,7 +603,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function lchmod(path: string, mode: number): void;
 
@@ -613,7 +613,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function lchmodSync(path: string, mode: number): void;
 
@@ -621,7 +621,7 @@ declare module 'fs' {
      * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
-     *      
+     *
      */
     function lchmodAsync(path: string, mode: number): Promise<void>;
 
@@ -630,7 +630,7 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function chown(path: string, uid: number, gid: number): void;
 
@@ -641,7 +641,7 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function chownSync(path: string, uid: number, gid: number): void;
 
@@ -650,7 +650,7 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function chownAsync(path: string, uid: number, gid: number): Promise<void>;
 
@@ -659,7 +659,7 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function lchown(path: string, uid: number, gid: number): void;
 
@@ -670,7 +670,7 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function lchownSync(path: string, uid: number, gid: number): void;
 
@@ -679,18 +679,18 @@ declare module 'fs' {
      *      @param path 指定设置的文件
      *      @param uid 文件拥有者用户id
      *      @param gid 文件拥有者组id
-     *      
+     *
      */
     function lchownAsync(path: string, uid: number, gid: number): Promise<void>;
 
     /**
      * @description 修改指定文件的访问时间和修改时间
-     * 
+     *
      *      时间参数为 Unix 时间戳，以秒为单位。
      *      @param path 指定设置的文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function utimes(path: string, atime: number, mtime: number): void;
 
@@ -698,23 +698,23 @@ declare module 'fs' {
 
     /**
      * @description 修改指定文件的访问时间和修改时间
-     * 
+     *
      *      时间参数为 Unix 时间戳，以秒为单位。
      *      @param path 指定设置的文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function utimesSync(path: string, atime: number, mtime: number): void;
 
     /**
      * @description 修改指定文件的访问时间和修改时间
-     * 
+     *
      *      时间参数为 Unix 时间戳，以秒为单位。
      *      @param path 指定设置的文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function utimesAsync(path: string, atime: number, mtime: number): Promise<void>;
 
@@ -723,7 +723,7 @@ declare module 'fs' {
      *      @param path 指定设置的软连接文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function lutimes(path: string, atime: number, mtime: number): void;
 
@@ -734,7 +734,7 @@ declare module 'fs' {
      *      @param path 指定设置的软连接文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function lutimesSync(path: string, atime: number, mtime: number): void;
 
@@ -743,17 +743,17 @@ declare module 'fs' {
      *      @param path 指定设置的软连接文件
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function lutimesAsync(path: string, atime: number, mtime: number): Promise<void>;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      路径不存在时抛出异常。
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function stat(path: string): Class_Stat;
 
@@ -761,27 +761,27 @@ declare module 'fs' {
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      路径不存在时抛出异常。
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function statSync(path: string): Class_Stat;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      路径不存在时抛出异常。
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function statAsync(path: string): Promise<Class_Stat>;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -791,7 +791,7 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function stat(path: string, options: FIBJS.GeneralObject): Class_Stat;
 
@@ -799,7 +799,7 @@ declare module 'fs' {
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -809,13 +809,13 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function statSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -825,7 +825,7 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function statAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
@@ -833,7 +833,7 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstat(path: string): Class_Stat;
 
@@ -843,7 +843,7 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstatSync(path: string): Class_Stat;
 
@@ -851,13 +851,13 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
      *      @param path 指定查询的文件
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstatAsync(path: string): Promise<Class_Stat>;
 
     /**
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -867,7 +867,7 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstat(path: string, options: FIBJS.GeneralObject): Class_Stat;
 
@@ -875,7 +875,7 @@ declare module 'fs' {
 
     /**
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -885,13 +885,13 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstatSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
 
     /**
      * @description 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -901,7 +901,7 @@ declare module 'fs' {
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function lstatAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
@@ -909,7 +909,7 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息
      *      @param fd 文件描述符对象
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstat(fd: Class_FileHandle): Class_Stat;
 
@@ -919,7 +919,7 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息
      *      @param fd 文件描述符对象
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstatSync(fd: Class_FileHandle): Class_Stat;
 
@@ -927,13 +927,13 @@ declare module 'fs' {
      * @description 查询指定文件的基础信息
      *      @param fd 文件描述符对象
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstatAsync(fd: Class_FileHandle): Promise<Class_Stat>;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -943,7 +943,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstat(fd: Class_FileHandle, options: FIBJS.GeneralObject): Class_Stat;
 
@@ -951,7 +951,7 @@ declare module 'fs' {
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -961,13 +961,13 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstatSync(fd: Class_FileHandle, options: FIBJS.GeneralObject): Class_Stat;
 
     /**
      * @description 查询指定文件的基础信息
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -977,7 +977,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
-     *      
+     *
      */
     function fstatAsync(fd: Class_FileHandle, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
@@ -985,7 +985,7 @@ declare module 'fs' {
      * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
      *      @param path 指定读取的软连接文件
      *      @return 返回软连接指向的文件名
-     *      
+     *
      */
     function readlink(path: string): string;
 
@@ -995,7 +995,7 @@ declare module 'fs' {
      * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
      *      @param path 指定读取的软连接文件
      *      @return 返回软连接指向的文件名
-     *      
+     *
      */
     function readlinkSync(path: string): string;
 
@@ -1003,7 +1003,7 @@ declare module 'fs' {
      * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
      *      @param path 指定读取的软连接文件
      *      @return 返回软连接指向的文件名
-     *      
+     *
      */
     function readlinkAsync(path: string): Promise<string>;
 
@@ -1011,7 +1011,7 @@ declare module 'fs' {
      * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
      *      @param path 指定读取的路径
      *      @return 返回处理后的绝对路径
-     *      
+     *
      */
     function realpath(path: string): string;
 
@@ -1021,7 +1021,7 @@ declare module 'fs' {
      * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
      *      @param path 指定读取的路径
      *      @return 返回处理后的绝对路径
-     *      
+     *
      */
     function realpathSync(path: string): string;
 
@@ -1029,7 +1029,7 @@ declare module 'fs' {
      * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
      *      @param path 指定读取的路径
      *      @return 返回处理后的绝对路径
-     *      
+     *
      */
     function realpathAsync(path: string): Promise<string>;
 
@@ -1038,7 +1038,7 @@ declare module 'fs' {
      *      @param target 目标文件，可以是文件、目录、或不存在的路径
      *      @param linkpath 将被创建的软连接文件
      *      @param type 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
-     *      
+     *
      */
     function symlink(target: string, linkpath: string, type?: string): void;
 
@@ -1049,7 +1049,7 @@ declare module 'fs' {
      *      @param target 目标文件，可以是文件、目录、或不存在的路径
      *      @param linkpath 将被创建的软连接文件
      *      @param type 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
-     *      
+     *
      */
     function symlinkSync(target: string, linkpath: string, type?: string): void;
 
@@ -1058,7 +1058,7 @@ declare module 'fs' {
      *      @param target 目标文件，可以是文件、目录、或不存在的路径
      *      @param linkpath 将被创建的软连接文件
      *      @param type 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
-     *      
+     *
      */
     function symlinkAsync(target: string, linkpath: string, type?: string): Promise<void>;
 
@@ -1066,7 +1066,7 @@ declare module 'fs' {
      * @description 修改文件尺寸，如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
      *      @param path 指定被修改文件的路径
      *      @param len 指定修改后文件的大小
-     *      
+     *
      */
     function truncate(path: string, len: number): void;
 
@@ -1076,7 +1076,7 @@ declare module 'fs' {
      * @description 修改文件尺寸，如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
      *      @param path 指定被修改文件的路径
      *      @param len 指定修改后文件的大小
-     *      
+     *
      */
     function truncateSync(path: string, len: number): void;
 
@@ -1084,13 +1084,13 @@ declare module 'fs' {
      * @description 修改文件尺寸，如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
      *      @param path 指定被修改文件的路径
      *      @param len 指定修改后文件的大小
-     *      
+     *
      */
     function truncateAsync(path: string, len: number): Promise<void>;
 
     /**
      * @description 根据文件描述符，读取文件内容
-     * 
+     *
      *      length 缺省为 0，表示不读取数据；读取时需显式指定长度。position 缺省为 -1，表示从当前文件位置读取；指定 position 时，读取前将文件指针移动到该位置。
      *      @param fd 文件描述符对象
      *      @param buffer 读取结果写入的 Buffer 对象
@@ -1098,7 +1098,7 @@ declare module 'fs' {
      *      @param length 文件读取字节数，默认为 0
      *      @param position 文件读取位置，默认为当前文件位置
      *      @return 实际读取的字节数
-     *      
+     *
      */
     function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
@@ -1106,7 +1106,7 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，读取文件内容
-     * 
+     *
      *      length 缺省为 0，表示不读取数据；读取时需显式指定长度。position 缺省为 -1，表示从当前文件位置读取；指定 position 时，读取前将文件指针移动到该位置。
      *      @param fd 文件描述符对象
      *      @param buffer 读取结果写入的 Buffer 对象
@@ -1114,13 +1114,13 @@ declare module 'fs' {
      *      @param length 文件读取字节数，默认为 0
      *      @param position 文件读取位置，默认为当前文件位置
      *      @return 实际读取的字节数
-     *      
+     *
      */
     function readSync(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description 根据文件描述符，读取文件内容
-     * 
+     *
      *      length 缺省为 0，表示不读取数据；读取时需显式指定长度。position 缺省为 -1，表示从当前文件位置读取；指定 position 时，读取前将文件指针移动到该位置。
      *      @param fd 文件描述符对象
      *      @param buffer 读取结果写入的 Buffer 对象
@@ -1128,7 +1128,7 @@ declare module 'fs' {
      *      @param length 文件读取字节数，默认为 0
      *      @param position 文件读取位置，默认为当前文件位置
      *      @return 实际读取的字节数
-     *      
+     *
      */
     function readAsync(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
@@ -1136,7 +1136,7 @@ declare module 'fs' {
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
      *      @param fd 文件描述符对象
      *      @param mode 文件的模式
-     *      
+     *
      */
     function fchmod(fd: Class_FileHandle, mode: number): void;
 
@@ -1146,7 +1146,7 @@ declare module 'fs' {
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
      *      @param fd 文件描述符对象
      *      @param mode 文件的模式
-     *      
+     *
      */
     function fchmodSync(fd: Class_FileHandle, mode: number): void;
 
@@ -1154,7 +1154,7 @@ declare module 'fs' {
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
      *      @param fd 文件描述符对象
      *      @param mode 文件的模式
-     *      
+     *
      */
     function fchmodAsync(fd: Class_FileHandle, mode: number): Promise<void>;
 
@@ -1163,7 +1163,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param uid 用户id
      *      @param gid 组id
-     *      
+     *
      */
     function fchown(fd: Class_FileHandle, uid: number, gid: number): void;
 
@@ -1174,7 +1174,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param uid 用户id
      *      @param gid 组id
-     *      
+     *
      */
     function fchownSync(fd: Class_FileHandle, uid: number, gid: number): void;
 
@@ -1183,7 +1183,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param uid 用户id
      *      @param gid 组id
-     *      
+     *
      */
     function fchownAsync(fd: Class_FileHandle, uid: number, gid: number): Promise<void>;
 
@@ -1192,7 +1192,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function futimes(fd: Class_FileHandle, atime: number, mtime: number): void;
 
@@ -1203,7 +1203,7 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function futimesSync(fd: Class_FileHandle, atime: number, mtime: number): void;
 
@@ -1212,16 +1212,16 @@ declare module 'fs' {
      *      @param fd 文件描述符对象
      *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
      *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *      
+     *
      */
     function futimesAsync(fd: Class_FileHandle, atime: number, mtime: number): Promise<void>;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      仅同步文件数据部分，不包含文件元数据，比 fsync 开销更小。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fdatasync(fd: Class_FileHandle): void;
 
@@ -1229,28 +1229,28 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      仅同步文件数据部分，不包含文件元数据，比 fsync 开销更小。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fdatasyncSync(fd: Class_FileHandle): void;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      仅同步文件数据部分，不包含文件元数据，比 fsync 开销更小。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fdatasyncAsync(fd: Class_FileHandle): Promise<void>;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      同步文件数据与元数据，确保写入内容持久化。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fsync(fd: Class_FileHandle): void;
 
@@ -1258,29 +1258,29 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      同步文件数据与元数据，确保写入内容持久化。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fsyncSync(fd: Class_FileHandle): void;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     * 
+     *
      *      同步文件数据与元数据，确保写入内容持久化。
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function fsyncAsync(fd: Class_FileHandle): Promise<void>;
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      返回目录下的文件名数组，不含子目录内容。
      *      @param path 指定查询的目录
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdir(path: string): any[];
 
@@ -1288,27 +1288,27 @@ declare module 'fs' {
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      返回目录下的文件名数组，不含子目录内容。
      *      @param path 指定查询的目录
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdirSync(path: string): any[];
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      返回目录下的文件名数组，不含子目录内容。
      *      @param path 指定查询的目录
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdirAsync(path: string): Promise<any[]>;
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1316,12 +1316,12 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      withFileTypes 为 true 时返回 DirEntry 对象数组，否则返回文件名数组。
      *      @param path 指定查询的目录
      *      @param opts 指定参数
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdir(path: string, opts?: FIBJS.GeneralObject): any[];
 
@@ -1329,7 +1329,7 @@ declare module 'fs' {
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1337,18 +1337,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      withFileTypes 为 true 时返回 DirEntry 对象数组，否则返回文件名数组。
      *      @param path 指定查询的目录
      *      @param opts 指定参数
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdirSync(path: string, opts?: FIBJS.GeneralObject): any[];
 
     /**
      * @description 读取指定目录的文件信息
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1356,18 +1356,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      withFileTypes 为 true 时返回 DirEntry 对象数组，否则返回文件名数组。
      *      @param path 指定查询的目录
      *      @param opts 指定参数
      *      @return 返回目录的文件信息数组
-     *      
+     *
      */
     function readdirAsync(path: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1375,12 +1375,12 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      模式支持 `*`、`?`、`**` 等通配符，返回匹配文件的绝对路径列表。
      *      @param pattern 指定文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
 
@@ -1388,7 +1388,7 @@ declare module 'fs' {
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1396,18 +1396,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      模式支持 `*`、`?`、`**` 等通配符，返回匹配文件的绝对路径列表。
      *      @param pattern 指定文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function globSync(pattern: string, opts?: FIBJS.GeneralObject): any[];
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1415,18 +1415,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      模式支持 `*`、`?`、`**` 等通配符，返回匹配文件的绝对路径列表。
      *      @param pattern 指定文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function globAsync(pattern: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
 
     /**
      * @description 根据一组文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1434,12 +1434,12 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      多个模式的匹配结果合并返回，重复文件只出现一次。
      *      @param patterns 指定一组文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
 
@@ -1447,7 +1447,7 @@ declare module 'fs' {
 
     /**
      * @description 根据一组文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1455,18 +1455,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      多个模式的匹配结果合并返回，重复文件只出现一次。
      *      @param patterns 指定一组文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function globSync(patterns: string[], opts?: FIBJS.GeneralObject): any[];
 
     /**
      * @description 根据一组文件名模式，搜索指定目录的文件列表
-     * 
+     *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1474,18 +1474,18 @@ declare module 'fs' {
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      }
      *      ```
-     * 
+     *
      *      多个模式的匹配结果合并返回，重复文件只出现一次。
      *      @param patterns 指定一组文件名模式
      *      @param opts 指定参数
      *      @return 返回文件列表
-     *      
+     *
      */
     function globAsync(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
 
     /**
      * @description 创建可读文件流
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1494,12 +1494,12 @@ declare module 'fs' {
      *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
      *      }
      *      ```
-     * 
+     *
      *      指定 start 或 end 时，返回的流仅覆盖 [start, end] 区间（含边界）的数据。
      *      @param fname 指定文件名
      *      @param options 读取选项
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createReadStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
@@ -1507,7 +1507,7 @@ declare module 'fs' {
 
     /**
      * @description 创建可读文件流
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1516,18 +1516,18 @@ declare module 'fs' {
      *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
      *      }
      *      ```
-     * 
+     *
      *      指定 start 或 end 时，返回的流仅覆盖 [start, end] 区间（含边界）的数据。
      *      @param fname 指定文件名
      *      @param options 读取选项
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createReadStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
     /**
      * @description 创建可读文件流
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1536,12 +1536,12 @@ declare module 'fs' {
      *          "end": undefined    // 读取结束位置（含），缺省为文件末尾
      *      }
      *      ```
-     * 
+     *
      *      指定 start 或 end 时，返回的流仅覆盖 [start, end] 区间（含边界）的数据。
      *      @param fname 指定文件名
      *      @param options 读取选项
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createReadStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStream>;
 
@@ -1550,7 +1550,7 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 写入选项，支持 flags（默认 'w'）
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
@@ -1561,7 +1561,7 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 写入选项，支持 flags（默认 'w'）
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createWriteStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
@@ -1570,13 +1570,13 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 写入选项，支持 flags（默认 'w'）
      *      @return 返回文件流对象
-     *      
+     *
      */
     function createWriteStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStream>;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1584,12 +1584,12 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的文件流支持 seek、tell、rewind 等定位操作。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFile(fname: string, flags?: string): Class_SeekableStream;
 
@@ -1597,7 +1597,7 @@ declare module 'fs' {
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1605,18 +1605,18 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的文件流支持 seek、tell、rewind 等定位操作。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFileSync(fname: string, flags?: string): Class_SeekableStream;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1624,22 +1624,22 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的文件流支持 seek、tell、rewind 等定位操作。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFileAsync(fname: string, flags?: string): Promise<Class_SeekableStream>;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFile(fname: string, flags: number): Class_SeekableStream;
 
@@ -1647,27 +1647,27 @@ declare module 'fs' {
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFileSync(fname: string, flags: number): Class_SeekableStream;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openFileAsync(fname: string, flags: number): Promise<Class_SeekableStream>;
 
     /**
      * @description 打开文件描述符
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1675,13 +1675,13 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 FileHandle 对象可配合 fs.read、fs.write、fs.fstat 等描述符函数使用。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function open(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
@@ -1689,7 +1689,7 @@ declare module 'fs' {
 
     /**
      * @description 打开文件描述符
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1697,19 +1697,19 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 FileHandle 对象可配合 fs.read、fs.write、fs.fstat 等描述符函数使用。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function openSync(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
     /**
      * @description 打开文件描述符
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1717,24 +1717,24 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 FileHandle 对象可配合 fs.read、fs.write、fs.fstat 等描述符函数使用。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function openAsync(fname: string, flags?: string, mode?: number): Promise<Class_FileHandle>;
 
     /**
      * @description 打开文件描述符，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function open(fname: string, flags: number, mode?: number): Class_FileHandle;
 
@@ -1742,30 +1742,30 @@ declare module 'fs' {
 
     /**
      * @description 打开文件描述符，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function openSync(fname: string, flags: number, mode?: number): Class_FileHandle;
 
     /**
      * @description 打开文件描述符，使用 fs.constants 整数 flags
-     * 
+     *
      *      @param fname 指定文件名
      *      @param flags 整数 flags，fs.constants 值的组合（如 fs.constants.O_WRONLY | fs.constants.O_CREAT）
      *      @param mode 当创建文件的时候，指定文件的模式，默认 0666
      *      @return 返回打开的文件描述符
-     *      
+     *
      */
     function openAsync(fname: string, flags: number, mode?: number): Promise<Class_FileHandle>;
 
     /**
      * @description 关闭文件描述符
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function close(fd: Class_FileHandle): void;
 
@@ -1774,20 +1774,20 @@ declare module 'fs' {
     /**
      * @description 关闭文件描述符
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function closeSync(fd: Class_FileHandle): void;
 
     /**
      * @description 关闭文件描述符
      *      @param fd 文件描述符对象
-     *      
+     *
      */
     function closeAsync(fd: Class_FileHandle): Promise<void>;
 
     /**
      * @description 打开文本文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1795,12 +1795,12 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 BufferedStream 以行为单位读写文本，可通过 EOL 属性设置行结尾标识。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openTextStream(fname: string, flags?: string): Class_BufferedStream;
 
@@ -1808,7 +1808,7 @@ declare module 'fs' {
 
     /**
      * @description 打开文本文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1816,18 +1816,18 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 BufferedStream 以行为单位读写文本，可通过 EOL 属性设置行结尾标识。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openTextStreamSync(fname: string, flags?: string): Class_BufferedStream;
 
     /**
      * @description 打开文本文件，用于读取，写入，或者同时读写
-     * 
+     *
      *      参数 flags 支持的方式如下：
      *      - 'r' 只读方式，文件不存在则抛出错误。
      *      - 'r+' 读写方式，文件不存在则抛出错误。
@@ -1835,22 +1835,22 @@ declare module 'fs' {
      *      - 'w+' 读写方式，文件不存在则自动创建。
      *      - 'a' 只写添加方式，文件不存在则自动创建。
      *      - 'a+' 读写添加方式，文件不存在则自动创建。
-     * 
+     *
      *      返回的 BufferedStream 以行为单位读写文本，可通过 EOL 属性设置行结尾标识。
      *      @param fname 指定文件名
      *      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      *      @return 返回打开的文件对象
-     *      
+     *
      */
     function openTextStreamAsync(fname: string, flags?: string): Promise<Class_BufferedStream>;
 
     /**
      * @description 打开文本文件，并读取内容
-     * 
+     *
      *      文件内容按 utf-8 解码返回。
      *      @param fname 指定文件名
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readTextFile(fname: string): string;
 
@@ -1858,32 +1858,32 @@ declare module 'fs' {
 
     /**
      * @description 打开文本文件，并读取内容
-     * 
+     *
      *      文件内容按 utf-8 解码返回。
      *      @param fname 指定文件名
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readTextFileSync(fname: string): string;
 
     /**
      * @description 打开文本文件，并读取内容
-     * 
+     *
      *      文件内容按 utf-8 解码返回。
      *      @param fname 指定文件名
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readTextFileAsync(fname: string): Promise<string>;
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      encoding 缺省为空，返回 Buffer 对象；指定编码后返回解码后的字符串。
      *      @param fname 指定文件名
      *      @param encoding 指定解码方式，缺省不解码
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFile(fname: string, encoding?: string): any;
 
@@ -1891,29 +1891,29 @@ declare module 'fs' {
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      encoding 缺省为空，返回 Buffer 对象；指定编码后返回解码后的字符串。
      *      @param fname 指定文件名
      *      @param encoding 指定解码方式，缺省不解码
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFileSync(fname: string, encoding?: string): any;
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      encoding 缺省为空，返回 Buffer 对象；指定编码后返回解码后的字符串。
      *      @param fname 指定文件名
      *      @param encoding 指定解码方式，缺省不解码
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFileAsync(fname: string, encoding?: string): Promise<any>;
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1923,7 +1923,7 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 指定读取选项
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFile(fname: string, options: FIBJS.GeneralObject): any;
 
@@ -1931,7 +1931,7 @@ declare module 'fs' {
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1941,13 +1941,13 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 指定读取选项
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFileSync(fname: string, options: FIBJS.GeneralObject): any;
 
     /**
      * @description 打开文件，并读取内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -1957,7 +1957,7 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param options 指定读取选项
      *      @return 返回文件文本内容
-     *      
+     *
      */
     function readFileAsync(fname: string, options: FIBJS.GeneralObject): Promise<any>;
 
@@ -1966,13 +1966,13 @@ declare module 'fs' {
      *      @param fname 指定文件名
      *      @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
      *      @return 返回读取的文本行数组，若文件为空或无可读数据，返回空数组
-     *      
+     *
      */
     function readLines(fname: string, maxlines?: number): any[];
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      length 缺省为 -1，表示写入 buffer 从 offset 起的全部剩余数据。position 缺省为 -1，表示从当前文件位置写入。
      *      @param fd 文件描述符对象
      *      @param buffer 待写入的 Buffer 对象
@@ -1980,7 +1980,7 @@ declare module 'fs' {
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
@@ -1988,7 +1988,7 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      length 缺省为 -1，表示写入 buffer 从 offset 起的全部剩余数据。position 缺省为 -1，表示从当前文件位置写入。
      *      @param fd 文件描述符对象
      *      @param buffer 待写入的 Buffer 对象
@@ -1996,13 +1996,13 @@ declare module 'fs' {
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeSync(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      length 缺省为 -1，表示写入 buffer 从 offset 起的全部剩余数据。position 缺省为 -1，表示从当前文件位置写入。
      *      @param fd 文件描述符对象
      *      @param buffer 待写入的 Buffer 对象
@@ -2010,20 +2010,20 @@ declare module 'fs' {
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeAsync(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      position 缺省为 -1，表示从当前文件位置写入。字符串按 encoding 编码后写入。
      *      @param fd 文件描述符对象
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string): number;
 
@@ -2031,38 +2031,38 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      position 缺省为 -1，表示从当前文件位置写入。字符串按 encoding 编码后写入。
      *      @param fd 文件描述符对象
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeSync(fd: Class_FileHandle, string: string, position?: number, encoding?: string): number;
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     * 
+     *
      *      position 缺省为 -1，表示从当前文件位置写入。字符串按 encoding 编码后写入。
      *      @param fd 文件描述符对象
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeAsync(fd: Class_FileHandle, string: string, position?: number, encoding?: string): Promise<number>;
 
     /**
      * @description 创建文本文件，并写入内容
-     * 
+     *
      *      文件以覆盖方式打开，已存在的内容将被清空。
      *      @param fname 指定文件名
      *      @param txt 指定要写入的字符串
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeTextFile(fname: string, txt: string): number;
 
@@ -2070,35 +2070,35 @@ declare module 'fs' {
 
     /**
      * @description 创建文本文件，并写入内容
-     * 
+     *
      *      文件以覆盖方式打开，已存在的内容将被清空。
      *      @param fname 指定文件名
      *      @param txt 指定要写入的字符串
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeTextFileSync(fname: string, txt: string): number;
 
     /**
      * @description 创建文本文件，并写入内容
-     * 
+     *
      *      文件以覆盖方式打开，已存在的内容将被清空。
      *      @param fname 指定文件名
      *      @param txt 指定要写入的字符串
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeTextFileAsync(fname: string, txt: string): Promise<number>;
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      opt 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param opt 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFile(fname: string, data: Class_Buffer, opt?: string): number;
 
@@ -2106,37 +2106,37 @@ declare module 'fs' {
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      opt 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param opt 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileSync(fname: string, data: Class_Buffer, opt?: string): number;
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      opt 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param opt 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileAsync(fname: string, data: Class_Buffer, opt?: string): Promise<number>;
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      options 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param options 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
 
@@ -2144,37 +2144,37 @@ declare module 'fs' {
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      options 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param options 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileSync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
 
     /**
      * @description 创建二进制文件，并写入内容
-     * 
+     *
      *      options 参数被忽略，文件以覆盖方式打开。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @param options 指定写入选项，将被忽略
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileAsync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      opt 指定写入文本的编码，缺省为 utf8。
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param opt 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFile(fname: string, data: string, opt?: string): number;
 
@@ -2182,43 +2182,43 @@ declare module 'fs' {
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      opt 指定写入文本的编码，缺省为 utf8。
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param opt 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileSync(fname: string, data: string, opt?: string): number;
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      opt 指定写入文本的编码，缺省为 utf8。
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param opt 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileAsync(fname: string, data: string, opt?: string): Promise<number>;
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     * 
+     *
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param options 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFile(fname: string, data: string, options: FIBJS.GeneralObject): number;
 
@@ -2226,48 +2226,48 @@ declare module 'fs' {
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     * 
+     *
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param options 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileSync(fname: string, data: string, options: FIBJS.GeneralObject): number;
 
     /**
      * @description 创建文件，并写入内容
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     * 
+     *
      *      @param fname 指定文件名
      *      @param data 指定要写入的数据
      *      @param options 指定写入选项
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function writeFileAsync(fname: string, data: string, options: FIBJS.GeneralObject): Promise<number>;
 
     /**
      * @description 创建二进制文件，并以追加方式写入内容
-     * 
+     *
      *      文件不存在时自动创建。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function appendFile(fname: string, data: Class_Buffer): number;
 
@@ -2275,40 +2275,40 @@ declare module 'fs' {
 
     /**
      * @description 创建二进制文件，并以追加方式写入内容
-     * 
+     *
      *      文件不存在时自动创建。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function appendFileSync(fname: string, data: Class_Buffer): number;
 
     /**
      * @description 创建二进制文件，并以追加方式写入内容
-     * 
+     *
      *      文件不存在时自动创建。
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
      *      @return 实际写入的字节数
-     *      
+     *
      */
     function appendFileAsync(fname: string, data: Class_Buffer): Promise<number>;
 
     /**
      * @description 设置 zip 虚拟文件映射
-     * 
+     *
      *      将 zip 文件数据映射到指定路径，之后对该路径的文件访问均从映射的 zip 中读取。
      *      @param fname 指定映射路径
      *      @param data 指定映射的 zip 文件数据
-     *      
+     *
      */
     function setZipFS(fname: string, data: Class_Buffer): void;
 
     /**
      * @description 清除 zip 虚拟文件映射
      *      @param fname 指定映射路径，缺省清除全部缓存
-     *      
+     *
      */
     function clearZipFS(fname?: string): void;
 
@@ -2316,7 +2316,7 @@ declare module 'fs' {
      * @description 观察一个文件, 返回对应的 watcher 对象
      *      @param fname 指定要观察的文件对象
      *      @return FSWatcher 对象
-     *      
+     *
      */
     function watch(fname: string): Class_FSWatcher;
 
@@ -2325,13 +2325,13 @@ declare module 'fs' {
      *      @param fname 指定要观察的文件对象
      *      @param callback `(evtType: 'change' | 'rename', filename: string) => any` 当文件对象发生变化时的处理回调
      *      @return FSWatcher 对象
-     *      
+     *
      */
     function watch(fname: string, callback: (...args: any[])=>any): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 watcher 对象
-     *      
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -2343,13 +2343,13 @@ declare module 'fs' {
      *      @param fname 指定要观察的文件对象
      *      @param options 观察选项
      *      @return FSWatcher 对象
-     *      
+     *
      */
     function watch(fname: string, options: FIBJS.GeneralObject): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 watcher 对象
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -2362,24 +2362,24 @@ declare module 'fs' {
      *      @param options 观察选项
      *      @param callback `(evtType: 'change' | 'rename', filename: string) => any` 当文件对象发生变化时的处理回调
      *      @return FSWatcher 对象
-     *      
+     *
      */
     function watch(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 StatsWatcher 对象
-     * 
+     *
      *      周期性地检查文件状态，状态发生变化时调用回调，回调参数为变化前后的 Stat 对象。
      *      @param fname 指定要观察的文件对象
      *      @param callback `(curStats: Stats, prevStats: Stats) => any` 当文件对象的 stats 发生变化时的处理回调
      *      @return StatsWatcher 对象
-     *      
+     *
      */
     function watchFile(fname: string, callback: (...args: any[])=>any): Class_StatsWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 StatsWatcher 对象
-     * 
+     *
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
@@ -2392,26 +2392,26 @@ declare module 'fs' {
      *      @param options 观察选项
      *      @param callback `(curStats: Stats, prevStats: Stats) => any` 当文件对象的 stats 发生变化时的处理回调
      *      @return StatsWatcher 对象
-     *      
+     *
      */
     function watchFile(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_StatsWatcher;
 
     /**
      * @description 从观察 fname 的 StatsWatcher 中移除所有观察事件的回调
-     * 
+     *
      *      没有正在监视该文件时不产生任何影响。
      *      @param fname 指定要观察的文件对象
-     *      
+     *
      */
     function unwatchFile(fname: string): void;
 
     /**
      * @description 从观察 fname 的 StatsWatcher 的观察事件回调中移除 `callback` 回调
-     * 
+     *
      *      即便 callback 不再 StatsWatcher 的观察事件回调中也不会报错。
      *      @param fname 指定要观察的文件对象
      *      @param callback 要移除的回调
-     *      
+     *
      */
     function unwatchFile(fname: string, callback: (...args: any[])=>any): void;
 

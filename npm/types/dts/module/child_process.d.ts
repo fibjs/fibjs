@@ -7,35 +7,35 @@
  *  var child_process = require("child_process");
  *  var child = child_process.spawn("ls");
  *  ```
- * 
+ *
  * 在创建子进程时，options.stdio 选项用于配置在父进程和子进程之间建立的管道。 默认情况下，子进程的 stdin、 stdout 和 stderr 会被重定向到 ChildProcess 对象上相应的 stdin、stdout 和 stderr 流。 这相当于将 options.stdio 设置为 ['pipe', 'pipe', 'pipe']。
- * 
+ *
  * 为方便起见， options.stdio 可以是以下字符串之一：
- * 
+ *
  * - 'pipe'：相当于 ['pipe', 'pipe', 'pipe']（默认值）。
  * - 'ignore'：相当于 ['ignore', 'ignore', 'ignore']。
  * - 'inherit'：相当于 ['inherit', 'inherit', 'inherit'] 或 [0, 1, 2]。
  * - 'pty'：相当于 ['pty', 'pty', 'pty']。
- * 
+ *
  * 否则， options.stdio 的值需是数组（其中每个索引对应于子进程中的文件描述符）。 文件描述符 0、1 和 2 分别对应于 stdin、stdout 和 stderr。 其他的文件描述符可以被指定用于在父进程和子进程之间创建其他的管道。 值可以是以下之一：
- * 
+ *
  * 1. 'pipe'：在子进程和父进程之间创建管道。 管道的父端作为 child_process 对象上的 stdio[fd] 属性暴露给父进程。 为文件描述符 0、1 和 2 创建的管道也可分别作为 stdin、stdout 和 stderr 使用。
  * 2. 'ignore'：指示 fibjs 忽略子进程中的文件描述符。 虽然 fibjs 将会始终为其衍生的进程打开文件描述符 0、1 和 2，但将文件描述符设置为 'ignore' 可以使 fibjs 打开 /dev/null 并将其附加到子进程的文件描述符。
  * 3. 'inherit'：将相应的 stdio 流传给父进程或从父进程传入。在前三个位置中，这分别相当于 process.stdin、 process.stdout 和 process.stderr。 在任何其他位置中，则相当于 'ignore'。
  * 4. 'pty'：在子进程将在虚拟终端中执行。此时只有 stdin 和 stdout 有效。
  * 5. 正整数：整数值会被解释为当前在父进程中打开的文件描述符。 它与子进程共享，类似于共享 <Stream> 对象的方式。 在 Windows 上不支持传入 socket。
  * 6. null 或 undefined：使用默认值。 对于 stdio 的文件描述符 0、1 和 2（换句话说，stdin、stdout 和 stderr），将会创建管道。 对于文件描述符 3 及更大的值，则默认为 'ignore'。
- * 
+ *
  * ```JavaScript
  * const { spawn } = require('child_process');
- * 
+ *
  * // child process uses parent's stdio
  * spawn('prg', [], { stdio: 'inherit' });
- * 
+ *
  * // child process uses parent's stderr
  * spawn('prg', [], { stdio: ['pipe', 'pipe', process.stderr] });
  * ```
- * 
+ *
  *  需要注意以下几点:
  *  - `child_process.exec(command, args)` 在 windows 上不会自动将 cmd.exe 作为 command 参数的执行环境;
  *  - child_process.[spawn|exec|execFile|run] 是同步/回调一体的 async 风格函数:
@@ -43,7 +43,7 @@
  *    - 如果传递了函数作为最后一个参数, 则是异步的;
  *  - child_process.[exec|execFile] 的返回结果是一个对象, 该对象包含 stdout、stderr 等字段;
  *  - `child_process.run` 为 fibjs 特有 API
- *  
+ *
  */
 declare module 'child_process' {
     /**
@@ -69,7 +69,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程对象
-     *      
+     *
      */
     function spawn(command: string, args: any[], options?: FIBJS.GeneralObject): Class_ChildProcess;
 
@@ -95,7 +95,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程对象
-     *      
+     *
      */
     function spawn(command: string, options?: FIBJS.GeneralObject): Class_ChildProcess;
 
@@ -121,7 +121,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdio 输出内容
-     *      
+     *
      */
     function exec(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
@@ -150,7 +150,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdio 输出内容
-     *      
+     *
      */
     function execFile(command: string, args: any[], options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
@@ -178,7 +178,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdio 输出内容
-     *      
+     *
      */
     function execFile(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
 
@@ -207,7 +207,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程运行结果
-     *      
+     *
      */
     function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
 
@@ -233,7 +233,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程运行结果
-     *      
+     *
      */
     function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
 
@@ -259,7 +259,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdout 输出内容，缺省为 Buffer；options.encoding 指定编码时返回字符串
-     *      
+     *
      */
     function execSync(command: string, options?: FIBJS.GeneralObject): any;
 
@@ -286,7 +286,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdout 输出内容，缺省为 Buffer；options.encoding 指定编码时返回字符串
-     *      
+     *
      */
     function execFileSync(command: string, args: any[], options?: FIBJS.GeneralObject): any;
 
@@ -312,7 +312,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 stdout 输出内容，缺省为 Buffer；options.encoding 指定编码时返回字符串
-     *      
+     *
      */
     function execFileSync(command: string, options?: FIBJS.GeneralObject): any;
 
@@ -338,7 +338,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程对象
-     *      
+     *
      */
     function fork(module: string, args: any[], options?: FIBJS.GeneralObject): Class_ChildProcess;
 
@@ -363,7 +363,7 @@ declare module 'child_process' {
      *      @param module 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程对象
-     *      
+     *
      */
     function fork(module: string, options?: FIBJS.GeneralObject): Class_ChildProcess;
 
@@ -387,7 +387,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function run(command: string, args: any[], options?: FIBJS.GeneralObject): number;
 
@@ -413,7 +413,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function runSync(command: string, args: any[], options?: FIBJS.GeneralObject): number;
 
@@ -437,7 +437,7 @@ declare module 'child_process' {
      *      @param args 指定字符串参数列表
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function runAsync(command: string, args: any[], options?: FIBJS.GeneralObject): Promise<number>;
 
@@ -460,7 +460,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function run(command: string, options?: FIBJS.GeneralObject): number;
 
@@ -485,7 +485,7 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function runSync(command: string, options?: FIBJS.GeneralObject): number;
 
@@ -508,13 +508,13 @@ declare module 'child_process' {
      *      @param command 指定要运行的命令
      *      @param options 指定创建参数
      *      @return 返回子进程的 exitCode
-     *      
+     *
      */
     function runAsync(command: string, options?: FIBJS.GeneralObject): Promise<number>;
 
     /**
      * @description 用字符串模版语法在 shell 中执行一个命令并缓冲输出
-     * 
+     *
      *      sh 是对 exec 方法的再次封装，用于快速执行 shell 命令，支持字符串模版语法，例如：
      *      ```JavaScript
      *        const $ = require("child_process").sh;
@@ -544,17 +544,17 @@ declare module 'child_process' {
      *        var ret = $`echo hello ${world}`;
      *        console.log(ret);
      *       ```
-     * 
+     *
      *       @param strings 指定要运行的命令
      *       @param args 指定字符串参数列表
      *       @return 返回子进程的 stdio 输出内容
-     *     
+     *
      */
     function sh(strings: any[], ...args: any[]): string;
 
     /**
      * @description 创建一个 ssh 执行函数
-     * 
+     *
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
@@ -562,7 +562,7 @@ declare module 'child_process' {
      *          "port": 22, // ssh port
      *      }
      *      ```
-     * 
+     *
      *      ssh 是对 execFile 方法的再次封装，用于快速执行 ssh shell 命令，支持字符串模版语法，例如：
      *      ```JavaScript
      *        const $ = require("child_process").ssh('remote');
@@ -592,11 +592,11 @@ declare module 'child_process' {
      *        var ret = $`echo hello ${world}`;
      *        console.log(ret);
      *       ```
-     * 
+     *
      *     @param host 指定远程主机地址
      *     @param options 指定 ssh 连接参数
      *     @return 返回子进程对象
-     *    
+     *
      */
     function ssh(host: string, options?: FIBJS.GeneralObject): (...args: any[])=>any;
 

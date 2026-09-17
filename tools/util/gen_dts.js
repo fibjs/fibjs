@@ -18,6 +18,11 @@ const path = require('path');
 
 function postProcessDtsUnitString(str) {
     return str
+        .split('\n')
+        // strip trailing blanks before an optional CR, otherwise CRLF lines
+        // keep their trailing whitespace (the `$` anchor would sit after the `\r`)
+        .map(line => line.replace(/[ \t]+(?=\r?$)/g, ''))
+        .join('\n')
     // .replace(new RegExp(QUOTE_START_PLACEHOLDER, 'g'), '')
     // .replace(new RegExp(QUOTE_END_PLACEHOLDER, 'g'), '')
 }

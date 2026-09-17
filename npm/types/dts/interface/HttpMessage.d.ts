@@ -4,51 +4,51 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/FormData.d.ts" />
 /**
- * @description http 基础消息对象  
+ * @description http 基础消息对象
  */
 declare class Class_HttpMessage extends Class_Message {
     /**
-     * @description 协议版本信息，允许的格式为：HTTP/#.# 
+     * @description 协议版本信息，允许的格式为：HTTP/#.#
      */
     protocol: string;
 
     /**
-     * @description 包含消息中 http 消息头的容器，只读属性 
+     * @description 包含消息中 http 消息头的容器，只读属性
      */
     readonly headers: Class_Headers;
 
     /**
-     * @description 查询和设定是否保持连接 
+     * @description 查询和设定是否保持连接
      */
     keepAlive: boolean;
 
     /**
-     * @description 查询和设定是否是升级协议 
+     * @description 查询和设定是否是升级协议
      */
     upgrade: boolean;
 
     /**
-     * @description 查询和设置最大请求头个数，缺省为 128 
+     * @description 查询和设置最大请求头个数，缺省为 128
      */
     maxHeadersCount: number;
 
     /**
-     * @description 查询和设置最大请求头长度，缺省为 8192 
+     * @description 查询和设置最大请求头长度，缺省为 8192
      */
     maxHeaderSize: number;
 
     /**
-     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2 
+     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2
      */
     maxChunkSize: number;
 
     /**
-     * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 
+     * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64
      */
     maxBodySize: number;
 
     /**
-     * @description 查询当前对象的来源 socket 
+     * @description 查询当前对象的来源 socket
      */
     readonly socket: Class_Stream;
 
@@ -56,7 +56,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 检查是否存在指定键值的消息头
      *      @param name 指定要检查的键值
      *      @return 返回键值是否存在
-     *      
+     *
      */
     hasHeader(name: string): boolean;
 
@@ -64,7 +64,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 查询指定键值的第一个消息头
      *      @param name 指定要查询的键值
      *      @return 返回键值所对应的值，若不存在，则返回 undefined
-     *      
+     *
      */
     firstHeader(name: string): string;
 
@@ -72,21 +72,21 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 查询指定键值的全部消息头
      *      @param name 指定要查询的键值，传递空字符串返回全部键值的结果
      *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
-     *      
+     *
      */
     allHeader(name?: string): FIBJS.GeneralObject;
 
     /**
      * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
      *      @param map 指定要添加的键值数据字典
-     *      
+     *
      */
     appendHeader(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 添加消息头，添加数据并不修改已存在的键值的消息头
      *      @param headers 指定要添加的 Headers 对象
-     *      
+     *
      */
     appendHeader(headers: Class_Headers): void;
 
@@ -94,7 +94,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
      *      @param name 指定要添加的键值
      *      @param values 指定要添加的一组数据
-     *      
+     *
      */
     appendHeader(name: string, values: any[]): void;
 
@@ -102,21 +102,21 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
      *      @param name 指定要添加的键值
      *      @param value 指定要添加的数据
-     *      
+     *
      */
     appendHeader(name: string, value: string): void;
 
     /**
      * @description 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
      *      @param map 指定要设定的键值数据字典
-     *      
+     *
      */
     setHeader(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 设定消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
      *      @param headers 指定要设定的 Headers 对象
-     *      
+     *
      */
     setHeader(headers: Class_Headers): void;
 
@@ -124,7 +124,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 设定指定名称的一组消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
      *      @param name 指定要设定的键值
      *      @param values 指定要设定的一组数据
-     *      
+     *
      */
     setHeader(name: string, values: any[]): void;
 
@@ -132,14 +132,14 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
      *      @param name 指定要设定的键值
      *      @param value 指定要设定的数据
-     *      
+     *
      */
     setHeader(name: string, value: string): void;
 
     /**
      * @description 删除指定键值的全部消息头
      *      @param name 指定要删除的键值
-     *      
+     *
      */
     removeHeader(name: string): void;
 
@@ -147,42 +147,42 @@ declare class Class_HttpMessage extends Class_Message {
      * @description 查询指定键值的第一个消息头
      *      @param name 指定要查询的键值
      *      @return 返回键值所对应的值，若不存在，则返回 undefined
-     *      
+     *
      */
     getHeader(name: string): any;
 
     /**
      * @description 查询全部消息头
      *      @return 返回全部消息头的键值对
-     *      
+     *
      */
     getHeaders(): FIBJS.GeneralObject;
 
     /**
-     * @description 查询消息头是否已发送 
+     * @description 查询消息头是否已发送
      */
     readonly headersSent: boolean;
 
     /**
-     * @description 包含消息中 http 尾部消息头的容器，只读属性 
+     * @description 包含消息中 http 尾部消息头的容器，只读属性
      */
     readonly trailers: Class_Headers;
 
     /**
      * @description 添加尾部消息头，尾部消息头将在 body 之后发送
      *      @param headers 指定要添加的尾部消息头
-     *      
+     *
      */
     addTrailers(headers: FIBJS.GeneralObject): void;
 
     /**
      * @description 依据 Content-Type 将消息体解析为 FormData
-     * 
+     *
      *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
      *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
-     * 
+     *
      *      @return 返回解析后的 FormData 对象
-     *      
+     *
      */
     formData(): Class_FormData;
 
@@ -190,23 +190,23 @@ declare class Class_HttpMessage extends Class_Message {
 
     /**
      * @description 依据 Content-Type 将消息体解析为 FormData
-     * 
+     *
      *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
      *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
-     * 
+     *
      *      @return 返回解析后的 FormData 对象
-     *      
+     *
      */
     formDataSync(): Class_FormData;
 
     /**
      * @description 依据 Content-Type 将消息体解析为 FormData
-     * 
+     *
      *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
      *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
-     * 
+     *
      *      @return 返回解析后的 FormData 对象
-     *      
+     *
      */
     formDataAsync(): Promise<Class_FormData>;
 

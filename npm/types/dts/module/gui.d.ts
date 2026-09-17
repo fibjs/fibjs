@@ -4,22 +4,22 @@
 /// <reference path="../interface/Tray.d.ts" />
 /**
  * @description gui 模块
- * 
+ *
  * 使用方法：
  * ```JavaScript
  * var gui = require('gui');
  * ```
- *  
+ *
  */
 declare module 'gui' {
     /**
-     * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件 
+     * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件
      */
     const WebView: typeof Class_WebView;
 
     /**
      * @description 打开一个窗口并访问指定网址
-     * 
+     *
      *      支持以下参数:
      *      ```JavaScript
      *      {
@@ -51,13 +51,13 @@ declare module 'gui' {
      *      @param url 指定的网址
      *      @param opt 打开窗口参数
      *      @return 返回打开的窗口对象
-     * 	
+     *
      */
     function open(url: string, opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
      * @description 打开一个浏览器窗口，如果指定 url 或者 file 则加载指定资源
-     * 
+     *
      *      支持以下参数:
      *      ```JavaScript
      *      {
@@ -90,13 +90,13 @@ declare module 'gui' {
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
      *      @param opt 打开窗口参数
      *      @return 返回打开的窗口对象
-     * 	
+     *
      */
     function open(opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
      * @description 打开一个窗口并访问指定文件
-     * 
+     *
      *      支持以下参数:
      *      ```JavaScript
      *      {
@@ -128,13 +128,13 @@ declare module 'gui' {
      *      @param file 指定的文件
      *      @param opt 打开窗口参数
      *      @return 返回打开的窗口对象
-     * 	
+     *
      */
     function openFile(file: string, opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
      * @description 创建一个菜单对象
-     * 
+     *
      *     菜单项支持以下类型：
      *     - normal
      *         - type: "normal"
@@ -155,22 +155,22 @@ declare module 'gui' {
      *     - separator
      *         - type: "separator"
      *         - 不能有 label、submenu、checked、icon 或 tooltip
-     * 
+     *
      *     如果菜单项未指定 type，则根据其它属性自动判断类型。识别策略如下：
      *     - 如果存在 submenu 属性，则将 type 设置为 "submenu"。
      *     - 如果存在 checked 属性，则将 type 设置为 "checkbox"。
      *     - 如果传入的对象为空，则将 type 设置为 "separator"。
      *     - 如果以上条件都不满足，则将 type 设置为 "normal"。
-     * 
+     *
      *      @param items 菜单项数组
      *      @return 返回创建的菜单对象
-     *     
+     *
      */
     function createMenu(items?: FIBJS.GeneralObject[]): Class_Menu;
 
     /**
      * @description 创建一个状态图标对象
-     * 
+     *
      *      支持以下参数:
      *      ```JavaScript
      *      {
@@ -182,14 +182,14 @@ declare module 'gui' {
      *      ```
      *      @param opt 创建状态图标参数
      *      @return 返回创建的状态图标对象
-     *     
+     *
      */
     function createTray(opt?: FIBJS.GeneralObject): Class_Tray;
 
     /**
      * @description 弹出一个消息框
      *      @param message 消息内容
-     *     
+     *
      */
     function alert(message: string): void;
 
@@ -198,14 +198,14 @@ declare module 'gui' {
     /**
      * @description 弹出一个消息框
      *      @param message 消息内容
-     *     
+     *
      */
     function alertSync(message: string): void;
 
     /**
      * @description 弹出一个消息框
      *      @param message 消息内容
-     *     
+     *
      */
     function alertAsync(message: string): Promise<void>;
 
@@ -213,7 +213,7 @@ declare module 'gui' {
      * @description 弹出一个消息框
      *      @param title 消息标题
      *      @param message 消息内容
-     *     
+     *
      */
     function alert(title: string, message: string): void;
 
@@ -223,7 +223,7 @@ declare module 'gui' {
      * @description 弹出一个消息框
      *      @param title 消息标题
      *      @param message 消息内容
-     *     
+     *
      */
     function alertSync(title: string, message: string): void;
 
@@ -231,7 +231,7 @@ declare module 'gui' {
      * @description 弹出一个消息框
      *      @param title 消息标题
      *      @param message 消息内容
-     *     
+     *
      */
     function alertAsync(title: string, message: string): Promise<void>;
 
@@ -239,7 +239,7 @@ declare module 'gui' {
      * @description 弹出一个确认框
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirm(message: string): boolean;
 
@@ -249,7 +249,7 @@ declare module 'gui' {
      * @description 弹出一个确认框
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirmSync(message: string): boolean;
 
@@ -257,7 +257,7 @@ declare module 'gui' {
      * @description 弹出一个确认框
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirmAsync(message: string): Promise<boolean>;
 
@@ -266,7 +266,7 @@ declare module 'gui' {
      *      @param title 消息标题
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirm(title: string, message: string): boolean;
 
@@ -277,7 +277,7 @@ declare module 'gui' {
      *      @param title 消息标题
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirmSync(title: string, message: string): boolean;
 
@@ -286,7 +286,7 @@ declare module 'gui' {
      *      @param title 消息标题
      *      @param message 消息内容
      *      @return 返回用户的选择结果
-     *     
+     *
      */
     function confirmAsync(title: string, message: string): Promise<boolean>;
 
@@ -295,7 +295,7 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function input(message: string, password?: boolean): string;
 
@@ -306,7 +306,7 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function inputSync(message: string, password?: boolean): string;
 
@@ -315,7 +315,7 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function inputAsync(message: string, password?: boolean): Promise<string>;
 
@@ -325,7 +325,7 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function input(title: string, message: string, password?: boolean): string;
 
@@ -337,7 +337,7 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function inputSync(title: string, message: string, password?: boolean): string;
 
@@ -347,23 +347,23 @@ declare module 'gui' {
      *      @param message 消息内容
      *      @param password 是否为密码输入，默认为 false
      *      @return 返回用户输入的内容
-     *     
+     *
      */
     function inputAsync(title: string, message: string, password?: boolean): Promise<string>;
 
     /**
      * @description 弹出一个选择文件对话框
-     * 
+     *
      *      options 支持以下参数:
      *       - title: 对话框标题
      *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
      *       - defaultPath: 默认打开的路径
      *       - multiple: 是否允许多选，默认为 false
      *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
-     * 
+     *
      *      @param options 选择文件对话框参数
      *      @return 返回用户选择的文件数组
-     *     
+     *
      */
     function chooseFile(options: FIBJS.GeneralObject): any[];
 
@@ -371,33 +371,33 @@ declare module 'gui' {
 
     /**
      * @description 弹出一个选择文件对话框
-     * 
+     *
      *      options 支持以下参数:
      *       - title: 对话框标题
      *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
      *       - defaultPath: 默认打开的路径
      *       - multiple: 是否允许多选，默认为 false
      *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
-     * 
+     *
      *      @param options 选择文件对话框参数
      *      @return 返回用户选择的文件数组
-     *     
+     *
      */
     function chooseFileSync(options: FIBJS.GeneralObject): any[];
 
     /**
      * @description 弹出一个选择文件对话框
-     * 
+     *
      *      options 支持以下参数:
      *       - title: 对话框标题
      *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
      *       - defaultPath: 默认打开的路径
      *       - multiple: 是否允许多选，默认为 false
      *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
-     * 
+     *
      *      @param options 选择文件对话框参数
      *      @return 返回用户选择的文件数组
-     *     
+     *
      */
     function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
 

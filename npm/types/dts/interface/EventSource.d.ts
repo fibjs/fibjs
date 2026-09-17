@@ -3,19 +3,19 @@
 /// <reference path="../interface/HttpResponse.d.ts" />
 /**
  * @description 事件源接口，用于服务器推送事件
- * 
+ *
  *   引用方式：
  *   ```JavaScript
  *     const http = require('http');
- *     
+ *
  *     const es = new http.EventSource('http://localhost:8080');
  *   ```
- * 
+ *
  */
 declare class Class_EventSource extends Class_EventEmitter {
     /**
      * @description 构造函数
-     * 
+     *
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -35,33 +35,33 @@ declare class Class_EventSource extends Class_EventEmitter {
      *          "headers": {}
      *      }
      *      ```
-     * 
+     *
      *       @param url 服务器地址
      *       @param options 选项
-     *     
+     *
      */
     constructor(url: string, options?: FIBJS.GeneralObject);
 
     /**
-     * @description 关闭连接 
+     * @description 关闭连接
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭连接 
+     * @description 关闭连接
      */
     closeSync(): void;
 
     /**
-     * @description 关闭连接 
+     * @description 关闭连接
      */
     closeAsync(): Promise<void>;
 
     /**
      * @description 发送事件到客户端
-     * 
+     *
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -70,11 +70,11 @@ declare class Class_EventSource extends Class_EventEmitter {
      *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
-     * 
+     *
      *      @param data 事件数据
      *      @param options 选项
      *      @return 返回发送的字节数
-     *     
+     *
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
 
@@ -82,7 +82,7 @@ declare class Class_EventSource extends Class_EventEmitter {
 
     /**
      * @description 发送事件到客户端
-     * 
+     *
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -91,17 +91,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
-     * 
+     *
      *      @param data 事件数据
      *      @param options 选项
      *      @return 返回发送的字节数
-     *     
+     *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
 
     /**
      * @description 发送事件到客户端
-     * 
+     *
      *      options 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -110,51 +110,51 @@ declare class Class_EventSource extends Class_EventEmitter {
      *          "retry": 0 // Retry interval in milliseconds
      *      }
      *      ```
-     * 
+     *
      *      @param data 事件数据
      *      @param options 选项
      *      @return 返回发送的字节数
-     *     
+     *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
 
     /**
-     * @description 事件源状态，取值为 CONNECTING、OPEN、CLOSED 
+     * @description 事件源状态，取值为 CONNECTING、OPEN、CLOSED
      */
     readonly readyState: number;
 
     /**
-     * @description 服务器地址 
+     * @description 服务器地址
      */
     readonly url: string;
 
     /**
-     * @description 是否携带凭证 
+     * @description 是否携带凭证
      */
     readonly withCredentials: boolean;
 
     /**
-     * @description http 响应对象 
+     * @description http 响应对象
      */
     readonly response: Class_HttpResponse;
 
     /**
-     * @description 打开事件回调 
+     * @description 打开事件回调
      */
     on(event: "open", listener: ()=>void): this;
 
     /**
-     * @description 错误事件回调 
+     * @description 错误事件回调
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 消息事件回调 
+     * @description 消息事件回调
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 关闭事件回调 
+     * @description 关闭事件回调
      */
     on(event: "close", listener: ()=>void): this;
 

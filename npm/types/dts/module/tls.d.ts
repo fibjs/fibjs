@@ -7,33 +7,33 @@
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description tls 模块是 fibjs 内置的加密模块，用于建立 tls/ssl 加密网络连接，提供加密验证，确保客户端和服务器之间的连接是安全的
- * 
+ *
  *  模块的主要能力：
- * 
+ *
  *  - **安全上下文**：`createSecureContext` 创建 SecureContext 对象，维护 CA 证书、证书链、私钥等 TLS 配置；
  *  - **服务器**：`createServer` 创建 TLSServer，支持指定 SecureContext 或直接传 TLS 选项；
  *  - **客户端**：`connect` 以多种形式建立 tls/ssl 连接，支持 URL、端口与主机名、选项对象三种形式；
  *  - **对象别名**：`TLSSocket`、`Handler`（TLSHandler）、`Server`（TLSServer）。
- * 
+ *
  *  引用方式：
  *  ```JavaScript
  *  var tls = require('tls');
  *  ```
- *  
+ *
  */
 declare module 'tls' {
     /**
-     * @description tls/ssl 网络套接口对象，参见 TLSSocket 
+     * @description tls/ssl 网络套接口对象，参见 TLSSocket
      */
     const TLSSocket: typeof Class_TLSSocket;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSHandler 
+     * @description tls/ssl 协议转换处理器，参见 TLSHandler
      */
     const Handler: typeof Class_TLSHandler;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSServer 
+     * @description tls/ssl 协议转换处理器，参见 TLSServer
      */
     const Server: typeof Class_TLSServer;
 
@@ -42,7 +42,7 @@ declare module 'tls' {
      *      @param context 指定安全上下文
      *      @param listener 连接处理函数
      *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
-     *      
+     *
      */
     function createServer(context: Class_SecureContext, listener: Class_Handler): Class_TLSServer;
 
@@ -51,13 +51,13 @@ declare module 'tls' {
      *      @param options 创建安全上下文的选项
      *      @param listener 连接处理函数
      *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
-     *      
+     *
      */
     function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TLSServer;
 
     /**
      * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
-     * 
+     *
      *      创建安全上下文的选项支持以下选项：
      *      - ca: 覆盖受信任的 CA 证书。默认是信任由 Mozilla 管理的知名 CA。当使用此选项显式指定 CA 时，Mozilla 的 CA 将被完全替换。该值可以是字符串或 Buffer ，或者字符串或 Buffer 的 Array。任何字符串或 Buffer 都可以包含连接在一起的多个 PEM CA。对等方的证书必须可链接到服务器信任的 CA，以便对连接进行身份验证。当使用不可链接到知名 CA 的证书时，必须将证书的 CA 明确指定为受信任的 CA，否则连接将无法进行身份验证。如果对等方使用的证书与默认 CA 之一不匹配或链接到，请使用 ca 选项提供对等方证书可以匹配或链接到的 CA 证书。对于自签名证书，该证书是其自己的 CA，并且必须提供。对于 PEM 编码的证书，支持的类型为 TRUSTED CERTIFICATE、X509 CERTIFICATE 和 CERTIFICATE。
      *      - cert: PEM 格式的证书链。每个私钥应提供一个证书链。每个证书链应包含所提供的私有 key 的 PEM 格式的证书，后跟 PEM 格式的中间证书（如果有），按顺序排列，并且不包括根 CA（根 CA 必须是预先生成的）。提供多个证书链时，它们的顺序不必与 key 中的私钥相同。如果未提供中间证书，对等方将无法验证证书，握手将失败。
@@ -74,11 +74,11 @@ declare module 'tls' {
      *      - SNICacheSize: SNI 上下文缓存的大小。默认值: 1024。
      *      - SNICacheTimeout: SNI 上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则缓存将不会过期。
      *      - SNICacheIdleTimeout: SNI 空闲上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则空闲缓存将不会过期。
-     * 
+     *
      *      @param options 创建安全上下文的选项
      *      @param isServer 是否是服务器模式，默认为 false
      *      @return 返回创建的安全上下文
-     *      
+     *
      */
     function createSecureContext(options: FIBJS.GeneralObject, isServer?: boolean): Class_SecureContext;
 
@@ -86,12 +86,12 @@ declare module 'tls' {
      * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
      *      @param isServer 是否是服务器模式，默认为 false
      *      @return 返回创建的安全上下文
-     *      
+     *
      */
     function createSecureContext(isServer?: boolean): Class_SecureContext;
 
     /**
-     * @description 查询缺省 SecureContext 
+     * @description 查询缺省 SecureContext
      */
     const secureContext: Class_SecureContext;
 
@@ -99,7 +99,7 @@ declare module 'tls' {
      * @description 根据主机名和端口号创建一个 tls/ssl 连接
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connect(options: FIBJS.GeneralObject): Class_Stream;
 
@@ -109,7 +109,7 @@ declare module 'tls' {
      * @description 根据主机名和端口号创建一个 tls/ssl 连接
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
@@ -117,7 +117,7 @@ declare module 'tls' {
      * @description 根据主机名和端口号创建一个 tls/ssl 连接
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
@@ -126,7 +126,7 @@ declare module 'tls' {
      *      @param options 指定连接的选项
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -135,7 +135,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
@@ -146,7 +146,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectSync(url: string, timeout?: number): Class_Stream;
 
@@ -155,7 +155,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectAsync(url: string, timeout?: number): Promise<Class_Stream>;
 
@@ -165,7 +165,7 @@ declare module 'tls' {
      *      @param secureContext 指定安全上下文
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
 
@@ -177,7 +177,7 @@ declare module 'tls' {
      *      @param secureContext 指定安全上下文
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectSync(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
 
@@ -187,7 +187,7 @@ declare module 'tls' {
      *      @param secureContext 指定安全上下文
      *      @param timeout 指定连接超时时间，默认为 0
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectAsync(url: string, secureContext: Class_SecureContext, timeout?: number): Promise<Class_Stream>;
 
@@ -196,7 +196,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connect(url: string, options: FIBJS.GeneralObject): Class_Stream;
 
@@ -207,7 +207,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectSync(url: string, options: FIBJS.GeneralObject): Class_Stream;
 
@@ -216,7 +216,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectAsync(url: string, options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
@@ -226,7 +226,7 @@ declare module 'tls' {
      *      @param host 指定连接的主机名，缺省为 "localhost"
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
@@ -238,7 +238,7 @@ declare module 'tls' {
      *      @param host 指定连接的主机名，缺省为 "localhost"
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectSync(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
@@ -248,7 +248,7 @@ declare module 'tls' {
      *      @param host 指定连接的主机名，缺省为 "localhost"
      *      @param options 指定连接的选项
      *      @return 返回 tls/ssl 连接对象
-     *      
+     *
      */
     function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_Stream>;
 
@@ -257,7 +257,7 @@ declare module 'tls' {
      *      @param url 指定连接的 URL
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(url: string, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -267,7 +267,7 @@ declare module 'tls' {
      *      @param timeout 指定连接超时时间，默认为 0
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(url: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -277,7 +277,7 @@ declare module 'tls' {
      *      @param secureContext 指定安全上下文
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -288,7 +288,7 @@ declare module 'tls' {
      *      @param timeout 指定连接超时时间，默认为 0
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -298,7 +298,7 @@ declare module 'tls' {
      *      @param options 指定连接的选项
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -307,7 +307,7 @@ declare module 'tls' {
      *      @param port 指定连接的端口号
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -317,7 +317,7 @@ declare module 'tls' {
      *      @param host 指定连接的主机名
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -327,7 +327,7 @@ declare module 'tls' {
      *      @param options 指定连接的选项
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
@@ -338,7 +338,7 @@ declare module 'tls' {
      *      @param options 指定连接的选项
      *      @param connectListener 指定 once 的 connect 事件监听器
      *      @return 返回连接的 Socket 对象
-     *      
+     *
      */
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 

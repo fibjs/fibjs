@@ -32,9 +32,9 @@
 /// <reference path="../interface/Timer.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
- * 
+ *
  *  全局对象提供以下能力：
- * 
+ *
  *  - **Web 标准对象**：`Buffer`、`URL`、`URLSearchParams`、`Blob`、`File`、`Headers`、`FormData`、`Request`、`Response`、`TextDecoder`、`TextEncoder`、`AbortController`、`AbortSignal`、`Event`、`EventTarget`、`MessagePort`、`MessageChannel`、`WebSocket`、`DOMParser`、`XMLSerializer` 等；
  *  - **核心模块**：`console`、`process`、`performance`、`crypto`；
  *  - **模块加载**：`require` 加载模块、`run` 运行脚本；
@@ -48,42 +48,42 @@ declare module 'global' {
     const Buffer: typeof Class_Buffer;
 
     /**
-     * @description 创建一个 URLSearchParams 请求对象，参见 URLSearchParams 
+     * @description 创建一个 URLSearchParams 请求对象，参见 URLSearchParams
      */
     const URLSearchParams: typeof Class_URLSearchParams;
 
     /**
-     * @description 创建一个 UrlObject 请求对象，参见 UrlObject 
+     * @description 创建一个 UrlObject 请求对象，参见 UrlObject
      */
     const URL: typeof Class_UrlObject;
 
     /**
-     * @description 创建一个 Blob 请求对象，参见 Blob 
+     * @description 创建一个 Blob 请求对象，参见 Blob
      */
     const Blob: typeof Class_Blob;
 
     /**
-     * @description 创建一个 File 请求对象，参见 File 
+     * @description 创建一个 File 请求对象，参见 File
      */
     const File: typeof Class_File;
 
     /**
-     * @description 创建一个 Headers 对象，参见 Headers 
+     * @description 创建一个 Headers 对象，参见 Headers
      */
     const Headers: typeof Class_Headers;
 
     /**
-     * @description 创建一个 FormData 对象，参见 FormData 
+     * @description 创建一个 FormData 对象，参见 FormData
      */
     const FormData: typeof Class_FormData;
 
     /**
-     * @description 创建一个 http 请求对象，参见 HttpRequest 
+     * @description 创建一个 http 请求对象，参见 HttpRequest
      */
     const Request: typeof Class_HttpRequest;
 
     /**
-     * @description 创建一个 Fetch API 响应对象，参见 HttpResponse 
+     * @description 创建一个 Fetch API 响应对象，参见 HttpResponse
      */
     const Response: typeof Class_HttpResponse;
 
@@ -108,133 +108,133 @@ declare module 'global' {
     const AbortSignal: typeof Class_AbortSignal;
 
     /**
-     * @description DOM 事件对象，表示一个 W3C 标准事件 
+     * @description DOM 事件对象，表示一个 W3C 标准事件
      */
     const Event: typeof Class_DOMEvent;
 
     /**
-     * @description DOM 事件目标对象，提供 Web 标准事件监听和分发机制 
+     * @description DOM 事件目标对象，提供 Web 标准事件监听和分发机制
      */
     const EventTarget: typeof Class_EventEmitter;
 
     /**
-     * @description MessageEvent 对象，表示目标对象接收到的消息 
+     * @description MessageEvent 对象，表示目标对象接收到的消息
      */
     const MessageEvent: typeof Class_MessageEvent;
 
     /**
-     * @description MessagePort 对象，表示消息通道的一端 
+     * @description MessagePort 对象，表示消息通道的一端
      */
     const MessagePort: typeof Class_MessagePort;
 
     /**
-     * @description MessageChannel 对象，提供一对已连接的 MessagePort 对象 
+     * @description MessageChannel 对象，提供一对已连接的 MessagePort 对象
      */
     const MessageChannel: typeof Class_MessageChannel;
 
     /**
-     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
+     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能
      */
     const CryptoKey: typeof Class_CryptoKey;
 
     /**
-     * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象 
+     * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象
      */
     const DOMParser: typeof Class_DOMParser;
 
     /**
-     * @description CSSStyleDeclaration 接口，表示元素的 style 属性对应的 CSS 声明块，参见 CSSStyleDeclaration 对象 
+     * @description CSSStyleDeclaration 接口，表示元素的 style 属性对应的 CSS 声明块，参见 CSSStyleDeclaration 对象
      */
     const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
 
     /**
-     * @description DOMStringMap 接口，表示元素 data-* 属性的键值映射，参见 DOMStringMap 对象 
+     * @description DOMStringMap 接口，表示元素 data-* 属性的键值映射，参见 DOMStringMap 对象
      */
     const DOMStringMap: typeof Class_DOMStringMap;
 
     /**
-     * @description XMLSerializer 接口，用于将 DOM 节点序列化为字符串，参见 XMLSerializer 对象 
+     * @description XMLSerializer 接口，用于将 DOM 节点序列化为字符串，参见 XMLSerializer 对象
      */
     const XMLSerializer: typeof Class_XMLSerializer;
 
     /**
-     * @description XMLDocument 接口，代表 XML 文档，等同于 XmlDocument 
+     * @description XMLDocument 接口，代表 XML 文档，等同于 XmlDocument
      */
     const XMLDocument: typeof Class_XmlDocument;
 
     /**
-     * @description WebSocket 类，用于创建和管理 WebSocket 连接，参见 WebSocket 对象 
+     * @description WebSocket 类，用于创建和管理 WebSocket 连接，参见 WebSocket 对象
      */
     const WebSocket: typeof Class_WebSocket;
 
     /**
-     * @description 控制台访问对象 
+     * @description 控制台访问对象
      */
     const console: typeof import ('console');
 
     /**
-     * @description 进程对象 
+     * @description 进程对象
      */
     const process: typeof import ('process');
 
     /**
-     * @description 基础性能监控模块 
+     * @description 基础性能监控模块
      */
     const performance: typeof import ('performance');
 
     /**
-     * @description PerformanceObserver 接口用于观察性能记录的接口 
+     * @description PerformanceObserver 接口用于观察性能记录的接口
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
 
     /**
-     * @description w3c webcrypto 标准的加密模块 
+     * @description w3c webcrypto 标准的加密模块
      */
     const crypto: typeof import ('webcrypto');
 
     /**
-     * @description 全局对象 
+     * @description 全局对象
      */
     const global: FIBJS.GeneralObject;
 
     /**
-     * @description 全局对象 
+     * @description 全局对象
      */
     const globalThis: FIBJS.GeneralObject;
 
     /**
      * @description 运行一个脚本
      *      @param fname 指定要运行的脚本路径
-     *      
+     *
      */
     function run(fname: string): void;
 
     /**
      * @description 加载一个模块并返回模块对象，更多信息参阅 @ref module
-     * 
+     *
      *      require 可用于加载基础模块，文件模块。
-     * 
+     *
      *      基础模块是沙箱创建时初始化的模块，引用时只需传递相应的 id，比如 require("net")。
-     * 
+     *
      *      文件模块是用户自定义模块，引用时需传递以 ./ 或 ../ 开头的相对路径。文件模块支持 .js, .jsc 和 .json 文件。
-     * 
+     *
      *      文件模块也支持 package.json 格式，当模块为目录结构时，require 会先查询 package.json 中的 main，未发现则尝试加载路径下的 index.js, index.jsc 或 index.json。
-     * 
+     *
      *      若引用路径不是 ./ 或 ../ 开头，并且非基础模块，require 从当前模块所在路径下的 node_modules 查找，并上级目录递归。
-     * 
+     *
      *      基础流程如下:
-     * 
+     *
      *      ```dot
      *         digraph{
      *             node [fontname = "Helvetica,sans-Serif", fontsize = 10];
      *             edge [fontname = "Helvetica,sans-Serif", fontsize = 10];
-     * 
+     *
      *             start [label="start"];
      *             resolve [label="path.resolve" shape="rect"];
      *             search [label="recursive lookup\nnode_modules\nfrom the current path" shape="rect"];
      *             load [label="load" shape="rect"];
      *             end [label="end" shape="doublecircle"];
-     * 
+     *
      *             is_native [label="is internal module?" shape="diamond"];
      *             is_mod [label="is module?" shape="diamond"];
      *             is_abs [label="is absolute?" shape="diamond"];
@@ -243,7 +243,7 @@ declare module 'global' {
      *             has_package [label="/package.json\nexists?" shape="diamond"];
      *             has_main [label="main exists?" shape="diamond"];
      *             has_index [label="index.js exists?" shape="diamond"];
-     * 
+     *
      *             start -> is_native;
      *             is_native -> end [label="Yes"];
      *             is_native -> is_mod [label="No"];
@@ -266,10 +266,10 @@ declare module 'global' {
      *             load -> end;
      *         }
      *      ```
-     * 
+     *
      *      @param id 指定要加载的模块名称
      *      @return 返回加载模块的引出对象
-     *      
+     *
      */
     function require(id: string): any;
 
@@ -279,14 +279,14 @@ declare module 'global' {
      *     @param timeout 指定延时的时间，以毫秒为单位，缺省为 1；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *     @param args 额外的参数，传入到指定的 callback 内，可选。
      *     @return 返回定时器对象
-     *     
+     *
      */
     function setTimeout(callback: (...args: any[])=>any, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
      *      @param t 指定要清除的定时器
-     *     
+     *
      */
     function clearTimeout(t: any): void;
 
@@ -296,14 +296,14 @@ declare module 'global' {
      *      @param timeout 指定间隔的时间，以毫秒为单位；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *      @param args 额外的参数，传入到指定的 callback 内，可选。
      *      @return 返回定时器对象
-     *     
+     *
      */
     function setInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
      *      @param t 指定要清除的定时器
-     *     
+     *
      */
     function clearInterval(t: any): void;
 
@@ -312,14 +312,14 @@ declare module 'global' {
      *      由于 setHrInterval 的定时器会中断正在运行的代码执行回调，因此不要在回调函数内修改可能影响其它模块的数据，或者在回调中调用任何标记为 async 的 api 函数，否则将会产生不可预知的结果。例如：
      *      ```JavaScript
      *         var timers = require('timers');
-     * 
+     *
      *         var cnt = 0;
      *         timers.setHrInterval(() => {
      *             cnt++;
      *         }, 100);
-     * 
+     *
      *         while (cnt < 10);
-     * 
+     *
      *         console.error("===============================> done");
      *      ```
      *      这段代码中，第 8 行的循环并不会因为 cnt 的改变而结束，因为 JavaScript 在优化代码时会认定在这个循环过程中 cnt 不会被改变。
@@ -327,14 +327,14 @@ declare module 'global' {
      *      @param timeout 指定间隔的时间，以毫秒为单位；小于 1 或大于 2^31-1 的值按 1ms 处理。
      *      @param args 额外的参数，传入到指定的 callback 内，可选。
      *      @return 返回定时器对象
-     *     
+     *
      */
     function setHrInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
      *      @param t 指定要清除的定时器
-     *     
+     *
      */
     function clearHrInterval(t: any): void;
 
@@ -343,14 +343,14 @@ declare module 'global' {
      *      @param callback 指定回调函数
      *      @param args 额外的参数，传入到指定的 callback 内，可选。
      *      @return 返回定时器对象
-     *     
+     *
      */
     function setImmediate(callback: (...args: any[])=>any, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
      *      @param t 指定要清除的定时器
-     *     
+     *
      */
     function clearImmediate(t: any): void;
 
@@ -358,7 +358,7 @@ declare module 'global' {
      * @description 以 base64 方式编码数据
      * 	 @param data 要编码的数据
      * 	 @return 返回编码的字符串
-     * 	 
+     *
      */
     function btoa(data: string): string;
 
@@ -366,20 +366,20 @@ declare module 'global' {
      * @description 以 base64 方式解码字符串为二进制数据
      * 	 @param data 要解码的字符串
      * 	 @return 返回解码的二进制数据
-     * 	 
+     *
      */
     function atob(data: string): string;
 
     /**
      * @description 创建一个值的深拷贝
      *      使用结构化克隆算法创建给定值的深拷贝。支持循环引用。
-     * 
+     *
      *      transfer 参数用于指定需要转移而非克隆的可转移对象列表（如 ArrayBuffer）。转移后，原对象将不可用。
-     * 
+     *
      *      @param value 要克隆的值
      *      @param options 可选参数对象，包含 transfer 数组
      *      @return 返回克隆后的值
-     *      
+     *
      */
     function structuredClone(value: any, options?: FIBJS.GeneralObject): any;
 
@@ -408,7 +408,7 @@ declare module 'global' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
@@ -437,7 +437,7 @@ declare module 'global' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -466,7 +466,7 @@ declare module 'global' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
@@ -475,7 +475,7 @@ declare module 'global' {
      *      @param request Request 请求对象
      *      @param opts 请求选项（可覆盖 request 中的字段）
      *      @return 返回服务器响应对象
-     *     
+     *
      */
     function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
@@ -484,7 +484,7 @@ declare module 'global' {
      *      @param request Request 请求对象
      *      @param opts 请求选项（可覆盖 request 中的字段）
      *      @return 返回服务器响应对象
-     *     
+     *
      */
     function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -493,16 +493,16 @@ declare module 'global' {
      *      @param request Request 请求对象
      *      @param opts 请求选项（可覆盖 request 中的字段）
      *      @return 返回服务器响应对象
-     *     
+     *
      */
     function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
     /**
      * @description 将一个微任务排入队列执行
      *      回调函数将在当前任务完成后、下一个任务开始之前执行。
-     * 
+     *
      *      @param callback 要作为微任务排入队列的函数
-     *      
+     *
      */
     function queueMicrotask(callback: (...args: any[])=>any): void;
 

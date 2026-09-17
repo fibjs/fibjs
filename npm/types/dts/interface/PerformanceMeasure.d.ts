@@ -5,7 +5,7 @@
  */
 declare class Class_PerformanceMeasure extends Class_PerformanceEntry {
     /**
-     * @description performance measure 记录的详细信息. 
+     * @description performance measure 记录的详细信息.
      */
     readonly detail: any;
 

@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description HeapGraphNode表示堆视图中的一个节点 
+ * @description HeapGraphNode表示堆视图中的一个节点
  */
 declare class Class_HeapGraphNode extends Class_object {
     /**
@@ -20,32 +20,32 @@ declare class Class_HeapGraphNode extends Class_object {
      *      - profiler.Node_SlicedString,   分割的字符串
      *      - profiler.Node_Symbol,         符号（ES6）
      *      - profiler.Node_SimdValue,      堆中排好序的SIMD值(ES7)
-     *     
+     *
      */
     readonly type: number;
 
     /**
-     * @description 节点名称 
+     * @description 节点名称
      */
     readonly name: string;
 
     /**
-     * @description 节点的描述 
+     * @description 节点的描述
      */
     readonly description: string;
 
     /**
-     * @description 节点ID 
+     * @description 节点ID
      */
     readonly id: number;
 
     /**
-     * @description 节点大小，单位为字节 
+     * @description 节点大小，单位为字节
      */
     readonly shallowSize: number;
 
     /**
-     * @description 子节点列表，由HeapGraphEdge类型对象组成 
+     * @description 子节点列表，由HeapGraphEdge类型对象组成
      */
     readonly childs: any[];
 

@@ -1,41 +1,41 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 消息处理器接口 
+ * @description 消息处理器接口
  */
 declare class Class_Handler extends Class_object {
     /**
      * @description 构造一个消息处理器链处理对象
      *      @param hdlrs 处理器数组
-     *      
+     *
      */
     constructor(hdlrs: Class_Handler[]);
 
     /**
      * @description 创建一个消息处理器路由对象
      *      @param map 初始化路由参数
-     *      
+     *
      */
     constructor(map: FIBJS.GeneralObject);
 
     /**
      * @description 创建一个 JavaSvript 消息处理器
      *      @param hdlr JavaScript 处理器函数
-     *      
+     *
      */
     constructor(hdlr: (...args: any[])=>any);
 
     /**
      * @description 构造一个 fileHandler 或者 HttpRepeater
      *      @param hdlr 处理器的地址参数
-     *      
+     *
      */
     constructor(hdlr: string);
 
     /**
      * @description 查询当前处理器是否支持路由
      *      @return 返回当前处理器是否支持路由
-     *      
+     *
      */
     isRouting(): boolean;
 
@@ -43,7 +43,7 @@ declare class Class_Handler extends Class_object {
      * @description 处理一个消息或对象
      *      @param v 指定处理的消息或对象
      *      @return 返回下一步的处理器
-     *      
+     *
      */
     invoke(v: Class_object): Class_Handler;
 
@@ -53,7 +53,7 @@ declare class Class_Handler extends Class_object {
      * @description 处理一个消息或对象
      *      @param v 指定处理的消息或对象
      *      @return 返回下一步的处理器
-     *      
+     *
      */
     invokeSync(v: Class_object): Class_Handler;
 
@@ -61,7 +61,7 @@ declare class Class_Handler extends Class_object {
      * @description 处理一个消息或对象
      *      @param v 指定处理的消息或对象
      *      @return 返回下一步的处理器
-     *      
+     *
      */
     invokeAsync(v: Class_object): Promise<Class_Handler>;
 

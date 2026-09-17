@@ -7,12 +7,12 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description util 模块提供了对数据类型的判断、对象属性的复制、模版字符串的解析、事件处理等实用的工具函数
- * 
+ *
  * 下面是具体的介绍和示例：
- * 
+ *
  * 1. 判断数据类型 - `util.is[type]`
  * 该模块内提供了诸如 `isDate`、`isRegExp`、`isError` 等判断传入参数数据类型的方法，例如：
- * 
+ *
  * ```JavaScript
  * var util = require('util');
  * console.log(util.isDate(new Date()));
@@ -20,7 +20,7 @@
  * ```
  * 2. 对象属性复制 - `util.inherits()`
  * 该方法可以选择将一个构造函数继承自另一个，从而实现原型继承。
- * 
+ *
  * ```JavaScript
  * var util = require('util');
  * function Animal() {
@@ -37,16 +37,16 @@
  * }
  * util.inherits(Cat, Animal);
  * ```
- * 
+ *
  * 使用 `Cat` 这个构造函数继承了 `Animal` 的实例属性和原型属性，打印 `Cat` 的实例的属性和方法
- * 
+ *
  * ```JavaScript
  * var cat = new Cat();
- * console.log(cat.name); 
- * console.log(cat.eat('fish')); 
+ * console.log(cat.name);
+ * console.log(cat.eat('fish'));
  * console.log(cat.sleep());
  * ```
- * 
+ *
  * 3. util.format() 格式化输出模版
  * ```JavaScript
  * const util = require('util');
@@ -55,9 +55,9 @@
  * console.log(str1) // => 'foo:%s'
  * console.log(str2) // => 'foo:bar baz'
  * ```
- * 
+ *
  * 以上是 `util` 模块的一些常用方法，常常可以用于简化实际开发过程。
- * 
+ *
  */
 declare module 'util' {
     /**
@@ -82,55 +82,55 @@ declare module 'util' {
 
     /**
      * @description 按照指定的格式格式化变量
-     * 
+     *
      *      @param fmt 格式化字符串
      *      @param args 可选参数列表
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function format(fmt: string, ...args: any[]): string;
 
     /**
      * @description 格式格式化变量
-     * 
+     *
      *      @param args 可选参数列表
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function format(...args: any[]): string;
 
     /**
      * @description 按照指定格式和 inspect 选项格式化变量
-     * 
+     *
      *      @param options 非字符串值使用的 inspect 选项
      *      @param fmt 格式化字符串
      *      @param args 可选参数列表
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function formatWithOptions(options: FIBJS.GeneralObject, fmt: string, ...args: any[]): string;
 
     /**
      * @description 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
-     * 
+     *
      *      @param constructor 初始的构造函数
      *      @param superConstructor 被继承的超类
-     *      
+     *
      */
     function inherits(constructor: any, superConstructor: any): void;
 
     /**
      * @description 解析 dotenv 文件原始文本并返回键值对象
-     * 
+     *
      *      @param content dotenv 文件的原始内容
      *      @return 返回解析后的键值对象
-     *      
+     *
      */
     function parseEnv(content: string): FIBJS.GeneralObject;
 
     /**
      * @description 函数返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
-     * 
+     *
      *      支持以下参数:
      *      ```JavaScript
      *      {
@@ -146,426 +146,426 @@ declare module 'util' {
      *      @param obj 指定需要处理的对象
      *      @param options 指定格式控制选项
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 为文本应用 ANSI 颜色/样式格式化
-     * 
+     *
      *      当不支持颜色输出时（如非 TTY 环境、设置了 NO_COLOR），原样返回文本。
-     * 
+     *
      *      支持的格式：bold、italic、underline、strikethrough、hidden、
      *      black、red、green、yellow、blue、magenta、cyan、white、
      *      bgBlack、bgRed、bgGreen、bgYellow、bgBlue、bgMagenta、bgCyan、bgWhite、
      *      gray/grey、blackBright、redBright、greenBright、yellowBright、blueBright、
      *      magentaBright、cyanBright、whiteBright
-     * 
+     *
      *      @param format 格式名称数组
      *      @param text 要格式化的文本
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function styleText(format: string[], text: string): string;
 
     /**
      * @description 为文本应用 ANSI 颜色/样式格式化
-     * 
+     *
      *      @param format 格式名称
      *      @param text 要格式化的文本
      *      @return 返回格式化后的字符串
-     *      
+     *
      */
     function styleText(format: string, text: string): string;
 
     /**
      * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
-     *      
+     *
      *      @param section 指定的调试区域
      *      @return 返回一个 ConsoleObject 对象
-     *      
+     *
      */
     function debuglog(section: string): Class_ConsoleObject;
 
     /**
      * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
-     * 
+     *
      *      @param section 指定的调试区域
      *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
      *      @return 返回一个 ConsoleObject 对象
-     *      
+     *
      */
     function debuglog(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
      * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
-     *      
+     *
      *      @param section 指定的调试区域
      *      @return 返回一个 ConsoleObject 对象
-     *      
+     *
      */
     function debug(section: string): Class_ConsoleObject;
 
     /**
      * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
-     * 
+     *
      *      @param section 指定的调试区域
      *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
      *      @return 返回一个 ConsoleObject 对象
-     *      
+     *
      */
     function debug(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
      * @description 封装给定的函数，本函数仅为兼容，并不输出警告
-     * 
+     *
      *      @param fn 给定需要封装的函数
      *      @param msg 给定警告消息
      *      @param code 给定警告编号
      *      @return 如果封装结果
-     *      
+     *
      */
     function deprecate(fn: (...args: any[])=>any, msg: string, code?: string): (...args: any[])=>any;
 
     /**
      * @description 检测给定的变量是否不包含任何值(没有可枚举的属性)
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果为空则返回 True
-     *      
+     *
      */
     function isEmpty(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是数组
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是数组则返回 True
-     *      
+     *
      */
     function isArray(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Boolean
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Boolean 则返回 True
-     *      
+     *
      */
     function isBoolean(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Null
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Null 则返回 True
-     *      
+     *
      */
     function isNull(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Null 或者 Undefined
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Null 或者 Undefined 则返回 True
-     *      
+     *
      */
     function isNullOrUndefined(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是数字
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是数字则返回 True
-     *      
+     *
      */
     function isNumber(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 BigInt
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是数字则返回 True
-     *      
+     *
      */
     function isBigInt(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是字符串
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是字符串则返回 True
-     *      
+     *
      */
     function isString(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Undefined
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Undefined 则返回 True
-     *      
+     *
      */
     function isUndefined(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是正则对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是正则对象则返回 True
-     *      
+     *
      */
     function isRegExp(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是对象则返回 True
-     *      
+     *
      */
     function isObject(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是日期对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是日期对象则返回 True
-     *      
+     *
      */
     function isDate(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是错误对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是错误对象则返回 True
-     *      
+     *
      */
     function isNativeError(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是原始类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是原始类型则返回 True
-     *      
+     *
      */
     function isPrimitive(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是Symbol类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是Symbol类型则返回 True
-     *      
+     *
      */
     function isSymbol(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 DataView 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 DataView 类型则返回 True
-     *      
+     *
      */
     function isDataView(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 External 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 External 类型则返回 True
-     *      
+     *
      */
     function isExternal(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Map 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Map 类型则返回 True
-     *      
+     *
      */
     function isMap(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 MapIterator 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 MapIterator 类型则返回 True
-     *      
+     *
      */
     function isMapIterator(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Promise 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Promise 类型则返回 True
-     *      
+     *
      */
     function isPromise(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 AsyncFunction 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 AsyncFunction 类型则返回 True
-     *      
+     *
      */
     function isAsyncFunction(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Set 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Set 类型则返回 True
-     *      
+     *
      */
     function isSet(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 SetIterator 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 SetIterator 类型则返回 True
-     *      
+     *
      */
     function isSetIterator(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 TypedArray 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 TypedArray 类型则返回 True
-     *      
+     *
      */
     function isTypedArray(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Uint8Array 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Uint8Array 类型则返回 True
-     *      
+     *
      */
     function isUint8Array(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是函数对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是函数对象则返回 True
-     *      
+     *
      */
     function isFunction(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是函数 Buffer 对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是函数 Buffer 对象则返回 True
-     *      
+     *
      */
     function isBuffer(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Float16Array 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Float16Array 类型则返回 True
-     *      
+     *
      */
     function isFloat16Array(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 ArrayBuffer 或 SharedArrayBuffer 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 ArrayBuffer 或 SharedArrayBuffer 类型则返回 True
-     *      
+     *
      */
     function isAnyArrayBuffer(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 SharedArrayBuffer 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 SharedArrayBuffer 类型则返回 True
-     *      
+     *
      */
     function isSharedArrayBuffer(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 arguments 对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 arguments 对象则返回 True
-     *      
+     *
      */
     function isArgumentsObject(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是装箱的原始类型对象（如 new Boolean()、new String() 等）
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是装箱的原始类型对象则返回 True
-     *      
+     *
      */
     function isBoxedPrimitive(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 GeneratorFunction 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 GeneratorFunction 类型则返回 True
-     *      
+     *
      */
     function isGeneratorFunction(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Generator 对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Generator 对象则返回 True
-     *      
+     *
      */
     function isGeneratorObject(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Proxy 实例
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Proxy 实例则返回 True
-     *      
+     *
      */
     function isProxy(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 Module Namespace 对象
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 Module Namespace 对象则返回 True
-     *      
+     *
      */
     function isModuleNamespaceObject(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 CryptoKey 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 CryptoKey 类型则返回 True
-     *      
+     *
      */
     function isCryptoKey(v: any): boolean;
 
     /**
      * @description 检测给定的变量是否是 KeyObject 类型
-     * 
+     *
      *      @param v 给定需要检测的变量
      *      @return 如果是 KeyObject 类型则返回 True
-     *      
+     *
      */
     function isKeyObject(v: any): boolean;
 
@@ -574,7 +574,7 @@ declare module 'util' {
      *      @param actual 要测试的数值
      *      @param expected 预期的数值
      *      @return 如果深度相等则返回 True
-     *      
+     *
      */
     function isDeepEqual(actual: any, expected: any): boolean;
 
@@ -583,222 +583,222 @@ declare module 'util' {
      *      @param actual 要测试的数值
      *      @param expected 预期的数值
      *      @return 如果严格深度相等则返回 True
-     *      
+     *
      */
     function isDeepStrictEqual(actual: any, expected: any): boolean;
 
     /**
      * @description 查询指定对象是否包含给定的键
-     * 
+     *
      *      @param v 给定需要查询的对象
      *      @param key 指定需要查询的键
      *      @return 返回对象的全部键数组
-     *      
+     *
      */
     function has(v: any, key: string): boolean;
 
     /**
      * @description 查询指定对象的全部键数组
-     * 
+     *
      *      @param v 给定需要查询的对象
      *      @return 返回对象的全部键数组
-     *      
+     *
      */
     function keys(v: any): any[];
 
     /**
      * @description 查询指定对象的全部值数组
-     * 
+     *
      *      @param v 给定需要查询的对象
      *      @return 返回对象的全部值数组
-     *      
+     *
      */
     function values(v: any): any[];
 
     /**
      * @description 克隆给定变量，如果是对象或数组，则复制内容到新对象
-     * 
+     *
      *      @param v 给定要克隆的变量
      *      @return 返回克隆结果
-     *      
+     *
      */
     function clone(v: any): any;
 
     /**
      * @description 深度冻结一个对象，被冻结后的对象及其包含的对象都将不允许修改
-     * 
+     *
      *      @param v 指定要冻结的对象
-     *      
+     *
      */
     function deepFreeze(v: any): void;
 
     /**
      * @description 将一个或者多个对象的键值扩展到指定对象
-     * 
+     *
      *      @param v 指定要扩展的对象
      *      @param objs 指定一个或者多个用于扩展的对象
      *      @return 返回扩展的结果
-     *      
+     *
      */
     function extend(v: any, ...objs: any[]): any;
 
     /**
      * @description 将一个或者多个对象的键值扩展到指定对象，是 extend 的别名
-     * 
+     *
      *      @param v 指定要扩展的对象
      *      @param objs 指定一个或者多个用于扩展的对象
      *      @return 返回扩展的结果
-     *      
+     *
      */
     function _extend(v: any, ...objs: any[]): any;
 
     /**
      * @description 返回一个object副本，只过滤出指定键的属性值
-     * 
+     *
      *      @param v 指定要过滤的对象
      *      @param objs 指定一个或者多个用于选择的键
      *      @return 返回过滤的结果
-     *      
+     *
      */
     function pick(v: any, ...objs: any[]): FIBJS.GeneralObject;
 
     /**
      * @description 返回一个object副本，只过排除指定键的属性值
-     * 
+     *
      *      @param v 指定要过滤的对象
      *      @param keys 指定一个或者多个用于排除的键
      *      @return 返回排除的结果
-     *      
+     *
      */
     function omit(v: any, ...keys: any[]): FIBJS.GeneralObject;
 
     /**
      * @description 获取数组的第一个元素
-     * 
+     *
      *      @param v 给定要获取的数组
      *      @return 返回获取的元素
-     *      
+     *
      */
     function first(v: any): any;
 
     /**
      * @description 获取数组的开始多个元素
-     * 
+     *
      *      @param v 给定要获取的数组
      *      @param n 指定要获取的元素个数
      *      @return 返回获取的元素数组
-     *      
+     *
      */
     function first(v: any, n: number): any;
 
     /**
      * @description 获取数组的第后一个元素
-     * 
+     *
      *      @param v 给定要获取的数组
      *      @return 返回获取的元素
-     *      
+     *
      */
     function last(v: any): any;
 
     /**
      * @description 获取数组的结尾多个元素
-     * 
+     *
      *      @param v 给定要获取的数组
      *      @param n 指定要获取的元素个数
      *      @return 返回获取的元素数组
-     *      
+     *
      */
     function last(v: any, n: number): any;
 
     /**
      * @description 获取数组的元素去重后的副本
-     * 
+     *
      *      @param v 给定要去重的数组
      *      @param sorted 指定数组是否排序，如果指定数组排序，将使用快速算法
      *      @return 返回去重元素后的数组
-     *      
+     *
      */
     function unique(v: any, sorted?: boolean): any[];
 
     /**
      * @description 将一个或者多个数组的值合并成一个值唯一的数组
-     * 
+     *
      *      @param arrs 指定一个或者多个用于合并的数组
      *      @return 返回合并的结果
-     *      
+     *
      */
     function union(...arrs: any[]): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除一个或者多个数组元素的交集
-     * 
+     *
      *      @param arrs 指定一个或者多个用于计算交集的数组
      *      @return 返回计算交集的结果
-     *      
+     *
      */
     function intersection(...arrs: any[]): any[];
 
     /**
      * @description 将一个嵌套多层的数组(嵌套可以是任何层数)转换为只有一层的数组。 如果你传递 shallow 参数，数组将只减少一维的嵌套。
-     * 
+     *
      *      @param arr 指定需要转换的数组
      *      @param shallow 指定是否只减少一维的嵌套，缺省为 false
      *      @return 返回转换的结果
-     *      
+     *
      */
     function flatten(arr: any, shallow?: boolean): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除一个或者多个元素后的数组
-     * 
+     *
      *      @param arr 指定需要排除的数组
      *      @param els 指定一个或者多个用于排除的元素
      *      @return 返回排除的结果
-     *      
+     *
      */
     function without(arr: any, ...els: any[]): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除 without 数组元素之后的数组
-     * 
+     *
      *      @param list 指定需要排除的数组
      *      @param arrs 指定用于排除的一个或者多个数组
      *      @return 返回排除的结果
-     *      
+     *
      */
     function difference(list: any[], ...arrs: any[]): any[];
 
     /**
      * @description 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
-     * 
+     *
      *      @param list 指定需要遍历的列表或对象
      *      @param iterator 指定用于遍历的回调函数
      *      @param context 指定调用 iterator 时绑定的 context 对象
      *      @return 返回 list 本身
-     *      
+     *
      */
     function each(list: any, iterator: (...args: any[])=>any, context?: any): any;
 
     /**
      * @description 通过变换函数（iterator迭代器）把 list 中的每个值映射到一个新的数组中。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
-     * 
+     *
      *      @param list 指定需要变换的列表或对象
      *      @param iterator 指定用于变换的回调函数
      *      @param context 指定调用 iterator 时绑定的 context 对象
      *      @return 返回变换的结果
-     *      
+     *
      */
     function map(list: any, iterator: (...args: any[])=>any, context?: any): any[];
 
     /**
      * @description 把 list中 元素归结为一个单独的数值。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(memo, element, index, list)
-     * 
+     *
      *      @param list 指定需要归结的列表或对象
      *      @param iterator 指定用于归结的回调函数
      *      @param memo 指定归结的初始值
      *      @param context 指定调用 iterator 时绑定的 context 对象
      *      @return 返回归结的结果
-     *      
+     *
      */
     function reduce(list: any, iterator: (...args: any[])=>any, memo: any, context?: any): any;
 
@@ -806,40 +806,40 @@ declare module 'util' {
      * @description 解析命令行字符串返回参数列表
      *      @param command 指定要解析的命令行字符串
      *      @return 返回解析出的参数列表
-     *      
+     *
      */
     function parseArgs(command: string): any[];
 
     /**
      * @description 编译脚本为二进制代码
      *      util.compile 可以将脚本编译为 v8 内部运行数据块(非机器执行代码)。编译以后的代码，保存为 *.jsc 后，可以由 run 和 require 直接加载执行。
-     *      
+     *
      *      由于编译之后，目标代码将不能逆向获取源代码，依赖于 Function.toString 的程序将不能正常运行。
-     * 
+     *
      *      @param srcname 指定要添加的脚本名称
      *      @param script 指定要编译的脚本代码
      *      @param mode 编译模式，0: module, 1: script, 2: worker，缺省为 0
      *      @return 返回编译出的二进制代码
-     *      
+     *
      */
     function compile(srcname: string, script: string, mode?: number): Class_Buffer;
 
     /**
      * @description 包裹 callback 或 async 函数为同步调用
-     * 
+     *
      *      util.sync 将 callback 函数或者 async 函数处理为 sync 函数，以方便调用。
-     * 
+     *
      *      callback 示例如下：
      *      ```JavaScript
      *      // callback
      *      var util = require('util');
-     * 
+     *
      *      function cb_test(a, b, cb) {
      *        setTimeout(() => {
      *           cb(null, a + b);
      *        }, 100);
      *      }
-     * 
+     *
      *      var fn_sync = util.sync(cb_test);
      *      console.log(fn_sync(100, 200));
      *      ```
@@ -847,11 +847,11 @@ declare module 'util' {
      *      ```JavaScript
      *      // async/await
      *      var util = require('util');
-     * 
+     *
      *      async function async_test(a, b) {
      *          return a + b;
      *      }
-     * 
+     *
      *      var fn_sync = util.sync(async_test);
      *      console.log(fn_sync(100, 200));
      *      ```
@@ -859,80 +859,80 @@ declare module 'util' {
      *      ```JavaScript
      *      // async/await
      *      var util = require('util');
-     * 
+     *
      *      function async_test(a, b) {
      *          return new Promise(function (resolve, reject) {
      *            resolve(a + b);
      *          });
      *      }
-     * 
+     *
      *      var fn_sync = util.sync(async_test, true);
      *      console.log(fn_sync(100, 200));
      *      ```
-     * 
+     *
      *      @param func 给定需要包裹的函数
      *      @param async_func 指定以 async 函数方式处理 func，为 false 则自动判断
      *      @return 返回同步运行的函数
-     *      
+     *
      */
     function sync(func: (...args: any[])=>any, async_func?: boolean): (...args: any[])=>any;
 
     /**
      * @description 包裹 callback 函数为 async 调用
-     * 
+     *
      *      util.promisify 将 callback 函数处理为 async 函数，以方便调用。
-     * 
+     *
      *      callback 示例如下：
      *      ```JavaScript
      *      // callback
      *      var util = require('util');
-     * 
+     *
      *      function cb_test(a, b, cb) {
      *        setTimeout(() => {
      *           cb(null, a + b);
      *        }, 100);
      *      }
-     * 
+     *
      *      var fn_sync = util.promisify(cb_test);
      *      console.log(async fn_sync(100, 200));
      *      ```
-     * 
+     *
      *      @param func 给定需要包裹的函数
      *      @return 返回 async 函数
-     *      
+     *
      */
     function promisify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
      * @description 包裹 async 函数为 callback 调用
-     * 
+     *
      *      util.callbackify 将 async 函数处理为 callback 函数，以方便调用。
-     * 
+     *
      *      async 示例如下：
      *      ```JavaScript
      *      // async
      *      var util = require('util');
-     * 
+     *
      *      async function async_test(a, b) {
      *        return a + b;
      *      }
-     * 
+     *
      *      var fn_callback = util.callbackify(async_test);
-     * 
+     *
      *      fn_callback(100, 200, (err, result) => {
      *        console.log(result);
      *      });
      *      ```
-     * 
+     *
      *      @param func 给定需要包裹的函数
      *      @return 返回 callback 函数
-     *      
+     *
      */
     function callbackify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
      * @description 查询当前引擎及各组件版本信息
-     * 
+     *
      *      ```JavaScript
      *       {
      *         "fibjs": "0.25.0",
@@ -960,16 +960,16 @@ declare module 'util' {
      *       }
      *      ```
      *      @return 返回组件版本对象
-     *      
+     *
      */
     function buildInfo(): FIBJS.GeneralObject;
 
     /**
      * @description 将 TypeScript 代码转换为 JavaScript，移除所有类型注解
-     * 
+     *
      *      该方法使用 strip-only 模式，将 TypeScript 的类型语法替换为空格，保持源代码的行列位置不变。
      *      这对于需要调试或生成 source map 的场景非常有用。
-     * 
+     *
      *      注意：strip-only 模式不支持以下语法：
      *      - enum（需要转换为 IIFE）
      *      - const enum（需要内联展开）
@@ -978,7 +978,7 @@ declare module 'util' {
      *      - import = require() 语法
      *      - export = 语法
      *      - 尖括号类型断言（如 <T>expr，请使用 as 语法）
-     * 
+     *
      *      示例：
      *      ```JavaScript
      *      var util = require('util');
@@ -986,10 +986,10 @@ declare module 'util' {
      *      var js = util.stripTypeScript(ts);
      *      console.log(js); // 'const x         = "hello";'
      *      ```
-     * 
+     *
      *      @param code TypeScript 源代码
      *      @return 返回转换后的 JavaScript 代码
-     *      
+     *
      */
     function stripTypeScript(code: string): string;
 
@@ -997,19 +997,19 @@ declare module 'util' {
      * @description 获取字符串的可视宽度，考虑全角字符、emoji 和 ANSI 转义序列
      *      东亚宽度属性为 Fullwidth (F) 或 Wide (W) 的字符计为 2，大多数其他字符计为 1。
      *      控制字符和组合标记计为 0。ANSI 转义序列将被跳过。
-     * 
+     *
      *      @param str 要计算宽度的字符串
      *      @return 返回字符串的可视宽度
-     *      
+     *
      */
     function getStringWidth(str: string): number;
 
     /**
      * @description 从字符串中移除 ANSI 转义序列（VT 控制字符）
-     * 
+     *
      *      @param str 要处理的字符串
      *      @return 返回移除 ANSI 转义序列后的字符串
-     *      
+     *
      */
     function stripVTControlCharacters(str: string): string;
 

@@ -13,102 +13,102 @@
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description http 模块提供 HTTP 服务端与客户端能力，可用于创建 HTTP/HTTPS 服务器、发起 HTTP 请求、处理请求与响应消息、管理 Cookie 等场景
- * 
+ *
  *  模块的主要能力：
- * 
+ *
  *  - **服务端**：`http.Server`、`http.HttpsServer`、`http.createServer` 创建服务器；`http.fileHandler` 以静态文件响应请求；`http.Repeater` 转发请求；
  *  - **客户端**：`http.Client` 创建带 Cookie 管理的客户端；`http.requestSync`、`http.getSync` 等函数同步发起请求；`http.request`、`http.get` 等事件风格请求；`http.fetch` 按 Web Fetch 标准发送请求；
  *  - **消息对象**：`http.Request`(HttpRequest)、`http.Response`(HttpResponse)、`http.Headers`、`http.Cookie`；
  *  - **通用信息**：`http.STATUS_CODES` 状态码集合、`http.METHODS` 方法列表。
- * 
+ *
  *  模块级属性(`keepAlive`、`timeout`、`enableCookie`、`autoRedirect`、`enableEncoding`、`enableH2`、`maxHeadersCount`、`maxHeaderSize`、`maxChunkSize`、`maxBodySize`、`userAgent`、`poolTimeout`、`maxFreeSockets`)为所有 HttpClient 的默认配置，修改后对后续请求全局生效。
- * 
+ *
  *  客户端请求提供两种风格：
- * 
+ *
  *  - **同步风格**：`http.requestSync`、`http.getSync`、`http.postSync` 等函数，直接返回 HttpResponse 对象；
  *  - **事件风格**：`http.request`、`http.get`、`http.post` 等函数，返回 HttpRequest 对象，通过回调或 `'response'` 事件接收响应；其中 `http.get`、`http.head` 自动发送请求（与 Node.js `http.get` 一致），`http.request` 及 post/put/del/patch 需调用 `end()` 发送请求。
- * 
+ *
  *  下面是一个简单的例子，创建一个 Web 服务器，返回一个 hello world 的响应信息：
- * 
+ *
  *  ```JavaScript
  *  const http = require('http');
- * 
+ *
  *  const server = new http.Server(8080, function(request) {
  *    request.response.write('Hello World!');
  *  });
- * 
+ *
  *  server.start();
  *  ```
- * 
+ *
  *  这个例子中，我们引入 http 模块，然后定义了一个 http 服务器对象，并绑定到本地 8080 端口号。当有请求发送到这个端口号，响应会被设置为字符串 “Hello World!”。
- * 
+ *
  *  客户端请求示例：
- * 
+ *
  *  ```JavaScript
  *  var http = require('http');
- * 
+ *
  *  // 同步请求，直接返回响应
  *  var resp = http.getSync('http://fibjs.org');
  *  console.log(resp.body.readAll().toString());
- * 
+ *
  *  // 事件风格请求，需调用 end() 发送
  *  var req = http.get('http://fibjs.org', {}, function(resp) {
  *      console.log(resp.body.readAll().toString());
  *  });
  *  req.end();
  *  ```
- * 
+ *
  *  https 模块是 http 模块的别名，使用 `require('https')` 同样可以得到 http 模块。
- * 
+ *
  */
 declare module 'http' {
     /**
-     * @description 创建一个 http 请求对象，参见 HttpRequest 
+     * @description 创建一个 http 请求对象，参见 HttpRequest
      */
     const Request: typeof Class_HttpRequest;
 
     /**
-     * @description 兼容别名，等同于 HttpRequest 
+     * @description 兼容别名，等同于 HttpRequest
      */
     const IncomingMessage: typeof Class_HttpRequest;
 
     /**
-     * @description 创建一个 http 响应对象，参见 HttpResponse 
+     * @description 创建一个 http 响应对象，参见 HttpResponse
      */
     const Response: typeof Class_HttpResponse;
 
     /**
-     * @description 兼容别名，等同于 HttpResponse 
+     * @description 兼容别名，等同于 HttpResponse
      */
     const ServerResponse: typeof Class_HttpResponse;
 
     /**
-     * @description 创建一个 Headers 对象，参见 Headers 
+     * @description 创建一个 Headers 对象，参见 Headers
      */
     const Headers: typeof Class_Headers;
 
     /**
-     * @description 创建一个 http cookie 对象，参见 HttpCookie 
+     * @description 创建一个 http cookie 对象，参见 HttpCookie
      */
     const Cookie: typeof Class_HttpCookie;
 
     /**
-     * @description 创建一个 http 服务器，参见 HttpServer 
+     * @description 创建一个 http 服务器，参见 HttpServer
      */
     const Server: typeof Class_HttpServer;
 
     /**
-     * @description 创建一个 http 客户端，参见 HttpClient 
+     * @description 创建一个 http 客户端，参见 HttpClient
      */
     const Client: typeof Class_HttpClient;
 
     /**
-     * @description 创建一个 http 代理，HttpAgent 是 HttpClient 的别名 
+     * @description 创建一个 http 代理，HttpAgent 是 HttpClient 的别名
      */
     const Agent: typeof Class_HttpClient;
 
     /**
-     * @description 创建一个 https 服务器，参见 HttpsServer 
+     * @description 创建一个 https 服务器，参见 HttpsServer
      */
     const HttpsServer: typeof Class_HttpsServer;
 
@@ -116,7 +116,7 @@ declare module 'http' {
      * @description 创建一个 http 服务器
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpServer 对象，需调用 listen() 启动
-     *      
+     *
      */
     function createServer(hdlr: Class_Handler): Class_HttpServer;
 
@@ -125,7 +125,7 @@ declare module 'http' {
      *      @param context SecureContext 对象，用于 TLS 配置
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
-     *      
+     *
      */
     function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_HttpServer;
 
@@ -134,118 +134,118 @@ declare module 'http' {
      *      @param options TLS 选项对象，用于创建 SecureContext
      *      @param hdlr 请求处理函数，接收 (req, res) 参数
      *      @return 返回未绑定端口的 HttpsServer 对象，需调用 listen() 启动
-     *      
+     *
      */
     function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler): Class_HttpServer;
 
     /**
-     * @description 创建一个 http 协议处理器对象，参见 HttpHandler 
+     * @description 创建一个 http 协议处理器对象，参见 HttpHandler
      */
     const Handler: typeof Class_HttpHandler;
 
     /**
-     * @description 创建一个 http 请求转发处理器对象，参见 HttpRepeater 
+     * @description 创建一个 http 请求转发处理器对象，参见 HttpRepeater
      */
     const Repeater: typeof Class_HttpRepeater;
 
     /**
-     * @description 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 
+     * @description 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。
      */
     const STATUS_CODES: FIBJS.GeneralObject;
 
     /**
-     * @description 返回 HTTP 协议支持的所有方法名称（大写）的数组。 
+     * @description 返回 HTTP 协议支持的所有方法名称（大写）的数组。
      */
     const METHODS: any[];
 
     /**
-     * @description 返回http客户端的 HttpCookie 对象列表 
+     * @description 返回http客户端的 HttpCookie 对象列表
      */
     const cookies: any[];
 
     /**
-     * @description 查询和设定是否保持连接 
+     * @description 查询和设定是否保持连接
      */
     var keepAlive: boolean;
 
     /**
-     * @description 查询和设置超时时间 
+     * @description 查询和设置超时时间
      */
     var timeout: number;
 
     /**
-     * @description cookie 功能开关，默认开启 
+     * @description cookie 功能开关，默认开启
      */
     var enableCookie: boolean;
 
     /**
-     * @description 自动 redirect 功能开关，默认开启 
+     * @description 自动 redirect 功能开关，默认开启
      */
     var autoRedirect: boolean;
 
     /**
-     * @description 自动解压缩功能开关，默认开启 
+     * @description 自动解压缩功能开关，默认开启
      */
     var enableEncoding: boolean;
 
     /**
-     * @description HTTP/2 自动升级开关，默认关闭 
+     * @description HTTP/2 自动升级开关，默认关闭
      */
     var enableH2: boolean;
 
     /**
-     * @description 查询和设置最大请求头个数，缺省为 128 
+     * @description 查询和设置最大请求头个数，缺省为 128
      */
     var maxHeadersCount: number;
 
     /**
-     * @description 查询和设置最大请求头长度，缺省为 8192 
+     * @description 查询和设置最大请求头长度，缺省为 8192
      */
     var maxHeaderSize: number;
 
     /**
-     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2 
+     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2
      */
     var maxChunkSize: number;
 
     /**
-     * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 
+     * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸
      */
     var maxBodySize: number;
 
     /**
-     * @description 查询和设置 http 请求中的浏览器标识 
+     * @description 查询和设置 http 请求中的浏览器标识
      */
     var userAgent: string;
 
     /**
-     * @description 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms 
+     * @description 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms
      */
     var poolTimeout: number;
 
     /**
-     * @description 查询和设置每个主机的最大空闲连接数，缺省为 256 
+     * @description 查询和设置每个主机的最大空闲连接数，缺省为 256
      */
     var maxFreeSockets: number;
 
     /**
      * @description 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
-     * 
+     *
      *      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      *      从而避免重复压缩带来服务器负载。
      *      @param root 文件根路径
      *      @param autoIndex 是否支持浏览目录文件，缺省为 false，不支持
      *      @return 返回一个静态文件处理器用于处理 http 消息
-     *      
+     *
      */
     function fileHandler(root: string, autoIndex?: boolean): Class_Handler;
 
     /**
      * @description 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
-     * 
+     *
      *      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      *      从而避免重复压缩带来服务器负载。
-     * 
+     *
      *      options 支持以下配置：
      *      - autoIndex: 是否支持浏览目录文件，缺省为 false
      *      - maxAge: 全局默认缓存时间（秒），大于 0 时自动为响应生成 Cache-Control: public, max-age=N，缺省为 0
@@ -256,7 +256,7 @@ declare module 'http' {
      *      @param root 文件根路径
      *      @param options 配置选项
      *      @return 返回一个静态文件处理器用于处理 http 消息
-     *      
+     *
      */
     function fileHandler(root: string, options?: FIBJS.GeneralObject): Class_Handler;
 
@@ -265,13 +265,13 @@ declare module 'http' {
      *      @param conn 指定处理请求的流对象
      *      @param req 要发送的 HttpRequest 对象
      *      @return 返回服务器响应
-     *      
+     *
      */
     function request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，并返回结果
-     * 
+     *
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
@@ -297,7 +297,7 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -325,7 +325,7 @@ declare module 'http' {
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function requestSync(opts: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -354,13 +354,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function requestSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -389,13 +389,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 请求 opts 指定的 url，并返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -421,13 +421,13 @@ declare module 'http' {
      *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function request(opts: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，并返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -454,66 +454,66 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function request(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param method 指定 http 请求方法：GET, POST 等
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function request(method: string, url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 请求 opts 指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function request(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function request(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function request(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param method 指定 http 请求方法：GET, POST 等
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function request(method: string, url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -542,13 +542,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function getSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`；响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -571,30 +571,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function get(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function get(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 GET 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function get(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -623,13 +623,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function postSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -655,30 +655,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function post(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function post(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 POST 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function post(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -707,13 +707,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function delSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -736,30 +736,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function del(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function del(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 DELETE 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function del(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -788,13 +788,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function putSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -820,30 +820,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function put(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function put(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 PUT 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function put(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -872,13 +872,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function patchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -904,30 +904,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function patch(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function patch(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 PATCH 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象需调用 `end()` 发送请求，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function patch(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -956,13 +956,13 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回服务器响应
-     *      
+     *
      */
     function headSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`；响应通过回调接收；也可监听返回对象的 `'response'` 事件。
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
@@ -985,30 +985,30 @@ declare module 'http' {
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @return 返回 HttpRequest 对象（可监听 'response' 事件接收响应）
-     *      
+     *
      */
     function head(url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param opts 指定附加信息
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function head(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
 
     /**
      * @description 用 HEAD 方法请求指定的 url，注册回调接收响应，返回 HttpRequest 对象
-     * 
+     *
      *      返回的 HttpRequest 对象自动发送请求，无需调用 `end()`，响应通过回调接收。
      *      @param url 指定 url，必须是包含主机的完整 url
      *      @param callback 响应回调函数，接收 HttpResponse 作为参数
      *      @return 返回 HttpRequest 对象
-     *      
+     *
      */
     function head(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
 
@@ -1016,11 +1016,11 @@ declare module 'http' {
      * @description 根据环境变量动态配置代理支持
      *      当调用此函数时，会从环境变量（HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式）读取代理配置并全局应用。
      *      可用于在运行时动态启用代理支持，作为 --use-env-proxy 标志的替代方案。
-     *      
+     *
      *      @param proxyEnv 包含代理配置的对象。如果未提供，则会读取 process.env。
      *               支持的属性：HTTP_PROXY、http_proxy、HTTPS_PROXY、https_proxy、NO_PROXY、no_proxy
      *      @return 可调用的函数，用于恢复原始代理配置
-     *      
+     *
      */
     function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): (...args: any[])=>any;
 
@@ -1029,7 +1029,7 @@ declare module 'http' {
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
      *      @return 返回 HttpResponse 对象
-     *     
+     *
      */
     function fetch(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -1040,7 +1040,7 @@ declare module 'http' {
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
      *      @return 返回 HttpResponse 对象
-     *     
+     *
      */
     function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -1049,7 +1049,7 @@ declare module 'http' {
      *      @param url 请求目标 URL
      *      @param opts 请求选项，支持 method、headers、body 等属性
      *      @return 返回 HttpResponse 对象
-     *     
+     *
      */
     function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
@@ -1072,7 +1072,7 @@ declare module 'http' {
      *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
      *      @param opts 指定附加信息，可覆盖 request 中的对应字段
      *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
-     *      
+     *
      */
     function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -1097,7 +1097,7 @@ declare module 'http' {
      *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
      *      @param opts 指定附加信息，可覆盖 request 中的对应字段
      *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
-     *      
+     *
      */
     function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
@@ -1120,7 +1120,7 @@ declare module 'http' {
      *      @param request 请求源对象，提供 url、method、headers、body 等基础信息
      *      @param opts 指定附加信息，可覆盖 request 中的对应字段
      *      @return 返回服务器响应，包含 status、headers、body、ok、redirected、url、type 等属性
-     *      
+     *
      */
     function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
 
