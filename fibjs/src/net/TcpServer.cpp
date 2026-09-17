@@ -180,11 +180,24 @@ result_t TcpServer::start()
     public:
         ON_STATE(asyncAccept, accept)
         {
+            if (m_pThis->holder()->is_terminating()) {
+                if (m_pThis->m_running)
+                    return m_pThis->stop(next());
+                m_pThis->isolate_unref();
+                return next();
+            }
+
             return m_pThis->m_socket->accept(m_accept, next(invoke));
         }
 
         ON_STATE(asyncAccept, invoke)
         {
+            if (m_pThis->holder()->is_terminating()) {
+                if (m_accept)
+                    m_accept->cc_close();
+                return m_pThis->stop(next());
+            }
+
             if (m_accept) {
                 // emit 'connection' with the accepted socket
                 Variant sockArg = m_accept;
@@ -201,6 +214,13 @@ result_t TcpServer::start()
 
         virtual int32_t error(int32_t v)
         {
+            if (m_pThis->holder()->is_terminating()) {
+                if (m_pThis->m_running)
+                    m_pThis->stop(NULL);
+                m_pThis->isolate_unref();
+                return next();
+            }
+
             if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
                 || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
                 // only emit 'close' if stop() hasn't already done so

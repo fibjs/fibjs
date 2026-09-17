@@ -23,6 +23,11 @@ public:
     ~RTCPeerConnection();
 
 public:
+    virtual result_t stop()
+    {
+        return close();
+    }
+
     // RTCPeerConnection_base
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal);
     virtual result_t setLocalDescription(AsyncEvent* ac);

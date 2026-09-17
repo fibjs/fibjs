@@ -22,6 +22,11 @@ public:
     ~RTCDataChannel();
 
 public:
+    virtual result_t stop()
+    {
+        return close();
+    }
+
     // RTCDataChannel_base
     virtual result_t send(Buffer_base* data);
     virtual result_t send(exlib::string data);

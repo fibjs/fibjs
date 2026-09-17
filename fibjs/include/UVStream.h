@@ -597,6 +597,15 @@ public:
     }
 
 public:
+    // object_base：isolate 终止时的中断，只打断 pending 读写，不做 isolate_unref()。
+    // 覆盖管道类流（子进程 stdio、fd、TTY）；UVSocket 有自己的 stop() 覆写，不受影响。
+    // 释放点：AsyncStreamReader 析构（AsyncStream.h:95）
+    virtual result_t stop()
+    {
+        return abort();
+    }
+
+public:
     int32_t m_fd;
     int32_t m_timeout = -1;
     // When true, synchronous JS write() calls are fire-and-forget (non-blocking),

@@ -60,6 +60,11 @@ public:
     }
 
 public:
+    virtual result_t stop()
+    {
+        return close();
+    }
+
     // MessagePort_base
     virtual result_t postMessage(v8::Local<v8::Value> data);
     virtual result_t postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer);

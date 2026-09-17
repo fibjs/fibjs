@@ -1062,19 +1062,7 @@ result_t Http2Session::close(AsyncEvent* ac)
             // Abort underlying TCP socket so readLoop unblocks immediately.
             // TLSSocket::close() only sends close_notify, it does not
             // close the transport socket.
-            if (m_session->m_conn) {
-                Socket_base* sock = Socket_base::getInstance(m_session->m_conn);
-                if (sock) {
-                    sock->abort();
-                } else {
-                    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_session->m_conn);
-                    if (tls && tls->m_stream) {
-                        sock = Socket_base::getInstance(tls->m_stream);
-                        if (sock)
-                            sock->abort();
-                    }
-                }
-            }
+            m_session->abortTransport();
             return next();
         }
 
@@ -1123,22 +1111,29 @@ result_t Http2Session::destroy()
 
     m_close_event.set();
 
-    // Abort underlying socket so readLoop unblocks immediately
-    if (m_conn) {
-        Socket_base* sock = Socket_base::getInstance(m_conn);
-        if (sock) {
-            sock->abort();
-        } else {
-            TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_conn);
-            if (tls && tls->m_stream) {
-                sock = Socket_base::getInstance(tls->m_stream);
-                if (sock)
-                    sock->abort();
-            }
-        }
-    }
+    // 中断：让 readLoop 的 pending read 立刻返回
+    abortTransport();
 
     return 0;
+}
+
+void Http2Session::abortTransport()
+{
+    if (!m_conn)
+        return;
+
+    Socket_base* sock = Socket_base::getInstance(m_conn);
+    if (sock) {
+        sock->abort();
+        return;
+    }
+
+    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_conn);
+    if (tls && tls->m_stream) {
+        sock = Socket_base::getInstance(tls->m_stream);
+        if (sock)
+            sock->abort();
+    }
 }
 
 } /* namespace fibjs */

@@ -21,6 +21,25 @@ public:
     TcpServer();
 
 public:
+    using TcpServer_base::stop; // 保留 JS API：stop(AsyncEvent* ac)
+
+    // object_base：isolate 终止时的中断，只打断 accept 等待，不做 isolate_unref()。
+    // 释放点：asyncAccept 状态机的 terminating 分支（isolate_unref()）。
+    virtual result_t stop()
+    {
+        // 先置 false，使 accept 循环的 terminating 分支直接收尾，
+        // 不再走 stop(NULL)（ac 为空）那条路径。
+        m_running = false;
+
+        // abort 底层监听 socket：pending accept 会立刻以错误返回，
+        // 由 asyncAccept::error() 的 terminating 分支完成收尾与 unref。
+        if (m_socket)
+            m_socket->stop();
+
+        return 0;
+    }
+
+public:
     // TcpServer_base
     virtual result_t start();
     virtual result_t stop(AsyncEvent* ac);

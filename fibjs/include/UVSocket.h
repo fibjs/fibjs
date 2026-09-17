@@ -30,6 +30,12 @@ public:
     virtual result_t close(AsyncEvent* ac);
 
 public:
+    virtual result_t stop()
+    {
+        return abort();
+    }
+
+public:
     // Socket_base
     virtual result_t get_family(int32_t& retVal);
     virtual result_t get_remoteAddress(exlib::string& retVal);

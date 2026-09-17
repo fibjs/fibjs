@@ -417,6 +417,251 @@ describe('worker_threads fibjs target behavior', () => {
         worker.postMessage({ seq: 1, text: 'early' });
     });
 
+    it('terminates a worker with a bound dgram socket in order', (done) => {
+        const worker = new Worker([
+            "const dgram = require('dgram');",
+            "const { parentPort } = require('worker_threads');",
+            'const socket = dgram.createSocket("udp4");',
+            'socket.on("listening", () => {',
+            '  const address = socket.address();',
+            '  parentPort.postMessage({ type: "ready", port: address.port });',
+            '});',
+            'socket.on("message", (msg) => {',
+            '  parentPort.postMessage({ type: "udp", value: msg.toString() });',
+            '});',
+            'socket.bind(0, "127.0.0.1");'
+        ].join('\n'), { eval: true });
+
+        let port = 0;
+        terminateWhenReady(worker, {
+            onReady(message) {
+                if (message.type !== 'ready')
+                    return false;
+                port = message.port;
+                return true;
+            },
+            afterExit() {
+                const client = dgram.createSocket('udp4');
+                client.send('late', port, '127.0.0.1');
+                client.close();
+            }
+        }, done);
+    });
+
+    it('terminates a worker with a listening TCP server in order', (done) => {
+        const worker = new Worker([
+            "const net = require('net');",
+            "const { parentPort } = require('worker_threads');",
+            'const server = net.createServer(() => {});',
+            'server.on("error", () => {});',
+            'server.listen(0, "127.0.0.1", () => parentPort.postMessage({ type: "ready" }));'
+        ].join('\n'), { eval: true });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
+    it('terminates a worker with a listening HTTP server in order', (done) => {
+        const worker = new Worker([
+            "const http = require('http');",
+            "const { parentPort } = require('worker_threads');",
+            'const server = new http.Server(0, (req) => { req.response.end("ok"); });',
+            'server.start();',
+            'parentPort.postMessage({ type: "ready" });'
+        ].join('\n'), { eval: true });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
+    it('terminates a worker with fs.watch in order', (done) => {
+        const worker = new Worker([
+            "const fs = require('fs');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'fs.watch(workerData.file, () => {',
+            '  parentPort.postMessage({ type: "change" });',
+            '});',
+            'parentPort.postMessage({ type: "ready" });'
+        ].join('\n'), {
+            eval: true,
+            workerData: { file: watchTargetFile }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            afterExit() {
+                fs.appendFileSync(watchTargetFile, 'fs.watch late\n');
+            }
+        }, done);
+    });
+
+    it('terminates a worker with fs.watchFile in order', (done) => {
+        const worker = new Worker([
+            "const fs = require('fs');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'let primed = false;',
+            'fs.watchFile(workerData.file, { interval: 20 }, () => {',
+            '  if (!primed) {',
+            '    primed = true;',
+            '    parentPort.postMessage({ type: "primed" });',
+            '    return;',
+            '  }',
+            '  parentPort.postMessage({ type: "change" });',
+            '});',
+        ].join('\n'), {
+            eval: true,
+            workerData: { file: watchTargetFile }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'primed';
+            },
+            afterExit() {
+                fs.appendFileSync(watchTargetFile, 'fs.watchFile late\n');
+            },
+            quietMs: 260
+        }, done);
+    });
+
+    it('terminates a worker with a long-lived child process IPC channel in order', (done) => {
+        const worker = new Worker([
+            "const child_process = require('child_process');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const child = child_process.fork(workerData.childFile);',
+            'child.on("message", (message) => {',
+            '  if (message === "ready")',
+            '    parentPort.postMessage({ type: "ready" });',
+            '});'
+        ].join('\n'), {
+            eval: true,
+            workerData: {
+                childFile: path.join(process.cwd(), 'test', 'process', 'exec_ipc_hold.js')
+            }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
+    it('terminates a worker with an active child stdout reader in order', (done) => {
+        const worker = new Worker([
+            "const child_process = require('child_process');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const child = child_process.spawn(process.execPath, [workerData.childFile], { stdio: "pipe" });',
+            'child.stdout.on("data", () => {});',
+            'child.on("error", () => {});',
+            'parentPort.postMessage({ type: "ready", pid: child.pid });'
+        ].join('\n'), {
+            eval: true,
+            workerData: {
+                childFile: path.join(process.cwd(), 'test', 'process', 'exec_sleep.js')
+            }
+        });
+
+        let childPid = 0;
+        terminateWhenReady(worker, {
+            onReady(message) {
+                if (message.type !== 'ready')
+                    return false;
+                childPid = message.pid;
+                return true;
+            },
+            quietMs: 260,
+            afterExit() {
+                // R5/D1：worker 终止时其 spawn 的子进程一并终止（SIGKILL）。
+                // 子进程从被杀死到被 uv 回收 pid 有一小段窗口，这里轮询等待。
+                let gone = false;
+                for (let i = 0; i < 50; i++) {
+                    try {
+                        process.kill(childPid, 0);
+                    } catch (err) {
+                        gone = true;
+                        break;
+                    }
+                    coroutine.sleep(20);
+                }
+
+                assert.strictEqual(gone, true, 'child process should be terminated together with the worker');
+            }
+        }, done);
+    });
+
+    it('terminates a worker with an open WebSocket in order', (done) => {
+        const worker = new Worker([
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const socket = new WebSocket(workerData.url, "test");',
+            'socket.onopen = () => {',
+            '  parentPort.postMessage({ type: "ready" });',
+            '};',
+            'socket.onmessage = (event) => {',
+            '  parentPort.postMessage({ type: "ws", value: event.data });',
+            '};',
+            'socket.onerror = (event) => {',
+            '  parentPort.postMessage({ type: "error", value: String(event && event.message || event) });',
+            '};'
+        ].join('\n'), {
+            eval: true,
+            workerData: { url: `ws://127.0.0.1:${wsPort}/ws` }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                if (message.type === 'error')
+                    throw new Error(message.value);
+                return message.type === 'ready';
+            },
+            afterExit() {
+                for (const socket of wsClients) {
+                    try {
+                        socket.send('late');
+                    } catch (error) {
+                    }
+                }
+            }
+        }, done);
+    });
+
+    it('terminates a worker with an active http2 session in order', (done) => {
+        const worker = new Worker([
+            "const http2 = require('http2');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const session = http2.connect(workerData.url, { rejectUnauthorized: false, rejectUnverified: false });',
+            'const stream = session.request({ ":method": "GET", ":path": "/hold" });',
+            'parentPort.postMessage({ type: "ready" });',
+            'stream.on("headers", () => {',
+            '  parentPort.postMessage({ type: "headers" });',
+            '});',
+            'stream.on("close", () => {',
+            '  parentPort.postMessage({ type: "stream-close" });',
+            '});'
+        ].join('\n'), {
+            eval: true,
+            workerData: { url: `https://localhost:${h2Port}` }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
     it('keeps parentPort alive across multiple messages with an async gap', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([

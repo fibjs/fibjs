@@ -624,6 +624,11 @@ void WebSocket::startRecv(Isolate* isolate)
 
         ON_STATE(asyncRead, event)
         {
+            if (m_isolate->is_terminating()) {
+                m_this->endConnect(1001, "");
+                return next(0);
+            }
+
             bool masked;
             m_msg->get_masked(masked);
             if (masked == m_this->m_masked) {
@@ -662,6 +667,11 @@ void WebSocket::startRecv(Isolate* isolate)
 
         virtual int32_t error(int32_t v)
         {
+            if (m_isolate->is_terminating()) {
+                m_this->endConnect(1001, "");
+                return v;
+            }
+
             if (m_msg->m_error)
                 m_this->endConnect(m_msg->m_error, "");
             else
@@ -763,6 +773,22 @@ result_t WebSocket::get_origin(exlib::string& retVal)
 result_t WebSocket::get_readyState(int32_t& retVal)
 {
     retVal = (int32_t)m_readyState;
+    return 0;
+}
+
+result_t WebSocket::stop()
+{
+    m_readyState.xchg(WebSocket_base::C_CLOSED);
+
+    if (m_closeState.xchg(WebSocket_base::C_CLOSED) == WebSocket_base::C_CLOSED)
+        return 0;
+
+    if (m_stream)
+        m_stream->cc_close();
+
+    if (m_ac)
+        m_ac->post(CALL_RETURN_NULL);
+
     return 0;
 }
 

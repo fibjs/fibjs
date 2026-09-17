@@ -184,6 +184,11 @@ public:
     }
 
 public:
+    virtual result_t stop()
+    {
+        return close();
+    }
+
     // FSWatcher_base
     virtual result_t close()
     {

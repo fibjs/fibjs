@@ -724,6 +724,33 @@ result_t ChildProcess::disconnect()
     return 0;
 }
 
+result_t ChildProcess::stop()
+{
+    // isolate 终止时的中断：只负责「让事务走到结束点」，不做 isolate_unref()。
+    // spawn() 时的 isolate_ref() 对应的释放点是 on_uv_close()（进程 uv handle 关闭）。
+
+    // 1) 关闭 IPC channel：唤醒 Ipc 读循环
+    if (m_channel) {
+        obj_ptr<Stream_base> channel = m_channel;
+        m_channel.Release();
+        channel->cc_close(holder());
+    }
+
+    // 2) 结束子进程事务（D1：终止 worker 时一并终止其子进程）
+    //    杀死子进程 → OnExit → uv_close(..., on_uv_close) → 释放 isolate hold
+    if (!uv_is_closing((uv_handle_t*)&m_process)) {
+        if (!m_exited) {
+            m_killed = true;
+            if (uv_process_kill(&m_process, SIGKILL) != 0)
+                // 杀不掉（如权限不足）时退化为仅关闭句柄，保证 hold 一定被释放
+                uv_close((uv_handle_t*)&m_process, on_uv_close);
+        } else
+            uv_close((uv_handle_t*)&m_process, on_uv_close);
+    }
+
+    return 0;
+}
+
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
 {
     if (m_ipc < 0)

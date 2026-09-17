@@ -28,6 +28,11 @@ public:
 
 public:
     // Timer_base
+    virtual result_t stop()
+    {
+        return clear();
+    }
+
     virtual result_t ref(obj_ptr<Timer_base>& retVal)
     {
         return 0;

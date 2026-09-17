@@ -50,6 +50,8 @@ public:
     ~WebSocket();
 
 public:
+    virtual result_t stop();
+
     // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {

@@ -277,6 +277,11 @@ public:
     ~Http2Session() { }
 
 public:
+    virtual result_t stop()
+    {
+        return destroy();
+    }
+
     // Http2Session_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
     virtual result_t get_remoteSettings(v8::Local<v8::Object>& retVal);
@@ -295,6 +300,11 @@ public:
     virtual result_t settings(v8::Local<v8::Object> settings);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t destroy();
+
+private:
+    // 中断：abort 底层传输 socket，使 readLoop 的 pending read 立刻返回。
+    // 只中断，不做 isolate_unref()；释放点：asyncReadLoop 的终态 releaseRef()。
+    void abortTransport();
 
 public:
     // Initialize session (client or server)
