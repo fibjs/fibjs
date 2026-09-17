@@ -92,8 +92,54 @@ declare class Class_Worker extends Class_EventEmitter {
 
     /**
      * @description 终止 worker
+     *
+     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
+     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *
+     *    ```JavaScript
+     *    const { Worker } = require('worker_threads');
+     *
+     *    const worker = new Worker(__dirname + '/fib-worker.js');
+     *    const exitCode = await worker.terminate();
+     *    ```
+     *      @return 返回 worker 的退出码
+     *
      */
-    terminate(): void;
+    terminate(): Promise<number>;
+
+    /**
+     * @description 终止 worker
+     *
+     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
+     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *
+     *    ```JavaScript
+     *    const { Worker } = require('worker_threads');
+     *
+     *    const worker = new Worker(__dirname + '/fib-worker.js');
+     *    const exitCode = await worker.terminate();
+     *    ```
+     *      @return 返回 worker 的退出码
+     *
+     */
+    terminateSync(): number;
+
+    /**
+     * @description 终止 worker
+     *
+     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
+     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *
+     *    ```JavaScript
+     *    const { Worker } = require('worker_threads');
+     *
+     *    const worker = new Worker(__dirname + '/fib-worker.js');
+     *    const exitCode = await worker.terminate();
+     *    ```
+     *      @return 返回 worker 的退出码
+     *
+     */
+    terminateAsync(): Promise<number>;
 
     /**
      * @description 维持 fibjs 进程不退出

@@ -27,7 +27,7 @@ public:
     static result_t _new(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_threadId(int32_t& retVal) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
-    virtual result_t terminate() = 0;
+    virtual result_t terminate(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t ref() = 0;
     virtual result_t unref() = 0;
 
@@ -50,6 +50,9 @@ public:
     static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE1(Worker_base, terminate, int32_t);
 };
 }
 
@@ -58,7 +61,7 @@ inline ClassInfo& Worker_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "postMessage", s_postMessage, false, ClassData::ASYNC_SYNC },
-        { "terminate", s_terminate, false, ClassData::ASYNC_SYNC },
+        { "terminate", s_terminate, false, ClassData::ASYNC_PROMISE },
         { "ref", s_ref, false, ClassData::ASYNC_SYNC },
         { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
@@ -150,14 +153,19 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Worker_base::s_terminate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Worker_base);
-    METHOD_ENTER();
+    int32_t vr;
+
+    ASYNC_METHOD_INSTANCE(Worker_base);
+    ASYNC_METHOD_ENTER("Worker.terminate");
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->terminate();
+    if (!cb.IsEmpty())
+        hr = pInst->acb_terminate(cb, args);
+    else
+        hr = pInst->ac_terminate(vr);
 
-    METHOD_VOID();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void Worker_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)

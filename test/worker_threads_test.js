@@ -313,6 +313,59 @@ describe('worker_threads node baseline', () => {
         });
     });
 
+    it('quiesces active interval callbacks after terminate', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'let tick = 0;',
+            'setInterval(() => {',
+            '  tick++;',
+            '  parentPort.postMessage({ tick });',
+            '}, 20);'
+        ].join('\n'), {
+            eval: true
+        });
+
+        let ticksBeforeTerminate = 0;
+        let ticksAfterTerminate = 0;
+        let terminated = false;
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                assert.ok(message.tick > 0);
+
+                if (!terminated)
+                    ticksBeforeTerminate++;
+                else
+                    ticksAfterTerminate++;
+
+                if (ticksBeforeTerminate === 3 && !terminated) {
+                    terminated = true;
+                    worker.once('exit', (exitCode) => {
+                        try {
+                            assert.strictEqual(exitCode, 1);
+                            setTimeout(() => {
+                                try {
+                                    assert.strictEqual(ticksBeforeTerminate, 3);
+                                    assert.strictEqual(ticksAfterTerminate, 0);
+                                    finish();
+                                } catch (err) {
+                                    finish(err);
+                                }
+                            }, 100);
+                        } catch (err) {
+                            finish(err);
+                        }
+                    });
+                    worker.terminate();
+                }
+            } catch (err) {
+                finish(err);
+            }
+        });
+    });
+
     it('supports parent to worker and worker to parent messaging with direct payloads', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker(replyWorkerFile, {
@@ -457,9 +510,94 @@ describe('worker_threads node baseline', () => {
             finish(err);
         }
     });
-});
 
-describe('worker_threads markAsUncloneable / markAsUntransferable compatibility', () => {
+    it('does not run worker beforeExit or exit handlers during terminate()', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'process.on("beforeExit", () => parentPort.postMessage("beforeExit"));',
+            'process.on("exit", () => parentPort.postMessage("exit"));',
+            'parentPort.postMessage("ready");',
+            'setInterval(() => {}, 1000);'
+        ].join('\n'), {
+            eval: true
+        });
+
+        const seen = [];
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            seen.push(message);
+            if (message !== 'ready')
+                return;
+
+            worker.terminate().then((code) => {
+                setTimeout(() => {
+                    try {
+                        assert.strictEqual(code, 1);
+                        assert.deepStrictEqual(seen, ['ready']);
+                        finish();
+                    } catch (err) {
+                        finish(err);
+                    }
+                }, 120);
+            }, finish);
+        });
+    });
+
+    it('does not schedule new fibers from timers after terminate', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const coroutine = require('coroutine');",
+            "const { parentPort } = require('worker_threads');",
+            'let tick = 0;',
+            'setInterval(() => {',
+            '  tick++;',
+            '  coroutine.start(() => { parentPort.postMessage({ tick }); });',
+            '}, 20);'
+        ].join('\n'), {
+            eval: true
+        });
+
+        let ticksBeforeTerminate = 0;
+        let ticksAfterTerminate = 0;
+        let terminated = false;
+
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            try {
+                assert.ok(message.tick > 0);
+
+                if (!terminated)
+                    ticksBeforeTerminate++;
+                else
+                    ticksAfterTerminate++;
+
+                if (ticksBeforeTerminate === 3 && !terminated) {
+                    terminated = true;
+                    worker.once('exit', (exitCode) => {
+                        try {
+                            assert.strictEqual(exitCode, 1);
+                            setTimeout(() => {
+                                try {
+                                    assert.strictEqual(ticksBeforeTerminate, 3);
+                                    assert.strictEqual(ticksAfterTerminate, 0);
+                                    finish();
+                                } catch (err) {
+                                    finish(err);
+                                }
+                            }, 100);
+                        } catch (err) {
+                            finish(err);
+                        }
+                    });
+                    worker.terminate();
+                }
+            } catch (err) {
+                finish(err);
+            }
+        });
+    });
     // These APIs are required by packages such as undici 8.x which import
     // `markAsUncloneable` from `node:worker_threads` and call it in Web API
     // constructors (CacheStorage, Headers, Response, ...). fibjs provides

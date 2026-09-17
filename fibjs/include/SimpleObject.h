@@ -347,6 +347,12 @@ public:
         add("code", code);
     }
 
+    // 与 Node 对齐：error 载荷的 stack 应保留错误发生处的调用栈（而非父侧生成位置的栈）
+    void setStack(exlib::string stack)
+    {
+        add("stack", stack);
+    }
+
     void setCause(Variant cause)
     {
         add("cause", cause);
