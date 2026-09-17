@@ -17,6 +17,7 @@ run("./headers_test.js");
 run("./structuredClone_test.js");
 run("./message_channel_test.js");
 run("./webstream_test.js");
+run("./stream_test.js");
 
 run("./perf_test.js");
 run("./console_test.js");

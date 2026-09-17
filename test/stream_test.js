@@ -15,9 +15,12 @@ describe('stream', () => {
     });
 
     it("file data event", () => {
-        var testFile = fs.openFile(path.join(__dirname, 'fs_test.js.data_event' + vmid), 'w+');
+        var fn = path.join(__dirname, 'fs_test.js.data_event' + vmid);
+        var testFile = fs.openFile(fn, 'w+');
         var receivedData = [];
         var dataEventCount = 0;
+        var events = [];
+        var done = new coroutine.Event();
 
         // Write data to trigger data events
         testFile.write('Hello, ');
@@ -25,26 +28,31 @@ describe('stream', () => {
         testFile.write(' Test file data event.');
         testFile.rewind();
 
-        // Register data event handler
+        // Register event handlers. Reading to EOF in flowing mode triggers
+        // autoDestroy: the stream emits end, then close, and closes the fd.
         testFile.on('data', (data) => {
             receivedData.push(data.toString());
             dataEventCount++;
         });
+        testFile.on('close', () => {
+            events.push('close');
+            done.set();
+        });
 
-        // Let the fiber yield to process data events
-        coroutine.sleep(10);
+        done.wait();
 
         // Verify that data events were triggered
         assert.equal(dataEventCount, 1);
         assert.deepEqual(receivedData, ['Hello, World! Test file data event.']);
+        assert.deepEqual(events, ['close']);
 
-        // Verify the complete content
-        testFile.rewind();
-        var fullContent = testFile.read().toString();
-        assert.equal(fullContent, 'Hello, World! Test file data event.');
+        // The fd has been closed by autoDestroy, the handle is no longer usable
+        assert.throws(() => testFile.rewind(), /file is closed/);
 
-        testFile.close();
-        fs.unlink(path.join(__dirname, 'fs_test.js.data_event' + vmid));
+        // Reopen the file to verify the complete content
+        assert.equal(fs.readFile(fn).toString(), 'Hello, World! Test file data event.');
+
+        fs.unlink(fn);
     });
 
     it("stream setEncoding and read", () => {
