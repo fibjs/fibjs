@@ -17,6 +17,11 @@ class Buffer_base;
 class MessagePort;
 class WorkerExitTimer;
 
+// worker isolate 内部（process.exit()）的自我退出入口：
+// 只结束该 worker 线程（exit 事件带该 code），不退出整个进程（Node 语义）。
+// 单独声明为自由函数，使 process.cpp 不必依赖 Worker 的内部成员布局。
+void worker_exit_from_inside(Isolate* isolate, int32_t code);
+
 class Worker : public Worker_base {
     friend class WorkerExitTimer;
 

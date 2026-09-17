@@ -17,6 +17,7 @@
 #include "BufferedStream.h"
 #include "ChildProcess.h"
 #include "SandBox.h"
+#include "Worker.h"
 #include <vector>
 #include <signal.h>
 #include "options.h"
@@ -298,12 +299,27 @@ result_t process_base::exit()
     Isolate* isolate = Isolate::current();
     int32_t code = isolate->m_exitCode;
 
-    JSTrigger t(isolate->m_isolate, class_info().getModule(isolate));
-    v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, code);
-    bool r;
+    // Node 语义：worker 内的 process.exit() 只结束该 worker 线程，不退出整个进程。
+    // 交给 Worker 的自我退出路径：置终止态 → 关 parentPort → 停 holder → 中断本 isolate 的 JS，
+    // 之后 isolate 自然 idle → onIsolateIdle(code) → 父侧收到 exit 事件（code 为传入值）。
+    if (isolate->m_parent_worker) {
+        worker_exit_from_inside(isolate, code);
+
+        return 0;
+    }
 
     isolate->Ref();
-    t._emit("exit", &v, 1, r);
+
+    if (!isolate->is_terminating() && !isolate->m_isolate->IsExecutionTerminating()) {
+        v8::Local<v8::Object> processModule = class_info().getModule(isolate);
+        if (!processModule.IsEmpty()) {
+            JSTrigger t(isolate->m_isolate, processModule);
+            v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, code);
+            bool r;
+
+            t._emit("exit", &v, 1, r);
+        }
+    }
 
     flushLog();
 

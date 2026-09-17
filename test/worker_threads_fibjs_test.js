@@ -930,6 +930,33 @@ describe('worker_threads fibjs target behavior', () => {
         }, finish);
     });
 
+    it('keeps the process alive when a worker calls process.exit()', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.postMessage("before-exit");',
+            'process.exit(3);',
+            'parentPort.postMessage("after-exit");'
+        ].join('\n'), { eval: true });
+
+        const messages = [];
+        worker.on('message', (message) => messages.push(message));
+        worker.once('error', finish);
+        worker.once('exit', (exitCode) => {
+            setTimeout(() => {
+                try {
+                    // Node 语义：worker 内 process.exit(N) 只结束本线程（父进程继续），exit code = N
+                    assert.strictEqual(exitCode, 3);
+                    // process.exit() 之后的语句不再执行
+                    assert.deepStrictEqual(messages, ['before-exit']);
+                    finish();
+                } catch (err) {
+                    finish(err);
+                }
+            }, 100);
+        });
+    });
+
     it('delivers messages sent before terminate and none after exit', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
