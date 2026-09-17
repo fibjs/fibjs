@@ -82,15 +82,29 @@ void JSFiber::FiberProcRunJavascript(void* p)
 
 void JSFiber::start(bool urgent)
 {
+    Isolate* isolate = holder();
+
+    // terminate 后严格封死：不再创建/调度新的用户态 JSFiber。
+    // 此时 JS 已不会被正常调度，安静放弃本次调度（释放 New() 捕获的 V8 引用，不抛异常、不打日志），
+    // 避免 isolate 收尾期间再产生新的 JS 执行上下文、holder 登记与 isolate ref。
+    // 注意：这里不封 Isolate::sync()/post_task()，那是收尾清理（释放 hold、关闭句柄）赖以执行的通道。
+    // 这是结构性兜底：JS 侧的 fiber 创建入口（coroutine.start / new Fiber / process.nextTick /
+    // EventEmitter 多监听器分派）已有各自的 is_terminating() 点状检查，因此本门闩没有独立的
+    // JS 可观测用例（停用它后现有 terminate 用例仍全绿，已实测），仅与点状检查叠加生效。
+    if (isolate->is_terminating()) {
+        clear();
+        return;
+    }
+
     Ref();
     auto func = [this]() -> int {
         return js_invoke();
     };
 
     if (urgent)
-        holder()->sync_urgent(func);
+        isolate->sync_urgent(func);
     else
-        holder()->sync(func);
+        isolate->sync(func);
 }
 
 result_t JSFiber::join()
@@ -185,6 +199,9 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
     auto pErrors = std::make_shared<std::vector<std::pair<v8::Global<v8::Value>, v8::Global<v8::Value>>>>(std::move(errors));
 
     isolate->sync([isolate, pErrors]() -> int {
+        if (isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating())
+            return 0;
+
         JSFiber::EnterJsScope s;
         JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
 
@@ -237,7 +254,15 @@ result_t JSFiber::js_invoke()
 
     clear();
 
-    retVal = func->Call(func->GetCreationContextChecked(), pThis, (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
+    if (isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating() || func.IsEmpty()) {
+        Unref();
+        return 0;
+    }
+
+    if (pThis.IsEmpty())
+        pThis = v8::Object::New(isolate->m_isolate);
+
+    retVal = func->Call(isolate->context(), pThis, (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);
 

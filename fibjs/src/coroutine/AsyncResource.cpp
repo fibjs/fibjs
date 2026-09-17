@@ -12,6 +12,11 @@ namespace fibjs {
 
 static std::atomic<int64_t> s_nextAsyncId { 1 };
 
+static bool async_resource_should_stop(Isolate* isolate)
+{
+    return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
+}
+
 result_t AsyncResource_base::_new(exlib::string type, v8::Local<v8::Value> triggerAsyncId,
     obj_ptr<AsyncResource_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -29,8 +34,8 @@ result_t AsyncResource_base::_new(exlib::string type, v8::Local<v8::Value> trigg
             v8::Local<v8::Object> opts = triggerAsyncId.As<v8::Object>();
             v8::MaybeLocal<v8::Value> maybeTrigger = opts->Get(context,
                 isolate->NewString("triggerAsyncId"));
-            if (!maybeTrigger.IsEmpty()) {
-                v8::Local<v8::Value> tv = maybeTrigger.ToLocalChecked();
+            v8::Local<v8::Value> tv;
+            if (maybeTrigger.ToLocal(&tv)) {
                 if (tv->IsNumber())
                     triggerAsync = tv.As<v8::Number>()->Value();
             }
@@ -64,6 +69,9 @@ result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8
     OptArgs args, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
+    if (async_resource_should_stop(isolate))
+        return 0;
+
     v8::Local<v8::Context> context = isolate->context();
 
     // Save the current context
@@ -87,7 +95,7 @@ result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8
 
     // Determine thisArg: use global if undefined
     v8::Local<v8::Value> receiver = thisArg;
-    if (receiver->IsUndefined())
+    if (receiver.IsEmpty() || receiver->IsUndefined())
         receiver = context->Global();
 
     // Call the function
@@ -103,7 +111,8 @@ result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8
     if (result.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = result.ToLocalChecked();
+    if (!result.ToLocal(&retVal))
+        return CALL_E_JAVASCRIPT;
     return 0;
 }
 
@@ -122,22 +131,35 @@ result_t AsyncResource::bind(v8::Local<v8::Function> fn, v8::Local<v8::Value> th
     // Create data array: [asyncContext (Map or Undefined), fn, thisArg, wrap]
     v8::Local<v8::Array> data = v8::Array::New(isolate->m_isolate, 4);
     if (!m_asyncContext.IsEmpty())
-        data->Set(context, 0, m_asyncContext.Get(isolate->m_isolate)).FromJust();
+        data->Set(context, 0, m_asyncContext.Get(isolate->m_isolate)).FromMaybe(false);
     else
-        data->Set(context, 0, v8::Undefined(isolate->m_isolate)).FromJust();
-    data->Set(context, 1, fn).FromJust();
-    data->Set(context, 2, thisArg).FromJust();
-    data->Set(context, 3, wrap()).FromJust();
+        data->Set(context, 0, v8::Undefined(isolate->m_isolate)).FromMaybe(false);
+    data->Set(context, 1, fn).FromMaybe(false);
+    data->Set(context, 2, thisArg).FromMaybe(false);
+    data->Set(context, 3, wrap()).FromMaybe(false);
 
     v8::MaybeLocal<v8::Function> maybeBound = v8::Function::New(context,
         [](const v8::FunctionCallbackInfo<v8::Value>& info) {
             Isolate* isolate = Isolate::current(info);
+            if (async_resource_should_stop(isolate))
+                return;
+
             v8::Local<v8::Context> context = isolate->context();
 
-            v8::Local<v8::Array> data = info.Data().As<v8::Array>();
-            v8::Local<v8::Value> asyncCtxVal = data->Get(context, 0).ToLocalChecked();
-            v8::Local<v8::Function> fn = data->Get(context, 1).ToLocalChecked().As<v8::Function>();
-            v8::Local<v8::Value> thisArg = data->Get(context, 2).ToLocalChecked();
+            v8::Local<v8::Value> rawData = info.Data();
+            if (rawData.IsEmpty() || !rawData->IsArray())
+                return;
+
+            v8::Local<v8::Array> data = rawData.As<v8::Array>();
+            v8::Local<v8::Value> asyncCtxVal = data->Get(context, 0).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> fnVal = data->Get(context, 1).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> thisArg = data->Get(context, 2).FromMaybe(v8::Local<v8::Value>());
+            if (fnVal.IsEmpty() || !fnVal->IsFunction())
+                return;
+
+            v8::Local<v8::Function> fn = fnVal.As<v8::Function>();
+            if (fn.IsEmpty())
+                return;
 
             // Save current context
             v8::Global<v8::Value> priorCtxGlobal;
@@ -158,7 +180,7 @@ result_t AsyncResource::bind(v8::Local<v8::Function> fn, v8::Local<v8::Value> th
 
             // Determine receiver
             v8::Local<v8::Value> receiver = thisArg;
-            if (receiver->IsUndefined())
+            if (receiver.IsEmpty() || receiver->IsUndefined())
                 receiver = info.This();
 
             v8::MaybeLocal<v8::Value> result = fn->Call(context, receiver,
@@ -170,18 +192,21 @@ result_t AsyncResource::bind(v8::Local<v8::Function> fn, v8::Local<v8::Value> th
             else
                 setAsyncContext(isolate, v8::Local<v8::Map>());
 
-            if (!result.IsEmpty())
-                info.GetReturnValue().Set(result.ToLocalChecked());
+            v8::Local<v8::Value> resolved;
+            if (result.ToLocal(&resolved))
+                info.GetReturnValue().Set(resolved);
         },
         data);
 
     if (maybeBound.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    v8::Local<v8::Function> boundFn = maybeBound.ToLocalChecked();
+    v8::Local<v8::Function> boundFn;
+    if (!maybeBound.ToLocal(&boundFn))
+        return CALL_E_JAVASCRIPT;
 
     // Set asyncResource property on the bound function
-    boundFn->Set(context, isolate->NewString("asyncResource"), wrap()).FromJust();
+    boundFn->Set(context, isolate->NewString("asyncResource"), wrap()).FromMaybe(false);
 
     retVal = boundFn;
     return 0;

@@ -138,7 +138,12 @@ public:
 
     inline bool can_call_into_js() const
     {
-        return true;
+        return !m_terminating;
+    }
+
+    inline bool is_terminating() const
+    {
+        return m_terminating;
     }
 
 public:

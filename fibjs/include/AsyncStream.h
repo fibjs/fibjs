@@ -114,6 +114,14 @@ public:
 
     ON_STATE(AsyncStreamReader, event)
     {
+        if (m_isolate->is_terminating()) {
+            m_base->m_readEnded = true;
+            m_base->m_ended = true;
+            if (!m_base->m_destroyed)
+                m_base->m_destroyed = true;
+            return m_this->close(next(auto_destroy_done));
+        }
+
         if (n == CALL_RETURN_NULL) {
             m_base->m_readEnded = true;
             m_base->m_ended = true;
@@ -200,6 +208,16 @@ public:
 
     virtual int32_t error(int32_t v)
     {
+        if (m_isolate->is_terminating()) {
+            m_base->m_readEnded = true;
+            m_base->m_ended = true;
+            if (!m_base->m_destroyed) {
+                m_base->m_destroyed = true;
+                m_base->emitClose(m_this);
+            }
+            return v;
+        }
+
         // Treat socket close errors as normal termination
         if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
             || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {

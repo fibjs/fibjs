@@ -154,6 +154,12 @@ public:
     {
         Isolate* isolate = holder();
 
+        if (isolate->is_terminating()) {
+            clear();
+            callback();
+            return;
+        }
+
         if (is_stopped())
             m_hr = false;
 
@@ -190,6 +196,11 @@ public:
     virtual void on_js_timer()
     {
         Isolate* isolate = holder();
+        if (isolate->is_terminating()) {
+            clear();
+            return;
+        }
+
         v8::Local<v8::Function> callback = m_callback.Get(isolate->m_isolate);
         std::vector<v8::Local<v8::Value>> argv;
 
@@ -210,7 +221,15 @@ public:
         for (int i = 0; i < nArgCount; i++)
             argv[i] = m_argv[i].Get(isolate->m_isolate);
 
-        callback->Call(callback->GetCreationContextChecked(), wrap(), (int32_t)argv.size(), argv.data()).IsEmpty();
+        if (!callback.IsEmpty()) {
+            // NOTE: prefer the callback's own creation context (it may belong to
+            // a sandbox/vm context), falling back to this isolate's context.
+            v8::Local<v8::Context> callback_context;
+            if (!callback->GetCreationContext().ToLocal(&callback_context))
+                callback_context = isolate->context();
+
+            callback->Call(callback_context, wrap(), (int32_t)argv.size(), argv.data()).IsEmpty();
+        }
 
         // Restore previous async context
         if (fb) {

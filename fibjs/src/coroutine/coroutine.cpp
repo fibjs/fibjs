@@ -34,6 +34,9 @@ private:
         v8::Local<v8::Context> context = m_isolate->context();
 
         while (m_pos < m_count) {
+            if (m_isolate->is_terminating() || m_isolate->m_isolate->IsExecutionTerminating())
+                break;
+
             v8::EscapableHandleScope handle_scope(m_isolate->m_isolate);
             JSFiber::EnterJsScope s;
             v8::Local<v8::Value> v;

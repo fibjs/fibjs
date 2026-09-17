@@ -34,6 +34,11 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
 
+    if (is_terminating() || m_isolate->IsExecutionTerminating()) {
+        queue->size_ = 0;
+        return;
+    }
+
     if ((m_module_evaluating > 0 || m_eval_evaluating > 0)
         && allow_same_turn_reentry
         && m_allow_module_evaluation_microtasks == 0)
@@ -49,6 +54,11 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
             sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), this, _isolate]() -> int {
                 JSFiber::EnterJsScope s;
+
+                if (is_terminating() || m_isolate->IsExecutionTerminating()) {
+                    api_internal::DisposeGlobal(addr);
+                    return 0;
+                }
 
                 std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);
                 queue->EnqueueMicrotask(i::Cast<i::Microtask>(i::Tagged<i::Object>(*addr)));
@@ -68,6 +78,11 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
         if (inline_first_task) {
             // Run the first microtask directly in the current context
             if (queue->size_ > 0) {
+                if (is_terminating() || m_isolate->IsExecutionTerminating()) {
+                    queue->size_ = 0;
+                    return;
+                }
+
                 queue->size_ = 1;
                 m_microtaskDepth++;
                 queue->RunMicrotasks(_isolate);

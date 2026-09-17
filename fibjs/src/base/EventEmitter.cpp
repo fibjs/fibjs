@@ -170,7 +170,7 @@ result_t object_base::_emit(exlib::string ev, Variant arg)
 result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
 {
     Isolate* isolate = get_holder();
-    if (isolate)
+    if (isolate && !isolate->is_terminating())
         (new JSTrigger::AsyncEmitter(isolate, this))->emit(ev, args, argCount);
 
     return 0;
@@ -668,6 +668,10 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     obj_ptr<object_base> _obj = object_base::getInstance(o);
     if (_obj) {
         _obj->onEventEmit(ev);
+
+        Isolate* holder = _obj->get_holder();
+        if (holder && holder->is_terminating())
+            return 0;
     }
 
     // Use NewString to convert to v8::Value so GetHiddenList (Value overload) works
@@ -676,6 +680,10 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
         return hr;
 
     if (ev == "error" && ff.IsEmpty()) {
+        Isolate* current_isolate = Isolate::current(isolate);
+        if (current_isolate && current_isolate->is_terminating())
+            return 0;
+
         if (argCount > 0 && !args[0].IsEmpty() && args[0]->IsNativeError()) {
             isolate->ThrowException(args[0]);
         } else {
@@ -722,6 +730,15 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 {
     std::vector<v8::Local<v8::Value>> datas;
     args.GetData(datas);
+
+    obj_ptr<object_base> _obj = object_base::getInstance(o);
+    if (_obj) {
+        Isolate* holder = _obj->get_holder();
+        if (holder && holder->is_terminating()) {
+            retVal = false;
+            return 0;
+        }
+    }
 
     if (ev->IsSymbol()) {
         // Symbol events: fire listeners directly, no "error" special handling
@@ -1109,24 +1126,178 @@ void JSTrigger::s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 // ---- events.once() helpers ----
 
+static bool helper_should_stop(Isolate* isolate)
+{
+    return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
+}
+
+static bool helper_get_data(const v8::FunctionCallbackInfo<v8::Value>& args,
+    Isolate*& isolate, v8::Local<v8::Object>& data, v8::Local<v8::Context>& context)
+{
+    isolate = Isolate::current(args);
+    if (helper_should_stop(isolate))
+        return false;
+
+    v8::Local<v8::Value> raw = args.Data();
+    if (raw.IsEmpty() || !raw->IsObject())
+        return false;
+
+    data = raw.As<v8::Object>();
+    context = isolate->context();
+    return true;
+}
+
+static v8::Local<v8::Value> helper_get_prop(Isolate* isolate, v8::Local<v8::Object> data,
+    v8::Local<v8::Context> context, const char* key)
+{
+    if (helper_should_stop(isolate))
+        return v8::Local<v8::Value>();
+
+    return JSValue(data->Get(context, isolate->NewString(key)));
+}
+
+static bool helper_get_resolver(Isolate* isolate, v8::Local<v8::Object> data,
+    v8::Local<v8::Context> context, v8::Local<v8::Promise::Resolver>& resolver)
+{
+    v8::Local<v8::Value> value = helper_get_prop(isolate, data, context, "resolver");
+    if (value.IsEmpty())
+        return false;
+
+    resolver = value.As<v8::Promise::Resolver>();
+    return !resolver.IsEmpty();
+}
+
+static bool helper_new_resolver(Isolate* isolate, v8::Local<v8::Context> context,
+    v8::Local<v8::Promise::Resolver>& resolver)
+{
+    if (helper_should_stop(isolate))
+        return false;
+
+    resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+    return !resolver.IsEmpty();
+}
+
+static bool helper_get_array(Isolate* isolate, v8::Local<v8::Object> data,
+    v8::Local<v8::Context> context, const char* key, v8::Local<v8::Array>& array)
+{
+    v8::Local<v8::Value> value = helper_get_prop(isolate, data, context, key);
+    if (value.IsEmpty() || !value->IsArray())
+        return false;
+
+    array = value.As<v8::Array>();
+    return true;
+}
+
+static bool helper_get_function(Isolate* isolate, v8::Local<v8::Object> data,
+    v8::Local<v8::Context> context, const char* key, v8::Local<v8::Function>& fn)
+{
+    v8::Local<v8::Value> value = helper_get_prop(isolate, data, context, key);
+    if (value.IsEmpty() || !value->IsFunction())
+        return false;
+
+    fn = value.As<v8::Function>();
+    return true;
+}
+
+static bool helper_get_object(Isolate* isolate, v8::Local<v8::Object> data,
+    v8::Local<v8::Context> context, const char* key, v8::Local<v8::Object>& object)
+{
+    v8::Local<v8::Value> value = helper_get_prop(isolate, data, context, key);
+    if (value.IsEmpty() || !value->IsObject())
+        return false;
+
+    object = value.As<v8::Object>();
+    return true;
+}
+
+static void helper_resolve_pending_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    if (helper_should_stop(isolate))
+        return;
+
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Promise::Resolver> resolver = data.As<v8::Promise::Resolver>();
+    if (resolver.IsEmpty())
+        return;
+
+    resolver->Resolve(isolate->context(), args[0]).IsJust();
+}
+
+static void helper_reject_pending_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    if (helper_should_stop(isolate))
+        return;
+
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Promise::Resolver> resolver = data.As<v8::Promise::Resolver>();
+    if (resolver.IsEmpty())
+        return;
+
+    resolver->Reject(isolate->context(), args[0]).IsJust();
+}
+
+static void helper_reject_dead_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate;
+    v8::Local<v8::Object> data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, isolate, data, context))
+        return;
+
+    v8::Local<v8::Value> err = helper_get_prop(isolate, data, context, "error");
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(isolate, context, resolver))
+        return;
+
+    resolver->Reject(context, err.IsEmpty() ? v8::Undefined(isolate->m_isolate).As<v8::Value>() : err).IsJust();
+    args.GetReturnValue().Set(resolver->GetPromise());
+}
+
+static void helper_return_dead_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    if (helper_should_stop(isolate))
+        return;
+
+    v8::Local<v8::Object> done = v8::Object::New(isolate->m_isolate);
+    done->Set(isolate->context(), isolate->NewString("value"), v8::Undefined(isolate->m_isolate)).IsJust();
+    done->Set(isolate->context(), isolate->NewString("done"), v8::True(isolate->m_isolate)).IsJust();
+
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(isolate, isolate->context(), resolver))
+        return;
+
+    resolver->Resolve(isolate->context(), done).IsJust();
+    args.GetReturnValue().Set(resolver->GetPromise());
+}
+
 void JSTrigger::_once_event_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Promise::Resolver> resolver = JSValue(_data->Get(context,
-                                                            _isolate->NewString("resolver")))
-                                                    .As<v8::Promise::Resolver>();
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_get_resolver(_isolate, _data, context, resolver))
+        return;
 
     // Remove error listener if present
-    v8::Local<v8::Value> errLis = JSValue(_data->Get(context, _isolate->NewString("errorListener")));
-    if (!errLis.IsEmpty() && errLis->IsFunction()) {
-        v8::Local<v8::Value> emitter = JSValue(_data->Get(context, _isolate->NewString("emitter")));
-        if (!emitter.IsEmpty() && emitter->IsObject()) {
-            v8::Local<v8::Object> retVal;
-            JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off(_isolate->NewString("error"), errLis.As<v8::Function>(), retVal);
-        }
+    v8::Local<v8::Function> errLis;
+    v8::Local<v8::Object> emitter;
+    if (helper_get_function(_isolate, _data, context, "errorListener", errLis)
+        && helper_get_object(_isolate, _data, context, "emitter", emitter)) {
+        v8::Local<v8::Object> retVal;
+        JSTrigger(_isolate->m_isolate, emitter).off(_isolate->NewString("error"), errLis, retVal);
     }
 
     // Resolve with args array
@@ -1139,22 +1310,25 @@ void JSTrigger::_once_event_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_once_error_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Promise::Resolver> resolver = JSValue(_data->Get(context,
-                                                            _isolate->NewString("resolver")))
-                                                    .As<v8::Promise::Resolver>();
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_get_resolver(_isolate, _data, context, resolver))
+        return;
 
     // Remove event listener
-    v8::Local<v8::Value> evLis = JSValue(_data->Get(context, _isolate->NewString("eventListener")));
-    v8::Local<v8::Value> emitter = JSValue(_data->Get(context, _isolate->NewString("emitter")));
-    v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
+    v8::Local<v8::Function> evLis;
+    v8::Local<v8::Object> emitter;
+    v8::Local<v8::Value> evName = helper_get_prop(_isolate, _data, context, "event");
 
-    if (!evLis.IsEmpty() && evLis->IsFunction() && !emitter.IsEmpty() && emitter->IsObject()) {
+    if (!evName.IsEmpty() && helper_get_function(_isolate, _data, context, "eventListener", evLis)
+        && helper_get_object(_isolate, _data, context, "emitter", emitter)) {
         v8::Local<v8::Object> retVal;
-        JSTrigger(_isolate->m_isolate, emitter.As<v8::Object>()).off(evName, evLis.As<v8::Function>(), retVal);
+        JSTrigger(_isolate->m_isolate, emitter).off(evName, evLis, retVal);
     }
 
     v8::Local<v8::Value> err = args.Length() > 0
@@ -1174,27 +1348,30 @@ v8::Local<v8::Value> JSTrigger::_make_abort_error(Isolate* _isolate)
 
 void JSTrigger::_once_abort_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Promise::Resolver> resolver = JSValue(_data->Get(context,
-                                                            _isolate->NewString("resolver")))
-                                                    .As<v8::Promise::Resolver>();
-    v8::Local<v8::Value> emitter = JSValue(_data->Get(context, _isolate->NewString("emitter")));
-    v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_get_resolver(_isolate, _data, context, resolver))
+        return;
 
-    if (!emitter.IsEmpty() && emitter->IsObject()) {
-        JSTrigger t(_isolate->m_isolate, emitter.As<v8::Object>());
+    v8::Local<v8::Object> emitter;
+    v8::Local<v8::Value> evName = helper_get_prop(_isolate, _data, context, "event");
+
+    if (!evName.IsEmpty() && helper_get_object(_isolate, _data, context, "emitter", emitter)) {
+        JSTrigger t(_isolate->m_isolate, emitter);
         v8::Local<v8::Object> retVal;
 
-        v8::Local<v8::Value> evLis = JSValue(_data->Get(context, _isolate->NewString("eventListener")));
-        if (!evLis.IsEmpty() && evLis->IsFunction())
-            t.off(evName, evLis.As<v8::Function>(), retVal);
+        v8::Local<v8::Function> evLis;
+        if (helper_get_function(_isolate, _data, context, "eventListener", evLis))
+            t.off(evName, evLis, retVal);
 
-        v8::Local<v8::Value> errLis = JSValue(_data->Get(context, _isolate->NewString("errorListener")));
-        if (!errLis.IsEmpty() && errLis->IsFunction())
-            t.off(_isolate->NewString("error"), errLis.As<v8::Function>(), retVal);
+        v8::Local<v8::Function> errLis;
+        if (helper_get_function(_isolate, _data, context, "errorListener", errLis))
+            t.off(_isolate->NewString("error"), errLis, retVal);
     }
 
     resolver->Reject(context, _make_abort_error(_isolate)).IsJust();
@@ -1206,16 +1383,17 @@ void JSTrigger::_once_abort_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_on_event_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
-    v8::Local<v8::Array> unconsumedEvents = JSValue(_data->Get(context,
-                                                        _isolate->NewString("unconsumedEvents")))
-                                                .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    v8::Local<v8::Array> unconsumedEvents;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises)
+        || !helper_get_array(_isolate, _data, context, "unconsumedEvents", unconsumedEvents))
+        return;
 
     // Check if kFirstEventParam is set - yield first arg directly instead of args array
     v8::Local<v8::Value> firstEventParam = JSValue(_data->Get(context, _isolate->NewString("firstEventParam")));
@@ -1260,33 +1438,36 @@ void JSTrigger::_on_event_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_on_cleanup(Isolate* _isolate, v8::Local<v8::Object> _data)
 {
+    if (helper_should_stop(_isolate) || _data.IsEmpty())
+        return;
+
     v8::Local<v8::Context> context = _isolate->context();
-    v8::Local<v8::Value> emitter = JSValue(_data->Get(context, _isolate->NewString("emitter")));
-    if (emitter.IsEmpty() || !emitter->IsObject())
+    v8::Local<v8::Object> emitter;
+    if (!helper_get_object(_isolate, _data, context, "emitter", emitter))
         return;
 
     v8::Local<v8::Object> retVal;
-    JSTrigger t(_isolate->m_isolate, emitter.As<v8::Object>());
+    JSTrigger t(_isolate->m_isolate, emitter);
 
-    v8::Local<v8::Value> evHandler = JSValue(_data->Get(context, _isolate->NewString("eventHandler")));
+    v8::Local<v8::Function> evHandler;
     // Use evName directly as v8::Value to support Symbol event names
-    v8::Local<v8::Value> evName = JSValue(_data->Get(context, _isolate->NewString("event")));
+    v8::Local<v8::Value> evName = helper_get_prop(_isolate, _data, context, "event");
 
-    if (!evHandler.IsEmpty() && evHandler->IsFunction())
-        t.off(evName, evHandler.As<v8::Function>(), retVal);
+    if (!evName.IsEmpty() && helper_get_function(_isolate, _data, context, "eventHandler", evHandler))
+        t.off(evName, evHandler, retVal);
 
-    v8::Local<v8::Value> errHandler = JSValue(_data->Get(context, _isolate->NewString("errorHandler")));
-    if (!errHandler.IsEmpty() && errHandler->IsFunction())
-        t.off(_isolate->NewString("error"), errHandler.As<v8::Function>(), retVal);
+    v8::Local<v8::Function> errHandler;
+    if (helper_get_function(_isolate, _data, context, "errorHandler", errHandler))
+        t.off(_isolate->NewString("error"), errHandler, retVal);
 
-    v8::Local<v8::Value> closeEvents = JSValue(_data->Get(context, _isolate->NewString("closeEvents")));
-    if (!closeEvents.IsEmpty() && closeEvents->IsArray()) {
-        v8::Local<v8::Array> closeArr = closeEvents.As<v8::Array>();
-        v8::Local<v8::Value> closeHandler = JSValue(_data->Get(context, _isolate->NewString("closeHandler")));
-        if (!closeHandler.IsEmpty() && closeHandler->IsFunction()) {
+    v8::Local<v8::Array> closeArr;
+    if (helper_get_array(_isolate, _data, context, "closeEvents", closeArr)) {
+        v8::Local<v8::Function> closeHandler;
+        if (helper_get_function(_isolate, _data, context, "closeHandler", closeHandler)) {
             for (uint32_t i = 0; i < closeArr->Length(); i++) {
                 v8::Local<v8::Value> cev = JSValue(closeArr->Get(context, i));
-                t.off(cev, closeHandler.As<v8::Function>(), retVal);
+                if (!cev.IsEmpty())
+                    t.off(cev, closeHandler, retVal);
             }
         }
     }
@@ -1294,9 +1475,11 @@ void JSTrigger::_on_cleanup(Isolate* _isolate, v8::Local<v8::Object> _data)
 
 void JSTrigger::_on_error_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
     v8::Local<v8::Value> err = args.Length() > 0
         ? args[0]
@@ -1304,9 +1487,9 @@ void JSTrigger::_on_error_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     _data->Set(context, _isolate->NewString("error"), err).IsJust();
 
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
     uint32_t pLen = unconsumedPromises->Length();
     if (pLen > 0) {
         v8::Local<v8::Object> p = JSValue(unconsumedPromises->Get(context, 0)).As<v8::Object>();
@@ -1327,15 +1510,17 @@ void JSTrigger::_on_error_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_on_close_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
     _data->Set(context, _isolate->NewString("finished"), v8::True(_isolate->m_isolate)).IsJust();
 
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
     uint32_t pLen = unconsumedPromises->Length();
     if (pLen > 0) {
         v8::Local<v8::Object> p = JSValue(unconsumedPromises->Get(context, 0)).As<v8::Object>();
@@ -1362,16 +1547,18 @@ void JSTrigger::_on_close_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_disposeAbortListener(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Value> sig = JSValue(_data->Get(context, _isolate->NewString("signal")));
-    v8::Local<v8::Value> lis = JSValue(_data->Get(context, _isolate->NewString("listener")));
-
-    if (!sig.IsEmpty() && sig->IsObject() && !lis.IsEmpty() && lis->IsFunction()) {
+    v8::Local<v8::Object> sig;
+    v8::Local<v8::Function> lis;
+    if (helper_get_object(_isolate, _data, context, "signal", sig)
+        && helper_get_function(_isolate, _data, context, "listener", lis)) {
         v8::Local<v8::Object> retVal;
-        JSTrigger(args.GetIsolate(), sig.As<v8::Object>()).off(_isolate->NewString("abort"), lis.As<v8::Function>(), retVal);
+        JSTrigger(args.GetIsolate(), sig).off(_isolate->NewString("abort"), lis, retVal);
     }
 }
 
@@ -1419,8 +1606,8 @@ void JSTrigger::s_addAbortListener(const v8::FunctionCallbackInfo<v8::Value>& ar
         _disposeAbortListener, _data);
 
     v8::Local<v8::Object> result = v8::Object::New(_isolate->m_isolate);
-    result->SetPrototype(context, v8::Null(_isolate->m_isolate)).Check();
-    result->Set(context, v8::Symbol::GetDispose(_isolate->m_isolate), disposeFn).Check();
+    result->SetPrototype(context, v8::Null(_isolate->m_isolate)).FromMaybe(false);
+    result->Set(context, v8::Symbol::GetDispose(_isolate->m_isolate), disposeFn).FromMaybe(false);
 
     args.GetReturnValue().Set(result);
 }
@@ -1460,9 +1647,8 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                    .FromMaybe(v8::Local<v8::Promise::Resolver>());
-    if (resolver.IsEmpty()) {
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(_isolate, context, resolver)) {
         ThrowResult(CALL_E_INTERNAL);
         return;
     }
@@ -1531,16 +1717,17 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_on_next_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
-    v8::Local<v8::Array> unconsumedEvents = JSValue(_data->Get(context,
-                                                        _isolate->NewString("unconsumedEvents")))
-                                                .As<v8::Array>();
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedEvents;
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedEvents", unconsumedEvents)
+        || !helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
 
     // If there are buffered events, return immediately
     if (unconsumedEvents->Length() > 0) {
@@ -1557,8 +1744,9 @@ void JSTrigger::_on_next_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
         r->Set(context, _isolate->NewString("value"), val).IsJust();
         r->Set(context, _isolate->NewString("done"), v8::False(_isolate->m_isolate)).IsJust();
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                        .FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!helper_new_resolver(_isolate, context, resolver))
+            return;
         resolver->Resolve(context, r).IsJust();
         args.GetReturnValue().Set(resolver->GetPromise());
         return;
@@ -1568,8 +1756,9 @@ void JSTrigger::_on_next_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> error = JSValue(_data->Get(context, _isolate->NewString("error")));
     if (!error.IsEmpty() && !error->IsUndefined()) {
         _data->Set(context, _isolate->NewString("error"), v8::Undefined(_isolate->m_isolate)).IsJust();
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                        .FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!helper_new_resolver(_isolate, context, resolver))
+            return;
         resolver->Reject(context, error).IsJust();
         args.GetReturnValue().Set(resolver->GetPromise());
         return;
@@ -1582,28 +1771,24 @@ void JSTrigger::_on_next_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
         r->Set(context, _isolate->NewString("value"), v8::Undefined(_isolate->m_isolate)).IsJust();
         r->Set(context, _isolate->NewString("done"), v8::True(_isolate->m_isolate)).IsJust();
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                        .FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!helper_new_resolver(_isolate, context, resolver))
+            return;
         resolver->Resolve(context, r).IsJust();
         args.GetReturnValue().Set(resolver->GetPromise());
         return;
     }
 
     // No data available, push to pending promises
-    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                    .FromMaybe(v8::Local<v8::Promise::Resolver>());
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(_isolate, context, resolver))
+        return;
     v8::Local<v8::Object> entry = v8::Object::New(_isolate->m_isolate);
     entry->Set(context, _isolate->NewString("resolve"),
-             _isolate->NewFunction("_resolve", [](const v8::FunctionCallbackInfo<v8::Value>& a) {
-                Isolate* iso = Isolate::current(a);
-                v8::Local<v8::Promise::Resolver> res = a.Data().As<v8::Promise::Resolver>();
-                res->Resolve(iso->context(), a[0]).IsJust(); }, resolver))
+             _isolate->NewFunction("_resolve", helper_resolve_pending_promise, resolver))
         .IsJust();
     entry->Set(context, _isolate->NewString("reject"),
-             _isolate->NewFunction("_reject", [](const v8::FunctionCallbackInfo<v8::Value>& a) {
-                Isolate* iso = Isolate::current(a);
-                v8::Local<v8::Promise::Resolver> res = a.Data().As<v8::Promise::Resolver>();
-                res->Reject(iso->context(), a[0]).IsJust(); }, resolver))
+             _isolate->NewFunction("_reject", helper_reject_pending_promise, resolver))
         .IsJust();
 
     uint32_t pLen = unconsumedPromises->Length();
@@ -1614,9 +1799,11 @@ void JSTrigger::_on_next_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void JSTrigger::_on_return_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
     _on_cleanup(_isolate, _data);
     _data->Set(context, _isolate->NewString("finished"), v8::True(_isolate->m_isolate)).IsJust();
@@ -1626,9 +1813,9 @@ void JSTrigger::_on_return_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
     doneResult->Set(context, _isolate->NewString("value"), v8::Undefined(_isolate->m_isolate)).IsJust();
     doneResult->Set(context, _isolate->NewString("done"), v8::True(_isolate->m_isolate)).IsJust();
 
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
     for (uint32_t i = 0; i < unconsumedPromises->Length(); i++) {
         v8::Local<v8::Object> p = JSValue(unconsumedPromises->Get(context, i)).As<v8::Object>();
         v8::Local<v8::Function> resolve = JSValue(p->Get(context, _isolate->NewString("resolve"))).As<v8::Function>();
@@ -1639,17 +1826,20 @@ void JSTrigger::_on_return_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
                           v8::Integer::New(_isolate->m_isolate, 0))
         .IsJust();
 
-    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                    .FromMaybe(v8::Local<v8::Promise::Resolver>());
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(_isolate, context, resolver))
+        return;
     resolver->Resolve(context, doneResult).IsJust();
     args.GetReturnValue().Set(resolver->GetPromise());
 }
 
 void JSTrigger::_on_throw_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* _isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
-    v8::Local<v8::Context> context = _isolate->context();
+    Isolate* _isolate;
+    v8::Local<v8::Object> _data;
+    v8::Local<v8::Context> context;
+    if (!helper_get_data(args, _isolate, _data, context))
+        return;
 
     v8::Local<v8::Value> err = args.Length() > 0
         ? args[0]
@@ -1659,9 +1849,9 @@ void JSTrigger::_on_throw_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
     _data->Set(context, _isolate->NewString("error"), err).IsJust();
 
     // Reject all pending promises
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
     for (uint32_t i = 0; i < unconsumedPromises->Length(); i++) {
         v8::Local<v8::Object> p = JSValue(unconsumedPromises->Get(context, i)).As<v8::Object>();
         v8::Local<v8::Function> reject = JSValue(p->Get(context, _isolate->NewString("reject"))).As<v8::Function>();
@@ -1672,8 +1862,9 @@ void JSTrigger::_on_throw_cb(const v8::FunctionCallbackInfo<v8::Value>& args)
                           v8::Integer::New(_isolate->m_isolate, 0))
         .IsJust();
 
-    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context)
-                                                    .FromMaybe(v8::Local<v8::Promise::Resolver>());
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!helper_new_resolver(_isolate, context, resolver))
+        return;
     resolver->Reject(context, err).IsJust();
     args.GetReturnValue().Set(resolver->GetPromise());
 }
@@ -1786,33 +1977,21 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
                         }))
                     .IsJust();
                 iter->Set(context, _isolate->NewString("next"),
-                        _isolate->NewFunction("next", [](const v8::FunctionCallbackInfo<v8::Value>& a) {
-                            Isolate* iso = Isolate::current(a);
-                            v8::Local<v8::Value> e = JSValue(a.Data().As<v8::Object>()->Get(iso->context(), iso->NewString("error")));
-                            v8::Local<v8::Promise::Resolver> r = v8::Promise::Resolver::New(iso->context())
-                                .FromMaybe(v8::Local<v8::Promise::Resolver>());
-                            r->Reject(iso->context(), e).IsJust();
-                            a.GetReturnValue().Set(r->GetPromise()); }, errData))
+                        _isolate->NewFunction("next", helper_reject_dead_iterator, errData))
                     .IsJust();
                 iter->Set(context, _isolate->NewString("return"),
-                        _isolate->NewFunction("return", [](const v8::FunctionCallbackInfo<v8::Value>& a) {
-                            Isolate* iso = Isolate::current(a);
-                            v8::Local<v8::Object> r2 = v8::Object::New(iso->m_isolate);
-                            r2->Set(iso->context(), iso->NewString("value"), v8::Undefined(iso->m_isolate)).IsJust();
-                            r2->Set(iso->context(), iso->NewString("done"), v8::True(iso->m_isolate)).IsJust();
-                            v8::Local<v8::Promise::Resolver> r = v8::Promise::Resolver::New(iso->context())
-                                                                     .FromMaybe(v8::Local<v8::Promise::Resolver>());
-                            r->Resolve(iso->context(), r2).IsJust();
-                            a.GetReturnValue().Set(r->GetPromise());
-                        }))
+                        _isolate->NewFunction("return", helper_return_dead_iterator))
                     .IsJust();
 
                 args.GetReturnValue().Set(iter);
                 return;
             } else {
                 v8::Local<v8::Function> abortCb = _isolate->NewFunction("_on_abort", [](const v8::FunctionCallbackInfo<v8::Value>& a) {
-                        Isolate* iso = Isolate::current(a);
-                        v8::Local<v8::Object> d = a.Data().As<v8::Object>();
+                        Isolate* iso;
+                        v8::Local<v8::Object> d;
+                        v8::Local<v8::Context> context;
+                        if (!helper_get_data(a, iso, d, context))
+                            return;
                         _on_error_cb_invoke(iso, d, _make_abort_error(iso)); }, state);
                 _add_signal_listener(_isolate, sigObj, abortCb);
             }
@@ -1842,13 +2021,16 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
 // Helper for signal abort triggering error from outside a FunctionCallbackInfo
 void JSTrigger::_on_error_cb_invoke(Isolate* _isolate, v8::Local<v8::Object> _data, v8::Local<v8::Value> err)
 {
+    if (helper_should_stop(_isolate) || _data.IsEmpty())
+        return;
+
     v8::Local<v8::Context> context = _isolate->context();
 
     _data->Set(context, _isolate->NewString("error"), err).IsJust();
 
-    v8::Local<v8::Array> unconsumedPromises = JSValue(_data->Get(context,
-                                                          _isolate->NewString("unconsumedPromises")))
-                                                  .As<v8::Array>();
+    v8::Local<v8::Array> unconsumedPromises;
+    if (!helper_get_array(_isolate, _data, context, "unconsumedPromises", unconsumedPromises))
+        return;
     uint32_t pLen = unconsumedPromises->Length();
     if (pLen > 0) {
         v8::Local<v8::Object> p = JSValue(unconsumedPromises->Get(context, 0)).As<v8::Object>();

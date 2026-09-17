@@ -11,11 +11,26 @@
 
 namespace fibjs {
 
+static bool util_sync_should_stop(Isolate* isolate)
+{
+    return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
+}
+
 static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
+    Isolate* fib_isolate = Isolate::current(isolate);
+    if (util_sync_should_stop(fib_isolate))
+        return;
+
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Object> _data = data.As<v8::Object>();
+    if (_data.IsEmpty())
+        return;
 
     int32_t len = args.Length();
     if (len > 0)
@@ -31,6 +46,9 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
+    if (util_sync_should_stop(isolate))
+        return;
+
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<Event_base> ev = new Event();
     v8::Local<v8::Object> _data = ev->wrap();
@@ -49,13 +67,26 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Function> func = data.As<v8::Function>();
+    if (func.IsEmpty())
+        return;
+
     v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 
     METHOD_NAME("util.sync.stub");
+
+    // 登记到 isolate：终止时必须被唤醒。fiber park 在 exlib::Event::wait() 上，
+    // 而 isolate 终止后 sync_callback 不会再 set()（V8 已终止时它甚至根本不会被
+    // 调用），没有唤醒源就会永久挂住 → worker 退不出去、terminate() 永不收敛。
+    isolate->addSyncWaiter(ev);
     ev->ac_wait();
+    isolate->removeSyncWaiter(ev);
 
     JSValue error = _data->Get(context, isolate->NewString("_error"));
 
@@ -68,6 +99,9 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 static void promise_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
+    if (util_sync_should_stop(isolate))
+        return;
+
     v8::Local<v8::Context> context = isolate->context();
     std::vector<v8::Local<v8::Value>> argv;
 
@@ -78,7 +112,11 @@ static void promise_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     for (i = 0; i < len; i++)
         argv[i] = args[i];
 
-    JSFunction func = args.Data().As<v8::Function>();
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    JSFunction func = data.As<v8::Function>();
     v8::Local<v8::Value> result;
     result = func.Call(args.This(), (int32_t)argv.size(), argv.data());
     if (result.IsEmpty())

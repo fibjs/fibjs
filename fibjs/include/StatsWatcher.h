@@ -217,11 +217,11 @@ public:
 public:
     result_t checkStatsChangeOnTimerCb()
     {
-        if (m_closed)
+        if (m_closed || holder()->is_terminating())
             return 0;
 
         async([this]() {
-            if (m_closed)
+            if (m_closed || holder()->is_terminating())
                 return;
 
             result_t hr;
@@ -257,6 +257,9 @@ public:
             Variant args[2];
             args[0] = cur;
             args[1] = prev;
+
+            if (m_closed || holder()->is_terminating())
+                return;
 
             _emit("change", args, 2);
         });

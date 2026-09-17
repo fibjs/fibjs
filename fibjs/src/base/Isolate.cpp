@@ -363,7 +363,7 @@ static void PromiseHookCallback(v8::PromiseHookType type, v8::Local<v8::Promise>
         if (fb && !fb->m_async_ctx.IsEmpty()) {
             v8::Local<v8::Value> ctx = fb->m_async_ctx.Get(isolate->m_isolate);
             if (!ctx.IsEmpty() && ctx->IsMap())
-                promise->SetPrivate(context, symbol, ctx).FromJust();
+                promise->SetPrivate(context, symbol, ctx).FromMaybe(false);
         }
         break;
     }
@@ -373,8 +373,8 @@ static void PromiseHookCallback(v8::PromiseHookType type, v8::Local<v8::Promise>
         // to save/restore prior context - the fiber will be destroyed after callback.
         if (fb) {
             v8::MaybeLocal<v8::Value> maybeCtx = promise->GetPrivate(context, symbol);
-            if (!maybeCtx.IsEmpty()) {
-                v8::Local<v8::Value> ctx = maybeCtx.ToLocalChecked();
+            v8::Local<v8::Value> ctx;
+            if (maybeCtx.ToLocal(&ctx)) {
                 if (!ctx.IsEmpty() && !ctx->IsUndefined() && ctx->IsMap())
                     fb->m_async_ctx.Reset(isolate->m_isolate, ctx);
                 else
@@ -438,8 +438,18 @@ void Isolate::init()
         v8::Local<v8::Array> keys;
         if (sandbox->GetOwnPropertyNames(_context).ToLocal(&keys)) {
             for (uint32_t i = 0; i < keys->Length(); i++) {
-                v8::Local<v8::Value> key = keys->Get(_context, i).ToLocalChecked();
-                v8::Local<v8::Value> val = sandbox->Get(_context, key).ToLocalChecked();
+                v8::Local<v8::Value> key;
+                if (!keys->Get(_context, i).ToLocal(&key)) {
+                    try_catch.Reset();
+                    continue;
+                }
+
+                v8::Local<v8::Value> val;
+                if (!sandbox->Get(_context, key).ToLocal(&val)) {
+                    try_catch.Reset();
+                    continue;
+                }
+
                 if (val == sandbox)
                     val = _global;
                 // Silently skip read-only built-in properties (Infinity, NaN, undefined)

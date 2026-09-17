@@ -10,12 +10,24 @@
 
 namespace fibjs {
 
+static bool promisify_should_stop(Isolate* isolate)
+{
+    return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
+}
+
 static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
+    if (promisify_should_stop(isolate))
+        return;
 
-    v8::Local<v8::Promise::Resolver> resolver = _data.As<v8::Promise::Resolver>();
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Promise::Resolver> resolver = data.As<v8::Promise::Resolver>();
+    if (resolver.IsEmpty())
+        return;
 
     int32_t len = args.Length();
 
@@ -35,6 +47,9 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
+    if (promisify_should_stop(isolate))
+        return;
+
     std::vector<v8::Local<v8::Value>> argv;
 
     int32_t len = args.Length();
@@ -45,6 +60,8 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         argv[i] = args[i];
 
     v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>());
+    if (resolver.IsEmpty())
+        return;
 
     argv[i] = isolate->NewFunction("promisify_callback", promisify_callback, resolver);
     if (argv[i].IsEmpty()) {
@@ -52,8 +69,15 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
-    v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
+    v8::Local<v8::Value> data = args.Data();
+    if (data.IsEmpty())
+        return;
+
+    v8::Local<v8::Function> func = data.As<v8::Function>();
+    if (func.IsEmpty())
+        return;
+
+    v8::Local<v8::Value> result = func->Call(isolate->context(), args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 

@@ -235,15 +235,33 @@ v8::Local<v8::Value> Buffer::load_module()
     sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
 
     TryCatch try_catch;
-    sbox->require("internal/buffer", "/builtin", _buffer);
-    if (try_catch.HasCaught()) {
-        ReportException(try_catch, 0, false);
+    result_t hr = sbox->require("internal/buffer", "/builtin", _buffer);
+    if (hr < 0 || try_catch.HasCaught() || _buffer.IsEmpty()) {
+        // require 失败（抛异常，或被 worker 终止中断打断）时 _buffer 是**空句柄**。
+        // 直接把它交给 Object::Set 会走到 V8 内部解引用空 handle 而崩溃
+        // （实测栈：Object::Set → PropertySetterCallback → Handle<Object>::operator*）。
+        if (try_catch.HasCaught())
+            ReportException(try_catch, 0, false);
         return v8::Undefined(isolate->m_isolate);
     }
 
     _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
-    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
-    v8::Local<v8::Object> js_buffer_proto = js_buffer->GetPrototype().As<v8::Object>();
+
+    if (!_buffer->IsFunction())
+        return v8::Undefined(isolate->m_isolate);
+
+    v8::Local<v8::Value> js_buffer_v;
+    if (!_buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).ToLocal(&js_buffer_v)
+        || js_buffer_v.IsEmpty() || !js_buffer_v->IsObject())
+        return v8::Undefined(isolate->m_isolate);
+
+    v8::Local<v8::Object> js_buffer = js_buffer_v.As<v8::Object>();
+
+    v8::Local<v8::Value> js_buffer_proto_v = js_buffer->GetPrototype();
+    if (!js_buffer_proto_v->IsObject())
+        return v8::Undefined(isolate->m_isolate);
+
+    v8::Local<v8::Object> js_buffer_proto = js_buffer_proto_v.As<v8::Object>();
 
     context->SetEmbedderData(kBufferClassIndex, _buffer);
     context->SetEmbedderData(kBufferPrototype, js_buffer_proto);

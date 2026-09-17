@@ -218,6 +218,12 @@ public:
             size_t i, sz;
             bool r;
 
+            if (m_isolate->is_terminating() || m_isolate->m_isolate->IsExecutionTerminating()
+                || (m_obj && !m_obj->canEmit(m_ev))) {
+                delete this;
+                return 0;
+            }
+
             std::vector<v8::Local<v8::Value>> argv;
 
             sz = m_variant_args.size();
@@ -234,13 +240,22 @@ public:
                 }
             }
 
-            if (!m_obj)
-                m_obj = object_base::getInstance(m_o.Get(m_isolate->m_isolate));
+            if (!m_obj) {
+                v8::Local<v8::Object> target = m_o.Get(m_isolate->m_isolate);
+                if (target.IsEmpty()) {
+                    delete this;
+                    return 0;
+                }
+                m_obj = object_base::getInstance(target);
+            }
 
             if (m_obj) {
                 JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
-            } else
-                JSTrigger(m_isolate->m_isolate, m_o.Get(m_isolate->m_isolate))._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
+            } else {
+                v8::Local<v8::Object> target = m_o.Get(m_isolate->m_isolate);
+                if (!target.IsEmpty())
+                    JSTrigger(m_isolate->m_isolate, target)._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
+            }
 
             delete this;
 

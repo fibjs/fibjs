@@ -14,6 +14,11 @@ namespace fibjs {
 
 DECLARE_MODULE(async_hooks);
 
+static bool als_should_stop(Isolate* isolate)
+{
+    return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
+}
+
 result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<AsyncLocalStorage_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
@@ -52,6 +57,9 @@ result_t AsyncLocalStorage_base::snapshot(v8::Local<v8::Function>& retVal)
     // Create a bound function that restores the captured context
     v8::MaybeLocal<v8::Function> maybeSnapshotFn = v8::Function::New(context, [](const v8::FunctionCallbackInfo<v8::Value>& info) {
             Isolate* isolate = Isolate::current(info);
+            if (als_should_stop(isolate))
+                return;
+
             v8::Local<v8::Context> context = isolate->context();
 
             if (info.Length() < 1 || !info[0]->IsFunction()) {
@@ -63,7 +71,13 @@ result_t AsyncLocalStorage_base::snapshot(v8::Local<v8::Function>& retVal)
             v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
             // Get the captured context from the function's data
-            v8::Local<v8::Map> capturedCtx = info.Data().As<v8::Map>();
+            v8::Local<v8::Value> data = info.Data();
+            if (data.IsEmpty() || !data->IsMap())
+                return;
+
+            v8::Local<v8::Map> capturedCtx = data.As<v8::Map>();
+            if (capturedCtx.IsEmpty())
+                return;
 
             // Save current context
             v8::Local<v8::Map> priorCtx = getAsyncContext(isolate);
@@ -83,13 +97,15 @@ result_t AsyncLocalStorage_base::snapshot(v8::Local<v8::Function>& retVal)
             // Restore prior context
             setAsyncContext(isolate, priorCtx);
 
-            if (!result.IsEmpty())
-                info.GetReturnValue().Set(result.ToLocalChecked()); }, capturedCtx);
+            v8::Local<v8::Value> resolved;
+            if (result.ToLocal(&resolved))
+                info.GetReturnValue().Set(resolved); }, capturedCtx);
 
     if (maybeSnapshotFn.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = maybeSnapshotFn.ToLocalChecked();
+    if (!maybeSnapshotFn.ToLocal(&retVal))
+        return CALL_E_JAVASCRIPT;
     return 0;
 }
 
@@ -103,18 +119,32 @@ result_t AsyncLocalStorage_base::bind(v8::Local<v8::Function> fn, v8::Local<v8::
 
     // Create an array to hold both the captured context and the function
     v8::Local<v8::Array> data = v8::Array::New(isolate->m_isolate, 2);
-    data->Set(context, 0, capturedCtx).FromJust();
-    data->Set(context, 1, fn).FromJust();
+    data->Set(context, 0, capturedCtx).FromMaybe(false);
+    data->Set(context, 1, fn).FromMaybe(false);
 
     // Create a bound function that restores the captured context and calls the original function
     v8::MaybeLocal<v8::Function> maybeBoundFn = v8::Function::New(context, [](const v8::FunctionCallbackInfo<v8::Value>& info) {
             Isolate* isolate = Isolate::current(info);
+            if (als_should_stop(isolate))
+                return;
+
             v8::Local<v8::Context> context = isolate->context();
 
             // Get the data (captured context and function)
-            v8::Local<v8::Array> data = info.Data().As<v8::Array>();
-            v8::Local<v8::Map> capturedCtx = data->Get(context, 0).ToLocalChecked().As<v8::Map>();
-            v8::Local<v8::Function> fn = data->Get(context, 1).ToLocalChecked().As<v8::Function>();
+            v8::Local<v8::Value> rawData = info.Data();
+            if (rawData.IsEmpty() || !rawData->IsArray())
+                return;
+
+            v8::Local<v8::Array> data = rawData.As<v8::Array>();
+            v8::Local<v8::Value> capturedCtxValue = data->Get(context, 0).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> fnValue = data->Get(context, 1).FromMaybe(v8::Local<v8::Value>());
+            if (capturedCtxValue.IsEmpty() || !capturedCtxValue->IsMap() || fnValue.IsEmpty() || !fnValue->IsFunction())
+                return;
+
+            v8::Local<v8::Map> capturedCtx = capturedCtxValue.As<v8::Map>();
+            v8::Local<v8::Function> fn = fnValue.As<v8::Function>();
+            if (capturedCtx.IsEmpty() || fn.IsEmpty())
+                return;
 
             // Save current context
             v8::Local<v8::Map> priorCtx = getAsyncContext(isolate);
@@ -134,13 +164,15 @@ result_t AsyncLocalStorage_base::bind(v8::Local<v8::Function> fn, v8::Local<v8::
             // Restore prior context
             setAsyncContext(isolate, priorCtx);
 
-            if (!result.IsEmpty())
-                info.GetReturnValue().Set(result.ToLocalChecked()); }, data);
+            v8::Local<v8::Value> resolved;
+            if (result.ToLocal(&resolved))
+                info.GetReturnValue().Set(resolved); }, data);
 
     if (maybeBoundFn.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = maybeBoundFn.ToLocalChecked();
+    if (!maybeBoundFn.ToLocal(&retVal))
+        return CALL_E_JAVASCRIPT;
     return 0;
 }
 
@@ -185,8 +217,8 @@ result_t AsyncLocalStorage::getStore(v8::Local<v8::Value>& retVal)
         if (hasKey.FromMaybe(false)) {
             // Key exists - return the value (which may be undefined from exit)
             v8::MaybeLocal<v8::Value> maybeValue = ctx->Get(context, key);
-            if (!maybeValue.IsEmpty()) {
-                v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
+            v8::Local<v8::Value> value;
+            if (maybeValue.ToLocal(&value)) {
                 if (!value->IsUndefined()) {
                     retVal = value;
                     return 0;
@@ -272,7 +304,8 @@ result_t AsyncLocalStorage::run(v8::Local<v8::Value> store, v8::Local<v8::Functi
     if (result.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = result.ToLocalChecked();
+    if (!result.ToLocal(&retVal))
+        return CALL_E_JAVASCRIPT;
 
     return 0;
 }
@@ -295,7 +328,8 @@ result_t AsyncLocalStorage::exit(v8::Local<v8::Function> callback, OptArgs args,
         return CALL_E_JAVASCRIPT;
     v8::Local<v8::Value> key = v8::Integer::New(isolate->m_isolate, m_id);
     // Set to undefined instead of deleting - this signals "exit" state
-    newCtx->Set(context, key, v8::Undefined(isolate->m_isolate)).ToLocalChecked();
+    if (newCtx->Set(context, key, v8::Undefined(isolate->m_isolate)).IsEmpty())
+        return CALL_E_JAVASCRIPT;
     newCtxGlobal.Reset(isolate->m_isolate, newCtx);
     setAsyncContext(isolate, newCtx);
 
@@ -317,7 +351,8 @@ result_t AsyncLocalStorage::exit(v8::Local<v8::Function> callback, OptArgs args,
     if (result.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = result.ToLocalChecked();
+    if (!result.ToLocal(&retVal))
+        return CALL_E_JAVASCRIPT;
 
     return 0;
 }

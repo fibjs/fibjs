@@ -19,6 +19,9 @@ namespace fibjs {
 static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
+    if (isolate->IsExecutionTerminating())
+        return;
+
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Array> fibers;
