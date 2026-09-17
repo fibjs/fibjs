@@ -11,6 +11,7 @@
 #include "options.h"
 #include "ifs/v8.h"
 #include "ifs/global.h"
+#include "ifs/Event.h"
 #include "ifs/HttpResponse.h"
 #include "SecureContext.h"
 #include "HttpClient.h"
@@ -465,6 +466,60 @@ void Isolate::Ref()
 {
     if (m_ref.inc() == 1)
         s_iso_count.inc();
+}
+
+void Isolate::registerHoldingObject(object_base* obj)
+{
+    m_holdingLock.lock();
+    m_holdingObjects.insert(obj);
+    m_holdingLock.unlock();
+}
+
+void Isolate::unregisterHoldingObject(object_base* obj)
+{
+    m_holdingLock.lock();
+    m_holdingObjects.erase(obj);
+    m_holdingLock.unlock();
+}
+
+void Isolate::addSyncWaiter(Event_base* ev)
+{
+    m_syncWaiters.insert(ev);
+}
+
+void Isolate::removeSyncWaiter(Event_base* ev)
+{
+    m_syncWaiters.erase(ev);
+}
+
+void Isolate::wakeSyncWaiters()
+{
+    if (m_syncWaiters.empty())
+        return;
+
+    std::unordered_set<Event_base*> waiters;
+    waiters.swap(m_syncWaiters);
+
+    for (auto* ev : waiters)
+        ev->set();
+}
+
+void Isolate::stopHoldingObjects()
+{
+    // 先唤醒 park 在 util.sync 上的 fiber：它们没有其他唤醒源（见 addSyncWaiter
+    // 的说明），不唤醒就会一直挂着，worker 无法退出。
+    wakeSyncWaiters();
+
+    std::vector<obj_ptr<object_base>> objects;
+
+    m_holdingLock.lock();
+    objects.reserve(m_holdingObjects.size());
+    for (auto* obj : m_holdingObjects)
+        objects.emplace_back(obj);
+    m_holdingLock.unlock();
+
+    for (auto& obj : objects)
+        obj->stop();
 }
 
 void Isolate::Unref(int32_t hr)

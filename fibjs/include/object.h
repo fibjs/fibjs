@@ -73,6 +73,11 @@ public:
         delete this;
     }
 
+    virtual result_t stop()
+    {
+        return 0;
+    }
+
 private:
     exlib::linkitem m_weak;
 
@@ -251,6 +256,14 @@ public:
         return 0;
     }
 
+    // 异步投递事件的「投递前再确认」：_emit 是异步的（JSTrigger::AsyncEmitter 会在
+    // holder isolate 的循环里真正执行），期间对象状态可能已经变化。返回 false 则丢弃
+    // 本次投递。默认不干预。
+    virtual bool canEmit(exlib::string ev)
+    {
+        return true;
+    }
+
     void extMemory(int32_t ext)
     {
         if (handle_.IsEmpty())
@@ -274,15 +287,21 @@ public:
     void isolate_ref()
     {
         bool expected = false;
-        if (m_holding.compare_exchange_strong(expected, true))
+        if (m_holding.compare_exchange_strong(expected, true)) {
+            Isolate* isolate = holder();
+            isolate->registerHoldingObject(this);
             holder()->Ref();
+        }
     }
 
     void isolate_unref()
     {
         bool expected = true;
-        if (m_holding.compare_exchange_strong(expected, false))
+        if (m_holding.compare_exchange_strong(expected, false)) {
+            Isolate* isolate = holder();
+            isolate->unregisterHoldingObject(this);
             holder()->Unref();
+        }
     }
 
 private:

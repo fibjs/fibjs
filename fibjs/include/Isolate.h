@@ -13,11 +13,14 @@
 #include "LruCache.h"
 #include "utf8.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 struct uv_loop_s;
 
 namespace fibjs {
+
+class Event_base;
 
 extern v8::Platform* g_default_platform;
 
@@ -49,6 +52,8 @@ class Worker_base;
 class MessagePort_base;
 class PerformanceMark;
 class PerformanceObserver;
+class Timer_base;
+class object_base;
 
 class Isolate : public exlib::linkitem {
 public:
@@ -282,6 +287,20 @@ public:
 
     void Ref();
     void Unref(int32_t hr = 0);
+    void registerHoldingObject(object_base* obj);
+    void unregisterHoldingObject(object_base* obj);
+    void stopHoldingObjects();
+
+    // 阻塞等待中的 Event（util.sync 的 sync_stub、Isolate::await 的 promise 桥接）。
+    // isolate 终止时必须唤醒它们：等待方的 fiber park 在 exlib::Event::wait() 上，
+    // 而终止后对应的回调（sync_callback / promise_then / promise_catch）会提前
+    // return、不再 set()，甚至根本不会被调用；没有唤醒源就会永久挂住 ——
+    // worker 因此退不出去，terminate() 永不收敛（已确定性复现）。
+    // 存原始指针：调用方用 obj_ptr 保证等待期间的存活，add/remove 成对；
+    // 三个方法都只在 isolate 自己的 JS 线程上被调用，故无需加锁。
+    void addSyncWaiter(Event_base* ev);
+    void removeSyncWaiter(Event_base* ev);
+    void wakeSyncWaiters();
 
 public:
     int32_t m_id;
@@ -363,10 +382,16 @@ public:
     // using the shared service pool.
     bool m_jsAffinity = false;
     exlib::Service* m_jsService = NULL;
+    bool m_terminating = false;
+
+    exlib::spinlock m_holdingLock;
+    std::unordered_set<object_base*> m_holdingObjects;
+
+    // 见 addSyncWaiter 的说明；只在 isolate 自己的 JS 线程上访问。
+    std::unordered_set<Event_base*> m_syncWaiters;
 
     // Development aid: abort when some native path enters a JS scope of this
-    // isolate on a thread other than its dedicated one. Enabled with
-    // FIBJS_JS_THREAD_AFFINITY_CHECK=1.
+    // isolate on a thread other than its dedicated one.
     void check_js_thread();
 
     int64_t m_flake_tm;
