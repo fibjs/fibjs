@@ -999,6 +999,23 @@ describe('worker_threads fibjs target behavior', () => {
         worker.once('error', finish);
     });
 
+    it('reports the original error message and worker stack for uncaught worker exceptions', (done) => {        const finish = doneOnce(done);
+        const worker = new Worker('throw new Error("boom-payload");', { eval: true });
+
+        worker.once('error', (err) => {
+            try {
+                assert.ok(err instanceof Error);
+                assert.strictEqual(err.message, 'boom-payload');
+                assert.ok(String(err.stack).indexOf('boom-payload') >= 0);
+            } catch (e) {
+                finish(e);
+                return;
+            }
+
+            worker.terminate().then(() => finish(), finish);
+        });
+    });
+
     it('delivers messages sent before terminate and none after exit', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
