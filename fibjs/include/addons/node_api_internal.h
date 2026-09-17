@@ -577,6 +577,14 @@ public:
 
     inline void ScheduleWork()
     {
+        // The work object is also the event queued in the thread pool (the
+        // pool stores a raw pointer to it), so hold an in-flight reference.
+        // The addon is free to release the handle at any time after queueing
+        // it, and doing so must not free the object underneath a worker
+        // thread. The reference is only dropped at the end of the JS phase
+        // (js_invoke), i.e. on the isolate's thread: destroying the object
+        // resets V8 handles, which must never happen on a pool thread.
+        Ref();
         env_->Ref();
         async(CALL_E_LONGSYNC);
     }
@@ -587,6 +595,18 @@ public:
         return not_running_.compare_exchange_strong(expected, true) ? 0 : UV_EBUSY;
     }
 
+    // Releases the reference owned by the addon (napi_delete_async_work). When
+    // the work is still queued, running, or waiting for its callback on the JS
+    // thread, the object stays alive and is freed by the last phase using it
+    // instead of here. Releasing the same handle twice is a no-op, so a stale
+    // handle held by the addon cannot free the object under a user of it.
+    void RequestDelete()
+    {
+        bool expected = false;
+        if (m_delete_pending.compare_exchange_strong(expected, true))
+            Unref();
+    }
+
     virtual void invoke()
     {
         bool expected = false;
@@ -595,15 +615,26 @@ public:
         else
             status_ = UV_ECANCELED;
 
+        // The JS phase runs the completion callback, and the addon may release
+        // the handle from there: the object can already be freed once the job
+        // has been posted, so this thread must not touch it again. Keep the
+        // environment in a local and make the post the last use of `this`.
+        Environment* env = env_;
         isolate()->post_task(this);
-
-        env_->Unref();
+        env->Unref();
     }
 
     virtual fibjs::result_t js_invoke()
     {
         fibjs::JSFiber::EnterJsScope s;
         AfterThreadPoolWork(status_);
+
+        // Both phases are done (the worker posted this job when it was done
+        // with the object): drop the in-flight reference here, on the
+        // isolate's thread, so a work released while in flight is always
+        // destroyed here.
+        Unref();
+
         return 0;
     }
 
@@ -613,9 +644,28 @@ public:
     Environment* env() const { return env_; }
 
 private:
+    void Ref()
+    {
+        m_ref.inc();
+    }
+
+    void Unref()
+    {
+        if (m_ref.dec() == 0) {
+            ex_assert(m_delete_pending);
+            delete this;
+        }
+    }
+
+private:
     Environment* env_;
     int status_ = 0;
     std::atomic_bool not_running_ = false;
+    // Two references: one owned by the addon (the N-API handle) and one that
+    // keeps the object alive while the work is in flight (queued in the pool,
+    // running on a worker thread, or waiting for its callback).
+    exlib::atomic m_ref { 1 };
+    std::atomic_bool m_delete_pending = false;
 };
 
 typedef void (*addon_register_func)(

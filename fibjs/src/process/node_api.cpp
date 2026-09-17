@@ -994,7 +994,13 @@ namespace uvimpl {
                 env, async_resource, async_resource_name, execute, complete, data);
         }
 
-        static void Delete(Work* work) { delete work; }
+        static void Delete(Work* work)
+        {
+            // The work may still be queued in the thread pool, running on a
+            // worker thread or waiting in the isolate job queue; the object is
+            // kept alive until every in-flight phase is done with it.
+            work->RequestDelete();
+        }
 
         void DoThreadPoolWork() override { _execute(_env, _data); }
 

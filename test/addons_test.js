@@ -205,6 +205,74 @@ describe('addons api', () => {
         }));
     });
 
+    it('test_async_work_delete', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_async_work_delete.node'));
+        const async_work = module.exports;
+
+        // Never queued: the handle is the only reference, so it is released
+        // right away.
+        assert.strictEqual(async_work.createAndDelete(1000), 1000);
+
+        // Queue and delete immediately: every work is still queued in the
+        // thread pool (or just being picked up) when the handle is released.
+        assert.strictEqual(async_work.queueAndDelete(2000), 2000);
+
+        // Same, but take the block the runtime may have freed back poisoned:
+        // a runtime that frees a work which is still queued or running walks
+        // into poisoned memory from the pool thread or the job queue.
+        assert.strictEqual(async_work.queueDeletePoison(1000), 1000);
+
+        // Every one of those works was released while in flight, so all of them
+        // still have to reach their completion callback.
+        let reported = 0;
+        while (async_work.poisonCompleteCount() < 1000) {
+            assert.ok(++reported < 20000, 'released works never reported back');
+            coroutine.sleep(1);
+        }
+
+        // Cancel and delete: the cancelled work still runs and still reports
+        // back, so the release overlaps the same in-flight phases.
+        assert.strictEqual(async_work.cancelAndDelete(2000), 2000);
+
+        // CPU heavy execute + release from the completion callback (the shape
+        // real addons use): the pool thread hands the object to the JS job
+        // queue and must be done with it before the JS thread frees it.
+        // Every work still has to report back.
+        assert.strictEqual(async_work.queueDeleteInComplete(200, 500), 200);
+
+        let tail = 0;
+        while (async_work.tailCompleteCount() < 200) {
+            assert.ok(++tail < 20000, 'works released in their completion never reported back');
+            coroutine.sleep(1);
+        }
+
+        // Delete while a worker thread is executing the work, and reuse the
+        // heap before letting that worker resume.
+        const complete = test.mustCall((status) => {
+            assert.strictEqual(status, 0);
+        });
+        let started = 0;
+        async_work.startBlocking(complete);
+        while (!async_work.isExecuting()) {
+            assert.ok(++started < 5000, 'the work never started');
+            coroutine.sleep(1);
+        }
+        async_work.deleteWork();
+        async_work.churn(100000);
+        async_work.releaseWork();
+
+        let waited = 0;
+        while (async_work.completeCount() === 0) {
+            assert.ok(++waited < 5000, 'the deleted work never reported back');
+            coroutine.sleep(1);
+        }
+        assert.strictEqual(async_work.completeCount(), 1);
+        assert.strictEqual(async_work.completeStatus(), 0);
+    });
+
     it('test_bigint', () => {
         var module = {
             exports: {}
