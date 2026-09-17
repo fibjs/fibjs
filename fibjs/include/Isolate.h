@@ -28,10 +28,13 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v);
 inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
     const char* data, int length = -1)
 {
-    return v8::String::NewFromOneByte(isolate,
-        reinterpret_cast<const uint8_t*>(data),
-        v8::NewStringType::kNormal, length)
-        .ToLocalChecked();
+    v8::Local<v8::String> result;
+    if (!v8::String::NewFromOneByte(isolate,
+            reinterpret_cast<const uint8_t*>(data),
+            v8::NewStringType::kNormal, length)
+            .ToLocal(&result))
+        return v8::Local<v8::String>();
+    return result;
 }
 
 class NObject;
@@ -100,7 +103,14 @@ public:
     template <typename T>
     static Isolate* current(v8::Local<T> object)
     {
-        return object.IsEmpty() ? current() : current(object->GetCreationContextChecked());
+        if (object.IsEmpty())
+            return current();
+
+        v8::Local<v8::Context> context;
+        if (!object->GetCreationContext().ToLocal(&context) || context.IsEmpty())
+            return current();
+
+        return current(context);
     }
 
     template <typename T>

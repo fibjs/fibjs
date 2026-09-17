@@ -410,7 +410,7 @@ class _at<v8::Local<v8::Object>> {
 public:
     _at(v8::Local<v8::Object>& v)
     {
-        m_isolate = v->GetCreationContextChecked()->GetIsolate();
+        m_isolate = Isolate::current(v)->m_isolate;
         m_v.Reset(m_isolate, v);
     }
 

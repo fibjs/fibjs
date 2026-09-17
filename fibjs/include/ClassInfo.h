@@ -113,8 +113,9 @@ inline void prop_setter_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
     // Non-native instance (e.g. Object.create(proto)): create a JS data property so
     // that assignment works on the derived object.
     v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
-    v8::Local<v8::String> name = v8::String::NewFromUtf8(args.GetIsolate(), cp->name).ToLocalChecked();
-    self->CreateDataProperty(context, name, args[0]).FromMaybe(false);
+    v8::Local<v8::String> name = fibjs::NewString(args.GetIsolate(), cp->name);
+    if (!name.IsEmpty())
+        self->CreateDataProperty(context, name, args[0]).FromMaybe(false);
 }
 
 class ClassInfo {
@@ -256,9 +257,11 @@ public:
         for (ClassData* cd = &ci->m_cd; cd; cd = cd->base ? &cd->base->m_cd : nullptr)
             for (int32_t i = 0; i < cd->pc; i++)
                 if (!cd->cps[i].is_static)
-                    arr->Set(ctx, idx++,
-                        v8::String::NewFromUtf8(isolate, cd->cps[i].name).ToLocalChecked())
-                        .IsJust();
+                {
+                    v8::Local<v8::String> name = fibjs::NewString(isolate, cd->cps[i].name);
+                    if (!name.IsEmpty())
+                        arr->Set(ctx, idx++, name).IsJust();
+                }
         info.GetReturnValue().Set(arr);
     }
 
