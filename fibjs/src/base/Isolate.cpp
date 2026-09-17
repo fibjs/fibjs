@@ -231,7 +231,7 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     if (g_use_env_proxy)
         m_httpclient->setEnvProxy();
 
-    if (g_js_thread_affinity) {
+    if (g_js_thread_affinity && !exlib::Service::use_thread) {
         // Pin all JS of this isolate to one OS thread, so N-API addons that keep
         // state in thread-local storage observe a stable thread (the contract
         // every addon written for Node.js assumes).
