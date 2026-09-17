@@ -598,6 +598,55 @@ describe('worker_threads node baseline', () => {
             }
         });
     });
+
+    it('does not keep a worker alive with an unconsumed parentPort message', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const { parentPort } = require('worker_threads');",
+            'parentPort.postMessage({ step: "queued" });',
+            'parentPort.close();'
+        ].join('\n'), {
+            eval: true
+        });
+
+        worker.once('error', finish);
+        worker.once('exit', (exitCode) => {
+            try {
+                assert.strictEqual(exitCode, 0);
+                finish();
+            } catch (err) {
+                finish(err);
+            }
+        });
+    });
+
+    it('does not pin the main isolate with an unstarted MessagePort queue', () => {
+        const child_process = require('child_process');
+
+        // 未 start（无监听路径）的 port 即使队列里有消息，也不应对 isolate 持有引用，
+        // 否则主脚本结束后进程永远不退出（R6）。
+        const script = [
+            "const { MessageChannel } = require('worker_threads');",
+            'const { port1, port2 } = new MessageChannel();',
+            'port2.postMessage("queued");',
+            'port1.postMessage("queued back");',
+            'console.log("done");'
+        ].join('\n');
+
+        let out;
+        assert.doesNotThrow(() => {
+            // 若子进程被 pin 住，execFileSync 会因 timeout 抛错
+            out = child_process.execFileSync(process.execPath, ['-e', script], {
+                timeout: 10000,
+                encoding: 'utf8'
+            });
+        });
+
+        assert.strictEqual(out.trim(), 'done');
+    });
+});
+
+describe('worker_threads markAsUncloneable / markAsUntransferable compatibility', () => {
     // These APIs are required by packages such as undici 8.x which import
     // `markAsUncloneable` from `node:worker_threads` and call it in Web API
     // constructors (CacheStorage, Headers, Response, ...). fibjs provides

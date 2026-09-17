@@ -16,6 +16,38 @@
 
 namespace fibjs {
 
+namespace {
+
+class MessagePortKeepAliveToken : public object_base {
+public:
+    MessagePortKeepAliveToken(MessagePort* port)
+        : m_port(port)
+    {
+        holder(port->holder());
+        isolate_ref();
+    }
+
+    // isolate 终止时的中断：只关闭 port（其生命周期终点即事务终点）
+    virtual result_t stop()
+    {
+        if (m_port)
+            return m_port->close();
+
+        return 0;
+    }
+
+    ~MessagePortKeepAliveToken()
+    {
+        // 幂等兜底：正常路径由 MessagePort::releaseKeepAliveRef() 释放（电平幂等，重复无害）
+        isolate_unref();
+    }
+
+private:
+    obj_ptr<MessagePort> m_port;
+};
+
+} // namespace
+
 result_t MessageEvent_base::_new(exlib::string type, v8::Local<v8::Object> eventInitDict,
     obj_ptr<MessageEvent_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -114,7 +146,7 @@ void MessagePort::ensureKeepAliveRef()
     if (!contributesKeepAlive() || m_keepalive_refed)
         return;
 
-    holder()->Ref();
+    m_keepalive_holder = new MessagePortKeepAliveToken(this);
     m_keepalive_refed = true;
 }
 
@@ -123,13 +155,21 @@ void MessagePort::releaseKeepAliveRef()
     if (!m_keepalive_refed)
         return;
 
-    holder()->Unref();
+    if (m_keepalive_holder) {
+        m_keepalive_holder->isolate_unref();
+        m_keepalive_holder.Release();
+    }
     m_keepalive_refed = false;
 }
 
 result_t MessagePort::enqueueSerializedMessage(Buffer_base* data)
 {
-    isolate_ref();
+    // 只有「投递已排程」才持有 isolate：未 start 的 port 不 pin isolate
+    //（对齐 Node：未启动的端口不维持事件循环）。
+    // 消息仍留在队列里，后续 start() 会走 flush() 正常投递，不丢消息。
+    if (m_started && canDeliverMessages())
+        isolate_ref();
+
     m_queue.emplace_back(data);
     if (m_started)
         flush();
@@ -230,6 +270,20 @@ result_t MessagePort::close()
     if (!m_closed) {
         m_closed = true;
         releaseKeepAliveRef();
+
+        // D2：关闭不丢已入队消息，同时保留「立即进入 closed 状态 + 立即发 close 事件」的既有语义，
+        // 因此允许 close 之后继续把 close 前已入队的消息投递完。
+        //   1) 仍有投递路径（已 start 且有监听路径）：排程一次 flush，
+        //      hold 由 flush 末尾的 isolate_unref() 自主回收；
+        //   2) 完全没有投递路径：丢弃残留队列并立即回收，否则会形成永久 pin。
+        if (!m_queue.empty() && !m_flush_pending) {
+            if (m_started && canDeliverMessages())
+                flush();
+            else {
+                m_queue.clear();
+                isolate_unref();
+            }
+        }
 
         if (m_peer) {
             m_peer->m_peer = nullptr;

@@ -19,6 +19,88 @@
 namespace fibjs {
 DECLARE_MODULE(rtc);
 
+namespace {
+
+static exlib::string rtc_listen_key(const exlib::string& bind_address, int32_t local_port)
+{
+    char port_buf[32];
+    snprintf(port_buf, sizeof(port_buf), "%d", local_port);
+
+    exlib::string key = bind_address;
+    key.append(1, '|');
+    key.append(port_buf);
+    return key;
+}
+
+class RTCListenHoldToken : public object_base {
+public:
+    RTCListenHoldToken(Isolate* isolate, exlib::string bind_address, int32_t local_port)
+        : m_bind_address(bind_address)
+        , m_local_port(local_port)
+        , m_key(rtc_listen_key(bind_address, local_port))
+    {
+        holder(isolate);
+        isolate_ref();
+    }
+
+    // 显式结束（rtc.stopListen）：只有真正停止成功才结束这条持有
+    void endListen()
+    {
+        if (m_ended)
+            return;
+
+        if (juice_mux_stop_listen(listen_addr(), m_local_port) != 0)
+            return;
+
+        detach();
+    }
+
+    // isolate 终止时的中断：尽力停止监听，但无论成功与否都必须回收 hold，
+    // 否则 isolate 永远拿不到 idle（worker 无法回收）。
+    virtual result_t stop()
+    {
+        if (m_ended)
+            return 0;
+
+        juice_mux_stop_listen(listen_addr(), m_local_port);
+        detach();
+
+        return 0;
+    }
+
+private:
+    // 结束策略：摘除注册表项 + 释放 hold（幂等）。
+    // 本 token 由 Isolate::m_rtcListenHolders 持有，析构发生在 isolate 拆除期，
+    // 因此不提供析构 unref，释放只走这里。
+    void detach()
+    {
+        if (m_ended)
+            return;
+
+        m_ended = true;
+
+        Isolate* isolate = holder();
+        auto it = isolate->m_rtcListenHolders.find(m_key);
+        if (it != isolate->m_rtcListenHolders.end() && (object_base*)it->second == this)
+            isolate->m_rtcListenHolders.erase(it);
+
+        isolate_unref();
+    }
+
+    const char* listen_addr()
+    {
+        return m_bind_address.empty() ? nullptr : m_bind_address.c_str();
+    }
+
+private:
+    exlib::string m_bind_address;
+    int32_t m_local_port;
+    exlib::string m_key;
+    bool m_ended = false;
+};
+
+} // namespace
+
 result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
 {
     struct cb_data {
@@ -74,7 +156,8 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
     else if (ret < 0)
         return Runtime::setError("rtc.listen() failed to bind to the specified port");
 
-    isolate->Ref();
+    exlib::string key = rtc_listen_key(bind_address, local_port);
+    isolate->m_rtcListenHolders[key] = new RTCListenHoldToken(isolate, bind_address, local_port);
 
     return 0;
 }
@@ -90,9 +173,15 @@ result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
     if (isolate->m_id != 1)
         return Runtime::setError("rtc.stopListen() can only be called in the main isolate");
 
-    int ret = juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
-    if (ret == 0)
-        isolate->Unref();
+    auto it = isolate->m_rtcListenHolders.find(rtc_listen_key(bind_address, local_port));
+    if (it == isolate->m_rtcListenHolders.end()) {
+        // 没有对应的 holder（例如非 listen() 建立的监听）：保持原行为，仅停监听
+        juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
+        return 0;
+    }
+
+    // 结束策略：停监听 + 摘表 + 释放 hold，与 isolate 终止路径共用
+    static_cast<RTCListenHoldToken*>((object_base*)it->second)->endListen();
 
     return 0;
 }

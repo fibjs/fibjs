@@ -1038,10 +1038,8 @@ result_t Http2Session::close(AsyncEvent* ac)
             m_session->m_close_event.set();
             m_session->m_listener_holder.Release();
 
-            if (m_session->m_ref_active) {
-                m_session->m_ref_active = false;
-                m_session->isolate_unref();
-            }
+            // 不在此 isolate_unref()：释放由 asyncReadLoop 的终态 releaseRef() 完成，
+            // 本 close 流程末尾的 abort_socket 会 abortTransport() 唤醒读循环。
 
             next(m_buf ? write_goaway : close_conn);
         }
@@ -1093,10 +1091,9 @@ result_t Http2Session::destroy()
     m_destroyed = true;
     m_closed = true;
 
-    if (m_ref_active) {
-        m_ref_active = false;
-        isolate_unref();
-    }
+    // 只中断，不在此 isolate_unref()：
+    // m_ref_active 由 asyncReadLoop 独占（构造置 true、6 处终态 releaseRef() 置 false），
+    // 下面的 abortTransport() 保证读循环一定被唤醒并走到终态完成释放。
 
     m_listener_holder.Release();
 

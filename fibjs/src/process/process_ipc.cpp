@@ -16,6 +16,42 @@
 
 namespace fibjs {
 
+namespace {
+
+class ProcessIpcHoldToken : public object_base {
+public:
+    // has_reader：本 token 是否伴随一条 IPC 读循环（= 一个未结束的事务）。
+    //   true  —— 结束策略在 ~asyncRead()（读循环真正结束）处释放；
+    //   false —— 只是一条 listener pin（m_ipc_mode == 1 路径），pin 即事务，由 stop()/on_removeListener 释放。
+    ProcessIpcHoldToken(Isolate* isolate, Stream_base* channel, bool has_reader)
+        : m_channel(channel)
+        , m_has_reader(has_reader)
+    {
+        holder(isolate);
+        isolate_ref();
+    }
+
+    // isolate 终止时的中断：只关闭 channel 唤醒读循环，不做无条件 unref。
+    // 由 Isolate::m_processIpcHolder 持有，析构发生在 isolate 拆除期，因此不加析构 unref。
+    virtual result_t stop()
+    {
+        if (m_channel)
+            m_channel->cc_close(holder());
+
+        // 没有读循环时没有别的事务结束策略，在此结束这条 pin
+        if (!m_has_reader)
+            isolate_unref();
+
+        return 0;
+    }
+
+private:
+    obj_ptr<Stream_base> m_channel;
+    bool m_has_reader;
+};
+
+} // namespace
+
 ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stream_base>& stream)
     : m_isolate(_isolate)
     , m_o(_isolate->m_isolate, _o)
@@ -62,7 +98,6 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
             : AsyncState(NULL)
             , m_this(pThis)
         {
-            m_this->m_isolate->Ref();
             m_bs = new BufferedStream(pThis->m_stream);
             m_bs->set_EOL("\n");
             next(read);
@@ -83,11 +118,16 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
                     t._emit("disconnect", NULL, 0, r);
                 }
 
+                if (ipc->m_isolate->m_processIpcHolder) {
+                    ipc->m_isolate->m_processIpcHolder->isolate_unref();
+                    ipc->m_isolate->m_processIpcHolder.Release();
+                    ipc->m_isolate->m_ipc_mode = 0;
+                }
+
                 delete ipc;
 
                 return 0;
             });
-            m_this->m_isolate->Unref();
         }
 
     public:
@@ -160,9 +200,13 @@ static void on_newListener(const v8::FunctionCallbackInfo<v8::Value>& args)
             isolate->m_ipc_mode = 0;
         else if (isolate->m_ipc_mode == 0) {
             new ChildProcess::Ipc(isolate, args.This(), isolate->m_channel);
+            // 伴随读循环：释放交给 ~asyncRead()
+            isolate->m_processIpcHolder = new ProcessIpcHoldToken(isolate, isolate->m_channel, true);
             isolate->m_ipc_mode = 2;
         } else if (isolate->m_ipc_mode == 1) {
-            isolate->Ref();
+            if (!isolate->m_processIpcHolder)
+                // 无读循环，只是 listener pin：由 stop()/on_removeListener 释放
+                isolate->m_processIpcHolder = new ProcessIpcHoldToken(isolate, isolate->m_channel, false);
             isolate->m_ipc_mode = 2;
         }
     }
@@ -182,7 +226,10 @@ static void on_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
             if (!isolate->m_channel)
                 isolate->m_ipc_mode = 0;
             else {
-                isolate->Unref();
+                if (isolate->m_processIpcHolder) {
+                    isolate->m_processIpcHolder->isolate_unref();
+                    isolate->m_processIpcHolder.Release();
+                }
                 isolate->m_ipc_mode = 1;
             }
         }

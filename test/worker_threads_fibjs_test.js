@@ -601,6 +601,23 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
+    it('terminates a worker with a pending callback-style TCP connect in order', (done) => {
+        const worker = new Worker([
+            "const net = require('net');",
+            "const { parentPort } = require('worker_threads');",
+            "const sock = net.connect(65001, '10.255.255.1', () => parentPort.postMessage({ type: 'connect' }));",
+            'sock.on("error", () => {});',
+            'parentPort.postMessage({ type: "ready" });'
+        ].join('\n'), { eval: true });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
     it('terminates a worker with an open WebSocket in order', (done) => {
         const worker = new Worker([
             "const { parentPort, workerData } = require('worker_threads');",
@@ -636,6 +653,31 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
+    it('terminates a worker with an active EventSource stream in order', (done) => {
+        const worker = new Worker([
+            "const sse = require('sse');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const es = new sse.EventSource(workerData.url);',
+            'es.onopen = () => {',
+            '  parentPort.postMessage({ type: "ready" });',
+            '};',
+            'es.onmessage = (event) => {',
+            '  parentPort.postMessage({ type: "message", value: event.data });',
+            '};',
+            'es.onerror = () => {};'
+        ].join('\n'), {
+            eval: true,
+            workerData: { url: `http://127.0.0.1:${ssePort}/sse` }
+        });
+
+        terminateWhenReady(worker, {
+            onReady(message) {
+                return message.type === 'ready';
+            },
+            quietMs: 260
+        }, done);
+    });
+
     it('terminates a worker with an active http2 session in order', (done) => {
         const worker = new Worker([
             "const http2 = require('http2');",
@@ -660,6 +702,43 @@ describe('worker_threads fibjs target behavior', () => {
             },
             quietMs: 260
         }, done);
+    });
+
+    it('releases the worker isolate when its http2 client session is closed', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker([
+            "const http2 = require('http2');",
+            "const { parentPort, workerData } = require('worker_threads');",
+            'const session = http2.connect(workerData.url, { rejectUnauthorized: false, rejectUnverified: false });',
+            'const stream = session.request({ ":method": "GET", ":path": "/hold" });',
+            'stream.on("data", () => {});',
+            'setTimeout(() => {',
+            '  session.close();',
+            '  parentPort.postMessage({ type: "closed" });',
+            '}, 120);'
+        ].join('\n'), {
+            eval: true,
+            workerData: { url: `https://localhost:${h2Port}` }
+        });
+
+        let closed = false;
+        worker.once('error', finish);
+        worker.on('message', (message) => {
+            if (message.type === 'closed')
+                closed = true;
+        });
+        worker.once('exit', (exitCode) => {
+            try {
+                // session.close() 之后必须自然退出（exitCode 0）：
+                // 说明 close 路径的 isolate hold 由读循环终态 releaseRef() 释放，
+                // 而不是依赖 stop()/destroy() 的强制回收。
+                assert.strictEqual(closed, true);
+                assert.strictEqual(exitCode, 0);
+                finish();
+            } catch (err) {
+                finish(err);
+            }
+        });
     });
 
     it('keeps parentPort alive across multiple messages with an async gap', (done) => {

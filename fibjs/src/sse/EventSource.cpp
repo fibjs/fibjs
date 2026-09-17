@@ -14,6 +14,69 @@
 
 namespace fibjs {
 
+// 操作型 hold token：统一管理一次 EventSource 读取操作（= 一个 ref 事务）对 isolate 的持有。
+//
+// 引用语义（重要）：
+//   - isolate_ref() 在事务开始时（构造）获取，代表“本事务未结束，isolate 不能 idle”
+//   - isolate_unref() 只在事务真正结束时（token 析构，即 AsyncEventSource 销毁）释放
+//   - stop() 只负责中断事务，**不得**自行 unref：
+//     否则会在读状态机仍在跑的时候就把 isolate 放回可 idle 状态，
+//     导致 isolate 带着未结束的事务进入收尾。
+class EventSourceHoldToken : public object_base {
+public:
+    EventSourceHoldToken(Isolate* isolate)
+    {
+        holder(isolate);
+        isolate_ref();
+    }
+
+    // 在 JS 线程上登记读循环正在使用的 BufferedStream
+    void setStream(BufferedStream_base* stm)
+    {
+        m_lock.lock();
+        m_stream = stm;
+        m_lock.unlock();
+    }
+
+    void clearStream()
+    {
+        m_lock.lock();
+        m_stream.Release();
+        m_lock.unlock();
+    }
+
+    // isolate 终止时由 stopHoldingObjects() 调用：
+    // 只中断事务，让事务自己走完结束流程。
+    virtual result_t stop()
+    {
+        obj_ptr<BufferedStream_base> stm;
+
+        m_lock.lock();
+        stm = m_stream;
+        m_stream.Release();
+        m_lock.unlock();
+
+        // 关闭读者正在使用的 BufferedStream（不是传输层）。
+        // 这会同步驱动读状态机收尾：readLine() 以 EOF 返回，
+        // 状态机跑完后 AsyncState::post() 会 delete this，
+        // 进而释放本 token 并在此处之外完成 isolate_unref()。
+        if (stm)
+            stm->cc_close(holder());
+
+        return 0;
+    }
+
+    ~EventSourceHoldToken()
+    {
+        // 事务结束的唯一释放点
+        isolate_unref();
+    }
+
+private:
+    exlib::spinlock m_lock;
+    obj_ptr<BufferedStream_base> m_stream;
+};
+
 class AsyncEventSource : public AsyncState {
 public:
     AsyncEventSource(HttpClient* hc, EventSource* es, exlib::string url)
@@ -23,7 +86,7 @@ public:
         , m_url(url)
     {
         m_isolate = es->holder();
-        m_isolate->Ref();
+        m_token = new EventSourceHoldToken(m_isolate);
 
         m_holder = new ValueHolder(es->wrap());
 
@@ -32,7 +95,10 @@ public:
 
     ~AsyncEventSource()
     {
-        m_isolate->Unref();
+        // 事务结束：摘掉读流并释放 token，
+        // isolate_unref() 由 ~EventSourceHoldToken() 完成。
+        m_token->clearStream();
+        m_token.Release();
     }
 
 public:
@@ -67,6 +133,7 @@ public:
 
         m_sse_stm = new BufferedStream(stm);
         m_sse_stm->set_EOL("\n");
+        m_token->setStream(m_sse_stm);
 
         m_es->m_readyState = sse_base::C_OPEN;
         (new EventInfo(m_es, "open"))->emit();
@@ -112,6 +179,7 @@ public:
         if (strLine.empty()) {
             if (m_line_count == 0) {
                 m_es->m_readyState = sse_base::C_CLOSED;
+                m_token->clearStream();
                 (new EventInfo(m_es, "close"))->emit();
                 return next();
             } else {
@@ -173,6 +241,7 @@ private:
     obj_ptr<HttpClient> m_hc;
     obj_ptr<EventSource> m_es;
     obj_ptr<ValueHolder> m_holder;
+    obj_ptr<EventSourceHoldToken> m_token;
     exlib::string m_url;
     Isolate* m_isolate;
     obj_ptr<BufferedStream_base> m_sse_stm;

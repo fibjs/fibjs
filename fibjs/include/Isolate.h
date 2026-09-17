@@ -361,6 +361,8 @@ public:
 
     obj_ptr<Stream_base> m_channel;
     int32_t m_ipc_mode;
+    obj_ptr<object_base> m_processIpcHolder;
+    std::unordered_map<exlib::string, obj_ptr<object_base>> m_rtcListenHolders;
 
     obj_ptr<Worker_base> m_parent_worker;
     obj_ptr<MessagePort_base> m_parent_port;

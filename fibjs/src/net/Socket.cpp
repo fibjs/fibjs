@@ -398,13 +398,13 @@ public:
         , m_ac(nullptr)
     {
         setAsync();
-        m_isolate->Ref();
+        m_sock->isolate_ref();
     }
 
     ~connectWrapper()
     {
         if (!m_ac)
-            m_isolate->Unref();
+            m_sock->isolate_unref();
     }
 
     virtual int32_t post(int32_t v)

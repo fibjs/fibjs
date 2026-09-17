@@ -230,7 +230,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             , m_sock(pThis)
             , m_ac(nullptr)
         {
-            m_isolate->Ref();
+            m_sock->isolate_ref();
             // Already in uv loop thread, start timer immediately
             start_timer();
         }
@@ -238,7 +238,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         ~AsyncConnect()
         {
             if (!m_ac)
-                m_isolate->Unref();
+                m_sock->isolate_unref();
         }
 
         static void callback(uv_connect_t* req, int status)

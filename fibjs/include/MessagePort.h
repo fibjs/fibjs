@@ -97,6 +97,7 @@ private:
     bool m_raw_message_mode;
     bool m_flush_pending;
     std::list<obj_ptr<Buffer_base>> m_queue;
+    obj_ptr<object_base> m_keepalive_holder;
     obj_ptr<Worker> m_message_target;
 };
 
