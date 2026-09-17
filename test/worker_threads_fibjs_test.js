@@ -2042,4 +2042,264 @@ describe('worker_threads fibjs target behavior', () => {
     // 仍为已知限制：coroutine.sleep 把 fiber park 在定时器队列上，worker 线程此时并不在
     // 执行 JS，中断无从下手 —— 需要「可唤醒 fiber 登记表」才能让 worker 退出去。
     it.todo('terminates a worker parked in coroutine.sleep (known limitation: needs fiber wake-up registry)');
+
+    // ---------- G4：worker.ref() / unref() 与父进程存活 ----------
+    // Node 语义：ref'd worker 阻止父进程退出（父进程等它）；unref() 之后父进程不再等它
+    // （worker 线程随进程退出被直接回收，不发 exit 事件）。ref()/unref() 幂等，重复调用无副作用。
+
+    it('keeps the message channel working across unref() and ref()', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker(readyWorkerFile);
+
+        worker.once('error', finish);
+
+        const reply = (payload) => {
+            worker.postMessage({ cmd: payload });
+        };
+
+        let step = 0;
+        worker.on('message', (message) => {
+            try {
+                assert.strictEqual(message.kind, 'reply');
+                step++;
+
+                if (step === 1) {
+                    // unref 只解除「父进程存活」的持有，不影响通道
+                    worker.unref();
+                    reply('after-unref');
+                } else if (step === 2) {
+                    // ref 恢复持有；重复 unref/ref 必须幂等
+                    worker.ref();
+                    worker.unref();
+                    worker.unref();
+                    worker.ref();
+                    reply('after-ref');
+                } else {
+                    Promise.resolve(worker.terminate()).then(() => finish(), finish);
+                }
+            } catch (err) {
+                finish(err);
+            }
+        });
+
+        reply('first');
+    });
+
+    it('treats unref() on an exited worker as a no-op', (done) => {
+        const finish = doneOnce(done);
+        const worker = new Worker('process.exitCode = 0;', { eval: true });
+
+        worker.once('error', finish);
+        worker.once('exit', () => {
+            try {
+                // 已退出 → hold 已由 emitExit() 释放；此处 unref() 不得重复释放（refcount 不得下溢）
+                worker.unref();
+                worker.ref();
+                worker.unref();
+            } catch (err) {
+                finish(err);
+                return;
+            }
+
+            setTimeout(() => finish(), 50);
+        });
+    });
+
+    it('does not make the parent wait for an unref()ed worker', (done) => {
+        const finish = doneOnce(done);
+        const liveFile = path.join(fixtureRoot, 'unref-live.js');
+        const childFile = path.join(fixtureRoot, 'unref-parent.js');
+
+        // worker 存活 10s：父进程若等待它，子进程不可能在预算内退出
+        fs.writeFileSync(liveFile, 'setInterval(() => {}, 10000);\n', 'utf8');
+        fs.writeFileSync(childFile, [
+            "const { Worker } = require('worker_threads');",
+            'const w = new Worker(process.argv[2]);',
+            'w.on("exit", (code) => console.log("WORKER_EXIT:" + code));',
+            'w.unref();',
+            'process.on("beforeExit", () => console.log("BEFORE_EXIT"));',
+            'console.log("PARENT_END");'
+        ].join('\n'), 'utf8');
+
+        const startedAt = Date.now();
+        const child = child_process.spawn(process.execPath, [childFile, liveFile], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+        let stdout = '';
+        let stderr = '';
+        let settled = false;
+
+        const settle = (err) => {
+            if (settled)
+                return;
+
+            settled = true;
+            clearTimeout(watchdog);
+            try {
+                child.kill();
+            } catch (_) {
+                // 已退出
+            }
+            finish(err);
+        };
+
+        const watchdog = setTimeout(() => {
+            settle(new Error('parent process did not exit while only an unref()ed worker was left'));
+        }, 5000);
+
+        child.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+        child.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+        child.on('error', (err) => settle(err));
+        child.on('exit', (code) => {
+            const elapsed = Date.now() - startedAt;
+
+            try {
+                assert.strictEqual(code, 0, 'child exit code (stderr: ' + stderr.trim() + ')');
+                assert.ok(elapsed < 4000, 'parent should exit without waiting for the unref()ed worker, took ' + elapsed + 'ms');
+                assert.ok(stdout.indexOf('PARENT_END') >= 0, 'parent finished its script: ' + stdout);
+                assert.ok(stdout.indexOf('BEFORE_EXIT') >= 0, 'beforeExit must fire once only unref()ed workers are left: ' + stdout);
+                // 进程退出直接回收 worker 线程：不发 exit 事件（与 Node 一致）
+                assert.strictEqual(stdout.indexOf('WORKER_EXIT'), -1, 'unref()ed worker must not be waited for: ' + stdout);
+                settle();
+            } catch (err) {
+                settle(err);
+            }
+        });
+    });
+
+    it('makes the parent wait again after ref() and observes the worker exit', (done) => {
+        const finish = doneOnce(done);
+        const liveFile = path.join(fixtureRoot, 'ref-live.js');
+        const childFile = path.join(fixtureRoot, 'ref-parent.js');
+
+        // worker 自然存活 ~900ms：ref'd 时父进程必须等它退出后才结束
+        fs.writeFileSync(liveFile, 'setTimeout(() => {}, 900);\n', 'utf8');
+        fs.writeFileSync(childFile, [
+            "const { Worker } = require('worker_threads');",
+            'const w = new Worker(process.argv[2]);',
+            'w.on("exit", (code) => console.log("WORKER_EXIT:" + code));',
+            'w.unref();',
+            'w.ref();',
+            'console.log("PARENT_END");'
+        ].join('\n'), 'utf8');
+
+        const startedAt = Date.now();
+        const child = child_process.spawn(process.execPath, [childFile, liveFile], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+        let stdout = '';
+        let stderr = '';
+        let settled = false;
+
+        const settle = (err) => {
+            if (settled)
+                return;
+
+            settled = true;
+            clearTimeout(watchdog);
+            try {
+                child.kill();
+            } catch (_) {
+                // 已退出
+            }
+            finish(err);
+        };
+
+        const watchdog = setTimeout(() => {
+            settle(new Error('parent process did not exit after the ref()ed worker finished'));
+        }, 6000);
+
+        child.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+        child.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+        child.on('error', (err) => settle(err));
+        child.on('exit', (code) => {
+            const elapsed = Date.now() - startedAt;
+
+            try {
+                assert.strictEqual(code, 0, 'child exit code (stderr: ' + stderr.trim() + ')');
+                assert.ok(stdout.indexOf('PARENT_END') >= 0, 'parent finished its script: ' + stdout);
+                // ref'd：父进程等到 worker 退出，且 exit 事件在脚本结束之后到达
+                assert.ok(stdout.indexOf('WORKER_EXIT:0') >= 0, 'parent must wait for the ref()ed worker: ' + stdout);
+                assert.ok(stdout.indexOf('PARENT_END') < stdout.indexOf('WORKER_EXIT'), 'worker exit must arrive after the parent script ended: ' + stdout);
+                assert.ok(elapsed >= 800, 'parent must not exit before the ref()ed worker finished, took ' + elapsed + 'ms');
+                settle();
+            } catch (err) {
+                settle(err);
+            }
+        });
+    });
+
+    it('re-runs beforeExit while an unref()ed worker stays alive', (done) => {
+        const finish = doneOnce(done);
+        const liveFile = path.join(fixtureRoot, 'beforeexit-live.js');
+        const childFile = path.join(fixtureRoot, 'beforeexit-parent.js');
+
+        fs.writeFileSync(liveFile, 'setInterval(() => {}, 10000);\n', 'utf8');
+        fs.writeFileSync(childFile, [
+            "const { Worker } = require('worker_threads');",
+            'const w = new Worker(process.argv[2]);',
+            'w.unref();',
+            'let n = 0;',
+            'process.on("beforeExit", () => {',
+            '  n++;',
+            '  console.log("BEFORE_EXIT:" + n);',
+            '  if (n === 1) setTimeout(() => console.log("TIMER"), 200);',
+            '});',
+            'process.on("exit", (code) => console.log("EXIT:" + code + ":" + n));'
+        ].join('\n'), 'utf8');
+
+        const child = child_process.spawn(process.execPath, [childFile, liveFile], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+        let stdout = '';
+        let stderr = '';
+        let settled = false;
+
+        const settle = (err) => {
+            if (settled)
+                return;
+
+            settled = true;
+            clearTimeout(watchdog);
+            try {
+                child.kill();
+            } catch (_) {
+                // 已退出
+            }
+            finish(err);
+        };
+
+        const watchdog = setTimeout(() => {
+            settle(new Error('parent process did not exit after beforeExit re-armed new work'));
+        }, 5000);
+
+        child.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+        child.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+        child.on('error', (err) => settle(err));
+        child.on('exit', (code) => {
+            try {
+                assert.strictEqual(code, 0, 'child exit code (stderr: ' + stderr.trim() + ')');
+                // Node 循环语义：unref'd worker 不阻止退出，但 beforeExit 里新安排的工作必须跑完
+                const order = ['BEFORE_EXIT:1', 'TIMER', 'BEFORE_EXIT:2', 'EXIT:0:2'];
+                let cursor = -1;
+                for (const marker of order) {
+                    const at = stdout.indexOf(marker);
+                    assert.ok(at > cursor, 'expected ' + marker + ' in order, got: ' + stdout);
+                    cursor = at;
+                }
+                settle();
+            } catch (err) {
+                settle(err);
+            }
+        });
+    });
 });

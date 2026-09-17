@@ -552,8 +552,10 @@ void Isolate::Unref(int32_t hr)
             return;
         }
 
-        if (s_iso_count.dec() != 0)
-            return;
+        // 主 isolate 归零：是否退出只取决于「本 isolate 还有没有其它持有者」，
+        // 不再要求所有 isolate 都归零 —— 仍存活的 worker 是否阻止进程退出，
+        // 由它是否对主 isolate 持有 ref（worker.ref() / unref()）决定，与 Node 一致。
+        s_iso_count.dec();
 
         Isolate* isolate = s_isolates.head();
         isolate->m_hr = hr;
@@ -561,12 +563,19 @@ void Isolate::Unref(int32_t hr)
         isolate->sync([isolate]() -> int {
             v8::HandleScope handle_scope(isolate->m_isolate);
             JSFiber::EnterJsScope s;
-            JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
             v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
-            bool r;
 
-            t._emit("beforeExit", &code, 1, r);
-            if (s_iso_count == 1 && isolate->m_ref == 1) {
+            if (!isolate->is_terminating() && !isolate->m_isolate->IsExecutionTerminating()) {
+                v8::Local<v8::Object> processModule = process_base::class_info().getModule(isolate);
+                if (!processModule.IsEmpty()) {
+                    bool r;
+                    JSTrigger t(isolate->m_isolate, processModule);
+                    t._emit("beforeExit", &code, 1, r);
+                }
+            }
+
+            // 本任务自身持有 1 个 ref：m_ref == 1 即「没有其它持有者」（含 ref'd worker）
+            if (isolate->m_ref == 1) {
                 if (isolate->m_hr >= 0)
                     process_base::exit();
                 else

@@ -545,6 +545,39 @@ describe('worker_threads node baseline', () => {
         });
     });
 
+    it('re-runs beforeExit while an unref()ed worker stays alive', () => {
+        const child_process = require('child_process');
+        const liveFile = path.join(fixtureRoot, 'beforeexit-live.js');
+        const childFile = path.join(fixtureRoot, 'beforeexit-parent.js');
+
+        fs.writeFileSync(liveFile, 'setInterval(() => {}, 10000);\n', 'utf8');
+        fs.writeFileSync(childFile, [
+            "const { Worker } = require('worker_threads');",
+            'const w = new Worker(process.argv[2]);',
+            'w.unref();',
+            'let n = 0;',
+            'process.on("beforeExit", () => {',
+            '  n++;',
+            '  console.log("BEFORE_EXIT:" + n);',
+            '  if (n === 1) setTimeout(() => console.log("TIMER"), 200);',
+            '});',
+            'process.on("exit", (code) => console.log("EXIT:" + code + ":" + n));'
+        ].join('\n'), 'utf8');
+
+        const stdout = child_process.execFileSync(process.execPath, [childFile, liveFile], {
+            timeout: 5000,
+            encoding: 'utf8'
+        });
+
+        const order = ['BEFORE_EXIT:1', 'TIMER', 'BEFORE_EXIT:2', 'EXIT:0:2'];
+        let cursor = -1;
+        for (const marker of order) {
+            const at = stdout.indexOf(marker);
+            assert.ok(at > cursor, 'expected ' + marker + ' in order, got: ' + stdout);
+            cursor = at;
+        }
+    });
+
     it('does not schedule new fibers from timers after terminate', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
