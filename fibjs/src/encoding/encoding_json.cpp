@@ -324,6 +324,10 @@ inline result_t _jsonDecode(exlib::string data,
 
                     i::Handle<i::String> name = i::Object::ToString(v8_isolate, key.ToHandleChecked()).ToHandleChecked();
 
+                    // NOTE: intentionally kept as Check() -- this is a copy of
+                    // V8's internal JSON parser working on i:: handles, where
+                    // the only failure mode is OOM and the surrounding i::
+                    // calls (ToHandleChecked above) abort the same way.
                     i::JSObject::DefinePropertyOrElementIgnoreAttributes(json_object,
                         name, value.ToHandleChecked())
                         .Check();
@@ -395,7 +399,8 @@ inline result_t _jsonDecode(exlib::string data,
             if (hr < 0)
                 return hr;
 
-            retVal = Utils::ToMaybeLocal(maybe).ToLocalChecked();
+            if (!Utils::ToMaybeLocal(maybe).ToLocal(&retVal))
+                return CALL_E_JAVASCRIPT;
             return 0;
         }
 

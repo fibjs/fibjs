@@ -207,7 +207,7 @@ void ConsoleObject::_out(int32_t type, exlib::string& msg)
             : v8::Local<v8::Object>::New(isolate->m_isolate, m_stdout);
 
         v8::Local<v8::Value> write_fn;
-        if (stm->Get(context, isolate->NewString("write")).ToLocal(&write_fn) && write_fn->IsFunction()) {
+        if (!stm.IsEmpty() && stm->Get(context, isolate->NewString("write")).ToLocal(&write_fn) && write_fn->IsFunction()) {
             msg.append(1, '\n');
             v8::Local<v8::Value> argv[1] = { isolate->NewString(msg) };
             write_fn.As<v8::Function>()->Call(context, stm, 1, argv).IsEmpty();

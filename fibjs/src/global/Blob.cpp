@@ -217,8 +217,8 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
             }
 
             if (!buffer) {
-                v8::Local<v8::String> partStr = part->ToString(isolate->context()).ToLocalChecked();
-                if (partStr.IsEmpty()) {
+                v8::Local<v8::String> partStr;
+                if (!part->ToString(isolate->context()).ToLocal(&partStr)) {
                     return CALL_E_TYPEMISMATCH;
                 }
                 v8::String::Utf8Value str(isolate->m_isolate, partStr);

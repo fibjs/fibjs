@@ -213,8 +213,14 @@ static v8::Local<v8::Function> get_async_iterable_fn(Isolate* isolate)
             "        }"
             "    };"
             "})");
-        v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
-        v8::Local<v8::Value> fn = script->Run(context).ToLocalChecked();
+        v8::Local<v8::Script> script;
+        if (!v8::Script::Compile(context, source).ToLocal(&script))
+            return v8::Local<v8::Function>();
+
+        v8::Local<v8::Value> fn;
+        if (!script->Run(context).ToLocal(&fn) || fn.IsEmpty() || !fn->IsFunction())
+            return v8::Local<v8::Function>();
+
         isolate->m_asyncIterFn.Reset(isolate->m_isolate, fn.As<v8::Function>());
     }
 

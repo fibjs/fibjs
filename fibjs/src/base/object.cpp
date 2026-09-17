@@ -17,8 +17,9 @@ v8::Local<v8::Object> object_base::wrap(Isolate* isolate, v8::Local<v8::Object> 
     v8::Isolate* v8_isolate = isolate->m_isolate;
 
     if (!(m_isJSObject & JSOBJECT_JSHANDLE)) {
-        if (o.IsEmpty())
+        if (o.IsEmpty()) {
             o = Classinfo().CreateInstance(isolate);
+        }
         handle_.Reset(v8_isolate, o);
         o->SetAlignedPointerInInternalField(0, this);
         v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);

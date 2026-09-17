@@ -240,9 +240,13 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     if (!isFunction && !isError && !v->IsArray()) {
                         v8::Local<v8::Value> prototype = obj->GetPrototype();
                         if (prototype->IsObject()) {
-                            v8::Local<v8::Object> protoObj = prototype->ToObject(_context).ToLocalChecked();
-                            v8::Local<v8::Value> protoName = protoObj->Get(_context, v8::String::NewFromUtf8(isolate->m_isolate, "constructor").ToLocalChecked()).ToLocalChecked();
-                            if (protoName->IsFunction()) {
+                            v8::Local<v8::Object> protoObj;
+                            v8::Local<v8::String> ctorKey;
+                            v8::Local<v8::Value> protoName;
+                            if (prototype->ToObject(_context).ToLocal(&protoObj)
+                                && v8::String::NewFromUtf8(isolate->m_isolate, "constructor").ToLocal(&ctorKey)
+                                && protoObj->Get(_context, ctorKey).ToLocal(&protoName)
+                                && protoName->IsFunction()) {
                                 v8::Local<v8::Function> constructor = protoName.As<v8::Function>();
                                 v8::Local<v8::String> name = constructor->GetName().As<v8::String>();
                                 v8::String::Utf8Value utf8(isolate->m_isolate, name);

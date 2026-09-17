@@ -23,6 +23,14 @@ describe('types', () => {
         assert.isFalse(types.isEmpty({
             a: 100
         }));
+
+        assert.throws(() => {
+            types.isEmpty(new Proxy({}, {
+                ownKeys() {
+                    throw new Error('ownKeys boom');
+                }
+            }));
+        }, /ownKeys boom/);
     });
 
     it("isArray", () => {

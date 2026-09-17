@@ -122,7 +122,9 @@ public:
 
         if (m_closed_promise.IsEmpty()) {
             v8::Local<v8::Context> context = isolate->context();
-            auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
+            v8::Local<v8::Promise::Resolver> resolver;
+            if (!v8::Promise::Resolver::New(context).ToLocal(&resolver))
+                return CHECK_ERROR(CALL_E_JAVASCRIPT);
             m_closed_resolver.Reset(isolate->m_isolate, resolver);
             m_closed_promise.Reset(isolate->m_isolate, resolver->GetPromise());
         }
@@ -145,7 +147,7 @@ private:
             if (!pThis->m_closed_resolver.IsEmpty()) {
                 v8::Local<v8::Promise::Resolver> resolver = pThis->m_closed_resolver.Get(isolate->m_isolate);
                 v8::Local<v8::Context> context = isolate->context();
-                resolver->Resolve(context, v8::Undefined(isolate->m_isolate)).Check();
+                resolver->Resolve(context, v8::Undefined(isolate->m_isolate)).FromMaybe(false);
                 pThis->m_closed_resolver.Reset();
             }
             return 0;

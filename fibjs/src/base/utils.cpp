@@ -174,16 +174,28 @@ static v8::Local<v8::Value> MakeException(Isolate* isolate, ErrorType et, exlib:
     case kURIError: {
         auto ctx = isolate->context();
         auto glob = ctx->Global();
-        auto ctor = JSValue(glob->Get(ctx, isolate->NewString("URIError"))).As<v8::Object>();
+        auto ctorVal = JSValue(glob->Get(ctx, isolate->NewString("URIError")));
+        if (ctorVal.IsEmpty() || !ctorVal->IsFunction())
+            return v8::Exception::Error(v8msg);
+        auto ctor = ctorVal.As<v8::Object>();
         v8::Local<v8::Value> args[] = { v8msg };
-        return ctor->CallAsConstructor(ctx, 1, args).FromMaybe(v8::Local<v8::Value>());
+        v8::Local<v8::Value> error;
+        if (ctor->CallAsConstructor(ctx, 1, args).ToLocal(&error))
+            return error;
+        return v8::Exception::Error(v8msg);
     }
     case kEvalError: {
         auto ctx = isolate->context();
         auto glob = ctx->Global();
-        auto ctor = JSValue(glob->Get(ctx, isolate->NewString("EvalError"))).As<v8::Object>();
+        auto ctorVal = JSValue(glob->Get(ctx, isolate->NewString("EvalError")));
+        if (ctorVal.IsEmpty() || !ctorVal->IsFunction())
+            return v8::Exception::Error(v8msg);
+        auto ctor = ctorVal.As<v8::Object>();
         v8::Local<v8::Value> args[] = { v8msg };
-        return ctor->CallAsConstructor(ctx, 1, args).FromMaybe(v8::Local<v8::Value>());
+        v8::Local<v8::Value> error;
+        if (ctor->CallAsConstructor(ctx, 1, args).ToLocal(&error))
+            return error;
+        return v8::Exception::Error(v8msg);
     }
     default:
         return v8::Exception::Error(v8msg);
@@ -383,20 +395,27 @@ exlib::string GetException(v8::Local<v8::Value> err, bool repl, bool trace)
 
         strError.append(" " + COLOR_RESET);
 
-        v8::Local<v8::Array> keys = err_obj->GetPropertyNames(context).ToLocalChecked();
-        int32_t len = keys->Length();
-        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+        v8::Local<v8::Array> keys;
+        if (err_obj->GetPropertyNames(context).ToLocal(&keys) && !keys.IsEmpty()) {
+            int32_t len = keys->Length();
+            v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        for (int32_t i = 0; i < len; i++) {
-            v8::Local<v8::Value> key = keys->Get(context, i).ToLocalChecked();
-            v8::Local<v8::Value> val = err_obj->Get(context, key).ToLocalChecked();
+            for (int32_t i = 0; i < len; i++) {
+                v8::Local<v8::Value> key;
+                if (!keys->Get(context, i).ToLocal(&key))
+                    continue;
 
-            o->Set(context, key, val).IsJust();
+                v8::Local<v8::Value> val;
+                if (!err_obj->Get(context, key).ToLocal(&val))
+                    continue;
+
+                o->Set(context, key, val).IsJust();
+            }
+
+            exlib::string str;
+            util_base::inspect(o, v8::Local<v8::Object>(), str);
+            strError.append(str);
         }
-
-        exlib::string str;
-        util_base::inspect(o, v8::Local<v8::Object>(), str);
-        strError.append(str);
     }
 
     return strError;

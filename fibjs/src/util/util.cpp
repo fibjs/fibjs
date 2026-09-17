@@ -53,7 +53,7 @@ result_t util_base::parseEnv(exlib::string content, v8::Local<v8::Object>& retVa
     v8::Local<v8::Object> result = v8::Object::New(isolate->m_isolate);
     dotenv_parser::store_t store;
 
-    result->SetPrototype(context, v8::Null(isolate->m_isolate)).Check();
+    result->SetPrototype(context, v8::Null(isolate->m_isolate)).FromMaybe(false);
     dotenv_parser::parse_content(std::string_view(content.c_str(), content.length()), store);
 
     for (const auto& entry : store) {
@@ -149,8 +149,10 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
-        else if (v->IsDate())
-            retVal = v8::Date::New(_context, isolate->toNumber(v)).FromMaybe(v8::Local<v8::Value>());
+        else if (v->IsDate()) {
+            if (!v8::Date::New(_context, isolate->toNumber(v)).ToLocal(&retVal))
+                return CALL_E_JAVASCRIPT;
+        }
         else if (v->IsBooleanObject())
             retVal = v8::BooleanObject::New(isolate->m_isolate, isolate->toBoolean(v));
         else if (v->IsNumberObject())
@@ -160,7 +162,8 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
             retVal = v8::StringObject::New(isolate->m_isolate, so->ValueOf());
         } else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v.As<v8::RegExp>();
-            retVal = v8::RegExp::New(_context, re->GetSource(), re->GetFlags()).FromMaybe(v8::Local<v8::Value>());
+            if (!v8::RegExp::New(_context, re->GetSource(), re->GetFlags()).ToLocal(&retVal))
+                return CALL_E_JAVASCRIPT;
         } else if (v->IsFunction() || v->IsArray() || IsJSObject(v))
             retVal = v.As<v8::Object>()->Clone();
         else

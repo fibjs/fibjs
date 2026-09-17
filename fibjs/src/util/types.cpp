@@ -38,7 +38,15 @@ result_t types_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 
     if (v->IsObject()) {
         v8::Local<v8::Object> o = v.As<v8::Object>();
-        retVal = o->GetOwnPropertyNames(o->GetCreationContextChecked()).FromMaybe(v8::Local<v8::Array>())->Length() == 0;
+
+        v8::Local<v8::Context> context;
+        if (!o->GetCreationContext().ToLocal(&context))
+            return CALL_E_JAVASCRIPT;
+
+        v8::Local<v8::Array> keys;
+        if (!o->GetOwnPropertyNames(context).ToLocal(&keys) || keys.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+        retVal = keys->Length() == 0;
         return 0;
     }
 

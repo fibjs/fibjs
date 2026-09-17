@@ -66,7 +66,7 @@ public:
     void DetachArrayBuffers()
     {
         for (auto& ab : m_transferList) {
-            ab->Detach(v8::Local<v8::Value>()).Check();
+            ab->Detach(v8::Local<v8::Value>()).FromMaybe(false);
         }
     }
 

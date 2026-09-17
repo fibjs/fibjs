@@ -141,12 +141,15 @@ public:
         if (m_handle.IsEmpty()) {
             // Create the _handle object with a close method
             v8::Local<v8::Object> handle = v8::Object::New(isolate->m_isolate);
-            v8::Local<v8::Function> closeFn = v8::Function::New(context,
-                [](const v8::FunctionCallbackInfo<v8::Value>& info) {
-                    // no-op close for compatibility
-                })
-                                                  .ToLocalChecked();
-            handle->Set(context, isolate->NewString("close"), closeFn).Check();
+            v8::Local<v8::Function> closeFn;
+            if (!v8::Function::New(context,
+                    [](const v8::FunctionCallbackInfo<v8::Value>& info) {
+                        // no-op close for compatibility
+                    })
+                     .ToLocal(&closeFn))
+                return CALL_E_JAVASCRIPT;
+
+            handle->Set(context, isolate->NewString("close"), closeFn).IsJust();
             m_handle.Reset(isolate->m_isolate, handle);
         }
 
