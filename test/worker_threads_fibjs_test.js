@@ -957,6 +957,48 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
+    it('cascades terminate to nested workers', (done) => {
+        const finish = doneOnce(done);
+        const childFile = path.join(fixtureRoot, 'nested-child.js');
+        fs.writeFileSync(childFile, 'setInterval(() => {}, 1000);\n', 'utf8');
+
+        const worker = new Worker([
+            "const { Worker, parentPort, workerData } = require('worker_threads');",
+            'const nested = new Worker(workerData.childFile);',
+            'nested.on("exit", (code) => parentPort.postMessage({ nestedExit: code }));',
+            'parentPort.postMessage("ready");'
+        ].join('\n'), {
+            eval: true,
+            workerData: { childFile }
+        });
+
+        const events = [];
+        let terminated = false;
+
+        worker.on('message', (message) => {
+            events.push(typeof message === 'string' ? message : JSON.stringify(message));
+            if (message !== 'ready' || terminated)
+                return;
+
+            terminated = true;
+            Promise.resolve(worker.terminate()).then((code) => {
+                setTimeout(() => {
+                    try {
+                        // Node 语义：worker teardown 会一并停掉它的嵌套 worker（否则父 worker 无法收敛）
+                        assert.strictEqual(code, 1);
+                        assert.strictEqual(events[0], 'ready');
+                        assert.ok(events.indexOf('exit') > 0);
+                        finish();
+                    } catch (err) {
+                        finish(err);
+                    }
+                }, 200);
+            }, finish);
+        });
+        worker.once('exit', () => events.push('exit'));
+        worker.once('error', finish);
+    });
+
     it('delivers messages sent before terminate and none after exit', (done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
