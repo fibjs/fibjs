@@ -298,7 +298,15 @@ JSFiber::EnterJsScope::~EnterJsScope()
 
     isolate->RunMicrotasks(Isolate::MicrotaskCheckpointReason::kJsScopeLeave);
 
-    m_pFiber->m_message = ReportException(try_catch, m_hr, false);
+    // Terminate 竞态：worker.terminate() 的硬中断（TerminateExecution）会让 TryCatch
+    // 捕获到 V8 的终止异常，但 isolate 已处于终止态，GetException 拿不到异常对象
+    // （空句柄）会 fallback 成 "Unknown error." 并 errorLog 打印，属于噪音。
+    // 终止态下 worker 本就按 exitCode 1 静默退出（不产生 error 事件），跳过上报；
+    // 正常 JS 错误（非终止）路径保持不变。
+    if (!isolate->is_terminating() && !isolate->m_isolate->IsExecutionTerminating())
+        m_pFiber->m_message = ReportException(try_catch, m_hr, false);
+    else
+        m_pFiber->m_message.clear();
 
     isolate->m_js_scope_depth--;
 
