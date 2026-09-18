@@ -352,10 +352,20 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
         // Install Symbol.asyncIterator on the Promise (adaptive wrapper, see
         // get_async_iterable_fn): for await (var row of connP.iterate(...))
         // can consume the return value of async methods directly
-        promise->Set(m_isolate->context(),
-            v8::Symbol::GetAsyncIterator(m_isolate->m_isolate),
-            get_async_iterable_fn(m_isolate))
-            .IsJust();
+        //
+        // Terminate 竞态防护：worker.terminate() 的硬中断（TerminateExecution）后，
+        // V8 处于终止态，首次构造该 wrapper 时的 Script::Compile/Run 会失败并返回
+        // 空句柄；把空句柄交给 Object::Set 会走到 V8 内部解引用空 handle 而崩溃
+        // （实测栈：Object::Set → TransitionAndWriteDataProperty →
+        // Map::TransitionToDataProperty → Handle<Object>::operator*，
+        // 与 Buffer::load_module 已修的崩溃同源）。终止态下 worker 本就不该再执行 JS，
+        // 跳过安装即可；后续 resolve/reject 路径保持原样。
+        if (!m_isolate->is_terminating() && !m_isolate->m_isolate->IsExecutionTerminating()) {
+            v8::Local<v8::Symbol> async_iter_symbol = v8::Symbol::GetAsyncIterator(m_isolate->m_isolate);
+            v8::Local<v8::Function> async_iter_fn = get_async_iterable_fn(m_isolate);
+            if (!async_iter_symbol.IsEmpty() && !async_iter_fn.IsEmpty())
+                promise->Set(m_isolate->context(), async_iter_symbol, async_iter_fn).IsJust();
+        }
 
         if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
             if (hr == CALL_E_EXCEPTION) {
