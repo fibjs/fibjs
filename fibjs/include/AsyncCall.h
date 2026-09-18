@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <string>
 #include <functional>
 #include <exlib/include/fiber.h>
@@ -26,6 +27,47 @@ private:
 public:
     AsyncEvent(Isolate* isolate = NULL);
     virtual ~AsyncEvent();
+
+public:
+    // --- 异步派发存活模型 ------------------------------------------------
+    // 一次“派发”= 从入队/进入状态机到执行完毕。每个在飞派发持有一份引用：
+    //   reserve()  入队或进入状态机时 +1
+    //   release()  派发退出时 -1；若此时对象已进入终态且计数归零，本次调用即为
+    //              唯一的销毁仲裁者（返回 true 时调用者必须 delete）
+    // 进入终态的 AsyncState 不立即销毁，而是等最后一个在飞派发退出；终态之后
+    // 新到的派发在 apost()/post() 入口被直接丢弃。这样：
+    //   - 不会再出现“派发落在已释放对象上”（排队即保活）；
+    //   - delete 只会发生一次（由唯一的最后一个退出者执行）。
+    void reserve()
+    {
+        m_inflight.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    bool release()
+    {
+        return m_inflight.fetch_sub(1, std::memory_order_acq_rel) == 1
+            && m_dead.load(std::memory_order_acquire);
+    }
+
+    bool is_dead() const
+    {
+        return m_dead.load(std::memory_order_acquire);
+    }
+
+    int32_t inflight() const
+    {
+        return m_inflight.load(std::memory_order_acquire);
+    }
+
+protected:
+    void mark_dead()
+    {
+        m_dead.store(true, std::memory_order_release);
+    }
+
+private:
+    std::atomic<int32_t> m_inflight { 0 };
+    std::atomic<bool> m_dead { false };
 
 public:
     virtual void resume()
@@ -220,6 +262,7 @@ public:
         , m_bAsyncState(false)
         , m_state(NULL)
         , m_next(NULL)
+        , m_tearing(false)
     {
         setAsync();
     }
@@ -269,6 +312,20 @@ public:
 public:
     virtual int32_t post(int32_t v)
     {
+        reserve();
+        int32_t hr = post_(v);
+        if (release())
+            delete this;
+        return hr;
+    }
+
+protected:
+    int32_t post_(int32_t v)
+    {
+        // 终态之后到达的派发：直接丢弃，绝不进入状态机
+        if (is_dead())
+            return CALL_E_PENDDING;
+
         result_t hr = v;
         bool bAsyncState = m_bAsyncState;
 
@@ -280,10 +337,14 @@ public:
                 hr = error(hr);
 
             if (hr < 0 || !m_next) {
+                if (m_tearing.exchange(true))
+                    return CALL_E_PENDDING;
+
+                mark_dead();
+
                 if (bAsyncState && m_ac)
                     m_ac->post(hr);
 
-                delete this;
                 return hr;
             }
 
@@ -294,15 +355,24 @@ public:
         return hr;
     }
 
+public:
     virtual void invoke()
     {
         post(m_v);
+
+        if (release())
+            delete this;
     }
 
     virtual void apost(int32_t v)
     {
+        if (is_dead())
+            return;
+
         m_bAsyncState = true;
         m_v = v;
+
+        reserve();
         async(CALL_E_NOSYNC);
     }
 
@@ -328,6 +398,7 @@ private:
     int32_t m_v;
     int32_t (*m_state)(AsyncState*, int32_t);
     int32_t (*m_next)(AsyncState*, int32_t);
+    std::atomic<bool> m_tearing;
 };
 
 #define ON_STATE(cls, fn)                            \

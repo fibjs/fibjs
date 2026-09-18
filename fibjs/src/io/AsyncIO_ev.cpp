@@ -123,6 +123,7 @@ public:
         , m_abort_version(pThis ? pThis->get_abort_version() : 0)
         , m_timedout(false)
         , m_watching(false)
+        , m_completed(false)
     {
         // Create timer if timeout specified
         if (timeout > 0) {
@@ -226,6 +227,13 @@ public:
 
     void ready(int32_t v)
     {
+        // A pending operation must complete its caller's event exactly once.
+        // The normal I/O completion, the timeout path and the abort path can all
+        // end up here; completing the same AsyncEvent twice makes the caller's
+        // state machine run its terminal transition twice (double delete).
+        if (m_completed.exchange(true))
+            return;
+
         m_opt = NULL;
         m_watching = false;
         cleanup_timer();
@@ -284,6 +292,7 @@ public:
     intptr_t m_abort_version;
     bool m_timedout;
     bool m_watching;
+    std::atomic<bool> m_completed;
 
 private:
     static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)

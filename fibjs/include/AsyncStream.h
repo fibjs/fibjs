@@ -15,6 +15,7 @@
 #include "Fiber.h"
 #include "Event.h"
 #include <list>
+#include <memory>
 
 namespace fibjs {
 
@@ -77,15 +78,73 @@ public:
     }
 };
 
+class AsyncStreamResume {
+public:
+    explicit AsyncStreamResume(AsyncEvent* ev)
+        : m_ev(ev)
+    {
+        if (m_ev)
+            m_ev->reserve();
+    }
+
+    ~AsyncStreamResume()
+    {
+        finish(0, false);
+    }
+
+    AsyncStreamResume(const AsyncStreamResume&) = delete;
+    AsyncStreamResume& operator=(const AsyncStreamResume&) = delete;
+
+    void commit(int32_t v)
+    {
+        finish(v, true);
+    }
+
+private:
+    void finish(int32_t v, bool do_post)
+    {
+        AsyncEvent* ev = m_ev;
+        if (!ev)
+            return;
+
+        m_ev = NULL;
+
+        if (do_post && !ev->is_dead())
+            ev->apost(v);
+
+        if (ev->release())
+            delete ev;
+    }
+
+private:
+    AsyncEvent* m_ev;
+};
+
 class AsyncStreamReader : public AsyncState {
 public:
+    enum WaitReason {
+        kWaitStart,
+        kWaitDelivery,
+        kWaitResume,
+        kWaitDrain,
+        kWaitNone
+    };
+
+    enum WakeToken {
+        kWakeStart = 0x10000,
+        kWakeResume,
+        kWakeDrain,
+        kWakeDeliveryDone
+    };
+
     AsyncStreamReader(Stream_base* pThis, AsyncStreamBase* base)
         : AsyncState(NULL)
         , m_this(pThis)
         , m_base(base)
         , m_isolate(base->m_streamIsolate)
+        , m_wait(kWaitStart)
     {
-        next(recv);
+        next(wait);
     }
 
     ~AsyncStreamReader()
@@ -98,12 +157,60 @@ public:
     void start()
     {
         m_this->isolate_ref();
-        apost(0);
+        apost(kWakeStart);
+    }
+
+    void request_resume()
+    {
+        apost(kWakeResume);
+    }
+
+    void request_drain()
+    {
+        apost(kWakeDrain);
     }
 
     ON_STATE(AsyncStreamReader, recv)
     {
         return m_this->readBuffer(-1, m_buf, next(event));
+    }
+
+    ON_STATE(AsyncStreamReader, wait)
+    {
+        switch (m_wait) {
+        case kWaitStart:
+            if (n != kWakeStart)
+                return CALL_E_PENDDING;
+            m_wait = kWaitNone;
+            return next(recv);
+
+        case kWaitDelivery:
+            if (n != kWakeDeliveryDone)
+                return CALL_E_PENDDING;
+
+            m_wait = kWaitNone;
+            if (m_base->m_paused) {
+                m_wait = kWaitResume;
+                return next(wait);
+            }
+            return next(recv);
+
+        case kWaitResume:
+            if (n != kWakeResume && n != kWakeStart)
+                return CALL_E_PENDDING;
+            m_wait = kWaitNone;
+            return next(recv);
+
+        case kWaitDrain:
+            if (n != kWakeDrain && n != kWakeResume)
+                return CALL_E_PENDDING;
+            m_wait = kWaitNone;
+            return next(recv);
+
+        case kWaitNone:
+        default:
+            return CALL_E_PENDDING;
+        }
     }
 
     ON_STATE(AsyncStreamReader, auto_destroy_done)
@@ -127,14 +234,12 @@ public:
             m_base->m_ended = true;
             m_this->_emit("end");
 
-            // allowHalfOpen=false (default): auto-end write side on EOF
             if (!m_base->m_allowHalfOpen && !m_base->m_writeFinished) {
                 m_base->m_writeFinished = true;
                 m_base->m_finished = true;
                 m_this->_emit("finish");
             }
 
-            // autoDestroy: if both sides done, close and emit close
             if (m_base->m_autoDestroy && m_base->m_writeFinished && !m_base->m_destroyed) {
                 m_base->m_destroyed = true;
                 return m_this->close(next(auto_destroy_done));
@@ -143,7 +248,6 @@ public:
         }
 
         if (m_base->m_readable) {
-            // readable mode: buffer data into pending queue
             exlib::string buf;
             m_buf->toString(buf);
 
@@ -156,13 +260,15 @@ public:
 
             m_this->_emit("readable");
 
-            if (isFull)
-                return next(drain);
+            if (isFull) {
+                m_wait = kWaitDrain;
+                return next(wait);
+            }
             return next(recv);
         }
 
-        // flowing mode: emit data in JS thread and wait for handler to complete
-        next(data_emitted);
+        m_wait = kWaitDelivery;
+        next(wait);
 
         Variant data;
         if (!m_base->m_decoder) {
@@ -174,35 +280,18 @@ public:
         }
 
         obj_ptr<Stream_base> stream = m_this;
-        AsyncStreamReader* self = this;
-        m_isolate->sync([stream, data, self]() mutable -> int32_t {
+        std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(this);
+        m_isolate->sync([stream, data, resume]() mutable -> int32_t {
             JSFiber::EnterJsScope s;
 
             v8::Local<v8::Value> arg = data;
             bool retVal;
             stream->_emit("data", &arg, 1, retVal);
 
-            self->apost(0);
+            resume->commit(kWakeDeliveryDone);
             return 0;
         });
 
-        return CALL_E_PENDDING;
-    }
-
-    ON_STATE(AsyncStreamReader, data_emitted)
-    {
-        // JS data handler completed, check if paused
-        if (m_base->m_paused) {
-            next(recv);
-            return CALL_E_PENDDING;
-        }
-        return next(recv);
-    }
-
-    ON_STATE(AsyncStreamReader, drain)
-    {
-        // woken up by read() via apost(0), continue reading
-        next(recv);
         return CALL_E_PENDDING;
     }
 
@@ -218,14 +307,12 @@ public:
             return v;
         }
 
-        // Treat socket close errors as normal termination
         if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
             || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
             m_base->m_readEnded = true;
             m_base->m_ended = true;
             m_this->_emit("end");
 
-            // fd is already gone, mark destroyed and emit close
             if (!m_base->m_destroyed) {
                 m_base->m_destroyed = true;
                 m_base->emitClose(m_this);
@@ -233,7 +320,6 @@ public:
             return v;
         }
 
-        // Treat timeout as idle timeout: emit 'timeout' and continue reading
         if (v == CALL_E_TIMEOUT) {
             obj_ptr<Stream_base> stream = m_this;
             m_isolate->sync([stream]() -> int32_t {
@@ -245,7 +331,6 @@ public:
             return CALL_E_PENDDING;
         }
 
-        // Emit error event in JS context with proper Error object
         obj_ptr<Stream_base> stream = m_this;
         m_isolate->sync([stream, v]() -> int32_t {
             JSFiber::EnterJsScope s;
@@ -259,21 +344,19 @@ public:
         return v;
     }
 
-public:
 private:
     Isolate* m_isolate;
     obj_ptr<Stream_base> m_this;
     AsyncStreamBase* m_base;
     obj_ptr<Buffer_base> m_buf;
+    WaitReason m_wait;
 };
 
 template <typename T>
 class AsyncStream : public T, public AsyncStreamBase {
 public:
-    // object_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
-        // Emit open event on first event registration, queued before any data events
         if (!m_openEmitted) {
             int32_t fd = -1;
             this->get_fd(fd);
@@ -359,7 +442,6 @@ public:
             obj_ptr<Buffer_base> buf;
 
             if (bytes <= 0) {
-                // read() with no size: merge all chunks and return
                 if (m_pendingQueue.size() == 1) {
                     buf = m_pendingQueue.front();
                 } else {
@@ -408,8 +490,9 @@ public:
             }
 
             // if buffer was at/above highWaterMark, wake reader to continue
-            if (wasFull && reader)
-                reader->post(0);
+            if (wasFull && reader) {
+                reader->request_drain();
+            }
 
             return 0;
         }
@@ -654,7 +737,7 @@ public:
             m_paused = false;
             if (reader) {
                 object_base::isolate_ref();
-                reader->apost(0);
+                reader->request_resume();
             }
         } else {
             startRecvStream();
@@ -917,10 +1000,11 @@ public:
     void on_connected(int32_t err = 0)
     {
         if (m_state.dec() == 0) {
-            if (err == 0)
+            if (err == 0) {
                 reader->start();
-            else
+            } else {
                 reader->apost(err);
+            }
         }
     }
 

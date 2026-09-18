@@ -13,6 +13,7 @@
 #include "ifs/net.h"
 #include "ifs/console.h"
 #include "Buffer.h"
+#include <atomic>
 #include <fcntl.h>
 #include <mswsock.h>
 #include <mstcpip.h>
@@ -127,7 +128,8 @@ public:
         if (m_timeout_cancelled) {
             cleanup_timer();
             m_locker.unlock(this);
-            m_ac->apost(CALL_E_TIMEOUT);
+            if (mark_completed())
+                m_ac->apost(CALL_E_TIMEOUT);
             delete this;
             return;
         }
@@ -136,7 +138,8 @@ public:
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
             cleanup_timer();
             m_locker.unlock(this);
-            m_ac->apost(CALL_E_ABORT);
+            if (mark_completed())
+                m_ac->apost(CALL_E_ABORT);
             delete this;
             return;
         }
@@ -155,8 +158,22 @@ public:
     {
         cleanup_timer();
         m_locker.unlock(this);
+
+        // A pending operation must complete its caller's event exactly once: the
+        // normal IOCP completion, the timeout path and the abort path can all end
+        // up here, and completing the same AsyncEvent twice makes the caller's
+        // state machine run its terminal transition twice (double delete).
+        if (!mark_completed())
+            return;
+
         m_ac->apost(nError);
         delete this;
+    }
+
+    // One-shot guard for the completion above.
+    bool mark_completed()
+    {
+        return !m_completed.exchange(true);
     }
     
     void cleanup_timer()
@@ -189,6 +206,7 @@ public:
     bool m_timeout_cancelled;
     AsyncIO* m_pThis;
     intptr_t m_abort_version;
+    std::atomic<bool> m_completed { false };
 };
 
 // CancelEvent::proc() implementation - must be after asyncProc definition

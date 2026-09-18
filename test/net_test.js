@@ -2735,6 +2735,60 @@ function test_net(eng, use_uv) {
                 assert.equal(timedOut, false, "timed out waiting for data event");
                 assert.equal(received, "hello");
             });
+
+            it("resume is idempotent while an async read is already in flight", () => {
+                var p = getPort();
+                var serverConn = null;
+                var serverReady = new coroutine.Event();
+
+                var svr = new net.Socket(net.AF_INET);
+                svr.bind(p);
+                svr.listen();
+                test_util.push(svr);
+
+                coroutine.start(() => {
+                    try {
+                        serverConn = svr.accept();
+                        test_util.push(serverConn);
+                        serverReady.set();
+                    } catch (e) {
+                    }
+                });
+
+                var received = [];
+                var done = new coroutine.Event();
+                var timedOut = false;
+
+                var sock = new net.Socket();
+                sock.on('data', (chunk) => {
+                    received.push(chunk.toString());
+                });
+                sock.on('close', () => done.set());
+
+                sock.connect({ host: '127.0.0.1', port: p });
+                sock.resume();
+
+                serverReady.wait();
+
+                // The socket is already reading here. A second resume() must be a
+                // no-op rather than being mis-consumed as a read completion.
+                coroutine.sleep(10);
+                sock.resume();
+
+                serverConn.write("hello");
+                serverConn.close();
+
+                setTimeout(() => {
+                    timedOut = true;
+                    done.set();
+                }, 3000);
+
+                done.wait();
+                sock.close();
+
+                assert.equal(timedOut, false, "timed out waiting for close");
+                assert.equal(received.join(''), 'hello');
+            });
         });
 
         describe("stream writable/readable/_readableState", () => {
