@@ -9,6 +9,13 @@
 
 const dom = require('dts-dom')
 
+// dts-dom defaults to CRLF output (config.outputEol === '\r\n'), while the
+// repository pins LF through .gitattributes (`* text eol=lf`). Git then stores
+// LF blobs but leaves CRLF in the working tree, so every generated file showed
+// up as modified in `git status` without any content change. Emit LF so the
+// generated files match what is committed.
+dom.config.outputEol = '\n';
+
 const fs = require('fs');
 const path = require('path');
 
@@ -25,6 +32,19 @@ function postProcessDtsUnitString(str) {
         .join('\n')
     // .replace(new RegExp(QUOTE_START_PLACEHOLDER, 'g'), '')
     // .replace(new RegExp(QUOTE_END_PLACEHOLDER, 'g'), '')
+}
+
+/**
+ * Write a generated file only when its content actually changed: running the
+ * generator twice must leave the working tree (mtimes included) untouched.
+ */
+function writeDtsFile(file, content) {
+    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === content)
+        return false;
+
+    fs.writeFileSync(file, content);
+    console.log(`      ✏️  ${path.basename(file)}`);
+    return true;
 }
 
 function convertIDLCommentToJSDocComment(comment = '') {
@@ -1140,7 +1160,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
 
             unitDeclare = postProcessDtsUnitString(unitDeclare);
 
-            fs.writeFileSync(path.join(basedir, `${unitName}.d.ts`), unitDeclare);
+            writeDtsFile(path.join(basedir, `${unitName}.d.ts`), unitDeclare);
             // console.notice(`---- generated dts for ${unitCategory}: ${unitName} ---<:`)
         });
 
@@ -1192,7 +1212,7 @@ function gen_fibjs_import_dts({
     const commonDeclaration = dom.emit(topDeclarition, {
         rootFlags: dom.DeclarationFlags.None,
     });
-    fs.writeFileSync(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
+    writeDtsFile(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
 }
 
 /**
@@ -1223,7 +1243,7 @@ function gen_bridge_dts({
         rootFlags: dom.DeclarationFlags.None,
         tripleSlashDirectives
     });
-    fs.writeFileSync(path.join(basedir, `bridge.d.ts`), bridgeDeclaration);
+    writeDtsFile(path.join(basedir, `bridge.d.ts`), bridgeDeclaration);
 }
 
 /**

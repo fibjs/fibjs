@@ -7,6 +7,19 @@ const path = require('path')
 
 const ejs = require('ejs');
 
+/**
+ * Write only when the content changed, so re-running the generator does not
+ * touch IDL files whose normalized text is identical.
+ */
+function writeIfChanged(file, content) {
+    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === content)
+        return false;
+
+    fs.writeFileSync(file, content);
+    console.log(`      ✏️  ${path.basename(file)}`);
+    return true;
+}
+
 const IDL_LANG = process.env.FIBJS_IDL_LANG || 'zh-CN';
 const LOG_PREFIX = `[generator]`;
 
@@ -191,7 +204,7 @@ module.exports = (
     var snapshotsDir = path.resolve(__dirname, '../../idl/__snapshots__');
     try { fs.mkdirSync(snapshotsDir) } catch (error) { };
 
-    fs.writeFileSync(
+    writeIfChanged(
         path.resolve(snapshotsDir, `./defs_${idlLang}.json`),
         JSON.stringify(defs, null, '  ')
     )
@@ -212,13 +225,13 @@ module.exports = (
 
         switch (def.declare.type) {
             case 'module':
-                fs.writeFileSync(
+                writeIfChanged(
                     path.resolve(targetDir, `./${name}.idl`),
                     normalizeIDLTextFromModuleDef(def, idlLang)
                 )
                 break
             case 'interface':
-                fs.writeFileSync(
+                writeIfChanged(
                     path.resolve(targetDir, `./${name}.idl`),
                     normalizeIDLTextFromInterfaceDef(def, idlLang)
                 )
