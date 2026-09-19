@@ -17,6 +17,21 @@ namespace fibjs {
 
 #define WORKER_STACK_SIZE 128
 
+// A pool worker used to retire as soon as more than m_max_idle workers were
+// idle, so bursty load (an HTTP server under keep-alive traffic, for example)
+// malloc'ed and freed a WORKER_STACK_SIZE stack for almost every request:
+// measured with `strace -e trace=mmap`, a 32-connection load produced ~27k
+// mmap/munmap pairs of 132KB in 2s (~1 per request).  128KB is exactly at
+// glibc's default mmap threshold, so that churn also made the process depend
+// on glibc's dynamic threshold adjustment (disabling trim, for instance,
+// freezes the threshold and turns every request into an mmap -11% throughput).
+//
+// Park grown workers instead of destroying their fibers, up to this cap.
+// Parked fibers only hold the 128KB stack reservation (pages are committed
+// lazily), and the worker loop below is the only place that retires them, so
+// the pool keeps its stacks in the steady state.
+#define MAX_POOL_WORKERS 1024
+
 class acPool {
 public:
     acPool(int32_t max_idle, bool bThread = false)
@@ -36,6 +51,14 @@ public:
 private:
     void new_worker()
     {
+        // The pool never lets its worker count exceed the cap; a task queued
+        // while the pool is at the cap is still picked up by the caller, which
+        // falls through to m_pool.get() right after this call.
+        if (m_workers.inc() > max_workers()) {
+            m_workers.dec();
+            return;
+        }
+
         class _thread : public exlib::OSThread {
         public:
             typedef void (*thread_func)(void*);
@@ -79,7 +102,22 @@ private:
 
         while (true) {
             if (m_idleWorkers.inc() > m_max_idle) {
-                if (m_idleWorkers.dec() > 0)
+                // Too many idle workers: retire this one only when the pool
+                // grew beyond the cap, otherwise park it in m_pool.get()
+                // below, so its fiber stack is reused (see MAX_POOL_WORKERS).
+                // The blocking (thread based) pool keeps retiring as before.
+                bool bRetire = false;
+
+                if (m_idleWorkers.dec() > 0) {
+                    bool bOverCap = m_workers.dec() >= max_workers();
+
+                    if (m_bThread || bOverCap)
+                        bRetire = true;
+                    else
+                        m_workers.inc();
+                }
+
+                if (bRetire)
                     break;
 
                 m_idleWorkers.inc();
@@ -99,11 +137,20 @@ private:
         ((acPool*)ptr)->FiberProcWorker();
     }
 
+    int32_t max_workers() const
+    {
+        // Hard cap on the worker count. Fibers park up to this cap (their
+        // stacks are cheap: only the touched pages are resident), threads and
+        // over-cap workers retire as soon as they go idle.
+        return MAX_POOL_WORKERS;
+    }
+
 private:
     bool m_bThread;
     int32_t m_max_idle;
     exlib::Queue<AsyncEvent> m_pool;
     exlib::atomic m_idleWorkers;
+    exlib::atomic m_workers;
 };
 
 static acPool* s_acPool;
