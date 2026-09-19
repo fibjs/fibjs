@@ -144,7 +144,7 @@ public:
             }
         }
 
-        next(handshake);
+        AsyncState::init(handshake);
     }
 
     ~AsyncHandshake()
@@ -390,7 +390,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
             , m_retVal(retVal)
         {
             m_data = new Buffer(nullptr, bytes < 0 ? 8192 : bytes);
-            next(try_lock);
+            init(try_lock);
         }
 
         ~AsyncRead()
@@ -462,7 +462,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
             return m_sock->m_stream->readBuffer(-1, m_sock->m_in, next(read));
         }
 
-        result_t lock(exlib::Locker& l, AsyncState* pThis)
+        result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
             return l.lock(pThis) ? 0 : CALL_E_PENDDING;
         }
@@ -495,7 +495,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
             , m_sock(sock)
             , m_data(data)
         {
-            next(write);
+            init(write);
         }
 
     public:
@@ -535,7 +535,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
             return Runtime::setError("write failed");
         }
 
-        result_t lock(exlib::Locker& l, AsyncState* pThis)
+        result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
             return l.lock(pThis) ? 0 : CALL_E_PENDDING;
         }
@@ -570,7 +570,7 @@ result_t TLSSocket::close(AsyncEvent* ac)
             : AsyncState(ac)
             , m_sock(sock)
         {
-            next(try_lock);
+            init(try_lock);
         }
 
         ~AsyncClose()
@@ -598,7 +598,7 @@ result_t TLSSocket::close(AsyncEvent* ac)
             return next();
         }
 
-        result_t lock(exlib::Locker& l, AsyncState* pThis)
+        result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
             return l.lock(pThis) ? 0 : CALL_E_PENDDING;
         }

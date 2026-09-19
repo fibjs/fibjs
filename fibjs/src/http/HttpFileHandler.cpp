@@ -171,24 +171,24 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             if (m_value.empty() || !m_pThis->m_isDir) {
                 m_url = m_pThis->m_root;
-                next(start);
+                init(start);
                 return;
             }
 
             Url::decodeURI(m_value, m_value);
             if (qstrchr(m_value.c_str(), '\\') || qstrchr(m_value.c_str(), '%')) {
-                next(stop);
+                init(stop);
                 return;
             }
 
             path_posix_base::normalize(m_value, m_value);
             if (!qstrcmp(m_value.c_str(), "../", 3)) {
-                next(stop);
+                init(stop);
                 return;
             }
 
             m_url = m_pThis->m_root + m_value;
-            next(start);
+            init(start);
         }
 
         ON_STATE(asyncInvoke, start)

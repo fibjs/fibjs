@@ -1106,7 +1106,7 @@ public:
                 , m_bytes(bytes)
                 , m_retVal(retVal)
             {
-                next(start);
+                init(start);
             }
 
             ON_STATE(asyncRead, start)
@@ -1181,7 +1181,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             , m_req(req)
             , m_retVal(retVal)
         {
-            next(send);
+            init(send);
 
             exlib::string method;
             m_req->get_method(method);
@@ -1359,15 +1359,15 @@ public:
         // automatically without a manual end(); consistent with Node.js
         // http.get; http.request etc. keep the manual end() semantics.
         if (m_o->is_async && m_o->req && !m_o->auto_send)
-            next(wait_end);
+            AsyncState::init(wait_end);
         else
-            next(prepare);
+            AsyncState::init(prepare);
     }
 
     ON_STATE(asyncRequest, wait_end)
     {
-        m_o->req->m_asyncState = this;
-        next(prepare);
+        // 等 JS 调用 req.end()：把票交给请求对象，由 AsyncEnd 持票回投
+        m_o->req->m_asyncState = next(prepare);
         return CALL_E_PENDDING;
     }
 
@@ -1503,14 +1503,13 @@ public:
 
             // Try to become the H2 handshake leader for this URL.
             // If another fiber is already doing the handshake, queue up and wait.
-            if (!m_hc->h2_acquire(m_h2PoolKey, &m_h2session, &m_conn, this)) {
+            if (!m_hc->h2_acquire(m_h2PoolKey, &m_h2session, &m_conn, this, h2_wait_settings)) {
                 // Marked BEFORE suspending: when the leader wakes us, error()
                 // runs while the state machine is still parked in prepare()
                 // (AsyncState only switches m_state on the next loop pass), so
                 // at(h2_wait_settings) can never be true there. Use the flag
                 // instead to recognize the queued-waiter wake-up.
                 m_h2_waiting = true;
-                next(h2_wait_settings);
                 return CALL_E_PENDDING;
             }
             m_is_h2_leader = true;
@@ -3113,7 +3112,7 @@ public:
         , m_o(o)
         , m_retVal(retVal)
     {
-        next(do_request);
+        init(do_request);
     }
 
     virtual int32_t error(int32_t v) override

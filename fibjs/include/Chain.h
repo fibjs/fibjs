@@ -29,7 +29,7 @@ public:
             m_hdrs.resize(1);
             m_hdrs[0] = hdlr;
 
-            next(invoke);
+            init(invoke);
         }
 
         asyncInvoke(QuickArray<obj_ptr<Handler_base>>& hdlrs, object_base* v, AsyncEvent* ac)
@@ -46,7 +46,7 @@ public:
             for (i = 0; i < (int32_t)hdlrs.size(); i++)
                 m_hdrs[i] = hdlrs[i];
 
-            next(invoke);
+            init(invoke);
         }
 
     public:
@@ -76,8 +76,13 @@ public:
             m_hdlr = m_next;
             m_next.Release();
 
-            hr = m_hdlr->invoke(m_v, m_next, this);
+            // 把票交给 handler：同步完成由就地消费归还，异步完成由 handler 持票回投
+            AsyncEvent* ticket = next(invoke);
+
+            hr = m_hdlr->invoke(m_v, m_next, ticket);
             if (hr == CALL_E_NOASYNC) {
+                // handler 转 JS 线程执行：票交由 js_invoke() 持票回投
+                m_jsTicket.store(ticket);
                 m_hdlr->holder()->post_task(this);
                 return CALL_E_PENDDING;
             }
@@ -96,7 +101,10 @@ public:
                     m_message = Runtime::errMessage();
             }
 
-            apost(0);
+            // 持票回投（唤醒等待中的状态机）
+            AsyncEvent* ticket = m_jsTicket.exchange(nullptr);
+            if (ticket)
+                ticket->apost(0);
 
             return m_hr;
         }
@@ -148,6 +156,7 @@ public:
         exlib::string m_message;
         std::vector<obj_ptr<Handler_base>> m_hdrs;
         int32_t m_pos;
+        std::atomic<AsyncEvent*> m_jsTicket { nullptr };
     };
 
 public:

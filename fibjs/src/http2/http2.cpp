@@ -124,7 +124,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
             , m_session(session)
             , m_retVal(retVal)
         {
-            next(tcp_connect);
+            init(tcp_connect);
         }
 
     public:

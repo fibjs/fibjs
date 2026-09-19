@@ -30,7 +30,7 @@ public:
             , m_reader(reader)
             , m_retVal(retVal)
         {
-            next(doRead);
+            init(doRead);
         }
 
         ON_STATE(AsyncRead, doRead)
@@ -81,7 +81,7 @@ public:
             : AsyncState(ac)
             , m_reader(reader)
         {
-            next(doClose);
+            init(doClose);
         }
 
         ON_STATE(AsyncCancel, doClose)

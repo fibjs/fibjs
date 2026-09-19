@@ -7,6 +7,14 @@
 #include "utils.h"
 #include "Runtime.h"
 
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+#include <stdio.h>
+#include <stdlib.h>
+#if !defined(_WIN32)
+#include <execinfo.h>
+#endif
+#endif
+
 namespace fibjs {
 
 class AsyncEvent : public exlib::Task_base {
@@ -27,47 +35,6 @@ private:
 public:
     AsyncEvent(Isolate* isolate = NULL);
     virtual ~AsyncEvent();
-
-public:
-    // --- 异步派发存活模型 ------------------------------------------------
-    // 一次“派发”= 从入队/进入状态机到执行完毕。每个在飞派发持有一份引用：
-    //   reserve()  入队或进入状态机时 +1
-    //   release()  派发退出时 -1；若此时对象已进入终态且计数归零，本次调用即为
-    //              唯一的销毁仲裁者（返回 true 时调用者必须 delete）
-    // 进入终态的 AsyncState 不立即销毁，而是等最后一个在飞派发退出；终态之后
-    // 新到的派发在 apost()/post() 入口被直接丢弃。这样：
-    //   - 不会再出现“派发落在已释放对象上”（排队即保活）；
-    //   - delete 只会发生一次（由唯一的最后一个退出者执行）。
-    void reserve()
-    {
-        m_inflight.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    bool release()
-    {
-        return m_inflight.fetch_sub(1, std::memory_order_acq_rel) == 1
-            && m_dead.load(std::memory_order_acquire);
-    }
-
-    bool is_dead() const
-    {
-        return m_dead.load(std::memory_order_acquire);
-    }
-
-    int32_t inflight() const
-    {
-        return m_inflight.load(std::memory_order_acquire);
-    }
-
-protected:
-    void mark_dead()
-    {
-        m_dead.store(true, std::memory_order_release);
-    }
-
-private:
-    std::atomic<int32_t> m_inflight { 0 };
-    std::atomic<bool> m_dead { false };
 
 public:
     virtual void resume()
@@ -262,7 +229,6 @@ public:
         , m_bAsyncState(false)
         , m_state(NULL)
         , m_next(NULL)
-        , m_tearing(false)
     {
         setAsync();
     }
@@ -270,16 +236,25 @@ public:
 public:
     class ASResult {
     public:
-        ASResult(AsyncState* as, int32_t r)
+        ASResult(AsyncEvent* as, int32_t r)
             : m_as(as)
             , m_r(r)
         {
         }
 
-        operator AsyncState*() const
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+        // 检测模式：next() 交出的是状态锁（票），只能当 AsyncEvent 使用。
+        // 任何把 next() 的结果当 AsyncState* 用的站点都会在编译期暴露出来。
+        operator AsyncEvent*() const
         {
             return m_as;
         }
+#else
+        operator AsyncState*() const
+        {
+            return static_cast<AsyncState*>(m_as);
+        }
+#endif
 
         operator int32_t() const
         {
@@ -287,7 +262,7 @@ public:
         }
 
     private:
-        AsyncState* m_as;
+        AsyncEvent* m_as;
         int32_t m_r;
     };
 
@@ -295,37 +270,61 @@ public:
     ASResult next(int32_t (*fn)(AsyncState*, int32_t), int32_t r = 0)
     {
         m_next = fn;
-        return ASResult(this, r);
+        return issue(r);
     }
 
     ASResult next(int32_t r = 0)
     {
         m_next = NULL;
-        return ASResult(this, r);
+        return issue(r);
     }
 
+private:
+    ASResult issue(int32_t r)
+    {
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+        // 状态锁：发票。next() 只在机器已被派发（处于处理态）后使用：
+        // ++expect 必须追平 epoch。构造期设置入口状态请用 init()。
+        if (++m_cont.expect != m_epoch.load(std::memory_order_relaxed))
+            state_lock_violation("next() while the machine was not in the processing phase (set the entry state with init() from a constructor; a second arm before delivery is also a violation)", r, __builtin_return_address(0));
+        return ASResult(&m_cont, r);
+#else
+        return ASResult(this, r);
+#endif
+    }
+
+public:
     bool at(int32_t (*fn)(AsyncState*, int32_t))
     {
         return m_state == fn;
     }
 
 public:
+    // 设定状态机的入口状态（仅构造期、首次派发前使用）。
+    // 与 next() 的区别：只声明“首次进入时执行的状态函数”，不发票、不发布代理。
+    void init(int32_t (*fn)(AsyncState*, int32_t))
+    {
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+        if (m_epoch.load(std::memory_order_relaxed) != 0)
+            state_lock_violation("init() must be called before the machine is dispatched", 0, __builtin_return_address(0));
+#endif
+        m_next = fn;
+    }
+
+public:
     virtual int32_t post(int32_t v)
     {
-        reserve();
-        int32_t hr = post_(v);
-        if (release())
-            delete this;
-        return hr;
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+        // 状态锁：初始派发是唯一合法的直连 post —— 相位必须正好从 0 走到 1。
+        if (++m_epoch != 1)
+            state_lock_violation("non-initial post() (direct dispatch into a machine that has already been dispatched)", v, __builtin_return_address(0));
+#endif
+        return post_(v);
     }
 
 protected:
     int32_t post_(int32_t v)
     {
-        // 终态之后到达的派发：直接丢弃，绝不进入状态机
-        if (is_dead())
-            return CALL_E_PENDDING;
-
         result_t hr = v;
         bool bAsyncState = m_bAsyncState;
 
@@ -333,18 +332,27 @@ protected:
             m_bAsyncState = true;
 
         do {
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+            // 同步完成/同步跳转：进入错误处理或下一个状态函数之前，若本事务发出的
+            // 票还没有被消费（expect == epoch），说明它不可能再有人来消费
+            // （同步完成的操作不会回投），就地消费掉（等价一次同步回投）。
+            if (m_cont.expect.load(std::memory_order_relaxed) == m_epoch.load(std::memory_order_relaxed))
+                ++m_epoch;
+#endif
             if (hr < 0)
                 hr = error(hr);
 
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+            // error() 内可能再次发牌（同步跳转），执行下一个状态函数之前同样就地消费
+            if (m_cont.expect.load(std::memory_order_relaxed) == m_epoch.load(std::memory_order_relaxed))
+                ++m_epoch;
+#endif
+
             if (hr < 0 || !m_next) {
-                if (m_tearing.exchange(true))
-                    return CALL_E_PENDDING;
-
-                mark_dead();
-
                 if (bAsyncState && m_ac)
                     m_ac->post(hr);
 
+                delete this;
                 return hr;
             }
 
@@ -358,22 +366,17 @@ protected:
 public:
     virtual void invoke()
     {
-        post(m_v);
-
-        if (release())
-            delete this;
+        post_(m_v);
     }
 
     virtual void apost(int32_t v)
     {
-        if (is_dead())
-            return;
-
-        m_bAsyncState = true;
-        m_v = v;
-
-        reserve();
-        async(CALL_E_NOSYNC);
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+        // 状态锁：初始派发（异步形态），同 post()。
+        if (++m_epoch != 1)
+            state_lock_violation("non-initial apost() (direct async dispatch into a machine that has already been dispatched)", v, __builtin_return_address(0));
+#endif
+        apost_(v);
     }
 
     virtual int32_t error(int32_t v)
@@ -381,6 +384,16 @@ public:
         return v;
     }
 
+protected:
+    void apost_(int32_t v)
+    {
+        m_bAsyncState = true;
+        m_v = v;
+
+        async(CALL_E_NOSYNC);
+    }
+
+public:
     virtual Isolate* isolate()
     {
         return m_ac->isolate();
@@ -398,8 +411,95 @@ private:
     int32_t m_v;
     int32_t (*m_state)(AsyncState*, int32_t);
     int32_t (*m_next)(AsyncState*, int32_t);
-    std::atomic<bool> m_tearing;
+
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+public:
+    // ---- 状态锁（仅检测模式） ------------------------------------------
+    // 相位只在三处推进：初始化 post()/apost()、next() 发票、proxy 回投；
+    // _post() 只消费处理态，不自增。任一关系式不成立立即终止现场
+    // （打印相位/调用点/栈后 abort），不做任何兜底。
+    //   初始化    if (++epoch != 1) assert            —— post()/apost()
+    //   next()    if (++expect != epoch) assert      —— 发票（构造期用 init()）
+    //   回投       if (++epoch != expect + 1) assert
+    class Continuation : public AsyncEvent {
+    public:
+        Continuation(AsyncState* machine)
+            : m_owner(machine)
+        {
+            setAsync();
+        }
+
+        virtual void apost(int32_t v) override;
+        virtual int32_t post(int32_t v) override;
+        virtual void invoke() override
+        {
+            // proxy 本身永远不会被投递进队列；被投递 = 有人对票做了裸 async()
+            m_owner->state_lock_violation("continuation was queued directly (raw async() on the proxy)", 0, __builtin_return_address(0));
+        }
+
+        virtual Isolate* isolate() override
+        {
+            return m_owner->isolate();
+        }
+
+    private:
+        void deliver(int32_t v, bool async);
+
+    public:
+        AsyncState* m_owner;               // 宿主机器（构造时写入，见 §2）
+        std::atomic<int32_t> expect { 0 }; // 票面相位：next() 推进，回投时比对
+    };
+
+private:
+    void state_lock_violation(const char* what, int32_t v, void* caller);
+
+    std::atomic<int32_t> m_epoch { 0 };
+    Continuation m_cont { this };
+#endif
 };
+
+#if defined(FIBJS_ASYNC_STATE_CHECK)
+inline void AsyncState::Continuation::deliver(int32_t v, bool async)
+{
+    AsyncState* machine = m_owner;
+
+    // 票面校验与推进是同一个原子操作，不存在“检查—使用”时间差
+    if (++machine->m_epoch != expect.load() + 1)
+        machine->state_lock_violation("continuation returned while the machine had moved on (duplicate/late/stray delivery)", v, __builtin_return_address(0));
+
+    if (async)
+        machine->apost_(v);
+    else
+        machine->post_(v);
+}
+
+inline int32_t AsyncState::Continuation::post(int32_t v)
+{
+    deliver(v, false);
+    return 0;
+}
+
+inline void AsyncState::Continuation::apost(int32_t v)
+{
+    deliver(v, true);
+}
+
+inline void AsyncState::state_lock_violation(const char* what, int32_t v, void* caller)
+{
+    fprintf(stderr, "\n[fibjs] AsyncState phase lock violation: %s\n", what);
+    fprintf(stderr, "  machine=%p epoch=%d expect=%d state=%p next=%p value=%d caller=%p\n",
+        (void*)this, m_epoch.load(std::memory_order_relaxed), m_cont.expect.load(),
+        (void*)m_state, (void*)m_next, v, caller);
+    fprintf(stderr, "  violating stack:\n");
+#if !defined(_WIN32)
+    void* frames[16];
+    int n = backtrace(frames, (int)(sizeof(frames) / sizeof(frames[0])));
+    backtrace_symbols_fd(frames, n, 2);
+#endif
+    fflush(stderr);
+    abort();
+}
+#endif
 
 #define ON_STATE(cls, fn)                            \
     static int32_t fn(AsyncState* pState, int32_t n) \

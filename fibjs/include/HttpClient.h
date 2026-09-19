@@ -319,15 +319,16 @@ public:
     // Try to acquire H2 session creation for the given URL.
     // Returns true if this fiber is the leader (should perform handshake).
     // Returns false if queued as a waiter (caller should return CALL_E_PENDDING).
+    // 等待者登记的同时挂出票（在锁内完成），leader 完成/失败时持票回投。
     bool h2_acquire(exlib::string url,
         obj_ptr<Http2Session>* retSession,
         obj_ptr<Stream_base>* retConn,
-        AsyncEvent* ac)
+        AsyncState* machine, int32_t (*wait_fn)(AsyncState*, int32_t))
     {
         s_h2_pending_lock.lock();
         auto it = s_h2_pending.find(url);
         if (it != s_h2_pending.end()) {
-            it->second->waiters.push_back({ retSession, retConn, ac });
+            it->second->waiters.push_back({ retSession, retConn, machine->next(wait_fn) });
             s_h2_pending_lock.unlock();
             return false;
         }

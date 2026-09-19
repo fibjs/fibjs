@@ -635,7 +635,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
             m_req->set_maxBodySize(pThis->m_maxBodySize);
 
-            next(read);
+            init(read);
         }
 
         ON_STATE(asyncInvoke, read)

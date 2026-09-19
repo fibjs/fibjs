@@ -93,7 +93,7 @@ public:
 
         m_buf = new Buffer(s.c_str(), s.length());
 
-        next(command);
+        init(command);
     }
 
     asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg, AsyncEvent* ac)
@@ -107,7 +107,7 @@ public:
 
         m_buf = new Buffer(s.c_str(), s.length());
 
-        next(command);
+        init(command);
     }
 
 public:
@@ -129,7 +129,7 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
             , m_url(url)
             , m_tls(false)
         {
-            next(connect);
+            init(connect);
         }
 
     public:
@@ -249,7 +249,7 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
             , m_hostname(hostname)
             , step(0)
         {
-            next(hello);
+            init(hello);
         }
 
     public:
@@ -343,7 +343,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
                   password)
             , step(0)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncLogin, begin)
@@ -437,7 +437,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
             , m_txt(txt)
             , step(0)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncData, begin)

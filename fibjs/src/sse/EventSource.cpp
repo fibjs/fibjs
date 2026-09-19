@@ -90,7 +90,7 @@ public:
 
         m_holder = new ValueHolder(es->wrap());
 
-        next(open);
+        init(open);
     }
 
     ~AsyncEventSource()
@@ -303,7 +303,7 @@ result_t EventSource::close(AsyncEvent* ac)
             , m_stream(pStream)
             , m_ac_req(ac_req)
         {
-            next(send);
+            init(send);
         }
 
     public:

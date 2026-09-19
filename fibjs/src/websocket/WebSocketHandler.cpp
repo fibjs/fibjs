@@ -211,7 +211,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_httpreq->get_response(m_httprep);
             m_httpreq->get_stream(m_stm);
 
-            next(handshake);
+            init(handshake);
         }
 
         ON_STATE(asyncInvoke, handshake)
@@ -297,7 +297,8 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             else if (hr < 0)
                 return hr;
 
-            obj_ptr<WebSocket> sock = new WebSocket(m_stm, protocol, this, m_pThis->m_enableCompress, m_pThis->m_maxSize);
+            // 把票交给 WebSocket：握手/结束由 endConnect 持票回投
+            obj_ptr<WebSocket> sock = new WebSocket(m_stm, protocol, next(CALL_RETURN_NULL), m_pThis->m_enableCompress, m_pThis->m_maxSize);
             if (m_compress)
                 sock->enableCompress();
 
@@ -306,7 +307,6 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             vs[1] = m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
-            next(CALL_RETURN_NULL);
             return CALL_E_PENDDING;
         }
 

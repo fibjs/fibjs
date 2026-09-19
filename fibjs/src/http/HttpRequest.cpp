@@ -579,7 +579,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncEvent* ac)
             m_ac = m_pThis->m_asyncState;
             m_pThis->m_asyncState = nullptr;
 
-            next(end);
+            init(end);
         }
 
         ON_STATE(AsyncEnd, end)
@@ -626,7 +626,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
             m_ac = m_pThis->m_asyncState;
             m_pThis->m_asyncState = nullptr;
 
-            next(end);
+            init(end);
         }
 
         ON_STATE(AsyncEnd, end)
@@ -675,7 +675,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
             m_ac = m_pThis->m_asyncState;
             m_pThis->m_asyncState = nullptr;
 
-            next(end);
+            init(end);
         }
 
         ON_STATE(AsyncEnd, end)
@@ -725,7 +725,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
             m_ac = m_pThis->m_asyncState;
             m_pThis->m_asyncState = nullptr;
 
-            next(end);
+            init(end);
         }
 
         ON_STATE(AsyncEnd, end)
@@ -824,7 +824,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
             , m_pThis(pThis)
             , m_stm(stm)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncReadFrom, begin)

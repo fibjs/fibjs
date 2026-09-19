@@ -129,16 +129,16 @@ public:
         if (pThis->m_bodyUsed && !pThis->m_body) {
             // Enforce single-consumption only for streaming bodies (no seekable
             // m_body to rewind). Buffered bodies (m_body != null) may be re-read.
-            next(alreadyUsed);
+            init(alreadyUsed);
             return;
         }
         if (pThis->m_bodyStream)
-            next(read);
+            init(read);
         else if (pThis->m_body) {
             pThis->m_body->rewind();
-            next(read);
+            init(read);
         } else
-            next(noBody);
+            init(noBody);
     }
 
     ON_STATE(asyncConsumeBody, read)

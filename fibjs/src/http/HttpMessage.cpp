@@ -207,9 +207,9 @@ public:
         m_pThis->get_length(m_contentLength);
 
         if (!m_headerOnly && m_contentLength > 0 && m_contentLength < TINY_SIZE)
-            next(tinybody);
+            init(tinybody);
         else
-            next(header);
+            init(header);
     }
 
     ON_STATE(asyncSendTo, tinybody)
@@ -430,7 +430,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
             , m_stm(stm)
             , m_headCount(0)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncReadHeader, begin)
@@ -523,7 +523,7 @@ result_t HttpMessage::readBody(AsyncEvent* ac)
             , m_pThis(pThis)
             , m_stm(stm)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncReadBody, begin)
@@ -590,7 +590,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             , m_pThis(pThis)
             , m_stm(stm)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncReadFrom, begin)

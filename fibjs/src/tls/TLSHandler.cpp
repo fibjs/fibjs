@@ -52,7 +52,7 @@ result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_socket = new TLSSocket();
             m_socket->init(m_pThis->m_ctx);
 
-            next(accept);
+            init(accept);
         }
 
         ON_STATE(asyncInvoke, accept)

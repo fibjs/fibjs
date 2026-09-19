@@ -231,7 +231,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             , m_stream(stream)
             , m_retVal(retVal)
         {
-            next(try_lock);
+            init(try_lock);
         }
 
         ~AsyncRead()
@@ -276,11 +276,11 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 return next(CALL_RETURN_NULL);
             }
 
-            // No data available — register as waiter
-            m_stream->m_recv_ac = this;
+            // No data available — register as waiter（锁内登记票，由
+            // onData / onEnd / onClose 持票回投）
+            m_stream->m_recv_ac = next(data_ready);
             m_stream->m_recv_retVal = &m_retVal;
             m_stream->m_recv_lock.unlock();
-            next(data_ready);
             return CALL_E_PENDDING;
         }
 

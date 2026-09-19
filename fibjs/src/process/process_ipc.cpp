@@ -100,7 +100,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         {
             m_bs = new BufferedStream(pThis->m_stream);
             m_bs->set_EOL("\n");
-            next(read);
+            init(read);
         }
 
         ~asyncRead()

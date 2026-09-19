@@ -147,7 +147,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 if (m_c_pos_snap != m_pThis->real_pos)
                     m_pThis->m_stream->seek(m_pThis->real_pos, fs_base::C_SEEK_SET);
 
-                next(read);
+                init(read);
             }
 
         public:
@@ -204,7 +204,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 , m_bytes(bytes)
                 , m_retVal(retVal)
             {
-                next(read);
+                init(read);
             }
 
         public:
@@ -331,7 +331,7 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
             , m_pThis(pThis)
             , m_retVal(retVal)
         {
-            next(stat);
+            init(stat);
         }
 
     public:

@@ -188,7 +188,7 @@ public:
         int32_t len;
         m_msg->cc_write(_data, len);
 
-        next(start);
+        init(start);
     }
 
     asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = WebSocket_base::C_BINARY)
@@ -202,7 +202,7 @@ public:
         int32_t len;
         m_msg->cc_write(data, len);
 
-        next(start);
+        init(start);
     }
 
     asyncSend(WebSocket* pThis, int32_t code, exlib::string reason)
@@ -224,7 +224,7 @@ public:
         int32_t len;
         m_msg->cc_write(data, len);
 
-        next(start);
+        init(start);
     }
 
     asyncSend(WebSocket* pThis, SeekableStream_base* body, int32_t type)
@@ -238,7 +238,7 @@ public:
         if (body)
             m_msg->set_body(body);
 
-        next(start);
+        init(start);
     }
 
     ~asyncSend()
@@ -311,7 +311,7 @@ public:
         return v;
     }
 
-    result_t lock(exlib::Locker& l, AsyncState* pThis)
+    result_t lock(exlib::Locker& l, AsyncEvent* pThis)
     {
         return l.lock(pThis) ? 0 : CALL_E_PENDDING;
     }
@@ -372,7 +372,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         {
             m_isolate = isolate;
             m_this->isolate_ref();
-            next(handshake);
+            init(handshake);
         }
 
         virtual Isolate* isolate()
@@ -604,7 +604,7 @@ void WebSocket::startRecv(Isolate* isolate)
             if (m_this->m_holder == NULL)
                 m_this->m_holder = new ValueHolder(m_this->wrap());
             m_isolate = isolate;
-            next(recv);
+            init(recv);
         }
 
         ~asyncRead()

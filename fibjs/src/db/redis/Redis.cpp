@@ -78,7 +78,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         {
             m_subMode = pThis->m_subMode;
             m_stmBuffered = pThis->m_stmBuffered;
-            next(send);
+            init(send);
         }
 
         asyncCommand(Redis* pThis)
@@ -88,7 +88,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         {
             m_subMode = pThis->m_subMode;
             m_stmBuffered = pThis->m_stmBuffered;
-            next(read);
+            init(read);
         }
 
         ON_STATE(asyncCommand, send)

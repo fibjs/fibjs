@@ -133,7 +133,7 @@ result_t TcpServer::start()
             , m_sock(pSock)
             , m_holder(holder)
         {
-            next(invoke);
+            init(invoke);
         }
 
     public:
@@ -174,7 +174,7 @@ result_t TcpServer::start()
             , m_holder(holder)
         {
             m_pThis->isolate_ref();
-            next(accept);
+            init(accept);
         }
 
     public:
@@ -209,7 +209,7 @@ result_t TcpServer::start()
                 m_accept.Release();
             }
 
-            return m_pThis->m_socket->accept(m_accept, this);
+            return m_pThis->m_socket->accept(m_accept, next(invoke));
         }
 
         virtual int32_t error(int32_t v)

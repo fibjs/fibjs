@@ -48,7 +48,7 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
             m_httpreq->get_response(m_httprep);
             m_httpreq->get_stream(m_stm);
 
-            next(handshake);
+            init(handshake);
         }
 
         ON_STATE(asyncInvoke, handshake)
@@ -66,14 +66,14 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
             obj_ptr<EventSource> es = new EventSource();
             es->m_readyState = sse_base::C_SENDER;
             es->m_stream = m_stm;
-            es->m_ac = this;
+            // 把票交给 EventSource：关闭收尾由 EventSource::close 持票回投
+            es->m_ac = next(CALL_RETURN_NULL);
 
             Variant vs[2];
             vs[0] = es;
             vs[1] = m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
-            next(CALL_RETURN_NULL);
             return CALL_E_PENDDING;
         }
 

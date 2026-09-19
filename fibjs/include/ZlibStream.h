@@ -44,7 +44,7 @@ private:
             pThis->strm.avail_in = (int32_t)m_data->length();
             pThis->strm.next_in = (unsigned char*)m_data->data();
 
-            next(process);
+            init(process);
         }
 
         asyncWrite(ZlibStream* pThis, Stream_base* stm, int32_t flush, AsyncEvent* ac)
@@ -56,7 +56,7 @@ private:
             pThis->strm.avail_in = 0;
             pThis->strm.next_in = (unsigned char*)m_strBuf.c_str();
 
-            next(process);
+            init(process);
         }
 
         ON_STATE(asyncWrite, process)
@@ -161,7 +161,7 @@ public:
                 m_stm = new MemoryStream();
                 m_pThis->m_stm = m_stm;
 
-                next(write);
+                init(write);
             }
 
             ON_STATE(asyncProcess, write)
@@ -199,7 +199,7 @@ public:
                 , m_pThis(pThis)
                 , m_data(data)
             {
-                next(write);
+                init(write);
             }
 
             ON_STATE(asyncProcess, write)
@@ -229,7 +229,7 @@ public:
                 , m_pThis(pThis)
                 , m_src(src)
             {
-                next(copy);
+                init(copy);
             }
 
             ON_STATE(asyncProcess, copy)

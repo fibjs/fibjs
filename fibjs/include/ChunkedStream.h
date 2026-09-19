@@ -44,7 +44,7 @@ public:
                 , m_bytes(bytes)
                 , m_retVal(retVal)
             {
-                next(chunk_head);
+                init(chunk_head);
             }
 
             ON_STATE(asyncReadFrom, chunk_head)

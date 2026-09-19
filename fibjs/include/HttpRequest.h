@@ -183,7 +183,7 @@ public:
     }
 
     // Deferred send: asyncRequest saves itself here so that end() can wake it.
-    AsyncState* m_asyncState = nullptr;
+    AsyncEvent* m_asyncState = nullptr;
 
     // Set the connection socket for abort support.
     void _set_socket(Stream_base* socket) { m_socket = socket; }

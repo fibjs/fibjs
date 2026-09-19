@@ -79,7 +79,7 @@ public:
                 // Pre-set the isolate so _emit works from callbacks.
                 // The V8 wrapper will be created lazily on first JS access.
                 m_session->holder(ac->isolate());
-                next(init_session);
+                init(init_session);
             }
 
         public:
@@ -98,13 +98,10 @@ public:
                 // Wait for the session's readLoop to finish before
                 // completing; TcpServer closes the socket after
                 // the handler returns, so we must keep it alive.
-                // Must set state and register m_done_ac BEFORE
-                // startLoops(), because readLoop could finish
-                // immediately and call signalDone().
-                next(wait_done);
-
+                // Must register the ticket BEFORE startLoops(), because
+                // readLoop could finish immediately and call signalDone().
                 m_session->m_done_lock.lock();
-                m_session->m_done_ac = this;
+                m_session->m_done_ac = next(wait_done);
                 m_session->m_done_lock.unlock();
 
                 // startLoops() will send initial SETTINGS in its
@@ -256,7 +253,7 @@ result_t Http2Server::stop(AsyncEvent* ac)
             : AsyncState(ac)
             , m_server(server)
         {
-            next(stop_server);
+            init(stop_server);
         }
 
         ON_STATE(asyncStop, stop_server)

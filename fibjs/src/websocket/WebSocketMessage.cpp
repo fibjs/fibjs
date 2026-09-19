@@ -173,7 +173,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
             , m_mask(mask)
             , m_copyed(0)
         {
-            next(read);
+            init(read);
         }
 
         ON_STATE(asyncCopy, read)
@@ -260,10 +260,10 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
                 } else
                     zlib_base::createDeflateRaw(m_data, m_zip);
 
-                next(deflate);
+                init(deflate);
             } else {
                 m_data = m_body;
-                next(head);
+                init(head);
             }
         }
 
@@ -399,7 +399,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
         {
             m_body = m_pThis->m_message->ensure_body();
             m_zip = m_body;
-            next(head);
+            init(head);
         }
 
         ON_STATE(asyncReadFrom, head)

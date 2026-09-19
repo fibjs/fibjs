@@ -30,7 +30,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
                   retVal)
         {
             m_retVal = 0;
-            next(read);
+            init(read);
         }
 
         ON_STATE(asyncCopy, read)
@@ -95,7 +95,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                 , m_from(idx)
                 , m_to(1 - idx)
             {
-                next(read);
+                init(read);
             }
 
             ON_STATE(AsyncCopy, read)

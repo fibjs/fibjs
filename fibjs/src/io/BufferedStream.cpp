@@ -19,7 +19,7 @@ public:
         , m_streamEnd(false)
         , m_pThis(pThis)
     {
-        next(read);
+        init(read);
     }
 
     virtual result_t process(bool end)

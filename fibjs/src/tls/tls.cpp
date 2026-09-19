@@ -55,7 +55,7 @@ public:
         , m_timeout(timeout)
         , m_retVal(retVal)
     {
-        next(connect);
+        init(connect);
     }
 
     ON_STATE(asyncConnect, connect)

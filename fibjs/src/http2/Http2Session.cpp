@@ -440,7 +440,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             : AsyncState(NULL)
             , m_session(session)
         {
-            next(do_write);
+            init(do_write);
         }
 
     public:
@@ -538,7 +538,7 @@ void Http2Session::startLoops()
                 m_session->isolate_ref();
                 m_session->m_ref_active = true;
             }
-            next(read);
+            init(read);
         }
 
         void releaseRef()
@@ -1041,7 +1041,7 @@ result_t Http2Session::close(AsyncEvent* ac)
             // 不在此 isolate_unref()：释放由 asyncReadLoop 的终态 releaseRef() 完成，
             // 本 close 流程末尾的 abort_socket 会 abortTransport() 唤醒读循环。
 
-            next(m_buf ? write_goaway : close_conn);
+            init(m_buf ? write_goaway : close_conn);
         }
 
         ON_STATE(asyncClose, write_goaway)

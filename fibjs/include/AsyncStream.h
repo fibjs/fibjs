@@ -83,8 +83,6 @@ public:
     explicit AsyncStreamResume(AsyncEvent* ev)
         : m_ev(ev)
     {
-        if (m_ev)
-            m_ev->reserve();
     }
 
     ~AsyncStreamResume()
@@ -109,11 +107,8 @@ private:
 
         m_ev = NULL;
 
-        if (do_post && !ev->is_dead())
+        if (do_post)
             ev->apost(v);
-
-        if (ev->release())
-            delete ev;
     }
 
 private:
@@ -144,7 +139,7 @@ public:
         , m_isolate(base->m_streamIsolate)
         , m_wait(kWaitStart)
     {
-        next(wait);
+        init(wait);
     }
 
     ~AsyncStreamReader()
@@ -162,12 +157,23 @@ public:
 
     void request_resume()
     {
-        apost(kWakeResume);
+        wake(kWakeResume);
     }
 
     void request_drain()
     {
-        apost(kWakeDrain);
+        wake(kWakeDrain);
+    }
+
+    // 唤醒等待中的读循环：消费它挂出的票；票不在（读循环未挂起）时记下待处理
+    // 唤醒，由下一次挂票时回投，避免丢唤醒。
+    void wake(int32_t token)
+    {
+        AsyncEvent* ticket = m_ticket.exchange(nullptr);
+        if (ticket)
+            ticket->apost(token);
+        else
+            m_pendingWake.store(token);
     }
 
     ON_STATE(AsyncStreamReader, recv)
@@ -177,40 +183,36 @@ public:
 
     ON_STATE(AsyncStreamReader, wait)
     {
+        bool matched = false;
+
         switch (m_wait) {
         case kWaitStart:
-            if (n != kWakeStart)
-                return CALL_E_PENDDING;
-            m_wait = kWaitNone;
-            return next(recv);
-
+            matched = (n == kWakeStart);
+            break;
         case kWaitDelivery:
-            if (n != kWakeDeliveryDone)
-                return CALL_E_PENDDING;
-
-            m_wait = kWaitNone;
-            if (m_base->m_paused) {
-                m_wait = kWaitResume;
-                return next(wait);
-            }
-            return next(recv);
-
+            matched = (n == kWakeDeliveryDone);
+            break;
         case kWaitResume:
-            if (n != kWakeResume && n != kWakeStart)
-                return CALL_E_PENDDING;
-            m_wait = kWaitNone;
-            return next(recv);
-
+            matched = (n == kWakeResume || n == kWakeStart);
+            break;
         case kWaitDrain:
-            if (n != kWakeDrain && n != kWakeResume)
-                return CALL_E_PENDDING;
-            m_wait = kWaitNone;
-            return next(recv);
-
-        case kWaitNone:
+            matched = (n == kWakeDrain || n == kWakeResume);
+            break;
         default:
-            return CALL_E_PENDDING;
+            matched = false;
+            break;
         }
+
+        if (!matched)
+            return park();
+
+        if (n == kWakeDeliveryDone && m_base->m_paused) {
+            m_wait = kWaitResume;
+            return park();
+        }
+
+        m_wait = kWaitNone;
+        return next(recv);
     }
 
     ON_STATE(AsyncStreamReader, auto_destroy_done)
@@ -262,13 +264,13 @@ public:
 
             if (isFull) {
                 m_wait = kWaitDrain;
-                return next(wait);
+                return park();
             }
             return next(recv);
         }
 
         m_wait = kWaitDelivery;
-        next(wait);
+        m_ticket.store(next(wait));
 
         Variant data;
         if (!m_base->m_decoder) {
@@ -280,7 +282,8 @@ public:
         }
 
         obj_ptr<Stream_base> stream = m_this;
-        std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(this);
+        // 数据投递期间票面交给 resume，由 commit 在同一线程内消费
+        std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(m_ticket.exchange(nullptr));
         m_isolate->sync([stream, data, resume]() mutable -> int32_t {
             JSFiber::EnterJsScope s;
 
@@ -345,11 +348,29 @@ public:
     }
 
 private:
+    // 挂票等待唤醒（wait 状态）：票据存回 m_ticket，由唤醒方消费；
+    // 若期间已有待处理唤醒，立即把它作为一次回投发出去。
+    int32_t park()
+    {
+        m_ticket.store(next(wait));
+
+        int32_t pending = m_pendingWake.exchange(0);
+        if (pending) {
+            AsyncEvent* ticket = m_ticket.exchange(nullptr);
+            if (ticket)
+                ticket->apost(pending);
+        }
+        return CALL_E_PENDDING;
+    }
+
+private:
     Isolate* m_isolate;
     obj_ptr<Stream_base> m_this;
     AsyncStreamBase* m_base;
     obj_ptr<Buffer_base> m_buf;
     WaitReason m_wait;
+    std::atomic<AsyncEvent*> m_ticket { nullptr };
+    std::atomic<int32_t> m_pendingWake { 0 };
 };
 
 template <typename T>
@@ -386,7 +407,7 @@ public:
             , m_bytes(bytes)
             , m_retVal(retVal)
         {
-            next(doRead);
+            init(doRead);
         }
 
         ON_STATE(AsyncReadVariant, doRead)
@@ -512,7 +533,7 @@ public:
             , m_pThis(pThis)
             , m_retVal(retVal)
         {
-            next(doRead);
+            init(doRead);
         }
 
         ON_STATE(AsyncReadAll, doRead)
@@ -689,7 +710,7 @@ public:
             : AsyncState(ac)
             , m_pThis(pThis)
         {
-            next(doClose);
+            init(doClose);
         }
 
         ON_STATE(AsyncDestroyEmitter, doClose)
@@ -774,7 +795,7 @@ public:
             , m_pThis(pThis)
         {
             setAsync();
-            next(doWrite);
+            init(doWrite);
         }
 
         void start()
@@ -846,9 +867,9 @@ public:
             , m_data(data)
         {
             if (m_data)
-                next(doWrite);
+                init(doWrite);
             else
-                next(emitEvents);
+                init(emitEvents);
         }
 
         ON_STATE(AsyncEndEmitter, doWrite)

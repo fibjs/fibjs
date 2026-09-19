@@ -576,7 +576,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnl
             , m_stm(stm)
             , m_headerOnly(headerOnly)
         {
-            next(begin);
+            init(begin);
         }
 
         ON_STATE(asyncReadFrom, begin)
