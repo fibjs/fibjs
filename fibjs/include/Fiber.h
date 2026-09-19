@@ -31,7 +31,6 @@ public:
 
     public:
         obj_ptr<JSFiber> m_pFiber;
-        v8::Global<v8::Object> m_fiber;
         TryCatch try_catch;
     };
 
@@ -54,6 +53,10 @@ public:
     virtual result_t get_id(int64_t& retVal);
     virtual result_t get_stack(exlib::string& retVal);
     virtual result_t get_stack_usage(int32_t& retVal);
+
+    // Pin the JS wrapper object of this fiber for its whole lifetime (see
+    // Fiber.cpp); it is lazily created on first JS-visible use.
+    void pin_wrapper();
 
 public:
     static void FiberProcRunJavascript(void* p);
@@ -150,6 +153,10 @@ private:
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;
     v8::Global<v8::Object> m_this;
+
+    // Strong reference to the JS wrapper object of this fiber, created on the
+    // first call to coroutine.current() (see pin_wrapper()).
+    v8::Global<v8::Object> m_fiber_wrapper;
 };
 
 } /* namespace fibjs */

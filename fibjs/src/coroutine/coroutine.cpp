@@ -202,10 +202,18 @@ result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
 
 result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 {
-    Fiber_base* fb = JSFiber::current();
+    JSFiber* fb = JSFiber::current();
 
     if (!fb)
         return CALL_RETURN_NULL;
+
+    // Keep the JS wrapper of the running fiber alive for as long as the fiber
+    // object lives: object_base holds it weakly, so without this a GC between
+    // two calls would drop it and JS properties set on the fiber object would
+    // silently disappear (test/coroutine_test.js: "do not recycle fiber objects
+    // during gc").  Pin it here, on first JS-visible use, instead of on every
+    // job like EnterJsScope used to do.
+    fb->pin_wrapper();
 
     retVal = fb;
 

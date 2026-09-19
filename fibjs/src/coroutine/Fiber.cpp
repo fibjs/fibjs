@@ -271,6 +271,20 @@ result_t JSFiber::js_invoke()
     return 0;
 }
 
+void JSFiber::pin_wrapper()
+{
+    // object_base keeps the wrapper in a weak handle, so a GC between two
+    // coroutine.current() calls would drop it and recreate a *different* object
+    // later (losing the properties JS stored on the fiber object).  Pinning the
+    // wrapper once per fiber keeps its identity stable for the fiber's whole
+    // lifetime; the previous implementation re-wrapped and re-pinned it on
+    // every JS job (EnterJsScope), which showed up per job on the hot path.
+    if (m_fiber_wrapper.IsEmpty()) {
+        Isolate* isolate = holder();
+        m_fiber_wrapper.Reset(isolate->m_isolate, wrap(isolate));
+    }
+}
+
 JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     : m_hr(0)
     , m_pFiber(fb)
@@ -288,8 +302,6 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
 
     isolate->m_fibers.putTail(m_pFiber);
     isolate->m_js_scope_depth++;
-
-    m_fiber.Reset(isolate->m_isolate, m_pFiber->wrap(isolate));
 }
 
 JSFiber::EnterJsScope::~EnterJsScope()
