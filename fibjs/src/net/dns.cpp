@@ -43,9 +43,11 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
+                // 先取用再释放：resolver 在 post 之前必须保持有效
+                AsyncEvent* ac = resolver->_ac;
                 delete resolver;
 
-                resolver->_ac->post(status);
+                ac->post(status);
                 return;
             }
 
@@ -136,9 +138,11 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
+                // 先取用再释放：resolver 在 post 之前必须保持有效
+                AsyncEvent* ac = resolver->_ac;
                 delete resolver;
 
-                resolver->_ac->post(status);
+                ac->post(status);
                 return;
             }
 

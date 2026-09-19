@@ -105,9 +105,11 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
+                // 先取用再释放：resolver 在 post 之前必须保持有效
+                AsyncEvent* ac = resolver->_ac;
                 delete resolver;
 
-                resolver->_ac->post(status);
+                ac->post(status);
                 return;
             }
 
