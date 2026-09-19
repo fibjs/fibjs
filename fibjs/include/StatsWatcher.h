@@ -22,11 +22,15 @@ namespace fibjs {
 
 #define DEFAULT_STATS_WATCH_INTERVAL 5007
 
-class StatsWatcher;
-static exlib::spinlock s_TargetWatcherMapLock;
-static std::unordered_map<exlib::string, StatsWatcher*> s_TargetWatcherMap;
-
 class StatsWatcher : public StatsWatcher_base {
+
+public:
+    // 定时器句柄持有者（uv 线程独占）。owner 持有强引用，
+    // 保证句柄注册期间 watcher 不会被 GC 回收（句柄内存不放本对象内）。
+    struct TimerSlot {
+        uv_timer_t timer;
+        obj_ptr<StatsWatcher> owner;
+    };
 
 public:
     StatsWatcher(
@@ -58,39 +62,10 @@ public:
     ~StatsWatcher() {};
 
 public:
-    static bool setTargetWatcher(exlib::string& target, StatsWatcher* watcher)
-    {
-        s_TargetWatcherMapLock.lock();
-
-        std::pair<std::unordered_map<exlib::string, StatsWatcher*>::iterator, bool> ret;
-        ret = s_TargetWatcherMap.insert(std::pair<exlib::string, StatsWatcher*>(target, watcher));
-
-        s_TargetWatcherMapLock.unlock();
-
-        return ret.second;
-    }
-
-    static StatsWatcher* getTargetWatcher(exlib::string& target)
-    {
-        s_TargetWatcherMapLock.lock();
-
-        std::unordered_map<exlib::string, StatsWatcher*>::iterator it = s_TargetWatcherMap.find(target);
-        StatsWatcher* result = it != s_TargetWatcherMap.end() ? it->second : NULL;
-
-        s_TargetWatcherMapLock.unlock();
-
-        return result;
-    }
-
-    static void removeTargetWatcher(exlib::string& target)
-    {
-        s_TargetWatcherMapLock.lock();
-
-        if ((bool)s_TargetWatcherMap.count(target))
-            s_TargetWatcherMap.erase(target);
-
-        s_TargetWatcherMapLock.unlock();
-    }
+    // 共享表（path → 唯一 watcher），实现见 fs_watch.cpp；查表即持有引用
+    static bool setTargetWatcher(exlib::string& target, StatsWatcher* watcher);
+    static bool getTargetWatcher(exlib::string& target, obj_ptr<StatsWatcher>& result);
+    static void removeTargetWatcher(exlib::string& target);
 
 public:
     void onError(result_t hr, const char* msg)
@@ -99,42 +74,86 @@ public:
     }
 
 public:
-    static void timer_callback(uv_timer_t* timer_req)
+    // uv 线程：定时器回调
+    static void on_timer(uv_timer_t* handle)
     {
-        StatsWatcher* pThis = NULL;
-        pThis = container_of(timer_req, StatsWatcher, m_timer_req);
+        TimerSlot* slot = (TimerSlot*)handle->data;
+        StatsWatcher* pThis = slot->owner;
 
-        ex_assert(&pThis->m_timer_req == timer_req);
+        if (pThis->m_closed)
+            pThis->close_timer();
+        else
+            pThis->checkStatsChangeOnTimerCb();
+    }
 
-        if (!pThis)
+    // uv 线程：句柄关闭后释放 slot（连带释放对 watcher 的引用）
+    static void on_slot_closed(uv_handle_t* handle)
+    {
+        delete (TimerSlot*)handle->data;
+    }
+
+    // uv 线程：停止并关闭定时器，幂等
+    void close_timer()
+    {
+        TimerSlot* slot = m_slot;
+
+        if (slot && !uv_is_closing((uv_handle_t*)&slot->timer)) {
+            uv_timer_stop(&slot->timer);
+            uv_close((uv_handle_t*)&slot->timer, on_slot_closed);
+        }
+    }
+
+    // 记账：不改 uv 句柄
+    void close_impl()
+    {
+        if (m_closed)
             return;
 
-        uv_handle_t* handle = (uv_handle_t*)timer_req;
-        if (pThis->m_closed) {
-            handle->data = (void*)pThis;
+        removeTargetWatcher(m_target);
 
-            uv_close(handle, NULL);
-        } else {
-            pThis->checkStatsChangeOnTimerCb();
-        }
+        m_closed = true;
+
+        if (m_Persistent)
+            isolate_unref();
+
+        if (m_vholder)
+            m_vholder.Release();
+
+        _emit("close");
     }
 
     result_t start()
     {
-        if (m_closed)
+        if (m_closed || m_started)
             return 0;
 
+        m_started = true;
+
+        // 活跃期持有 JS wrapper（事件监听列表挂在 wrapper 上）
         m_vholder = new ValueHolder(wrap());
 
         if (m_Persistent)
             isolate_ref();
 
         return uv_call([&] {
-            uv_timer_init(s_uv_loop, &m_timer_req);
-            int32_t uv_err_no = uv_timer_start(&m_timer_req, timer_callback, 0, getIntervalMS());
+            TimerSlot* slot = new TimerSlot();
+
+            slot->owner = this; // 持有强引用
+            slot->timer.data = slot;
+            uv_timer_init(s_uv_loop, &slot->timer);
+            m_slot = slot;
+
+            int32_t uv_err_no = uv_timer_start(&slot->timer, on_timer, 0, getIntervalMS());
             if (uv_err_no != 0) {
-                onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
-                close();
+                // start 失败：立刻关闭句柄
+                close_timer();
+
+                // 收尾回到 JS 侧执行（事件投递/释放 ValueHolder）
+                obj_ptr<StatsWatcher> self = this;
+                async([self, uv_err_no]() {
+                    self->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
+                    self->close_impl();
+                });
             }
 
             return uv_err_no;
@@ -176,17 +195,13 @@ public:
         if (m_closed)
             return 0;
 
-        removeTargetWatcher(m_target);
+        close_impl();
 
-        m_closed = true;
-
-        if (m_Persistent)
-            isolate_unref();
-
-        if (m_vholder)
-            m_vholder.Release();
-
-        _emit("close");
+        // 句柄关闭 post 给 uv 线程；slot 保活到 close 回调
+        if (m_slot)
+            uv_post([this] {
+                close_timer();
+            });
 
         return 0;
     };
@@ -286,6 +301,10 @@ protected:
     obj_ptr<Stat_base> cur;
 
 private:
-    uv_timer_t m_timer_req;
+    // 在 start() 的 uv_call 内写入后只读；只在 uv 线程解引用
+    TimerSlot* m_slot = nullptr;
+
+    // 仅 JS 线程使用
+    bool m_started = false;
 };
 }

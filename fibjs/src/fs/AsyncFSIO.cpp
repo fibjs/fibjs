@@ -1,7 +1,6 @@
 #include "object.h"
 #include "utils.h"
 #include "AsyncUV.h"
-#include "StatsWatcher.h"
 #include <uv/include/uv.h>
 #include "Runtime.h"
 #include "Buffer.h"

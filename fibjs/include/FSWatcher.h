@@ -54,15 +54,8 @@ public:
 
     ~FSWatcher()
     {
-        // Ensure handle is closed in destructor
-        if (m_started && !m_closed) {
-            m_closed = true;
-            if (m_self_recursive) {
-                closeRecursive();
-            } else if (!uv_is_closing((uv_handle_t*)&m_fs_handle)) {
-                uv_fs_event_stop(&m_fs_handle);
-            }
-        }
+        // 已启动时 start() 持有引用到 close 回调，此处不会执行；也不再触碰 uv 句柄
+        ex_assert(!(m_started && !m_closed));
     }
 
 private:
@@ -147,10 +140,11 @@ public:
             isolate_ref();
 
         return uv_call([&] {
-            // Ref the object for UV callback
+            // 引用保持到 uv close 回调（句柄内存在本对象内）
             Ref();
 
             int32_t uv_err_no;
+            bool close_cb_owns_ref = false;
 
             if (m_recursive && needSelfRecursive()) {
                 // libuv's inotify backend does not support UV_FS_EVENT_RECURSIVE.
@@ -164,13 +158,17 @@ public:
                     uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_filename.c_str(),
                         m_recursive ? UV_FS_EVENT_RECURSIVE : 0);
 
-                    if (uv_err_no != 0)
+                    if (uv_err_no != 0) {
                         uv_close((uv_handle_t*)&m_fs_handle, on_uv_close);
+                        close_cb_owns_ref = true; // on_uv_close 会 Unref
+                    }
                 }
             }
 
             if (uv_err_no != 0) {
-                Unref();
+                // 引用已交给 close 回调，避免重复 Unref
+                if (!close_cb_owns_ref)
+                    Unref();
                 if (m_persistent)
                     isolate_unref();
                 m_holder.Release();

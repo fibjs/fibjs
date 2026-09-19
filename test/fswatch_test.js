@@ -5,6 +5,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const test_util = require('./test_util');
 
 // Helper function to generate unique IDs
 const generateUniqueId = () => {
@@ -1266,6 +1267,60 @@ describe('fs.watchFile', () => {
             const countAfterStop = callCount;
             await sleep(200);
             assert.strictEqual(callCount, countAfterStop, 'listener should not be called after stop');
+        });
+    });
+
+    describe('handle lifecycle', () => {
+        // 回归：旧实现把 uv_close 推迟到下一次 timer 回调，窗口内 watcher 被 GC
+        // 会让 loop 的 timer heap 留下悬垂节点（调用被清零的 timer_cb → 段错误）
+        it('should survive collecting a stopped watcher before its next tick', async (t) => {
+            const filename = path.join(testDir, `file-${generateUniqueId()}.txt`);
+            writeFile(filename, 'initial');
+
+            let watcher = fs.watchFile(filename, { interval: 5007 }, () => { });
+            watcher.stop();
+            watcher = null;
+
+            gc();
+            gc();
+
+            // 复用被释放的内存
+            for (let i = 0; i < 200000; i++)
+                Buffer.alloc(256);
+
+            await sleep(7000); // 越过旧实现里会触发的 tick
+            assert.ok(true, 'process survived the stale timer tick');
+        });
+
+        it('should release the watcher after close', async (t) => {
+            const filename = path.join(testDir, `file-${generateUniqueId()}.txt`);
+            writeFile(filename, 'initial');
+
+            const before = test_util.countObject('StatsWatcher');
+
+            let watcher = fs.watchFile(filename, { interval: 100 }, () => { });
+            assert.ok(test_util.countObject('StatsWatcher') >= before + 1,
+                'watcher should be alive while watching');
+
+            watcher.stop();
+            watcher = null;
+
+            // 等 uv 线程跑完 posted 的 stop + close
+            await sleep(300);
+            test_util.gc();
+
+            assert.ok(test_util.countObject('StatsWatcher') <= before,
+                'closed watcher should be reclaimed, not leaked');
+        });
+
+        it('should clean up a failed fs.watch start', async (t) => {
+            const target = path.join(testDir, `missing-${generateUniqueId()}`, 'file.txt');
+
+            // 启动失败路径：验证不会重复释放/泄漏
+            assert.throws(() => fs.watch(target, () => { }));
+
+            test_util.gc();
+            assert.ok(true, 'process survived the failed watch start');
         });
     });
 });

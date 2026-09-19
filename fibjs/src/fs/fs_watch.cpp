@@ -13,6 +13,51 @@
 
 namespace fibjs {
 
+// 共享表：path → 唯一 watcher（对齐 Node 的 statWatchers），表内保存强引用
+static exlib::spinlock s_TargetWatcherMapLock;
+static std::unordered_map<exlib::string, obj_ptr<StatsWatcher>> s_TargetWatcherMap;
+
+bool StatsWatcher::setTargetWatcher(exlib::string& target, StatsWatcher* watcher)
+{
+    s_TargetWatcherMapLock.lock();
+
+    auto ret = s_TargetWatcherMap.insert(
+        std::make_pair(target, obj_ptr<StatsWatcher>(watcher)));
+
+    s_TargetWatcherMapLock.unlock();
+
+    return ret.second;
+}
+
+bool StatsWatcher::getTargetWatcher(exlib::string& target, obj_ptr<StatsWatcher>& result)
+{
+    s_TargetWatcherMapLock.lock();
+
+    auto it = s_TargetWatcherMap.find(target);
+    if (it != s_TargetWatcherMap.end())
+        result = it->second; // 锁内取引用
+
+    s_TargetWatcherMapLock.unlock();
+
+    return result != nullptr;
+}
+
+void StatsWatcher::removeTargetWatcher(exlib::string& target)
+{
+    // 先摘出，避免持锁析构
+    obj_ptr<StatsWatcher> removed;
+
+    s_TargetWatcherMapLock.lock();
+
+    auto it = s_TargetWatcherMap.find(target);
+    if (it != s_TargetWatcherMap.end()) {
+        removed = it->second;
+        s_TargetWatcherMap.erase(it);
+    }
+
+    s_TargetWatcherMapLock.unlock();
+}
+
 result_t fs_base::watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal)
 {
     return watch(fname, v8::Local<v8::Function>(), retVal);
@@ -79,7 +124,8 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
     if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
         return 0;
 
-    obj_ptr<StatsWatcher> pSW = StatsWatcher::getTargetWatcher(safe_name);
+    obj_ptr<StatsWatcher> pSW;
+    StatsWatcher::getTargetWatcher(safe_name, pSW);
     if (pSW == NULL) {
         bool persistent = true;
         hr = GetConfigValue(options, "persistent", persistent, true);
@@ -118,8 +164,8 @@ result_t fs_base::unwatchFile(exlib::string fname)
     if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
         return 0;
 
-    obj_ptr<StatsWatcher> pSW = StatsWatcher::getTargetWatcher(safe_name);
-    if (pSW == NULL)
+    obj_ptr<StatsWatcher> pSW;
+    if (!StatsWatcher::getTargetWatcher(safe_name, pSW))
         return 0;
 
     pSW->removeChangeHandler();
@@ -134,8 +180,8 @@ result_t fs_base::unwatchFile(exlib::string fname, v8::Local<v8::Function> callb
     if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
         return 0;
 
-    obj_ptr<StatsWatcher> pSW = StatsWatcher::getTargetWatcher(safe_name);
-    if (pSW == NULL)
+    obj_ptr<StatsWatcher> pSW;
+    if (!StatsWatcher::getTargetWatcher(safe_name, pSW))
         return 0;
 
     pSW->removeChangeHandler(callback);
