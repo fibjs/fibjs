@@ -37,6 +37,8 @@ jobs:
           BUILD_TYPE: release
       - name: Build fibjs
         shell: bash
+        env:
+          FIBJS_ASYNC_STATE_CHECK: '1'
         run: . ./.github/workflows/build.sh
       - name: Run database tests
         shell: bash
@@ -59,6 +61,8 @@ jobs:
           BUILD_TYPE: release
       - name: Build fibjs
         shell: bash
+        env:
+          FIBJS_ASYNC_STATE_CHECK: '1'
         run: bash build -j2 arm64 darwin release ci
       - name: Run database tests
         shell: bash
@@ -81,6 +85,8 @@ jobs:
           BUILD_TYPE: release
       - name: Build fibjs
         shell: bash
+        env:
+          FIBJS_ASYNC_STATE_CHECK: '1'
         run: bash build -j2 x64 win32 release ci
       - name: Run database tests
         shell: bash

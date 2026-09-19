@@ -137,6 +137,14 @@ jobs:
           BUILD_ARCH: ${{ matrix.arch }}
           BUILD_TYPE: ${{ matrix.type }}
 
+      - name: Enable AsyncState check
+        # CI (branch/PR) builds carry the AsyncState phase lock so that state
+        # violations fail the run; release (tag) builds must not - BUILD_TAG
+        # is only set for tag builds.
+        if: env.BUILD_TAG == ''
+        shell: bash
+        run: echo "FIBJS_ASYNC_STATE_CHECK=1" >> $GITHUB_ENV
+
       - name: Build the project
         shell: bash
         run: . ./.github/workflows/build.sh

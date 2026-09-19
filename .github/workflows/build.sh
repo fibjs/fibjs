@@ -2,7 +2,9 @@ set -ev
 
 if [[ "${HOST_OS}" == "Linux" ]]; then
     CUR=$(pwd)
-    docker run -t --rm -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} \
+    docker run -t --rm -v ${CUR}:${CUR} \
+        ${FIBJS_ASYNC_STATE_CHECK:+-e FIBJS_ASYNC_STATE_CHECK=${FIBJS_ASYNC_STATE_CHECK}} \
+        fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} \
         bash -c "cd ${CUR}; git config --global --add safe.directory ${CUR}; bash build -j2 ${BUILD_ARCH} ${BUILD_TYPE} ci"
 else
     bash build -j2 ${BUILD_ARCH} ${BUILD_TARGET} ${BUILD_TYPE} ci
