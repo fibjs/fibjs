@@ -159,28 +159,20 @@ public:
     virtual void start()
     {
         if (m_sockfd == SOCKET_ERROR) {
-            m_ac->apost(SOCKET_ERROR);
-            cleanup_timer();
-            delete this;
+            complete(SOCKET_ERROR, false);
             return;
         }
 
         // Timed out while waiting in locker queue. The lock ownership has
         // been transferred to this task before resume(), so we can release it safely here.
         if (m_timedout) {
-            m_locker.unlock(this);
-            m_ac->apost(CALL_E_TIMEOUT);
-            cleanup_timer();
-            delete this;
+            complete(CALL_E_TIMEOUT);
             return;
         }
 
         // Check if aborted while waiting in queue
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
-            m_locker.unlock(this);
-            m_ac->apost(CALL_E_ABORT);
-            cleanup_timer();
-            delete this;
+            complete(CALL_E_ABORT);
             return;
         }
 
@@ -225,21 +217,29 @@ public:
             ready(hr);
     }
 
-    void ready(int32_t v)
+    // 唯一完成出口（一次且仅一次）。正常 io 完成 / 超时 / abort / close 都可能
+    // 到达这里；二次完成会让调用方状态机跑两次终态转换（double delete）。
+    // unlock=false 仅用于排队期早退的 SOCKET_ERROR 路径（fd 已失效，该方向不会
+    // 再有新操作排队，不归还 socket 锁）。
+    void complete(int32_t v, bool unlock = true)
     {
-        // A pending operation must complete its caller's event exactly once.
-        // The normal I/O completion, the timeout path and the abort path can all
-        // end up here; completing the same AsyncEvent twice makes the caller's
-        // state machine run its terminal transition twice (double delete).
         if (m_completed.exchange(true))
             return;
 
         m_opt = NULL;
         m_watching = false;
         cleanup_timer();
-        m_locker.unlock(this);
+
+        if (unlock)
+            m_locker.unlock(this);
+
         m_ac->apost(v);
         delete this;
+    }
+
+    void ready(int32_t v)
+    {
+        complete(v);
     }
 
     void on_watched()
