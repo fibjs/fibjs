@@ -63,6 +63,13 @@ result_t Buffer_base::alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& re
     if (size < 0)
         size = 0;
 
+    if (fill == 0) {
+        // calloc-backed storage: already zero filled, no eager memset needed
+        // (pages the kernel hands back are zeroed on first touch)
+        retVal = new Buffer(NULL, size, true);
+        return 0;
+    }
+
     obj_ptr<Buffer> buf = new Buffer(NULL, size);
     buf->fill(fill, 0, size, retVal);
     retVal = buf;

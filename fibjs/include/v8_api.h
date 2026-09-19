@@ -33,5 +33,8 @@ void setAsyncFunctoin(v8::Local<v8::Function> func);
 void initImportMeta(v8::Isolate* isolate, v8::Local<v8::Module> module);
 
 std::shared_ptr<v8::BackingStore> NewBackingStore(size_t byte_length);
+// zero == true: the payload is allocated with calloc(), i.e. it is zero filled
+// (lazily, when the allocator supports it) without an eager memset.
+std::shared_ptr<v8::BackingStore> NewBackingStore(size_t byte_length, bool zero);
 
 } /* namespace fibjs */

@@ -155,18 +155,20 @@ class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
     virtual void* Allocate(size_t length)
     {
-        void* data = AllocateUninitialized(length);
-        return data == NULL ? data : memset(data, 0, length);
+        // V8 wants zero filled memory here; calloc() avoids the eager memset of
+        // the large sizes (fresh kernel pages are already zeroed), so buffers
+        // that the caller fills right away are cheap to create.
+        return calloc(1, length);
     }
 
     virtual void* AllocateUninitialized(size_t length)
     {
-        return ::operator new(length);
+        return malloc(length);
     }
 
     virtual void Free(void* data, size_t)
     {
-        ::operator delete(data);
+        free(data);
     }
 };
 

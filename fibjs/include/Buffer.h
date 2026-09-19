@@ -11,10 +11,10 @@ class Buffer : public Buffer_base {
 public:
     class store {
     public:
-        store(const void* _data, size_t _length)
+        store(const void* _data, size_t _length, bool _zero = false)
             : m_length(_length)
         {
-            m_store = NewBackingStore(_length);
+            m_store = _zero ? NewBackingStore(_length, true) : NewBackingStore(_length);
             if (_data)
                 memcpy(data(), _data, _length);
         }
@@ -78,8 +78,8 @@ public:
     };
 
 public:
-    Buffer(const void* data = NULL, size_t length = 0)
-        : m_store(data, length)
+    Buffer(const void* data = NULL, size_t length = 0, bool zero = false)
+        : m_store(data, length, zero)
     {
         extMemory(length);
     }

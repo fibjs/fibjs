@@ -105,7 +105,6 @@ static void init_info(Isolate* isolate)
         vender_list->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
         vender_list->add("gumbo", "0.10.0");
         vender_list->add("icu", U_ICU_VERSION);
-        vender_list->add("jemalloc", "5.2.1");
         snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
         vender_list->add("leveldb", str);
         vender_list->add("msgpack", msgpack_version());
