@@ -79,6 +79,14 @@ private:
 
         m_ended = true;
 
+        // 自持一份引用：erase() 会释放 map 持有的最后一份引用（refcount 归零即
+        // Delete()，对象当场销毁），若接着在已释放内存上执行 isolate_unref()，
+        // 其 CAS(m_holding) 读回的已不是 true —— CAS 失败会跳过
+        // unregisterHoldingObject() 与 Isolate::Unref()，isolate hold 永不释放
+        // （表现为 rtc.stopListen() 之后进程无法退出）。先自持一份即可保证 unref
+        // 发生在有效对象上，作用域结束时的析构再真正销毁本对象。
+        obj_ptr<RTCListenHoldToken> self = this;
+
         Isolate* isolate = holder();
         auto it = isolate->m_rtcListenHolders.find(m_key);
         if (it != isolate->m_rtcListenHolders.end() && (object_base*)it->second == this)
