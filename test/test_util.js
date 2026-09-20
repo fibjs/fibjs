@@ -50,6 +50,20 @@ exports.gc = () => {
     }
 }
 
+// Event delivery is asynchronous: an emitted event is posted to the isolate's
+// job queue, and a single `coroutine.sleep(0)` (a 0ms timer) does not guarantee
+// that the job has run by the time the next statement executes -- with a busy
+// job queue the delivery can take milliseconds.  Wait for the flag instead of
+// assuming a fixed number of yields.
+exports.waitUntil = (fn, timeout = 1000) => {
+    var t1 = Date.now();
+
+    while (!fn() && Date.now() - t1 < timeout)
+        coroutine.sleep(1);
+
+    return fn();
+}
+
 exports.push = s => ss.push(s);
 
 exports.cleanup = () => {

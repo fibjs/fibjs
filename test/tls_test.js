@@ -1088,7 +1088,7 @@ describe('tls', () => {
                     svr.on('listening', () => { fired = true; });
                     svr.start();
                     test_util.push(svr.socket);
-                    coroutine.sleep(0);
+                    test_util.waitUntil(() => fired);
                     assert.strictEqual(fired, true);
                 });
 
@@ -1107,7 +1107,7 @@ describe('tls', () => {
                     s1.close();
 
                     for (var i = 0; i < 10 && conns < 1; i++)
-                        coroutine.sleep(0);
+                        test_util.waitUntil(() => conns >= 1);
                     assert.ok(conns >= 1);
                 });
 
@@ -1130,8 +1130,7 @@ describe('tls', () => {
                     svr.onlistening = () => { fired = true; };
                     svr.start();
                     test_util.push(svr.socket);
-                    for (var i = 0; i < 10 && !fired; i++)
-                        coroutine.sleep(0);
+                    test_util.waitUntil(() => fired);
                     assert.strictEqual(fired, true);
                 });
             });
@@ -1167,7 +1166,7 @@ describe('tls', () => {
                     svr.on('listening', () => { fired = true; });
                     svr.listen(9093 + base_port);
                     test_util.push(svr.socket);
-                    coroutine.sleep(0);
+                    test_util.waitUntil(() => fired);
                     assert.strictEqual(fired, true);
                 });
 

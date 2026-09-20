@@ -2494,7 +2494,7 @@ function test_net(eng, use_uv) {
                 svr.on('listening', () => { fired = true; });
                 svr.start();
                 test_util.push(svr.socket);
-                coroutine.sleep(0);
+                test_util.waitUntil(() => fired);
                 assert.strictEqual(fired, true);
             });
 
@@ -2504,7 +2504,7 @@ function test_net(eng, use_uv) {
                 svr.onlistening = () => { fired = true; };
                 svr.start();
                 test_util.push(svr.socket);
-                coroutine.sleep(0);
+                test_util.waitUntil(() => fired);
                 assert.strictEqual(fired, true);
             });
 
@@ -2519,7 +2519,7 @@ function test_net(eng, use_uv) {
                 var c = net.connect(p, '127.0.0.1');
                 c.close();
                 for (var i = 0; i < 10 && conns < 1; i++)
-                    coroutine.sleep(0);
+                    test_util.waitUntil(() => conns >= 1);
                 assert.ok(conns >= 1);
             });
 
@@ -2575,7 +2575,7 @@ function test_net(eng, use_uv) {
                 svr.on('listening', () => { fired = true; });
                 svr.listen(getPort());
                 test_util.push(svr.socket);
-                coroutine.sleep(0);
+                test_util.waitUntil(() => fired);
                 assert.strictEqual(fired, true);
             });
 

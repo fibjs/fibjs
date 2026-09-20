@@ -5632,7 +5632,7 @@ describe("http", () => {
             svr.start();
             test_util.push(svr.socket);
 
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
 
@@ -5644,7 +5644,7 @@ describe("http", () => {
             test_util.push(svr.socket);
 
             http.getSync('http://127.0.0.1:' + (port + 1) + '/');
-            coroutine.sleep(0);
+            test_util.waitUntil(() => conns >= 1);
             assert.ok(conns >= 1);
         });
 
@@ -5669,7 +5669,7 @@ describe("http", () => {
             svr.start();
             test_util.push(svr.socket);
 
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
     });
@@ -5692,7 +5692,7 @@ describe("http", () => {
             svr.on('listening', () => { fired = true; });
             svr.start();
             test_util.push(svr.socket);
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
 
@@ -5706,7 +5706,7 @@ describe("http", () => {
             var hc = new http.Client({ ca: ca });
             hc.getSync('https://localhost:' + (port + 1) + '/');
             for (var i = 0; i < 10 && conns < 1; i++)
-                coroutine.sleep(0);
+                test_util.waitUntil(() => conns >= 1);
             assert.ok(conns >= 1);
         });
 
@@ -5729,7 +5729,7 @@ describe("http", () => {
             svr.onlistening = () => { fired = true; };
             svr.start();
             test_util.push(svr.socket);
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
     });
@@ -5825,7 +5825,7 @@ describe("http", () => {
             svr.on('listening', () => { fired = true; });
             svr.listen(listenPort + 1);
             test_util.push(svr.socket);
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
 
@@ -5868,7 +5868,7 @@ describe("http", () => {
             svr.on('listening', () => { fired = true; });
             svr.listen(listenPort + 1);
             test_util.push(svr.socket);
-            coroutine.sleep(0);
+            test_util.waitUntil(() => fired);
             assert.strictEqual(fired, true);
         });
 
