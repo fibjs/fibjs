@@ -10,8 +10,17 @@
 #if defined(FIBJS_ASYNC_STATE_CHECK)
 #include <stdio.h>
 #include <stdlib.h>
-#if !defined(_WIN32)
-#include <execinfo.h>
+// Stack trace helper from exlib: backtrace(3) on glibc, DbgHelp on Windows,
+// no-op on libcs that do not provide execinfo.h (musl/Alpine, Android bionic).
+// Including <execinfo.h> unconditionally breaks those targets at compile time.
+#include <exlib/include/ex_assert.h>
+
+// Return address of the direct caller, used to point at the violating site.
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+#define FIBJS_ASYNC_STATE_CALLER() ((void*)_ReturnAddress())
+#else
+#define FIBJS_ASYNC_STATE_CALLER() __builtin_return_address(0)
 #endif
 #endif
 
@@ -286,7 +295,7 @@ private:
         // 状态锁：发票。next() 只在机器已被派发（处于处理态）后使用：
         // ++expect 必须追平 epoch。构造期设置入口状态请用 init()。
         if (++m_cont.expect != m_epoch.load(std::memory_order_relaxed))
-            state_lock_violation("next() while the machine was not in the processing phase (set the entry state with init() from a constructor; a second arm before delivery is also a violation)", r, __builtin_return_address(0));
+            state_lock_violation("next() while the machine was not in the processing phase (set the entry state with init() from a constructor; a second arm before delivery is also a violation)", r, FIBJS_ASYNC_STATE_CALLER());
         return ASResult(&m_cont, r);
 #else
         return ASResult(this, r);
@@ -306,7 +315,7 @@ public:
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         if (m_epoch.load(std::memory_order_relaxed) != 0)
-            state_lock_violation("init() must be called before the machine is dispatched", 0, __builtin_return_address(0));
+            state_lock_violation("init() must be called before the machine is dispatched", 0, FIBJS_ASYNC_STATE_CALLER());
 #endif
         m_next = fn;
     }
@@ -317,7 +326,7 @@ public:
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：初始派发是唯一合法的直连 post —— 相位必须正好从 0 走到 1。
         if (++m_epoch != 1)
-            state_lock_violation("non-initial post() (direct dispatch into a machine that has already been dispatched)", v, __builtin_return_address(0));
+            state_lock_violation("non-initial post() (direct dispatch into a machine that has already been dispatched)", v, FIBJS_ASYNC_STATE_CALLER());
 #endif
         return post_(v);
     }
@@ -374,7 +383,7 @@ public:
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：初始派发（异步形态），同 post()。
         if (++m_epoch != 1)
-            state_lock_violation("non-initial apost() (direct async dispatch into a machine that has already been dispatched)", v, __builtin_return_address(0));
+            state_lock_violation("non-initial apost() (direct async dispatch into a machine that has already been dispatched)", v, FIBJS_ASYNC_STATE_CALLER());
 #endif
         apost_(v);
     }
@@ -434,7 +443,7 @@ public:
         virtual void invoke() override
         {
             // proxy 本身永远不会被投递进队列；被投递 = 有人对票做了裸 async()
-            m_owner->state_lock_violation("continuation was queued directly (raw async() on the proxy)", 0, __builtin_return_address(0));
+            m_owner->state_lock_violation("continuation was queued directly (raw async() on the proxy)", 0, FIBJS_ASYNC_STATE_CALLER());
         }
 
         virtual Isolate* isolate() override
@@ -465,7 +474,7 @@ inline void AsyncState::Continuation::deliver(int32_t v, bool async)
 
     // 票面校验与推进是同一个原子操作，不存在“检查—使用”时间差
     if (++machine->m_epoch != expect.load() + 1)
-        machine->state_lock_violation("continuation returned while the machine had moved on (duplicate/late/stray delivery)", v, __builtin_return_address(0));
+        machine->state_lock_violation("continuation returned while the machine had moved on (duplicate/late/stray delivery)", v, FIBJS_ASYNC_STATE_CALLER());
 
     if (async)
         machine->apost_(v);
@@ -491,11 +500,7 @@ inline void AsyncState::state_lock_violation(const char* what, int32_t v, void* 
         (void*)this, m_epoch.load(std::memory_order_relaxed), m_cont.expect.load(),
         (void*)m_state, (void*)m_next, v, caller);
     fprintf(stderr, "  violating stack:\n");
-#if !defined(_WIN32)
-    void* frames[16];
-    int n = backtrace(frames, (int)(sizeof(frames) / sizeof(frames[0])));
-    backtrace_symbols_fd(frames, n, 2);
-#endif
+    ex_print_stack_trace();
     fflush(stderr);
     abort();
 }
