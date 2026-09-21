@@ -343,10 +343,21 @@ static void worker_terminate_interrupt(v8::Isolate* isolate, void* data)
     isolate->TerminateExecution();
 }
 
+// 硬中断开关。必须用 uv_os_getenv 而不是 ::getenv 读取：process.env 的赋值走
+// uv_os_setenv，Windows 上它调的是 SetEnvironmentVariableW（只更新进程的 Win32 环境块），
+// 而 CRT 的 getenv 读的是自己那份环境表副本（_environ），两者在 Windows 上互不同步，
+// 于是「运行时 process.env.FIBJS_WORKER_HARD_TERMINATE = '1'」在 Windows 上读不到，
+// 开关静默失效（表现：worker.terminate() 打不断死循环，用例超时）。
+// uv_os_getenv 在 unix 上就等价于 getenv，两侧行为一致。
 static bool worker_hard_terminate_enabled()
 {
-    const char* value = ::getenv("FIBJS_WORKER_HARD_TERMINATE");
-    return value != nullptr && *value != '\0' && *value != '0';
+    char value[64];
+    size_t size = sizeof(value);
+
+    if (uv_os_getenv("FIBJS_WORKER_HARD_TERMINATE", value, &size) != 0)
+        return false;
+
+    return size > 0 && value[0] != '0';
 }
 
 // 终止 worker（同步发起，不等待退出）
