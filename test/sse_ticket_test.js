@@ -24,6 +24,7 @@ const net = require('net');
 const http = require('http');
 const sse = require('sse');
 const coroutine = require('coroutine');
+const test_util = require('./test_util');
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -127,6 +128,43 @@ describe('sse ticket close', () => {
         state = startServer();
         for (let i = 0; i < 20; i++)
             await round(state, { exitLoopFirst: (i % 2) === 1 });
+        await stopServer(state);
+    });
+
+    it('finalizes the pending request when the sender is dropped without close()', async () => {
+        // accept 回调不保存 sender、不 close ⇒ JS 侧不再持有 EventSource；
+        // GC 后由 ~EventSource() 收票（apost）⇒ 挂着的请求必须收尾。
+        // 若析构不收票，客户端的 body 读取会永远挂住 —— 这正是本用例的判定点。
+        const state = { accepted: 0 };
+        state.server = new http.Server({
+            '/sse': sse.upgrade((se, req) => {
+                state.accepted++;
+            })
+        });
+        state.server.listen(0, '127.0.0.1');
+        const port = state.server.address().port;
+
+        let settled = null;
+        let bodyError = null;
+        const resp = http.get('http://127.0.0.1:' + port + '/sse');
+        resp.readAll((err) => {
+            settled = true;
+            bodyError = err || null;
+        });
+
+        await sleep(150);
+        assert.strictEqual(state.accepted, 1, 'sse accept handler should run');
+
+        for (let i = 0; i < 6 && settled === null; i++) {
+            test_util.gc();
+            await sleep(150);
+        }
+
+        assert.strictEqual(settled, true,
+            'pending request must be finalized after the sender was collected (body read hung)');
+        assert.strictEqual(bodyError, null,
+            'the request should be finalized normally, got: ' + (bodyError && bodyError.message));
+
         await stopServer(state);
     });
 

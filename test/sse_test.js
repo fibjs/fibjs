@@ -744,3 +744,45 @@ describe("sse", () => {
     });
 });
 
+// 客户端 close() 的语义回归：主动关闭一个还活着的流，不能被当成"连接错误"。
+// close() 会关掉 socket，正在 readLine 的读循环因此以错误收尾；旧实现无条件
+// emit("error")，于是正常关闭在 JS 侧看起来像一次网络故障（close() 本身不抛异常）。
+describe("sse client close", () => {
+    const CLOSED = sse.CLOSED !== undefined ? sse.CLOSED : 2;
+
+    it('does not report an error when close() interrupts a live stream', async () => {
+        const state = { closeLoop: false };
+
+        const server = new http.Server({
+            '/sse': sse.upgrade((se, req) => {
+                se.send('hello', { id: '1' });
+                while (!state.closeLoop)
+                    coroutine.sleep(10);
+            })
+        });
+        server.listen(0, '127.0.0.1');
+        const port = server.address().port;
+
+        const es = new sse.EventSource(`http://127.0.0.1:${port}/sse`);
+        const events = [];
+
+        es.on('open', () => events.push('open'));
+        es.on('message', () => events.push('message'));
+        es.on('error', () => events.push('error'));
+        es.on('close', () => events.push('close'));
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+        assert.ok(events.includes('message'), `message should arrive first: ${events}`);
+
+        es.close();
+        await new Promise(resolve => setTimeout(resolve, 250));
+
+        assert.ok(!events.includes('error'), `close() must not report an error: ${events}`);
+        assert.strictEqual(es.readyState, CLOSED, `readyState: ${es.readyState}`);
+
+        state.closeLoop = true;
+        await new Promise(resolve => setTimeout(resolve, 60));
+        server.stop();
+    });
+});
+
