@@ -38,7 +38,12 @@ function imports() {
     return imports;
 }
 
-describe("wasm", () => {
+// JIT-less builds (iOS/iPadOS compile V8 with V8_JITLESS) execute JavaScript
+// only through the interpreter and do not expose the WebAssembly API at all,
+// so there is nothing to test there.
+const describeWasm = typeof WebAssembly === 'undefined' ? describe.skip : describe;
+
+describeWasm("wasm", () => {
     it('load module', () => {
         var instance = new WebAssembly.Instance(new WebAssembly.Module(code), imports());
         var math = instance.exports;

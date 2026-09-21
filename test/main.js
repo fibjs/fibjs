@@ -86,7 +86,9 @@ run("./sse_test.js");
 run("./mq_test.js");
 run("./rtc_test.js");
 
-if (process.platform != "linux" && process.platform != "android")
+// iOS has no GUI: the gui module is a stub (no_gui.cpp) and every webview call
+// just throws "Webview not supported in this platform".
+if (process.platform != "linux" && process.platform != "android" && process.platform != "ios")
     run("./gui_test.js");
 
 run("./registry_test.js");
@@ -106,7 +108,12 @@ if (process.platform != "android") {
     run("./workspaces_test.js");
     run("./opt_tools_test.js");
     run("./scripts_test.js");
-    run("./selfzip_test.js");
+
+    // selfzip repackages the running binary and loads a prebuilt helper addon
+    // (fib-inject) to do it; that addon has no iOS build, and iOS does not
+    // allow loading dylibs from outside the bundle anyway.
+    if (process.platform != "ios")
+        run("./selfzip_test.js");
 }
 
 if (global.full_test)
