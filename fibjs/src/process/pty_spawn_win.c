@@ -736,7 +736,7 @@ int pty_spawn(uv_loop_t* loop,
     }
 
     // Store ConPTY handle in process for cleanup (we'll use the child_stdio_buffer field)
-    process->child_stdio_buffer = (HANDLE*)uv__malloc(sizeof(conpty_data_t));
+    process->child_stdio_buffer = (BYTE*)uv__malloc(sizeof(conpty_data_t));
     if (process->child_stdio_buffer) {
         memcpy(process->child_stdio_buffer, &conpty_data, sizeof(conpty_data_t));
     }
