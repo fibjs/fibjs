@@ -59,6 +59,7 @@ function read_module(p, parent) {
                 const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
 
                 modules[n] = {
+                    name: minfo.name || n,
                     version: minfo.version,
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
@@ -116,6 +117,122 @@ function normalize_registry_origin(registry) {
     const hostname = urlObj.hostname || 'registry.npmjs.org'
 
     return `${protocol}//${hostname}/`
+}
+
+/**
+ * @description render the requiring chain (root > ... > parent) of a module for diagnostics
+ */
+function describe_require_chain(level_info) {
+    const chain = [];
+    let cur = level_info;
+
+    while (cur) {
+        chain.unshift(`${cur.name || '(unnamed)'}@${cur.version || '?'}`);
+        cur = cur.parent;
+    }
+
+    return chain.join(' > ') || '(root)';
+}
+
+/**
+ * @description list versions in a compact, readable form
+ */
+function summarize_versions(vers) {
+    const sorted = vers.slice().sort(semver.rcompare);
+    const shown = sorted.slice(0, 10);
+
+    return sorted.length > shown.length
+        ? `${shown.join(', ')} ... (${sorted.length} versions in total, latest ${sorted[0]})`
+        : shown.join(', ');
+}
+
+/**
+ * @description shorten a raw http body for error messages
+ */
+function response_snippet(raw) {
+    const s = String(raw).replace(/\s+/g, ' ').trim();
+
+    return s.length > 200 ? s.slice(0, 200) + ' ...' : s;
+}
+
+/**
+ * @description look for local directories that seem to be meant to provide `pkg_name`,
+ *              e.g. a workspace member without package.json, or one with a different name
+ */
+function find_local_pkg_candidates(pkg_name) {
+    const found = [];
+    const unscoped = pkg_name.startsWith('@') ? pkg_name.slice(pkg_name.indexOf('/') + 1) : pkg_name;
+    const workspaces = rootsnap && rootsnap.workspaces;
+
+    if (!Array.isArray(workspaces)) return found;
+
+    workspaces.forEach(pattern => {
+        const dir = path.join(process.cwd(), pattern.replace(/\*.*$/, ''));
+        if (!fs.exists(dir)) return;
+
+        fs.readdir(dir).forEach(entry => {
+            const sub = path.join(dir, entry);
+            const pkgjson_path = path.join(sub, 'package.json');
+            const rel = path.relative(process.cwd(), sub);
+
+            if (!fs.exists(pkgjson_path)) {
+                if (entry === unscoped)
+                    found.push(`${rel} (directory exists, but has no package.json)`);
+                return;
+            }
+
+            try {
+                const info = JSON.parse(fs.readTextFile(pkgjson_path));
+
+                if (info.name === pkg_name || entry === unscoped)
+                    found.push(`${rel} (package name: ${info.name || '(unnamed)'})`);
+            } catch (e) {
+                if (entry === unscoped)
+                    found.push(`${rel} (invalid package.json: ${e.message})`);
+            }
+        });
+    });
+
+    return found;
+}
+
+/**
+ * @description build an actionable error for a failed registry metadata lookup
+ */
+function registry_lookup_error(m, v, parent, registry_url, reason) {
+    const lines = [];
+
+    lines.push(`[install] cannot fetch metadata for '${m}@${v}'`);
+    lines.push(`  required by : ${describe_require_chain(parent)} > ${m}@${v}`);
+    lines.push(`  registry    : ${registry_url}`);
+    lines.push(`  reason      : ${reason}`);
+
+    const candidates = find_local_pkg_candidates(m);
+    if (candidates.length > 0)
+        lines.push(`  hint        : ${candidates.join(', ')} — a local workspace package is only recognised when its package.json "name" is exactly '${m}'`);
+    else if (m.startsWith('@'))
+        lines.push(`  hint        : scoped package, make sure it is published (and not unpublished), or point at your private registry via .npmrc / package.json "registry"`);
+    else
+        lines.push(`  hint        : check the package name, or configure a mirror registry via .npmrc / package.json "registry"`);
+
+    return new Error(lines.join('\n'));
+}
+
+/**
+ * @description aggregate the resolution failures of a dependency level into a single error
+ */
+function format_dep_failures(level_info, failures) {
+    const lines = [];
+
+    lines.push(`[install] failed to resolve ${failures.length} ${failures.length === 1 ? 'dependency' : 'dependencies'} of ${level_info.name}@${level_info.version}:`);
+
+    failures.forEach(({ name, spec, dep_field, error }) => {
+        lines.push('');
+        lines.push(`  - ${name}@${spec || '*'} (${dep_field})`);
+        String(error && error.message || error).split('\n').forEach(line => lines.push('    ' + line));
+    });
+
+    return lines.join('\n');
 }
 // ---------------------- UTILS :end ------------------------- //
 
@@ -229,6 +346,7 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
     workspace_packages.forEach(pkg => {
         // add workspace package to node_modules snapshot
         rootsnap.node_modules[pkg.name] = {
+            name: pkg.name,
             version: pkg.version,
             dep_vs: util.extend({}, pkg.package_json.dependencies),
             dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
@@ -382,11 +500,31 @@ function fetch_leveled_module_info(m, v, parent) {
             if (info === undefined) {
                 const registry_url = `${rootsnap.registry}${encodeURIComponent(pkg_install_typeinfo.registry_pkg_path)}`
                 install_log('fetch metadata:', m, "=>", registry_url);
-                pkg_registrytype_module_infos[m] = info = json_parse_response(http_get(registry_url));
-            }
 
-            if (info.error)
-                throw new Error(info.error);
+                const res = http_get(registry_url, { quit_if_error: false });
+
+                if (!res)
+                    throw registry_lookup_error(m, v, parent, registry_url, 'no response, network unreachable or proxy rejected the request');
+
+                const raw = res.text();
+
+                if (res.statusCode !== 200)
+                    throw registry_lookup_error(m, v, parent, registry_url, `HTTP ${res.statusCode} ${response_snippet(raw)}`);
+
+                try {
+                    info = JSON.parse(raw);
+                } catch (e) {
+                    throw registry_lookup_error(m, v, parent, registry_url, `response is not valid JSON (${response_snippet(raw)})`);
+                }
+
+                if (info.error)
+                    throw registry_lookup_error(m, v, parent, registry_url, info.error);
+
+                if (!info.versions)
+                    throw registry_lookup_error(m, v, parent, registry_url, `response has no "versions" field (${response_snippet(raw)})`);
+
+                pkg_registrytype_module_infos[m] = info;
+            }
 
             /* registry: match version :start */
             const all_vers = Object.keys(info.versions);
@@ -404,10 +542,14 @@ function fetch_leveled_module_info(m, v, parent) {
                     break
             }
 
-            matched_ver = filtered_vers[0];
+            const matched_ver = filtered_vers[0];
 
             if (!matched_ver)
-                throw new Error(`[package/${info.name}]no matched for pattern '${pkg_install_typeinfo.registry_semver}'`)
+                throw new Error(
+                    `[install] no published version of '${info.name || m}' satisfies '${pkg_install_typeinfo.registry_semver}'\n` +
+                    `  required by : ${describe_require_chain(parent)} > ${m}@${pkg_install_typeinfo.registry_semver}\n` +
+                    `  available   : ${summarize_versions(all_vers)}`
+                )
             /* registry: match version :end */
 
             const minfo = info.versions[matched_ver];
@@ -632,15 +774,37 @@ const name_maps_installation2pkg = {}
  */
 function walkthrough_deps(level_info, need_dev_deps = false) {
     if (level_info.new_module) {
+        // `coroutine.parallel` swallows the exceptions raised inside its fibers and only
+        // reports '[20020] Internal error', so failures are collected here and rethrown
+        // once the whole dependency level has been walked through.
+        const dep_failures = [];
+
         ;[
             ['dep_vs', 'dependencies'],
             ['opt_dep_vs', 'optionalDependencies']
         ].concat(
             need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
-        ).forEach(([dep_type]) => {
+        ).forEach(([dep_type, dep_field]) => {
+            const deps_of_type = level_info[dep_type] || {};
+
             coroutine.parallel(
-                Object.keys(level_info[dep_type] || {}),
+                Object.keys(deps_of_type),
                 dname => {
+                    try {
+                        resolve_dep(dname);
+                    } catch (e) {
+                        dep_failures.push({
+                            name: dname,
+                            spec: deps_of_type[dname],
+                            dep_field: dep_field,
+                            error: e
+                        });
+                    }
+                },
+                CST.DEFAULT_FIBERS
+            );
+
+            function resolve_dep(dname) {
                     const _deps = level_info[dep_type];
 
                     let v = _deps[dname];
@@ -695,10 +859,11 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
                     }
 
                     if (child_level_info) _deps[dname] = child_level_info.version;
-                },
-                CST.DEFAULT_FIBERS
-            );
+            }
         });
+
+        if (dep_failures.length > 0)
+            throw new Error(format_dep_failures(level_info, dep_failures));
 
         for (let k in level_info.node_modules) {
             walkthrough_deps(
@@ -828,7 +993,7 @@ function download_module() {
                         try {
                             var r = http_get(mvm.dist.tarball);
                             if (r.statusCode !== 200) {
-                                console.error('download error::', mvm.dist.tarball);
+                                console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
                                 process.exit();
                             }
                             tgz = r.bytes();
@@ -840,12 +1005,12 @@ function download_module() {
                         }
                     }
                     if (!tgz) {
-                        console.error('download failed:', mvm.dist.tarball);
+                        console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
                         process.exit(-1);
                     }
 
                     if (sha1(tgz) !== mvm.dist.shasum) {
-                        console.error('shasum:', mvm.dist.tarball);
+                        console.error('[download] shasum mismatch:', mvm.name, mvm.dist.tarball);
                         process.exit();
                     }
 
@@ -890,7 +1055,7 @@ function download_module() {
                         try {
                             git_r = http_get(git_archive_url);
                             if (git_r.statusCode !== 200) {
-                                console.error('download error::', mvm.dist.tarball);
+                                console.error('[download] error:', mvm.name, git_archive_url, `-> HTTP ${git_r.statusCode}`);
                                 process.exit();
                             }
                             git_zip_file = zip.open(git_r.bytes());
@@ -904,7 +1069,7 @@ function download_module() {
                         }
                     }
                     if (!git_zip_file) {
-                        console.error('download failed:', git_archive_url);
+                        console.error('[download] failed:', mvm.name, 'git archive', git_archive_url);
                         process.exit(-1);
                     }
                     const namelist = git_zip_file.namelist();
@@ -972,7 +1137,7 @@ function download_module() {
                     try {
                         var binary_r = http_get(mvm.binary.hosted_tarball);
                         if (binary_r.statusCode !== 200) {
-                            console.error('download error::', mvm.binary.hosted_tarball);
+                            console.error('[download] error:', mvm.name, mvm.binary.hosted_tarball, `-> HTTP ${binary_r.statusCode}`);
                             process.exit();
                         }
                         binary_tgz = binary_r.bytes();
@@ -984,7 +1149,7 @@ function download_module() {
                     }
                 }
                 if (!binary_tgz) {
-                    console.error('download failed:', mvm.binary.hosted_tarball);
+                    console.error('[download] failed:', mvm.name, 'prebuilt binary', mvm.binary.hosted_tarball);
                     process.exit(-1);
                 }
 
