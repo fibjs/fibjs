@@ -26,8 +26,8 @@ DECLARE_MODULE(test);
 
 // Kill all child processes still running, return the number signalled.
 // Defined in process/ChildProcess.cpp: declared here instead of including
-// ChildProcess.h because that header #undef's stdout/stderr, which the
-// watchdog report code below relies on.
+// ChildProcess.h, which #undef's stdout/stderr (a trap for any C-runtime
+// output added to this file).
 int32_t child_process_kill_alive_children();
 
 class _case;
@@ -608,6 +608,13 @@ public:
                             errline.append("[after failed] ");
                             errline.append(p->m_title);
                             outLog(console_base::C_ERROR, logger::error() + errline + COLOR_RESET);
+
+                            // Report the hook error itself.  The tests converted
+                            // to failed just above were already printed as
+                            // passed, so without the message the summary reads
+                            // like "everything passed but N tests failed" with
+                            // no hint of the real cause.
+                            outLog(console_base::C_ERROR, logger::error() + err + COLOR_RESET);
                         }
                     }
                 }
@@ -909,7 +916,6 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
 }
 
 static int32_t s_watchdog_ms = 10000;
-static exlib::string s_watchdog_log;
 
 extern exlib::atomic g_ExtStringCount;
 
@@ -992,6 +998,14 @@ static void collect_native_objects(v8::Local<v8::Value> v, v8::Local<v8::Context
 }
 
 // Hang diagnostic report: fibers + stack, native object counts after GC, memory info
+//
+// The report is UTF-8 (tree glyphs, script paths, class names) and is printed
+// through errorLog(), i.e. the console.error() path: it goes out through the
+// isolate's stderr stream, where libuv converts UTF-8 to UTF-16 for a Windows
+// console (uv_tty -> WriteConsoleW). Handing the raw bytes to the C runtime's
+// stderr instead lets a Windows console decode them with the active OEM code
+// page, which turns the tree glyphs into mojibake. Redirected output (files,
+// pipes) gets the same bytes either way.
 static void report_watchdog(Isolate* isolate)
 {
     exlib::string report;
@@ -1101,17 +1115,7 @@ static void report_watchdog(Isolate* isolate)
     report.append(1, '\n');
 
     // Print to stderr (keep stdout clean for test results)
-    fputs(report.c_str(), stderr);
-    fflush(stderr);
-
-    // Optional: append to a file (FIBJS_TEST_WATCHDOG_LOG)
-    if (!s_watchdog_log.empty()) {
-        FILE* f = fopen(s_watchdog_log.c_str(), "a");
-        if (f) {
-            fputs(report.c_str(), f);
-            fclose(f);
-        }
-    }
+    errorLog(report);
 }
 
 // Watchdog timer task: not an object_base, so it never shows up in native object
@@ -1142,20 +1146,14 @@ public:
 
             if (killed > 0) {
                 char buf[128];
+                exlib::string msg;
 
                 snprintf(buf, sizeof(buf),
                     "[test-watchdog] killed %d leaked child process(es)\n", killed);
+                msg.append(buf);
 
-                fputs(buf, stderr);
-                fflush(stderr);
-
-                if (!s_watchdog_log.empty()) {
-                    FILE* f = fopen(s_watchdog_log.c_str(), "a");
-                    if (f) {
-                        fputs(buf, f);
-                        fclose(f);
-                    }
-                }
+                // Same output path as the report above (see report_watchdog)
+                errorLog(msg);
             }
 
             process_base::exit(124);
@@ -1198,12 +1196,6 @@ void run_test(int32_t mode)
             ms = 0;
         s_watchdog_ms = ms;
     }
-
-    // Also append the report to a file (optional)
-    s_watchdog_log.clear();
-    const char* env_log = getenv("FIBJS_TEST_WATCHDOG_LOG");
-    if (env_log && *env_log)
-        s_watchdog_log = env_log;
 
     isolate->sync([isolate, mode, td]() -> int {
         v8::HandleScope handle_scope(isolate->m_isolate);
