@@ -69,7 +69,12 @@ public:
             callback();
     }
 
-    void setTimer(JSTimer* timer) { m_timer = timer; }
+    void setTimer(JSTimer* timer)
+    {
+        m_lock.lock();
+        m_timer = timer;
+        m_lock.unlock();
+    }
 
     // Clear only the C++ abort callbacks, leaving the timer alive.
     // Used when transitioning from request-phase to body-phase.
@@ -85,10 +90,21 @@ public:
     void clearAbort()
     {
         clearCallbacks();
-        if (m_timer) {
-            m_timer->clear();
-            m_timer.Release();
-        }
+
+        // Take the timer out under the lock and let it go outside of it: the
+        // timer may be firing right now - AbortTimer::on_js_timer() calls this
+        // as well - and the abort notification it delivers runs synchronously
+        // back into the http client, which calls clearAbort() again. Releasing
+        // the same pointer twice destroys the timer while its callback is still
+        // running on the timer thread (the timer thread then Unref()s freed
+        // memory and the process dies with SIGSEGV).
+        obj_ptr<JSTimer> timer;
+        m_lock.lock();
+        timer = std::move(m_timer);
+        m_lock.unlock();
+
+        if (timer)
+            timer->clear();
     }
 
 private:
