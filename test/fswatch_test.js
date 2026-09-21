@@ -58,13 +58,32 @@ const isLinux = process.platform === 'linux';
 // iOS simulator FSEvents doesn't return the filename when watching directories
 const support_watch_directory_filename = process.platform !== 'ios';
 
+// Recursive watch reports entries relative to the watched root, joined with the
+// separator of the running platform: backslash separated on Windows, slash
+// separated on unix. Node behaves the same way - its own recursive watch tests
+// build the expected name with path.join(), so the separator follows the
+// platform there as well. This suite describes the tree with '/', so normalize
+// the reported name on collection and keep the assertions platform independent.
+const normalizeEventName = (filename) => {
+    return String(filename == null ? '' : filename).split(path.sep).join('/');
+};
+
+// The watch is armed asynchronously by the OS, and on a mapped or shared drive
+// by the remote server, which can only report entries it knows about when the
+// notification is registered: a change made immediately after fs.watch() can be
+// missed entirely. Node's recursive watch tests wait for the same reason ("Do
+// the write with a delay to ensure that the OS is ready to notify us", see
+// test/parallel/test-fs-watch-recursive-*.js), as do the tests below that sleep
+// before touching the tree.
+const watchArmDelay = process.platform === 'win32' ? 200 : 100;
+
 // Collect events from a watcher until the predicate is satisfied (or timeout).
 // Returns the collected [eventType, filename] pairs.
 const collectEvents = (rootDir, options, action, predicate, timeout = 5000) => {
     return new Promise((resolve, reject) => {
         const events = [];
         const watcher = fs.watch(rootDir, options, (eventType, filename) => {
-            events.push([eventType, String(filename == null ? '' : filename)]);
+            events.push([eventType, normalizeEventName(filename)]);
             if (predicate(events)) {
                 clearTimeout(timer);
                 watcher.close();
@@ -75,13 +94,17 @@ const collectEvents = (rootDir, options, action, predicate, timeout = 5000) => {
             watcher.close();
             reject(new Error(`Timeout waiting for events, got: ${JSON.stringify(events)}`));
         }, timeout);
-        try {
-            action();
-        } catch (e) {
-            clearTimeout(timer);
-            watcher.close();
-            reject(e);
-        }
+
+        // Trigger the change only after the watch had a chance to arm itself.
+        setTimeout(() => {
+            try {
+                action();
+            } catch (e) {
+                clearTimeout(timer);
+                watcher.close();
+                reject(e);
+            }
+        }, watchArmDelay);
     });
 };
 
