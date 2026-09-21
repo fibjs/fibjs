@@ -1916,17 +1916,17 @@ describe("child_process", () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'signal1.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
 
-                setImmediate(() => {
-                    coroutine.sleep(1000);
-                    bs.kill('SIGINT');
-                    coroutine.sleep(1000);
-                    bs.kill('SIGINT');
-                });
+                // signal1.js prints "ready" once its SIGINT handler is
+                // installed; wait for it instead of sleeping a fixed amount of
+                // time, otherwise the signal can reach a process that is still
+                // starting up and kill it with the default action.
+                assert.equal(stdout.readLine(), "ready");
 
-                assert.deepEqual(stdout.readLines(), [
-                    "SIGINT received",
-                    "SIGINT received"
-                ]);
+                bs.kill('SIGINT');
+                assert.equal(stdout.readLine(), "SIGINT received");
+
+                bs.kill('SIGINT');
+                assert.equal(stdout.readLine(), "SIGINT received");
             });
     });
 
