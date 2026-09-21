@@ -284,6 +284,33 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Objec
     return execFile(command, v8::Local<v8::Array>(), options, retVal, ac);
 }
 
+#ifndef _WIN32
+// iOS simulator binaries refuse to start unless DYLD_ROOT_PATH points at the
+// simulator runtime ("DYLD_ROOT_PATH not set for simulator program").  The
+// host /bin/sh used to run shell commands is a macOS binary, and the host
+// loader drops DYLD_* variables, so nothing it starts inherits the variable.
+// Commands such as `fibjs script.js` (including the `node` -> fibjs rewrite of
+// the scripts runner) would therefore abort before reaching main().
+// Re-export it inside the shell command so the whole command line (pipes,
+// &&, ||) sees it.  Only active inside a simulator: SIMULATOR_ROOT is set by
+// the simulator environment and is absent on real devices.
+static exlib::string wrap_shell_command(exlib::string command)
+{
+    char root[4096];
+    size_t sz = sizeof(root);
+
+    if (uv_os_getenv("SIMULATOR_ROOT", root, &sz) != 0)
+        return command;
+
+    exlib::string cmd("export DYLD_ROOT_PATH=\"");
+    cmd.append(root);
+    cmd.append("\"; ");
+    cmd.append(command);
+
+    return cmd;
+}
+#endif
+
 result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> options,
     obj_ptr<ExecType>& retVal, AsyncEvent* ac)
 {
@@ -293,6 +320,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
     const char* shell = "/system/bin/sh";
 #else
     const char* shell = "/bin/sh";
+    command = wrap_shell_command(command);
 #endif
 
     obj_ptr<ExecFileType>& _retVal = *((obj_ptr<ExecFileType>*)&retVal);
