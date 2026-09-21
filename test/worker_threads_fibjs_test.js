@@ -42,6 +42,26 @@ function doneOnce(done) {
     };
 }
 
+// Windows releases the handles a terminated worker held on the fixture tree
+// (fs.watch keeps one on the watched file) asynchronously, so rmSync can still
+// hit EBUSY/EPERM when the suite tears down.  Retry instead of letting the
+// after hook fail: when an after hook throws, the runner turns every already
+// passed test of the suite into a failed one, which hides the real cause
+// behind an "all tests passed but N failed" summary.
+function removeFixtureRootSync(targetPath) {
+    for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+            fs.rmSync(targetPath, { recursive: true, force: true });
+            return;
+        } catch (err) {
+            if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM') || attempt === 9)
+                throw err;
+
+            coroutine.sleep(100);
+        }
+    }
+}
+
 function terminateWhenReady(worker, options, done) {
     const finish = doneOnce(done);
     const postTerminateMessages = [];
@@ -248,7 +268,7 @@ describe('worker_threads fibjs target behavior', () => {
             h2Server.stop();
         if (wsServer)
             wsServer.stop();
-        fs.rmSync(fixtureRoot, { recursive: true, force: true });
+        removeFixtureRootSync(fixtureRoot);
     });
 
     it('exposes globalThis.Worker as the same class as worker_threads.Worker', () => {
