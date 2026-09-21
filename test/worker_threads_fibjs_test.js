@@ -2293,7 +2293,7 @@ describe('worker_threads fibjs target behavior', () => {
 
         const watchdog = setTimeout(() => {
             settle(new Error('parent process did not exit after beforeExit re-armed new work'));
-        }, 5000);
+        }, process.platform === 'ios' ? 20000 : 5000);
 
         child.stdout.on('data', (data) => {
             stdout += data.toString();

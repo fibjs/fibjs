@@ -6,6 +6,11 @@ const path = require('path');
 const { pathToFileURL } = require('node:url');
 
 const workerThreads = require('worker_threads');
+
+// Starting a child process is much slower on iOS simulators (the JIT-less build
+// needs a couple of seconds just to reach main), so the fixture gets more room
+// there before it is considered hung.
+const CHILD_TIMEOUT = process.platform === 'ios' ? 20000 : 5000;
 const {
     MessageChannel,
     MessagePort,
@@ -565,7 +570,7 @@ describe('worker_threads node baseline', () => {
         ].join('\n'), 'utf8');
 
         const stdout = child_process.execFileSync(process.execPath, [childFile, liveFile], {
-            timeout: 5000,
+            timeout: CHILD_TIMEOUT,
             encoding: 'utf8'
         });
 
