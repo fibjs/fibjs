@@ -233,7 +233,11 @@ public:
 
     virtual int32_t error(int32_t v)
     {
-        (new EventInfo(m_es, "error", 0, "Connection error"))->emit();
+        // 用户主动 close() 时（readyState 已置 CLOSED），关闭 socket 会让正在 readLine
+        // 的读循环以错误收尾 —— 那不是连接故障，不该报 error 事件，否则"正常关闭"
+        // 在 JS 侧看起来像一次网络错误。只有服务端/网络侧真的断了才报。
+        if (m_es->m_readyState != sse_base::C_CLOSED)
+            (new EventInfo(m_es, "error", 0, "Connection error"))->emit();
         return v;
     }
 
@@ -370,9 +374,14 @@ void EventSource::setTicket(AsyncEvent* target)
 
 EventSource::~EventSource()
 {
-    // 对象被回收时票据还挂着：收掉它，避免请求永远 pending（对齐 ~WebSocket）
+    // 对象被回收时票据还挂着：收掉它，避免请求永远 pending（对齐 ~WebSocket）。
+    //
+    // 这里必须用 apost 而不是 post：本析构函数是在 V8 弱回调里内联执行的
+    // （object.h: WeakCallback -> clear_handle -> Delete()），而 post 会把整条
+    // 续体就地跑起来（可能分配对象、进 JS 回调）；apost 只把事件丢进
+    // AsyncEvent::async -> s_acPool（纯队列，不触碰 V8），留到下一轮 JS 线程执行。
     if (m_ac) {
-        m_ac->post(CALL_RETURN_NULL);
+        m_ac->apost(CALL_RETURN_NULL);
         delete m_ac;
         m_ac = nullptr;
     }
