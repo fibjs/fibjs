@@ -294,16 +294,106 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
     return 0;
 }
 
+// 对端已经消失（客户端断开、进程被终止、网络中断）时，终止分块 "0\r\n\r\n" 已经没有
+// 接收方。写入是唯一能发现这一点的方式，而 close() 无论如何都必须完成：连接已经结束，
+// 调用方也无法从一次失败的 close 中恢复。若把这类错误当成失败上报，关闭一个已死的
+// sender 会同时让调用方抛异常、并让仍然挂着的请求以错误收尾（Windows 上表现为
+// ERROR_NETNAME_DELETED(64) -> ECONNRESET）。
+static bool is_connection_gone(result_t hr)
+{
+    if (hr >= 0)
+        return false;
+
+    // socket 层可能回投 libuv 错误码，也可能回投原始系统 errno（Windows 上不是同一套
+    // 取值），两种都接受。
+    switch (hr) {
+    case UV_ECONNRESET:
+    case UV_EPIPE:
+    case UV_ENOTCONN:
+    case UV_ECONNABORTED:
+        return true;
+    }
+
+    switch (uv_translate_sys_error(-hr)) {
+    case UV_ECONNRESET:
+    case UV_EPIPE:
+    case UV_ENOTCONN:
+    case UV_ECONNABORTED:
+        return true;
+    }
+
+    return false;
+}
+
+// 一次性票据：包装 sse.upgrade 交出的「票」（AsyncState 的 continuation）。
+// 票指向的机器在 post_ 结尾 delete this —— 所以「回投有且只有一次」是硬约束：
+// 第二次回投就是对已释放对象的虚调用（Windows worker 套件 core dump 的成因）。
+// 认领（xchg）之后的重复/迟到回投一律 no-op，于是任意回投路径组合都安全：
+// close() 的 done、error()、~EventSource()，以及将来任何收尾入口。
+class EventSource::Ticket : public AsyncEvent {
+public:
+    Ticket(AsyncEvent* target)
+        : AsyncEvent(target->isolate())
+        , m_target(target)
+    {
+        setAsync();
+    }
+
+public:
+    virtual int32_t post(int32_t v) override
+    {
+        if (m_claimed.xchg(1) == 0)
+            m_target->post(v);
+        return 0;
+    }
+
+    virtual void apost(int32_t v) override
+    {
+        if (m_claimed.xchg(1) == 0)
+            m_target->apost(v);
+    }
+
+    virtual Isolate* isolate() override
+    {
+        return m_target->isolate();
+    }
+
+private:
+    AsyncEvent* m_target; /* 票据目标，只在首次送达时使用 */
+    exlib::atomic m_claimed { 0 };
+};
+
+void EventSource::setTicket(AsyncEvent* target)
+{
+    m_ac = new Ticket(target);
+}
+
+EventSource::~EventSource()
+{
+    // 对象被回收时票据还挂着：收掉它，避免请求永远 pending（对齐 ~WebSocket）
+    if (m_ac) {
+        m_ac->post(CALL_RETURN_NULL);
+        delete m_ac;
+        m_ac = nullptr;
+    }
+}
+
 result_t EventSource::close(AsyncEvent* ac)
 {
     class asyncClose : public AsyncState {
     public:
-        asyncClose(Stream_base* pStream, AsyncEvent* ac, AsyncEvent* ac_req)
+        asyncClose(Stream_base* pStream, AsyncEvent* ac, Ticket* ac_req)
             : AsyncState(ac)
             , m_stream(pStream)
             , m_ac_req(ac_req)
         {
             init(send);
+        }
+
+        ~asyncClose() override
+        {
+            // 票据由本状态机消费：无论走 done 还是 error，都在这里释放
+            delete m_ac_req;
         }
 
     public:
@@ -321,13 +411,22 @@ result_t EventSource::close(AsyncEvent* ac)
 
         virtual int32_t error(int32_t v)
         {
+            // 对端已消失时终止分块写不出去，但关闭本身已经完成：按成功收尾，让
+            // close() 正常返回、挂着的请求正常收尾（见 is_connection_gone）。
+            //
+            // 这里可以放心地「先投递 + 返回非负」（AsyncState::post_ 会把非负返回值
+            // 当作继续，于是 done 再投一次）：票据是一次性的，重复回投是 no-op。
+            // 正确性由 EventSource::Ticket 的认领语义保证，不依赖本函数的返回值约定。
+            if (is_connection_gone(v))
+                v = CALL_RETURN_NULL;
+
             m_ac_req->post(v);
             return v;
         }
 
     private:
         obj_ptr<Stream_base> m_stream;
-        AsyncEvent* m_ac_req;
+        Ticket* m_ac_req;
         obj_ptr<Buffer> m_buf;
     };
 
@@ -344,7 +443,13 @@ result_t EventSource::close(AsyncEvent* ac)
         }
     } else if (m_readyState == sse_base::C_SENDER) {
         m_readyState = sse_base::C_CLOSED;
-        (new asyncClose(m_stream, ac, m_ac))->apost(0);
+
+        // 票据交给 close 状态机消费（一次性），本对象不再持有。认领语义见
+        // EventSource::Ticket：重复/迟到的回投都是 no-op。
+        Ticket* ac_req = m_ac;
+        m_ac = nullptr;
+
+        (new asyncClose(m_stream, ac, ac_req))->apost(0);
         return CALL_E_PENDDING;
     }
 

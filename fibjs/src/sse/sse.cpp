@@ -66,8 +66,9 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
             obj_ptr<EventSource> es = new EventSource();
             es->m_readyState = sse_base::C_SENDER;
             es->m_stream = m_stm;
-            // 把票交给 EventSource：关闭收尾由 EventSource::close 持票回投
-            es->m_ac = next(CALL_RETURN_NULL);
+            // 把票交给 EventSource：关闭收尾由 EventSource::close 持票回投；
+            // Ticket 保证这张票只送达一次（重复回投是 no-op）
+            es->setTicket(next(CALL_RETURN_NULL));
 
             Variant vs[2];
             vs[0] = es;
