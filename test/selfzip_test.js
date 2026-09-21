@@ -94,7 +94,26 @@ describe("selfzip", () => {
 
     function test_suite(name, compile, legacy) {
         if (!legacy) {
-            if (process.arch === 'mips64' || process.arch === 'loong64' || process.arch === 'riscv64')
+            // The packed modes rebuild the executable with the fib-inject addon
+            // (LIEF) instead of appending the payload.  fib-inject 2.1.4 vendors
+            // LIEF 0.15.1, which cannot shift the relocations of every
+            // architecture, so the moved ELF comes out broken:
+            //   * mips64 / loong64: nothing is patched - upstream LIEF has no
+            //     MIPS64/LoongArch support either, so this needs a LIEF patch;
+            //   * riscv64: injection is disabled in fib-inject itself (upstream
+            //     LIEF does have ARCH::RISCV since 0.17.0);
+            //   * ppc64: LIEF 0.15.1 has no ARCH::PPC64 case (upstream has it
+            //     since 0.17.0), but even with that patch applied the packed
+            //     binary still crashes at startup - the GOT fix-up gives up on
+            //     ppc64 (DT_PLTGOT points at the NOBITS .plt), so this needs
+            //     more work in fib-inject first;
+            //   * musl/arm64: the released addon cannot inject into that binary
+            //     at all ("Resource was not injected correctly").
+            // Drop an architecture from this list once fib-inject ships a
+            // release with the matching support (bump the version in
+            // _helpers/fib-inject/package.json as well).
+            if (process.arch === 'mips64' || process.arch === 'loong64'
+                || process.arch === 'riscv64' || process.arch === 'ppc64')
                 return;
 
             if (process.versions.musl && process.arch === 'arm64')
