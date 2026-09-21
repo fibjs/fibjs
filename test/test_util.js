@@ -10,6 +10,28 @@ process.on('SIGINT', () => {
 
 var ss = [];
 
+// Environment keys that must survive a filtered env when a child process is
+// spawned on an iOS simulator.  The simulator loads the binary through the
+// platform loader (DYLD_ROOT_PATH + SIMULATOR_ROOT) and attaches the process to
+// the device data container through SIMULATOR_SHARED_RESOURCES_DIRECTORY; a
+// child started without them silently fails to run (empty stdout, exit 0).
+exports.simulatorEnvKeys = [
+    'DYLD_ROOT_PATH',
+    'SIMULATOR_ROOT',
+    'SIMULATOR_SHARED_RESOURCES_DIRECTORY'
+];
+
+exports.pickEnv = (base, keys) => {
+    var out = {};
+
+    keys.concat(exports.simulatorEnvKeys).forEach(k => {
+        if (base[k] !== undefined)
+            out[k] = base[k];
+    });
+
+    return out;
+};
+
 exports.countObject = nm => {
     var cnt = 0;
 

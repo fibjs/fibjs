@@ -23,6 +23,7 @@ var util = require('util');
 var io = require('io');
 var fs = require('fs');
 var coroutine = require('coroutine');
+var test_util = require('./test_util');
 
 const FIXTURE_DIR = path.join(__dirname, 'test_proc_files');
 
@@ -243,6 +244,9 @@ function runFixture(scene, opts) {
         "HOME",
         "TMPDIR",
         "PATH",
+        // On iOS simulators a filtered env has to keep the simulator bootstrap
+        // keys, otherwise the spawned fixture never runs (see test_util.js).
+        ...test_util.simulatorEnvKeys,
         "SYSTEMROOT",
         "SystemRoot",
         "TEMP",
