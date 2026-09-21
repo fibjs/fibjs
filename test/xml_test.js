@@ -3900,6 +3900,15 @@ describe('xml', () => {
                 var data = new Buffer('<html><meta http-equiv=content-type content="text/html; test=111; charset=EUC-JP; ccc=222">哈哈哈哈', "EUC-JP");
                 var doc = xml.parse(data, "text/html");
                 assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+
+                // A document large enough that the decoded text cannot reuse the
+                // buffer holding the encoded input: decoding used to resize the
+                // (aliased) output before reading the input, which released the
+                // source memory and produced an empty document.
+                var text = "哈哈哈".repeat(2000);
+                var bigData = new Buffer('<html><meta http-equiv=content-type content="text/html; charset=EUC-JP"><body>' + text, "EUC-JP");
+                var bigDoc = xml.parse(bigData, "text/html");
+                assert.equal(bigDoc.documentElement.textContent, text);
             });
 
             // DocumentFragment tests

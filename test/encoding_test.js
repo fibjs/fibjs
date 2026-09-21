@@ -420,6 +420,45 @@ describe('encoding', () => {
         assert.equal(encoding.jsstr("[\r\n\t\\\'\"]", true), "[\\r\\n\\t\\\\'\\\"]");
     });
 
+    // Charset conversion (encoding_conv::decode).  The decoder sizes a dedicated
+    // output buffer and converts into it: sizing the output it was handed was
+    // only safe when input and output were different objects -- callers that
+    // decode in place (XmlDocument::load(Buffer), i.e. the <meta charset> path
+    // covered by test/xml_test.js "charset") released the input first and got an
+    // empty text back.  EUC-JP CJK is 2 bytes encoded / 3 bytes decoded, so it
+    // always has to grow the output: keep the growing case at sizes around the
+    // allocation boundaries covered.
+    describe("charset", () => {
+        it('EUC-JP round trip', () => {
+            assert.equal(new Buffer("哈哈哈哈", "EUC-JP").toString("EUC-JP"), "哈哈哈哈");
+            assert.equal(new Buffer("hello, 世界", "euc-jp").toString("euc-jp"), "hello, 世界");
+        });
+
+        it('EUC-JP round trip around the buffer growth boundaries', () => {
+            [1, 2, 3, 15, 16, 17, 63, 64, 65, 255, 256, 257, 4095, 4096, 4097].forEach(n => {
+                var text = "哈".repeat(n);
+                var buf = new Buffer(text, "EUC-JP");
+
+                assert.equal(buf.length, n * 2);
+                assert.equal(buf.toString("EUC-JP"), text);
+            });
+        });
+
+        it('decoding does not modify the source buffer', () => {
+            var text = "哈哈哈".repeat(100);
+            var buf = new Buffer(text, "EUC-JP");
+            var hex = buf.toString("hex");
+
+            assert.equal(buf.toString("EUC-JP"), text);
+            assert.equal(buf.toString("hex"), hex);
+        });
+
+        it('empty and single byte input', () => {
+            assert.equal(new Buffer("", "EUC-JP").toString("EUC-JP"), "");
+            assert.equal(new Buffer([0x41]).toString("EUC-JP"), "A");
+        });
+    });
+
     describe("msgpack", () => {
         it('should be object', () => {
             assert.isNotNull(msgpack);
