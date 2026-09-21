@@ -148,7 +148,17 @@ describe('worker_threads node baseline', () => {
     });
 
     it('accepts ./ and ../ worker paths relative to process.cwd()', (done) => {
-        const finish = doneOnce(done);
+        // The worker paths are resolved against process.cwd(), so the test has
+        // to move the process into the fixture.  Restore it as soon as the test
+        // settles: a leaked cwd leaves the following tests running inside a
+        // temp directory that after() deletes, and on the emulated
+        // architectures a changed cwd also breaks the guest /proc/self/exe
+        // resolution (process.execPath), which the child_process tests below
+        // depend on.
+        const finish = doneOnce((err) => {
+            process.chdir(originalCwd);
+            done(err);
+        });
 
         process.chdir(cwdRoot);
         const workerFromDot = new Worker('./../echo-worker.js', {

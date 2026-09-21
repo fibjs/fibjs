@@ -6,10 +6,30 @@ DIST_EXEC="bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/fibjs"
 if [[ $HOST_OS == 'Linux' ]]; then
     CUR=$(pwd)
 
+    # Launch the binary through its absolute path.  The qemu-user emulation
+    # behind the non-x64 architectures resolves /proc/self/exe from argv[0], so
+    # a relative path stops resolving as soon as a test calls process.chdir()
+    # and process.execPath (plus everything built on it, e.g. spawning child
+    # fibjs processes) starts failing with ENOENT.
+    DIST_EXEC="${CUR}/${DIST_EXEC}"
+
+    TEST_CMD="${DIST_EXEC} test"
+
+    if [[ $BUILD_TARGET == "android" ]]; then
+        # The Android userland of the build environment image is not complete:
+        # os.tmpdir() reports /data/local/tmp even though the directory does not
+        # exist (so every temp file fails with ENOENT), bionic resolves names
+        # through /system/etc/hosts, which is missing as well (so even
+        # "localhost" fails with EAI_NODATA), and fibjs runs shell commands
+        # through /system/bin/sh, which is not there either.  Provide all three,
+        # otherwise the file, network and child_process suites cannot run.
+        TEST_CMD="mkdir -p /data/local/tmp /system/etc /system/bin && cp -f /etc/hosts /system/etc/hosts && ln -sf /bin/sh /system/bin/sh && ${TEST_CMD}"
+    fi
+
     if [[ $BUILD_TARGET == "linux" && $BUILD_ARCH == 'x64' ]]; then
-        docker run -t --rm --privileged -e CI=${CI} -v ${CUR}:${CUR} fibjs/ubuntu:10.04 bash -c "cd ${CUR}; ${DIST_EXEC} test"
+        docker run -t --rm --privileged -e CI=${CI} -v ${CUR}:${CUR} fibjs/ubuntu:10.04 bash -c "cd ${CUR}; ${TEST_CMD}"
     else
-        docker run -t --rm --privileged -e CI=${CI} -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; ${DIST_EXEC} test"
+        docker run -t --rm --privileged -e CI=${CI} -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; ${TEST_CMD}"
     fi
 elif [[ $HOST_OS == 'Darwin' && $BUILD_OS == 'iPhoneSimulator' ]]; then
     # A simulator binary cannot be executed by the host directly: dyld aborts
@@ -42,6 +62,12 @@ elif [[ $HOST_OS == 'Darwin' && $BUILD_OS == 'iPhoneSimulator' ]]; then
 
     exit ${TEST_EXIT}
 else # Windows/Darwin
+    # On Windows the build produces fibjs.exe; without the extension the shell
+    # cannot find it and the whole step fails with exit code 127.
+    if [[ $HOST_OS == 'Windows' && ! -f "${DIST_EXEC}" ]]; then
+        DIST_EXEC="${DIST_EXEC}.exe"
+    fi
+
     ${DIST_EXEC} test
 fi
 
