@@ -89,9 +89,16 @@ result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVa
 
     _sz = ucnv_convert("utf-8", m_charset.c_str(), NULL, 0, data, sz, &errorCode);
     if (_sz) {
-        retVal.resize(_sz);
+        // Convert into a separate buffer first: data may point into retVal
+        // (callers decode in place, e.g. XmlDocument loading a Buffer), and
+        // resizing retVal would release the memory the input lives in.
+        exlib::string strBuf;
+        strBuf.resize(_sz);
+
         errorCode = U_ZERO_ERROR;
-        ucnv_convert("utf-8", m_charset.c_str(), retVal.data(), _sz, data, sz, &errorCode);
+        ucnv_convert("utf-8", m_charset.c_str(), strBuf.data(), _sz, data, sz, &errorCode);
+
+        retVal.assign(std::move(strBuf));
         return 0;
     }
 
