@@ -10,6 +10,16 @@ process.on('SIGINT', () => {
 
 var ss = [];
 
+// Environment keys that a filtered env has to keep for the child process to
+// start at all under emulation: the qemu-user behind the cross-arch CI builds
+// finds the guest loader through QEMU_LD_PREFIX (the build images keep the
+// loader outside /lib64, e.g. /usr/mips64el-linux-gnuabi64/lib64/ld.so.1), so a
+// child spawned without it dies with
+// "/lib64/ld.so.1: No such file or directory" and exit code 255.
+exports.emulationEnvKeys = [
+    'QEMU_LD_PREFIX'
+];
+
 // Environment keys that must survive a filtered env when a child process is
 // spawned on an iOS simulator.  The simulator loads the binary through the
 // platform loader (DYLD_ROOT_PATH + SIMULATOR_ROOT) and attaches the process to
@@ -21,10 +31,13 @@ exports.simulatorEnvKeys = [
     'SIMULATOR_SHARED_RESOURCES_DIRECTORY'
 ];
 
+// Everything a spawned child always needs to keep
+exports.childEnvKeys = exports.emulationEnvKeys.concat(exports.simulatorEnvKeys);
+
 exports.pickEnv = (base, keys) => {
     var out = {};
 
-    keys.concat(exports.simulatorEnvKeys).forEach(k => {
+    keys.concat(exports.childEnvKeys).forEach(k => {
         if (base[k] !== undefined)
             out[k] = base[k];
     });

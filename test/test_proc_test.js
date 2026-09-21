@@ -244,9 +244,10 @@ function runFixture(scene, opts) {
         "HOME",
         "TMPDIR",
         "PATH",
-        // On iOS simulators a filtered env has to keep the simulator bootstrap
-        // keys, otherwise the spawned fixture never runs (see test_util.js).
-        ...test_util.simulatorEnvKeys,
+        // Keys without which a spawned child cannot run: the iOS simulator
+        // bootstrap variables and the qemu-user loader prefix used by the
+        // cross-arch CI images (see test_util.js).
+        ...test_util.childEnvKeys,
         "SYSTEMROOT",
         "SystemRoot",
         "TEMP",
