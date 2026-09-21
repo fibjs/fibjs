@@ -576,45 +576,38 @@ public:
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
                         func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
                         if (try_catch.HasCaught()) {
-                            // after failed: mark the suite failed, turn passed direct tests
-                            // into failed, keep running (aligned with Node)
+                            // after failed：与 Node 一致 —— 子测试保持各自状态（已经打印过的 √
+                            // 不再被改写），钩子失败本身作为一条独立失败记录：走叶子测试相同的
+                            // 编号失败通道（计入退出码与失败清单），但不计入 tests/failed 计数
+                            // （Node 的 fail 同样不含钩子失败，见 test/runner_hook_test.js）。
                             exlib::string err = "[after] " + GetException(try_catch, 0, false, true);
 
                             p->m_status = false;
                             p->m_errors.append(err);
-
-                            v8::Local<v8::Array> tests = p->m_retVal_tests;
-                            for (j = 0; j < (int32_t)tests->Length(); j++) {
-                                v8::Local<v8::Value> v = tests->Get(_context, j).FromMaybe(v8::Local<v8::Value>());
-                                if (v.IsEmpty() || !v->IsObject())
-                                    continue;
-
-                                v8::Local<v8::Object> o = v.As<v8::Object>();
-                                // Skip sub-suite entries (result objects carrying a tests field)
-                                if (o->Has(_context, isolate->NewString("tests")).FromMaybe(true))
-                                    continue;
-
-                                v8::Local<v8::Value> status = o->Get(_context, isolate->NewString("status")).FromMaybe(v8::Local<v8::Value>());
-                                if (status.IsEmpty() || isolate->toString(status) != "passed")
-                                    continue;
-
-                                o->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
-                                o->Set(_context, isolate->NewString("trace"), isolate->NewString(err)).IsJust();
-                                p->m_pass--;
-                                p->m_fail++;
-                            }
+                            p->m_retVal->Set(_context, isolate->NewString("trace"), isolate->NewString(err)).IsJust();
 
                             exlib::string errline(stack.size() * 2, ' ');
                             errline.append("[after failed] ");
                             errline.append(p->m_title);
                             outLog(console_base::C_ERROR, logger::error() + errline + COLOR_RESET);
 
-                            // Report the hook error itself.  The tests converted
-                            // to failed just above were already printed as
-                            // passed, so without the message the summary reads
-                            // like "everything passed but N tests failed" with
-                            // no hint of the real cause.
-                            outLog(console_base::C_ERROR, logger::error() + err + COLOR_RESET);
+                            if (mode > console_base::C_ERROR)
+                                errorLog(err);
+                            else if (mode == console_base::C_ERROR) {
+                                exlib::string str1;
+
+                                snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
+                                str1 = buf;
+                                // stack.back() 就是本 suite（栈还未 pop），标题只取祖先链
+                                for (j = 1; j < (int32_t)stack.size() - 1; j++) {
+                                    str1.append(stack[j]->m_title);
+                                    str1.append(" ", 1);
+                                }
+                                str1.append(p->m_title);
+                                str1.append(" (after hook)");
+                                names.append(COLOR_BOLD + str1 + COLOR_RESET);
+                                msgs.append(err);
+                            }
                         }
                     }
                 }
