@@ -38,16 +38,31 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
 
     Buffer* code = Buffer::Cast(unz);
 
+    // The file is laid out as [v8 code cache][line table][line_count][src_len]
+    // [version], and every field in front of the version is trusted as it is
+    // read, so a truncated or corrupt file makes the reads below run past the
+    // buffer and the subtractions go negative.  A negative code_len then
+    // reaches V8 as a huge length (see the kHeaderSize check below), which
+    // aborts the process inside base::Vector::length().  Validate each step.
     int32_t code_len = (int32_t)code->length() - sizeof(int32_t);
+
+    if (code_len < 0)
+        return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
 
     if (*(int32_t*)(code->data() + code_len) != jsc_version)
         return CHECK_ERROR(Runtime::setError("SandBox: bad jsc version."));
 
     code_len -= sizeof(int32_t);
 
+    if (code_len < 0)
+        return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
+
     exlib::string s_temp_source;
     int32_t src_len = *(int32_t*)(code->data() + code_len);
     int32_t i;
+
+    if (src_len < 0)
+        return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
 
     s_temp_source.resize(src_len);
     char* _temp_source = s_temp_source.data();
@@ -56,7 +71,14 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
         _temp_source[i] = '.';
 
     code_len -= sizeof(int32_t);
+
+    if (code_len < 0)
+        return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
+
     int32_t line_count = *(int32_t*)(code->data() + code_len);
+
+    if (line_count < 0 || (int64_t)line_count * (int64_t)sizeof(int32_t) > (int64_t)code_len)
+        return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
 
     code_len -= sizeof(int32_t) * line_count;
 
@@ -107,7 +129,14 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
         const uint32_t kReadOnlySnapshotChecksumOffset = 16;
         const uint32_t kChecksumOffset = 24;
         const uint32_t kHeaderSize = 32;  // POINTER_SIZE_ALIGN(28) on 64-bit = 32
-        
+
+        // code_len - kHeaderSize is an unsigned subtraction: if the file left
+        // less than a serialized-code header in front of the line table it
+        // wraps around to a huge length, and Vector::length() (called by
+        // Checksum) CHECK-fails and aborts the process.
+        if (code_len < (int32_t)kHeaderSize)
+            return CHECK_ERROR(Runtime::setError("SandBox: bad jsc file."));
+
         // Update the source hash in the cache data
         uint32_t* hash_ptr = (uint32_t*)(writable_cache + kSourceHashOffset);
         *hash_ptr = correct_hash;
