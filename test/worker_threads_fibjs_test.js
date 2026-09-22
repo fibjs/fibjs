@@ -45,19 +45,28 @@ function doneOnce(done) {
 // Windows releases the handles a terminated worker held on the fixture tree
 // (fs.watch keeps one on the watched file) asynchronously, so rmSync can still
 // hit EBUSY/EPERM when the suite tears down.  Retry instead of letting the
-// after hook fail: when an after hook throws, the runner turns every already
-// passed test of the suite into a failed one, which hides the real cause
-// behind an "all tests passed but N failed" summary.
 function removeFixtureRootSync(targetPath) {
-    for (let attempt = 0; attempt < 10; attempt++) {
+    // Windows: 被 terminate 的 worker 持有的句柄释放得比这里晚，rmdir 会以 EBUSY/
+    // EPERM 失败（POSIX 允许删除已打开的文件，所以只有 Windows 会踩到）。
+    // 重试前先触发 GC：未被引用但尚未回收的句柄只有 GC 才放。
+    for (let attempt = 0; attempt < 20; attempt++) {
         try {
             fs.rmSync(targetPath, { recursive: true, force: true });
             return;
         } catch (err) {
-            if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM') || attempt === 9)
+            if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM'))
                 throw err;
 
-            coroutine.sleep(100);
+            if (attempt === 19) {
+                // 临时目录由系统回收；不让一个清不掉的目录把整个套件判失败
+                console.error(`[warn] could not remove fixture root ${targetPath}: ${err.message}`);
+                return;
+            }
+
+            if (typeof gc === 'function')
+                gc();
+
+            coroutine.sleep(Math.min(50 * (attempt + 1), 500));
         }
     }
 }

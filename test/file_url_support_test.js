@@ -29,7 +29,11 @@ function sleep(ms) {
 }
 
 function removeFixtureRootSync(targetPath) {
-    for (let attempt = 0; attempt < 5; attempt++) {
+    // Windows: 文件/目录句柄的释放时机晚于调用点（目录 watch 的 ReadDirectoryChangesW
+    // 句柄、worker 退出后的收尾、zip reader、v8 profiler 的日志流…），rmdir 会以
+    // EBUSY/EPERM 失败；POSIX 允许删除已打开的文件，所以只有 Windows 会踩到。
+    // 因此带重试，并在每次重试前触发 GC —— 未被引用但尚未回收的句柄只有 GC 才放。
+    for (let attempt = 0; attempt < 20; attempt++) {
         try {
             fs.rmSync(targetPath, { recursive: true, force: true });
             return;
@@ -37,10 +41,16 @@ function removeFixtureRootSync(targetPath) {
             if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM'))
                 throw err;
 
-            if (attempt === 4)
-                throw err;
+            if (attempt === 19) {
+                // 临时目录在 os.tmpdir() 里，最后由系统回收；不值得让整个套件失败
+                console.error(`[warn] could not remove fixture root ${targetPath}: ${err.message}`);
+                return;
+            }
 
-            sleep(50 * (attempt + 1));
+            if (isFibjs && typeof gc === 'function')
+                gc();
+
+            sleep(Math.min(50 * (attempt + 1), 500));
         }
     }
 }
