@@ -1,4 +1,4 @@
-var { describe, it, beforeEach, afterEach } = require('node:test');
+var { describe, it, before, beforeEach, afterEach } = require('node:test');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -14,7 +14,7 @@ const TMP_DIR = path.join(__dirname, 'opt_tools_test_files', 'tmp');
 
 function install_pkg(targetDir, pkgPath, opts) {
     if (isFibjs) {
-        child_process.spawnSync(process.execPath, ['--install', pkgPath], {
+        return child_process.spawnSync(process.execPath, ['--install', pkgPath], {
             cwd: targetDir,
             stdio: 'pipe',
             env: {
@@ -25,7 +25,7 @@ function install_pkg(targetDir, pkgPath, opts) {
         });
     } else {
         const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-        child_process.spawnSync(npm, ['install', pkgPath], {
+        return child_process.spawnSync(npm, ['install', pkgPath], {
             cwd: targetDir,
             stdio: 'pipe',
             shell: process.platform === 'win32',
@@ -36,7 +36,7 @@ function install_pkg(targetDir, pkgPath, opts) {
 
 function install_from_pkgjson(targetDir, opts) {
     if (isFibjs) {
-        child_process.spawnSync(process.execPath, ['--install'], {
+        return child_process.spawnSync(process.execPath, ['--install'], {
             cwd: targetDir,
             stdio: 'pipe',
             env: {
@@ -47,7 +47,7 @@ function install_from_pkgjson(targetDir, opts) {
         });
     } else {
         const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-        child_process.spawnSync(npm, ['install'], {
+        return child_process.spawnSync(npm, ['install'], {
             cwd: targetDir,
             stdio: 'pipe',
             shell: process.platform === 'win32',
@@ -56,15 +56,77 @@ function install_from_pkgjson(targetDir, opts) {
     }
 }
 
-function checkSymlink(targetDir, pkgName) {
-    const linkPath = path.join(targetDir, 'node_modules', pkgName);
+/**
+ * @description whether the local package reached node_modules: as a link to the
+ *              fixture where the filesystem can host one, as the copy the
+ *              installer falls back to where it cannot (see LINKS_USED)
+ */
+function checkInstalled(targetDir, pkgName) {
+    var p = path.join(targetDir, 'node_modules', pkgName);
+
     try {
-        return fs.existsSync(linkPath) && fs.lstatSync(linkPath).isSymbolicLink();
-    } catch (e) { return false; }
+        if (!fs.existsSync(p)) return false;
+
+        if (LINKS_USED)
+            return fs.lstatSync(p).isSymbolicLink();
+
+        return fs.lstatSync(p).isDirectory() && fs.existsSync(path.join(p, 'package.json'));
+    } catch (e) {
+        return false;
+    }
 }
 
 function checkFile(targetDir, pkgName, filename) {
     return fs.existsSync(path.join(targetDir, 'node_modules', pkgName, filename));
+}
+
+/**
+ * @description list the entries of a directory, marking the links: a failed
+ *              installation is mostly about what node_modules does (not) contain
+ */
+function listDir(dir) {
+    if (!fs.existsSync(dir)) return '(missing)';
+
+    try {
+        var names = fs.readdirSync(dir);
+        if (!names.length) return '(empty)';
+
+        return names.map(function (n) {
+            var p = path.join(dir, n);
+            var kind;
+
+            try {
+                kind = fs.lstatSync(p).isSymbolicLink() ? 'link' : (fs.lstatSync(p).isDirectory() ? 'dir' : 'file');
+            } catch (e) {
+                kind = 'unreadable';
+            }
+
+            return n + ' [' + kind + ']';
+        }).join(', ');
+    } catch (e) {
+        return '(unreadable: ' + e.message + ')';
+    }
+}
+
+/**
+ * @description describe a failed installation: what the installer printed (which
+ *              is nothing when the install never started), and what it produced
+ */
+function diag(targetDir, res) {
+    var out = '';
+
+    if (res) {
+        if (res.stdout) out += String(res.stdout);
+        if (res.stderr) out += String(res.stderr);
+    }
+
+    var exit = res ? res.status : 'not captured';
+    if (res && res.error) exit += ' (spawn error: ' + res.error.message + ')';
+
+    return '\n  install target : ' + targetDir +
+        '\n  exit code      : ' + exit +
+        '\n  node_modules   : ' + listDir(path.join(targetDir, 'node_modules')) +
+        '\n  install output :\n' + (out.trim() || '(nothing)').replace(/^/gm, '    ');
 }
 
 function rmdirSync(dirPath) {
@@ -80,6 +142,54 @@ function rmdirSync(dirPath) {
     fs.rmdirSync(dirPath);
 }
 
+// ---------- environment check ----------
+
+/**
+ * @description whether TMP_DIR can host a link to a directory. A filesystem that
+ *              cannot (a mapped network drive, a VM shared folder or a FAT/exFAT
+ *              volume on Windows refuses reparse points) makes the installer fall
+ *              back to copying the package, which is what the assertions then
+ *              expect
+ */
+function probeLinkSupport() {
+    fs.mkdirSync(TMP_DIR, { recursive: true });
+
+    var probeTarget = path.join(TMP_DIR, 'link_probe_target');
+    var probeLink = path.join(TMP_DIR, 'link_probe');
+
+    function cleanup() {
+        try { if (fs.existsSync(probeLink)) fs.unlinkSync(probeLink); } catch (e) { /* ignore */ }
+        try { if (fs.existsSync(probeTarget)) fs.rmdirSync(probeTarget); } catch (e) { /* ignore */ }
+    }
+
+    cleanup();
+
+    var supported = false;
+    try {
+        fs.mkdirSync(probeTarget, { recursive: true });
+
+        if (isFibjs) {
+            if (process.platform === 'win32')
+                fs.symlink(probeTarget, probeLink, 'junction');
+            else
+                fs.symlink(probeTarget, probeLink);
+        } else {
+            fs.symlinkSync(probeTarget, probeLink, process.platform === 'win32' ? 'junction' : 'dir');
+        }
+
+        supported = fs.lstatSync(probeLink).isSymbolicLink();
+    } catch (e) {
+        supported = false;
+    }
+    cleanup();
+
+    return supported;
+}
+
+// the installer links a local package, and copies it where the filesystem cannot
+// host a link, so the assertions follow what this filesystem can do
+const LINKS_USED = probeLinkSupport();
+
 // ---------- test data ----------
 
 var localInstallTests = [
@@ -87,24 +197,28 @@ var localInstallTests = [
         description: 'should create symlink for local package',
         fixture: 'pkg-no-scripts',
         skipInNode: true,
-        verify: function (targetDir) {
-            assert.ok(checkSymlink(targetDir, 'test-pkg-no-scripts'));
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-no-scripts'), diag(targetDir, res));
         }
     },
     {
         description: 'should resolve relative path (../) for local package',
         fixture: 'pkg-no-scripts',
+        relative: true,
         skipInNode: true,
-        verify: function (targetDir) {
-            assert.ok(checkSymlink(targetDir, 'test-pkg-no-scripts'));
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-no-scripts'), diag(targetDir, res));
         }
     },
     {
         description: 'should install dependencies of local package',
         fixture: 'pkg-with-deps',
         skipInNode: true,
-        verify: function (targetDir) {
-            assert.ok(checkSymlink(targetDir, 'test-pkg-with-deps'));
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-with-deps'), diag(targetDir, res));
+            // `pkg-with-deps` depends on `test-pkg-install@file:../pkg-with-install`: the
+            // spec is relative to the package itself, not to the installation target
+            assert.ok(checkInstalled(targetDir, 'test-pkg-install'), diag(targetDir, res));
         }
     },
 ];
@@ -113,8 +227,8 @@ var fileProtocolTests = [
     {
         description: 'should resolve file: dependency in package.json',
         pkgJsonContent: { name: 'root', version: '1.0.0', dependencies: { 'test-pkg-no-scripts': 'file:../../fixtures/pkg-no-scripts' } },
-        verify: function (targetDir) {
-            assert.ok(checkSymlink(targetDir, 'test-pkg-no-scripts'));
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-no-scripts'), diag(targetDir, res));
         }
     },
 ];
@@ -123,24 +237,24 @@ var lifecycleTests = [
     {
         description: 'should run scripts.install',
         fixture: 'pkg-with-install',
-        verify: function (targetDir) {
-            assert.ok(checkFile(targetDir, 'test-pkg-install', '.install-ran'));
+        verify: function (targetDir, res) {
+            assert.ok(checkFile(targetDir, 'test-pkg-install', '.install-ran'), diag(targetDir, res));
         },
         skipInNode: true,
     },
     {
         description: 'should run scripts.postinstall',
         fixture: 'pkg-with-postinstall',
-        verify: function (targetDir) {
-            assert.ok(checkFile(targetDir, 'test-pkg-postinstall', '.postinstall-ran'));
+        verify: function (targetDir, res) {
+            assert.ok(checkFile(targetDir, 'test-pkg-postinstall', '.postinstall-ran'), diag(targetDir, res));
         },
         skipInNode: true,
     },
     {
         description: 'binding.gyp without install script should not error',
         fixture: 'pkg-with-binding-gyp',
-        verify: function (targetDir) {
-            assert.ok(checkSymlink(targetDir, 'test-pkg-binding-gyp'));
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-binding-gyp'), diag(targetDir, res));
         },
         skipInNode: true,
     },
@@ -161,6 +275,16 @@ var parsingTests = [
     { input: ['file:./fixtures/pkg'], expectedType: 'local', desc: 'file:./fixtures/pkg → local' },
     { input: ['', 'file:../foo'], expectedType: 'local', desc: "file:../foo → local" },
     { input: ['./@scope/pkg'], expectedType: 'local', desc: './@scope/pkg → local (scoped dir)' },
+
+    // === should be local path (windows forms, recognised on every platform) ===
+    { input: ['.\\fixtures\\pkg'], expectedType: 'local', desc: '.\\fixtures\\pkg → local (windows relative)' },
+    { input: ['..\\sibling-pkg'], expectedType: 'local', desc: '..\\sibling-pkg → local (windows relative)' },
+    { input: ['D:\\projects\\pkg'], expectedType: 'local', desc: 'D:\\projects\\pkg → local (windows drive)' },
+    { input: ['D:/projects/pkg'], expectedType: 'local', desc: 'D:/projects/pkg → local (windows drive, forward slash)' },
+    { input: ['\\\\server\\share\\pkg'], expectedType: 'local', desc: '\\\\server\\share\\pkg → local (UNC)' },
+    { input: ['file:D:\\projects\\pkg'], expectedType: 'local', desc: 'file:D:\\projects\\pkg → local' },
+    { input: ['file:///D:/projects/pkg'], expectedType: 'local', desc: 'file:///D:/projects/pkg → local (file url, drive)' },
+    { input: ['file:///projects/pkg'], expectedType: 'local', desc: 'file:///projects/pkg → local (file url, absolute)' },
 
     // === should NOT be local path (semver ranges) ===
     { input: ['~1.0.0'], expectedType: '!local', desc: '~1.0.0 → not local (semver range)' },
@@ -203,6 +327,12 @@ describe('parse_pkg_installname', function () {
 describe('opt_tools install lifecycle', function () {
     var testTargets = [];
 
+    before(function () {
+        if (!LINKS_USED)
+            console.log('  # local packages are installed as copies here: ' +
+                'the tmp filesystem cannot host a directory link');
+    });
+
     function makeTargetDir() {
         var testId = Date.now() + '_' + Math.random().toString(36).slice(2);
         var targetDir = path.join(TMP_DIR, 'test_' + testId);
@@ -242,9 +372,14 @@ describe('opt_tools install lifecycle', function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
-                install_pkg(targetDir, fixturePath, { silent: true });
+                // a relative spec must stay relative: `fibjs --install ../x` has to resolve
+                // against the working directory, just like `fibjs --install ./x`
+                if (test.relative)
+                    fixturePath = path.relative(targetDir, fixturePath);
 
-                test.verify(targetDir);
+                // the installation runs verbosely: whatever it printed lands in the
+                // failure message instead of the void
+                test.verify(targetDir, install_pkg(targetDir, fixturePath));
             });
         });
     });
@@ -256,9 +391,7 @@ describe('opt_tools install lifecycle', function () {
                 var targetDir = makeTargetDir();
                 createPackageJson(targetDir, test.pkgJsonContent);
 
-                install_from_pkgjson(targetDir, { silent: true });
-
-                test.verify(targetDir);
+                test.verify(targetDir, install_from_pkgjson(targetDir));
             });
         });
     });
@@ -271,9 +404,7 @@ describe('opt_tools install lifecycle', function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
-                install_pkg(targetDir, fixturePath, { silent: true });
-
-                test.verify(targetDir);
+                test.verify(targetDir, install_pkg(targetDir, fixturePath));
             });
         });
     });
