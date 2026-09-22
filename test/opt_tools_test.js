@@ -233,6 +233,71 @@ var fileProtocolTests = [
     },
 ];
 
+// peer dependencies are installed like npm (>= 7) does: every peer a package
+// declares is fetched, except the ones marked optional
+var peerDependencyTests = [
+    {
+        description: 'should install the peer dependency of a local package',
+        fixture: 'pkg-with-peer',
+        // npm skips the peers of a linked (file:) package, so this is fibjs only
+        skipInNode: true,
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-with-peer'), diag(targetDir, res));
+            // `pkg-with-peer` peers on `test-pkg-peer@file:../pkg-peer`: the spec is
+            // relative to the package itself, and the peer is hoisted to the root
+            assert.ok(checkInstalled(targetDir, 'test-pkg-peer'), diag(targetDir, res));
+        }
+    },
+    {
+        description: 'should skip a peer dependency marked optional',
+        fixture: 'pkg-with-opt-peer',
+        skipInNode: true,
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-with-opt-peer'), diag(targetDir, res));
+            assert.ok(!checkInstalled(targetDir, 'test-pkg-opt-peer'),
+                'peerDependenciesMeta.optional peer must not be installed: ' + diag(targetDir, res));
+        }
+    },
+    {
+        description: 'should leave a workspace: peer to the workspace',
+        fixture: 'pkg-with-ws-peer',
+        skipInNode: true,
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-with-ws-peer'), diag(targetDir, res));
+            assert.ok(!checkInstalled(targetDir, 'test-pkg-ws-peer'),
+                'a workspace: peer must not be looked up in the registry: ' + diag(targetDir, res));
+        }
+    },
+];
+
+var peerProtocolTests = [
+    {
+        description: 'should install a peer dependency declared by the root package',
+        pkgJsonContent: { name: 'root', version: '1.0.0', peerDependencies: { 'test-pkg-no-scripts': 'file:../../fixtures/pkg-no-scripts' } },
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-no-scripts'), diag(targetDir, res));
+        }
+    },
+    {
+        description: 'should reuse the peer dependency satisfied one level up',
+        pkgJsonContent: {
+            name: 'root',
+            version: '1.0.0',
+            dependencies: {
+                'test-pkg-peer': 'file:../../fixtures/pkg-peer',
+                'test-pkg-with-peer': 'file:../../fixtures/pkg-with-peer'
+            }
+        },
+        verify: function (targetDir, res) {
+            assert.ok(checkInstalled(targetDir, 'test-pkg-peer'), diag(targetDir, res));
+            assert.ok(checkInstalled(targetDir, 'test-pkg-with-peer'), diag(targetDir, res));
+            // the root already provides the peer: no second copy inside the dependent
+            assert.ok(!fs.existsSync(path.join(targetDir, 'node_modules', 'test-pkg-with-peer', 'node_modules')),
+                'peer satisfied one level up must not be installed again: ' + diag(targetDir, res));
+        }
+    },
+];
+
 var lifecycleTests = [
     {
         description: 'should run scripts.install',
@@ -405,6 +470,28 @@ describe('opt_tools install lifecycle', function () {
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
                 test.verify(targetDir, install_pkg(targetDir, fixturePath));
+            });
+        });
+    });
+
+    // ===== Phase 4: peer dependencies =====
+    describe('peer dependencies (Phase 4)', function () {
+        peerDependencyTests.forEach(function (test) {
+            var shouldSkip = test.skip || (!isFibjs && test.skipInNode);
+            (shouldSkip ? it.skip : it)(test.description, function () {
+                var targetDir = makeTargetDir();
+                var fixturePath = path.join(FIXTURES_DIR, test.fixture);
+
+                test.verify(targetDir, install_pkg(targetDir, fixturePath));
+            });
+        });
+
+        peerProtocolTests.forEach(function (test) {
+            (test.skip ? it.skip : it)(test.description, function () {
+                var targetDir = makeTargetDir();
+                createPackageJson(targetDir, test.pkgJsonContent);
+
+                test.verify(targetDir, install_from_pkgjson(targetDir));
             });
         });
     });

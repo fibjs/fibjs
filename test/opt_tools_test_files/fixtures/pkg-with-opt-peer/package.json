@@ -1,0 +1,12 @@
+{
+  "name": "test-pkg-with-opt-peer",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "test-pkg-opt-peer": "file:../pkg-opt-peer"
+  },
+  "peerDependenciesMeta": {
+    "test-pkg-opt-peer": {
+      "optional": true
+    }
+  }
+}

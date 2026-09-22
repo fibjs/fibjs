@@ -1,0 +1,7 @@
+{
+  "name": "test-pkg-with-peer",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "test-pkg-peer": "file:../pkg-peer"
+  }
+}

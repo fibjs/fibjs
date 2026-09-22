@@ -1,0 +1,7 @@
+{
+  "name": "test-pkg-with-ws-peer",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "test-pkg-ws-peer": "workspace:*"
+  }
+}

@@ -36,6 +36,7 @@ http.setGlobalProxyFromEnv();
         name: "module",
         version: "1.0.0",
         dep_vs: { "module-a": "1.0.0" },
+        peer_dep_vs: { "peer-module-a": "1.0.0" },
         devDeps: { "dev-module-a": "1.0.0" },
         node_modules: {},
         parent: null,
@@ -64,6 +65,7 @@ function read_module(p, parent) {
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
                     opt_dep_vs: opt_dep_vs,
+                    peer_dep_vs: read_peer_dep_vs(minfo),
                     parent: parent
                 };
 
@@ -73,6 +75,32 @@ function read_module(p, parent) {
     }
 
     return modules;
+}
+
+/**
+ * @description the peer dependencies that have to be installed along with a package.
+ *              npm (>= 7) installs them like regular dependencies, except the ones
+ *              marked optional in `peerDependenciesMeta`
+ */
+function read_peer_dep_vs(pkgjson) {
+    const peer_dep_vs = util.clone(pkgjson.peerDependencies || {});
+    const peer_meta = pkgjson.peerDependenciesMeta || {};
+
+    for (let k in peer_dep_vs) {
+        // an optional peer stays uninstalled, npm does the same
+        if (peer_meta[k] && peer_meta[k].optional) {
+            delete peer_dep_vs[k];
+            continue;
+        }
+
+        // a workspace spec is provided by the workspace itself (the members are
+        // materialized at the root), and a registry lookup cannot resolve it:
+        // `parse_pkg_installname` only knows registry/git/local specs
+        if (typeof peer_dep_vs[k] === 'string' && peer_dep_vs[k].indexOf('workspace:') === 0)
+            delete peer_dep_vs[k];
+    }
+
+    return peer_dep_vs;
 }
 
 function http_get(u, { quit_if_error = true } = {}) {
@@ -411,6 +439,7 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
             dep_vs: util.extend({}, pkg.package_json.dependencies),
             dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
             opt_dep_vs: util.extend({}, pkg.package_json.optionalDependencies),
+            peer_dep_vs: read_peer_dep_vs(pkg.package_json),
             parent: rootsnap,
             workspace_package: true,
             workspace_path: pkg.path,
@@ -630,6 +659,7 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
             const dep_vs = util.clone(minfo.dependencies || {});
             const dev_dep_vs = util.clone(minfo.devDependencies || {});
             const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
+            const peer_dep_vs = read_peer_dep_vs(minfo);
 
             var binary;
             if (minfo.binary) {
@@ -660,6 +690,7 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dep_vs: dep_vs,
                 dev_dep_vs: dev_dep_vs,
                 opt_dep_vs: opt_dep_vs,
+                peer_dep_vs: peer_dep_vs,
                 os: minfo.os,
                 cpu: minfo.cpu,
                 libc: minfo.libc,
@@ -702,6 +733,7 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dep_vs: util.extend({}, pkgjson_info.dependencies),
                 dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
                 opt_dep_vs: util.extend({}, pkgjson_info.optionalDependencies),
+                peer_dep_vs: read_peer_dep_vs(pkgjson_info),
                 node_modules: {},
                 parent: parent,
                 dist: null,
@@ -723,6 +755,7 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dep_vs: util.extend({}, local_pkg_info.dependencies),
                 dev_dep_vs: util.extend({}, local_pkg_info.devDependencies),
                 opt_dep_vs: util.extend({}, local_pkg_info.optionalDependencies),
+                peer_dep_vs: read_peer_dep_vs(local_pkg_info),
                 node_modules: {},
                 parent: parent,
                 dist: null,
@@ -756,6 +789,7 @@ function get_root_snapshot() {
     const dep_vs = util.extend({}, pkgjson.dependencies);
     const dev_dep_vs = util.extend({}, pkgjson.devDependencies);
     const opt_dep_vs = util.extend({}, pkgjson.optionalDependencies);
+    const peer_dep_vs = read_peer_dep_vs(pkgjson);
 
     const registry = normalize_registry_origin(pkgjson.registry || 'https://registry.npmjs.org/');
 
@@ -765,6 +799,7 @@ function get_root_snapshot() {
         dep_vs: dep_vs,
         dev_dep_vs: dev_dep_vs,
         opt_dep_vs: opt_dep_vs,
+        peer_dep_vs: peer_dep_vs,
         new_module: true,
         registry: registry,
         root_is_new: root_is_new,
@@ -857,7 +892,10 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
 
         ;[
             ['dep_vs', 'dependencies'],
-            ['opt_dep_vs', 'optionalDependencies']
+            ['opt_dep_vs', 'optionalDependencies'],
+            // npm (>= 7) installs the peer dependencies of every package it installs,
+            // the ones marked optional via `peerDependenciesMeta` excepted
+            ['peer_dep_vs', 'peerDependencies']
         ].concat(
             need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
         ).forEach(([dep_type, dep_field]) => {
@@ -1432,6 +1470,7 @@ if (!pkgjson_path_specified) {
                 dep_vs: util.extend({}, localPkg.dependencies),
                 dev_dep_vs: util.extend({}, localPkg.devDependencies),
                 opt_dep_vs: util.extend({}, localPkg.optionalDependencies),
+                peer_dep_vs: read_peer_dep_vs(localPkg),
                 bin: localPkg.bin,
                 parent: rootsnap,
                 local_package: true,
