@@ -280,6 +280,65 @@ function find_workspace_packages(root_path, workspaces_config) {
 }
 
 /**
+ * @description copy a directory tree; links inside the package are not followed
+ */
+function copy_dir(src_path, dest_path) {
+    fs.mkdir(dest_path, { recursive: true });
+
+    fs.readdir(src_path).forEach(name => {
+        const src = path.join(src_path, name);
+        const dest = path.join(dest_path, name);
+        const stats = fs.lstat(src);
+
+        // the source package does not own the target of a link, it is not followed
+        if (stats.isSymbolicLink())
+            return;
+
+        if (stats.isDirectory())
+            copy_dir(src, dest);
+        else
+            fs.copyFile(src, dest);
+    });
+}
+
+/**
+ * @description install a local package directory into node_modules, as a link to
+ *              the source directory when the filesystem can host one. Some
+ *              filesystems cannot: a mapped network drive, a VM shared folder or
+ *              a FAT/exFAT volume on Windows refuses reparse points. There the
+ *              package is copied instead, which installs a snapshot of the source
+ *              directory rather than a live link to it.
+ */
+function link_or_copy_dir(src_path, dest_path) {
+    var link_error = null;
+
+    try {
+        // create symlink or junction based on platform
+        if (process.platform === 'win32') {
+            fs.symlink(src_path, dest_path, 'junction');
+        } else {
+            fs.symlink(src_path, dest_path);
+        }
+
+        install_log('link:', src_path, '→', dest_path);
+        return;
+    } catch (e) {
+        link_error = e;
+    }
+
+    console.warn(`[install] cannot link ${dest_path} to ${src_path}: ${link_error.message}\n` +
+        '  hint: this filesystem cannot host a directory link - a mapped network drive, a VM\n' +
+        '  shared folder or a FAT/exFAT volume on Windows refuses reparse points\n' +
+        '  installing a copy instead: it is a snapshot of the source directory, not a live link');
+
+    copy_dir(src_path, dest_path);
+    install_log('copy:', src_path, '→', dest_path);
+}
+
+// packages already installed into node_modules by this run, see create_local_symlinks
+const installed_paths = {};
+
+/**
  * @description create symlinks for local/workspace packages
  * @param {string} root_path - root project path
  * @param {Array<{name: string, srcPath: string}>} packages - packages to symlink
@@ -297,6 +356,12 @@ function create_local_symlinks(root_path, packages) {
         const target_path = pkg.srcPath;
 
         try {
+            // a package is reachable from more than one place in the snapshot (the
+            // requested one and the dependency it resolves to), it is installed once
+            if (installed_paths[link_path]) {
+                return;
+            }
+
             // For scoped packages, ensure parent directory exists
             const link_dir = path.dirname(link_path);
             if (!fs.exists(link_dir)) {
@@ -310,21 +375,16 @@ function create_local_symlinks(root_path, packages) {
                     fs.unlink(link_path);
                 } else if (stats.isDirectory()) {
                     // don't remove if it's a real directory with installed packages
-                    console.warn(`[install] Skipping ${pkg.name}: directory already exists`);
+                    console.warn(`[install] Skipping ${pkg.name}: directory already exists` +
+                        ` (remove it to install ${target_path} again)`);
                     return;
                 }
             }
 
-            // create symlink or junction based on platform
-            if (process.platform === 'win32') {
-                fs.symlink(target_path, link_path, 'junction');
-            } else {
-                fs.symlink(target_path, link_path);
-            }
-
-            install_log('link:', target_path, '→', link_path);
+            link_or_copy_dir(target_path, link_path);
+            installed_paths[link_path] = true;
         } catch (e) {
-            console.warn(`[install] Failed to create symlink for ${pkg.name}:`, e.message);
+            console.warn(`[install] Failed to install ${pkg.name}:`, e.stack || e.message);
         }
     });
 }
@@ -399,10 +459,18 @@ function setup_script_env(pkgjson, pkg_path, event) {
     if (!env.npm_config_registry)
         env.npm_config_registry = 'https://registry.npmjs.org/';
 
-    // add node_modules/.bin to PATH
-    var bin_path = path.join(pkg_path, 'node_modules', '.bin');
+    // npm puts `node_modules/.bin` and the directory of the runtime that runs the
+    // scripts in front of PATH, so that a script can call the very runtime which
+    // installs it (`fibjs` in a script works without a global installation).
+    // `env` is a plain copy of process.env here, and Windows spells the variable
+    // `Path`: update the spelling which is actually present, a second `PATH` next
+    // to it would leave the child with an unpredictable search path.
+    var path_key = Object.keys(env).find(k => k.toUpperCase() === 'PATH') || 'PATH';
     var path_sep = process.platform === 'win32' ? ';' : ':';
-    env.PATH = bin_path + path_sep + (env.PATH || '');
+    var bin_path = path.join(pkg_path, 'node_modules', '.bin');
+    var exec_path = path.dirname(process.execPath);
+
+    env[path_key] = bin_path + path_sep + exec_path + path_sep + (env[path_key] || '');
 
     return env;
 }
@@ -445,6 +513,7 @@ function run_module_scripts(pkg_path, pkg_info, is_root) {
 
             if (result.status !== 0) {
                 var msg = '[lifecycle] ' + pkgjson.name + ': ' + event + ' exited with code ' + result.status;
+                if (result.stdout) install_log('  stdout:', result.stdout.toString().trim());
                 if (result.stderr) install_log('  stderr:', result.stderr.toString().trim());
                 if (process.env.FIBJS_STRICT_SCRIPTS)
                     throw new Error(msg);
@@ -491,8 +560,12 @@ function sha1(data) {
 
 const pkg_registrytype_module_infos = {};
 const pkg_githubtype_module_infos = {};
-function fetch_leveled_module_info(m, v, parent) {
-    const pkg_install_typeinfo = helpers_pkg.parse_pkg_installname(m, v);
+/**
+ * @description fetch the snapshot of a dependency, from the registry/git or from disk
+ * @param base_dir - directory a relative local path is resolved against, see walkthrough_deps
+ */
+function fetch_leveled_module_info(m, v, parent, base_dir) {
+    const pkg_install_typeinfo = helpers_pkg.parse_pkg_installname(m, v, base_dir);
 
     switch (pkg_install_typeinfo.type) {
         case 'registry':
@@ -771,8 +844,11 @@ function check_platform_match(pkg_info) {
 const name_maps_installation2pkg = {}
 /**
  * @description walk throught to generate dep_vs/dev_dep_vs information recursively
+ * @param base_dir - directory of `level_info`, relative local dependencies are
+ *                   resolved against it (`file:../x` refers to the package itself,
+ *                   not to the directory the installation was started from)
  */
-function walkthrough_deps(level_info, need_dev_deps = false) {
+function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.cwd()) {
     if (level_info.new_module) {
         // `coroutine.parallel` swallows the exceptions raised inside its fibers and only
         // reports '[20020] Internal error', so failures are collected here and rethrown
@@ -819,7 +895,7 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
 
                     if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
                         if (!find_version(dname, v, level_info))
-                            child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info);
+                            child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
 
                         // check platform compatibility; skip optional deps that don't match
                         if (child_level_info && !check_platform_match(child_level_info)) {
@@ -866,10 +942,15 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
             throw new Error(format_dep_failures(level_info, dep_failures));
 
         for (let k in level_info.node_modules) {
+            const child = level_info.node_modules[k];
+
             walkthrough_deps(
-                level_info.node_modules[k],
+                child,
                 // only ask if need_dev_deps for installation's source root
-                false
+                false,
+                // a local package lives outside node_modules, so its own relative
+                // dependencies are resolved against its own directory
+                child.local_path || path.join(base_dir, 'node_modules', k)
             );
         }
     }
@@ -1119,13 +1200,7 @@ function download_module() {
                         }
 
                         fs.mkdir(path.dirname(destPath), { recursive: true });
-
-                        if (process.platform === 'win32')
-                            fs.symlink(localSrcPath, destPath, 'junction');
-                        else
-                            fs.symlink(localSrcPath, destPath);
-
-                        install_log('link:', localSrcPath, '→', destPath);
+                        link_or_copy_dir(localSrcPath, destPath);
                     });
                     break
             }

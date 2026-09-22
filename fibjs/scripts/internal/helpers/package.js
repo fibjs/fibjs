@@ -21,7 +21,39 @@ exports.is_special_installname = function (pkg_name = '') {
 const GIT_PATTERN = /^([a-zA-Z0-9_.~-]+\/([a-zA-Z0-9_.~-]+)(\.git)?)(\#(.+))?$/
 const MODULE_NAME_PATTERN = /^[a-z][a-z0-9_.~-]*$/;
 
-const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name, input_uri) {
+/**
+ * @description tell whether a spec points at a directory on disk. Both the POSIX
+ *              and the Windows form are recognised on every platform, so that a
+ *              spec keeps the same meaning whichever host parses it:
+ *              `./x` `../x` `~/x` `/x` `\x` `\\host\share` `C:\x` `C:/x`
+ */
+const LOCAL_PATH_PATTERN = /^(\.{1,2}[\\/]|~[\\/]|[\\/]|[a-zA-Z]:[\\/])/;
+
+/**
+ * @description strip the `file:` protocol, and the empty authority of the
+ *              `file://` / `file:///` URL forms, from a local spec
+ * @sample 'file:../foo' → '../foo'; 'file:///C:/foo' → 'C:/foo'; 'file:///foo' → '/foo'
+ */
+function strip_file_protocol(spec) {
+    let p = spec.replace(/^file:/, '');
+
+    // file:///C:/foo, file://C:/foo
+    p = p.replace(/^\/{2,3}(?=[a-zA-Z]:[\\/])/, '');
+
+    // file:///foo
+    if (p.startsWith('///'))
+        p = p.slice(2);
+
+    return p;
+}
+
+/**
+ * @param pkg_name - package name, used when `input_uri` carries no spec
+ * @param input_uri - dependency spec, e.g. '^1.0.0', 'user/repo#master', 'file:../pkg'
+ * @param base_dir - directory a relative local path is resolved against;
+ *                   defaults to the current working directory
+ */
+const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name, input_uri, base_dir) {
     if (!input_uri || input_uri === '*')
         input_uri = pkg_name;
 
@@ -29,10 +61,11 @@ const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name
     input_uri = input_uri.replace(/^https?:\/\/[^\/]+\//, '');
 
     // local path: check before @ split. Use semver to exclude version ranges (~1.0.0, ^2.0, >=1.0, etc.)
-    if (!semver.validRange(input_uri) && /^(file:)?(\.{1,2}\/|~\/|\/)/.test(input_uri))
+    const local_spec = strip_file_protocol(input_uri);
+    if (!semver.validRange(input_uri) && LOCAL_PATH_PATTERN.test(local_spec))
         return {
             type: 'local',
-            local_path: path.resolve(input_uri.replace(/^file:/, '')),
+            local_path: path.resolve(base_dir || process.cwd(), local_spec),
             package_name: null,
             registry_pkg_path: null,
             registry_semver: null,
