@@ -58,6 +58,31 @@ const isLinux = process.platform === 'linux';
 // iOS simulator FSEvents doesn't return the filename when watching directories
 const support_watch_directory_filename = process.platform !== 'ios';
 
+// Most tests below trigger a single change and then wait for its event.  When a
+// machine is too slow to deliver (or arm) the watch in time, the test fails and
+// the watcher it created would stay open: a persistent watcher keeps the isolate
+// referenced, so the whole run never exits and the CI job dies with the test
+// watchdog (exit 124) instead of just reporting the failure.  Track every
+// watcher created in this suite and close the ones a test left behind.
+const liveWatchers = [];
+const rawWatch = fs.watch;
+fs.watch = function (...args) {
+    const watcher = rawWatch.apply(fs, args);
+    liveWatchers.push(watcher);
+    return watcher;
+};
+
+afterEach(() => {
+    while (liveWatchers.length > 0) {
+        const watcher = liveWatchers.pop();
+        try {
+            watcher.close();
+        } catch (e) {
+            // already closed by the test itself
+        }
+    }
+});
+
 // Recursive watch reports entries relative to the watched root, joined with the
 // separator of the running platform: backslash separated on Windows, slash
 // separated on unix. Node behaves the same way - its own recursive watch tests

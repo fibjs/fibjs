@@ -20,6 +20,25 @@
  *  Created on: Aug 22, 2026
  */
 
+/*
+ * readdir() must use the 64-bit dirent ABI.
+ *
+ * The 32-bit struct dirent cannot represent an entry whose d_off does not fit
+ * into 32 signed bits, and filesystems are free to hand out such cookies: an
+ * ext4 directory created with dir_index (the Ubuntu default) reports
+ * d_off = (hash << 32) | ... for every entry, even in a directory holding a
+ * single file.  glibc converts the kernel's dirent64 into the small structure
+ * in user space and fails the whole readdir() call with EOVERFLOW, so the scan
+ * below would silently see an empty directory and the recursive watch would
+ * never register anything.  libuv is compiled with _FILE_OFFSET_BITS=64 for the
+ * same reason and stays unaffected; fs.cpp, fs_glob.cpp and FileStream.cpp
+ * define it for their own calls as well.  The define has to precede every libc
+ * header to take effect.
+ */
+#ifndef _WIN32
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include "FSWatcher.h"
 
 #if defined(__linux__)
