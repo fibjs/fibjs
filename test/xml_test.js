@@ -5157,4 +5157,88 @@ describe('xml', () => {
             });
         }
     });
+
+    if (!isBrowser) {
+        // fibjs dumps the data properties of a native object in toJSON. Nodes
+        // reference each other, so node valued properties are left out of the
+        // snapshot: as every level returns a new object, JSON.stringify could not
+        // detect the cycle and recursed until the stack overflowed.
+        describe('toJSON', () => {
+            it('should serialize a parsed document without overflowing the stack', () => {
+                const doc = xml.parse('<a id="x"><b>1</b></a>');
+                const o = JSON.parse(JSON.stringify(doc));
+
+                assert.equal(o.nodeType, 9);
+                assert.equal(o.nodeName, '#document');
+                assert.ok(o.documentElement);
+                assert.equal(o.documentElement.tagName, 'a');
+                assert.equal(o.documentElement.innerHTML, '<b>1</b>');
+                assert.equal(o.documentElement.textContent, '1');
+                assert.equal(o.documentElement.attributes.length, 1);
+                assert.equal(o.documentElement.childNodes.length, 1);
+            });
+
+            it('should not dump node references', () => {
+                const doc = xml.parse('<a id="x"><b>1</b></a>');
+                const json = JSON.stringify(doc);
+                const el = JSON.parse(json).documentElement;
+
+                // references to nodes are dropped
+                assert.equal(el.ownerDocument, undefined);
+                assert.equal(el.parentNode, undefined);
+                assert.equal(el.firstChild, undefined);
+                assert.equal(el.lastChild, undefined);
+                assert.equal(el.firstElementChild, undefined);
+                assert.equal(el.lastElementChild, undefined);
+
+                // properties that are null keep their place
+                assert.equal(el.parentElement, null);
+                assert.equal(el.previousSibling, null);
+                assert.equal(el.nextSibling, null);
+
+                // the element snapshot never reaches back to its document
+                assert.equal(JSON.stringify(el).indexOf('#document'), -1);
+                assert.equal(JSON.stringify(el).indexOf('"nodeType":9'), -1);
+            });
+
+            it('should serialize every node type', () => {
+                const doc = xml.parse('<!DOCTYPE a><a><b>1</b><!--c--><![CDATA[d]]><?t e?></a>');
+                const el = doc.documentElement;
+
+                assert.equal(JSON.parse(JSON.stringify(doc)).doctype.name, 'a');
+                assert.equal(JSON.parse(JSON.stringify(el.firstChild)).tagName, 'b');
+                assert.equal(JSON.parse(JSON.stringify(el.childNodes.item(1))).data, 'c');
+                assert.equal(JSON.parse(JSON.stringify(el.childNodes.item(2))).data, 'd');
+                assert.equal(JSON.parse(JSON.stringify(el.childNodes.item(3))).target, 't');
+                assert.equal(JSON.parse(JSON.stringify(el.attributes)).length, 0);
+                assert.equal(JSON.parse(JSON.stringify(doc.createDocumentFragment())).nodeType, 11);
+            });
+
+            it('should be usable with json.encode', () => {
+                const json = require('json');
+                const doc = xml.parse('<a/>');
+                const s = json.encode(doc);
+
+                assert.equal(typeof s, 'string');
+                assert.equal(JSON.parse(s).documentElement.tagName, 'a');
+            });
+
+            it('should stay linear on a deep document', () => {
+                const depth = 200;
+                const doc = xml.parse('<root>' + '<n>'.repeat(depth) + 'x' + '</n>'.repeat(depth) + '</root>');
+                const o = JSON.parse(JSON.stringify(doc));
+
+                assert.equal(o.documentElement.tagName, 'root');
+                assert.equal(o.documentElement.innerHTML.length > depth, true);
+            });
+
+            it('should keep the document element of an html document', () => {
+                const doc = xml.parse('<html><body><p>hi</p></body></html>', 'text/html');
+                const o = JSON.parse(JSON.stringify(doc));
+
+                assert.equal(o.documentElement.tagName, 'HTML');
+                assert.equal(o.documentElement.ownerDocument, undefined);
+            });
+        });
+    }
 });

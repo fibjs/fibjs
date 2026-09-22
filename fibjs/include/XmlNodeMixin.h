@@ -209,6 +209,54 @@ public:
     {
         return XmlNodeImpl::isSameNode(other, retVal);
     }
+
+public:
+    // object_base
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal) override
+    {
+        // object_base::toJSON copies every data property into a fresh object, while
+        // dom nodes reference each other: children, owner document, parent, siblings.
+        // The copies never repeat an object identity, so JSON.stringify cannot detect
+        // the cycle and recurses until the stack overflows; several references to the
+        // same subtree would also make the snapshot grow exponentially. Node valued
+        // properties are therefore left out of the snapshot, the markup stays
+        // available through innerHTML / textContent / toString(). A document keeps
+        // documentElement and doctype, the only children a document may hold: they are
+        // the entry point of its content and, being outermost, cannot form a cycle.
+        result_t hr = BaseInterface::toJSON(key, retVal);
+        if (hr < 0)
+            return hr;
+
+        if (retVal.IsEmpty() || !retVal->IsObject())
+            return 0;
+
+        Isolate* isolate = this->holder();
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Object> o = retVal.As<v8::Object>();
+        bool is_document = XmlNodeImpl::m_type == xml_base::C_DOCUMENT_NODE;
+        JSArray ks = o->GetOwnPropertyNames(context);
+        int32_t sz = ks->Length();
+
+        for (int32_t i = 0; i < sz; i++) {
+            JSValue k = ks->Get(context, i);
+            if (k.IsEmpty())
+                continue;
+
+            JSValue v = o->Get(context, k);
+            if (v.IsEmpty() || !XmlNode_base::getInstance(v))
+                continue;
+
+            if (is_document) {
+                exlib::string name = isolate->toString(k);
+                if (name == "documentElement" || name == "doctype")
+                    continue;
+            }
+
+            o->Delete(context, k).IsJust();
+        }
+
+        return 0;
+    }
 };
 
 } /* namespace fibjs */
