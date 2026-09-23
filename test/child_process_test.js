@@ -1151,7 +1151,7 @@ describe("child_process", () => {
         assert.lessThan(new Date().getTime() - t1, 2000);
     });
 
-    (isIOS ? xit : it)("usage", () => {
+    it("usage", { skip: isIOS }, () => {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec22.js')]);
         var o = JSON.parse(p.stdout.read().toString());
         var o1 = p.usage();
@@ -1218,7 +1218,7 @@ describe("child_process", () => {
         assert.equal(result.error, undefined);
     });
 
-    (supportsPosixStdioFd ? it : xit)("spawnSync numeric stdio fds", () => {
+    it("spawnSync numeric stdio fds", { skip: !supportsPosixStdioFd }, () => {
         var tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-spawnsync-fd-'));
         var stdoutPath = path.join(tempDir, 'stdout.log');
         var stderrPath = path.join(tempDir, 'stderr.log');
@@ -1244,7 +1244,7 @@ describe("child_process", () => {
         }
     });
 
-    (supportsPosixStdioFd ? it : xit)("spawnSync numeric stdio fds do not leak", () => {
+    it("spawnSync numeric stdio fds do not leak", { skip: !supportsPosixStdioFd }, () => {
         var baseFdCount = getFdCount();
         if (baseFdCount === null)
             return;
@@ -1280,7 +1280,7 @@ describe("child_process", () => {
         }
     });
 
-    (supportsPosixStdioFd ? it : xit)("execSync does not leak stdio pipes", () => {
+    it("execSync does not leak stdio pipes", { skip: !supportsPosixStdioFd }, () => {
         var baseFdCount = getFdCount();
         if (baseFdCount === null)
             return;
@@ -1474,7 +1474,7 @@ describe("child_process", () => {
         ]).stdout).abc, "123");
     });
 
-    (isIOS ? xit : it)("env1", () => {
+    it("env1", { skip: isIOS }, () => {
         var env = json.decode(child_process.execFile(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ], {
@@ -2022,7 +2022,7 @@ describe("child_process", () => {
         assert.equal(retcode, 0)
     });
 
-    (isIOS ? describe.skip : describe)("signal option", () => {
+    describe("signal option", { skip: isIOS }, () => {
         it("spawn with already aborted signal", () => {
             var controller = new AbortController();
             controller.abort();
@@ -2121,7 +2121,7 @@ describe("child_process", () => {
     // Node baseline: both events emit (null, signalName). fibjs used to emit
     // (0, signalName) on 'exit' (code 0 masked the crash) and (-11, signalName)
     // on 'close' (negative signal value as code).
-    (process.platform == "win32" || isIOS ? describe.skip : describe)("signal death", () => {
+    describe("signal death", { skip: process.platform == "win32" || isIOS }, () => {
         function spawnKillMe() {
             return child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec_kill_me.js')], {
                 stdio: 'ignore'
@@ -2177,7 +2177,14 @@ describe("child_process", () => {
             ]);
         });
 
-        it("killed by SIGSEGV reports (null, SIGSEGV) on exit and close", () => {
+        // The android arm64 CI runs the bionic binary under qemu emulation.
+        // There the crash path cannot complete: bionic's crash handler fails
+        // to spawn its debuggerd dispatch thread ("failed to spawn debuggerd
+        // dispatch thread: Invalid argument") and exits the process with code
+        // 1 instead of dying by the signal, so the parent side cannot observe
+        // SIGSEGV (the native android x64 runner dies by the signal as usual).
+        // The SIGKILL case above still covers the signal-death reporting.
+        it("killed by SIGSEGV reports (null, SIGSEGV) on exit and close", { skip: isAndroid && process.arch === 'arm64' }, () => {
             var p = spawnKillMe();
             var events = captureEvents(p);
             coroutine.sleep(200); // Ensure the child is running
@@ -2197,7 +2204,7 @@ describe("child_process", () => {
         });
     });
 
-    (isIOS ? xit : it)("unref", () => {
+    it("unref", { skip: isIOS }, () => {
         var t1 = new Date().getTime();
         // Start the main script that will spawn child process and call unref
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.unref_main.js')], {

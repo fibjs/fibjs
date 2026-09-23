@@ -155,7 +155,7 @@ describe('os', () => {
         assert.notEqual(arch, "");
     });
 
-    (isIOS ? it.skip : it)('homedir', () => {
+    it('homedir', { skip: isIOS }, () => {
         const homedir = os.homedir();
         assert.isString(homedir);
         if (isWindows) {
@@ -173,7 +173,7 @@ describe('os', () => {
         }
     });
 
-    (isIOS ? it.skip : it)('userInfo', () => {
+    it('userInfo', { skip: isIOS }, () => {
         const userInfo = os.userInfo();
         const userInfoBuffer = os.userInfo({
             encoding: 'buffer'

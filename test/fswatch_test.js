@@ -227,7 +227,7 @@ describe('fs.watch', () => {
             assert.strictEqual(typeof capturedEventType, 'string');
         });
 
-        (support_watch_directory_filename ? it : it.skip)('should watch directory for file creation', async (t) => {
+        it('should watch directory for file creation', { skip: !support_watch_directory_filename }, async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -254,7 +254,7 @@ describe('fs.watch', () => {
             assert.strictEqual(typeof capturedEventType, 'string');
         });
 
-        (support_watch_directory_filename ? it : it.skip)('should watch directory for file deletion', async (t) => {
+        it('should watch directory for file deletion', { skip: !support_watch_directory_filename }, async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -620,7 +620,7 @@ describe('fs.watch', () => {
                 assertEventsContain(events, ['deep', 'deep/nested', 'deep/nested/b.txt']);
             });
 
-            (isLinux ? it : it.skip)('should not emit events for pre-existing entries on start', async (t) => {
+            it('should not emit events for pre-existing entries on start', { skip: !isLinux }, async (t) => {
                 const rootDir = path.join(testDir, `root-${generateUniqueId()}`);
                 const nestedDir = path.join(rootDir, 'deep', 'nested');
                 ensureDirectoryExisted(nestedDir);
@@ -659,7 +659,7 @@ describe('fs.watch', () => {
     }
 
     describe('encoding option', () => {
-        (support_watch_directory_filename ? it : it.skip)('should support buffer encoding', async (t) => {
+        it('should support buffer encoding', { skip: !support_watch_directory_filename }, async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 
@@ -689,7 +689,7 @@ describe('fs.watch', () => {
             // On some platforms, filename might be null or we might not receive the event
         });
 
-        (support_watch_directory_filename ? it : it.skip)('should support utf8 encoding (default)', async (t) => {
+        it('should support utf8 encoding (default)', { skip: !support_watch_directory_filename }, async (t) => {
             const dirName = path.join(testDir, `dir-${generateUniqueId()}`);
             ensureDirectoryExisted(dirName);
 

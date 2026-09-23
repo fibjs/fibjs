@@ -4267,7 +4267,7 @@ describe("http", () => {
         });
     });
 
-    (android ? describe.skip : describe)("https server/global https request", () => {
+    describe("https server/global https request", { skip: android }, () => {
         var svr;
         var hc;
 
@@ -5428,7 +5428,7 @@ describe("http", () => {
         });
     });
 
-    (android ? describe.skip : describe)("http_proxy", () => {
+    describe("http_proxy", { skip: android }, () => {
         var svr;
 
         before(() => {
@@ -5503,7 +5503,7 @@ describe("http", () => {
 
     });
 
-    (android ? describe.skip : describe)("verification", () => {
+    describe("verification", { skip: android }, () => {
         var hc;
 
         it("request https error by default", () => {

@@ -433,7 +433,7 @@ describe('opt_tools install lifecycle', function () {
     describe('local directory install (Phase 1)', function () {
         localInstallTests.forEach(function (test) {
             var shouldSkip = test.skip || (!isFibjs && test.skipInNode);
-            (shouldSkip ? it.skip : it)(test.description, function () {
+            it(test.description, { skip: shouldSkip }, function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
@@ -452,7 +452,7 @@ describe('opt_tools install lifecycle', function () {
     // ===== Phase 1: file: protocol =====
     describe('file: protocol in package.json (Phase 1)', function () {
         fileProtocolTests.forEach(function (test) {
-            (test.skip ? it.skip : it)(test.description, function () {
+            it(test.description, { skip: test.skip }, function () {
                 var targetDir = makeTargetDir();
                 createPackageJson(targetDir, test.pkgJsonContent);
 
@@ -465,7 +465,7 @@ describe('opt_tools install lifecycle', function () {
     describe('lifecycle scripts (Phase 3)', function () {
         lifecycleTests.forEach(function (test) {
             var shouldSkip = test.skip || (!isFibjs && test.skipInNode);
-            (shouldSkip ? it.skip : it)(test.description, function () {
+            it(test.description, { skip: shouldSkip }, function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
@@ -478,7 +478,7 @@ describe('opt_tools install lifecycle', function () {
     describe('peer dependencies (Phase 4)', function () {
         peerDependencyTests.forEach(function (test) {
             var shouldSkip = test.skip || (!isFibjs && test.skipInNode);
-            (shouldSkip ? it.skip : it)(test.description, function () {
+            it(test.description, { skip: shouldSkip }, function () {
                 var targetDir = makeTargetDir();
                 var fixturePath = path.join(FIXTURES_DIR, test.fixture);
 
@@ -487,7 +487,7 @@ describe('opt_tools install lifecycle', function () {
         });
 
         peerProtocolTests.forEach(function (test) {
-            (test.skip ? it.skip : it)(test.description, function () {
+            it(test.description, { skip: test.skip }, function () {
                 var targetDir = makeTargetDir();
                 createPackageJson(targetDir, test.pkgJsonContent);
 

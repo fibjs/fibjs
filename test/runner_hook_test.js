@@ -50,7 +50,7 @@ function summary(out) {
     };
 }
 
-(isFibjs ? describe : describe.skip)('runner after hook failure', () => {
+describe('runner after hook failure', { skip: !isFibjs }, () => {
     it('keeps passed tests passed and reports the hook failure separately', () => {
         const { code, out } = runFile(ALL_PASS);
         const sum = summary(out);

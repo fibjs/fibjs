@@ -4,6 +4,11 @@ var assert = require('assert');
 // Detect if running in fibjs or nodejs
 const isFibjs = typeof process !== 'undefined' && process.versions && process.versions.fibjs;
 
+// The android arm64 CI runs the bionic binary under qemu emulation, where the
+// timing sanity checks below need a much looser bound than on the desktop
+// runners (1000 iterator steps measure ~170ms there instead of a few ms).
+const isAndroidArm64 = process.platform === 'android' && process.arch === 'arm64';
+
 // FormData API Tests
 describe("FormData API", () => {
 
@@ -2292,7 +2297,10 @@ Line 3 with special chars: áéíóú`;
             const endTime = Date.now();
 
             assert.strictEqual(count, 1000);
-            assert.ok(endTime - startTime < 100, 'Iteration should be fast');
+            // Iteration must stay linear; the bound is loose on the emulated
+            // android arm64 runner only.
+            assert.ok(endTime - startTime < (isAndroidArm64 ? 1000 : 100),
+                `Iteration should be fast, took ${endTime - startTime}ms`);
         });
 
         it("FormData - memory with large values", () => {

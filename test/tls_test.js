@@ -740,7 +740,7 @@ describe('tls', () => {
                 });
             });
 
-            (android ? describe.skip : describe)('tls.connect', () => {
+            describe('tls.connect', { skip: android }, () => {
                 it('with context', () => {
                     var ss = tls.connect(`ssl://localhost:${9080 + base_port}`, ctx);
                     ss.write("GET / HTTP/1.0");

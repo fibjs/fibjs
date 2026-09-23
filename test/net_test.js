@@ -1,4 +1,4 @@
-var { describe, it, xit, before, after, afterEach } = require('node:test');
+var { describe, it, before, after, afterEach } = require('node:test');
 var assert = require('assert');
 
 var test_util = require('./test_util');
@@ -2332,7 +2332,7 @@ function test_net(eng, use_uv) {
             assert.equal(no1, test_util.countObject('Socket'));
         });
 
-        (isAndroid ? describe.skip : describe)("unix socket", () => {
+        describe("unix socket", { skip: isAndroid }, () => {
             it("echo", () => {
                 function connect(c) {
                     try {

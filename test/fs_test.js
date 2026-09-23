@@ -1017,7 +1017,7 @@ describe('fs', () => {
             fs.unlink(fn);
         });
 
-        (isIOS ? it.skip : it)("fs.chown", () => {
+        it("fs.chown", { skip: isIOS }, () => {
             var fn = path.join(__dirname, 'fs_test.js' + vmid);
             fs.writeFile(fn, 'chown test');
             if (require('os').userInfo().username != 'root')
@@ -1033,7 +1033,7 @@ describe('fs', () => {
             fs.unlink(fn);
         });
 
-        (isIOS ? it.skip : it)("fs.lchown", () => {
+        it("fs.lchown", { skip: isIOS }, () => {
             var fn = path.join(__dirname, 'fs_test.js.symlink');
 
             if (fs.exists(fn))

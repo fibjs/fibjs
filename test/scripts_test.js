@@ -58,14 +58,14 @@ describe("scripts execution test", () => {
         });
 
         // Skip on Windows - Unix shell syntax (FOO=bar && echo $FOO)
-        (isWindows ? it.skip : it)("should support inline environment variables", () => {
+        it("should support inline environment variables", { skip: isWindows }, () => {
             const result = runScript('env-inline', basicTestDir);
             assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
             assert.ok(result.stdout.includes('bar'), `Expected 'bar' in stdout, got: ${result.stdout}`);
         });
 
         // Skip on Windows - Unix shell syntax (FOO=bar node ...)
-        (isWindows ? it.skip : it)("should replace 'node' with inline env vars", () => {
+        it("should replace 'node' with inline env vars", { skip: isWindows }, () => {
             const result = runScript('node-check-fibjs-env', basicTestDir);
             assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
             // Check the runtime matches expectation
@@ -131,7 +131,7 @@ describe("scripts execution test", () => {
         });
 
         // Skip on Windows - ; is not a command separator in cmd.exe
-        (isWindows ? it.skip : it)("should replace ALL 'node' commands with ; separator", () => {
+        it("should replace ALL 'node' commands with ; separator", { skip: isWindows }, () => {
             const result = runScript('node-check-semicolon', basicTestDir);
             assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
             // Check BOTH commands use the expected runtime
@@ -164,7 +164,7 @@ describe("scripts execution test", () => {
         });
 
         // Skip on Windows - Unix shell syntax (FOO=bar BAZ=qux node ...)
-        (isWindows ? it.skip : it)("should replace 'node' with multiple env var assignments", () => {
+        it("should replace 'node' with multiple env var assignments", { skip: isWindows }, () => {
             const result = runScript('node-multi-env', basicTestDir);
             assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
             const expectedOutput = `fibjs:${expectedFibjsFlag}`;
@@ -175,7 +175,7 @@ describe("scripts execution test", () => {
         });
 
         // Skip on Windows - Unix shell syntax
-        (isWindows ? it.skip : it)("should replace 'node' with env var containing equals sign", () => {
+        it("should replace 'node' with env var containing equals sign", { skip: isWindows }, () => {
             const result = runScript('node-env-with-equals', basicTestDir);
             assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
             const expectedOutput = `fibjs:${expectedFibjsFlag}`;
@@ -234,7 +234,7 @@ describe("scripts execution test", () => {
             });
 
             // Skip on Windows - no /bin/bash
-            (isWindows ? it.skip : it)("should run bash shebang script via shell", () => {
+            it("should run bash shebang script via shell", { skip: isWindows }, () => {
                 const result = runBinScript('test-bash-shebang', shebangTestDir);
                 assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
                 // Should run via shell
@@ -243,7 +243,7 @@ describe("scripts execution test", () => {
             });
 
             // Skip on Windows - Unix shell syntax (FOO=bar cmd)
-            (isWindows ? it.skip : it)("should run shebang script with inline env vars", () => {
+            it("should run shebang script with inline env vars", { skip: isWindows }, () => {
                 const result = runScript('shebang-env', shebangTestDir);
                 assert.equal(result.status, 0, `Command failed with stderr: ${result.stderr}`);
                 assert.ok(result.stdout.includes('shebang-env:FOO=bar,fibjs=true'), 

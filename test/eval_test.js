@@ -81,7 +81,7 @@ describe('eval (-e)', () => {
         // fibjs supports require() in ESM mode, but Node.js doesn't
         var isFibjs = process.versions.fibjs !== undefined;
 
-        (isFibjs ? it : it.skip)('require and static import together', () => {
+        it('require and static import together', { skip: !isFibjs }, () => {
             var result = runEval("import fs from 'fs'; const path = require('path'); console.log(typeof fs.readFileSync, typeof path.join)");
             assert.equal(result, 'function function');
         });
