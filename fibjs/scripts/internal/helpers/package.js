@@ -62,7 +62,13 @@ const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name
 
     // local path: check before @ split. Use semver to exclude version ranges (~1.0.0, ^2.0, >=1.0, etc.)
     const local_spec = strip_file_protocol(input_uri);
-    if (!semver.validRange(input_uri) && LOCAL_PATH_PATTERN.test(local_spec))
+
+    // `file:` names a path whatever follows it (npm reads `file:pkg` as `./pkg`),
+    // while anything else has to look like a path to be one
+    const file_spec = input_uri.indexOf('file:') === 0 && local_spec !== '' &&
+        !/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(local_spec);
+
+    if (!semver.validRange(input_uri) && (file_spec || LOCAL_PATH_PATTERN.test(local_spec)))
         return {
             type: 'local',
             local_path: path.resolve(base_dir || process.cwd(), local_spec),

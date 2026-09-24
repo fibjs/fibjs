@@ -142,9 +142,10 @@ function normalize_registry_origin(registry) {
     const urlObj = url.parse(registry)
 
     const protocol = urlObj.protocol || 'https:'
-    const hostname = urlObj.hostname || 'registry.npmjs.org'
+    // `host` keeps the port: a private registry usually lives on one
+    const host = urlObj.host || 'registry.npmjs.org'
 
-    return `${protocol}//${hostname}/`
+    return `${protocol}//${host}/`
 }
 
 /**
@@ -723,7 +724,11 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
 
             var binary;
             if (pkgjson_info.binary)
-                binary = versioning.evaluate(pkgjson_info, { root: '/' }, 3);
+                // `module_root: '.'` keeps `module_path` relative: the installer joins
+                // it onto the package directory, and an absolute one (which is what
+                // node-pre-gyp would resolve against the current directory) would end
+                // up nested inside the package instead
+                binary = versioning.evaluate(pkgjson_info, { root: '/', module_root: '.' }, 3);
 
             return {
                 name: pkgjson_info.name,
@@ -939,8 +944,13 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                         if (child_level_info && !check_platform_match(child_level_info)) {
                             if (dep_type === 'opt_dep_vs') {
                                 install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
-                                delete level_info.node_modules[dname];
-                                child_level_info = null;
+
+                                // npm keeps such a package in the tree — and in the
+                                // lockfile — and only skips it while installing: a
+                                // lockfile without it cannot be used on the platform
+                                // it was written for
+                                child_level_info.platform_mismatch = true;
+                                child_level_info.node_modules = {};
                                 return;
                             }
                             console.warn('platform mismatch for', dname, '- may not work');
@@ -1023,7 +1033,8 @@ function generate_mv_paths(level_info, parent_p) {
             const lmod = level_info.node_modules[k];
             const bp = path.join(parent_p, 'node_modules');
 
-            if (lmod.new_module && !lmod.workspace_package && !lmod.local_package) { // don't generate download paths for workspace/local packages
+            if (lmod.new_module && !lmod.workspace_package && !lmod.local_package &&
+                !lmod.platform_mismatch && !omitted_by(lmod)) { // don't generate download paths for workspace/local packages, nor for a package this platform cannot run, nor for one `omit` leaves out
                 const mv = k + '@' + lmod.version;
 
                 let ps = mv_paths[mv];
@@ -1367,6 +1378,21 @@ function dump_snap() {
     dump_mods('', rootsnap.node_modules);
 }
 
+/**
+ * @description the spec to record in package.json for a package that was installed
+ *              from a local path: npm writes `file:<path>`, and that is what its
+ *              lockfiles carry too
+ */
+function file_spec(spec) {
+    if (typeof spec !== 'string' || spec === '' || spec.indexOf('file:') === 0)
+        return spec;
+
+    if (/^(\.{1,2}[\\/]|[\\/]|~[\\/]|[a-zA-Z]:[\\/])/.test(spec))
+        return 'file:' + spec;
+
+    return spec;
+}
+
 function update_pkgjson(rootsnap) {
     if (!need_add_newpkg_to_pkgjson) return;
 
@@ -1401,7 +1427,7 @@ function update_pkgjson(rootsnap) {
 
     if (!pkgjson[ctx.depk][real_pkgname] || pkgjson[ctx.depk][real_pkgname] !== `^${rootsnap.node_modules[real_pkgname].version}`) {
         if (special_source_installation_name !== real_pkgname) {
-            pkgjson[ctx.depk][real_pkgname] = special_source_installation_name;
+            pkgjson[ctx.depk][real_pkgname] = file_spec(special_source_installation_name);
         } else {
             pkgjson[ctx.depk][real_pkgname] = `^${rootsnap.node_modules[real_pkgname].version}`;
         }
@@ -1489,9 +1515,13 @@ if (!pkgjson_path_specified) {
             // mark as symlinked to prevent duplicate creation
             rootsnap.node_modules[pkgName]._symlinked = true;
 
-            // use the package name as the dep key (not the CLI path)
-            if (ctx.new_pkgname)
+            // use the package name as the dep key (not the CLI path), and remember
+            // the pair: `update_pkgjson` needs the name to find the version, and the
+            // path is what gets recorded as the spec
+            if (ctx.new_pkgname) {
+                name_maps_installation2pkg[ctx.new_pkgname] = pkgName;
                 rootsnap[dep_type][pkgName] = '*';
+            }
             break
         case 'registry':
             if (new_pkginstall_typeinfo.registry_semver) {
@@ -1504,7 +1534,13 @@ if (!pkgjson_path_specified) {
             break
     }
 
-    if (ctx.new_pkgname) rootsnap[dep_type] = { [ctx.new_pkgname]: rootsnap[dep_type][ctx.new_pkgname] }
+    if (ctx.new_pkgname) {
+        // a local package is registered under its own name, not under the path the
+        // caller typed: the name map is what tells the two apart
+        const narrowed = name_maps_installation2pkg[ctx.new_pkgname] || ctx.new_pkgname;
+
+        rootsnap[dep_type] = { [narrowed]: rootsnap[dep_type][narrowed] };
+    }
 })();
 
 walkthrough_deps(rootsnap, need_add_newpkg_to_pkgjson === DEVDEPENDENCIES);
