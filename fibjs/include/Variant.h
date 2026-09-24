@@ -454,6 +454,14 @@ public:
         return type() == VT_ArrayBuffer && arrayBuffer() != nullptr;
     }
 
+    // milliseconds since the epoch for VT_Date, NAN otherwise
+    double dateValue() const
+    {
+        if (type() != VT_Date)
+            return NAN;
+        return dateVal().date();
+    }
+
     operator v8::Local<v8::Value>() const;
 
     int32_t intVal() const

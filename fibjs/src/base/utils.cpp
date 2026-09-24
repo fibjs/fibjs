@@ -202,6 +202,23 @@ static v8::Local<v8::Value> MakeException(Isolate* isolate, ErrorType et, exlib:
     }
 }
 
+// Optional per-call error context: modules (e.g. fs) set it right before returning an
+// error so that BuildError can attach Node.js compatible errno/syscall/path fields.
+static thread_local exlib::string s_err_syscall;
+static thread_local exlib::string s_err_path;
+
+void setErrorContext(const char* syscall, const exlib::string& path)
+{
+    s_err_syscall = syscall ? syscall : "";
+    s_err_path = path;
+}
+
+void clearErrorContext()
+{
+    s_err_syscall.clear();
+    s_err_path.clear();
+}
+
 static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, ErrorType et, exlib::string msg)
 {
     v8::Local<v8::Value> v = MakeException(isolate, et, msg);
@@ -220,6 +237,22 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, ErrorType 
     if (_name)
         e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
 
+    // Node.js compatible error fields, filled in by the module that raised the error
+    if (!s_err_syscall.empty() || !s_err_path.empty()) {
+        // Node.js reports errno as a negative value for system errors
+        if (hr < 0 && hr > CALL_E_MAX)
+            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr)).IsJust();
+
+        if (!s_err_syscall.empty())
+            e->Set(context, isolate->NewString("syscall"), isolate->NewString(s_err_syscall)).IsJust();
+
+        if (!s_err_path.empty())
+            e->Set(context, isolate->NewString("path"), isolate->NewString(s_err_path)).IsJust();
+
+        s_err_syscall.clear();
+        s_err_path.clear();
+    }
+
     return e;
 }
 
@@ -233,7 +266,6 @@ static void resolveException(result_t& hr, ErrorType& et, exlib::string& msg)
     if (et == kError)
         et = getDefaultErrorType(hr);
 }
-
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 {
     ErrorType et = kError;

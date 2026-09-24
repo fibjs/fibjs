@@ -257,6 +257,7 @@ enum {
     result_t hr = CALL_E_BADPARAMCOUNT;                     \
     bool bStrict = true;                                    \
     int32_t argc1 = args.Length();                          \
+    clearErrorContext();                                    \
     do {                                                    \
         do {
 
@@ -267,6 +268,7 @@ enum {
     result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
+    clearErrorContext();                                                                                   \
     v8::Local<v8::Object> cb;                                                                              \
     if (args.Data()->IsTrue())                                                                             \
         cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
@@ -1247,8 +1249,12 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
     return arr;
 }
 
-v8::Local<v8::Value> FillError(result_t hr);
-v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
+// Attach Node.js compatible errno/syscall/path fields to the next error built by FillError
+void setErrorContext(const char* syscall, const exlib::string& path = exlib::string());
+// Drop any pending error context (called on every method entry)
+void clearErrorContext();
+
+v8::Local<v8::Value> FillError(result_t hr);v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
 v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack);
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
