@@ -1,0 +1,17 @@
+/*! @brief 目录迭代对象，由 fs.opendir 创建，用于逐个读取目录项 */
+interface Dir : Iterator
+{
+    /*! @brief Dir 构造函数，从路径创建目录迭代对象
+     @param path 指定要迭代的目录
+     */
+    Dir(String path);
+
+    /*! @brief 查询当前迭代的目录路径 */
+    readonly String path;
+
+    /*! @brief 读取下一个目录项，迭代结束时返回 null */
+    DirEntry read() async;
+
+    /*! @brief 关闭目录迭代对象，释放迭代状态，可安全重复调用 */
+    close() async;
+};

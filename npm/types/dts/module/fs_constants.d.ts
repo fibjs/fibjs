@@ -299,5 +299,15 @@ declare module 'fs_constants' {
      */
     export const COPYFILE_FICLONE_FORCE: 4;
 
+    /**
+     * @description 无扩展名模块按 javascript 处理，与 Node.js 一致
+     */
+    export const EXTENSIONLESS_FORMAT_JAVASCRIPT: 0;
+
+    /**
+     * @description 无扩展名模块按 wasm 处理，与 Node.js 一致
+     */
+    export const EXTENSIONLESS_FORMAT_WASM: 1;
+
 }
 

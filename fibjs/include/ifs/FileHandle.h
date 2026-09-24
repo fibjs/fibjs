@@ -41,6 +41,25 @@ public:
         int32_t bytesRead;
         obj_ptr<Buffer_base> buffer;
     };
+    class WriteType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("bytesWritten"), GetReturnValue(isolate, bytesWritten)).Check();
+            retVal->Set(context, isolate->NewString("buffer"), GetReturnValue(isolate, buffer)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, bytesWritten));
+            args.push_back(GetReturnValue(isolate, buffer));
+        }
+
+    public:
+        int32_t bytesWritten;
+        obj_ptr<Buffer_base> buffer;
+    };
 
 public:
     // FileHandle_base
@@ -50,14 +69,21 @@ public:
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
     virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t utimes(Variant atime, Variant mtime, AsyncEvent* ac) = 0;
+    virtual result_t chown(int32_t uid, int32_t gid, AsyncEvent* ac) = 0;
+    virtual result_t sync(AsyncEvent* ac) = 0;
+    virtual result_t datasync(AsyncEvent* ac) = 0;
+    virtual result_t truncate(int32_t len, AsyncEvent* ac) = 0;
+    virtual result_t appendFile(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t appendFile(exlib::string data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -73,6 +99,12 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_utimes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_datasync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -80,14 +112,21 @@ public:
     ASYNC_MEMBERVALUE1(FileHandle_base, stat, obj_ptr<Stat_base>);
     ASYNC_MEMBERVALUE5(FileHandle_base, read, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<ReadType>);
     ASYNC_MEMBERVALUE2(FileHandle_base, read, v8::Local<v8::Object>, obj_ptr<ReadType>);
-    ASYNC_MEMBERVALUE5(FileHandle_base, write, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE4(FileHandle_base, write, exlib::string, int32_t, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE5(FileHandle_base, write, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<WriteType>);
+    ASYNC_MEMBERVALUE4(FileHandle_base, write, exlib::string, int32_t, exlib::string, obj_ptr<WriteType>);
     ASYNC_MEMBERVALUE2(FileHandle_base, readFile, exlib::string, Variant);
     ASYNC_MEMBERVALUE2(FileHandle_base, readFile, v8::Local<v8::Object>, Variant);
     ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, Buffer_base*, exlib::string, int32_t);
     ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, exlib::string, exlib::string, int32_t);
     ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, Buffer_base*, v8::Local<v8::Object>, int32_t);
     ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, exlib::string, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBER2(FileHandle_base, utimes, Variant, Variant);
+    ASYNC_MEMBER2(FileHandle_base, chown, int32_t, int32_t);
+    ASYNC_MEMBER0(FileHandle_base, sync);
+    ASYNC_MEMBER0(FileHandle_base, datasync);
+    ASYNC_MEMBER1(FileHandle_base, truncate, int32_t);
+    ASYNC_MEMBERVALUE2(FileHandle_base, appendFile, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE2(FileHandle_base, appendFile, exlib::string, int32_t);
     ASYNC_MEMBER0(FileHandle_base, close);
 };
 }
@@ -105,6 +144,12 @@ inline ClassInfo& FileHandle_base::class_info()
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "readFile", s_readFile, false, ClassData::ASYNC_ASYNC },
         { "writeFile", s_writeFile, false, ClassData::ASYNC_ASYNC },
+        { "utimes", s_utimes, false, ClassData::ASYNC_ASYNC },
+        { "chown", s_chown, false, ClassData::ASYNC_ASYNC },
+        { "sync", s_sync, false, ClassData::ASYNC_ASYNC },
+        { "datasync", s_datasync, false, ClassData::ASYNC_ASYNC },
+        { "truncate", s_truncate, false, ClassData::ASYNC_ASYNC },
+        { "appendFile", s_appendFile, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
 
@@ -240,7 +285,7 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    obj_ptr<WriteType> vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.write");
@@ -345,6 +390,117 @@ inline void FileHandle_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Valu
         hr = pInst->acb_writeFile(v0, v1, cb, args);
     else
         hr = pInst->ac_writeFile(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void FileHandle_base::s_utimes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.utimes");
+
+    METHOD_OVER(2, 2);
+
+    ARG(Variant, 0);
+    ARG(Variant, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_utimes(v0, v1, cb, args);
+    else
+        hr = pInst->ac_utimes(v0, v1);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void FileHandle_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.chown");
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_chown(v0, v1, cb, args);
+    else
+        hr = pInst->ac_chown(v0, v1);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void FileHandle_base::s_sync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.sync");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sync(cb, args);
+    else
+        hr = pInst->ac_sync();
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void FileHandle_base::s_datasync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.datasync");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_datasync(cb, args);
+    else
+        hr = pInst->ac_datasync();
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void FileHandle_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.truncate");
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(int32_t, 0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_truncate(v0, cb, args);
+    else
+        hr = pInst->ac_truncate(v0);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void FileHandle_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    ASYNC_METHOD_INSTANCE(FileHandle_base);
+    ASYNC_METHOD_ENTER("FileHandle.appendFile");
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_appendFile(v0.get(), cb, args);
+    else
+        hr = pInst->ac_appendFile(v0.get(), vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_appendFile(v0, cb, args);
+    else
+        hr = pInst->ac_appendFile(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }

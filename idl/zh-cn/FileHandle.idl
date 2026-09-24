@@ -54,17 +54,17 @@ interface FileHandle : object
      @param offset Buffer 数据读取偏移量， 默认为 0
      @param length 文件写入字节数，默认为 -1
      @param position 文件写入取位置，默认为当前文件位置
-     @return 实际写入的字节数
+     @return 返回包含 bytesWritten 和 buffer 属性的对象
      */
-    Integer write(Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = -1) async;
+    (Integer bytesWritten, Buffer buffer) write(Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = -1) async;
 
     /*! @brief 根据文件描述符，向文件写入内容
      @param string 待写入的字符串
      @param position 文件写入取位置，默认为当前文件位置
      @param encoding 指定解码方式，缺省解码 utf8
-     @return 实际写入的字节数
+     @return 返回包含 bytesWritten 和 buffer 属性的对象
      */
-    Integer write(String string, Integer position = -1, String encoding = "utf8") async;
+    (Integer bytesWritten, Buffer buffer) write(String string, Integer position = -1, String encoding = "utf8") async;
 
     /*! @brief 读取文件的全部内容
      @param encoding 指定解码方式，缺省不解码
@@ -126,6 +126,49 @@ interface FileHandle : object
      @return 实际写入的字节数
      */
     Integer writeFile(String data, Object options) async;
+
+    /*! @brief 修改文件的访问时间和修改时间
+
+    时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     @param atime 文件的最后访问时间
+     @param mtime 文件的最后修改时间
+     */
+    utimes(Variant atime, Variant mtime) async;
+
+    /*! @brief 修改文件的拥有者，Windows 不支持此方法
+     @param uid 文件拥有者用户id
+     @param gid 文件拥有者组id
+     */
+    chown(Integer uid, Integer gid) async;
+
+    /*! @brief 同步数据到磁盘
+
+    同步文件数据与元数据，确保写入内容持久化。
+     */
+    sync() async;
+
+    /*! @brief 同步数据到磁盘
+
+    仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     */
+    datasync() async;
+
+    /*! @brief 修改文件尺寸
+     @param len 指定修改后文件的大小，缺省为 0
+     */
+    truncate(Integer len = 0) async;
+
+    /*! @brief 以追加方式写入内容
+     @param data 指定要写入的数据
+     @return 实际写入的字节数
+     */
+    Integer appendFile(Buffer data) async;
+
+    /*! @brief 以追加方式写入内容
+     @param data 指定要写入的数据
+     @return 实际写入的字节数
+     */
+    Integer appendFile(String data) async;
 
     /*! @brief 关闭当前文件句柄 */
     close() async;

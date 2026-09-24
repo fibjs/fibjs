@@ -166,12 +166,12 @@ declare class Class_FileHandle extends Class_object {
      *      @param offset Buffer 数据读取偏移量， 默认为 0
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 实际写入的字节数
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
      *
      */
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesWritten: number, buffer: Buffer];
 
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: [bytesWritten: number, buffer: Buffer])=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
@@ -179,10 +179,10 @@ declare class Class_FileHandle extends Class_object {
      *      @param offset Buffer 数据读取偏移量， 默认为 0
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 实际写入的字节数
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
      *
      */
-    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesWritten: number, buffer: Buffer];
 
     /**
      * @description 根据文件描述符，向文件写入内容
@@ -190,42 +190,42 @@ declare class Class_FileHandle extends Class_object {
      *      @param offset Buffer 数据读取偏移量， 默认为 0
      *      @param length 文件写入字节数，默认为 -1
      *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 实际写入的字节数
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
      *
      */
-    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<[bytesWritten: number, buffer: Buffer]>;
 
     /**
      * @description 根据文件描述符，向文件写入内容
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 实际写入的字节数
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
      *
      */
-    write(string: string, position?: number, encoding?: string): number;
+    write(string: string, position?: number, encoding?: string): [bytesWritten: number, buffer: Buffer];
 
-    write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param string 待写入的字符串
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 实际写入的字节数
-     *
-     */
-    writeSync(string: string, position?: number, encoding?: string): number;
+    write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: [bytesWritten: number, buffer: Buffer])=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 实际写入的字节数
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
      *
      */
-    writeAsync(string: string, position?: number, encoding?: string): Promise<number>;
+    writeSync(string: string, position?: number, encoding?: string): [bytesWritten: number, buffer: Buffer];
+
+    /**
+     * @description 根据文件描述符，向文件写入内容
+     *      @param string 待写入的字符串
+     *      @param position 文件写入取位置，默认为当前文件位置
+     *      @param encoding 指定解码方式，缺省解码 utf8
+     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     *
+     */
+    writeAsync(string: string, position?: number, encoding?: string): Promise<[bytesWritten: number, buffer: Buffer]>;
 
     /**
      * @description 读取文件的全部内容
@@ -457,6 +457,191 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     writeFileAsync(data: string, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
+     * @description 修改文件的访问时间和修改时间
+     *
+     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     *      @param atime 文件的最后访问时间
+     *      @param mtime 文件的最后修改时间
+     *
+     */
+    utimes(atime: any, mtime: any): void;
+
+    utimes(atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改文件的访问时间和修改时间
+     *
+     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     *      @param atime 文件的最后访问时间
+     *      @param mtime 文件的最后修改时间
+     *
+     */
+    utimesSync(atime: any, mtime: any): void;
+
+    /**
+     * @description 修改文件的访问时间和修改时间
+     *
+     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     *      @param atime 文件的最后访问时间
+     *      @param mtime 文件的最后修改时间
+     *
+     */
+    utimesAsync(atime: any, mtime: any): Promise<void>;
+
+    /**
+     * @description 修改文件的拥有者，Windows 不支持此方法
+     *      @param uid 文件拥有者用户id
+     *      @param gid 文件拥有者组id
+     *
+     */
+    chown(uid: number, gid: number): void;
+
+    chown(uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改文件的拥有者，Windows 不支持此方法
+     *      @param uid 文件拥有者用户id
+     *      @param gid 文件拥有者组id
+     *
+     */
+    chownSync(uid: number, gid: number): void;
+
+    /**
+     * @description 修改文件的拥有者，Windows 不支持此方法
+     *      @param uid 文件拥有者用户id
+     *      @param gid 文件拥有者组id
+     *
+     */
+    chownAsync(uid: number, gid: number): Promise<void>;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     同步文件数据与元数据，确保写入内容持久化。
+     *
+     */
+    sync(): void;
+
+    sync(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     同步文件数据与元数据，确保写入内容持久化。
+     *
+     */
+    syncSync(): void;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     同步文件数据与元数据，确保写入内容持久化。
+     *
+     */
+    syncAsync(): Promise<void>;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *
+     */
+    datasync(): void;
+
+    datasync(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *
+     */
+    datasyncSync(): void;
+
+    /**
+     * @description 同步数据到磁盘
+     *
+     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *
+     */
+    datasyncAsync(): Promise<void>;
+
+    /**
+     * @description 修改文件尺寸
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    truncate(len?: number): void;
+
+    truncate(len?: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 修改文件尺寸
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    truncateSync(len?: number): void;
+
+    /**
+     * @description 修改文件尺寸
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    truncateAsync(len?: number): Promise<void>;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFile(data: Class_Buffer): number;
+
+    appendFile(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFileSync(data: Class_Buffer): number;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFileAsync(data: Class_Buffer): Promise<number>;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFile(data: string): number;
+
+    appendFile(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFileSync(data: string): number;
+
+    /**
+     * @description 以追加方式写入内容
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    appendFileAsync(data: string): Promise<number>;
 
     /**
      * @description 关闭当前文件句柄

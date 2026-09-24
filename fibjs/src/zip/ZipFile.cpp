@@ -540,7 +540,8 @@ result_t ZipFile::checkGuard(exlib::string path)
             if (hr < 0)
                 return hr;
             if (!exists) {
-                hr = fs_base::cc_mkdir(pathToCheck, 0777);
+                Variant mkdirResult;
+                hr = fs_base::cc_mkdir(pathToCheck, 0777, mkdirResult);
                 if (hr < 0)
                     return hr;
             }

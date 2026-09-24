@@ -168,10 +168,10 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
     std::pair<int, exlib::string> result;
 
     isolate->m_realpath_cache.lookup(fname, result, [isolate](exlib::string& fname, std::pair<int, exlib::string>& result) -> bool {
-        exlib::string retVal;
+        Variant resolved;
 
-        result.first = fs_base::cc_realpath(fname, retVal, isolate);
-        result.second = retVal;
+        result.first = fs_base::cc_realpath(fname, resolved, isolate);
+        result.second = resolved.string();
 
         return true;
     });

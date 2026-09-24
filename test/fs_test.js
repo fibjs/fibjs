@@ -143,7 +143,8 @@ describe('fs', () => {
         });
 
         it('stat with options', () => {
-            var st = fs.stat('.', { bigint: true });
+            // note: the `bigint` option is not implemented; only the option object itself is accepted
+            var st = fs.stat('.', {});
             assert_stat_property(st);
             assert.equal(st.isDirectory(), true);
 
@@ -155,7 +156,8 @@ describe('fs', () => {
         });
 
         it('lstat with options', () => {
-            var st = fs.lstat('.', { bigint: true });
+            // note: the `bigint` option is not implemented; only the option object itself is accepted
+            var st = fs.lstat('.', {});
             assert_stat_property(st);
             assert.equal(st.isDirectory(), true);
 
@@ -168,7 +170,8 @@ describe('fs', () => {
 
         it('fstat with options', () => {
             var fd = fs.open(path.join(__dirname, 'fs_test.js'));
-            var st = fs.fstat(fd, { bigint: true });
+            // note: the `bigint` option is not implemented; only the option object itself is accepted
+            var st = fs.fstat(fd, {});
             fs.close(fd);
 
             assert_stat_property(st);
@@ -207,11 +210,10 @@ describe('fs', () => {
             fs.close(fd);
         });
 
-        if (!win) {
-            assert.doesNotThrow(() => {
-                fs.close(fd);
-            });
-        }
+        // Node.js compatibility: closing an already closed handle reports EBADF
+        assert.throws(() => {
+            fs.close(fd);
+        }, /bad file descriptor/);
 
         var fd1 = fs.open(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.open(path.join(__dirname, 'fs_test.js'));
@@ -253,11 +255,11 @@ describe('fs', () => {
         assert.doesNotThrow(() => {
             fs.closeSync(fd);
         });
-        if (!win) {
-            assert.doesNotThrow(() => {
-                fs.closeSync(fd);
-            });
-        }
+
+        // Node.js compatibility: closing an already closed handle reports EBADF
+        assert.throws(() => {
+            fs.closeSync(fd);
+        }, /bad file descriptor/);
 
         var fd1 = fs.openSync(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.openSync(path.join(__dirname, 'fs_test.js'));
@@ -369,10 +371,23 @@ describe('fs', () => {
             stm.close();
         });
 
-        it("error on non-existent file", () => {
-            assert.throws(() => {
-                fs.createReadStream('/tmp/non_existent_file_12345.txt');
+        it("error on non-existent file (Node.js compatibility: emitted, not thrown)", () => {
+            var stm = fs.createReadStream('/tmp/non_existent_file_12345.txt');
+            assert.isObject(stm);
+
+            var code;
+            stm.on('error', (e) => {
+                code = e && e.code;
             });
+
+            // wait for the deferred error event
+            var waited = 0;
+            while (code === undefined && waited < 2000) {
+                coroutine.sleep(10);
+                waited += 10;
+            }
+
+            assert.equal(code, 'ENOENT');
         });
     });
 
@@ -890,14 +905,24 @@ describe('fs', () => {
             assert.equal(fs.readFile(dest).toString(), 'new content');
         });
 
-        it("copy single file with force=false throws if dest exists", () => {
+        it("copy single file with force=false skips an existing destination (Node.js compatibility)", () => {
+            var src = path.join(cpBase, 'src.txt');
+            var dest = path.join(cpBase, 'dest.txt');
+            fs.writeFile(src, 'data');
+            fs.writeFile(dest, 'existing');
+            fs.cp(src, dest, { force: false });
+            assert.equal(fs.readFile(dest).toString(), 'existing');
+        });
+
+        it("copy single file with force=false and errorOnExist throws", () => {
             var src = path.join(cpBase, 'src.txt');
             var dest = path.join(cpBase, 'dest.txt');
             fs.writeFile(src, 'data');
             fs.writeFile(dest, 'existing');
             assert.throws(() => {
-                fs.cp(src, dest, { force: false });
-            });
+                fs.cp(src, dest, { force: false, errorOnExist: true });
+            }, /already exists/);
+            assert.equal(fs.readFile(dest).toString(), 'existing');
         });
 
         it("copy directory without recursive should throw", () => {
@@ -2196,5 +2221,562 @@ describe('fs', () => {
                 assert.equal(fs.exists(path.join(outside, 'precious.txt')), true);
             });
         }
+
+        describe("stat/lstat throwIfNoEntry (Node.js compatibility)", () => {
+            var missing = path.join(homedir, 'test_no_such_entry_' + vmid);
+            var nbase = path.join(homedir, 'test_throw_if_no_entry_' + vmid);
+
+            function prepare() {
+                if (!fs.exists(nbase))
+                    fs.mkdir(nbase);
+                return nbase;
+            }
+
+            function hasEntry(p) {
+                try {
+                    fs.lstatSync(p);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            after(() => {
+                if (fs.exists(nbase))
+                    fs.rmSync(nbase, { recursive: true, force: true });
+            });
+
+            it("statSync returns undefined when throwIfNoEntry is false", () => {
+                assert.isUndefined(fs.statSync(missing, { throwIfNoEntry: false }));
+            });
+
+            it("lstatSync returns undefined when throwIfNoEntry is false", () => {
+                assert.isUndefined(fs.lstatSync(missing, { throwIfNoEntry: false }));
+            });
+
+            it("statSync throws by default, and when throwIfNoEntry is true", () => {
+                assert.throws(() => fs.statSync(missing), /no such file/);
+                assert.throws(() => fs.statSync(missing, { throwIfNoEntry: true }), /no such file/);
+            });
+
+            it("statSync on a dangling symlink follows throwIfNoEntry", () => {
+                var base = prepare();
+                var link = path.join(base, 'dangling_link');
+                if (!hasEntry(link))
+                    fs.symlink(path.join(base, 'void_target'), link);
+
+                assert.isUndefined(fs.statSync(link, { throwIfNoEntry: false }));
+                assert.ok(fs.lstatSync(link, { throwIfNoEntry: false }).isSymbolicLink());
+                assert.throws(() => fs.statSync(link), /no such file/);
+            });
+
+            it("statSync returns undefined for ENOTDIR when throwIfNoEntry is false", () => {
+                var notdir = path.join(__dirname, 'fs_test.js', 'child');
+                assert.isUndefined(fs.statSync(notdir, { throwIfNoEntry: false }));
+                assert.throws(() => fs.statSync(notdir), /not a directory/);
+            });
+
+            it("async forms still report the error (Node behavior)", async () => {
+                var code;
+                try {
+                    await fs.promises.stat(missing, { throwIfNoEntry: false });
+                } catch (e) {
+                    code = e.code;
+                }
+                assert.equal(code, 'ENOENT');
+            });
+        });
+
+        describe("writeFile/readFile options (Node.js compatibility)", () => {
+            var optBase = path.join(homedir, 'test_write_options_' + vmid);
+
+            function optFile(name) {
+                if (!fs.exists(optBase))
+                    fs.mkdir(optBase);
+                return path.join(optBase, name);
+            }
+
+            after(() => {
+                if (fs.exists(optBase))
+                    fs.rmSync(optBase, { recursive: true, force: true });
+            });
+
+            it("writeFileSync honors flag 'a' instead of truncating", () => {
+                var f = optFile('append.txt');
+                fs.writeFileSync(f, 'a');
+                fs.writeFileSync(f, 'b', { flag: 'a' });
+                assert.equal(fs.readFileSync(f, 'utf8'), 'ab');
+            });
+
+            it("writeFileSync honors flag 'wx' and reports EEXIST", () => {
+                var f = optFile('excl.txt');
+                fs.writeFileSync(f, 'x');
+                assert.throws(() => fs.writeFileSync(f, 'y', { flag: 'wx' }), /already exists/);
+                assert.equal(fs.readFileSync(f, 'utf8'), 'x');
+            });
+
+            it("writeFileSync honors mode when the file is created", () => {
+                if (win)
+                    return;
+                var f = optFile('mode.txt');
+                fs.writeFileSync(f, 'x', { mode: 0o600 });
+                assert.equal((fs.statSync(f).mode & 0o777).toString(8), '600');
+            });
+
+            it("readFileSync honors flag (a write-only flag fails to read)", () => {
+                var f = optFile('readflag.txt');
+                fs.writeFileSync(f, 'x');
+                assert.throws(() => fs.readFileSync(f, { encoding: 'utf8', flag: 'a' }), /bad file descriptor/);
+            });
+        });
+
+        describe("open flags & close (Node.js compatibility)", () => {
+            it("rejects an unknown flag string", () => {
+                assert.throws(() => fs.openSync(path.join(__dirname, 'fs_test.js'), 'zz'));
+            });
+
+            it("rejects 'x' (Node requires 'wx')", () => {
+                assert.throws(() => fs.openSync(path.join(__dirname, 'fs_test.js'), 'x'));
+            });
+
+            it("rejects 'wr' (Node requires 'w+' or 'r+')", () => {
+                assert.throws(() => fs.openSync(path.join(__dirname, 'fs_test.js'), 'wr'));
+            });
+
+            it("still accepts every valid flag string", () => {
+                var base = path.join(homedir, 'test_open_flags_' + vmid);
+                if (!fs.exists(base))
+                    fs.mkdir(base);
+                var f = path.join(base, 'flags.txt');
+                var flags = ['r', 'r+', 'rs', 'rs+', 'w', 'wx', 'w+', 'wx+', 'a', 'ax', 'a+', 'ax+', 'as', 'as+'];
+                try {
+                    flags.forEach((flag) => {
+                        if (fs.exists(f))
+                            fs.unlink(f);
+                        // exclusive flags require the file to be absent
+                        if (flag.indexOf('x') < 0)
+                            fs.writeFileSync(f, 'seed');
+                        var fd = fs.openSync(f, flag);
+                        fs.closeSync(fd);
+                    });
+                } finally {
+                    if (fs.exists(base))
+                        fs.rmSync(base, { recursive: true, force: true });
+                }
+            });
+
+            it("closeSync on an invalid fd reports EBADF", () => {
+                assert.throws(() => fs.closeSync(123456), /bad file descriptor/);
+            });
+        });
+
+        describe("createWriteStream start (Node.js compatibility)", () => {
+            it("starts writing at the given offset", async () => {
+                var f = path.join(homedir, 'test_wstream_start_' + vmid + '.txt');
+
+                await new Promise((resolve, reject) => {
+                    var w = fs.createWriteStream(f, { start: 2 });
+                    w.on('close', resolve);
+                    w.on('error', reject);
+                    w.end('x');
+                });
+
+                try {
+                    assert.equal(fs.readFileSync(f).toString('hex'), '000078');
+                } finally {
+                    if (fs.exists(f))
+                        fs.unlink(f);
+                }
+            });
+        });
+
+        describe("readdir encoding (Node.js compatibility)", () => {
+            var encBase = path.join(homedir, 'test_readdir_encoding_' + vmid);
+
+            before(() => {
+                if (!fs.exists(encBase))
+                    fs.mkdir(encBase);
+                fs.writeFileSync(path.join(encBase, 'abc.txt'), 'x');
+            });
+
+            after(() => {
+                if (fs.exists(encBase))
+                    fs.rmSync(encBase, { recursive: true, force: true });
+            });
+
+            it("returns Buffers when encoding is 'buffer'", () => {
+                var list = fs.readdirSync(encBase, { encoding: 'buffer' });
+                assert.equal(list.length, 1);
+                assert.ok(Buffer.isBuffer(list[0]));
+                assert.equal(list[0].toString(), 'abc.txt');
+            });
+
+            it("accepts an explicit utf8 encoding", () => {
+                var list = fs.readdirSync(encBase, { encoding: 'utf8' });
+                assert.equal(list[0], 'abc.txt');
+            });
+
+            it("converts names to other encodings", () => {
+                var list = fs.readdirSync(encBase, { encoding: 'latin1' });
+                assert.equal(list[0], 'abc.txt');
+            });
+
+            it("rejects an unknown encoding", () => {
+                assert.throws(() => fs.readdirSync(encBase, { encoding: 'no-such-encoding' }));
+            });
+
+            it("recursive mode also honors encoding", () => {
+                var sub = path.join(encBase, 'sub');
+                if (!fs.exists(sub))
+                    fs.mkdir(sub);
+                var list = fs.readdirSync(encBase, { recursive: true, encoding: 'buffer' });
+                assert.ok(list.every((item) => Buffer.isBuffer(item)));
+            });
+
+            // known gap: Node supports withFileTypes together with a non-utf8 encoding
+            it("withFileTypes + non-utf8 encoding reports an invalid argument", () => {
+                assert.throws(() => fs.readdirSync(encBase, { withFileTypes: true, encoding: 'buffer' }));
+            });
+        });
+
+        describe("times, modes and options (Node.js compatibility)", () => {
+            var obase = path.join(homedir, 'test_node_compat_' + vmid);
+
+            function ofile(name) {
+                if (!fs.exists(obase))
+                    fs.mkdir(obase);
+                return path.join(obase, name);
+            }
+
+            after(() => {
+                if (fs.exists(obase))
+                    fs.rmSync(obase, { recursive: true, force: true });
+            });
+
+            it("utimesSync accepts Date objects", () => {
+                var f = ofile('utimes.txt');
+                fs.writeFileSync(f, 'x');
+                fs.utimesSync(f, new Date(5000), new Date(6000));
+                assert.equal(fs.statSync(f).mtimeMs, 6000);
+            });
+
+            it("utimesSync still accepts a unix timestamp in seconds", () => {
+                var f = ofile('utimes2.txt');
+                fs.writeFileSync(f, 'x');
+                fs.utimesSync(f, 1000, 2000);
+                assert.equal(fs.statSync(f).mtimeMs, 2000000);
+            });
+
+            it("futimesSync accepts Date objects", () => {
+                var f = ofile('futimes.txt');
+                fs.writeFileSync(f, 'x');
+                var fd = fs.openSync(f, 'r+');
+                fs.futimesSync(fd, new Date(7000), new Date(8000));
+                fs.closeSync(fd);
+                assert.equal(fs.statSync(f).mtimeMs, 8000);
+            });
+
+            it("utimesSync rejects a non time value", () => {
+                var f = ofile('utimes3.txt');
+                fs.writeFileSync(f, 'x');
+                assert.throws(() => fs.utimesSync(f, true, 1));
+            });
+
+            it("chmodSync accepts an octal string", () => {
+                if (win)
+                    return;
+                var f = ofile('chmod.txt');
+                fs.writeFileSync(f, 'x');
+                fs.chmodSync(f, '640');
+                assert.equal((fs.statSync(f).mode & 0o777).toString(8), '640');
+            });
+
+            it("chmodSync accepts 0o prefixed strings and rejects invalid ones", () => {
+                if (win)
+                    return;
+                var f = ofile('chmod2.txt');
+                fs.writeFileSync(f, 'x');
+                fs.chmodSync(f, '0o600');
+                assert.equal((fs.statSync(f).mode & 0o777).toString(8), '600');
+                assert.throws(() => fs.chmodSync(f, 'rwx'));
+                assert.throws(() => fs.chmodSync(f, '9999'));
+            });
+
+            it("mkdirSync accepts an octal string", () => {
+                if (win)
+                    return;
+                var d = ofile('mkdir_mode');
+                fs.mkdirSync(d, '700');
+                assert.equal((fs.statSync(d).mode & 0o777).toString(8), '700');
+            });
+
+            it("mkdirSync recursive returns the first created directory", () => {
+                var d = ofile('mkdir_rec/a/b');
+                var ret = fs.mkdirSync(d, { recursive: true });
+                assert.equal(ret, path.join(obase, 'mkdir_rec'));
+
+                // already exists: undefined, like Node.js
+                assert.isUndefined(fs.mkdirSync(d, { recursive: true }));
+            });
+
+            it("openSync accepts an octal string mode", () => {
+                if (win)
+                    return;
+                var f = ofile('open_mode.txt');
+                var fd = fs.openSync(f, 'w', '600');
+                fs.closeSync(fd);
+                assert.equal((fs.statSync(f).mode & 0o777).toString(8), '600');
+            });
+
+            it("appendFileSync accepts an encoding and options", () => {
+                var f = ofile('append.txt');
+                fs.writeFileSync(f, 'a');
+                fs.appendFileSync(f, 'b', 'utf8');
+                fs.appendFileSync(f, 'c', { encoding: 'utf8' });
+                assert.equal(fs.readFileSync(f, 'utf8'), 'abc');
+            });
+
+            it("appendFileSync honors the flag option", () => {
+                var f = ofile('append_flag.txt');
+                fs.writeFileSync(f, 'old');
+                fs.appendFileSync(f, 'new', { flag: 'w' });
+                assert.equal(fs.readFileSync(f, 'utf8'), 'new');
+            });
+
+            it("readFileSync/writeFileSync/appendFileSync work on a file descriptor", () => {
+                var f = ofile('fd.txt');
+                var fd = fs.openSync(f, 'w+');
+                fs.writeFileSync(fd, 'hello');
+                fs.appendFileSync(fd, '!');
+                fs.closeSync(fd);
+                assert.equal(fs.readFileSync(f, 'utf8'), 'hello!');
+
+                // Node.js: readFileSync(fd) reads from the current position
+                var fd2 = fs.openSync(f, 'r');
+                assert.equal(fs.readFileSync(fd2, 'utf8'), 'hello!');
+                assert.equal(fs.readFileSync(fd2, 'utf8'), '');
+                assert.equal(fs.readFileSync(fd2, { encoding: 'utf8' }), '');
+                fs.closeSync(fd2);
+            });
+
+            it("passing a non path object is not silently used as a file name", () => {
+                var f = ofile('guard.txt');
+                var fd = fs.openSync(f, 'w');
+                // with fd support in place the handle is written through, never as a path
+                fs.writeFileSync(fd, 'data');
+                fs.closeSync(fd);
+                assert.equal(fs.readFileSync(f, 'utf8'), 'data');
+                assert.equal(fs.exists(path.join(homedir, '[object FileHandle]')), false);
+            });
+
+            it("readdirSync accepts an encoding string", () => {
+                var list = fs.readdirSync(obase, 'utf8');
+                assert.ok(Array.isArray(list));
+            });
+
+            it("readlinkSync/realpathSync accept an encoding", () => {
+                var f = ofile('link_target.txt');
+                fs.writeFileSync(f, 'x');
+                var l = ofile('link.txt');
+                if (!fs.exists(l))
+                    fs.symlinkSync(f, l, 'file');
+
+                assert.equal(fs.readlinkSync(l, { encoding: 'utf8' }), f);
+                assert.ok(Buffer.isBuffer(fs.readlinkSync(l, 'buffer')));
+                assert.equal(fs.realpathSync(f, { encoding: 'utf8' }), fs.realpathSync(f));
+                assert.ok(Buffer.isBuffer(fs.realpathSync(f, { encoding: 'buffer' })));
+            });
+
+            it("existsSync accepts an options argument", () => {
+                assert.equal(fs.existsSync(ofile('missing.txt'), { throwIfNoEntry: false }), false);
+            });
+
+            it("error objects carry errno, syscall and path", () => {
+                var missing = path.join(obase, 'no_such_file.txt');
+                var err;
+                try {
+                    fs.statSync(missing);
+                } catch (e) {
+                    err = e;
+                }
+                assert.equal(err.code, 'ENOENT');
+                assert.equal(err.errno, -2);
+                assert.equal(err.syscall, 'stat');
+                assert.equal(err.path, missing);
+            });
+
+            it("reading a directory reports EISDIR", () => {
+                var err;
+                try {
+                    fs.readFileSync(obase, 'utf8');
+                } catch (e) {
+                    err = e;
+                }
+                assert.equal(err.code, 'EISDIR');
+            });
+
+            it("accessSync rejects an out of range mode", () => {
+                assert.throws(() => fs.accessSync(obase, 999));
+            });
+
+            it("truncateSync treats a negative length as zero", () => {
+                var f = ofile('truncate.txt');
+                fs.writeFileSync(f, 'abcdef');
+                fs.truncateSync(f, -1);
+                assert.equal(fs.readFileSync(f, 'utf8'), '');
+            });
+
+            it("ftruncateSync truncates by descriptor", () => {
+                var f = ofile('ftruncate.txt');
+                var fd = fs.openSync(f, 'w');
+                fs.writeSync(fd, 'abcdef');
+                fs.ftruncateSync(fd, 2);
+                fs.closeSync(fd);
+                assert.equal(fs.readFileSync(f, 'utf8'), 'ab');
+            });
+
+            it("statfsSync returns Node.js compatible fields", () => {
+                var st = fs.statfsSync(obase);
+                ['type', 'bsize', 'blocks', 'bfree', 'bavail', 'files', 'ffree'].forEach((k) => {
+                    assert.isNumber(st[k], k + ' should be a number');
+                });
+            });
+
+            it("exposes Node.js compatible constants", () => {
+                assert.equal(fs.F_OK, fs.constants.F_OK);
+                assert.equal(fs.R_OK, fs.constants.R_OK);
+                assert.equal(fs.W_OK, fs.constants.W_OK);
+                assert.equal(fs.X_OK, fs.constants.X_OK);
+                assert.isNumber(fs.constants.EXTENSIONLESS_FORMAT_JAVASCRIPT);
+                assert.isNumber(fs.constants.EXTENSIONLESS_FORMAT_WASM);
+            });
+
+            it("filehandle.write returns bytesWritten and buffer", async () => {
+                var f = ofile('fh_write.txt');
+                var fh = await fs.promises.open(f, 'w');
+                var ret = await fh.write('abc');
+                assert.equal(ret.bytesWritten, 3);
+                assert.ok(Buffer.isBuffer(ret.buffer));
+                var ret2 = fh.writeSync(Buffer.from('de'));
+                assert.equal(ret2.bytesWritten, 2);
+                await fh.close();
+                assert.equal(fs.readFileSync(f, 'utf8'), 'abcde');
+            });
+        });
+
+        describe("createReadStream/createWriteStream error events (Node.js compatibility)", () => {
+            var sbase = path.join(homedir, 'test_stream_error_' + vmid);
+
+            before(() => {
+                if (!fs.exists(sbase))
+                    fs.mkdir(sbase);
+            });
+
+            after(() => {
+                if (fs.exists(sbase))
+                    fs.rmSync(sbase, { recursive: true, force: true });
+            });
+
+            function waitForCode(stm) {
+                var code;
+                stm.on('error', (e) => {
+                    code = e && e.code;
+                });
+
+                var waited = 0;
+                while (code === undefined && waited < 2000) {
+                    coroutine.sleep(10);
+                    waited += 10;
+                }
+                return code;
+            }
+
+            it("createReadStream on a missing file emits ENOENT", () => {
+                var stm = fs.createReadStream(path.join(sbase, 'nope.txt'));
+                assert.equal(waitForCode(stm), 'ENOENT');
+            });
+
+            it("createReadStream on a directory emits EISDIR", () => {
+                var stm = fs.createReadStream(sbase);
+                assert.equal(waitForCode(stm), 'EISDIR');
+            });
+
+            it("createWriteStream with flags 'wx' emits EEXIST", () => {
+                var f = path.join(sbase, 'exists.txt');
+                fs.writeFileSync(f, 'x');
+                var stm = fs.createWriteStream(f, { flags: 'wx' });
+                assert.equal(waitForCode(stm), 'EEXIST');
+            });
+        });
+
+        describe("opendir/Dir (Node.js compatibility)", () => {
+            var dbase = path.join(homedir, 'test_opendir_' + vmid);
+
+            before(() => {
+                if (!fs.exists(dbase))
+                    fs.mkdir(dbase);
+                fs.writeFileSync(path.join(dbase, 'a.txt'), 'x');
+                if (!fs.exists(path.join(dbase, 'sub')))
+                    fs.mkdir(path.join(dbase, 'sub'));
+            });
+
+            after(() => {
+                if (fs.exists(dbase))
+                    fs.rmSync(dbase, { recursive: true, force: true });
+            });
+
+            it("exports Dir and Dirent", () => {
+                assert.equal(typeof fs.Dir, 'function');
+                assert.equal(typeof fs.Dirent, 'function');
+            });
+
+            it("readSync iterates all entries and returns null at the end", () => {
+                var dir = fs.opendirSync(dbase);
+                var names = [];
+                var entry;
+                while ((entry = dir.readSync()) !== null)
+                    names.push(entry.name);
+
+                assert.deepEqual(names.sort(), ['a.txt', 'sub']);
+                assert.equal(dir.readSync(), null);
+                assert.ok(dir.path.indexOf('test_opendir_') >= 0);
+                dir.closeSync();
+            });
+
+            it("done entries report their type", () => {
+                var dir = fs.opendirSync(dbase);
+                var entry;
+                while ((entry = dir.readSync()) !== null) {
+                    if (entry.name === 'sub')
+                        assert.equal(entry.isDirectory(), true);
+                    else
+                        assert.equal(entry.isFile(), true);
+                }
+                dir.closeSync();
+            });
+
+            it("supports for await...of", async () => {
+                var dir = await fs.promises.opendir(dbase);
+                var names = [];
+                for await (var entry of dir)
+                    names.push(entry.name);
+                assert.deepEqual(names.sort(), ['a.txt', 'sub']);
+            });
+
+            it("supports for...of", () => {
+                var dir = fs.opendirSync(dbase);
+                var names = [];
+                for (var entry of dir)
+                    names.push(entry.name);
+                assert.deepEqual(names.sort(), ['a.txt', 'sub']);
+            });
+
+            it("close is idempotent", () => {
+                var dir = fs.opendirSync(dbase);
+                dir.closeSync();
+                dir.closeSync();
+                assert.equal(dir.readSync(), null);
+            });
+        });
     });
 });

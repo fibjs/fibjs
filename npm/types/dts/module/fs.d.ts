@@ -1,6 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
+/// <reference path="../interface/DirEntry.d.ts" />
+/// <reference path="../interface/Dir.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
@@ -87,6 +89,26 @@ declare module 'fs' {
     export const SEEK_END: 2;
 
     /**
+     * @description 文件存在性检查常量，参见 fs_constants
+     */
+    export const F_OK: 0;
+
+    /**
+     * @description 读权限检查常量，参见 fs_constants
+     */
+    export const R_OK: 4;
+
+    /**
+     * @description 写权限检查常量，参见 fs_constants
+     */
+    export const W_OK: 2;
+
+    /**
+     * @description 执行权限检查常量，参见 fs_constants
+     */
+    export const X_OK: 1;
+
+    /**
      * ! fs模块的常量对象，参见 fs_constants
      */
     const constants: typeof import ('fs_constants');
@@ -95,6 +117,16 @@ declare module 'fs' {
      * @description Stat 类的别名，参见 Stat
      */
     const Stats: typeof Class_Stat;
+
+    /**
+     * @description 目录项类的别名，参见 DirEntry
+     */
+    const Dirent: typeof Class_DirEntry;
+
+    /**
+     * @description 目录迭代类的别名，参见 Dir
+     */
+    const Dir: typeof Class_Dir;
 
     /**
      * @description 查询指定的文件或目录是否存在
@@ -127,6 +159,41 @@ declare module 'fs' {
      *
      */
     function existsAsync(path: string): Promise<boolean>;
+
+    /**
+     * @description 查询指定的文件是否存在
+     *
+     *      options 参数仅为兼容 Node.js 保留，当前被忽略。
+     *      @param path 指定要查询的路径
+     *      @param options 指定查询选项（被忽略）
+     *      @return 文件存在则返回 true
+     *
+     */
+    function exists(path: string, options: FIBJS.GeneralObject): boolean;
+
+    function exists(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 查询指定的文件是否存在
+     *
+     *      options 参数仅为兼容 Node.js 保留，当前被忽略。
+     *      @param path 指定要查询的路径
+     *      @param options 指定查询选项（被忽略）
+     *      @return 文件存在则返回 true
+     *
+     */
+    function existsSync(path: string, options: FIBJS.GeneralObject): boolean;
+
+    /**
+     * @description 查询指定的文件是否存在
+     *
+     *      options 参数仅为兼容 Node.js 保留，当前被忽略。
+     *      @param path 指定要查询的路径
+     *      @param options 指定查询选项（被忽略）
+     *      @return 文件存在则返回 true
+     *
+     */
+    function existsAsync(path: string, options: FIBJS.GeneralObject): Promise<boolean>;
 
     /**
      * @description 查询用户对指定的文件的权限
@@ -223,19 +290,9 @@ declare module 'fs' {
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
      *
      */
-    function mkdir(path: string, mode?: number): void;
+    function mkdir(path: string, mode?: number): any;
 
-    function mkdir(path: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 创建一个目录
-     *
-     *      mode 指定目录权限，Windows 忽略此参数；目录已存在时抛出异常，可通过 recursive 选项创建多级目录。
-     *      @param path 指定要创建的目录名
-     *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
-     *
-     */
-    function mkdirSync(path: string, mode?: number): void;
+    function mkdir(path: string, mode?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 创建一个目录
@@ -245,7 +302,17 @@ declare module 'fs' {
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
      *
      */
-    function mkdirAsync(path: string, mode?: number): Promise<void>;
+    function mkdirSync(path: string, mode?: number): any;
+
+    /**
+     * @description 创建一个目录
+     *
+     *      mode 指定目录权限，Windows 忽略此参数；目录已存在时抛出异常，可通过 recursive 选项创建多级目录。
+     *      @param path 指定要创建的目录名
+     *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
+     *
+     */
+    function mkdirAsync(path: string, mode?: number): Promise<any>;
 
     /**
      * @description 创建一个目录
@@ -257,29 +324,16 @@ declare module 'fs' {
      *          mode: 0777 // specify the file mode. Default: 0777
      *      }
      *      ```
+     *
+     *      recursive 为 true 时，返回第一个被创建的目录路径，与 Node.js 一致；目录已存在时返回 undefined。
      *      @param path 指定要创建的目录名
      *      @param opt 指定创建参数
+     *      @return recursive 为 true 且实际创建了目录时，返回第一个被创建的目录路径
      *
      */
-    function mkdir(path: string, opt: FIBJS.GeneralObject): void;
+    function mkdir(path: string, opt: FIBJS.GeneralObject): any;
 
-    function mkdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 创建一个目录
-     *
-     *      创建参数可以包含以下值：
-     *      ```JavaScript
-     *      {
-     *          recursive: false, // specify whether parent directories should be created. Default: false
-     *          mode: 0777 // specify the file mode. Default: 0777
-     *      }
-     *      ```
-     *      @param path 指定要创建的目录名
-     *      @param opt 指定创建参数
-     *
-     */
-    function mkdirSync(path: string, opt: FIBJS.GeneralObject): void;
+    function mkdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 创建一个目录
@@ -291,11 +345,68 @@ declare module 'fs' {
      *          mode: 0777 // specify the file mode. Default: 0777
      *      }
      *      ```
+     *
+     *      recursive 为 true 时，返回第一个被创建的目录路径，与 Node.js 一致；目录已存在时返回 undefined。
      *      @param path 指定要创建的目录名
      *      @param opt 指定创建参数
+     *      @return recursive 为 true 且实际创建了目录时，返回第一个被创建的目录路径
      *
      */
-    function mkdirAsync(path: string, opt: FIBJS.GeneralObject): Promise<void>;
+    function mkdirSync(path: string, opt: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 创建一个目录
+     *
+     *      创建参数可以包含以下值：
+     *      ```JavaScript
+     *      {
+     *          recursive: false, // specify whether parent directories should be created. Default: false
+     *          mode: 0777 // specify the file mode. Default: 0777
+     *      }
+     *      ```
+     *
+     *      recursive 为 true 时，返回第一个被创建的目录路径，与 Node.js 一致；目录已存在时返回 undefined。
+     *      @param path 指定要创建的目录名
+     *      @param opt 指定创建参数
+     *      @return recursive 为 true 且实际创建了目录时，返回第一个被创建的目录路径
+     *
+     */
+    function mkdirAsync(path: string, opt: FIBJS.GeneralObject): Promise<any>;
+
+    /**
+     * @description 创建一个目录
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定要创建的目录名
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 实际创建了多级目录时返回第一个被创建的目录路径
+     *
+     */
+    function mkdir(path: string, mode: any): any;
+
+    function mkdir(path: string, mode: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 创建一个目录
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定要创建的目录名
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 实际创建了多级目录时返回第一个被创建的目录路径
+     *
+     */
+    function mkdirSync(path: string, mode: any): any;
+
+    /**
+     * @description 创建一个目录
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定要创建的目录名
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 实际创建了多级目录时返回第一个被创建的目录路径
+     *
+     */
+    function mkdirAsync(path: string, mode: any): Promise<any>;
 
     /**
      * @description 创建一个唯一的临时目录
@@ -575,6 +686,8 @@ declare module 'fs' {
 
     /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致。
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
      *
@@ -585,6 +698,8 @@ declare module 'fs' {
 
     /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致。
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
      *
@@ -593,11 +708,45 @@ declare module 'fs' {
 
     /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致。
      *      @param path 指定操作的文件
      *      @param mode 指定设定的访问权限
      *
      */
     function chmodAsync(path: string, mode: number): Promise<void>;
+
+    /**
+     * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function chmod(path: string, mode: any): void;
+
+    function chmod(path: string, mode: any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function chmodSync(path: string, mode: any): void;
+
+    /**
+     * @description 设置指定文件的访问权限，Windows 不支持此方法
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function chmodAsync(path: string, mode: any): Promise<void>;
 
     /**
      * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
@@ -624,6 +773,38 @@ declare module 'fs' {
      *
      */
     function lchmodAsync(path: string, mode: number): Promise<void>;
+
+    /**
+     * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function lchmod(path: string, mode: any): void;
+
+    function lchmod(path: string, mode: any, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function lchmodSync(path: string, mode: any): void;
+
+    /**
+     * @description 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '755'、'0755'、'0o755'），与 Node.js 一致；非法模式抛出异常。
+     *      @param path 指定操作的文件
+     *      @param mode 指定设定的访问权限，可以是数值或八进制字符串
+     *
+     */
+    function lchmodAsync(path: string, mode: any): Promise<void>;
 
     /**
      * @description 设置指定文件的拥有者，Windows 不支持此方法
@@ -686,66 +867,72 @@ declare module 'fs' {
     /**
      * @description 修改指定文件的访问时间和修改时间
      *
-     *      时间参数为 Unix 时间戳，以秒为单位。
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param path 指定设置的文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function utimes(path: string, atime: number, mtime: number): void;
+    function utimes(path: string, atime: any, mtime: any): void;
 
-    function utimes(path: string, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
+    function utimes(path: string, atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 修改指定文件的访问时间和修改时间
      *
-     *      时间参数为 Unix 时间戳，以秒为单位。
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param path 指定设置的文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function utimesSync(path: string, atime: number, mtime: number): void;
+    function utimesSync(path: string, atime: any, mtime: any): void;
 
     /**
      * @description 修改指定文件的访问时间和修改时间
      *
-     *      时间参数为 Unix 时间戳，以秒为单位。
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param path 指定设置的文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function utimesAsync(path: string, atime: number, mtime: number): Promise<void>;
+    function utimesAsync(path: string, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param path 指定设置的软连接文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function lutimes(path: string, atime: number, mtime: number): void;
+    function lutimes(path: string, atime: any, mtime: any): void;
 
-    function lutimes(path: string, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
-     *      @param path 指定设置的软连接文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *
-     */
-    function lutimesSync(path: string, atime: number, mtime: number): void;
+    function lutimes(path: string, atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param path 指定设置的软连接文件
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function lutimesAsync(path: string, atime: number, mtime: number): Promise<void>;
+    function lutimesSync(path: string, atime: any, mtime: any): void;
+
+    /**
+     * @description 修改指定软连接文件本身的访问时间和修改时间，不跟随软连接
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     *      @param path 指定设置的软连接文件
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *
+     */
+    function lutimesAsync(path: string, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description 查询指定文件的基础信息
@@ -785,12 +972,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function stat(path: string, options: FIBJS.GeneralObject): Class_Stat;
@@ -803,12 +992,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function statSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
@@ -819,12 +1010,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function statAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
@@ -861,12 +1054,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function lstat(path: string, options: FIBJS.GeneralObject): Class_Stat;
@@ -879,12 +1074,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function lstatSync(path: string, options: FIBJS.GeneralObject): Class_Stat;
@@ -895,12 +1092,14 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
+     *          "throwIfNoEntry": true // 路径不存在时是否抛出异常，为 false 时返回 undefined。默认: true
      *      }
      *      ```
+     *
+     *      `throwIfNoEntry` 与 Node.js 一致，仅对同步（无回调）调用生效；异步形式始终抛出异常。
      *      @param path 指定查询的文件
      *      @param options 指定查询选项
-     *      @return 返回文件的基础信息
+     *      @return 返回文件的基础信息，`throwIfNoEntry` 为 false 且路径不存在时返回 undefined
      *
      */
     function lstatAsync(path: string, options: FIBJS.GeneralObject): Promise<Class_Stat>;
@@ -934,12 +1133,7 @@ declare module 'fs' {
     /**
      * @description 查询指定文件的基础信息
      *
-     *      options 支持的选项如下：
-     *      ```JavaScript
-     *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
-     *      }
-     *      ```
+     *      options 当前无有效选项，仅为兼容 Node.js 保留。
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
@@ -952,12 +1146,7 @@ declare module 'fs' {
     /**
      * @description 查询指定文件的基础信息
      *
-     *      options 支持的选项如下：
-     *      ```JavaScript
-     *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
-     *      }
-     *      ```
+     *      options 当前无有效选项，仅为兼容 Node.js 保留。
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
@@ -968,12 +1157,7 @@ declare module 'fs' {
     /**
      * @description 查询指定文件的基础信息
      *
-     *      options 支持的选项如下：
-     *      ```JavaScript
-     *      {
-     *          "bigint": false // 当为 true 时，返回的 Stat 对象中的数值类型将是 BigInt. 默认: false
-     *      }
-     *      ```
+     *      options 当前无有效选项，仅为兼容 Node.js 保留。
      *      @param fd 文件描述符对象
      *      @param options 指定查询选项
      *      @return 返回文件的基础信息
@@ -987,17 +1171,9 @@ declare module 'fs' {
      *      @return 返回软连接指向的文件名
      *
      */
-    function readlink(path: string): string;
+    function readlink(path: string): any;
 
-    function readlink(path: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    /**
-     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
-     *      @param path 指定读取的软连接文件
-     *      @return 返回软连接指向的文件名
-     *
-     */
-    function readlinkSync(path: string): string;
+    function readlink(path: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
@@ -1005,7 +1181,94 @@ declare module 'fs' {
      *      @return 返回软连接指向的文件名
      *
      */
-    function readlinkAsync(path: string): Promise<string>;
+    function readlinkSync(path: string): any;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *      @param path 指定读取的软连接文件
+     *      @return 返回软连接指向的文件名
+     *
+     */
+    function readlinkAsync(path: string): Promise<any>;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的软连接文件
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlink(path: string, options: FIBJS.GeneralObject): any;
+
+    function readlink(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的软连接文件
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlinkSync(path: string, options: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的软连接文件
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlinkAsync(path: string, options: FIBJS.GeneralObject): Promise<any>;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *      @param path 指定读取的软连接文件
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlink(path: string, encoding: string): any;
+
+    function readlink(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *      @param path 指定读取的软连接文件
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlinkSync(path: string, encoding: string): any;
+
+    /**
+     * @description 读取指定的软连接文件，返回软连接指向的目标路径，Windows 不支持此方法
+     *      @param path 指定读取的软连接文件
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function readlinkAsync(path: string, encoding: string): Promise<any>;
 
     /**
      * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
@@ -1013,17 +1276,9 @@ declare module 'fs' {
      *      @return 返回处理后的绝对路径
      *
      */
-    function realpath(path: string): string;
+    function realpath(path: string): any;
 
-    function realpath(path: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    /**
-     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
-     *      @param path 指定读取的路径
-     *      @return 返回处理后的绝对路径
-     *
-     */
-    function realpathSync(path: string): string;
+    function realpath(path: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
@@ -1031,7 +1286,94 @@ declare module 'fs' {
      *      @return 返回处理后的绝对路径
      *
      */
-    function realpathAsync(path: string): Promise<string>;
+    function realpathSync(path: string): any;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *      @param path 指定读取的路径
+     *      @return 返回处理后的绝对路径
+     *
+     */
+    function realpathAsync(path: string): Promise<any>;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的路径
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpath(path: string, options: FIBJS.GeneralObject): any;
+
+    function realpath(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的路径
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpathSync(path: string, options: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定返回值的编码，为 'buffer' 时返回 Buffer。默认: utf8
+     *      }
+     *      ```
+     *      @param path 指定读取的路径
+     *      @param options 指定读取选项
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpathAsync(path: string, options: FIBJS.GeneralObject): Promise<any>;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *      @param path 指定读取的路径
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpath(path: string, encoding: string): any;
+
+    function realpath(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *      @param path 指定读取的路径
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpathSync(path: string, encoding: string): any;
+
+    /**
+     * @description 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，路径中的软连接会被解析
+     *      @param path 指定读取的路径
+     *      @param encoding 指定返回值的编码，为 'buffer' 时返回 Buffer
+     *      @return 指定编码时返回解码后的字符串，'buffer' 时返回 Buffer
+     *
+     */
+    function realpathAsync(path: string, encoding: string): Promise<any>;
 
     /**
      * @description 创建软连接文件
@@ -1189,32 +1531,38 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param fd 文件描述符对象
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function futimes(fd: Class_FileHandle, atime: number, mtime: number): void;
+    function futimes(fd: Class_FileHandle, atime: any, mtime: any): void;
 
-    function futimes(fd: Class_FileHandle, atime: number, mtime: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 根据文件描述符，修改文件的访问时间和修改时间
-     *      @param fd 文件描述符对象
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
-     *
-     */
-    function futimesSync(fd: Class_FileHandle, atime: number, mtime: number): void;
+    function futimes(fd: Class_FileHandle, atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
      *      @param fd 文件描述符对象
-     *      @param atime 文件的最后访问时间，Unix 时间戳（秒）
-     *      @param mtime 文件的最后修改时间，Unix 时间戳（秒）
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
      *
      */
-    function futimesAsync(fd: Class_FileHandle, atime: number, mtime: number): Promise<void>;
+    function futimesSync(fd: Class_FileHandle, atime: any, mtime: any): void;
+
+    /**
+     * @description 根据文件描述符，修改文件的访问时间和修改时间
+     *
+     *      时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
+     *      @param fd 文件描述符对象
+     *      @param atime 文件的最后访问时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *      @param mtime 文件的最后修改时间，Date 对象、Unix 时间戳（秒）或日期字符串
+     *
+     */
+    function futimesAsync(fd: Class_FileHandle, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
@@ -1275,6 +1623,70 @@ declare module 'fs' {
     function fsyncAsync(fd: Class_FileHandle): Promise<void>;
 
     /**
+     * @description 根据文件描述符，修改文件尺寸
+     *
+     *      与 Node.js 一致，长度为 0 时清空文件；负数被视作 0。
+     *      @param fd 文件描述符对象
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    function ftruncate(fd: Class_FileHandle, len?: number): void;
+
+    function ftruncate(fd: Class_FileHandle, len?: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 根据文件描述符，修改文件尺寸
+     *
+     *      与 Node.js 一致，长度为 0 时清空文件；负数被视作 0。
+     *      @param fd 文件描述符对象
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    function ftruncateSync(fd: Class_FileHandle, len?: number): void;
+
+    /**
+     * @description 根据文件描述符，修改文件尺寸
+     *
+     *      与 Node.js 一致，长度为 0 时清空文件；负数被视作 0。
+     *      @param fd 文件描述符对象
+     *      @param len 指定修改后文件的大小，缺省为 0
+     *
+     */
+    function ftruncateAsync(fd: Class_FileHandle, len?: number): Promise<void>;
+
+    /**
+     * @description 查询文件系统信息
+     *
+     *      返回对象包含 type、bsize、blocks、bfree、bavail、files、ffree 字段，与 Node.js 一致。
+     *      @param path 指定要查询的路径
+     *      @return 返回文件系统信息对象
+     *
+     */
+    function statfs(path: string): FIBJS.GeneralObject;
+
+    function statfs(path: string, callback: (err: Error | undefined | null, retVal: FIBJS.GeneralObject)=>any): void;
+
+    /**
+     * @description 查询文件系统信息
+     *
+     *      返回对象包含 type、bsize、blocks、bfree、bavail、files、ffree 字段，与 Node.js 一致。
+     *      @param path 指定要查询的路径
+     *      @return 返回文件系统信息对象
+     *
+     */
+    function statfsSync(path: string): FIBJS.GeneralObject;
+
+    /**
+     * @description 查询文件系统信息
+     *
+     *      返回对象包含 type、bsize、blocks、bfree、bavail、files、ffree 字段，与 Node.js 一致。
+     *      @param path 指定要查询的路径
+     *      @return 返回文件系统信息对象
+     *
+     */
+    function statfsAsync(path: string): Promise<FIBJS.GeneralObject>;
+
+    /**
      * @description 读取指定目录的文件信息
      *
      *      返回目录下的文件名数组，不含子目录内容。
@@ -1307,13 +1719,46 @@ declare module 'fs' {
     function readdirAsync(path: string): Promise<any[]>;
 
     /**
+     * @description 打开目录以进行迭代
+     *
+     *      返回 Dir 对象，可通过 read/readSync 逐个读取目录项，或使用 for await...of 遍历。
+     *      @param path 指定要迭代的目录
+     *      @return 返回目录迭代对象
+     *
+     */
+    function opendir(path: string): Class_Dir;
+
+    function opendir(path: string, callback: (err: Error | undefined | null, retVal: Class_Dir)=>any): void;
+
+    /**
+     * @description 打开目录以进行迭代
+     *
+     *      返回 Dir 对象，可通过 read/readSync 逐个读取目录项，或使用 for await...of 遍历。
+     *      @param path 指定要迭代的目录
+     *      @return 返回目录迭代对象
+     *
+     */
+    function opendirSync(path: string): Class_Dir;
+
+    /**
+     * @description 打开目录以进行迭代
+     *
+     *      返回 Dir 对象，可通过 read/readSync 逐个读取目录项，或使用 for await...of 遍历。
+     *      @param path 指定要迭代的目录
+     *      @return 返回目录迭代对象
+     *
+     */
+    function opendirAsync(path: string): Promise<Class_Dir>;
+
+    /**
      * @description 读取指定目录的文件信息
      *
      *      参数 opts 支持的选项如下：
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
-     *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
+     *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
+     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
      *      }
      *      ```
      *
@@ -1334,7 +1779,8 @@ declare module 'fs' {
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
-     *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
+     *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
+     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
      *      }
      *      ```
      *
@@ -1353,7 +1799,8 @@ declare module 'fs' {
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
-     *          "withFileTypes": false // specify whether to return DirEntry objects. Default: false
+     *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
+     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
      *      }
      *      ```
      *
@@ -1364,6 +1811,41 @@ declare module 'fs' {
      *
      */
     function readdirAsync(path: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
+
+    /**
+     * @description 读取指定目录的文件信息
+     *
+     *      encoding 指定返回文件名的编码，为 'buffer' 时返回 Buffer 对象数组，与 Node.js 一致。
+     *      @param path 指定查询的目录
+     *      @param encoding 指定返回文件名的编码
+     *      @return 返回目录的文件信息数组
+     *
+     */
+    function readdir(path: string, encoding: string): any[];
+
+    function readdir(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 读取指定目录的文件信息
+     *
+     *      encoding 指定返回文件名的编码，为 'buffer' 时返回 Buffer 对象数组，与 Node.js 一致。
+     *      @param path 指定查询的目录
+     *      @param encoding 指定返回文件名的编码
+     *      @return 返回目录的文件信息数组
+     *
+     */
+    function readdirSync(path: string, encoding: string): any[];
+
+    /**
+     * @description 读取指定目录的文件信息
+     *
+     *      encoding 指定返回文件名的编码，为 'buffer' 时返回 Buffer 对象数组，与 Node.js 一致。
+     *      @param path 指定查询的目录
+     *      @param encoding 指定返回文件名的编码
+     *      @return 返回目录的文件信息数组
+     *
+     */
+    function readdirAsync(path: string, encoding: string): Promise<any[]>;
 
     /**
      * @description 根据文件名模式，搜索指定目录的文件列表
@@ -1728,6 +2210,44 @@ declare module 'fs' {
     function openAsync(fname: string, flags?: string, mode?: number): Promise<Class_FileHandle>;
 
     /**
+     * @description 打开文件
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '600'、'0600'、'0o600'），与 Node.js 一致；非法模式抛出异常。
+     *      @param fname 指定文件名
+     *      @param flags 指定打开文件的方式
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 返回文件句柄对象
+     *
+     */
+    function open(fname: string, flags: string, mode: any): Class_FileHandle;
+
+    function open(fname: string, flags: string, mode: any, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    /**
+     * @description 打开文件
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '600'、'0600'、'0o600'），与 Node.js 一致；非法模式抛出异常。
+     *      @param fname 指定文件名
+     *      @param flags 指定打开文件的方式
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 返回文件句柄对象
+     *
+     */
+    function openSync(fname: string, flags: string, mode: any): Class_FileHandle;
+
+    /**
+     * @description 打开文件
+     *
+     *      mode 可以是数值，也可以是八进制字符串（如 '600'、'0600'、'0o600'），与 Node.js 一致；非法模式抛出异常。
+     *      @param fname 指定文件名
+     *      @param flags 指定打开文件的方式
+     *      @param mode 指定文件权限，可以是数值或八进制字符串
+     *      @return 返回文件句柄对象
+     *
+     */
+    function openAsync(fname: string, flags: string, mode: any): Promise<Class_FileHandle>;
+
+    /**
      * @description 打开文件描述符，使用 fs.constants 整数 flags
      *
      *      @param fname 指定文件名
@@ -1960,6 +2480,91 @@ declare module 'fs' {
      *
      */
     function readFileAsync(fname: string, options: FIBJS.GeneralObject): Promise<any>;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      与 Node.js 一致，读取完成后不会关闭文件描述符，也不会改变当前文件位置。
+     *      @param fd 文件描述符对象
+     *      @param encoding 指定解码方式，缺省不解码
+     *      @return 返回文件内容
+     *
+     */
+    function readFile(fd: Class_FileHandle, encoding?: string): any;
+
+    function readFile(fd: Class_FileHandle, encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      与 Node.js 一致，读取完成后不会关闭文件描述符，也不会改变当前文件位置。
+     *      @param fd 文件描述符对象
+     *      @param encoding 指定解码方式，缺省不解码
+     *      @return 返回文件内容
+     *
+     */
+    function readFileSync(fd: Class_FileHandle, encoding?: string): any;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      与 Node.js 一致，读取完成后不会关闭文件描述符，也不会改变当前文件位置。
+     *      @param fd 文件描述符对象
+     *      @param encoding 指定解码方式，缺省不解码
+     *      @return 返回文件内容
+     *
+     */
+    function readFileAsync(fd: Class_FileHandle, encoding?: string): Promise<any>;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定读取选项
+     *      @return 返回文件内容
+     *
+     */
+    function readFile(fd: Class_FileHandle, options: FIBJS.GeneralObject): any;
+
+    function readFile(fd: Class_FileHandle, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定读取选项
+     *      @return 返回文件内容
+     *
+     */
+    function readFileSync(fd: Class_FileHandle, options: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 根据文件描述符，读取文件的全部内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param options 指定读取选项
+     *      @return 返回文件内容
+     *
+     */
+    function readFileAsync(fd: Class_FileHandle, options: FIBJS.GeneralObject): Promise<any>;
 
     /**
      * @description 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
@@ -2261,6 +2866,182 @@ declare module 'fs' {
     function writeFileAsync(fname: string, data: string, options: FIBJS.GeneralObject): Promise<number>;
 
     /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param opt 指定写入选项，将被忽略
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFile(fd: Class_FileHandle, data: Class_Buffer, opt?: string): number;
+
+    function writeFile(fd: Class_FileHandle, data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param opt 指定写入选项，将被忽略
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileSync(fd: Class_FileHandle, data: Class_Buffer, opt?: string): number;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param opt 指定写入选项，将被忽略
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileAsync(fd: Class_FileHandle, data: Class_Buffer, opt?: string): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFile(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    function writeFile(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileSync(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的二进制数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileAsync(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param opt 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFile(fd: Class_FileHandle, data: string, opt?: string): number;
+
+    function writeFile(fd: Class_FileHandle, data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param opt 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileSync(fd: Class_FileHandle, data: string, opt?: string): number;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param opt 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileAsync(fd: Class_FileHandle, data: string, opt?: string): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFile(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): number;
+
+    function writeFile(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileSync(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 根据文件描述符，写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function writeFileAsync(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
      * @description 创建二进制文件，并以追加方式写入内容
      *
      *      文件不存在时自动创建。
@@ -2294,6 +3075,328 @@ declare module 'fs' {
      *
      */
     function appendFileAsync(fname: string, data: Class_Buffer): Promise<number>;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "a" // specify the open flag. Default: a
+     *      }
+     *      ```
+     *      与 Node.js 一致，`flag` 缺省为 'a'（追加），可指定为 'w'/'wx'/'ax' 等。
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    function appendFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "a" // specify the open flag. Default: a
+     *      }
+     *      ```
+     *      与 Node.js 一致，`flag` 缺省为 'a'（追加），可指定为 'w'/'wx'/'ax' 等。
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "a" // specify the open flag. Default: a
+     *      }
+     *      ```
+     *      与 Node.js 一致，`flag` 缺省为 'a'（追加），可指定为 'w'/'wx'/'ax' 等。
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fname: string, data: Class_Buffer, encoding: string): number;
+
+    function appendFile(fname: string, data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fname: string, data: Class_Buffer, encoding: string): number;
+
+    /**
+     * @description 创建文件，并以追加方式写入内容
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fname: string, data: Class_Buffer, encoding: string): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer): number;
+
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: Class_Buffer): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: Class_Buffer): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer, encoding: string): number;
+
+    function appendFile(fd: Class_FileHandle, data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: Class_Buffer, encoding: string): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: Class_Buffer, encoding: string): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: string): number;
+
+    function appendFile(fd: Class_FileHandle, data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: string): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: string): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): number;
+
+    function appendFile(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
+     *      }
+     *      ```
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: string, options: FIBJS.GeneralObject): Promise<number>;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFile(fd: Class_FileHandle, data: string, encoding: string): number;
+
+    function appendFile(fd: Class_FileHandle, data: string, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileSync(fd: Class_FileHandle, data: string, encoding: string): number;
+
+    /**
+     * @description 根据文件描述符，以追加方式写入内容
+     *      @param fd 文件描述符对象
+     *      @param data 指定要写入的数据
+     *      @param encoding 指定编码，'utf8' 等
+     *      @return 实际写入的字节数
+     *
+     */
+    function appendFileAsync(fd: Class_FileHandle, data: string, encoding: string): Promise<number>;
 
     /**
      * @description 设置 zip 虚拟文件映射

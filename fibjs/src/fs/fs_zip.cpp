@@ -254,6 +254,7 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEv
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
+    setErrorContext("lstat", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -284,11 +285,29 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
 
 result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    return lstat(path, retVal, ac);
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        bool throwIfNoEntry = true;
+        GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
+
+        // Node.js compatibility: throwIfNoEntry only affects the synchronous
+        // (non-callback) forms; the async forms always report the error.
+        ac->m_ctx[0] = throwIfNoEntry || ac->callType() == AsyncEvent::kAsyncCallBack;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    result_t hr = lstat(path, retVal, ac);
+    if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+        return CALL_RETURN_UNDEFINED;
+
+    return hr;
 }
 
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
+    setErrorContext("stat", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -319,7 +338,24 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
 
 result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    return stat(path, retVal, ac);
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        bool throwIfNoEntry = true;
+        GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
+
+        // Node.js compatibility: throwIfNoEntry only affects the synchronous
+        // (non-callback) forms; the async forms always report the error.
+        ac->m_ctx[0] = throwIfNoEntry || ac->callType() == AsyncEvent::kAsyncCallBack;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    result_t hr = stat(path, retVal, ac);
+    if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+        return CALL_RETURN_UNDEFINED;
+
+    return hr;
 }
 
 result_t fs_base::openFile(exlib::string fname, exlib::string flags,

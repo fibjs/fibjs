@@ -15,8 +15,13 @@ namespace fibjs {
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
+    setErrorContext("ftruncate", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    // Node.js compatibility: a negative length is treated as zero
+    if (len < 0)
+        len = 0;
 
     if (::truncate(path.c_str(), len) < 0)
         return CHECK_ERROR(LastError());
@@ -26,6 +31,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 
 result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
+    setErrorContext("lchmod", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 

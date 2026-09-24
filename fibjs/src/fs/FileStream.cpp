@@ -216,7 +216,7 @@ result_t FileStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
     return Write(data);
 }
 
-result_t FileStream::open(exlib::string fname, exlib::string flags)
+result_t FileStream::open(exlib::string fname, exlib::string flags, int32_t mode)
 {
     close();
 
@@ -224,7 +224,7 @@ result_t FileStream::open(exlib::string fname, exlib::string flags)
     if (hr < 0)
         return hr;
 
-    return file_open(name, flags, 0666, m_fd);
+    return file_open(name, flags, mode, m_fd);
 }
 
 result_t FileStream::get_name(exlib::string& retVal)

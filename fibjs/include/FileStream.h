@@ -76,7 +76,7 @@ public:
     virtual result_t chmod(int32_t mode, AsyncEvent* ac);
 
 public:
-    result_t open(exlib::string fname, exlib::string flags);
+    result_t open(exlib::string fname, exlib::string flags, int32_t mode = 0666);
     result_t close();
     result_t Write(const char* p, int32_t sz);
 
@@ -148,6 +148,8 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         | O_SYNC
 #endif
         ;
+    else
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
 #ifdef _WIN32
     fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
@@ -164,7 +166,8 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     if (S_IFDIR & st.st_mode) {
         ::_close(fd);
         fd = -1;
-        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+        // Node.js compatibility: opening a directory as a file reports EISDIR
+        return UV_EISDIR;
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
@@ -223,7 +226,8 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     if (S_IFDIR & st.st_mode) {
         ::_close(fd);
         fd = -1;
-        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+        // Node.js compatibility: opening a directory as a file reports EISDIR
+        return UV_EISDIR;
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
@@ -246,14 +250,21 @@ public:
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
     virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
-    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
+    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
     virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac);
     virtual result_t readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     virtual result_t writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
     virtual result_t writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
     virtual result_t writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     virtual result_t writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t utimes(Variant atime, Variant mtime, AsyncEvent* ac);
+    virtual result_t chown(int32_t uid, int32_t gid, AsyncEvent* ac);
+    virtual result_t sync(AsyncEvent* ac);
+    virtual result_t datasync(AsyncEvent* ac);
+    virtual result_t truncate(int32_t len, AsyncEvent* ac);
+    virtual result_t appendFile(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t appendFile(exlib::string data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
 
 private:

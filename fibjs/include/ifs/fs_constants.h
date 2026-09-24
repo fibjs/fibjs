@@ -77,7 +77,9 @@ public:
         C_UV_FS_COPYFILE_FICLONE = 2,
         C_COPYFILE_FICLONE = 2,
         C_UV_FS_COPYFILE_FICLONE_FORCE = 4,
-        C_COPYFILE_FICLONE_FORCE = 4
+        C_COPYFILE_FICLONE_FORCE = 4,
+        C_EXTENSIONLESS_FORMAT_JAVASCRIPT = 0,
+        C_EXTENSIONLESS_FORMAT_WASM = 1
     };
 
 public:
@@ -154,7 +156,9 @@ inline ClassInfo& fs_constants_base::class_info()
         { "UV_FS_COPYFILE_FICLONE", ClassData::CONST_Integer, { .intValue = C_UV_FS_COPYFILE_FICLONE } },
         { "COPYFILE_FICLONE", ClassData::CONST_Integer, { .intValue = C_COPYFILE_FICLONE } },
         { "UV_FS_COPYFILE_FICLONE_FORCE", ClassData::CONST_Integer, { .intValue = C_UV_FS_COPYFILE_FICLONE_FORCE } },
-        { "COPYFILE_FICLONE_FORCE", ClassData::CONST_Integer, { .intValue = C_COPYFILE_FICLONE_FORCE } }
+        { "COPYFILE_FICLONE_FORCE", ClassData::CONST_Integer, { .intValue = C_COPYFILE_FICLONE_FORCE } },
+        { "EXTENSIONLESS_FORMAT_JAVASCRIPT", ClassData::CONST_Integer, { .intValue = C_EXTENSIONLESS_FORMAT_JAVASCRIPT } },
+        { "EXTENSIONLESS_FORMAT_WASM", ClassData::CONST_Integer, { .intValue = C_EXTENSIONLESS_FORMAT_WASM } }
     };
 
     static ClassData s_cd = {
