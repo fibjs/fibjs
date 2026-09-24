@@ -64,15 +64,8 @@ fs.statSync = function(path, options) {
             mode: 0o644
         };
     }
-    // fibjs doesn't support options parameter, handle throwIfNoEntry
-    try {
-        return originalStatSync(path);
-    } catch (e) {
-        if (options && options.throwIfNoEntry === false) {
-            return undefined;
-        }
-        throw e;
-    }
+    // fibjs implements the Node.js throwIfNoEntry option natively
+    return originalStatSync(path, options);
 };
 
 })();

@@ -302,7 +302,7 @@ fs.existsSync = function(path) {
     return originalExistsSync(path);
 };
 
-// Patch fs.statSync to handle embedded lib files and options parameter
+// Patch fs.statSync to serve embedded lib files
 const originalStatSync = fs.statSync.bind(fs);
 fs.statSync = function(path, options) {
     const basename = getBasename(path);
@@ -317,15 +317,7 @@ fs.statSync = function(path, options) {
             mode: 0o644
         };
     }
-    // fibjs doesn't support options parameter, handle throwIfNoEntry
-    try {
-        return originalStatSync(path);
-    } catch (e) {
-        if (options && options.throwIfNoEntry === false) {
-            return undefined;
-        }
-        throw e;
-    }
+    return originalStatSync(path, options);
 };
 
 })();
