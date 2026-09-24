@@ -952,6 +952,66 @@ function check_platform_match(pkg_info) {
 }
 
 const name_maps_installation2pkg = {}
+
+/**
+ * @description the node the lockfile already describes for a dependency, so that
+ *              resolving keeps the version it pins instead of taking the newest the
+ *              range allows. npm starts from the tree its lockfile records and only
+ *              resolves what the change touches; without this, a project whose
+ *              node_modules is not there (a fresh clone, a CI checkout) upgrades the
+ *              whole tree the moment package.json gains one dependency. `--update`
+ *              is how the newest the ranges allow is asked for instead
+ */
+function locked_module_info(name, spec, level_info) {
+    if (!ctx.lock_packages)
+        return undefined;
+
+    const entry = lockfile.lookup_entry(ctx.lock_packages, name, spec, semver);
+
+    // only a registry entry can be used as it stands: a link is read from the
+    // directory it points at, a git entry is fetched by the resolve path (with the
+    // sha the lockfile pins), and a package with an install script may ship a
+    // prebuilt binary, which only its packument can be evaluated from
+    if (!entry || entry.link || entry.target_only || is_git_entry(entry))
+        return undefined;
+
+    if (!entry.version || !entry.resolved || entry.has_install_script)
+        return undefined;
+
+    if (!lockfile.spec_satisfied(spec, entry, semver).ok)
+        return undefined;
+
+    install_log('lockfile:', name, '@', entry.version);
+
+    const tarball = lockfile.apply_registry_replace(entry.resolved, ctx.registry);
+
+    return {
+        name: entry.name || name,
+        version: entry.version,
+        bin: entry.bin,
+        dep_vs: util.clone(entry.dependencies || {}),
+        // a lockfile records no devDependencies below the root: they are never
+        // installed for a transitive package, and the walk only asks the root
+        dev_dep_vs: {},
+        opt_dep_vs: util.clone(entry.optionalDependencies || {}),
+        peer_dep_vs: util.clone(entry.peerDependencies || {}),
+        os: entry.os,
+        cpu: entry.cpu,
+        libc: entry.libc,
+        node_modules: {},
+        parent: level_info,
+        dist: {
+            tarball: tarball,
+            integrity: entry.integrity,
+            shasum: null,
+            headers: auth_headers_for(tarball),
+        },
+        pkg_install_typeinfo: { type: 'registry' },
+        from_lock: true,
+        new_module: true,
+    };
+}
+
 /**
  * @description walk throught to generate dep_vs/dev_dep_vs information recursively
  * @param base_dir - directory of `level_info`, relative local dependencies are
@@ -960,6 +1020,15 @@ const name_maps_installation2pkg = {}
  */
 function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.cwd()) {
     if (level_info.new_module) {
+        // the specs this level declares, before they are replaced below by the
+        // versions that were chosen for them. The tree keeps the latter — it is what
+        // `--save` writes into package.json — while a lockfile records the former
+        level_info.declared = {
+            dep_vs: util.clone(level_info.dep_vs || {}),
+            opt_dep_vs: util.clone(level_info.opt_dep_vs || {}),
+            peer_dep_vs: util.clone(level_info.peer_dep_vs || {}),
+        };
+
         // `coroutine.parallel` swallows the exceptions raised inside its fibers and only
         // reports '[20020] Internal error', so failures are collected here and rethrown
         // once the whole dependency level has been walked through.
@@ -1006,8 +1075,28 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                         return;
                     }
 
+                    // `--update`: ask the registry again instead of keeping what is
+                    // already there, and pass that down to the subtree (npm's
+                    // `update <pkg>` refreshes what that package needs too)
+                    const refresh = should_update(dname, level_info);
+
+                    if (refresh) {
+                        level_info.updated = true;
+                        child_level_info = undefined;
+                    } else if (child_level_info === undefined) {
+                        // nothing on disk to start from: the lockfile is the tree npm
+                        // would have started from, and the version it pins is kept
+                        // while it satisfies the spec
+                        const locked = locked_module_info(dname, v, level_info);
+
+                        if (locked)
+                            child_level_info = level_info.node_modules[dname] = locked;
+                    }
+
                     if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
-                        if (!find_version(dname, v, level_info))
+                        // `find_version` answers "an ancestor already provides this",
+                        // which is not the answer a refresh is looking for
+                        if (refresh || !find_version(dname, v, level_info))
                             child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
 
                         // check platform compatibility; skip optional deps that don't match
@@ -1048,6 +1137,13 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                             }
 
                             delete level_info.node_modules[installnation_name]
+
+                            // the node now sits under the name it resolved to, and the
+                            // lockfile has to agree with it: the declared spec follows
+                            // the rename, falling back to what the tree records
+                            if (level_info.declared && level_info.declared[dep_type])
+                                delete level_info.declared[dep_type][installnation_name]
+
                             dname = pkg_name
                         }
                     }
@@ -1171,6 +1267,28 @@ function mark_reachability(rootsnap) {
             mark(child);
         });
     })(rootsnap);
+}
+
+/**
+ * @description does `--update` want this dependency resolved again? Without a
+ *              package argument every dependency is refreshed, with one the named
+ *              package is — and so is everything it needs, because the level that
+ *              was refreshed says so
+ */
+function should_update(name, level_info) {
+    if (!ctx.update)
+        return false;
+
+    if (level_info.updated)
+        return true;
+
+    if (ctx.update.all)
+        return true;
+
+    if (name === ctx.update.name)
+        ctx.update.matched = true;
+
+    return name === ctx.update.name;
 }
 
 /**
@@ -2172,6 +2290,15 @@ function tree_entry(node, p) {
     const has = obj => obj && Object.keys(obj).length > 0;
     const local = node.local_package || node.workspace_package;
 
+    // the spec a package declares, not the version that was chosen for it: npm's
+    // `dependencies` field is the manifest, and a lockfile that recorded exact
+    // versions there would pin everything a reader of it does afterwards
+    const declared = (field, fallback) => {
+        const src = (node.declared && node.declared[field]) || fallback;
+
+        return has(src) ? src : undefined;
+    };
+
     return {
         name: node.name || lockfile.name_from_path(p),
         version: node.version,
@@ -2182,9 +2309,9 @@ function tree_entry(node, p) {
         dev: node.dev_only === true,
         optional: node.optional_only === true,
         dev_optional: node.dev_optional === true,
-        dependencies: has(node.dep_vs) ? node.dep_vs : undefined,
-        optionalDependencies: has(node.opt_dep_vs) ? node.opt_dep_vs : undefined,
-        peerDependencies: has(node.peer_dep_vs) ? node.peer_dep_vs : undefined,
+        dependencies: declared('dep_vs', node.dep_vs),
+        optionalDependencies: declared('opt_dep_vs', node.opt_dep_vs),
+        peerDependencies: declared('peer_dep_vs', node.peer_dep_vs),
         bin: node.bin,
         os: node.os,
         cpu: node.cpu,
@@ -2312,6 +2439,10 @@ const ARG_SPECS = [
     { names: ['--target'], flag: 'target', value: true },
     { names: ['--ignore-scripts'], flag: 'ignore_scripts' },
 
+    // refresh what the ranges allow, like `npm update`: the lockfile follows, the
+    // ranges in package.json do not
+    { names: ['--update'], flag: 'update' },
+
     // npm compatible flags: a script written for npm should not start failing just
     // because fibjs reads the same arguments now. Mapped where fibjs has the same
     // concept, ignored with a notice where it has none.
@@ -2339,6 +2470,9 @@ function usage_text() {
         '  --save-dev, -D          save the installed package into devDependencies',
         '  --target <dir>          install into <dir> (its package.json is used)',
         '  --ignore-scripts        do not run lifecycle scripts',
+        '  --update [package]      resolve again to the newest the ranges allow, and',
+        '                          write the lockfile. package.json is not touched',
+        '',
         'lockfile:',
         '  --ci, --frozen-lockfile install exactly what the lockfile says, and fail',
         '                          when it does not match package.json',
@@ -2533,6 +2667,19 @@ ctx.client = ctx.tls ? new http.Client(ctx.tls) : null;
 ctx.omit = resolve_omit(args.flags, process.env);
 ctx.install_dev = !ctx.omit.dev;
 
+// `--update` refreshes what the ranges allow (npm's `update`): the whole project, or
+// the package that was named (and what that one needs). The named package is not an
+// install of its own: the tree stays whole and the lockfile is written
+ctx.update = args.flags.update
+    ? { all: !ctx.new_pkgname, name: ctx.new_pkgname, matched: false }
+    : null;
+
+if (ctx.update)
+    ctx.new_pkgname = null;
+
+if (args.flags.frozen && ctx.update)
+    arg_error('[install] --update and --ci contradict each other: --ci installs what the lockfile says');
+
 // the lockfile, unless the caller asked to ignore it
 const lock = args.flags.no_package_lock ? null : lockfile.read_lockfile(process.cwd());
 
@@ -2610,8 +2757,9 @@ if (args.flags.frozen) {
 }
 
 // lock-first: a lockfile that already covers package.json is installed as it is.
-// The shape stays npm's, nothing is resolved and nothing is rewritten
-if (lock && !ctx.new_pkgname) {
+// The shape stays npm's, nothing is resolved and nothing is rewritten — unless
+// `--update` was asked for, which is the opposite of that
+if (lock && !ctx.new_pkgname && !args.flags.update) {
     const sync = check_project_sync(rootsnap, lock);
 
     sync.warnings.forEach(w => console.warn(`[install] ${describe_sync_error(w)}`));
@@ -2721,9 +2869,19 @@ if (lock && !ctx.new_pkgname) {
         // caller typed: the name map is what tells the two apart
         const narrowed = name_maps_installation2pkg[ctx.new_pkgname] || ctx.new_pkgname;
 
+        // `--update <pkg>` refreshes that package inside the whole project (npm's
+        // `update` reifies everything), so the tree is not narrowed for it
+        if (!ctx.update)
             rootsnap[dep_type] = { [narrowed]: rootsnap[dep_type][narrowed] };
     }
 })();
+
+// the tree the lockfile describes is where resolving starts from: a version it pins
+// is kept while it satisfies the spec, so that gaining a dependency does not upgrade
+// everything else (npm does the same; only `--update` asks for the newest the ranges
+// allow). With no node_modules to read, the lockfile is the only record of what the
+// project resolved to
+ctx.lock_packages = lock ? lockfile.to_path_map(lock) : null;
 
 // the dev subtree is always resolved — a lockfile describes the whole graph (N14)
 // and one without the dev entries cannot be used by `npm ci` — while whether those
@@ -2731,6 +2889,10 @@ if (lock && !ctx.new_pkgname) {
 walkthrough_deps(rootsnap, true);
 move_up(rootsnap);
 mark_reachability(rootsnap);
+
+// a name that was never asked for is a silent no-op otherwise
+if (ctx.update && !ctx.update.all && !ctx.update.matched)
+    console.warn(`[install] --update: '${ctx.update.name}' is not a dependency of this project, nothing was refreshed`);
 
 if (args.flags.lockfile_only) {
     write_back_lockfile(lock, rootsnap);

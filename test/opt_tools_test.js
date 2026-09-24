@@ -1185,6 +1185,305 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 9: day two — adding a dependency, and updating one =====
+    // A lockfile changes what these two everyday operations do, so both are checked
+    // against a local registry that has two versions of everything: what resolving
+    // picks, what the lockfile records and what lands on the disk can all be read off
+    // without leaving the machine
+    if (isFibjs) describe('day two: adding and updating (Phase 9)', function () {
+        var crypto = require('crypto');
+        var http = require('http');
+        var tls = require('tls');
+
+        var server = null;
+        var port = 0;
+        var fixtureDir = '';
+        var registry = {};   // name -> version -> { tarball, integrity, shasum, manifest }
+
+        /**
+         * @description a package packed the way npm packs one: `package/…` at the
+         *              root of the tarball
+         */
+        function pack(name, version, extra) {
+            var dir = path.join(fixtureDir, name + '-' + version);
+            var pkgDir = path.join(dir, 'package');
+
+            var manifest = Object.assign({ name: name, version: version }, extra || {});
+
+            fs.mkdirSync(pkgDir, { recursive: true });
+            fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(manifest));
+            fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = ' + JSON.stringify(version) + ';\n');
+
+            var file = path.join(fixtureDir, name + '-' + version + '.tgz');
+            var res = child_process.spawnSync('tar', ['czf', file, '-C', dir, 'package'], { stdio: 'pipe' });
+
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            var buf = fs.readFileSync(file);
+
+            return {
+                tarball: buf,
+                manifest: manifest,
+                integrity: 'sha512-' + crypto.createHash('sha512').update(buf).digest('base64'),
+                shasum: crypto.createHash('sha1').update(buf).digest('hex'),
+            };
+        }
+
+        function tarball_url(name, version) {
+            return 'https://localhost:' + port + '/' + name + '/-/' + name + '-' + version + '.tgz';
+        }
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'day2_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+            fs.mkdirSync(fixtureDir, { recursive: true });
+
+            // a package with a dependency, so a refresh has a subtree to carry along
+            registry['day2-pkg'] = {
+                '1.0.0': pack('day2-pkg', '1.0.0', { dependencies: { 'day2-dep': '^1.0.0' } }),
+                '1.0.1': pack('day2-pkg', '1.0.1', { dependencies: { 'day2-dep': '^1.0.0' } }),
+            };
+            registry['day2-dep'] = {
+                '1.0.0': pack('day2-dep', '1.0.0'),
+                '1.0.1': pack('day2-dep', '1.0.1'),
+            };
+            registry['day2-extra'] = {
+                '1.0.0': pack('day2-extra', '1.0.0'),
+                '1.0.1': pack('day2-extra', '1.0.1'),
+            };
+
+            var keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+            var subject = { C: 'CN', O: 'fibjs', CN: 'localhost' };
+            var certPem = crypto.createCertificateRequest({ key: keys.privateKey, subject: subject })
+                .issue({
+                    key: keys.privateKey, issuer: subject,
+                    notBefore: new Date(), notAfter: new Date(Date.now() + 86400000),
+                }).pem;
+            var keyPem = keys.privateKey.export({ format: 'pem' });
+
+            function handler(r) {
+                var tb = /^\/([^/]+)\/-\/([^/]+)\.tgz$/.exec(r.address);
+
+                if (tb) {
+                    var name = tb[1];
+                    var version = tb[2].slice(name.length + 1);
+
+                    if (registry[name] && registry[name][version]) {
+                        r.response.write(registry[name][version].tarball);
+                        return;
+                    }
+                } else {
+                    var wanted = r.address.slice(1);
+
+                    if (registry[wanted]) {
+                        var versions = {};
+
+                        Object.keys(registry[wanted]).forEach(function (v) {
+                            var entry = registry[wanted][v];
+
+                            versions[v] = Object.assign({}, entry.manifest, {
+                                dist: {
+                                    tarball: tarball_url(wanted, v),
+                                    integrity: entry.integrity,
+                                    shasum: entry.shasum,
+                                },
+                            });
+                        });
+
+                        r.response.write(JSON.stringify({
+                            name: wanted,
+                            'dist-tags': { latest: Object.keys(registry[wanted]).sort().pop() },
+                            versions: versions,
+                        }));
+                        return;
+                    }
+                }
+
+                r.response.statusCode = 404;
+                r.response.write('not found');
+            }
+
+            var context = tls.createSecureContext({ cert: certPem, key: keyPem, requestCert: false });
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 45000 + Math.floor(Math.random() * 4000);
+                var candidateServer = http.createServer(context, handler);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        function writePkgjson(targetDir, deps) {
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'day2-proj', version: '1.0.0', dependencies: deps,
+            }, null, 2));
+        }
+
+        /**
+         * @description a project that depends on the local registry only. The proxy
+         *              variables are cleared: this is a loopback connection
+         */
+        function makeProject(deps) {
+            var targetDir = makeTargetDir();
+
+            writePkgjson(targetDir, deps);
+            fs.writeFileSync(path.join(targetDir, '.npmrc'),
+                'registry=https://localhost:' + port + '/\nstrict-ssl=false\n');
+
+            return targetDir;
+        }
+
+        function runDay2(targetDir, args) {
+            return runInstaller(targetDir, args || ['--install'], {
+                env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' },
+            });
+        }
+
+        function lockOf(targetDir) {
+            return JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'));
+        }
+
+        function locked(targetDir, name) {
+            var entry = lockOf(targetDir).packages['node_modules/' + name];
+
+            return entry ? entry.version : null;
+        }
+
+        function installed(targetDir, name) {
+            var file = path.join(targetDir, 'node_modules', name, 'package.json');
+
+            return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')).version : null;
+        }
+
+        it('records the spec a package declares, not the version it resolved to', function () {
+            var targetDir = makeProject({ 'day2-pkg': '^1.0.0' });
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var entry = lockOf(targetDir).packages['node_modules/day2-pkg'];
+
+            assert.equal(entry.version, '1.0.1', 'the newest the range allows is what is installed');
+            assert.equal(entry.dependencies['day2-dep'], '^1.0.0',
+                'npm records the manifest spec here, and an exact version would pin every ' +
+                'later reader of the lockfile: ' + JSON.stringify(entry.dependencies));
+        });
+
+        it('keeps the version the lockfile pins when package.json gains a dependency', function () {
+            var targetDir = makeProject({ 'day2-pkg': '^1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0, diag(targetDir, runDay2(targetDir)));
+            assert.equal(locked(targetDir, 'day2-dep'), '1.0.1');
+
+            // the lockfile is put back on the older day2-dep, the way a project that
+            // pinned it before would have it
+            var lock = lockOf(targetDir);
+
+            lock.packages['node_modules/day2-dep'] = {
+                version: '1.0.0',
+                resolved: tarball_url('day2-dep', '1.0.0'),
+                integrity: registry['day2-dep']['1.0.0'].integrity,
+            };
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify(lock, null, 2));
+
+            // a dependency is added, and node_modules is thrown away: this is the
+            // fresh clone, where the lockfile is the only record of what was resolved
+            writePkgjson(targetDir, { 'day2-pkg': '^1.0.0', 'day2-extra': '1.0.0' });
+            rmdirSync(path.join(targetDir, 'node_modules'));
+
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(locked(targetDir, 'day2-extra'), '1.0.0', 'the new dependency is installed');
+            assert.equal(locked(targetDir, 'day2-dep'), '1.0.0',
+                'the version the lockfile pins is kept: gaining one dependency must not ' +
+                'upgrade the rest (npm keeps it too)');
+            assert.equal(installed(targetDir, 'day2-dep'), '1.0.0', 'and it is that version on the disk');
+        });
+
+        it('--update resolves again to the newest the ranges allow', function () {
+            var targetDir = makeProject({ 'day2-pkg': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+            assert.equal(locked(targetDir, 'day2-pkg'), '1.0.0');
+
+            // a widened range is already satisfied: nothing to do, which is exactly
+            // why refreshing needs a word of its own
+            writePkgjson(targetDir, { 'day2-pkg': '^1.0.0' });
+            assert.equal(runDay2(targetDir).status, 0);
+            assert.equal(locked(targetDir, 'day2-pkg'), '1.0.0', 'a satisfied lockfile is left alone');
+
+            var res = runDay2(targetDir, ['--install', '--update']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(locked(targetDir, 'day2-pkg'), '1.0.1', 'the newest the range allows');
+            assert.equal(locked(targetDir, 'day2-dep'), '1.0.1', 'and what that package needs follows it');
+            assert.equal(installed(targetDir, 'day2-pkg'), '1.0.1', 'the disk follows the lockfile');
+            assert.equal(JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'))
+                .dependencies['day2-pkg'], '^1.0.0', 'package.json is not touched');
+        });
+
+        it('--update <pkg> refreshes that package only', function () {
+            var targetDir = makeProject({ 'day2-pkg': '1.0.0', 'day2-extra': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+
+            writePkgjson(targetDir, { 'day2-pkg': '^1.0.0', 'day2-extra': '^1.0.0' });
+            assert.equal(runDay2(targetDir).status, 0);
+
+            var res = runDay2(targetDir, ['--install', '--update', 'day2-extra']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(locked(targetDir, 'day2-extra'), '1.0.1', 'the named package is refreshed');
+            assert.equal(locked(targetDir, 'day2-pkg'), '1.0.0', 'the others are left where they are');
+        });
+
+        it('says so when --update names something that is not a dependency', function () {
+            var targetDir = makeProject({ 'day2-pkg': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+
+            var res = runDay2(targetDir, ['--install', '--update', 'not-a-dep']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(outputOf(res).indexOf('is not a dependency of this project') > -1, outputOf(res));
+            assert.equal(locked(targetDir, 'day2-pkg'), '1.0.0', 'and nothing moved');
+        });
+
+        it('refuses --update together with --ci', function () {
+            var targetDir = makeProject({ 'day2-pkg': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+
+            var res = runDay2(targetDir, ['--install', '--update', '--ci']);
+
+            assert.notEqual(res.status, 0, 'a frozen install installs what the lockfile says' + diag(targetDir, res));
+            assert.ok(outputOf(res).indexOf('contradict') > -1, outputOf(res));
+        });
+
+        it('lists the flags it has in the usage text, and calls none of them planned', function () {
+            var res = runInstaller(makeTargetDir(), ['--install', '--not-a-flag']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'an unknown option is still an error' + out);
+            assert.ok(out.indexOf('--update [package]') > -1, out);
+            assert.ok(out.indexOf('--ci, --frozen-lockfile') > -1, out);
+            assert.ok(out.indexOf('planned') === -1, 'the usage text describes what is there: ' + out);
+        });
+    });
+
     // ===== Phase 7: command semantics =====
     // offline: every dependency is a local package, so what `omit` leaves on the
     // disk can be read off without a registry
