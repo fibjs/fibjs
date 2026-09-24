@@ -14,6 +14,7 @@ const untar = require('internal/helpers/untar');
 
 const helpers_pkg = require('internal/helpers/package');
 const helpers_string = require('internal/helpers/string');
+const lockfile = require('internal/helpers/lockfile');
 const versioning = require('internal/helpers/versioning');
 const win32_cli = require('internal/helpers/win32_cli');
 const CST = require('internal/constant');
@@ -103,12 +104,17 @@ function read_peer_dep_vs(pkgjson) {
     return peer_dep_vs;
 }
 
-function http_get(u, { quit_if_error = true } = {}) {
+function http_get(u, { quit_if_error = true, headers = null } = {}) {
     let cnt = 0;
 
     while (cnt++ < 10)
         try {
-            const res = http.getSync(u);
+            const opts = headers ? { headers: headers } : undefined;
+
+            // `.npmrc` may ask for a private CA or for no verification at all, and
+            // those are client options in fibjs: `http.getSync(url, opts)` takes
+            // request options, so a client has to be built for them
+            const res = ctx.client ? ctx.client.getSync(u, opts) : http.getSync(u, opts);
             if (!res.body)
                 throw new Error(`[http_get] get nothing from url ${u}`);
 
@@ -412,6 +418,17 @@ function create_local_symlinks(root_path, packages) {
 
             link_or_copy_dir(target_path, link_path);
             installed_paths[link_path] = true;
+
+            // a local package's binaries are linked like any other package's: the
+            // lockfile does not describe them for a link, its package.json does
+            try {
+                const local_pj = path.join(target_path, 'package.json');
+
+                if (fs.exists(local_pj))
+                    link_bins(pkg.name, JSON.parse(fs.readTextFile(local_pj)).bin, [node_modules_path]);
+            } catch (e) {
+                console.log(e);
+            }
         } catch (e) {
             console.warn(`[install] Failed to install ${pkg.name}:`, e.stack || e.message);
         }
@@ -507,8 +524,10 @@ function setup_script_env(pkgjson, pkg_path, event) {
 
 /**
  * @description run lifecycle scripts for a single module
+ * @param skip events not to run (the root's `preinstall` has already run before the
+ *             install started, see `run_root_preinstall()`)
  */
-function run_module_scripts(pkg_path, pkg_info, is_root) {
+function run_module_scripts(pkg_path, pkg_info, is_root, skip) {
     var pkgjson;
     try {
         pkgjson = JSON.parse(fs.readTextFile(path.join(pkg_path, 'package.json')));
@@ -524,6 +543,9 @@ function run_module_scripts(pkg_path, pkg_info, is_root) {
         events = ['preinstall', 'install', 'postinstall', 'prepublish', 'preprepare', 'prepare', 'postprepare'];
     else
         events = ['install', 'postinstall'];
+
+    if (skip)
+        events = events.filter(e => skip.indexOf(e) < 0);
 
     for (var i = 0; i < events.length; i++) {
         var event = events[i];
@@ -567,6 +589,45 @@ function run_module_scripts(pkg_path, pkg_info, is_root) {
 }
 
 /**
+ * @description the root's `preinstall` runs *before* anything is installed, and a
+ *              failure stops the install right there — npm does the same for both
+ *              `install` and `ci` (a script that prepares the tree must not run
+ *              after the tree has been built)
+ */
+function run_root_preinstall() {
+    const pj = path.join(process.cwd(), 'package.json');
+
+    if (!fs.exists(pj))
+        return;
+
+    let pkgjson;
+    try {
+        pkgjson = JSON.parse(fs.readTextFile(pj));
+    } catch (e) {
+        return;
+    }
+
+    if (!pkgjson.scripts || !pkgjson.scripts.preinstall)
+        return;
+
+    install_log('  preinstall ' + (pkgjson.name || '') + '@' + (pkgjson.version || ''));
+
+    const res = child_process.spawnSync(process.execPath, ['preinstall'], {
+        cwd: process.cwd(),
+        env: setup_script_env(pkgjson, process.cwd(), 'preinstall'),
+        stdio: 'pipe',
+    });
+
+    if (res.status !== 0) {
+        console.error('[lifecycle] ' + (pkgjson.name || '') + ': preinstall exited with code ' + res.status);
+        if (res.stdout) install_log('  stdout:', String(res.stdout).trim());
+        if (res.stderr) install_log('  stderr:', String(res.stderr).trim());
+        console.error('[install] nothing was installed');
+        process.exit(1);
+    }
+}
+
+/**
  * @description recursively run lifecycle scripts in topological order (children first)
  */
 function run_lifecycle_scripts(level_info, base_path, is_root) {
@@ -574,12 +635,18 @@ function run_lifecycle_scripts(level_info, base_path, is_root) {
     for (var k in level_info.node_modules) {
         var child = level_info.node_modules[k];
         var child_path = path.join(base_path, 'node_modules', k);
+
+        // a dependency `omit` leaves out is not on disk: there is nothing to run
+        // (the lockfile describes it, the install does not have it)
+        if (omitted_by(child))
+            continue;
+
         run_lifecycle_scripts(child, child_path, false);
     }
 
     // process current module
     if (level_info.new_module)
-        run_module_scripts(base_path, level_info, is_root);
+        run_module_scripts(base_path, level_info, is_root, is_root ? ['preinstall'] : null);
 }
 
 // ---------------------- LIFECYCLE SCRIPTS :end ------------------------- //
@@ -601,10 +668,13 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
         case 'registry':
             let info = pkg_registrytype_module_infos[m];
             if (info === undefined) {
-                const registry_url = `${rootsnap.registry}${encodeURIComponent(pkg_install_typeinfo.registry_pkg_path)}`
+                const registry_url = `${registry_for_package(m)}${encodeURIComponent(pkg_install_typeinfo.registry_pkg_path)}`
                 install_log('fetch metadata:', m, "=>", registry_url);
 
-                const res = http_get(registry_url, { quit_if_error: false });
+                const res = http_get(registry_url, {
+                    quit_if_error: false,
+                    headers: auth_headers_for(registry_url),
+                });
 
                 if (!res)
                     throw registry_lookup_error(m, v, parent, registry_url, 'no response, network unreachable or proxy rejected the request');
@@ -1026,6 +1096,98 @@ function move_up(level_info, parent) {
     }
 }
 
+/**
+ * @description mark the nodes a production edge cannot reach. npm answers the same
+ *              question in its ideal tree, and the answer decides two things: what
+ *              the lockfile says (`dev` / `optional`) and whether a package is
+ *              installed at all — a lockfile always describes the whole graph (N14),
+ *              an install may not
+ */
+function mark_reachability(rootsnap) {
+    let next_id = 0;
+    const reach = { deps: {}, peer: {}, optional: {}, dev: {} };
+
+    function id_of(node) {
+        if (node._reach_id === undefined)
+            node._reach_id = ++next_id;
+
+        return node._reach_id;
+    }
+
+    // the nearest ancestor that has the name, then upwards: the tree is hoisted, so
+    // most of them live at the root
+    function lookup(from, name) {
+        let cur = from;
+
+        while (cur) {
+            if (cur.node_modules && cur.node_modules[name])
+                return cur.node_modules[name];
+            cur = cur.parent;
+        }
+
+        return rootsnap.node_modules[name] || null;
+    }
+
+    function visit(kind, name, from) {
+        const node = lookup(from, name);
+        if (!node)
+            return;
+
+        const id = id_of(node);
+        if (reach[kind][id])
+            return;
+        reach[kind][id] = true;
+
+        const deps = Object.assign({}, node.dep_vs, node.peer_dep_vs, node.opt_dep_vs);
+        Object.keys(deps).forEach(child => visit(kind, child, node));
+    }
+
+    [
+        ['deps', rootsnap.dep_vs || {}],
+        ['peer', rootsnap.peer_dep_vs || {}],
+        ['optional', rootsnap.opt_dep_vs || {}],
+        ['dev', rootsnap.dev_dep_vs || {}],
+    ].forEach(kind => {
+        Object.keys(kind[1]).forEach(name => visit(kind[0], name, rootsnap));
+    });
+
+    (function mark(node) {
+        Object.keys(node.node_modules || {}).forEach(name => {
+            const child = node.node_modules[name];
+            const id = id_of(child);
+            const deps = reach.deps[id] === true;
+            const peer = reach.peer[id] === true;
+            const optional = reach.optional[id] === true;
+            const dev = reach.dev[id] === true;
+
+            // npm's `dev` / `optional` / `devOptional` say which kind of edge reaches
+            // an entry when nothing else does
+            child.dev_only = !deps && !peer && !optional && dev;
+            child.optional_only = !deps && !peer && optional;
+            child.dev_optional = !deps && !peer && dev && optional;
+            // what `--omit=peer` leaves out
+            child.peer_only = !deps && !optional && !dev && peer;
+
+            mark(child);
+        });
+    })(rootsnap);
+}
+
+/**
+ * @description does `omit` leave this node out of the install? The lockfile still
+ *              describes it: npm's omit is about the disk, not about the graph (N14)
+ */
+function omitted_by(node) {
+    if (node.dev_only && ctx.omit.dev)
+        return true;
+    if (node.optional_only && ctx.omit.optional)
+        return true;
+    if (node.peer_only && ctx.omit.peer)
+        return true;
+
+    return false;
+}
+
 const mv_paths = {};
 function generate_mv_paths(level_info, parent_p) {
     if (level_info.new_module) {
@@ -1098,6 +1260,74 @@ function find_tar_home(untar_files) {
     return helpers_string.ensure_unsuffx(archive_root_name);
 }
 
+/**
+ * @description fetch and unpack the prebuilt addon a package asks for (its own
+ *              `binary` field). npm has no such field, so a lockfile never describes
+ *              it: this is fetched without an integrity to check against, which is
+ *              the limitation recorded in the plan (§7 R10)
+ */
+function download_binary_task(mvm) {
+    install_log("[install addon]", mvm.binary.hosted_tarball);
+
+    var binary_tgz;
+    for (let _dl = 0; _dl < 3; _dl++) {
+        try {
+            var binary_r = http_get(mvm.binary.hosted_tarball, {
+                headers: auth_headers_for(mvm.binary.hosted_tarball)
+            });
+            if (binary_r.statusCode !== 200) {
+                console.error('[download] error:', mvm.name, mvm.binary.hosted_tarball, `-> HTTP ${binary_r.statusCode}`);
+                process.exit();
+            }
+            binary_tgz = binary_r.bytes();
+            binary_r = null;
+            break;
+        } catch (e) {
+            console.log(e);
+            console.warn(`[download] retry ${_dl + 1}: ${mvm.binary.hosted_tarball}`);
+        }
+    }
+    if (!binary_tgz) {
+        console.error('[download] failed:', mvm.name, 'prebuilt binary', mvm.binary.hosted_tarball);
+        process.exit(-1);
+    }
+
+    var tgz = binary_tgz;
+
+    let t;
+    if (tgz[0] === 0x1f && tgz[1] === 0x8b)
+        t = zlib.gunzip(tgz);
+    else
+        t = tgz;
+    tgz = null;
+
+    const untar_files = untar(t.buffer);
+    t = null;
+
+    const archive_root_name = find_tar_home(untar_files);
+
+    mvm.base_path.forEach(bp => {
+        untar_files.forEach(file => {
+            if (file.typeflag == "1") {
+                const read_files = untar_files.filter(f => f.filename == file.linkname);
+                file.typeflag = "0";
+                file.linkname = "";
+                file.fileData = read_files[0].fileData;
+                file.size = read_files[0].size;
+            }
+
+            if (file.typeflag == "0") {
+                var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
+                fs.mkdir(path.dirname(bpath), { recursive: true });
+                fs.writeFile(bpath, file.fileData);
+                fs.chmod(bpath, parseInt(file.mode, 8));
+            }
+        });
+    });
+
+    install_log("extract addon:", mvm.binary.hosted_tarball);
+}
+
 function download_module() {
     coroutine.parallel(
         Object.keys(mv_paths),
@@ -1121,7 +1351,9 @@ function download_module() {
                     let tgz;
                     for (let _dl = 0; _dl < 3; _dl++) {
                         try {
-                            var r = http_get(mvm.dist.tarball);
+                            var r = http_get(mvm.dist.tarball, {
+                                headers: mvm.dist.headers || auth_headers_for(mvm.dist.tarball)
+                            });
                             if (r.statusCode !== 200) {
                                 console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
                                 process.exit();
@@ -1139,9 +1371,12 @@ function download_module() {
                         process.exit(-1);
                     }
 
-                    if (sha1(tgz) !== mvm.dist.shasum) {
-                        console.error('[download] shasum mismatch:', mvm.name, mvm.dist.tarball);
-                        process.exit();
+                    // the lockfile is what a frozen install trusts: an entry it cannot
+                    // verify is refused (the resolve path only warns, npm does not
+                    // verify at all there)
+                    if (!verify_tarball(tgz, mvm, mvm.frozen === true)) {
+                        console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
+                        process.exit(-1);
                     }
 
                     let t;
@@ -1254,110 +1489,66 @@ function download_module() {
                     break
             }
 
-            if (mvm.binary) {
-                install_log("[install addon]", mvm.binary.hosted_tarball);
-                var binary_tgz;
-                for (let _dl = 0; _dl < 3; _dl++) {
-                    try {
-                        var binary_r = http_get(mvm.binary.hosted_tarball);
-                        if (binary_r.statusCode !== 200) {
-                            console.error('[download] error:', mvm.name, mvm.binary.hosted_tarball, `-> HTTP ${binary_r.statusCode}`);
-                            process.exit();
-                        }
-                        binary_tgz = binary_r.bytes();
-                        binary_r = null;
-                        break;
-                    } catch (e) {
-                        console.log(e);
-                        console.warn(`[download] retry ${_dl + 1}: ${mvm.binary.hosted_tarball}`);
-                    }
-                }
-                if (!binary_tgz) {
-                    console.error('[download] failed:', mvm.name, 'prebuilt binary', mvm.binary.hosted_tarball);
-                    process.exit(-1);
-                }
+            if (mvm.binary)
+                download_binary_task(mvm);
 
-                var tgz = binary_tgz;
-
-                let t;
-                if (tgz[0] === 0x1f && tgz[1] === 0x8b)
-                    t = zlib.gunzip(tgz);
-                else
-                    t = tgz;
-                tgz = null;
-
-                const untar_files = untar(t.buffer);
-                t = null;
-
-                archive_root_name = find_tar_home(untar_files);
-
-                mvm.base_path.forEach(bp => {
-                    untar_files.forEach(file => {
-                        if (file.typeflag == "1") {
-                            const read_files = untar_files.filter(f => f.filename == file.linkname);
-                            file.typeflag = "0";
-                            file.linkname = "";
-                            file.fileData = read_files[0].fileData;
-                            file.size = read_files[0].size;
-                        }
-
-                        if (file.typeflag == "0") {
-                            var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
-                            fs.mkdir(path.dirname(bpath), { recursive: true });
-                            fs.writeFile(bpath, file.fileData);
-                            fs.chmod(bpath, parseInt(file.mode, 8));
-                        }
-                    });
-                });
-
-                install_log("extract addon:", mvm.binary.hosted_tarball);
-            }
-
-            if (mvm.bin) {
-                var bins = mvm.bin;
-
-                if (util.isString(bins)) {
-                    var bins1 = {};
-                    bins1[path.basename(bins)] = bins;
-                    bins = bins1;
-                }
-
-                for (var bin in bins) {
-                    mvm.base_path.forEach(p => {
-                        var bin_path = path.join(p, '.bin');
-                        var cli_link = path.join(bin_path, bin);
-                        var cli_file = path.join(p, mvm.name, bins[bin]);
-                        var cli_file_r = path.relative(bin_path, cli_file);
-
-                        fs.mkdir(bin_path, { recursive: true });
-
-                        try {
-                            if (process.platform === 'win32') {
-                                const regex = /^#!\/usr\/bin\/(?:env\s+)?([^\s]+)$/gm;
-                                const script = fs.readTextFile(cli_file);
-                                const match = regex.exec(script);
-                                const sh = match ? match[1] : 'fibjs';
-
-                                const scripts = win32_cli(sh, cli_file_r);
-
-                                fs.writeFile(cli_link, scripts.sh);
-                                fs.writeFile(cli_link + ".cmd", scripts.cmd);
-                                fs.writeFile(cli_link + ".ps1", scripts.ps1);
-                            } else {
-                                fs.symlink(cli_file_r, cli_link);
-                                fs.chmod(cli_file, 0o755);
-                            }
-                        } catch (e) {
-                            console.log(e);
-                        }
-
-                        install_log("install cli:", cli_link);
-                    });
-                }
-            }
+            if (mvm.bin)
+                link_bins(mvm.name, mvm.bin, mvm.base_path);
         },
         CST.DEFAULT_FIBERS
     );
+}
+
+/**
+ * @description link the binaries a package declares into the `.bin` directory of
+ *              every place it was installed. npm does this for every kind of
+ *              package, a local one included
+ * @param bin the package's `bin` field (a string or a name → file map)
+ */
+function link_bins(name, bin, base_paths) {
+    if (!bin)
+        return;
+
+    var bins = bin;
+
+    if (util.isString(bins)) {
+        var single = {};
+        single[path.basename(bins)] = bins;
+        bins = single;
+    }
+
+    for (var b in bins) {
+        base_paths.forEach(p => {
+            var bin_path = path.join(p, '.bin');
+            var cli_link = path.join(bin_path, b);
+            var cli_file = path.join(p, name, bins[b]);
+            var cli_file_r = path.relative(bin_path, cli_file);
+
+            fs.mkdir(bin_path, { recursive: true });
+
+            try {
+                if (process.platform === 'win32') {
+                    const regex = /^#!\/usr\/bin\/(?:env\s+)?([^\s]+)$/gm;
+                    const script = fs.readTextFile(cli_file);
+                    const match = regex.exec(script);
+                    const sh = match ? match[1] : 'fibjs';
+
+                    const scripts = win32_cli(sh, cli_file_r);
+
+                    fs.writeFile(cli_link, scripts.sh);
+                    fs.writeFile(cli_link + ".cmd", scripts.cmd);
+                    fs.writeFile(cli_link + ".ps1", scripts.ps1);
+                } else {
+                    fs.symlink(cli_file_r, cli_link);
+                    fs.chmod(cli_file, 0o755);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+
+            install_log("install cli:", cli_link);
+        });
+    }
 }
 
 function dump_snap() {
@@ -1438,20 +1629,880 @@ function update_pkgjson(rootsnap) {
 
 const ctx = {};
 
+// ---------------------- FROZEN INSTALL :start ------------------------- //
+
+/**
+ * @description remove a path, whatever it is
+ */
+function remove_path(p) {
+    try {
+        const st = fs.lstat(p);
+
+        if (st.isDirectory() && !st.isSymbolicLink())
+            rmdir_recursive(p);
+        else
+            fs.unlink(p);
+    } catch (e) {
+        console.warn(`[install] could not remove ${p}: ${e.message}`);
+    }
+}
+
+/**
+ * @description remove a directory tree
+ */
+function rmdir_recursive(dir) {
+    if (!fs.exists(dir))
+        return;
+
+    fs.readdir(dir).forEach(name => {
+        const p = path.join(dir, name);
+
+        try {
+            const st = fs.lstat(p);
+            if (st.isDirectory() && !st.isSymbolicLink())
+                rmdir_recursive(p);
+            else
+                fs.unlink(p);
+        } catch (e) {
+            console.warn(`[install] could not remove ${p}: ${e.message}`);
+        }
+    });
+
+    try {
+        fs.rmdir(dir);
+    } catch (e) {
+        console.warn(`[install] could not remove ${dir}: ${e.message}`);
+    }
+}
+
+/**
+ * @description where a temporary git checkout goes: the OS temp directory, not
+ *              node_modules (that is being rebuilt while this runs)
+ */
+function tmp_dir() {
+    return process.env.TMPDIR || process.env.TEMP || process.env.TMP || '/tmp';
+}
+
+/**
+ * @description run git, loudly
+ */
+function git_run(args) {
+    const res = child_process.spawnSync('git', args, { stdio: 'pipe' });
+
+    if (res.error)
+        throw new Error(`git ${args[0]} could not run: ${res.error.message}`);
+    if (res.status !== 0)
+        throw new Error(`git ${args.join(' ')} failed (${res.status}): ${String(res.stderr || '').trim()}`);
+
+    return res;
+}
+
+/**
+ * @description a lock entry that comes from a git repository
+ */
+function is_git_entry(entry) {
+    const resolved = entry.resolved || '';
+
+    return resolved.indexOf('git+') === 0 || resolved.indexOf('git://') === 0;
+}
+
+/**
+ * @description the tarball url of a registry entry that carries no `resolved` (a
+ *              lock written with `omit-lockfile-registry-resolved` looks like that):
+ *              npm derives it from the registry and the package name
+ */
+function default_tarball_url(registry, entry) {
+    const base = String(registry || 'https://registry.npmjs.org/').replace(/\/+$/, '');
+    const slash = entry.name.indexOf('/');
+    const short = entry.name.charAt(0) === '@' && slash > 0 ? entry.name.slice(slash + 1) : entry.name;
+
+    return `${base}/${entry.name}/-/${short}-${entry.version}.tgz`;
+}
+
+/**
+ * @description verify a tarball against what the lockfile (or the registry
+ *              metadata) says about it: the SRI string when there is one, the sha1
+ *              `dist.shasum` otherwise. `strict` refuses an entry there is nothing
+ *              to verify with, which is what a frozen install wants
+ */
+function verify_tarball(buf, task, strict) {
+    const dist = task.dist || {};
+
+    if (dist.integrity) {
+        const res = lockfile.verify_integrity(buf, dist.integrity);
+
+        if (!res.ok) {
+            console.error(`[install] integrity mismatch: ${task.name}`);
+            console.error(`  source  : ${dist.tarball}`);
+            console.error(`  expected: ${res.expected}`);
+            console.error(`  actual  : ${res.actual}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    if (dist.shasum) {
+        if (sha1(buf) !== dist.shasum) {
+            console.error(`[install] shasum mismatch: ${task.name} ${dist.tarball}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    if (strict) {
+        console.error(`[install] ${task.name}: the lockfile carries no integrity for`);
+        console.error(`  ${dist.tarball}`);
+        console.error('  pass --no-strict-integrity to install it unverified');
+        return false;
+    }
+
+    console.warn(`[install] ${task.name}: nothing to verify the tarball with, installing unverified`);
+    return true;
+}
+
+/**
+ * @description the header a fetch of that url needs, from the `.npmrc` entries the
+ *              caller read (null when the url needs no credentials)
+ */
+function auth_headers_for(u) {
+    if (!ctx.npmrc || !ctx.npmrc.auth)
+        return null;
+
+    return lockfile.auth_header_for_url(u, ctx.npmrc.auth);
+}
+
+/**
+ * @description the TLS settings `.npmrc` asks for, as the options an http client
+ *              takes. fibjs verifies through `rejectUnverified` (its
+ *              `rejectUnauthorized` is the server side flag), and a private CA is
+ *              handed over in `ca`
+ */
+function tls_options(npmrc) {
+    if (!npmrc)
+        return null;
+
+    const tls = {};
+
+    if (npmrc.strict_ssl === false)
+        tls.rejectUnverified = false;
+
+    let ca = npmrc.ca;
+
+    if (!ca && npmrc.cafile) {
+        const file = path.resolve(npmrc.cafile);
+
+        if (fs.exists(file))
+            ca = fs.readTextFile(file);
+        else
+            console.warn(`[install] cafile not found: ${file}`);
+    }
+
+    if (ca)
+        tls.ca = ca;
+
+    return Object.keys(tls).length ? tls : null;
+}
+
+/**
+ * @description the registry a package is fetched from: a scope registry when
+ *              `.npmrc` has one, the configured registry otherwise
+ */
+function registry_for_package(name) {    if (ctx.npmrc && name && name.charAt(0) === '@') {
+        const slash = name.indexOf('/');
+        const scope = slash > 0 ? name.slice(0, slash) : name;
+
+        if (ctx.npmrc.scoped[scope])
+            return normalize_registry_origin(ctx.npmrc.scoped[scope]);
+    }
+
+    return ctx.registry || rootsnap.registry;
+}
+
+/**
+ * @description empty `node_modules` the way `npm ci` does: every entry goes. It
+ *              happens only after the lockfile has been accepted, so a failed check
+ *              never touches what is on disk
+ */
+function clear_node_modules(root) {
+    const nm = path.join(root, 'node_modules');
+
+    if (!fs.exists(nm))
+        return;
+
+    install_log('clear node_modules');
+    fs.readdir(nm).forEach(name => remove_path(path.join(nm, name)));
+}
+
+/**
+ * @description the offline sync check with the project's workspaces filled in
+ */
+function check_project_sync(rootsnap, lock) {
+    return lockfile.check_sync(rootsnap.pkgjson, lock, {
+        semver: semver,
+        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces).map(p => ({
+            name: p.name,
+            path: p.relative_path,
+            pkgjson: p.package_json,
+        })),
+    });
+}
+
+/**
+ * @description the sync check errors in npm's words. npm resolves the spec online
+ *              to print a version in `Missing:`; this prints the spec instead (see
+ *              the plan §4.5 for why it deliberately does not go online)
+ */
+function describe_sync_error(e) {
+    if (e.kind === 'Missing')
+        return `Missing: ${e.name}@${e.spec} from lock file` +
+            (e.via && e.via !== 'package.json' ? ` (required by ${e.via})` : '');
+
+    return `Invalid: lock file's ${e.name}@${e.locked} does not satisfy ${e.name}@${e.spec}` +
+        (e.why ? ` (${e.why})` : '');
+}
+
+/**
+ * @description is that path already what the lockfile asks for? A lock-first
+ *              install keeps what is on disk and fills the gaps the way npm's reify
+ *              does — emptying node_modules is what `npm ci` is for
+ */
+function lock_entry_satisfied(root, p, entry) {
+    const dest = path.join(root, p);
+
+    if (!fs.exists(dest))
+        return false;
+
+    if (entry.link) {
+        try {
+            if (!fs.lstat(dest).isSymbolicLink())
+                return false;
+
+            return path.resolve(fs.realpath(dest)) === path.resolve(root, entry.resolved || '');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    const pj = path.join(dest, 'package.json');
+    if (!fs.exists(pj))
+        return false;
+
+    try {
+        return JSON.parse(fs.readTextFile(pj)).version === entry.version;
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * @description node_modules/.package-lock.json is npm's note of what it installed.
+ *              The installer changes node_modules, so whatever is in there is stale
+ *              now: npm has checks for that, but removing it cannot hurt
+ */
+function remove_hidden_lock(root) {
+    const p = path.join(root, 'node_modules', '.package-lock.json');
+
+    if (fs.exists(p)) {
+        remove_path(p);
+        install_log('remove stale node_modules/.package-lock.json');
+    }
+}
+
+/**
+ * @description install exactly what the lockfile describes: the `packages` path
+ *              table *is* the final node_modules layout, so nothing is resolved,
+ *              hoisted or moved and the tree has npm's shape by construction
+ * @param opts { registry, strict_integrity, incremental }
+ */
+function install_from_lock(lock, opts) {
+    const o = opts || {};
+    const packages = lockfile.to_path_map(lock);
+    const root = process.cwd();
+    const git_entries = [];
+    const installed = [];
+    const plan = { registry: 0, link: 0, git: 0, skipped: 0, kept: 0 };
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        // a link target is not installed on its own
+        if (entry.target_only)
+            return;
+
+        // `omit` is about the disk, not about the lockfile: the entry stays described
+        if ((entry.dev && o.omit && o.omit.dev) || (entry.optional && o.omit && o.omit.optional)) {
+            plan.skipped++;
+            install_log('skip (omit):', p);
+            return;
+        }
+
+        // npm records every platform in the lockfile, only the matching entries land
+        if (entry.optional && !check_platform_match(entry)) {
+            plan.skipped++;
+            install_log('skip (platform):', p);
+            return;
+        }
+
+        // lock-first install: keep what is already there and correct
+        if (o.incremental && lock_entry_satisfied(root, p, entry)) {
+            plan.kept++;
+            return;
+        }
+
+        const dest = path.join(root, p);
+
+        if (entry.link) {
+            const target = path.resolve(root, entry.resolved || '');
+            let bin = entry.bin;
+
+            if (!bin) {
+                // a lockfile link entry carries no `bin`; the package it points at does
+                try {
+                    bin = JSON.parse(fs.readTextFile(path.join(target, 'package.json'))).bin;
+                } catch (e) {
+                    bin = undefined;
+                }
+            }
+
+            mv_paths['link:' + p] = {
+                name: entry.name,
+                pkg_install_typeinfo: { type: 'local', local_path: target },
+                bin: bin,
+                dist: null,
+                base_path: [path.dirname(dest)],
+            };
+            plan.link++;
+            installed.push(p);
+            return;
+        }
+
+        if (is_git_entry(entry)) {
+            git_entries.push({ entry: entry, dest: dest });
+            plan.git++;
+            installed.push(p);
+            return;
+        }
+
+        const tarball = entry.resolved
+            ? lockfile.apply_registry_replace(entry.resolved, o.registry, o.registry_policy)
+            : default_tarball_url(o.registry, entry);
+
+        const mv = entry.name + '@' + entry.version;
+        const task = mv_paths[mv] || (mv_paths[mv] = {
+            name: entry.name,
+            pkg_install_typeinfo: { type: 'registry' },
+            bin: entry.bin,
+            binary: undefined,
+            // an entry the lockfile cannot vouch for is refused unless the caller
+            // asked for `--no-strict-integrity`
+            frozen: o.strict_integrity !== false,
+            dist: {
+                tarball: tarball,
+                integrity: entry.integrity,
+                shasum: null,
+                headers: auth_headers_for(tarball),
+            },
+            base_path: [],
+        });
+
+        task.base_path.push(path.dirname(dest));
+        plan.registry++;
+        installed.push(p);
+    });
+
+    install_log(`[install] lockfile: ${plan.registry} registry, ${plan.link} link, ${plan.git} git` +
+        (plan.skipped ? `, ${plan.skipped} skipped for this platform` : '') +
+        (plan.kept ? `, ${plan.kept} already in place` : ''));
+
+    download_module();
+    install_git_entries(git_entries);
+    install_lock_binaries(lock, root, installed);
+
+    return { plan: plan, installed: installed };
+}
+
+/**
+ * @description the prebuilt addons of the packages a frozen install just put in
+ *              place: the lockfile cannot describe them (npm has no such field), so
+ *              each installed package.json is asked. A linked package is included,
+ *              the way the resolve path does it for local packages
+ * @param only the paths that were installed just now (everything when omitted)
+ */
+function install_lock_binaries(lock, root, only) {
+    const packages = lockfile.to_path_map(lock);
+    const filter = only ? {} : null;
+    let count = 0;
+
+    if (only)
+        only.forEach(p => filter[p] = true);
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        if (entry.target_only)
+            return;
+
+        if (filter && !filter[p])
+            return;
+
+        const pj = path.join(root, p, 'package.json');
+        if (!fs.exists(pj))
+            return;
+
+        let pkgjson;
+        try {
+            pkgjson = JSON.parse(fs.readTextFile(pj));
+        } catch (e) {
+            return;
+        }
+
+        if (!pkgjson.binary)
+            return;
+
+        // a registry/git package is keyed by name@version, a link by its path
+        const task = mv_paths[entry.name + '@' + entry.version] || mv_paths['link:' + p];
+        if (!task)
+            return;
+
+        let binary;
+        try {
+            // relative `module_path`, see the note in the local package branch
+            binary = versioning.evaluate(pkgjson, { root: '/', module_root: '.' }, 3);
+        } catch (e) {
+            // a `binary` block that does not describe a node-pre-gyp package is the
+            // package's problem: the install goes on without the prebuilt addon
+            console.warn(`[install] ${entry.name}: ignoring an unusable binary field` +
+                ` (${String(e.message).split('\n')[0]})`);
+            return;
+        }
+
+        if (!binary || !binary.hosted_tarball)
+            return;
+
+        task.binary = binary;
+        download_binary_task(task);
+        count++;
+    });
+
+    if (count)
+        install_log(`[install] prebuilt addons: ${count}`);
+}
+
+/**
+ * @description fetch git entries at the commit the lockfile pins. npm clones with
+ *              git too (its `revs.js` is a `git ls-remote`), and the recorded commit
+ *              is the authority: a branch or a tag in there is refused by the sync
+ *              check before this runs
+ */
+function install_git_entries(entries) {
+    if (!entries.length)
+        return;
+
+    const tmp_root = path.join(tmp_dir(), 'fibjs-install-git');
+    fs.mkdir(tmp_root, { recursive: true });
+
+    entries.forEach(item => {
+        const entry = item.entry;
+        // `git+https://…` is npm's notation: git itself only knows the part after
+        // the plus (pacote strips it the same way before shelling out)
+        const repo = entry.resolved.split('#')[0].replace(/^git\+/, '');
+        const sha = entry.resolved.split('#')[1];
+        const dir = path.join(tmp_root, entry.name.replace(/[/@]/g, '_') + '-' + sha.slice(0, 8));
+
+        try {
+            if (fs.exists(dir))
+                rmdir_recursive(dir);
+
+            git_run(['init', '--quiet', dir]);
+            git_run(['-C', dir, 'remote', 'add', 'origin', repo]);
+            git_run(['-C', dir, 'fetch', '--quiet', '--depth', '1', 'origin', sha]);
+            git_run(['-C', dir, 'checkout', '--quiet', 'FETCH_HEAD']);
+
+            // the work tree is what gets installed: the history is of no use here,
+            // and a copy (not a link) has to survive the temp directory
+            rmdir_recursive(path.join(dir, '.git'));
+            copy_dir(dir, item.dest);
+            install_log('git:', entry.name, sha.slice(0, 8));
+        } catch (e) {
+            console.error(`[install] failed to fetch ${entry.name} from ${repo}#${sha.slice(0, 8)}`);
+            console.error(`  ${e.message}`);
+            process.exit(1);
+        }
+    });
+}
+
+/**
+ * @description the frozen install has no level tree to walk, so the scripts run per
+ *              installed package: nested dependencies first, the root last (the
+ *              order npm uses), and `--ignore-scripts` still wins
+ * @param only the paths that were installed just now (everything when omitted)
+ */
+function run_lock_lifecycle_scripts(lock, root, only) {
+    const packages = lockfile.to_path_map(lock);
+    const filter = only ? {} : null;
+
+    if (only)
+        only.forEach(p => filter[p] = true);
+
+    const paths = Object.keys(packages)
+        .filter(p => !packages[p].target_only)
+        .filter(p => !filter || filter[p])
+        .sort((a, b) => b.split('/').length - a.split('/').length);
+
+    paths.forEach(p => {
+        const dir = path.join(root, p);
+
+        if (fs.exists(path.join(dir, 'package.json')))
+            run_module_scripts(dir, packages[p], false);
+    });
+
+    run_module_scripts(root, {}, true, ['preinstall']);
+}
+
+// ---------------------- FROZEN INSTALL :end ------------------------- //
+
+// ---------------------- WRITING THE LOCKFILE :start ------------------------- //
+
+/**
+ * @description one installed node as a lockfile entry
+ */
+function tree_entry(node, p) {
+    const has = obj => obj && Object.keys(obj).length > 0;
+    const local = node.local_package || node.workspace_package;
+
+    return {
+        name: node.name || lockfile.name_from_path(p),
+        version: node.version,
+        resolved: local ? undefined : (node.dist && node.dist.tarball),
+        integrity: local ? undefined : (node.dist && node.dist.integrity),
+        link: local ? true : undefined,
+        local_path: local ? (node.local_path || node.workspace_path) : undefined,
+        dev: node.dev_only === true,
+        optional: node.optional_only === true,
+        dev_optional: node.dev_optional === true,
+        dependencies: has(node.dep_vs) ? node.dep_vs : undefined,
+        optionalDependencies: has(node.opt_dep_vs) ? node.opt_dep_vs : undefined,
+        peerDependencies: has(node.peer_dep_vs) ? node.peer_dep_vs : undefined,
+        bin: node.bin,
+        os: node.os,
+        cpu: node.cpu,
+        libc: node.libc,
+        has_install_script: node.has_install_script,
+    };
+}
+
+/**
+ * @description the installed tree as a path table. `dev` / `optional` come from
+ *              `mark_reachability()`, the same answer npm's ideal tree gives and the
+ *              one `npm ci --omit=dev` depends on
+ */
+function tree_to_path_map(rootsnap, root) {
+    const paths = {};
+
+    (function flatten(node, prefix) {
+        Object.keys(node.node_modules || {}).forEach(name => {
+            const child = node.node_modules[name];
+            const p = prefix + 'node_modules/' + name;
+
+            paths[p] = tree_entry(child, p);
+            flatten(child, p + '/');
+        });
+    })(rootsnap, '');
+
+    return paths;
+}
+
+/**
+ * @description the root entry of a lockfile mirrors package.json. A lock-first
+ *              install keeps every other entry exactly as npm wrote it, but this one
+ *              has to follow package.json: a spec that moved while the tree did not
+ *              (what `--save` does, for instance) is what a reader of the file looks
+ *              for. Only the one entry is rewritten, and only when it differs
+ */
+function sync_lock_root(lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return false;
+
+    const want = lockfile.root_entry(rootsnap.pkgjson);
+
+    if (JSON.stringify(lock.raw.packages['']) === JSON.stringify(want))
+        return false;
+
+    const file = path.join(process.cwd(), lock.filename);
+    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+    lock.raw.packages[''] = want;
+    lockfile.write_lockfile(file, lock.raw, indent);
+    install_log(`update: ${lock.filename} (the root entry follows package.json)`);
+
+    return true;
+}
+
+/**
+ * @description the lockfile the installed tree describes, with the smallest change
+ *              against the one that was read
+ * @returns { file, lock, kept, indent } | null when there is no package.json
+ */
+function build_lockfile(lock, rootsnap) {
+    const root = process.cwd();
+    const pkgjson_file = path.join(root, 'package.json');
+
+    if (!fs.exists(pkgjson_file))
+        return null;
+
+    const raw = fs.readTextFile(pkgjson_file);
+    const paths = tree_to_path_map(rootsnap, root);
+    const built = lockfile.to_lock(paths, rootsnap.pkgjson, {
+        previous: lock,
+        root: root,
+        lockfileVersion: lock ? lock.lockfileVersion : 3,
+        name: rootsnap.pkgjson.name,
+        version: rootsnap.pkgjson.version,
+    });
+
+    return {
+        // npm keeps updating the shrinkwrap it finds, and so does this
+        file: path.join(root, lock ? lock.filename : 'package-lock.json'),
+        lock: built.lock,
+        kept: built.kept,
+        indent: lockfile.detect_indent(raw),
+    };
+}
+
+/**
+ * @description write the lockfile the installed tree describes. npm's `--no-save`
+ *              never writes the lockfile, and neither does an install of a single
+ *              package that is not being recorded in package.json
+ */
+function write_back_lockfile(lock, rootsnap) {
+    const built = build_lockfile(lock, rootsnap);
+
+    if (!built)
+        return null;
+
+    lockfile.write_lockfile(built.file, built.lock, built.indent);
+
+    install_log(`write: ${path.basename(built.file)}` +
+        ` (${Object.keys(built.lock.packages).length - 1} packages)` +
+        (built.kept.length ? `, ${built.kept.length} kept as npm wrote them` : ''));
+
+    return built;
+}
+
+// ---------------------- WRITING THE LOCKFILE :end ------------------------- //
+
+// ---------------------- CLI ARGUMENTS :start ------------------------- //
+
+/**
+ * @description the installer's own flags. `fibjs --install` passes everything that
+ *              follows it straight to this script, so an unknown flag used to be
+ *              dropped silently: `fibjs --install --frozen-lockfile` installed
+ *              exactly as if the flag were not there. Flags are declared here
+ *              instead — an unknown `-` argument fails the install, and a flag the
+ *              plan has but the code has not (yet) says so out loud.
+ *
+ * `stage` marks a flag of plans/installer-lockfile-plan.md that is not implemented
+ * yet: it is rejected together with its stage, never ignored.
+ */
+const ARG_SPECS = [
+    { names: ['--save', '-S'], flag: 'save' },
+    { names: ['--save-dev', '-D'], flag: 'save_dev' },
+    { names: ['--target'], flag: 'target', value: true },
+    { names: ['--ignore-scripts'], flag: 'ignore_scripts' },
+
+    // npm compatible flags: a script written for npm should not start failing just
+    // because fibjs reads the same arguments now. Mapped where fibjs has the same
+    // concept, ignored with a notice where it has none.
+    { names: ['--production'], flag: 'omit_dev', alias: '--omit=dev' },
+    { names: ['--no-audit', '--no-fund', '--force', '--legacy-peer-deps', '--silent'], flag: 'npm_ignored' },
+
+    // planned, not implemented yet (rejected instead of silently ignored)
+    { names: ['--lockfile-only'], flag: 'lockfile_only' },
+    { names: ['--omit'], flag: 'omit', value: true, multiple: true },
+    { names: ['--include'], flag: 'include', value: true, multiple: true },
+
+    // the frozen install (P1)
+    { names: ['--frozen-lockfile', '--ci'], flag: 'frozen' },
+    { names: ['--no-package-lock'], flag: 'no_package_lock' },
+    { names: ['--dry-run'], flag: 'dry_run' },
+    { names: ['--no-strict-integrity'], flag: 'no_strict_integrity' },
+];
+
+function usage_text() {
+    return [
+        'usage: fibjs --install [options] [package]',
+        '',
+        'options:',
+        '  --save, -S              save the installed package into dependencies',
+        '  --save-dev, -D          save the installed package into devDependencies',
+        '  --target <dir>          install into <dir> (its package.json is used)',
+        '  --ignore-scripts        do not run lifecycle scripts',
+        'lockfile:',
+        '  --ci, --frozen-lockfile install exactly what the lockfile says, and fail',
+        '                          when it does not match package.json',
+        '  --lockfile-only         write the lockfile without installing',
+        '  --no-package-lock       ignore the lockfile',
+        '  --no-strict-integrity   install lockfile entries that carry no integrity',
+        '  --dry-run               report what would be written, write nothing',
+        '',
+        'what lands in node_modules:',
+        '  --omit=dev,optional,peer    leave those types out',
+        '  --include=dev,optional,peer take a type back (overrides --omit)',
+        '',
+        'npm compatible (accepted so npm style scripts keep working):',
+        '  --production            same as --omit=dev',
+        '  --no-audit --no-fund --force --legacy-peer-deps --silent',
+        '                          no equivalent in fibjs, ignored with a notice',
+    ].join('\n');
+}
+
+/**
+ * @description parse the script arguments into flags and positionals. A flag that
+ *              takes a value accepts both `--flag value` and `--flag=value`; `--`
+ *              ends the flags, everything after it is a positional argument
+ * @returns { flags, positionals, unknown, missing_value, pending, ignored }
+ */
+function parse_argv(argv) {
+    const result = { flags: {}, positionals: [], unknown: null, missing_value: null, pending: null, ignored: [] };
+    let positional_only = false;
+
+    for (let i = 0; i < argv.length; i++) {
+        const token = argv[i];
+
+        if (positional_only) {
+            result.positionals.push(token);
+            continue;
+        }
+
+        if (token === '--') {
+            positional_only = true;
+            continue;
+        }
+
+        if (token === '' || token[0] !== '-') {
+            result.positionals.push(token);
+            continue;
+        }
+
+        const equal = token.indexOf('=');
+        const name = equal > 0 ? token.slice(0, equal) : token;
+        let value = equal > 0 ? token.slice(equal + 1) : undefined;
+
+        const spec = ARG_SPECS.find(s => s.names.indexOf(name) > -1);
+        if (!spec) {
+            result.unknown = name;
+            return result;
+        }
+
+        if (spec.value && value === undefined) {
+            if (i + 1 >= argv.length) {
+                result.missing_value = name;
+                return result;
+            }
+            value = argv[++i];
+        }
+
+        if (spec.stage) {
+            result.pending = { name: name, stage: spec.stage };
+            return result;
+        }
+
+        const value_or_true = value === undefined ? true : value;
+
+        if (spec.multiple) {
+            // npm takes `--omit=dev --omit=optional`, and so does this
+            if (result.flags[spec.flag] === undefined)
+                result.flags[spec.flag] = [value_or_true];
+            else
+                result.flags[spec.flag].push(value_or_true);
+        } else {
+            result.flags[spec.flag] = value_or_true;
+        }
+
+        if (spec.flag === 'npm_ignored')
+            result.ignored.push(name);
+    }
+
+    return result;
+}
+
+/**
+ * @description what not to install, npm's `omit`: `dev` by default when NODE_ENV
+ *              says production, `--omit=<kind>` adds one, `--include=<kind>` takes
+ *              it back (the last word on a kind wins)
+ * @returns { dev, optional, peer }
+ */
+function resolve_omit(flags, env) {
+    const omit = { dev: env.NODE_ENV === 'production', optional: false, peer: false };
+    const kinds = Object.keys(omit);
+
+    function apply(list, values) {
+        (values || []).forEach(value => {
+            String(value).split(',').forEach(raw => {
+                const kind = raw.trim();
+
+                if (kind === '')
+                    return;
+
+                if (kinds.indexOf(kind) < 0) {
+                    console.warn(`[install] unknown dependency type to ${list}: ${kind}` +
+                        ` (${kinds.join(', ')})`);
+                    return;
+                }
+
+                omit[kind] = list === 'omit';
+            });
+        });
+    }
+
+    apply('omit', flags.omit);
+    apply('include', flags.include);
+
+    return omit;
+}
+
+/**
+ * @description report a bad command line the way a command line tool should: the
+ *              reason, the usage, and a non zero exit code (the caller is a CI job
+ *              as often as it is a human)
+ */
+function arg_error(message) {
+    console.error(message);
+    console.error(usage_text());
+    process.exit(1);
+}
+
 /**
  * dependencies, devDependencies
  */
 ctx.depk = ctx.dep_against_k = ''
 
+const args = parse_argv(process.argv.slice(2));
+
+if (args.unknown)
+    arg_error(`[install] unknown option: ${args.unknown}`);
+
+if (args.missing_value)
+    arg_error(`[install] option ${args.missing_value} needs a value`);
+
+if (args.pending)
+    arg_error(`[install] option ${args.pending.name} is not implemented yet (planned for ${args.pending.stage})`);
+
+args.ignored.forEach(n => console.warn(`[install] ${n} has no equivalent in fibjs, ignored`));
+
 let need_add_newpkg_to_pkgjson = false
 let pkgjson_path_specified = false;
-let ignore_scripts = process.argv.indexOf('--ignore-scripts', 2) > -1;
-if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1) {
+let ignore_scripts = args.flags.ignore_scripts === true;
+
+// the precedence has always been --save > --save-dev > --target
+if (args.flags.save) {
     need_add_newpkg_to_pkgjson = true;
-} else if (process.argv.indexOf('--save-dev', 2) > -1 || process.argv.indexOf('-D', 2) > -1) {
+} else if (args.flags.save_dev) {
     need_add_newpkg_to_pkgjson = DEVDEPENDENCIES;
-} else if (process.argv.indexOf('--target', 2) > -1) {
-    const installTarget = process.argv[process.argv.indexOf('--target', 2) + 1];
+} else if (args.flags.target !== undefined) {
+    const installTarget = args.flags.target;
     if (!installTarget) throw new Error('[install] no path specified');
     if (!path.isAbsolute(installTarget)) {
         process.chdir(path.join(process.cwd(), installTarget));
@@ -1467,7 +2518,138 @@ const rootsnap = get_root_snapshot();
 
 if (!pkgjson_path_specified) {
     // when specified new_pkgname, install it only
-    ctx.new_pkgname = process.argv.slice(2).filter(x => !x.startsWith('-'))[0];
+    ctx.new_pkgname = args.positionals[0];
+}
+
+// the registry and the credentials to fetch from: `.npmrc` first (npm's own way of
+// configuring both), then the `registry` field of package.json, then the default
+ctx.npmrc = lockfile.read_npmrc(process.cwd());
+ctx.registry = ctx.npmrc.registry ? normalize_registry_origin(ctx.npmrc.registry) : rootsnap.registry;
+ctx.tls = tls_options(ctx.npmrc);
+ctx.client = ctx.tls ? new http.Client(ctx.tls) : null;
+
+// what to install and what to leave out (npm's `omit` / `include`, NODE_ENV). The
+// frozen and lock-first paths filter by it too, so it is decided before them
+ctx.omit = resolve_omit(args.flags, process.env);
+ctx.install_dev = !ctx.omit.dev;
+
+// the lockfile, unless the caller asked to ignore it
+const lock = args.flags.no_package_lock ? null : lockfile.read_lockfile(process.cwd());
+
+if (lock && !lockfile.supported_version(lock.lockfileVersion)) {
+    console.error(`[install] ${lock.filename}: lockfileVersion ${lock.lockfileVersion} is not supported`);
+    process.exit(1);
+}
+
+// frozen install: the lockfile decides everything, nothing is resolved
+if (args.flags.frozen) {
+    if (ctx.new_pkgname)
+        arg_error('[install] --ci installs what the lockfile says: it takes no package argument');
+
+    // npm refuses to install where there is no package.json, and emptying
+    // node_modules of a directory that is not a project would be rude
+    if (!fs.exists(path.join(process.cwd(), 'package.json'))) {
+        console.error(`[install] --ci needs a package.json in ${process.cwd()}`);
+        process.exit(1);
+    }
+
+    // npm forces `packageLock: true` for its `ci`; saying so is more useful than
+    // ignoring the flag
+    if (args.flags.no_package_lock)
+        arg_error('[install] --no-package-lock cannot be combined with --ci');
+
+    if (!lock) {
+        console.error('[install] --ci needs a package-lock.json or npm-shrinkwrap.json');
+        console.error('  run `fibjs --install` once to create one');
+        process.exit(1);
+    }
+
+    const sync = check_project_sync(rootsnap, lock);
+
+    sync.warnings.forEach(w => console.warn(`[install] ${describe_sync_error(w)}`));
+
+    if (ctx.omit.peer)
+        console.warn('[install] --omit=peer cannot be honoured from a lockfile: ' +
+            'neither npm nor this writes a peer mark into it');
+
+    if (!sync.ok) {
+        console.error(`[install] ${lock.filename} is not in sync with package.json:`);
+        sync.errors.forEach(e => console.error(`  ${describe_sync_error(e)}`));
+        console.error('  run `fibjs --install` to update the lockfile, then try again');
+        process.exit(1);
+    }
+
+    install_log(`[install] ${lock.filename} is in sync (lockfileVersion ${lock.lockfileVersion})`);
+
+    if (args.flags.dry_run) {
+        install_log('[install] --dry-run: nothing was written');
+        process.exit(0);
+    }
+
+    // the root's preinstall runs before the tree is touched, and a failure stops here
+    if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
+        run_root_preinstall();
+
+    // the check passed, so this is where node_modules may be emptied (npm ci does
+    // the same, and a failed check never touches the disk)
+    clear_node_modules(process.cwd());
+
+    install_from_lock(lock, {
+        registry: ctx.registry,
+        strict_integrity: !args.flags.no_strict_integrity,
+        omit: ctx.omit,
+    });
+
+    if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {
+        install_log('\nrun lifecycle scripts...');
+        run_lock_lifecycle_scripts(lock, process.cwd());
+    }
+
+    install_log('\n[install] frozen install complete');
+    process.exit(0);
+}
+
+// lock-first: a lockfile that already covers package.json is installed as it is.
+// The shape stays npm's, nothing is resolved and nothing is rewritten
+if (lock && !ctx.new_pkgname) {
+    const sync = check_project_sync(rootsnap, lock);
+
+    sync.warnings.forEach(w => console.warn(`[install] ${describe_sync_error(w)}`));
+
+    if (ctx.omit.peer)
+        console.warn('[install] --omit=peer cannot be honoured from a lockfile: ' +
+            'neither npm nor this writes a peer mark into it');
+
+    if (sync.ok) {
+        install_log(`[install] ${lock.filename} covers package.json (lockfileVersion ${lock.lockfileVersion})`);
+
+        if (args.flags.lockfile_only || args.flags.dry_run) {
+            install_log('[install] the lockfile is already what package.json asks for, nothing to write');
+            process.exit(0);
+        }
+
+        // preinstall before anything is installed, like npm
+        if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
+            run_root_preinstall();
+
+        const result = install_from_lock(lock, {
+            registry: ctx.registry,
+            strict_integrity: false,
+            incremental: true,
+            omit: ctx.omit,
+        });
+
+        if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {
+            install_log('\nrun lifecycle scripts...');
+            run_lock_lifecycle_scripts(lock, process.cwd(), result.installed);
+        }
+
+        sync_lock_root(lock);
+        remove_hidden_lock(process.cwd());
+        process.exit(0);
+    }
+
+    install_log(`[install] ${lock.filename} does not cover package.json: resolving, then updating it`);
 }
 
 // process_new_pkgname
@@ -1539,12 +2721,37 @@ if (!pkgjson_path_specified) {
         // caller typed: the name map is what tells the two apart
         const narrowed = name_maps_installation2pkg[ctx.new_pkgname] || ctx.new_pkgname;
 
-        rootsnap[dep_type] = { [narrowed]: rootsnap[dep_type][narrowed] };
+            rootsnap[dep_type] = { [narrowed]: rootsnap[dep_type][narrowed] };
     }
 })();
 
-walkthrough_deps(rootsnap, need_add_newpkg_to_pkgjson === DEVDEPENDENCIES);
+// the dev subtree is always resolved — a lockfile describes the whole graph (N14)
+// and one without the dev entries cannot be used by `npm ci` — while whether those
+// packages land on disk is `ctx.omit`'s business
+walkthrough_deps(rootsnap, true);
 move_up(rootsnap);
+mark_reachability(rootsnap);
+
+if (args.flags.lockfile_only) {
+    write_back_lockfile(lock, rootsnap);
+    install_log('[install] --lockfile-only: the lockfile is written, nothing is installed');
+    process.exit(0);
+}
+
+if (args.flags.dry_run) {
+    const built = build_lockfile(lock, rootsnap);
+
+    install_log(built
+        ? `[install] --dry-run: would write ${path.basename(built.file)}` +
+        ` (${Object.keys(built.lock.packages).length - 1} packages)`
+        : '[install] --dry-run: nothing to write');
+    process.exit(0);
+}
+
+// preinstall before anything is installed, like npm
+if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
+    run_root_preinstall();
+
 generate_mv_paths(rootsnap, process.cwd());
 download_module();
 
@@ -1552,6 +2759,12 @@ download_module();
 (function create_local_package_symlinks(level_info, base_path) {
     for (let k in level_info.node_modules) {
         const mod = level_info.node_modules[k];
+
+        // a dependency `omit` leaves out is not installed, and a link is an install
+        // like any other
+        if (omitted_by(mod))
+            continue;
+
         if (mod.new_module && mod.local_package && !mod._symlinked) {
             create_local_symlinks(base_path, [{
                 name: k,
@@ -1562,6 +2775,19 @@ download_module();
         create_local_package_symlinks(mod, path.join(base_path, 'node_modules', k));
     }
 })(rootsnap, process.cwd());
+
+// the lockfile this install describes. npm writes it while it reifies (before the
+// scripts), and never with `--no-save`. An install of a single package is the other
+// exception: it resolves — and therefore installs — only that package, so the tree
+// it builds is not the whole project and a lockfile written from it would be missing
+// everything else (npm re-resolves the whole project here instead)
+if (!args.flags.no_package_lock && !ctx.new_pkgname) {
+    write_back_lockfile(lock, rootsnap);
+} else if (ctx.new_pkgname && !args.flags.no_package_lock) {
+    console.warn('[install] the lockfile was left alone: run `fibjs --install` to bring it back in sync');
+}
+
+remove_hidden_lock(process.cwd());
 
 // run lifecycle scripts (unless --ignore-scripts)
 if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {

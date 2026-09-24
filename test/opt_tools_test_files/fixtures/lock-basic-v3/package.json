@@ -1,0 +1,11 @@
+{
+  "name": "p1-e2e",
+  "version": "1.0.0",
+  "dependencies": {
+    "is-number": "^6.0.0",
+    "is-odd": "^3.0.0",
+    "local-pkg": "file:localpkg"
+  },
+  "devDependencies": { "is-negative": "^2.0.0" },
+  "optionalDependencies": { "@esbuild/linux-x64": "0.23.0" }
+}
