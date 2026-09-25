@@ -169,7 +169,7 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(LastError());
+                return CHECK_ERROR(ReadError());
             if (n == 0)
                 break;
 
@@ -291,7 +291,7 @@ result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEven
     while (true) {
         int32_t n = (int32_t)::_read(m_fd, tmp, STREAM_BUFF_SIZE);
         if (n < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(ReadError());
         if (n == 0)
             break;
         strBuf.append(tmp, n);
@@ -437,8 +437,12 @@ result_t FileHandle::close(AsyncEvent* ac)
     int32_t fd = m_fd;
     m_fd = -1;
 
+    // Node.js compatibility: the descriptor is released either way, and a failed
+    // close(2) only means that it was not valid. On Windows the CRT sets errno
+    // instead of the thread error, which would report whatever the previous call
+    // left behind.
     if (::_close(fd))
-        return LastError();
+        return UV_EBADF;
 
     return 0;
 }
@@ -843,7 +847,7 @@ static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Varian
     while (true) {
         int32_t n = (int32_t)::_read(_fd, tmp, STREAM_BUFF_SIZE);
         if (n < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(ReadError());
         if (n == 0)
             break;
         strBuf.append(tmp, n);
@@ -1109,7 +1113,7 @@ result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset,
         while (sz) {
             int32_t n = (int32_t)::_read(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(LastError());
+                return CHECK_ERROR(ReadError());
             if (n == 0)
                 break;
 

@@ -1366,6 +1366,23 @@ inline result_t LastError()
 #endif
 }
 
+// Error of a failed read(2). POSIX reports EBADF when the descriptor was opened
+// write-only, Windows fails the same read with ERROR_ACCESS_DENIED, so it is
+// translated here the way libuv does in its fs__read.
+inline result_t ReadError()
+{
+#ifdef _WIN32
+    DWORD err = GetLastError();
+
+    if (err == ERROR_ACCESS_DENIED)
+        return UV_EBADF;
+
+    return -(int32_t)err;
+#else
+    return -errno;
+#endif
+}
+
 inline result_t SocketError()
 {
 #ifdef _WIN32

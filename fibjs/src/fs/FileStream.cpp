@@ -71,7 +71,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(LastError());
+                return CHECK_ERROR(ReadError());
             if (n == 0)
                 break;
 
@@ -124,7 +124,7 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     while (remaining > 0) {
         int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
         if (n < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(ReadError());
         if (n == 0)
             break;
 
@@ -174,7 +174,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
     while (remaining > 0) {
         int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
         if (n < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(ReadError());
         if (n == 0)
             break;
 

@@ -156,8 +156,25 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
 #else
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
-    if (fd < 0)
+    if (fd < 0) {
+#ifdef _WIN32
+        // Node.js compatibility: opening a directory as a file reports EISDIR.
+        // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
+        // itself has to tell whether that is what happened; any other failure
+        // (an existing directory with 'wx' is EEXIST) keeps its own error.
+        result_t hr = LastError();
+
+        if (hr == -ERROR_ACCESS_DENIED) {
+            DWORD attrs = GetFileAttributesW(UTF8_W(fname));
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
+                return UV_EISDIR;
+        }
+
+        return hr;
+#else
         return LastError();
+#endif
+    }
 
 #ifndef _WIN32
     struct stat64 st;
@@ -216,8 +233,25 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
 #else
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
-    if (fd < 0)
+    if (fd < 0) {
+#ifdef _WIN32
+        // Node.js compatibility: opening a directory as a file reports EISDIR.
+        // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
+        // itself has to tell whether that is what happened; any other failure
+        // (an existing directory with 'wx' is EEXIST) keeps its own error.
+        result_t hr = LastError();
+
+        if (hr == -ERROR_ACCESS_DENIED) {
+            DWORD attrs = GetFileAttributesW(UTF8_W(fname));
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
+                return UV_EISDIR;
+        }
+
+        return hr;
+#else
         return LastError();
+#endif
+    }
 
 #ifndef _WIN32
     struct stat64 st;
