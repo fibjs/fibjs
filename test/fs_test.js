@@ -2623,7 +2623,8 @@ describe('fs', () => {
                     err = e;
                 }
                 assert.equal(err.code, 'ENOENT');
-                assert.equal(err.errno, -2);
+                // the number is the platform error code, as Node reports it too
+                assert.equal(err.errno, win ? -4058 : -2);
                 assert.equal(err.syscall, 'stat');
                 assert.equal(err.path, missing);
             });
