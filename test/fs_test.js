@@ -2273,7 +2273,19 @@ describe('fs', () => {
             it("statSync returns undefined for ENOTDIR when throwIfNoEntry is false", () => {
                 var notdir = path.join(__dirname, 'fs_test.js', 'child');
                 assert.isUndefined(fs.statSync(notdir, { throwIfNoEntry: false }));
-                assert.throws(() => fs.statSync(notdir), /not a directory/);
+
+                // the code is what a caller can rely on: Windows reports a path
+                // that goes through a file as ENOENT where POSIX says ENOTDIR
+                var e;
+                try {
+                    fs.statSync(notdir);
+                } catch (err) {
+                    e = err;
+                }
+
+                assert.ok(e, 'statSync has to throw');
+                assert.ok(e.code === 'ENOTDIR' || (win && e.code === 'ENOENT'),
+                    'expected ENOTDIR, got ' + e.code + ' (' + e.message + ')');
             });
 
             it("async forms still report the error (Node behavior)", async () => {
@@ -2311,7 +2323,18 @@ describe('fs', () => {
             it("writeFileSync honors flag 'wx' and reports EEXIST", () => {
                 var f = optFile('excl.txt');
                 fs.writeFileSync(f, 'x');
-                assert.throws(() => fs.writeFileSync(f, 'y', { flag: 'wx' }), /already exists/);
+
+                // the message comes from the platform ("The file exists." on
+                // Windows), the code does not
+                var e;
+                try {
+                    fs.writeFileSync(f, 'y', { flag: 'wx' });
+                } catch (err) {
+                    e = err;
+                }
+
+                assert.ok(e, 'writing over an existing file with wx has to fail');
+                assert.equal(e.code, 'EEXIST', e.message);
                 assert.equal(fs.readFileSync(f, 'utf8'), 'x');
             });
 

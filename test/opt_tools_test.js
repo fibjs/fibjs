@@ -1041,11 +1041,15 @@ describe('opt_tools install lifecycle', function () {
             fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: 'fake-pkg', version: '1.0.0' }));
             fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = 1;\n');
 
-            var file = path.join(fixtureDir, 'fake-pkg-1.0.0.tgz');
-            var res = child_process.spawnSync('tar', ['czf', file, '-C', fixtureDir, 'package'], { stdio: 'pipe' });
+            var file = 'fake-pkg-1.0.0.tgz';
+
+            // `tar` reads `D:\...` as a remote host (`host:path`), so the archive
+            // name is relative and the directory is the working one: no argument
+            // carries a colon on Windows
+            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: fixtureDir, stdio: 'pipe' });
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
-            tarball = fs.readFileSync(file);
+            tarball = fs.readFileSync(path.join(fixtureDir, file));
             integrity = 'sha512-' + crypto.createHash('sha512').update(tarball).digest('base64');
             shasum = crypto.createHash('sha1').update(tarball).digest('hex');
 
@@ -1214,12 +1218,15 @@ describe('opt_tools install lifecycle', function () {
             fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(manifest));
             fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = ' + JSON.stringify(version) + ';\n');
 
-            var file = path.join(fixtureDir, name + '-' + version + '.tgz');
-            var res = child_process.spawnSync('tar', ['czf', file, '-C', dir, 'package'], { stdio: 'pipe' });
+            var file = name + '-' + version + '.tgz';
+
+            // the same as the .npmrc suite: a drive letter in an argument makes
+            // `tar` dial it as a remote host, so the directory is the working one
+            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
-            var buf = fs.readFileSync(file);
+            var buf = fs.readFileSync(path.join(dir, file));
 
             return {
                 tarball: buf,
@@ -1628,7 +1635,11 @@ describe('opt_tools install lifecycle', function () {
                 'the root entry mirrors package.json: ' + JSON.stringify(lock.packages[''].dependencies));
         });
 
-        it('agrees with npm about what --omit=dev leaves out', function () {            var ours = makeProject();
+        // comparing against a live npm needs an environment where npm can install
+        // (the ia32 Linux job runs inside a 2010 era container, where it cannot),
+        // and the suite gates every other npm comparison behind this flag
+        it('agrees with npm about what --omit=dev leaves out', { skip: !process.env.FIBJS_TEST_NETWORK }, function () {
+            var ours = makeProject();
             var res = runInstaller(ours, ['--install', '--omit=dev']);
             assert.equal(res.status, 0, diag(ours, res));
 
@@ -1642,6 +1653,9 @@ describe('opt_tools install lifecycle', function () {
             });
 
             assert.equal(npmRes.status, 0, String(npmRes.stderr || ''));
+            assert.ok(fs.existsSync(path.join(theirs, 'node_modules')),
+                'npm installed nothing, so it is no answer at all: ' +
+                String(npmRes.stdout || '') + String(npmRes.stderr || ''));
             assert.equal(installed(ours, 'devpkg'), installed(theirs, 'devpkg'),
                 'fibjs and npm have to agree about dev dependencies');
             assert.equal(installed(ours, 'prodpkg'), installed(theirs, 'prodpkg'),
@@ -2381,6 +2395,23 @@ if (isFibjs) (function () {
 
             assert.equal(lockfile.spec_satisfied('workspace:*', link, semver).ok, true);
             assert.equal(lockfile.spec_satisfied('workspace:*', plain, semver).ok, false);
+        });
+
+        it('reads a file: spec the same way wherever the caller came from', function () {
+            // a workspace member is reached through `path.relative()`, which spells
+            // its path `packages\member` on Windows: the `..` segments still have to
+            // cancel against the lockfile path the entry is recorded under
+            var entry = map_of({
+                'node_modules/linkpkg': { resolved: 'linkpkg', link: true },
+                'linkpkg': { name: 'linkpkg', version: '1.0.0' },
+            })['node_modules/linkpkg'];
+
+            assert.equal(lockfile.spec_satisfied('file:../../linkpkg', entry, semver, 'packages/member').ok, true,
+                'a member says file:../../x while the lockfile records x');
+            assert.equal(lockfile.spec_satisfied('file:..\\..\\linkpkg', entry, semver, 'packages\\member').ok, true,
+                'and Windows spells both sides with backslashes');
+            assert.equal(lockfile.spec_satisfied('file:../../moved-away', entry, semver, 'packages/member').ok, false,
+                'a spec that points somewhere else is still not in sync');
         });
 
         it('checks a git spec against the pinned repository', function () {

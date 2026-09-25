@@ -386,9 +386,14 @@ function file_spec_satisfied(spec, entry, from) {
         return { ok: false, reason: 'not a link entry' };
 
     const raw = spec.replace(/^file:/, '');
+    // `from` is a lockfile path (always `/`) or a platform path — a workspace
+    // member comes back with `\` on Windows — and the spec may use either: both are
+    // read as `/`, otherwise `path.posix.join` leaves the `..` segments standing
+    // and `packages/member/../../linkpkg` never equals `linkpkg`
+    const base = String(from || '').replace(/\\/g, '/');
     const want = /^([\\/]|[a-zA-Z]:[\\/])/.test(raw)
         ? normalize_local_target(raw)
-        : normalize_local_target(path.posix.join(from || '', raw.replace(/\\/g, '/')));
+        : normalize_local_target(path.posix.join(base, raw.replace(/\\/g, '/')));
     const got = normalize_local_target(entry.resolved || '');
 
     return want === got ? { ok: true } : { ok: false, reason: `points at ${entry.resolved}` };
