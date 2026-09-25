@@ -1468,17 +1468,41 @@ function gen_html(base_path, info) {
     gen_missing_json(base_path, files);
 }
 
-if (process.argv.length < 4)
-    console.log("\nUsage: fibjs --cov-process lcov-file output\n");
-else {
-    var i;
-    var base_path = path.fullpath(process.argv[3]);
-    var a = base_path.replace(/[\\\/]+/g, '/').split('/');
-
-    for (i = 1; i < a.length; i++)
-        try {
-            fs.mkdir(a.slice(0, i + 1).join('/'));
-        } catch (e) {}
-
-    gen_html(base_path, read_lcov(process.argv[2]));
+function usage_text() {
+    return [
+        'Usage: fibjs --cov-process <lcov-file> <output-dir>',
+        '',
+        'Generate an HTML code coverage report from the lcov file written by --cov,',
+        'and write it under <output-dir> together with the per file data the report',
+        'reads.',
+        '',
+        'Options:',
+        '  -h, --help                  print this message',
+        '',
+        'Run `fibjs --help` for the global options.',
+    ].join('\n');
 }
+
+var args = process.argv.slice(2);
+
+if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+    console.log(usage_text());
+    process.exit(0);
+}
+
+if (args.length < 2) {
+    console.error('fibjs --cov-process: needs an lcov file and an output directory');
+    console.error(usage_text());
+    process.exit(1);
+}
+
+var i;
+var base_path = path.fullpath(args[1]);
+var a = base_path.replace(/[\\\/]+/g, '/').split('/');
+
+for (i = 1; i < a.length; i++)
+    try {
+        fs.mkdir(a.slice(0, i + 1).join('/'));
+    } catch (e) {}
+
+gen_html(base_path, read_lcov(args[0]));

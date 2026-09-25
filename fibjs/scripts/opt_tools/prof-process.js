@@ -466,7 +466,31 @@ function gen_svg(f, root) {
     f.write(svg_foot);
 }
 
-if (process.argv.length < 4)
-    console.log("\nUsage: fibjs --prof-process logfile outfile\n");
-else
-    gen_svg(process.argv[3], read_log(process.argv[2]));
+function usage_text() {
+    return [
+        'Usage: fibjs --prof-process <log-file> <output-file>',
+        '',
+        'Render the profiling log written by --prof (or profiler.start) as a flame',
+        'graph SVG.',
+        '',
+        'Options:',
+        '  -h, --help                  print this message',
+        '',
+        'Run `fibjs --help` for the global options.',
+    ].join('\n');
+}
+
+var args = process.argv.slice(2);
+
+if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+    console.log(usage_text());
+    process.exit(0);
+}
+
+if (args.length < 2) {
+    console.error('fibjs --prof-process: needs a log file and an output file');
+    console.error(usage_text());
+    process.exit(1);
+}
+
+gen_svg(args[1], read_log(args[0]));

@@ -2434,6 +2434,7 @@ function write_back_lockfile(lock, rootsnap) {
  * yet: it is rejected together with its stage, never ignored.
  */
 const ARG_SPECS = [
+    { names: ['--help', '-h'], flag: 'help' },
     { names: ['--save', '-S'], flag: 'save' },
     { names: ['--save-dev', '-D'], flag: 'save_dev' },
     { names: ['--target'], flag: 'target', value: true },
@@ -2461,34 +2462,56 @@ const ARG_SPECS = [
     { names: ['--no-strict-integrity'], flag: 'no_strict_integrity' },
 ];
 
+// The single source of truth for the installer's command line: every entry of
+// ARG_SPECS appears here, and nothing else does. `fibjs --install --help` prints
+// this, and so does every argument error (plans/cli-help-convention.md).
 function usage_text() {
     return [
-        'usage: fibjs --install [options] [package]',
+        'Usage: fibjs --install [options] [package]',
         '',
-        'options:',
-        '  --save, -S              save the installed package into dependencies',
-        '  --save-dev, -D          save the installed package into devDependencies',
-        '  --target <dir>          install into <dir> (its package.json is used)',
-        '  --ignore-scripts        do not run lifecycle scripts',
-        '  --update [package]      resolve again to the newest the ranges allow, and',
-        '                          write the lockfile. package.json is not touched',
+        'Install the dependencies in the local node_modules folder. Without a',
+        'package argument the project in the current directory is installed; with',
+        'one, that package is installed, and nothing is recorded in package.json',
+        'unless --save or --save-dev is given.',
         '',
-        'lockfile:',
-        '  --ci, --frozen-lockfile install exactly what the lockfile says, and fail',
-        '                          when it does not match package.json',
-        '  --lockfile-only         write the lockfile without installing',
-        '  --no-package-lock       ignore the lockfile',
-        '  --no-strict-integrity   install lockfile entries that carry no integrity',
-        '  --dry-run               report what would be written, write nothing',
+        'Options:',
+        '  -h, --help                  print this message',
+        '  -S, --save                  save the installed package into dependencies',
+        '  -D, --save-dev              save the installed package into devDependencies',
+        '  --target <dir>              install into <dir> (its package.json is used)',
+        '  --ignore-scripts            do not run lifecycle scripts',
+        '  --update [package]          resolve again to the newest the ranges allow,',
+        '                              and write the lockfile. package.json is not',
+        '                              touched',
         '',
-        'what lands in node_modules:',
-        '  --omit=dev,optional,peer    leave those types out',
-        '  --include=dev,optional,peer take a type back (overrides --omit)',
+        'Lockfile:',
+        '  --ci, --frozen-lockfile     install exactly what the lockfile says, and',
+        '                              fail when it does not match package.json',
+        '  --lockfile-only             write the lockfile without installing',
+        '  --no-package-lock           ignore the lockfile',
+        '  --no-strict-integrity       install lockfile entries that carry no',
+        '                              integrity, instead of refusing them',
+        '  --dry-run                   report what would be written, write nothing',
+        '',
+        'What lands in node_modules:',
+        '  --omit=dev,optional,peer    leave those types out of node_modules (the',
+        '                              lockfile still describes them)',
+        '  --include=dev,optional,peer',
+        '                              take a type back (overrides --omit)',
         '',
         'npm compatible (accepted so npm style scripts keep working):',
-        '  --production            same as --omit=dev',
-        '  --no-audit --no-fund --force --legacy-peer-deps --silent',
-        '                          no equivalent in fibjs, ignored with a notice',
+        '  --production                same as --omit=dev',
+        '  --no-audit, --no-fund, --force, --legacy-peer-deps, --silent',
+        '                              no equivalent in fibjs, ignored with a notice',
+        '',
+        'Notes:',
+        '  devDependencies are installed by default, like npm, and NODE_ENV=production',
+        '  means --omit=dev. package-lock.json is read and written the way npm does',
+        '  it (npm-shrinkwrap.json wins over it). Resolving keeps the versions the',
+        '  lockfile pins; --update is how the newest the ranges allow is asked for.',
+        '  An unknown option is rejected, it used to be ignored silently.',
+        '',
+        'Run `fibjs --help` for the global options.',
     ].join('\n');
 }
 
@@ -2614,6 +2637,12 @@ function arg_error(message) {
 ctx.depk = ctx.dep_against_k = ''
 
 const args = parse_argv(process.argv.slice(2));
+
+// help wins over everything else, and does nothing but print
+if (args.flags.help) {
+    console.log(usage_text());
+    process.exit(0);
+}
 
 if (args.unknown)
     arg_error(`[install] unknown option: ${args.unknown}`);

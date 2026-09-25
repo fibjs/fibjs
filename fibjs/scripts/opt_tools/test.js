@@ -369,25 +369,27 @@ function printUsage() {
 
 Run test files with the built-in test module.
 
-  fibjs --test                    discover and run test files matching the
-                                  default patterns (**/*.test.js,
-                                  **/test-*.js, **/test.js, **/*_test.js,
-                                  **/test/**/*.js, and the .mjs/.cjs
-                                  variants)
-  fibjs --test <path>...          run the given files; directories are
-                                  searched recursively for test files;
-                                  glob patterns are also accepted
+  fibjs --test                discover and run test files matching the default
+                              patterns (**/*.test.js, **/test-*.js,
+                              **/test.js, **/*_test.js, **/test/**/*.js, and
+                              the .mjs/.cjs variants)
+  fibjs --test <path>...      run the given files; directories are searched
+                              recursively for test files; glob patterns are
+                              also accepted
 
 Options:
-  --test-name-pattern=<regex>     run only tests whose name matches the regex
-                                  (repeatable; a matching describe name runs
-                                  its whole subtree, like node --test)
-  --test-reporter=<name>          reporter name (only 'spec' is supported)
-  --test-reporter-destination=<d> reporter destination (only 'stdout')
-  --test-concurrency=<n>          accepted for compatibility; files run
-                                  sequentially
-  --test-isolation=<mode>         accepted for compatibility; files run
-                                  in-process
+  -h, --help                  print this message
+  --test-name-pattern=<regex>
+                              run only tests whose name matches the regex
+                              (repeatable; a matching describe name runs its
+                              whole subtree, like node --test)
+  --test-reporter=<name>      reporter name (only 'spec' is supported)
+  --test-reporter-destination=<dest>
+                              reporter destination (only 'stdout')
+  --test-concurrency=<n>      accepted for compatibility; files run sequentially
+  --test-isolation=<mode>     accepted for compatibility; files run in-process
+
+Run \`fibjs --help\` for the global options.
 `);
 }
 

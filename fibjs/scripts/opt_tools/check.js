@@ -19,6 +19,29 @@
 (function() {
 "use strict";
 
+// fibjs wrapper: `fibjs --check --help` prints the fibjs level usage first, then
+// the compiler prints the option list it documents for itself.
+if (process.argv.indexOf('--help') >= 0 || process.argv.indexOf('-h') >= 0) {
+    console.log([
+        'Usage: fibjs --check [options] <files...>',
+        '',
+        'Run the TypeScript compiler in check-only mode on the given .ts/.js files,',
+        'or on the project when no files are given.',
+        '',
+        'Options:',
+        '  -h, --help                  print this message, then the compiler option',
+        '                              list tsc documents for itself',
+        '',
+        'fibjs differences from tsc:',
+        '  --allowJs and --allowImportingTsExtensions are always enabled, so .js files',
+        '  are checked too; the lib.d.ts files are embedded in the binary; the',
+        '  same-name shadowing rule is patched out (stock tsc drops a .js file when a',
+        '  same-named .ts file exists in the project).',
+        '',
+        'Run `fibjs --help` for the global options.',
+    ].join('\n'));
+}
+
 const fs = require('fs');
 
 // Embedded lib.d.ts files
@@ -49,7 +72,7 @@ fs.existsSync = function(path) {
     return originalExistsSync(path);
 };
 
-// Patch fs.statSync to handle embedded lib files and options parameter
+// Patch fs.statSync to serve embedded lib files
 const originalStatSync = fs.statSync.bind(fs);
 fs.statSync = function(path, options) {
     const basename = getBasename(path);
@@ -64,7 +87,6 @@ fs.statSync = function(path, options) {
             mode: 0o644
         };
     }
-    // fibjs implements the Node.js throwIfNoEntry option natively
     return originalStatSync(path, options);
 };
 
