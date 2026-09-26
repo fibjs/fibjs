@@ -3072,15 +3072,52 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should erase import with only inline type specifiers', () => {
+            it('should keep an import whose specifiers are all inline types', () => {
+                // `import { type User } from './mod'` is still a value import: the
+                // module is resolved and evaluated even though every binding it
+                // brings in is a type. Only a statement-level `import type` makes
+                // the declaration as a whole erasable. amaro and ts-blank-space
+                // both keep the statement here.
                 const input = 'import { type User } from "./mod";';
-                const expected = '                                  ';
+                const expected = 'import {           } from "./mod";';
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should erase export with only inline type specifiers', () => {
+            it('should keep an import that is an empty binding list', () => {
+                const input = 'import {} from "./mod";';
+                assert.strictEqual(strip(input), input);
+            });
+
+            it('should keep a default import alongside type-only specifiers', () => {
+                // The default binding is a value; erasing it would delete a real
+                // import and leave the name undefined.
+                const input = 'import Foo, { type Bar } from "./mod";';
+                const expected = 'import Foo, {          } from "./mod";';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should still erase a statement-level import type', () => {
+                const input = 'import type { User } from "./mod";';
+                assert.strictEqual(strip(input), ' '.repeat(input.length));
+            });
+
+            it('should keep an export whose specifiers are all inline types', () => {
+                // `export {}` and `export { type X }` are what mark the file as a
+                // module, so erasing them would change the meaning of every
+                // top-level `var` and of `this`.
                 const input = 'export { type User };';
-                const expected = '                     ';
+                const expected = 'export {           };';
+                assert.strictEqual(strip(input), expected);
+            });
+
+            it('should keep an empty export', () => {
+                const input = 'export {};';
+                assert.strictEqual(strip(input), input);
+            });
+
+            it('should keep a re-export whose specifiers are all inline types', () => {
+                const input = 'export { type User } from "./mod";';
+                const expected = 'export {           } from "./mod";';
                 assert.strictEqual(strip(input), expected);
             });
 

@@ -4854,8 +4854,12 @@ void TsStrip::parseImportDeclaration() {
             nextToken();
         }
     } else if (token() == SyntaxKind::OpenBraceToken) {
-        // Named imports
-        bool hasRuntimeSpecifier = false;
+        // Named imports. A `type` modifier erases that one specifier and nothing
+        // else: `import { type X } from 'x'` is still a *value* import, so the
+        // module is resolved and evaluated even though every binding it brings in
+        // is a type. The same goes for `import {} from 'x'` and for a default
+        // import alongside type-only names. Only a statement-level `import type`
+        // makes the declaration as a whole erasable, and that is handled above.
         nextToken();
         while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
             if (token() == SyntaxKind::TypeKeyword) {
@@ -4865,7 +4869,6 @@ void TsStrip::parseImportDeclaration() {
                 SyntaxKind next = peekToken().kind;
                 if (next == SyntaxKind::CommaToken || next == SyntaxKind::CloseBraceToken || next == SyntaxKind::AsKeyword) {
                     // 'type' is an identifier, treat as regular import
-                    hasRuntimeSpecifier = true;
                     nextToken();
                     if (parseOptional(SyntaxKind::AsKeyword)) {
                         if (token() == SyntaxKind::Identifier) {
@@ -4889,7 +4892,6 @@ void TsStrip::parseImportDeclaration() {
                 }
             } else {
                 // Regular import specifier
-                hasRuntimeSpecifier = true;
                 if (token() == SyntaxKind::Identifier) {
                     nextToken();
                 }
@@ -4907,28 +4909,6 @@ void TsStrip::parseImportDeclaration() {
             }
         }
         parseExpected(SyntaxKind::CloseBraceToken);
-
-        if (!hasRuntimeSpecifier) {
-            if (parseOptional(SyntaxKind::FromKeyword)) {
-                if (token() == SyntaxKind::StringLiteral) {
-                    nextToken();
-                }
-            } else if (token() == SyntaxKind::StringLiteral) {
-                nextToken();
-            }
-
-            if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
-                nextToken();
-                if (token() == SyntaxKind::OpenBraceToken) {
-                    skipBlock();
-                }
-            }
-
-            tryParseSemicolon();
-            addReplacement(start, getNodePos());
-            fixASI(start, getNodePos());
-            return;
-        }
     }
     
 parse_from_clause:
@@ -5201,7 +5181,11 @@ void TsStrip::parseExportDeclaration() {
                 // become one assignment per specifier.
                 throw std::runtime_error("TypeScript namespace member is not supported in strip-only mode.");
             }
-            bool hasRuntimeSpecifier = false;
+            // As with imports, a `type` modifier erases only that specifier. The
+            // statement stays even when nothing is left: `export {}` and
+            // `export { type X }` are what marks the file as a module, and the
+            // module system follows from that. Erasing them changes the meaning
+            // of every top-level `var` and of `this`.
             nextToken();
             while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
                 if (token() == SyntaxKind::TypeKeyword) {
@@ -5211,7 +5195,6 @@ void TsStrip::parseExportDeclaration() {
                     SyntaxKind next = peekToken().kind;
                     if (next == SyntaxKind::CommaToken || next == SyntaxKind::CloseBraceToken || next == SyntaxKind::AsKeyword) {
                         // 'type' is an identifier, treat as regular export
-                        hasRuntimeSpecifier = true;
                         nextToken();
                         if (parseOptional(SyntaxKind::AsKeyword)) {
                             if (token() == SyntaxKind::Identifier || isKeyword(token())) {
@@ -5234,7 +5217,6 @@ void TsStrip::parseExportDeclaration() {
                         addReplacement(typeStart, typeEnd);
                     }
                 } else {
-                    hasRuntimeSpecifier = true;
                     if (token() == SyntaxKind::Identifier || isKeyword(token())) {
                         nextToken();
                     }
@@ -5252,24 +5234,6 @@ void TsStrip::parseExportDeclaration() {
                 }
             }
             parseExpected(SyntaxKind::CloseBraceToken);
-            if (!hasRuntimeSpecifier) {
-                if (parseOptional(SyntaxKind::FromKeyword)) {
-                    if (token() == SyntaxKind::StringLiteral) {
-                        nextToken();
-                    }
-                }
-                // Handle assert/with clause
-                if (token() == SyntaxKind::AssertKeyword || token() == SyntaxKind::WithKeyword) {
-                    nextToken();
-                    if (token() == SyntaxKind::OpenBraceToken) {
-                        skipBalanced(SyntaxKind::OpenBraceToken, SyntaxKind::CloseBraceToken);
-                    }
-                }
-                tryParseSemicolon();
-                addReplacement(start, getNodePos());
-                fixASI(start, getNodePos());
-                break;
-            }
             if (parseOptional(SyntaxKind::FromKeyword)) {
                 if (token() == SyntaxKind::StringLiteral) {
                     nextToken();
