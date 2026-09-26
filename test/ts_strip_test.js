@@ -886,6 +886,37 @@ setup(cfg);
 
     });
 
+    describe('Numeric Separators', () => {
+        // `1_000` is one literal, not `1` followed by an identifier. Getting that
+        // wrong leaves stray identifiers behind when a type is erased.
+
+        itDiff('should strip a separated number in a type position',
+            'const x: 1_000 = 1;',
+            'const x        = 1;',
+            'const x        = 1;');
+
+        itDiff('should erase a type alias holding a separated number',
+            'type T = 1_000;',
+            ' '.repeat('type T = 1_000;'.length),
+            ' '.repeat('type T = 1_000;'.length));
+
+        itDiff('should strip a separated number in an interface member',
+            'interface I { a: 0b0000_0010 }',
+            ' '.repeat('interface I { a: 0b0000_0010 }'.length),
+            ' '.repeat('interface I { a: 0b0000_0010 }'.length));
+
+        itDiff('should leave separated numbers in values alone',
+            'const a = 1_000; const b = 0xfc_00; const c = 0b1_01;',
+            'const a = 1_000; const b = 0xfc_00; const c = 0b1_01;',
+            'const a = 1_000; const b = 0xfc_00; const c = 0b1_01;');
+
+        itDiff('should leave a separated number in an expression alone',
+            'const d = (c.charCodeAt(i) & 0xfc_00) === 0xd8_00;',
+            'const d = (c.charCodeAt(i) & 0xfc_00) === 0xd8_00;',
+            'const d = (c.charCodeAt(i) & 0xfc_00) === 0xd8_00;');
+
+    });
+
     describe('Enum Handling', () => {
         // amaro throws different error format for enum
 

@@ -343,48 +343,23 @@ SyntaxKind Scanner::scanNumber() {
         uint8_t next = charCodeAt(m_pos + 1);
         if (next == 'x' || next == 'X') {
             m_pos += 2;
-            while (m_pos < (int)m_length) {
-                uint8_t ch = charCodeAt(m_pos);
-                if (isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
-                    m_pos++;
-                } else {
-                    break;
-                }
-            }
+            scanDigitRun([](uint8_t ch) { return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'); });
         } else if (next == 'b' || next == 'B') {
             m_pos += 2;
-            while (m_pos < (int)m_length) {
-                uint8_t ch = charCodeAt(m_pos);
-                if (ch == '0' || ch == '1') {
-                    m_pos++;
-                } else {
-                    break;
-                }
-            }
+            scanDigitRun([](uint8_t ch) { return ch == '0' || ch == '1'; });
         } else if (next == 'o' || next == 'O') {
             m_pos += 2;
-            while (m_pos < (int)m_length) {
-                uint8_t ch = charCodeAt(m_pos);
-                if (ch >= '0' && ch <= '7') {
-                    m_pos++;
-                } else {
-                    break;
-                }
-            }
+            scanDigitRun([](uint8_t ch) { return ch >= '0' && ch <= '7'; });
         }
     }
     
     // Decimal part
-    while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
-        m_pos++;
-    }
+    scanDigitRun([](uint8_t ch) { return ch >= '0' && ch <= '9'; });
     
     // Fractional part
     if (charCodeAt(m_pos) == CharCode::dot) {
         m_pos++;
-        while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
-            m_pos++;
-        }
+        scanDigitRun([](uint8_t ch) { return ch >= '0' && ch <= '9'; });
     }
     
     // Exponent part
@@ -395,9 +370,7 @@ SyntaxKind Scanner::scanNumber() {
         if (ch == CharCode::plus || ch == CharCode::minus) {
             m_pos++;
         }
-        while (m_pos < (int)m_length && isDigit(charCodeAt(m_pos))) {
-            m_pos++;
-        }
+        scanDigitRun([](uint8_t c) { return c >= '0' && c <= '9'; });
     }
     
     // BigInt suffix

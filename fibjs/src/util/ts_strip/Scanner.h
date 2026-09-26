@@ -125,6 +125,30 @@ private:
     void skipTrivia();
     SyntaxKind scanIdentifierOrKeyword();
     SyntaxKind scanNumber();
+
+    /**
+     * Consume a run of digits, allowing `_` numeric separators between two of them
+     * (`1_000`, `0x1_0`). A `_` that is not surrounded by digits ends the run, so
+     * `1_` scans as `1` and `_` rather than as one literal.
+     */
+    template <typename IsDigitChar>
+    void scanDigitRun(IsDigitChar isDigitChar)
+    {
+        while (m_pos < (int)m_length) {
+            uint8_t ch = charCodeAt(m_pos);
+            if (isDigitChar(ch)) {
+                m_pos++;
+                continue;
+            }
+            if (ch == '_' && m_pos > 0 && m_pos + 1 < (int)m_length
+                && isDigitChar(charCodeAt(m_pos - 1)) && isDigitChar(charCodeAt(m_pos + 1))) {
+                m_pos++;
+                continue;
+            }
+            break;
+        }
+    }
+
     SyntaxKind scanString(uint8_t quote);
     SyntaxKind scanTemplateOrTemplateTail();
     void scanRegExpFlags();
