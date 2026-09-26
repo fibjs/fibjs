@@ -10,6 +10,7 @@
 #include "Scanner.h"
 #include <vector>
 #include <algorithm>
+#include <cstring>
 #include <stdexcept>
 namespace fibjs {
 namespace ts_strip {
@@ -110,8 +111,13 @@ public:
         , m_disallowInContext(false)
         , m_allowReturnTypeInArrowFunction(true)
         , m_ambientDeclaration(false)
+        , m_firstBacktick(-1)
         , m_recursionDepth(0)
     {
+        const uint8_t* backtick = (const uint8_t*)memchr(m_src, '`', m_length);
+        if (backtick) {
+            m_firstBacktick = (int)(backtick - m_src);
+        }
     }
     
     void strip();
@@ -130,6 +136,10 @@ private:
     // whole, so TS-only syntax in it (e.g. parameter properties) has no runtime
     // meaning and must not be rejected.
     bool m_ambientDeclaration;
+    // Offset of the first backtick, or -1. Brace bookkeeping in scanAllTokens() only
+    // changes token kinds inside a template expression, so a regex that starts before
+    // any backtick cannot be affected by braces in its body.
+    int m_firstBacktick;
     int m_recursionDepth;
     
     std::vector<Overwrite> m_overwrites;
@@ -237,9 +247,15 @@ private:
                 case '\'':
                 case '"':
                 case '`':
+                    return true;
                 case '{':
                 case '}':
-                    return true;
+                    // Quantifiers like `/{1,3}/` are common; braces only matter when
+                    // the scanner could be tracking a template expression here.
+                    if (m_firstBacktick >= 0 && m_firstBacktick < start) {
+                        return true;
+                    }
+                    break;
                 case '/':
                     if (i + 1 < p && (m_src[i + 1] == '/' || m_src[i + 1] == '*')) {
                         return true;
