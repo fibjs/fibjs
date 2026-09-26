@@ -918,21 +918,94 @@ setup(cfg);
     });
 
     describe('Enum Handling', () => {
-        // amaro throws different error format for enum
+        // An enum becomes an object literal plus the reverse mapping TypeScript
+        // emits for numeric members. amaro rejects every enum form, so these use
+        // itDiff with `null` to say "amaro throws here".
 
-        it('should transform const enum with initializers to object literal', () => {
-            const result = strip('const enum Color { Red = 1, Green = 2, Blue = 4 }');
-            assert.strictEqual(result, 'const     Color ={ Red : 1, Green : 2, Blue : 4 }');
+        itDiff('should transform an enum with initializers',
+            'const enum Color { Red = 1, Green = 2, Blue = 4 }',
+            'const      Color={ Red : 1, Green : 2, Blue : 4 };Color[Color.Red]="Red";Color[Color.Green]="Green";Color[Color.Blue]="Blue";',
+            null);
+
+        itDiff('should continue the counter for members without an initializer',
+            'enum Direction { Up, Down, Left, Right }',
+            'var  Direction={ Up:0, Down:1, Left:2, Right:3 };Direction[Direction.Up]="Up";Direction[Direction.Down]="Down";Direction[Direction.Left]="Left";Direction[Direction.Right]="Right";',
+            null);
+
+        itDiff('should not reverse-map a string-valued member',
+            'enum E { A = "a", B = "b" }',
+            'var  E={ A : "a", B : "b" }',
+            null);
+
+        itDiff('should give members after a string `void 0` and still reverse-map them',
+            'enum E { A, B = "b", C }',
+            'var  E={ A:0, B : "b", C:void 0 };E[E.A]="A";E[E.C]="C";',
+            null);
+
+        itDiff('should keep counting from a negative initializer',
+            'enum E { A = -1, B, C }',
+            'var  E={ A : -1, B:0, C:1 };E[E.A]="A";E[E.B]="B";E[E.C]="C";',
+            null);
+
+        itDiff('should understand hex and binary numbers',
+            'enum E { A = 0x10, B }',
+            'var  E={ A : 0x10, B:17 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should understand numeric separators',
+            'enum E { A = 1_000, B }',
+            'var  E={ A : 1_000, B:1001 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should stop counting after a value it cannot evaluate',
+            'enum E { A = f(), B, C }',
+            'var  E={ A : f(), B:void 0, C:void 0 };E[E.A]="A";E[E.B]="B";E[E.C]="C";',
+            null);
+
+        itDiff('should reverse-map a string-literal member name',
+            'enum E { "a-b" = 1 }',
+            'var  E={ "a-b" : 1 };E[E["a-b"]]="a-b";',
+            null);
+
+        itDiff('should terminate the statement so a following `(` is not swallowed',
+            'enum E { A = 1 }\n(function () {})()',
+            'var  E={ A : 1 };E[E.A]="A";\n(function () {})()',
+            null);
+
+        itThrowsDiff('should reject an initializer that names a sibling member',
+            // The object literal cannot express it: the member name is not in scope
+            // there, so the output would throw at run time.
+            'enum E { A = 1, B = A * 3 }',
+            /enum member referencing another member/i,
+            /TypeScript enum.*not supported/i);
+
+        it('should not change the line count', () => {
+            if (USE_AMARO) return; // amaro rejects enums outright
+            // Whatever the layout, the line breaks stay where they are: the erasing
+            // leaves them alone and nothing inserted contains one.
+            const inputs = [
+                'enum E { A = 1, B = 2 }',
+                'enum E\n{\n  A,\n  B,\n}',
+                'enum\nE { A = 1 }',
+                'const enum E\n{\n  A = 1\n}',
+                'enum E {\n  A = 1,\n}\n(function () {})()',
+            ];
+            for (const input of inputs) {
+                const out = strip(input);
+                assert.strictEqual(out.split('\n').length, input.split('\n').length,
+                    'line count changed for ' + JSON.stringify(input) + ' -> ' + JSON.stringify(out));
+            }
         });
 
-        itThrowsDiff('should throw for const enum member without initializer',
-            'const enum Color { Red, Green, Blue }',
-            /const enum member without initializer/, // fibjs error message
-            /TypeScript enum.*not supported/); // amaro error message
-
-        it('should reject regular enum (not supported in strip-only mode)', () => {
-            assert.throws(() => strip('enum Direction { Up, Down, Left, Right }'),
-                rejects(/enum.*not supported/i));
+        it('should build the same object TypeScript builds', () => {
+            if (USE_AMARO) return; // amaro rejects enums outright
+            const out = strip('enum E { A = 1, B = 2 }');
+            const E = new Function(out + '\nreturn E;')();
+            assert.deepEqual(Object.keys(E).sort(), ['1', '2', 'A', 'B']);
+            assert.strictEqual(E.A, 1);
+            assert.strictEqual(E[1], 'A');
+            assert.strictEqual(E.B, 2);
+            assert.strictEqual(E[2], 'B');
         });
 
     });

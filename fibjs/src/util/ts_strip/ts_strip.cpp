@@ -11,6 +11,8 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 namespace fibjs {
 namespace ts_strip {
@@ -161,6 +163,12 @@ private:
     // Parameter property names collected by parseParameters() for the constructor
     // being parsed; lowered when its body starts.
     std::vector<exlib::string> m_paramProps;
+
+    // The enum being parsed: its name (an initialiser may not reference it, and the
+    // reverse mapping is written against it) and the members seen so far with their
+    // values, so an initialiser referencing a sibling member can be spotted.
+    exlib::string m_enumName;
+    std::vector<std::pair<exlib::string, double>> m_enumValues;
 
 public:
     bool hasInsertions() const { return !m_insertions.empty(); }
@@ -686,6 +694,18 @@ private:
     void parseInterfaceDeclaration(int start);
     void parseTypeAliasDeclaration(int start);
     void parseEnumDeclaration(int start, bool isDeclare = false, bool isConst = false);
+
+    // Enum member values: the auto-increment counter and the reverse mapping both
+    // need to know what a member's initialiser evaluates to.
+    enum class EnumValueKind {
+        Number, // a numeric constant: gets a reverse mapping, counter continues
+        String, // a string constant: no reverse mapping, counter breaks
+        Other   // cannot tell: TypeScript reverse-maps it and breaks the counter
+    };
+    EnumValueKind classifyEnumValue(size_t first, size_t last, double& value, bool& referencesMember) const;
+    static bool parseNumericText(const uint8_t* text, size_t length, double& value);
+    static exlib::string formatEnumNumber(double value);
+
     void parseModuleDeclaration(int start, bool isDeclare = false);
     void parseImportDeclaration();
     void parseImportEqualsDeclaration();
@@ -3560,10 +3580,132 @@ void TsStrip::parseTypeAliasDeclaration(int start) {
 }
 
 /**
+ * Read a numeric literal the way an enum initialiser can spell one: decimal, hex,
+ * octal, binary, float, with `_` separators. BigInt is rejected - it is not an enum
+ * member value.
+ */
+bool TsStrip::parseNumericText(const uint8_t* text, size_t length, double& value) {
+    char buf[64];
+    size_t j = 0;
+    for (size_t i = 0; i < length; i++) {
+        if (text[i] == '_') {
+            continue;
+        }
+        if (j + 1 >= sizeof(buf)) {
+            return false;
+        }
+        buf[j++] = (char)text[i];
+    }
+    buf[j] = 0;
+    if (j == 0 || buf[j - 1] == 'n') {
+        return false;
+    }
+
+    char* end = nullptr;
+    if (j > 2 && buf[0] == '0') {
+        int base = 0;
+        if (buf[1] == 'x' || buf[1] == 'X') {
+            base = 16;
+        } else if (buf[1] == 'o' || buf[1] == 'O') {
+            base = 8;
+        } else if (buf[1] == 'b' || buf[1] == 'B') {
+            base = 2;
+        }
+        if (base) {
+            long long v = strtoll(buf + 2, &end, base);
+            if (end != buf + j) {
+                return false;
+            }
+            value = (double)v;
+            return true;
+        }
+    }
+
+    double v = strtod(buf, &end);
+    if (end != buf + j) {
+        return false;
+    }
+    value = v;
+    return true;
+}
+
+exlib::string TsStrip::formatEnumNumber(double value) {
+    char buf[48];
+    if (value == (double)(long long)value && value >= -1e15 && value <= 1e15) {
+        snprintf(buf, sizeof(buf), "%lld", (long long)value);
+    } else {
+        snprintf(buf, sizeof(buf), "%.17g", value);
+    }
+    return exlib::string(buf);
+}
+
+/**
+ * What does an enum member initialiser evaluate to?
+ *
+ * Only the shapes that decide the counter and the reverse mapping are recognised -
+ * numeric and string constants, with the unary operators an enum can put in front
+ * of a number. Everything else is `Other`, which is what TypeScript treats as
+ * "reverse-map it, but the counter cannot continue".
+ *
+ * `referencesMember` is set when the initialiser names a sibling member or the enum
+ * itself. Those cannot be written inside the object literal the enum becomes: the
+ * name is not in scope there, so the output would throw at run time.
+ */
+TsStrip::EnumValueKind TsStrip::classifyEnumValue(size_t first, size_t last, double& value, bool& referencesMember) const {
+    referencesMember = false;
+    if (last <= first) {
+        return EnumValueKind::Other;
+    }
+
+    for (size_t i = first; i < last; i++) {
+        SyntaxKind k = m_tokens[i].kind;
+        if (k != SyntaxKind::Identifier && !isKeyword(k)) {
+            continue;
+        }
+        exlib::string name((const char*)m_src + m_tokens[i].pos, m_tokens[i].end - m_tokens[i].pos);
+        if (name == m_enumName) {
+            referencesMember = true;
+        }
+        for (const auto& kv : m_enumValues) {
+            if (kv.first == name) {
+                referencesMember = true;
+            }
+        }
+    }
+
+    if (last - first == 1) {
+        const Token& t = m_tokens[first];
+        if (t.kind == SyntaxKind::NumericLiteral) {
+            return parseNumericText(m_src + t.pos, t.end - t.pos, value) ? EnumValueKind::Number : EnumValueKind::Other;
+        }
+        if (t.kind == SyntaxKind::StringLiteral || t.kind == SyntaxKind::NoSubstitutionTemplateLiteral) {
+            return EnumValueKind::String;
+        }
+        return EnumValueKind::Other;
+    }
+
+    if (last - first == 2) {
+        SyntaxKind op = m_tokens[first].kind;
+        const Token& t = m_tokens[first + 1];
+        if (t.kind == SyntaxKind::NumericLiteral
+            && (op == SyntaxKind::MinusToken || op == SyntaxKind::PlusToken || op == SyntaxKind::TildeToken)) {
+            double v = 0;
+            if (parseNumericText(m_src + t.pos, t.end - t.pos, v)) {
+                value = op == SyntaxKind::MinusToken ? -v
+                    : op == SyntaxKind::TildeToken ? (double)(~(long long)v)
+                                                   : v;
+                return EnumValueKind::Number;
+            }
+        }
+    }
+
+    return EnumValueKind::Other;
+}
+
+/**
  * parseEnumDeclaration - handle enum
  * isDeclare: if true, we're in a declare context so just erase it
- * isConst: if true, this is a const enum (transform to object literal)
- *          if false and not declare, throw error (regular enum not supported)
+ * isConst: if true, the source already has `const`, so only `enum` has to go
  */
 void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
     if (isDeclare) {
@@ -3580,92 +3722,179 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
         return;
     }
 
-    if (!isConst) {
-        throw std::runtime_error("TypeScript 'enum' is not supported in strip-only mode.");
-    }
-
-    // const enum Foo { A = 0, B = 1 }
-    // Transform to: const      Foo={ A : 0, B : 1 }
+    // enum Foo { A = 0, B }  ->  var  Foo={ A : 0, B : 1 };Foo[Foo.A]="A";Foo[Foo.B]="B";
     //
-    // Strategy:
-    //   1. Save the enum name
-    //   2. Erase from 'enum' keyword pos to name end (inclusive)
-    //   3. Rewrite name + '=' right-aligned in the erased region
-    //   4. For each member, overwrite '=' with ':'
+    // The forward mapping is an object literal: `enum` becomes `var` (or goes away
+    // when the source already has `const`), the name stays where it is, `=` goes
+    // into the gap before `{`, and every member's `=` becomes `:`. The reverse
+    // mapping TypeScript emits for numeric members is one statement per member,
+    // inserted after the closing brace.
+    //
+    // Neither half disturbs a line break: addReplacement() leaves `\n`/`\r` alone,
+    // the insertion text contains no line break, and `=` is placed on a byte that is
+    // not a line break - with a one-byte insertion as the fallback for `enum E{`,
+    // where there is no gap to reuse. The line count is the same before and after.
 
     if (token() != SyntaxKind::Identifier) {
-        throw std::runtime_error("Expected identifier in const enum declaration.");
+        throw std::runtime_error("Expected identifier in enum declaration.");
     }
 
-    // Save name bytes before erasing
     int nameStart = currentToken().pos;
     int nameEnd = currentToken().end;
-    int nameLen = nameEnd - nameStart;
-    std::vector<uint8_t> nameBuf(m_src + nameStart, m_src + nameEnd);
+    m_enumName.assign((const char*)m_src + nameStart, nameEnd - nameStart);
 
-    // Get 'enum' keyword position (previous token)
+    // 'enum' keyword position (previous token)
     int enumPos = m_tokens[m_tokenIndex - 1].pos;
 
     nextToken(); // skip name, now at '{'
 
     if (token() != SyntaxKind::OpenBraceToken) {
-        throw std::runtime_error("Expected '{' in const enum declaration.");
+        throw std::runtime_error("Expected '{' in enum declaration.");
     }
     int bracePos = getNodePos();
 
-    // Erase from 'enum' keyword to name end
-    addReplacement(enumPos, nameEnd);
-
-    // Write name + '=' right-aligned so '=' is adjacent to '{'
-    // Available region: [enumPos, nameEnd)
-    // We write: ...spaces... name '='
-    int writePos = nameEnd - nameLen - 1; // start of name in output
-    if (writePos < enumPos) writePos = enumPos;
-    for (int i = 0; i < nameLen; i++) {
-        addOverwrite(writePos + i, nameBuf[i]);
+    // Drop `enum`; `var` goes into its first three bytes when there is no `const`.
+    addReplacement(enumPos, nameStart);
+    if (!isConst) {
+        addOverwrite(enumPos, 'v');
+        addOverwrite(enumPos + 1, 'a');
+        addOverwrite(enumPos + 2, 'r');
     }
-    // Place '=' right before '{'
-    if (bracePos > nameEnd) {
-        // There's whitespace between name and '{', overwrite last space
-        addOverwrite(bracePos - 1, '=');
+
+    // `=` has to sit between the name and `{`. Reuse the byte that is already there
+    // (usually one space) and never a line break; `enum E{` has no gap at all, so it
+    // gets a one-byte insertion.
+    int eqPos = -1;
+    for (int i = bracePos - 1; i >= nameEnd; i--) {
+        if (m_src[i] != '\n' && m_src[i] != '\r') {
+            eqPos = i;
+            break;
+        }
+    }
+    if (eqPos >= 0) {
+        addOverwrite(eqPos, '=');
     } else {
-        // No space: put '=' right after name in the erased region
-        addOverwrite(writePos + nameLen, '=');
+        m_insertions.push_back(Insertion(bracePos, exlib::string("=")));
     }
 
-    // Parse enum body and transform members
+    // Parse the body: rewrite the members and collect the reverse mapping.
     nextToken(); // skip '{'
 
+    exlib::string reverse;
+    m_enumValues.clear();
+    double nextAuto = 0;
+    bool autoIsNumber = true;
+
     while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
-        // Skip member name (identifier, string literal, or keyword used as name)
-        if (token() == SyntaxKind::Identifier || isKeyword(token())) {
-            nextToken();
-        } else if (token() == SyntaxKind::StringLiteral) {
+        exlib::string key; // as written, for the reverse mapping
+        bool keyIsString = false;
+        int nameTokenEnd = -1;
+
+        if (token() == SyntaxKind::Identifier || isKeyword(token()) || token() == SyntaxKind::StringLiteral) {
+            const Token& t = currentToken();
+            key.assign((const char*)m_src + t.pos, t.end - t.pos);
+            keyIsString = t.kind == SyntaxKind::StringLiteral;
+            nameTokenEnd = t.end;
             nextToken();
         } else if (token() == SyntaxKind::OpenBracketToken) {
-            // Computed property name [expr]
+            // Computed name. The key only exists at run time, so the reverse mapping
+            // can only be written when it is a plain string literal.
             nextToken();
+            if (token() == SyntaxKind::StringLiteral) {
+                const Token& t = currentToken();
+                key.assign((const char*)m_src + t.pos, t.end - t.pos);
+                keyIsString = true;
+            }
             parseAssignmentExpressionOrHigher();
             parseExpected(SyntaxKind::CloseBracketToken);
         } else {
             break;
         }
 
+        EnumValueKind kind = EnumValueKind::Number;
+        double value = 0;
+        bool referencesMember = false;
+        bool hadInitializer = false;
+
         if (token() == SyntaxKind::EqualsToken) {
             // Overwrite '=' with ':'
             addOverwrite(getNodePos(), ':');
             nextToken(); // skip '='
-            // Parse value expression
+            size_t first = m_tokenIndex;
             parseAssignmentExpressionOrHigher();
+            size_t last = m_tokenIndex;
+            kind = classifyEnumValue(first, last, value, referencesMember);
+            hadInitializer = true;
         } else {
+            // No initialiser: write out the value the counter reached. Once a member's
+            // value is not a number TypeScript gives the rest `void 0` - and still
+            // reverse-maps them, as `E[undefined]`.
+            exlib::string text = ":";
+            if (autoIsNumber) {
+                value = nextAuto;
+                text += formatEnumNumber(nextAuto);
+            } else {
+                text += "void 0";
+            }
+            kind = EnumValueKind::Number; // auto members are always reverse-mapped
+            m_insertions.push_back(Insertion(nameTokenEnd, text));
+        }
+
+        if (referencesMember) {
             throw std::runtime_error(
-                "const enum member without initializer is not supported in strip-only mode.");
+                "TypeScript enum member referencing another member is not supported in strip-only mode.");
+        }
+
+        // TypeScript reverse-maps everything except a string-valued member:
+        //   `A`     -> `E[E.A]="A";`      (read the value back, use the name as key)
+        //   `"a-b"` -> `E[E["a-b"]]="a-b";`  (the name is not an identifier)
+        if (kind != EnumValueKind::String && !key.empty()) {
+            reverse += m_enumName;
+            reverse += '[';
+            reverse += m_enumName;
+            if (keyIsString) {
+                reverse += '[';
+                reverse += key;
+                reverse += ']';
+            } else {
+                reverse += '.';
+                reverse += key;
+            }
+            reverse += "]=";
+            if (!keyIsString) {
+                reverse += '"';
+            }
+            reverse += key;
+            if (!keyIsString) {
+                reverse += '"';
+            }
+            reverse += ';';
+        }
+
+        // Advance the counter. A string or undecidable value breaks it for good.
+        if (kind == EnumValueKind::Number) {
+            m_enumValues.push_back(std::make_pair(key, value));
+            if (hadInitializer || autoIsNumber) {
+                nextAuto = value + 1;
+            }
+        } else {
+            autoIsNumber = false;
         }
 
         parseOptional(SyntaxKind::CommaToken);
     }
 
     parseExpected(SyntaxKind::CloseBraceToken);
+    int closeBraceEnd = getPrevTokenEnd();
+
+    // The reverse mapping goes right after the closing brace; its leading `;` also
+    // stops `var E = {...}` from swallowing a following `(` or `[`.
+    if (!reverse.empty()) {
+        exlib::string text(";");
+        text += reverse;
+        m_insertions.push_back(Insertion(closeBraceEnd, text));
+    }
+
     tryParseSemicolon();
 }
 
