@@ -1091,17 +1091,53 @@ function f(x: string) { return x; }`;
     });
 
     describe('Non-Instantiated Namespace', () => {
-        // Type-only namespace: amaro erases it, fibjs throws
-        // This is a complex feature that requires namespace analysis
+        // A namespace whose members are all types declares nothing at runtime, so
+        // TypeScript, oxc and amaro all drop the whole declaration - fibjs erases it
+        // the same way, to spaces, which keeps every position intact.
 
-        itThrowsDiff('should handle type-only namespace',
+        itDiff('should erase a type-only namespace',
             `namespace NotInstantiated {
     export interface JustAType { }
     export type ATypeInANamespace = {};
 }`,
-            /namespace.*not supported/, // fibjs: throws (no namespace analysis)
-            null);  // amaro: succeeds (erases type-only namespace)
+            `namespace NotInstantiated {
+    export interface JustAType { }
+    export type ATypeInANamespace = {};
+}`.replace(/[^\n]/g, ' '),
+            `namespace NotInstantiated {
+    export interface JustAType { }
+    export type ATypeInANamespace = {};
+}`.replace(/[^\n]/g, ' '));
 
+        // Every non-newline byte becomes a space; the newlines stay.
+        const erased = (s) => s.replace(/[^\n]/g, ' ');
+
+        itDiff('should erase a one-line type-only namespace',
+            'namespace N { export interface I { a: number } }',
+            erased('namespace N { export interface I { a: number } }'),
+            erased('namespace N { export interface I { a: number } }'));
+
+        itDiff('should erase a nested type-only namespace',
+            'namespace A { export interface I {} export namespace B { export type T = I } }',
+            erased('namespace A { export interface I {} export namespace B { export type T = I } }'),
+            erased('namespace A { export interface I {} export namespace B { export type T = I } }'));
+
+        itDiff('should erase non-exported type members too',
+            'namespace A { type T = number; interface I { a: T } }',
+            erased('namespace A { type T = number; interface I { a: T } }'),
+            erased('namespace A { type T = number; interface I { a: T } }'));
+
+        itDiff('should erase a type-only namespace with a dotted name',
+            'export namespace A.B { export interface I {} }',
+            erased('export namespace A.B { export interface I {} }'),
+            erased('export namespace A.B { export interface I {} }'));
+
+        // A nested namespace with a runtime member makes the whole chain runtime, so
+        // the outer one must not be erased.
+        itThrowsDiff('should reject a nested namespace with a value',
+            'namespace A { export namespace B { export const k = 1 } }',
+            /namespace.*not supported/i,
+            /namespace.*not supported/i);
     });
 
     describe('Destructuring Parameter Types', () => {
@@ -1510,14 +1546,36 @@ declare const stat: any;
     });
 
     describe('Import/Export Equals (CommonJS)', () => {
-        // Both fibjs and amaro reject these in strip-only mode: creating the
-        // runtime binding needs a real transform (`const foo = require(...)` /
-        // `module.exports = ...`), and emitting them unchanged is not valid JS.
+        // `import X = <ref>` keeps the statement's shape, so it lowers in place:
+        // `import` is six bytes and both replacement keywords are six bytes, which
+        // means nothing after it moves. amaro rejects these in strip-only mode.
 
-        it('should reject import equals (needs transform)', () => {
-            assert.throws(() => strip('import foo = require("foo");'),
-                rejects(/import equals.*not supported/i));
-        });
+        itDiff('should lower import equals with require',
+            'import foo = require("foo");\nfoo();',
+            'const  foo = require("foo");\nfoo();',
+            null);
+
+        itDiff('should lower import equals with a qualified name',
+            'import Foo = A.B.C;\nFoo.x();',
+            'var    Foo = A.B.C;\nFoo.x();',
+            null);
+
+        itDiff('should lower import equals whose binding is named `type`',
+            'import type = require("m");',
+            'const  type = require("m");',
+            null);
+
+        itDiff('should lower import equals whose binding is named `from`',
+            'import from = require("m");',
+            'const  from = require("m");',
+            null);
+
+        // `import type X = require(...)` is type-only (the modifier, not the name),
+        // and TypeScript erases the whole statement. amaro agrees.
+        itDiff('should erase a type-only import equals',
+            'import type X = require("m");\nexport const k = 1;',
+            '                             \nexport const k = 1;',
+            '                             \nexport const k = 1;');
 
         it('should reject export equals (needs transform)', () => {
             assert.throws(() => strip('export = 1;'),

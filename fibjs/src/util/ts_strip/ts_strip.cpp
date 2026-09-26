@@ -688,8 +688,14 @@ private:
     void parseEnumDeclaration(int start, bool isDeclare = false, bool isConst = false);
     void parseModuleDeclaration(int start, bool isDeclare = false);
     void parseImportDeclaration();
+    void parseImportEqualsDeclaration();
     void parseExportDeclaration();
     void parseDeclaration();
+    
+    // Type-only namespace detection (see the implementation for why it is a token
+    // scan rather than a parse)
+    size_t matchingBrace(size_t openIndex) const;
+    bool tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const;
     
     // Decorator
     void parseDecorator();
@@ -3664,6 +3670,140 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
 }
 
 /**
+ * Index of the `}` matching the `{` at `openIndex`, or m_tokens.size() if the
+ * braces are unbalanced (the file is broken, which the caller reports elsewhere).
+ */
+size_t TsStrip::matchingBrace(size_t openIndex) const {
+    int depth = 0;
+    for (size_t i = openIndex; i < m_tokens.size(); i++) {
+        SyntaxKind k = m_tokens[i].kind;
+        if (k == SyntaxKind::OpenBraceToken) {
+            depth++;
+        } else if (k == SyntaxKind::CloseBraceToken) {
+            depth--;
+            if (depth == 0) {
+                return i;
+            }
+        } else if (k == SyntaxKind::EndOfFileToken) {
+            break;
+        }
+    }
+    return m_tokens.size();
+}
+
+/**
+ * Does the brace-delimited range hold only type declarations?
+ *
+ * `namespace N { export interface I {} }` has no runtime value at all, so every
+ * other stripper drops it. Deciding that needs a look at the statements in the
+ * body, and a token scan is enough: a namespace body is a plain list of
+ * statements, and the ones that matter are recognisable from their first token.
+ *
+ * The answer is deliberately conservative - anything not recognised counts as a
+ * runtime value, which keeps the namespace rejected rather than silently erasing
+ * one that had members. Nested namespaces are scanned recursively, so a runtime
+ * member two levels down is still found.
+ */
+bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
+    int depth = 0;
+    bool atStatementStart = true;
+
+    for (size_t i = openIndex; i < closeIndex; i++) {
+        SyntaxKind k = m_tokens[i].kind;
+
+        if (k == SyntaxKind::OpenBraceToken) {
+            depth++;
+            // A statement starts right after the body's own `{`.
+            atStatementStart = (depth == 1);
+            continue;
+        }
+        if (k == SyntaxKind::CloseBraceToken) {
+            depth--;
+            atStatementStart = true; // a nested block just ended a statement
+            continue;
+        }
+        if (depth != 1) {
+            continue;
+        }
+        if (k == SyntaxKind::SemicolonToken) {
+            atStatementStart = true;
+            continue;
+        }
+        if (!atStatementStart) {
+            continue;
+        }
+        // First token of a statement at the namespace's own level.
+        if (i + 1 >= closeIndex) {
+            return true;
+        }
+        SyntaxKind next = m_tokens[i + 1].kind;
+        bool isNamespaceKeyword = false;
+
+        switch (k) {
+        case SyntaxKind::InterfaceKeyword:
+        case SyntaxKind::TypeKeyword:
+        case SyntaxKind::DeclareKeyword:
+        case SyntaxKind::GlobalKeyword:
+            break; // type-only on its own
+        case SyntaxKind::ImportKeyword:
+            // `import type { A } from "m"` is type-only; any other import is not.
+            if (next != SyntaxKind::TypeKeyword) {
+                return false;
+            }
+            break;
+        case SyntaxKind::NamespaceKeyword:
+        case SyntaxKind::ModuleKeyword:
+            isNamespaceKeyword = true;
+            break;
+        case SyntaxKind::ExportKeyword:
+            switch (next) {
+            case SyntaxKind::InterfaceKeyword:
+            case SyntaxKind::TypeKeyword:
+            case SyntaxKind::DeclareKeyword:
+                break;
+            case SyntaxKind::NamespaceKeyword:
+            case SyntaxKind::ModuleKeyword:
+                isNamespaceKeyword = true;
+                break;
+            default:
+                // `export const` / `function` / `class` / `enum` / `{ ... }` /
+                // `export * from` / `export import` all produce a value.
+                return false;
+            }
+            break;
+        default:
+            return false; // const / let / var / function / class / enum / expression
+        }
+
+        if (isNamespaceKeyword) {
+            // Find this nested namespace's body and scan it; then continue after it.
+            size_t nestedOpen = i + 1;
+            while (nestedOpen < closeIndex && m_tokens[nestedOpen].kind != SyntaxKind::OpenBraceToken
+                && m_tokens[nestedOpen].kind != SyntaxKind::SemicolonToken
+                && m_tokens[nestedOpen].kind != SyntaxKind::EndOfFileToken) {
+                nestedOpen++;
+            }
+            if (nestedOpen >= closeIndex || m_tokens[nestedOpen].kind != SyntaxKind::OpenBraceToken) {
+                // `namespace A.B;` with no body - nothing to check.
+                atStatementStart = false;
+                continue;
+            }
+            size_t nestedClose = matchingBrace(nestedOpen);
+            if (nestedClose > closeIndex || !tokenRangeIsTypeOnly(nestedOpen, nestedClose)) {
+                return false;
+            }
+            i = nestedClose;
+            atStatementStart = true;
+            continue;
+        }
+
+        atStatementStart = false;
+    }
+
+    return true;
+}
+
+/**
  * parseModuleDeclaration - handle namespace/module
  * isDeclare: if true, we're in a declare context so just erase it
  *            if false, throw error for runtime namespace/module
@@ -3693,6 +3833,11 @@ void TsStrip::parseModuleDeclaration(int start, bool isDeclare) {
             skipBlock();
         } else if (isDeclare) {
             // declare module/namespace - just skip the body and erase everything
+            skipBlock();
+        } else if (tokenRangeIsTypeOnly(m_tokenIndex, matchingBrace(m_tokenIndex))) {
+            // A namespace whose members are all types declares nothing at runtime, so
+            // TypeScript, oxc and amaro all drop the whole declaration. Erasing it is
+            // both correct and free: no insertion, no shift.
             skipBlock();
         } else {
             // Runtime namespace/module with body - not supported
@@ -3805,6 +3950,58 @@ void TsStrip::parseDeclaration() {
 // ========================================================================
 
 /**
+ * `import X = require("m")` -> `const X = require("m")`
+ * `import X = A.B`          -> `var X = A.B`
+ *
+ * This is TypeScript's own emit, and it fits exactly where the source already is:
+ * `import` is six bytes and both replacement keywords are six bytes, so nothing
+ * after the statement moves and no insertion is needed.
+ *
+ * Called with the current token on the binding name.
+ */
+void TsStrip::parseImportEqualsDeclaration() {
+    // `import` is the token before the binding name.
+    int importPos = m_tokens[m_tokenIndex - 1].pos;
+
+    nextToken(); // binding name
+    parseExpected(SyntaxKind::EqualsToken);
+
+    // `require("m")` is an external module reference; anything else is a name
+    // (`A.B.C`). TypeScript emits `const` for the first and `var` for the second.
+    // (`require` has its own token kind, so match on the text, not on Identifier.)
+    const Token& ref = currentToken();
+    bool isRequire = ref.end - ref.pos == 7
+        && memcmp(m_src + ref.pos, "require", 7) == 0
+        && peekToken().kind == SyntaxKind::OpenParenToken;
+
+    const char* keyword = isRequire ? "const " : "var   ";
+    for (int i = 0; i < 6; i++) {
+        addOverwrite(importPos + i, (uint8_t)keyword[i]);
+    }
+
+    if (isRequire) {
+        nextToken(); // require
+        parseExpected(SyntaxKind::OpenParenToken);
+        if (token() == SyntaxKind::StringLiteral) {
+            nextToken();
+        }
+        parseExpected(SyntaxKind::CloseParenToken);
+    } else {
+        if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+            nextToken();
+        }
+        while (token() == SyntaxKind::DotToken) {
+            nextToken();
+            if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                nextToken();
+            }
+        }
+    }
+
+    tryParseSemicolon();
+}
+
+/**
  * parseImportDeclaration
  */
 void TsStrip::parseImportDeclaration() {
@@ -3853,8 +4050,8 @@ void TsStrip::parseImportDeclaration() {
         } else if (next == SyntaxKind::EqualsToken) {
             // `import type = require("mod")`: here `type` is the binding name, so
             // this is an import-equals declaration, not a type-only import.
-            // Needs a real transform - reject it (Node's strip-only mode does too).
-            throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
+            parseImportEqualsDeclaration();
+            return;
         } else {
             // 'type' is a modifier - remove entire statement
             nextToken(); // consume 'type'
@@ -3875,6 +4072,17 @@ void TsStrip::parseImportDeclaration() {
             } else if (token() == SyntaxKind::Identifier) {
                 // import type X or import type defer ...
                 nextToken();
+                if (token() == SyntaxKind::EqualsToken) {
+                    // `import type X = require("mod")`: the `type` modifier makes the
+                    // whole declaration type-only, and TypeScript erases it.
+                    while (!isEOF() && token() != SyntaxKind::SemicolonToken && !currentToken().hadLineBreak) {
+                        nextToken();
+                    }
+                    tryParseSemicolon();
+                    addReplacement(start, getNodePos());
+                    fixASI(start, getNodePos());
+                    return;
+                }
                 // Check if there's more after (import type defer * as X)
                 if (token() == SyntaxKind::CommaToken) {
                     nextToken();
@@ -3908,21 +4116,26 @@ void TsStrip::parseImportDeclaration() {
             return;
         }
     } else if (token() == SyntaxKind::Identifier) {
+        // `import foo = require("mod")` / `import foo = A.B` is an import-equals
+        // declaration rather than a default import; the `=` gives it away.
+        if (peekToken().kind == SyntaxKind::EqualsToken) {
+            parseImportEqualsDeclaration();
+            return;
+        }
         // Default import
         nextToken();
-        if (token() == SyntaxKind::EqualsToken) {
-            // `import foo = require("mod")` / `import foo = A.B`
-            // TypeScript-only syntax that needs a real transform (the runtime
-            // binding has to be created). Emitting it unchanged produces
-            // JavaScript that the engine rejects, so fail loudly instead - the
-            // same way Node's strip-only mode (amaro) does.
-            throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
-        }
         if (parseOptional(SyntaxKind::CommaToken)) {
             // import default, { ... } or import default, * as ...
         }
     }
     
+    // `import <name> = ...` where the binding is a contextual keyword (`type`,
+    // `from`, `as`, ...) is still an import-equals declaration.
+    if (peekToken().kind == SyntaxKind::EqualsToken) {
+        parseImportEqualsDeclaration();
+        return;
+    }
+
     if (token() == SyntaxKind::AsteriskToken) {
         // import * as name
         nextToken();
@@ -4027,10 +4240,9 @@ parse_from_clause:
         }
     }
     
-    // A leftover `=` here means the clause above never consumed an import-equals
-    // declaration (e.g. `import from = require("x")`, where the binding name is a
-    // contextual keyword). Those need a real transform, so reject them instead of
-    // emitting JavaScript the engine rejects.
+    // A leftover `=` means the declaration was not recognised as an import-equals
+    // above, which should not happen; reject it rather than emit JavaScript the
+    // engine rejects.
     if (token() == SyntaxKind::EqualsToken) {
         throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
     }
