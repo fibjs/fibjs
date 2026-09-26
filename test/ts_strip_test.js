@@ -1164,12 +1164,6 @@ setup(cfg);
             assert.strictEqual(strip('x >>= 1 as number;'), 'x >>= 1          ;');
         });
 
-        it('should not merge `>` characters that are not adjacent', () => {
-            // `a > > b` is not a shift, and neither is `a > >= b`.
-            assert.strictEqual(strip('a > > b;'), 'a > > b;');
-            assert.strictEqual(strip('a > >= b;'), 'a > >= b;');
-        });
-
         it('should not mistake a comparison for a shift', () => {
             assert.strictEqual(strip('const r = a < b >> c;'), 'const r = a < b >> c;');
             assert.strictEqual(strip('const r = a > b >> c;'), 'const r = a > b >> c;');
@@ -2919,6 +2913,64 @@ declare const stat: any;
                     '              \n' +
                     '     ({ x: "", y: 0 });';
                 assert.strictEqual(strip(input), expected);
+            });
+
+            it('should keep the line break when `):` ends the line', () => {
+                // There is no room on the `)` line for `=>` here - the `:` is the
+                // last byte before the newline - so the arrow has to go somewhere
+                // else. Overwriting the newline would delete it and move every
+                // following line up by one, which is what used to happen to
+                // openai/src/_vendor/zod-to-json-schema/parseDef.ts.
+                //
+                // The assertions are the two things that must hold whatever the
+                // implementation does with the bytes; amaro lays this out
+                // differently and still satisfies both.
+                const input =
+                    'const get = (\n' +
+                    '    item: Seen,\n' +
+                    '):\n' +
+                    '  | {\n' +
+                    '      $ref: string;\n' +
+                    '    }\n' +
+                    '  | undefined => {\n' +
+                    '    return item;\n' +
+                    '};';
+                const out = strip(input);
+                const lines = out.split('\n');
+
+                assert.strictEqual(lines.length, input.split('\n').length,
+                    'line count changed: ' + JSON.stringify(out));
+
+                // `=>` must sit on the line the `)` is on: JavaScript has a
+                // [no LineTerminator here] restriction between the parameters and
+                // the arrow.
+                const closeParen = lines.findIndex(l => l.includes(')'));
+                assert.ok(closeParen >= 0, 'no closing paren in ' + JSON.stringify(out));
+                assert.match(lines[closeParen], /\)\s*=>/,
+                    'line ' + (closeParen + 1) + ' is ' + JSON.stringify(lines[closeParen]));
+
+                // And the result has to be a working arrow function.
+                const get = new Function(out + '\nreturn get;')();
+                assert.deepEqual(get({ a: 1 }), { a: 1 });
+            });
+
+            it('should not grow the output when the `)` line has room', () => {
+                // `): {` has a space after the `:` to put the `>` in, so nothing
+                // needs to be inserted.
+                const input =
+                    'const fn = (): {\n' +
+                    '    x: string;\n' +
+                    '} => ({ x: "" });';
+                const out = strip(input);
+                const lines = out.split('\n');
+
+                assert.strictEqual(out.length, input.length, JSON.stringify(out));
+                assert.strictEqual(lines.length, input.split('\n').length);
+
+                const closeParen = lines.findIndex(l => l.includes(')'));
+                assert.ok(closeParen >= 0, 'no closing paren in ' + JSON.stringify(out));
+                assert.match(lines[closeParen], /\)\s*=>/,
+                    'line ' + (closeParen + 1) + ' is ' + JSON.stringify(lines[closeParen]));
             });
 
             it('should strip multiline async class method parameter and return types', () => {

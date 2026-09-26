@@ -583,6 +583,10 @@ private:
         return false;
     }
 
+    // Move `=>` up to just after the parameter list, keeping it on the line the
+    // `)` is on. See the definition for why the line break matters.
+    void moveArrowUp(int colonPos, int arrowPos);
+
     // ========== Core parsing helpers (from TypeRunner) ==========
     
     /**
@@ -1495,10 +1499,7 @@ void TsStrip::parsePrimaryExpression() {
                         // If return type contains newlines, move => to right after )
                         // to satisfy [no LineTerminator here] between ArrowParameters and =>
                         if (hasLineTerminatorInRange(start, arrowPos)) {
-                            addOverwrite(start, '=');
-                            addOverwrite(start + 1, '>');
-                            addOverwrite(arrowPos, ' ');
-                            addOverwrite(arrowPos + 1, ' ');
+                            moveArrowUp(start, arrowPos);
                         }
                     }
                     // Must be arrow function
@@ -1673,10 +1674,7 @@ void TsStrip::parsePrimaryExpression() {
                                 addReplacement(start, typeEnd);
                                 // If return type contains newlines, move => to right after )
                                 if (hasLineTerminatorInRange(start, typeEnd)) {
-                                    addOverwrite(start, '=');
-                                    addOverwrite(start + 1, '>');
-                                    addOverwrite(typeEnd, ' ');
-                                    addOverwrite(typeEnd + 1, ' ');
+                                    moveArrowUp(start, typeEnd);
                                 }
                             }
                             // If no `:`, this means we parsed `cond ? (a) : v => v` incorrectly.
@@ -1693,10 +1691,7 @@ void TsStrip::parsePrimaryExpression() {
                         addReplacement(start, arrowPos);
                         // If return type contains newlines, move => to right after )
                         if (hasLineTerminatorInRange(start, arrowPos)) {
-                            addOverwrite(start, '=');
-                            addOverwrite(start + 1, '>');
-                            addOverwrite(arrowPos, ' ');
-                            addOverwrite(arrowPos + 1, ' ');
+                            moveArrowUp(start, arrowPos);
                         }
                     } else {
                         // No =>, this was a ternary colon, not a return type annotation
@@ -2040,10 +2035,7 @@ void TsStrip::parsePrimaryExpression() {
                         addReplacement(start, arrowPos2);
                         // If return type contains newlines, move => to right after )
                         if (hasLineTerminatorInRange(start, arrowPos2)) {
-                            addOverwrite(start, '=');
-                            addOverwrite(start + 1, '>');
-                            addOverwrite(arrowPos2, ' ');
-                            addOverwrite(arrowPos2 + 1, ' ');
+                            moveArrowUp(start, arrowPos2);
                         }
                     }
                     if (token() == SyntaxKind::EqualsGreaterThanToken) {
@@ -2068,10 +2060,7 @@ void TsStrip::parsePrimaryExpression() {
                     addReplacement(start, arrowPos);
                     // If return type contains newlines, move => to right after )
                     if (hasLineTerminatorInRange(start, arrowPos)) {
-                        addOverwrite(start, '=');
-                        addOverwrite(start + 1, '>');
-                        addOverwrite(arrowPos, ' ');
-                        addOverwrite(arrowPos + 1, ' ');
+                        moveArrowUp(start, arrowPos);
                     }
                 }
                 if (token() == SyntaxKind::EqualsGreaterThanToken) {
@@ -3657,8 +3646,39 @@ bool TsStrip::parseNumericText(const uint8_t* text, size_t length, double& value
     return true;
 }
 
-exlib::string TsStrip::formatEnumNumber(double value) {
-    char buf[48];
+/**
+ * Move `=>` up to sit just after the parameter list.
+ *
+ * JavaScript has a [no LineTerminator here] restriction between ArrowParameters
+ * and `=>`, so when a return type is written across several lines the arrow ends
+ * up on a line of its own and the output is not valid. The fix is to put it back
+ * on the line the `)` is on, using the bytes the `:` and the start of the return
+ * type already occupy - `addReplacement()` has erased them to spaces by the time
+ * this runs.
+ *
+ * The one thing that must not be overwritten is a line break. `):` followed by a
+ * newline is a common shape, and putting the `>` in the newline's place deletes
+ * it: every following line moves up by one and stack traces stop pointing at the
+ * right place. There is no room in the line, so the arrow is inserted instead -
+ * two bytes longer, line count unchanged.
+ */
+void TsStrip::moveArrowUp(int colonPos, int arrowPos)
+{
+    // The original `=>` goes away either way.
+    addOverwrite(arrowPos, ' ');
+    addOverwrite(arrowPos + 1, ' ');
+
+    if (colonPos + 1 < arrowPos
+        && m_src[colonPos + 1] != '\n' && m_src[colonPos + 1] != '\r') {
+        addOverwrite(colonPos, '=');
+        addOverwrite(colonPos + 1, '>');
+        return;
+    }
+
+    m_insertions.push_back(Insertion(colonPos + 1, exlib::string("=>")));
+}
+
+exlib::string TsStrip::formatEnumNumber(double value) {    char buf[48];
     // JavaScript spells these out; C's %g would write "inf" and "nan".
     if (std::isnan(value)) {
         return exlib::string("NaN");
