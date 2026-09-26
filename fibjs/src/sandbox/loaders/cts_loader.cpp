@@ -24,12 +24,18 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     // Try to get cached JS first (skips small files automatically)
     if (ts_cache_get(key, buf->length(), retVal))
         return 0;
-    
-    // Cache miss: strip TypeScript types in-place
+
+    // Cache miss: strip TypeScript types in-place. The isolate caches file contents
+    // (Isolate::m_file_cache), so `src` is shared with every other sandbox in this
+    // process: erasing it would leave the next load with an already-erased buffer,
+    // whose strip finds no parameter property left to lower and silently produces a
+    // constructor that never assigns the fields. Strip a copy the loader owns.
+    obj_ptr<Buffer> work = new Buffer(buf->data(), buf->length());
+
     exlib::string stripped;
     bool strippedInPlace = false;
     try {
-        strippedInPlace = ts_strip::stripInPlace(buf->data(), buf->length(), stripped);
+        strippedInPlace = ts_strip::stripInPlace(work->data(), work->length(), stripped);
     } catch (const std::exception& e) {
         return CHECK_ERROR(Runtime::setError(e.what()));
     }
@@ -37,7 +43,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     // Parameter properties are lowered into the constructor body, which needs an
     // insertion an in-place buffer cannot hold: use the returned text instead.
     if (strippedInPlace)
-        retVal = src;
+        retVal = work;
     else
         retVal = new Buffer(stripped.c_str(), stripped.length());
 

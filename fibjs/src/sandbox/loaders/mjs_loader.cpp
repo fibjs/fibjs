@@ -551,26 +551,40 @@ private:
                 if (is_typescript(id)) {
                     // Content key: identical sources share one entry, wherever they live
                     size_t key = ts_cache_key(data_->data(), data_->length());
-                    
+
+                    // Owns the stripped buffer so that data_ stays valid until the
+                    // module is compiled.
+                    obj_ptr<Buffer> work;
+
                     // Try to get cached JS first (skips small files automatically)
                     obj_ptr<Buffer_base> cached_js;
                     if (ts_cache_get(key, data_->length(), cached_js)) {
                         // Cache hit: use cached JS
                         data_ = Buffer::Cast(cached_js);
                     } else {
-                        // Cache miss: strip TypeScript types in-place
+                        // Cache miss: strip TypeScript types. The isolate caches file
+                        // contents (Isolate::m_file_cache), so data_ is shared with every
+                        // other sandbox in this process: erasing it would leave the next
+                        // load with an already-erased buffer, whose strip finds no
+                        // parameter property left to lower and silently produces a
+                        // constructor that never assigns the fields. Strip a copy.
+                        work = new Buffer(data_->data(), data_->length());
+
                         exlib::string stripped;
                         bool strippedInPlace = false;
                         try {
-                            strippedInPlace = ts_strip::stripInPlace(data_->data(), data_->length(), stripped);
+                            strippedInPlace = ts_strip::stripInPlace(work->data(), work->length(), stripped);
                         } catch (const std::exception& e) {
                             exception = e.what();
                         }
 
                         // Parameter properties are lowered into the constructor body,
                         // which needs an insertion an in-place buffer cannot hold.
-                        if (exception.empty() && !strippedInPlace)
-                            data_ = new Buffer(stripped.c_str(), stripped.length());
+                        if (exception.empty()) {
+                            if (!strippedInPlace)
+                                work = new Buffer(stripped.c_str(), stripped.length());
+                            data_ = work;
+                        }
 
                         // Async save to cache (fire and forget, zero copy with ref counting)
                         if (exception.empty())

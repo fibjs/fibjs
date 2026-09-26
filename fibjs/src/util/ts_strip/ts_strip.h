@@ -39,6 +39,11 @@ namespace ts_strip {
      * This function modifies the buffer data directly, avoiding extra memory copies.
      * The buffer length remains unchanged (types are replaced with spaces).
      *
+     * The buffer is always erased, even when the return value is false: the caller
+     * must therefore hand over memory it owns, and must not strip the same buffer
+     * twice (the second strip would find the types already gone and skip the
+     * parameter-property lowering).
+     *
      * The one thing an in-place buffer cannot hold is the assignment generated for a
      * parameter property, so when the file uses one the caller has to use `out`
      * instead of the buffer (which is left stripped, but without the assignments).

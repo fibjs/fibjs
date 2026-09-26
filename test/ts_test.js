@@ -52,6 +52,20 @@ describe('TypeScript modules', () => {
         });
     });
 
+    it("lower a parameter property on every load", () => {
+        // The isolate caches file contents, so every sandbox in this process gets the
+        // same buffer for a file. Stripping it in place must not leave the erased
+        // TypeScript behind for the next load: that load would find no parameter
+        // property to lower and silently build a constructor that assigns nothing.
+        const vm = require('vm');
+        const file = path.join(__dirname, 'ts_files/ts7.cts');
+
+        for (let i = 0; i < 3; i++) {
+            const box = new vm.SandBox({});
+            assert.deepEqual(box.require(file, __dirname), { sum: 5 });
+        }
+    });
+
     xdescribe('TypeScript error source display', () => {
         it("should show original TS source in CTS error", () => {
             const result = child_process.spawnSync(process.execPath, [
