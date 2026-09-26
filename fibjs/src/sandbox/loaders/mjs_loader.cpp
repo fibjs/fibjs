@@ -554,7 +554,7 @@ private:
 
                     // Owns the stripped buffer so that data_ stays valid until the
                     // module is compiled.
-                    obj_ptr<Buffer> work;
+                    obj_ptr<Buffer_base> stripped_js;
 
                     // Try to get cached JS first (skips small files automatically)
                     obj_ptr<Buffer_base> cached_js;
@@ -562,33 +562,20 @@ private:
                         // Cache hit: use cached JS
                         data_ = Buffer::Cast(cached_js);
                     } else {
-                        // Cache miss: strip TypeScript types. The isolate caches file
-                        // contents (Isolate::m_file_cache), so data_ is shared with every
-                        // other sandbox in this process: erasing it would leave the next
-                        // load with an already-erased buffer, whose strip finds no
-                        // parameter property left to lower and silently produces a
-                        // constructor that never assigns the fields. Strip a copy.
-                        work = new Buffer(data_->data(), data_->length());
-
-                        exlib::string stripped;
-                        bool strippedInPlace = false;
+                        // Cache miss: strip TypeScript types. The source buffer belongs
+                        // to the isolate's file cache (every sandbox in this process
+                        // shares it), so the stripper works on a copy of its own.
                         try {
-                            strippedInPlace = ts_strip::stripInPlace(work->data(), work->length(), stripped);
+                            stripped_js = ts_strip::stripToBuffer(data_->data(), data_->length());
                         } catch (const std::exception& e) {
                             exception = e.what();
                         }
 
-                        // Parameter properties are lowered into the constructor body,
-                        // which needs an insertion an in-place buffer cannot hold.
                         if (exception.empty()) {
-                            if (!strippedInPlace)
-                                work = new Buffer(stripped.c_str(), stripped.length());
-                            data_ = work;
-                        }
-
-                        // Async save to cache (fire and forget, zero copy with ref counting)
-                        if (exception.empty())
+                            data_ = Buffer::Cast(stripped_js);
+                            // Async save to cache (fire and forget, zero copy with ref counting)
                             ts_cache_set(key, data_);
+                        }
                     }
                     if (exception.empty()) {
                         v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);

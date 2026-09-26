@@ -165,12 +165,33 @@ private:
 public:
     bool hasInsertions() const { return !m_insertions.empty(); }
 
-    // The stripped source with all insertions applied.
-    exlib::string buildResult() const
+    // Bytes the insertions add to the stripped source.
+    size_t insertionsSize() const
     {
-        exlib::string out;
+        size_t extra = 0;
+        for (const auto& ins : m_insertions) {
+            extra += ins.text.length();
+        }
+        return extra;
+    }
+
+    // Bytes the result needs: the source length, plus the lowered assignments.
+    size_t resultSize() const { return m_length + insertionsSize(); }
+
+    /**
+     * Write the stripped source with the insertions applied into `dst`, which must
+     * hold resultSize() bytes.
+     *
+     * exlib::string grows to exactly the requested size - there is no geometric
+     * slack - so assembling the result with append() in a loop reallocates and
+     * recopies the whole prefix on every insertion, which is quadratic. Reserve once
+     * and copy the pieces instead.
+     */
+    void buildInto(uint8_t* dst) const
+    {
         if (m_insertions.empty()) {
-            return exlib::string((const char*)m_src, m_length);
+            memcpy(dst, m_src, m_length);
+            return;
         }
 
         std::vector<const Insertion*> sorted;
@@ -181,18 +202,36 @@ public:
         std::sort(sorted.begin(), sorted.end(),
             [](const Insertion* a, const Insertion* b) { return a->pos < b->pos; });
 
-        out.reserve(m_length + 32 * sorted.size());
         size_t pos = 0;
+        size_t written = 0;
         for (const Insertion* ins : sorted) {
             size_t at = ins->pos < 0 ? 0 : (size_t)ins->pos;
             if (at > m_length) {
                 at = m_length;
             }
-            out.append((const char*)m_src + pos, at - pos);
-            out.append(ins->text);
-            pos = at;
+            if (at > pos) {
+                memcpy(dst + written, m_src + pos, at - pos);
+                written += at - pos;
+                pos = at;
+            }
+            memcpy(dst + written, ins->text.c_str(), ins->text.length());
+            written += ins->text.length();
         }
-        out.append((const char*)m_src + pos, m_length - pos);
+        if (pos < m_length) {
+            memcpy(dst + written, m_src + pos, m_length - pos);
+        }
+    }
+
+    // The stripped source with all insertions applied.
+    exlib::string buildResult() const
+    {
+        if (m_insertions.empty()) {
+            return exlib::string((const char*)m_src, m_length);
+        }
+
+        exlib::string out;
+        out.resize(resultSize());
+        buildInto((uint8_t*)out.data());
         return out;
     }
 
@@ -5200,19 +5239,28 @@ exlib::string strip(const exlib::string& source) {
     return result;
 }
 
-bool stripInPlace(uint8_t* data, size_t length, exlib::string& out) {
-    Scanner scanner(data, length);
+obj_ptr<Buffer_base> stripToBuffer(const uint8_t* source, size_t length) {
+    // The erasing happens in place, so it needs a buffer of its own: callers hand
+    // over memory they do not own (the loaders pass the buffer from the isolate's
+    // file cache, which every sandbox shares).
+    obj_ptr<Buffer> work = new Buffer(source, length);
+
+    Scanner scanner(work->data(), work->length());
     std::vector<Token> tokens = scanner.scanAllTokens();
-    
-    TsStrip stripper(data, length, std::move(tokens));
+
+    TsStrip stripper(work->data(), work->length(), std::move(tokens));
     stripper.strip();
 
     if (!stripper.hasInsertions()) {
-        return true;
+        return work;
     }
 
-    out = stripper.buildResult();
-    return false;
+    // A parameter property is lowered into `this.x = x;` at the top of the
+    // constructor body, which does not fit in the erased buffer: the result is
+    // longer than the source, so it goes into a buffer of its own.
+    obj_ptr<Buffer> result = new Buffer(nullptr, stripper.resultSize());
+    stripper.buildInto(result->data());
+    return result;
 }
 
 } // namespace ts_strip

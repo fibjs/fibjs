@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "Buffer.h"
 #include "qstring.h"
 #include <cstdint>
 
@@ -34,27 +35,22 @@ namespace ts_strip {
     exlib::string strip(const exlib::string& source);
 
     /**
-     * Strip TypeScript type annotations in-place on UTF-8 buffer
-     * 
-     * This function modifies the buffer data directly, avoiding extra memory copies.
-     * The buffer length remains unchanged (types are replaced with spaces).
+     * Strip TypeScript type annotations into a buffer of its own
      *
-     * The buffer is always erased, even when the return value is false: the caller
-     * must therefore hand over memory it owns, and must not strip the same buffer
-     * twice (the second strip would find the types already gone and skip the
-     * parameter-property lowering).
+     * `source` is never written to: the erasing happens on a copy this function
+     * owns and returns, so a caller can hand over memory it does not own - the
+     * loaders pass the buffer from the isolate's file cache, which every sandbox in
+     * the process shares - and can drop the result whenever it likes.
      *
-     * The one thing an in-place buffer cannot hold is the assignment generated for a
-     * parameter property, so when the file uses one the caller has to use `out`
-     * instead of the buffer (which is left stripped, but without the assignments).
-     * 
-     * @param data Pointer to UTF-8 encoded TypeScript source
+     * The result is exactly as large as it needs to be: as long as `source` except
+     * for the assignments lowered for parameter properties, which make it longer.
+     *
+     * @param source TypeScript source code (UTF-8)
      * @param length Length of the data in bytes
-     * @param out Filled with the stripped code when the buffer cannot hold it
-     * @return true when the buffer holds the result, false when `out` must be used
+     * @return JavaScript code with types removed (UTF-8)
      * @throws Error for unsupported syntax (enum, namespace with values, etc.)
      */
-    bool stripInPlace(uint8_t* data, size_t length, exlib::string& out);
+    obj_ptr<Buffer_base> stripToBuffer(const uint8_t* source, size_t length);
 
 } // namespace ts_strip
 } // namespace fibjs
