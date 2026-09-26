@@ -6,8 +6,7 @@
             "command": "bash",
             "args": [
                 "build",
-                "-j",
-                "dev"
+                "-j"
             ],
             "group": {
                 "kind": "build",

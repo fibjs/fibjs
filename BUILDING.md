@@ -174,6 +174,12 @@ git submodule update --init --recursive
 ### on Windows (Visual Studio 2017 Community):
 	./build.cmd
 
+The default build compiles the vendored libraries from the tree, so local changes
+under `vender/` are always picked up.  Append `ci` to use the prebuilt
+`fibjs_vender` dist instead (faster; what CI uses):
+
+	bash build -j ci
+
 ----------------------------------
 
 ## Install

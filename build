@@ -12,69 +12,58 @@ inform() {
 
 TIME_BEGIN=$(date +%s)
 
-. ./vender/build_tools/scripts/build_env.sh
+SOURCE_ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "${SOURCE_ROOT}" || exit 1
 
-dev=0
-build_addon=0
+# Tells build_env.sh which directory the docker build has to re-enter.
+export BUILD_ENTRY="${SOURCE_ROOT}"
+
+vender_dist=0
 
 new_args=()
 for arg in "$@"; do
-	if [ "$arg" == "dev" ]; then
-		dev=1
-		build_addon=1
-	elif [ "$arg" == "ci" ]; then
-		export USE_VENDER_DIST=1
-		build_addon=1
-	else
-		new_args+=("$arg")
-	fi
+        if [ "$arg" == "ci" ]; then
+                vender_dist=1
+        elif [ "$arg" == "dev" ]; then
+                # `dev` used to mean "build vender from source".  That is the
+                # default now; the option was often mistaken for "debug build".
+                echo "notice: the 'dev' option is no longer needed - the default build compiles vender from source"
+        else
+                new_args+=("$arg")
+        fi
 done
 set -- "${new_args[@]}"
 
-if [ $dev == 0 ] && [ -z $USE_VENDER_DIST ]; then
-	export USE_VENDER_DIST=1
-	git submodule update --init --recursive
-elif [ ! -z $VENDER_TAG ]; then
-	export USE_VENDER_DIST=1
+# The default build compiles the vendored libraries from the tree, so local
+# changes under vender/ are always picked up.  `ci` - and a pinned VENDER_TAG -
+# use the prebuilt fibjs_vender dist instead.
+if [ "$vender_dist" == "1" ] || [ ! -z $VENDER_TAG ]; then
+        export USE_VENDER_DIST=1
 fi
 
-if [ -f "${WORK_ROOT}/vender/build" ]; then
-	if [ "$USE_VENDER_DIST" != "1" ]; then
-		cd "${WORK_ROOT}/vender"
-		bash build "$@"
-		if [ $? != 0 ]; then
-			exit 1
-		fi
-	fi
+if [ ! -f "${SOURCE_ROOT}/vender/build" ]; then
+        git submodule update --init --recursive
+fi
+
+if [ ! -f "${SOURCE_ROOT}/vender/build" ]; then
+        inform
+fi
+
+# The whole tree (vender, fibjs, program, addons, installer) is configured and
+# built in one pass.  The vendored libraries come either from the sources in the
+# tree (default) or from the prebuilt fibjs_vender dist (ci).  A caller may
+# extend the cmake arguments through BUILD_CMAKE_EXTRA_ARGS.
+if [ "$USE_VENDER_DIST" == "1" ]; then
+        export BUILD_CMAKE_EXTRA_ARGS="-DBT_VENDER=dist ${BUILD_CMAKE_EXTRA_ARGS}"
 else
-	inform
+        export BUILD_CMAKE_EXTRA_ARGS="-DBT_VENDER=in-tree ${BUILD_CMAKE_EXTRA_ARGS}"
 fi
 
-cd "${WORK_ROOT}/fibjs"
-bash build "$@"
-if [ $? != 0 ]; then
-	exit 1
-fi
+# The addons are part of the default build (`dev` is gone).
+export BUILD_CMAKE_EXTRA_ARGS="${BUILD_CMAKE_EXTRA_ARGS} -DFIBJS_ADDONS=ON"
 
-cd "${WORK_ROOT}/fibjs/program"
-bash build "$@"
-if [ $? != 0 ]; then
-	exit 1
-fi
-
-if [ $build_addon == 1 ]; then
-	cd "${WORK_ROOT}/fibjs/addons"
-	bash build "$@"
-	if [ $? != 0 ]; then
-		exit 1
-	fi
-fi
-
-cd "${WORK_ROOT}/fibjs/installer"
-bash build "$@"
-if [ $? != 0 ]; then
-	exit 1
-fi
+. "${SOURCE_ROOT}/vender/build_tools/scripts/build_env.sh"
+. "${SOURCE_ROOT}/vender/build_tools/scripts/build"
 
 bldred="\033[1m\033[31m"
 txtrst="\033[0m"

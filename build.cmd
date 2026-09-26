@@ -7,19 +7,16 @@ set start=%time%
 set WORK_ROOT=%cd%
 set SOURCE_ROOT=%~dp0
 
-set dev=0
-set build_addon=0
+set vender_dist=0
 set USE_VENDER_DIST=
 set new_args=
 
 set i=0
 for %%a in (%*) do (
-    if "%%a"=="dev" (
-        set dev=1
-        set build_addon=1
-    ) else if "%%a"=="ci" (
-        set USE_VENDER_DIST=1
-        set build_addon=1
+    if "%%a"=="ci" (
+        set vender_dist=1
+    ) else if "%%a"=="dev" (
+        echo notice: the 'dev' option is no longer needed - the default build compiles vender from source
     ) else (
         set new_args=!new_args! %%a
         set /a i+=1
@@ -29,35 +26,31 @@ for %%a in (%*) do (
 set args_count=0
 for /f %%a in ('set new_args[ 2^>nul ^| find /c "="') do set args_count=%%a
 
-if %dev%==0 (
-    set USE_VENDER_DIST=1
-	git submodule update --init --recursive
+REM The default build compiles the vendored libraries from the tree; `ci` - and a
+REM pinned VENDER_TAG - use the prebuilt fibjs_vender dist instead.
+if "%vender_dist%"=="1" set USE_VENDER_DIST=1
+if NOT "%VENDER_TAG%"=="" set USE_VENDER_DIST=1
+
+if not exist "%SOURCE_ROOT%\vender\build.cmd" (
+    git submodule update --init --recursive
 )
 
-if "%USE_VENDER_DIST%" == "" (
-	if exist "%SOURCE_ROOT%/vender/build.cmd" (
-		cd /d "%SOURCE_ROOT%/vender"
-		call build %new_args%
-		if ERRORLEVEL 1 goto exitbuild
-	) else goto inform
+if not exist "%SOURCE_ROOT%\vender\build.cmd" goto inform
+
+REM The whole tree (vender, fibjs, program, addons, installer) is configured and
+REM built in one pass; the vendored libraries come from the sources in the tree
+REM (default) or from the prebuilt fibjs_vender dist (ci).
+if "%USE_VENDER_DIST%" == "1" (
+    set BUILD_CMAKE_EXTRA_ARGS=-DBT_VENDER=dist !BUILD_CMAKE_EXTRA_ARGS!
+) else (
+    set BUILD_CMAKE_EXTRA_ARGS=-DBT_VENDER=in-tree !BUILD_CMAKE_EXTRA_ARGS!
 )
 
-cd /d "%SOURCE_ROOT%/fibjs"
-call build %new_args%
-if ERRORLEVEL 1 goto exitbuild
+REM The addons are part of the default build (`dev` is gone).
+set BUILD_CMAKE_EXTRA_ARGS=!BUILD_CMAKE_EXTRA_ARGS! -DFIBJS_ADDONS=ON
 
-cd /d "%SOURCE_ROOT%/fibjs/program"
-call build %new_args%
-if ERRORLEVEL 1 goto exitbuild
-
-if %build_addon%==1 (
-	cd /d "%SOURCE_ROOT%/fibjs/addons"
-	call build %new_args%
-	if ERRORLEVEL 1 goto exitbuild
-)
-
-cd /d "%SOURCE_ROOT%/fibjs/installer"
-call build %new_args%
+cd /d "%SOURCE_ROOT%"
+call "%SOURCE_ROOT%\vender\build_tools\scripts\build.cmd" %new_args%
 if ERRORLEVEL 1 goto exitbuild
 
 cd /d "%SOURCE_ROOT%"

@@ -8,87 +8,10 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
 include_directories("${PROJECT_SOURCE_DIR}/../../vender/uv/include")
 
-set(VENDER_PATH ${BIN_PATH})
-
-if("$ENV{USE_VENDER_DIST}" STREQUAL "1")
-	if("${VENDER_TAG}" STREQUAL "")
-		if(NOT "$ENV{VENDER_TAG}" STREQUAL "")
-			message(NOTICE "env vender tag: $ENV{VENDER_TAG}\n")
-			set(VENDER_TAG $ENV{VENDER_TAG})
-		else()
-			message(NOTICE "no vender tag specified, try to find the latest tag\n")
-			file(READ ${CMAKE_CURRENT_LIST_DIR}/../../vender/.git GIT_DIR)
-			string(REPLACE "gitdir: " "" GIT_DIR ${GIT_DIR})
-			string(REPLACE "\n" "" GIT_DIR ${GIT_DIR})
-			set(GIT_DIR "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}")
-
-			file(READ "${GIT_DIR}/HEAD" REF_HEAD)
-
-			if("${REF_HEAD}" MATCHES "ref: ([^\n\r]*)")
-				file(READ "${GIT_DIR}/${CMAKE_MATCH_1}" REF_HEAD)
-			endif()
-
-			string(STRIP "${REF_HEAD}" REF_HEAD)
-
-			file(READ ${GIT_DIR}/packed-refs GIT_TAGS)
-			string(REGEX MATCH "${REF_HEAD} refs/tags/([^\n\r]+)" MATCHED_LINE ${GIT_TAGS})
-
-			if(NOT "${MATCHED_LINE}" STREQUAL "")
-				string(REGEX REPLACE "${REF_HEAD} refs/tags/([^\n\r]+)" "\\1" VENDER_TAG ${MATCHED_LINE})
-			endif()
-
-			file(GLOB ALL_TAGS "${GIT_DIR}/refs/tags/*")
-
-			foreach(FILE ${ALL_TAGS})
-				file(READ ${FILE} CONTENT)
-				string(STRIP "${CONTENT}" CONTENT)
-
-				if("${CONTENT}" STREQUAL "${REF_HEAD}")
-					get_filename_component(VENDER_TAG ${FILE} NAME)
-					break()
-				endif()
-			endforeach()
-		endif()
-	endif()
-
-	if("${VENDER_TAG}" STREQUAL "")
-		message(FATAL_ERROR "cannot find vender tag")
-	else()
-		message("using vender tag: ${VENDER_TAG}\n")
-	endif()
-
-	include(FetchContent)
-
-	if("${BUILD_OS}" STREQUAL "Linux")
-		set(BUILD_TARGET "linux")
-	elseif("${BUILD_OS}" STREQUAL "Alpine")
-		set(BUILD_TARGET "alpine")
-	elseif("${BUILD_OS}" STREQUAL "Darwin")
-		set(BUILD_TARGET "darwin")
-	elseif("${BUILD_OS}" STREQUAL "Windows")
-		set(BUILD_TARGET "win32")
-	elseif("${BUILD_OS}" STREQUAL "Android")
-		set(BUILD_TARGET "android")
-	elseif("${BUILD_OS}" STREQUAL "iPhone")
-		set(BUILD_TARGET "iphone")
-	elseif("${BUILD_OS}" STREQUAL "iPhoneSimulator")
-		set(BUILD_TARGET "iphone-simulator")
-	endif()
-
-	message("downloading: ${VENDER_TAG}/fibjs_vender-${BUILD_TARGET}-${BUILD_ARCH}-${BUILD_TYPE}.tar.gz\n")
-	FetchContent_Declare(
-		vender
-		URL "https://github.com/fibjs/fibjs_vender/releases/download/${VENDER_TAG}/fibjs_vender-${BUILD_TARGET}-${BUILD_ARCH}-${BUILD_TYPE}.tar.gz"
-	)
-
-	FetchContent_GetProperties(vender)
-
-	if(NOT vender_POPULATED)
-		FetchContent_Populate(vender)
-	endif()
-
-	file(COPY ${vender_SOURCE_DIR}/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/ DESTINATION ${VENDER_PATH})
-endif()
+# The vendored libraries are linked as CMake targets below: real targets in the
+# in-tree build, IMPORTED targets in the dist build (-DBT_VENDER=dist).
+# The dist handling itself is part of build_tools
+# (vender/build_tools/cmake/vender_dist.cmake).
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	if(NOT MSVC)
@@ -117,18 +40,8 @@ include_directories(
 	"${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-target_link_libraries(${name} "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
-target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-include(${CMAKE_CURRENT_LIST_DIR}/../../vender/libs.cmake)
-
-foreach(lib ${libs})
-	target_link_libraries(${name} "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-	if(NOT ${lib} STREQUAL "jemalloc")
-		target_link_libraries(js "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	endif()
-endforeach()
+target_link_libraries(${name} fibjs_core)
+target_link_libraries(js fibjs_core)
 
 if(NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set(link_flags "${link_flags} -rdynamic")

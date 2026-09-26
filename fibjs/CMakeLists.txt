@@ -1,12 +1,29 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(name "fibjs")
+# The library target is named fibjs_core so that it can share a build tree with
+# the fibjs executable; the artifact name stays libfibjs.a.
+set(name "fibjs_core")
 project(${name})
 
 include(../vender/v8/cmake/options.cmake)
 include(../vender/build_tools/cmake/option.cmake)
 
 add_library(${name} ${src_list} ${src_platform_list})
+
+set_target_properties(${name} PROPERTIES OUTPUT_NAME fibjs)
+
+if(TARGET bt_config)
+	target_link_libraries(${name} bt_config)
+endif()
+
+# Vendored libraries: real targets in the in-tree build, IMPORTED targets in the
+# dist build (-DBT_VENDER=dist).  PUBLIC so that the program and the js
+# shared library inherit them, including the correct static link order.
+include(${CMAKE_CURRENT_LIST_DIR}/../vender/libs.cmake)
+
+foreach(lib ${libs})
+	target_link_libraries(${name} ${lib})
+endforeach()
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"

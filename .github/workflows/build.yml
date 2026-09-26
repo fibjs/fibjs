@@ -30,92 +30,92 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: x64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: ia32
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: arm64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: arm
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: mips64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: ppc64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: riscv64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: loong64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             arch: loong64ow
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: alpine
             arch: x64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: alpine
             arch: ia32
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: alpine
             arch: arm64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: android
             arch: x64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: android
             arch: ia32
             type: release
             test: skip
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: android
             arch: arm64
             type: release
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             target: android
             arch: arm
             type: release
             test: skip
-          - os: windows-2022
+          - os: windows-latest
             arch: x64
             type: release
-          - os: windows-2022
+          - os: windows-latest
             arch: ia32
             type: release
-          - os: windows-2022
+          - os: windows-latest
             arch: arm64
             type: release
             test: skip
-          - os: macos-15
+          - os: macos-latest
             arch: x64
             type: release
-          - os: macos-15
+          - os: macos-latest
             arch: arm64
             type: release
-          - os: macos-15
+          - os: macos-latest
             arch: x64
             type: debug
-          - os: macos-15
+          - os: macos-latest
             target: iphone
             arch: arm64
             type: release
             test: skip
-          - os: macos-15
+          - os: macos-latest
             target: iphone-simulator
             arch: arm64
             type: release
-          - os: macos-15
+          - os: macos-latest
             target: iphone-simulator
             arch: x64
             type: release
@@ -123,7 +123,7 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: 'recursive'
           fetch-depth: 0
