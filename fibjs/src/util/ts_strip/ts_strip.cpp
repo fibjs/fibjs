@@ -712,6 +712,9 @@ private:
     EnumValueKind evalConstBinary(size_t& i, size_t end, double& value, int minPrecedence) const;
     EnumValueKind evalConstUnary(size_t& i, size_t end, double& value) const;
     static int constBinaryPrecedence(SyntaxKind kind);
+    static uint32_t toUint32(double value);
+    static int32_t toInt32(double value) { return (int32_t)toUint32(value); }
+    SyntaxKind shiftOperatorAt(size_t index, int& width) const;
     static bool parseNumericText(const uint8_t* text, size_t length, double& value);
     static exlib::string formatEnumNumber(double value);
 
@@ -833,8 +836,11 @@ void TsStrip::parseAssignmentExpressionOrHigher() {
         return;
     }
     
-    // Handle assignment operators
-    switch (token()) {
+    // Handle assignment operators. `x >>= 1` arrives as `>` `>=`, so the shift
+    // assignment has to be put back together here as well.
+    int shiftWidth = 0;
+    SyntaxKind shiftOp = shiftOperatorAt(m_tokenIndex, shiftWidth);
+    switch (shiftOp != SyntaxKind::Unknown ? shiftOp : token()) {
         case SyntaxKind::EqualsToken:
         case SyntaxKind::PlusEqualsToken:
         case SyntaxKind::MinusEqualsToken:
@@ -851,7 +857,9 @@ void TsStrip::parseAssignmentExpressionOrHigher() {
         case SyntaxKind::BarBarEqualsToken:
         case SyntaxKind::AmpersandAmpersandEqualsToken:
         case SyntaxKind::QuestionQuestionEqualsToken:
-            nextToken();
+            for (int i = 0; i < (shiftWidth ? shiftWidth : 1); i++) {
+                nextToken();
+            }
             parseAssignmentExpressionOrHigher();
             break;
         default:
@@ -875,10 +883,13 @@ void TsStrip::parseBinaryExpressionOrHigher(int precedence) {
  */
 void TsStrip::parseBinaryExpressionRest(int precedence) {
     while (true) {
-        int newPrecedence = getBinaryOperatorPrecedence(token());
+        int shiftWidth = 0;
+        SyntaxKind shiftOp = shiftOperatorAt(m_tokenIndex, shiftWidth);
+        SyntaxKind op = shiftOp != SyntaxKind::Unknown ? shiftOp : token();
+        int newPrecedence = getBinaryOperatorPrecedence(op);
         
         // Check precedence for left/right associativity
-        bool consumeCurrentOperator = token() == SyntaxKind::AsteriskAsteriskToken
+        bool consumeCurrentOperator = op == SyntaxKind::AsteriskAsteriskToken
             ? newPrecedence >= precedence
             : newPrecedence > precedence;
         
@@ -886,11 +897,11 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
             break;
         }
         
-        if (token() == SyntaxKind::InKeyword && inDisallowInContext()) {
+        if (op == SyntaxKind::InKeyword && inDisallowInContext()) {
             break;
         }
         
-        if (token() == SyntaxKind::AsKeyword) {
+        if (op == SyntaxKind::AsKeyword) {
             // TypeRunner parser2.h line 5503-5515
             // Make sure we *do* perform ASI for constructs like this:
             //    var x = foo
@@ -918,7 +929,7 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
                     fixASI(asStart, asEnd, false);  // Expression-level
                 }
             }
-        } else if (token() == SyntaxKind::SatisfiesKeyword) {
+        } else if (op == SyntaxKind::SatisfiesKeyword) {
             // Handle 'satisfies Type' similarly
             if (currentToken().hadLineBreak) {
                 break;
@@ -935,8 +946,11 @@ void TsStrip::parseBinaryExpressionRest(int precedence) {
                 }
             }
         } else {
-            // Normal binary operator
-            nextToken();
+            // Normal binary operator. A shift spans two or three tokens because
+            // the scanner split it.
+            for (int i = 0; i < (shiftWidth ? shiftWidth : 1); i++) {
+                nextToken();
+            }
             parseBinaryExpressionOrHigher(newPrecedence);
         }
     }
@@ -3661,6 +3675,72 @@ exlib::string TsStrip::formatEnumNumber(double value) {
 }
 
 /**
+ * JavaScript's ToUint32: truncate, take it modulo 2^32, and let NaN and the
+ * infinities become 0. The bitwise operators are the only place the folder needs
+ * it, but they need it properly - a plain cast of a negative double is undefined
+ * and `-8 >>> 1` is 2147483644, not 0.
+ */
+uint32_t TsStrip::toUint32(double value) {
+    if (!std::isfinite(value))
+        return 0;
+    double m = fmod(trunc(value), 4294967296.0);
+    if (m < 0)
+        m += 4294967296.0;
+    return (uint32_t)m;
+}
+
+/**
+ * The scanner emits one `>` per character, so `>>` arrives as two tokens and the
+ * parser has to put the shift operator back together. TypeScript's scanner does
+ * the opposite - it scans `>>` as one token and splits it when closing nested
+ * type arguments - and the type-argument code here already copes with a `>>`
+ * token, so the two halves meet in the middle.
+ *
+ * Only adjacent `>` characters count. `a > > b` is not a shift and neither is
+ * `a > >= b`, and `A<B<C>>` in a *type* never reaches the expression parser.
+ *
+ * Returns the operator and how many tokens it spans, or SyntaxKind::Unknown when
+ * this position does not start one.
+ */
+SyntaxKind TsStrip::shiftOperatorAt(size_t index, int& width) const {
+    width = 0;
+    if (index + 1 >= m_tokens.size())
+        return SyntaxKind::Unknown;
+
+    const Token& first = m_tokens[index];
+    if (first.kind != SyntaxKind::GreaterThanToken)
+        return SyntaxKind::Unknown;
+
+    const Token& second = m_tokens[index + 1];
+    if (second.pos != first.end)
+        return SyntaxKind::Unknown;
+
+    if (second.kind == SyntaxKind::GreaterThanEqualsToken) {
+        width = 2;
+        return SyntaxKind::GreaterThanGreaterThanEqualsToken;
+    }
+    if (second.kind != SyntaxKind::GreaterThanToken)
+        return SyntaxKind::Unknown;
+
+    if (index + 2 < m_tokens.size()) {
+        const Token& third = m_tokens[index + 2];
+        if (third.pos == second.end) {
+            if (third.kind == SyntaxKind::GreaterThanEqualsToken) {
+                width = 3;
+                return SyntaxKind::GreaterThanGreaterThanGreaterThanEqualsToken;
+            }
+            if (third.kind == SyntaxKind::GreaterThanToken) {
+                width = 3;
+                return SyntaxKind::GreaterThanGreaterThanGreaterThanToken;
+            }
+        }
+    }
+
+    width = 2;
+    return SyntaxKind::GreaterThanGreaterThanToken;
+}
+
+/**
  * Precedence of the binary operators that can appear in a constant enum
  * initialiser. Comparisons are deliberately absent: they evaluate to a boolean,
  * which is neither a number nor a string, so the folder stops there and the
@@ -3764,12 +3844,21 @@ TsStrip::EnumValueKind TsStrip::evalConstBinary(size_t& i, size_t end, double& v
     EnumValueKind left = evalConstUnary(i, end, value);
 
     while (i < end) {
-        SyntaxKind op = m_tokens[i].kind;
+        // The scanner split a shift into two or three `>` tokens, so put it back
+        // together the same way the expression parser does. A shift that runs
+        // past the initialiser is not ours to fold.
+        int shiftWidth = 0;
+        SyntaxKind shiftOp = shiftOperatorAt(i, shiftWidth);
+        if (shiftOp != SyntaxKind::Unknown && i + shiftWidth > end) {
+            shiftOp = SyntaxKind::Unknown;
+            shiftWidth = 0;
+        }
+        SyntaxKind op = shiftOp != SyntaxKind::Unknown ? shiftOp : m_tokens[i].kind;
         int prec = constBinaryPrecedence(op);
         if (prec < 0 || prec < minPrecedence) {
             break;
         }
-        i++;
+        i += shiftWidth ? shiftWidth : 1;
 
         // `**` is right-associative, the rest are left-associative.
         double rhs = 0;
@@ -3809,22 +3898,22 @@ TsStrip::EnumValueKind TsStrip::evalConstBinary(size_t& i, size_t end, double& v
             value = pow(l, rhs);
             break;
         case SyntaxKind::LessThanLessThanToken:
-            value = (double)((long long)l << ((long long)rhs & 31));
+            value = (double)(int32_t)(toUint32(l) << (toUint32(rhs) & 31));
             break;
         case SyntaxKind::GreaterThanGreaterThanToken:
-            value = (double)((long long)l >> ((long long)rhs & 31));
+            value = (double)(toInt32(l) >> (toUint32(rhs) & 31));
             break;
         case SyntaxKind::GreaterThanGreaterThanGreaterThanToken:
-            value = (double)((unsigned long long)l >> ((long long)rhs & 31));
+            value = (double)(toUint32(l) >> (toUint32(rhs) & 31));
             break;
         case SyntaxKind::AmpersandToken:
-            value = (double)((long long)l & (long long)rhs);
+            value = (double)(toInt32(l) & toInt32(rhs));
             break;
         case SyntaxKind::BarToken:
-            value = (double)((long long)l | (long long)rhs);
+            value = (double)(toInt32(l) | toInt32(rhs));
             break;
         case SyntaxKind::CaretToken:
-            value = (double)((long long)l ^ (long long)rhs);
+            value = (double)(toInt32(l) ^ toInt32(rhs));
             break;
         default:
             left = EnumValueKind::Other;

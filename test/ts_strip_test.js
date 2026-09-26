@@ -1109,6 +1109,78 @@ setup(cfg);
             assert.strictEqual(E[2], 'B');
         });
 
+        // The scanner emits one `>` per character, so the shift operators have to
+        // be put back together by whoever consumes them. Missing that in the enum
+        // folder left `8 >> 1` unfolded, which stops the counter.
+
+        itDiff('should fold a shift in an initializer',
+            'enum E { A = 8 >> 1, B }',
+            'var  E={ A : 8 >> 1, B:5 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should fold an unsigned shift with the JavaScript result',
+            // `-8 >>> 1` is 2147483644: the operator is defined on ToUint32, not on
+            // the signed value.
+            'enum E { A = -8 >>> 1, B }',
+            'var  E={ A : -8 >>> 1, B:2147483645 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should fold a chain of shifts',
+            'enum E { A = 1 << 3 >> 1, B }',
+            'var  E={ A : 1 << 3 >> 1, B:5 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should fold bitwise operators',
+            'enum E { A = 5 & 3, B = 5 | 3, C = 5 ^ 3, D }',
+            'var  E={ A : 5 & 3, B : 5 | 3, C : 5 ^ 3, D:7 };E[E.A]="A";E[E.B]="B";E[E.C]="C";E[E.D]="D";',
+            null);
+
+    });
+
+    describe('Shift Operators', () => {
+        // The scanner splits `>>` into two `>` tokens (the type-argument code needs
+        // them separate to close `A<B<C>>`), so the expression parser has to merge
+        // them back. Without that `a >> 1` parses as `a > (> 1)` and the expression
+        // ends early, which leaves whatever follows it unstripped.
+
+        it('should keep a type annotation that follows a shift', () => {
+            const input = 'const x = a >> 1, y: number = 3;';
+            assert.strictEqual(strip(input), 'const x = a >> 1, y         = 3;');
+        });
+
+        it('should keep a type annotation that follows an unsigned shift', () => {
+            const input = 'const x = a >>> 1, y: number = 3;';
+            assert.strictEqual(strip(input), 'const x = a >>> 1, y         = 3;');
+        });
+
+        it('should still erase a type assertion after a shift', () => {
+            assert.strictEqual(strip('const x = a >> 1 as number;'),
+                'const x = a >> 1          ;');
+        });
+
+        it('should handle the shift assignment operators', () => {
+            assert.strictEqual(strip('x >>= 1;'), 'x >>= 1;');
+            assert.strictEqual(strip('x >>>= 1;'), 'x >>>= 1;');
+            assert.strictEqual(strip('x >>= 1 as number;'), 'x >>= 1          ;');
+        });
+
+        it('should not merge `>` characters that are not adjacent', () => {
+            // `a > > b` is not a shift, and neither is `a > >= b`.
+            assert.strictEqual(strip('a > > b;'), 'a > > b;');
+            assert.strictEqual(strip('a > >= b;'), 'a > >= b;');
+        });
+
+        it('should not mistake a comparison for a shift', () => {
+            assert.strictEqual(strip('const r = a < b >> c;'), 'const r = a < b >> c;');
+            assert.strictEqual(strip('const r = a > b >> c;'), 'const r = a > b >> c;');
+        });
+
+        it('should still consume type arguments that end in `>>`', () => {
+            // The two `>` here close two type argument lists, not a shift.
+            assert.strictEqual(strip('const y = f<A<B>>(x);'), 'const y = f      (x);');
+            assert.strictEqual(strip('const z: A<B<C>> = q;'), 'const z          = q;');
+        });
+
     });
 
     describe('Namespace Handling', () => {
