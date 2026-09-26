@@ -26,16 +26,23 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
         return 0;
     
     // Cache miss: strip TypeScript types in-place
+    exlib::string stripped;
+    bool strippedInPlace = false;
     try {
-        ts_strip::stripInPlace(buf->data(), buf->length());
+        strippedInPlace = ts_strip::stripInPlace(buf->data(), buf->length(), stripped);
     } catch (const std::exception& e) {
         return CHECK_ERROR(Runtime::setError(e.what()));
     }
 
-    // Async save to cache (fire and forget, zero copy with ref counting)
-    ts_cache_set(key, src);
+    // Parameter properties are lowered into the constructor body, which needs an
+    // insertion an in-place buffer cannot hold: use the returned text instead.
+    if (strippedInPlace)
+        retVal = src;
+    else
+        retVal = new Buffer(stripped.c_str(), stripped.length());
 
-    retVal = src;
+    // Async save to cache (fire and forget, zero copy with ref counting)
+    ts_cache_set(key, retVal);
 
     return 0;
 }

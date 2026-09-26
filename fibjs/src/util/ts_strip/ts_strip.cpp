@@ -109,6 +109,7 @@ public:
         , m_tokenIndex(0)
         , m_disallowInContext(false)
         , m_allowReturnTypeInArrowFunction(true)
+        , m_ambientDeclaration(false)
         , m_recursionDepth(0)
     {
     }
@@ -125,9 +126,67 @@ private:
     size_t m_tokenIndex;
     bool m_disallowInContext;
     bool m_allowReturnTypeInArrowFunction;  // Like TypeScript's allowReturnTypeInArrowFunction parameter
+    // Inside `declare ...` / `export declare ...`: the declaration is erased as a
+    // whole, so TS-only syntax in it (e.g. parameter properties) has no runtime
+    // meaning and must not be rejected.
+    bool m_ambientDeclaration;
     int m_recursionDepth;
     
     std::vector<Overwrite> m_overwrites;
+
+    // Code that has to be inserted into the stripped source (parameter properties
+    // are lowered into `this.x = x;` at the top of the constructor body, and an
+    // in-place buffer cannot grow).
+    struct Insertion {
+        int pos;
+        exlib::string text;
+        Insertion(int p, exlib::string t)
+            : pos(p)
+            , text(std::move(t))
+        {
+        }
+    };
+    std::vector<Insertion> m_insertions;
+
+    // Parameter property names collected by parseParameters() for the constructor
+    // being parsed; lowered when its body starts.
+    std::vector<exlib::string> m_paramProps;
+
+public:
+    bool hasInsertions() const { return !m_insertions.empty(); }
+
+    // The stripped source with all insertions applied.
+    exlib::string buildResult() const
+    {
+        exlib::string out;
+        if (m_insertions.empty()) {
+            return exlib::string((const char*)m_src, m_length);
+        }
+
+        std::vector<const Insertion*> sorted;
+        sorted.reserve(m_insertions.size());
+        for (const auto& ins : m_insertions) {
+            sorted.push_back(&ins);
+        }
+        std::sort(sorted.begin(), sorted.end(),
+            [](const Insertion* a, const Insertion* b) { return a->pos < b->pos; });
+
+        out.reserve(m_length + 32 * sorted.size());
+        size_t pos = 0;
+        for (const Insertion* ins : sorted) {
+            size_t at = ins->pos < 0 ? 0 : (size_t)ins->pos;
+            if (at > m_length) {
+                at = m_length;
+            }
+            out.append((const char*)m_src + pos, at - pos);
+            out.append(ins->text);
+            pos = at;
+        }
+        out.append((const char*)m_src + pos, m_length - pos);
+        return out;
+    }
+
+private:
 
     void checkRecursionDepth() {
         if (m_recursionDepth > MAX_RECURSION_DEPTH) {
@@ -394,6 +453,7 @@ private:
         }
         return 0;
     }
+
     /**
      * Index of the first token whose `pos` is >= `pos`, or m_tokens.size() when
      * there is no such token.
@@ -585,6 +645,8 @@ private:
     
     // Function
     void parseParameters();
+    int constructorBodyInsertPos(size_t openBraceIndex);
+    void addParameterPropertyAssignments();
     
     // Control flow
     void parseBlock();
@@ -2206,7 +2268,10 @@ void TsStrip::parseStatement() {
                 next == SyntaxKind::AsyncKeyword)) {
                 int start = getNodePos();
                 nextToken();
+                bool savedAmbient = m_ambientDeclaration;
+                m_ambientDeclaration = true;
                 parseDeclaration();
+                m_ambientDeclaration = savedAmbient;
                 // Use getPrevTokenEnd() to avoid erasing comments after the declaration
                 addReplacement(start, getPrevTokenEnd());
                 fixASI(start, getPrevTokenEnd());
@@ -2625,6 +2690,77 @@ void TsStrip::parseFunctionDeclaration(int outerStart) {
 /**
  * parseParameters - from TypeRunner
  */
+/**
+ * Position in the constructor body where parameter property assignments go: right
+ * after the opening brace, or after a leading `super(...)` call, because touching
+ * `this` before `super()` throws.
+ *
+ * @param openBraceIndex Index of the body's `{` token in m_tokens
+ */
+int TsStrip::constructorBodyInsertPos(size_t openBraceIndex) {
+    int afterBrace = m_tokens[openBraceIndex].end;
+
+    size_t i = openBraceIndex + 1;
+    if (i + 1 >= m_tokens.size() || m_tokens[i].kind != SyntaxKind::SuperKeyword
+        || m_tokens[i + 1].kind != SyntaxKind::OpenParenToken) {
+        return afterBrace;
+    }
+
+    // Skip `super` `(` ... `)` and an optional semicolon behind it
+    size_t j = i + 1;
+    int depth = 0;
+    while (j < m_tokens.size()) {
+        SyntaxKind kind = m_tokens[j].kind;
+        if (kind == SyntaxKind::OpenParenToken) {
+            depth++;
+        } else if (kind == SyntaxKind::CloseParenToken) {
+            depth--;
+            if (depth == 0) {
+                break;
+            }
+        }
+        j++;
+    }
+    if (j >= m_tokens.size()) {
+        return afterBrace;
+    }
+
+    if (j + 1 < m_tokens.size() && m_tokens[j + 1].kind == SyntaxKind::SemicolonToken) {
+        j++;
+    }
+    return m_tokens[j].end;
+}
+
+/**
+ * Lower the parameter properties collected by parseParameters() into
+ * `this.x = x;` assignments at the top of the constructor body.
+ */
+void TsStrip::addParameterPropertyAssignments() {
+    if (m_paramProps.empty()) {
+        return;
+    }
+
+    int pos = constructorBodyInsertPos(m_tokenIndex);
+    // A semicolon is only needed when the insertion point is not already behind `{`
+    // or `;` (a `super()` written without one).
+    bool needsSemicolon = pos > 0 && m_src[pos - 1] != '{' && m_src[pos - 1] != ';';
+
+    exlib::string text;
+    if (needsSemicolon) {
+        text += ';';
+    }
+    for (const auto& name : m_paramProps) {
+        text += "this.";
+        text += name;
+        text += '=';
+        text += name;
+        text += ';';
+    }
+    m_paramProps.clear();
+
+    m_insertions.push_back(Insertion(pos, std::move(text)));
+}
+
 void TsStrip::parseParameters() {
     parseExpected(SyntaxKind::OpenParenToken);
     
@@ -2709,7 +2845,16 @@ void TsStrip::parseParameters() {
             }
         }
         if (hasModifier) {
+            // `constructor(private x: number)` is a parameter property: TypeScript
+            // declares the field and assigns it in the constructor, so the modifiers
+            // are erased here and the assignment is added to the constructor body by
+            // addParameterPropertyAssignments(). Inside an ambient declaration
+            // (`declare class`) the whole declaration is erased instead.
             addReplacement(modStart, getNodePos());
+            if (!m_ambientDeclaration && isBindingIdentifier()) {
+                m_paramProps.push_back(exlib::string((const char*)m_src + getNodePos(),
+                    currentToken().end - getNodePos()));
+            }
         }
         
         // Rest parameter
@@ -3120,6 +3265,7 @@ void TsStrip::parseClassMember() {
     if (token() == SyntaxKind::ConstructorKeyword) {
         int ctorDeclStart = memberStart;
         nextToken();
+        m_paramProps.clear();
         parseParameters();
         
         if (token() == SyntaxKind::ColonToken) {
@@ -3130,9 +3276,11 @@ void TsStrip::parseClassMember() {
         }
         
         if (token() == SyntaxKind::OpenBraceToken) {
+            addParameterPropertyAssignments();
             parseBlock();
         } else {
             // Constructor overload - remove
+            m_paramProps.clear();
             tryParseSemicolon();
             addReplacement(ctorDeclStart, getNodePos());
         }
@@ -3647,6 +3795,11 @@ void TsStrip::parseImportDeclaration() {
                 // 'from' already consumed, just need module specifier
                 goto parse_from_clause;
             }
+        } else if (next == SyntaxKind::EqualsToken) {
+            // `import type = require("mod")`: here `type` is the binding name, so
+            // this is an import-equals declaration, not a type-only import.
+            // Needs a real transform - reject it (Node's strip-only mode does too).
+            throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
         } else {
             // 'type' is a modifier - remove entire statement
             nextToken(); // consume 'type'
@@ -3702,6 +3855,14 @@ void TsStrip::parseImportDeclaration() {
     } else if (token() == SyntaxKind::Identifier) {
         // Default import
         nextToken();
+        if (token() == SyntaxKind::EqualsToken) {
+            // `import foo = require("mod")` / `import foo = A.B`
+            // TypeScript-only syntax that needs a real transform (the runtime
+            // binding has to be created). Emitting it unchanged produces
+            // JavaScript that the engine rejects, so fail loudly instead - the
+            // same way Node's strip-only mode (amaro) does.
+            throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
+        }
         if (parseOptional(SyntaxKind::CommaToken)) {
             // import default, { ... } or import default, * as ...
         }
@@ -3811,6 +3972,14 @@ parse_from_clause:
         }
     }
     
+    // A leftover `=` here means the clause above never consumed an import-equals
+    // declaration (e.g. `import from = require("x")`, where the binding name is a
+    // contextual keyword). Those need a real transform, so reject them instead of
+    // emitting JavaScript the engine rejects.
+    if (token() == SyntaxKind::EqualsToken) {
+        throw std::runtime_error("TypeScript import equals declaration is not supported in strip-only mode.");
+    }
+
     tryParseSemicolon();
 }
 
@@ -3997,7 +4166,10 @@ void TsStrip::parseExportDeclaration() {
                 nextToken();
                 parseTypeAliasDeclaration(start);
             } else {
+                bool savedAmbient = m_ambientDeclaration;
+                m_ambientDeclaration = true;
                 parseDeclaration();
+                m_ambientDeclaration = savedAmbient;
                 addReplacement(start, getNodePos());
             }
             break;
@@ -4111,11 +4283,11 @@ void TsStrip::parseExportDeclaration() {
             break;
         }
         case SyntaxKind::EqualsToken:
-            // export = expression
-            nextToken();
-            parseAssignmentExpressionOrHigher();
-            tryParseSemicolon();
-            break;
+            // `export = expr` is TypeScript-only syntax that needs a real
+            // transform (`module.exports = expr`). Emitting it unchanged leaves
+            // JavaScript the engine rejects, so fail loudly instead - the same
+            // way Node's strip-only mode (amaro) does.
+            throw std::runtime_error("TypeScript export assignment is not supported in strip-only mode.");
         default:
             break;
     }
@@ -5003,16 +5175,28 @@ exlib::string strip(const exlib::string& source) {
     
     TsStrip stripper((uint8_t*)result.data(), result.length(), std::move(tokens));
     stripper.strip();
-    
+
+    // Parameter properties are lowered into the constructor body, which needs an
+    // insertion; everything else fits in the buffer.
+    if (stripper.hasInsertions()) {
+        return stripper.buildResult();
+    }
     return result;
 }
 
-void stripInPlace(uint8_t* data, size_t length) {
+bool stripInPlace(uint8_t* data, size_t length, exlib::string& out) {
     Scanner scanner(data, length);
     std::vector<Token> tokens = scanner.scanAllTokens();
     
     TsStrip stripper(data, length, std::move(tokens));
     stripper.strip();
+
+    if (!stripper.hasInsertions()) {
+        return true;
+    }
+
+    out = stripper.buildResult();
+    return false;
 }
 
 } // namespace ts_strip

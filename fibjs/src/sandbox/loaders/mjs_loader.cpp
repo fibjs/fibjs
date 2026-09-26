@@ -559,17 +559,23 @@ private:
                         data_ = Buffer::Cast(cached_js);
                     } else {
                         // Cache miss: strip TypeScript types in-place
+                        exlib::string stripped;
+                        bool strippedInPlace = false;
                         try {
-                            ts_strip::stripInPlace(data_->data(), data_->length());
+                            strippedInPlace = ts_strip::stripInPlace(data_->data(), data_->length(), stripped);
                         } catch (const std::exception& e) {
                             exception = e.what();
                         }
+
+                        // Parameter properties are lowered into the constructor body,
+                        // which needs an insertion an in-place buffer cannot hold.
+                        if (exception.empty() && !strippedInPlace)
+                            data_ = new Buffer(stripped.c_str(), stripped.length());
 
                         // Async save to cache (fire and forget, zero copy with ref counting)
                         if (exception.empty())
                             ts_cache_set(key, data_);
                     }
-
                     if (exception.empty()) {
                         v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
                         pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));

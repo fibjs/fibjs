@@ -152,6 +152,16 @@ function itThrowsDiff(name, input, fibjsErrorPattern, amaroErrorPattern) {
     });
 }
 
+/**
+ * Validation function for assert.throws that matches on the thrown message.
+ * amaro throws plain objects (with .message) rather than Error instances, which
+ * assert.throws(/regexp/) would stringify to '[object Object]'.
+ * @param {RegExp} pattern - Pattern the error message must match
+ */
+function rejects(pattern) {
+    return (e) => pattern.test(String(e && e.message));
+}
+
 describe('TypeScript Type Erasure Tests', () => {
 
     describe('Basic Type Annotations', () => {
@@ -376,11 +386,13 @@ describe('TypeScript Type Erasure Tests', () => {
             assert.strictEqual(strip('class Test { readonly id: number = 1; }'), 'class Test {          id         = 1; }');
         });
 
-        // amaro doesn't support constructor parameter properties in strip-only mode
-        itThrowsDiff('should strip constructor parameter properties',
+        // TypeScript declares the field and assigns it in the constructor, so the
+        // modifiers are erased and `this.name = name;` is lowered into the body.
+        // (amaro rejects parameter properties in strip-only mode instead.)
+        itDiff('should lower constructor parameter properties',
             'class Test { constructor(public name: string, private age: number) {} }',
-            null, // fibjs: succeeds
-            /parameter property.*not supported/); // amaro: throws
+            'class Test { constructor(       name        ,         age        ) {this.name=name;this.age=age;} }',
+            null);
 
         it('should strip class method with three parameters', () => {
             // Bug: second parameter type was not stripped
@@ -887,20 +899,20 @@ setup(cfg);
             /const enum member without initializer/, // fibjs error message
             /TypeScript enum.*not supported/); // amaro error message
 
-        itThrowsDiff('should throw for regular enum (not supported in strip-only mode)',
-            'enum Direction { Up, Down, Left, Right }',
-            /enum.*not supported/, // fibjs error message
-            /TypeScript enum.*not supported/); // amaro error message
+        it('should reject regular enum (not supported in strip-only mode)', () => {
+            assert.throws(() => strip('enum Direction { Up, Down, Left, Right }'),
+                rejects(/enum.*not supported/i));
+        });
 
     });
 
     describe('Namespace Handling', () => {
-        // Both fibjs and amaro throw for namespace in strip-only mode
+        // Both fibjs and amaro reject namespaces with a body in strip-only mode
 
-        itThrowsDiff('should preserve namespace (strip-only mode)',
-            'namespace MyLib { export const version = "1.0"; }',
-            /namespace.*not supported/, // fibjs: throws
-            /namespace.*not supported/); // amaro: throws
+        it('should reject namespace with body (strip-only mode)', () => {
+            assert.throws(() => strip('namespace MyLib { export const version = "1.0"; }'),
+                rejects(/namespace.*not supported/i));
+        });
 
     });
 
@@ -1487,20 +1499,60 @@ declare const stat: any;
             assert.strictEqual(strip(input), expected);
         });
 
+        // Ambient declarations are erased as a whole, so parameter properties in
+        // them have no runtime meaning and are still accepted; amaro rejects them
+        // ("A parameter property is only allowed in a constructor implementation").
+        itDiff('should erase ambient class with parameter properties',
+            'declare class A { constructor(private x: number); }',
+            ' '.repeat('declare class A { constructor(private x: number); }'.length),
+            null);
+
     });
 
     describe('Import/Export Equals (CommonJS)', () => {
-        // amaro doesn't support import/export = syntax in strip-only mode
+        // Both fibjs and amaro reject these in strip-only mode: creating the
+        // runtime binding needs a real transform (`const foo = require(...)` /
+        // `module.exports = ...`), and emitting them unchanged is not valid JS.
 
-        itThrowsDiff('should preserve import equals (not erasable)',
-            'import foo = require("foo");',
-            null, // fibjs: succeeds (preserves it)
-            /import equals.*not supported/); // amaro: throws
+        it('should reject import equals (needs transform)', () => {
+            assert.throws(() => strip('import foo = require("foo");'),
+                rejects(/import equals.*not supported/i));
+        });
 
-        itThrowsDiff('should preserve export equals (not erasable)',
-            'export = 1;',
-            null, // fibjs: succeeds (preserves it)
-            /export assignment.*not supported/); // amaro: throws
+        it('should reject export equals (needs transform)', () => {
+            assert.throws(() => strip('export = 1;'),
+                rejects(/export assignment.*not supported/i));
+        });
+
+    });
+
+    describe('Parameter Property Lowering', () => {
+        // The assignment TypeScript generates cannot be erased, so it is inserted at
+        // the top of the constructor body - after a leading `super(...)` call, because
+        // touching `this` before it throws. amaro rejects parameter properties instead.
+
+        itDiff('should assign after a leading super() call',
+            'class B extends A { constructor(private x: number) { super(); this.y = x; } }',
+            'class B extends A { constructor(        x        ) { super();this.x=x; this.y = x; } }',
+            null);
+
+        itDiff('should lower parameter properties with defaults',
+            'class A { constructor(private a: number, public b = 2) {} }',
+            'class A { constructor(        a        ,        b = 2) {this.a=a;this.b=b;} }',
+            null);
+
+        itDiff('should lower readonly parameter properties',
+            'class A { constructor(private readonly n: number) {} }',
+            'class A { constructor(                 n        ) {this.n=n;} }',
+            null);
+
+        it('should assign parameter properties at runtime', () => {
+            if (USE_AMARO)
+                return; // amaro rejects parameter properties
+
+            const out = strip('class A { constructor(private x, public y = 5) {} sum() { return this.x + this.y; } }');
+            assert.strictEqual(new Function(out + '; return new A(3).sum();')(), 8);
+        });
 
     });
 
@@ -2766,19 +2818,16 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            // amaro doesn't support TypeScript parameter property in strip-only mode
-            itDiff('should strip public as constructor parameter modifier',
+            // Parameter properties are lowered (see Parameter Property Lowering)
+            itDiff('should lower public as constructor parameter modifier',
                 'class A { constructor(public name: string) {} }',
-                'class A { constructor(       name        ) {} }',  // fibjs: strips modifier
-                null  // amaro: throws (parameter property not supported)
-            );
+                'class A { constructor(       name        ) {this.name=name;} }',
+                null);
 
-            // amaro doesn't support TypeScript parameter property in strip-only mode
-            itDiff('should strip override as constructor parameter modifier',
+            itDiff('should lower override as constructor parameter modifier',
                 'class A { constructor(override name: string) {} }',
-                'class A { constructor(         name        ) {} }',  // fibjs: strips modifier
-                null  // amaro: throws (parameter property not supported)
-            );
+                'class A { constructor(         name        ) {this.name=name;} }',
+                null);
 
         });
 
@@ -3867,12 +3916,10 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            // fibjs and amaro have different error messages for namespace with body
-            itThrowsDiff('should throw error for non-empty namespace global',
-                'namespace global { const x = 1; }',
-                /namespace\/module with body is not supported/,  // fibjs error
-                /TypeScript namespace.*not supported/            // amaro error
-            );
+            it('should reject non-empty namespace global', () => {
+                assert.throws(() => strip('namespace global { const x = 1; }'),
+                    rejects(/namespace.*not supported/i));
+            });
 
             it('should strip empty namespace Foo', () => {
                 const input = 'namespace Foo { }';
