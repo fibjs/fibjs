@@ -502,13 +502,13 @@ export class ClassA {
             assert.strictEqual(strip(input), expected);
         });
 
-        it('should preserve export as namespace (UMD declaration)', () => {
-            // export as namespace X is a UMD global namespace declaration
-            // It's a runtime declaration, not type-only, so preserve it
-            const input = 'export as namespace MyLib;';
-            const expected = 'export as namespace MyLib;';
-            assert.strictEqual(strip(input), expected);
-        });
+        itDiff('should erase export as namespace (UMD declaration)',
+            // It only tells the type checker about a global, so there is nothing to
+            // emit - and leaving it behind is JavaScript the engine rejects. amaro
+            // still leaves it in place, so the outputs differ here.
+            'export as namespace MyLib;',
+            ' '.repeat('export as namespace MyLib;'.length),
+            'export as namespace MyLib;');
 
         // Both fibjs and amaro completely remove type-only imports including the identifier
         it('should handle inline type import', () => {
@@ -1011,12 +1011,93 @@ setup(cfg);
     });
 
     describe('Namespace Handling', () => {
-        // Both fibjs and amaro reject namespaces with a body in strip-only mode
+        // A namespace with runtime members becomes the IIFE TypeScript emits; the
+        // body stays where it is and only the wrapper and the member assignments
+        // are inserted. amaro rejects these outright.
 
-        it('should reject namespace with body (strip-only mode)', () => {
-            assert.throws(() => strip('namespace MyLib { export const version = "1.0"; }'),
+        itDiff('should wrap a namespace with a value',
+            'namespace MyLib { export const version = "1.0"; }',
+            '                let MyLib;(function(_MyLib){        const version = _MyLib.version = "1.0"; })(MyLib||(MyLib={}));',
+            null);
+
+        itDiff('should attach an exported function',
+            'namespace N { export function f() { return 1 } }',
+            '            let N;(function(_N){        function f() { return 1 }_N.f = f; })(N||(N={}));',
+            null);
+
+        itDiff('should attach an exported class',
+            'namespace N { export class C {} }',
+            '            let N;(function(_N){        class C {}_N.C = C; })(N||(N={}));',
+            null);
+
+        itDiff('should attach every declarator of an exported variable',
+            'namespace N { export const a = 1, b = 2 }',
+            '            let N;(function(_N){        const a = _N.a = 1, b = _N.b = 2 })(N||(N={}));',
+            null);
+
+        itDiff('should keep a non-exported member private',
+            'namespace N { const hidden = 1; export const k = hidden }',
+            '            let N;(function(_N){ const hidden = 1;        const k = _N.k = hidden })(N||(N={}));',
+            null);
+
+        itDiff('should mount an exported nested namespace on its parent',
+            'namespace A { export namespace B { export const k = 1 } }',
+            '            let A;(function(_A){                    let B;(function(_B){        const k = _B.k = 1 })(B||(B=_A.B||(_A.B={}))); })(A||(A={}));',
+            null);
+
+        itDiff('should keep a plain nested namespace private',
+            'namespace A { namespace B { export const k = 1 } export const v = B.k }',
+            '            let A;(function(_A){             let B;(function(_B){        const k = _B.k = 1 })(B||(B={}));        const v = _A.v = B.k })(A||(A={}));',
+            null);
+
+        itDiff('should keep an exported namespace exported',
+            'export namespace N { export const k = 1 }',
+            '                   export var N;(function(_N){        const k = _N.k = 1 })(N||(N={}));',
+            null);
+
+        it('should build the namespace object TypeScript builds', () => {
+            if (USE_AMARO) return; // amaro rejects namespaces with a body
+            const out = strip('namespace A { export const k = 1; export function f() { return 2 } }');
+            const A = new Function(out + '\nreturn A;')();
+            assert.strictEqual(A.k, 1);
+            assert.strictEqual(A.f(), 2);
+            assert.deepEqual(Object.keys(A).sort(), ['f', 'k']);
+        });
+
+        it('should keep a non-exported member out of the namespace object', () => {
+            if (USE_AMARO) return;
+            const out = strip('namespace A { const hidden = 1; export const k = hidden }');
+            const A = new Function(out + '\nreturn A;')();
+            assert.strictEqual(A.k, 1);
+            assert.deepEqual(Object.keys(A), ['k']);
+        });
+
+        it('should not change the line count', () => {
+            if (USE_AMARO) return;
+            const inputs = [
+                'namespace N { export const k = 1 }',
+                'namespace N\n{\n  export const k = 1;\n}',
+                'namespace N {\n  export const k = 1;\n  export function f() { return 2 }\n}',
+                'namespace A {\n  export namespace B {\n    export const k = 1;\n  }\n}',
+            ];
+            for (const input of inputs) {
+                const out = strip(input);
+                assert.strictEqual(out.split('\n').length, input.split('\n').length,
+                    'line count changed for ' + JSON.stringify(input) + ' -> ' + JSON.stringify(out));
+            }
+        });
+
+        it('should reject a dotted namespace with a body', () => {
+            // Synthesising the enclosing namespace for `namespace A.B { ... }` is a
+            // different shape; nothing in practice needs it.
+            assert.throws(() => strip('namespace A.B { export const k = 1 }'),
                 rejects(/namespace.*not supported/i));
         });
+
+        itThrowsDiff('should reject a namespace member it cannot rewrite',
+            'namespace N { export { a } }',
+            /namespace member.*not supported/i,
+            /namespace.*not supported/i);
 
     });
 
@@ -1237,11 +1318,11 @@ function f(x: string) { return x; }`;
             erased('export namespace A.B { export interface I {} }'));
 
         // A nested namespace with a runtime member makes the whole chain runtime, so
-        // the outer one must not be erased.
-        itThrowsDiff('should reject a nested namespace with a value',
+        // the outer one is lowered rather than erased - and B stays private to A.
+        itDiff('should lower a nested namespace with a value',
             'namespace A { export namespace B { export const k = 1 } }',
-            /namespace.*not supported/i,
-            /namespace.*not supported/i);
+            '            let A;(function(_A){                    let B;(function(_B){        const k = _B.k = 1 })(B||(B=_A.B||(_A.B={}))); })(A||(A={}));',
+            null);
     });
 
     describe('Destructuring Parameter Types', () => {
@@ -4078,10 +4159,10 @@ declare const stat: any;
                 assert.strictEqual(strip(input), expected);
             });
 
-            it('should reject non-empty namespace global', () => {
-                assert.throws(() => strip('namespace global { const x = 1; }'),
-                    rejects(/namespace.*not supported/i));
-            });
+            itDiff('should lower a non-empty namespace global',
+                'namespace global { const x = 1; }',
+                '                 let global;(function(_global){ const x = 1; })(global||(global={}));',
+                null);
 
             it('should strip empty namespace Foo', () => {
                 const input = 'namespace Foo { }';

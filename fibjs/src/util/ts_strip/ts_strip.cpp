@@ -170,6 +170,10 @@ private:
     exlib::string m_enumName;
     std::vector<std::pair<exlib::string, double>> m_enumValues;
 
+    // Alias of the namespace body being parsed (`_N` for `namespace N`), empty
+    // outside one. `export` members inside the body are attached to it.
+    exlib::string m_namespaceAlias;
+
 public:
     bool hasInsertions() const { return !m_insertions.empty(); }
 
@@ -707,6 +711,10 @@ private:
     static exlib::string formatEnumNumber(double value);
 
     void parseModuleDeclaration(int start, bool isDeclare = false);
+    void lowerNamespace(int start, const exlib::string& name);
+    void parseNamespaceVariableExport();
+    exlib::string namespaceMemberName(int offset) const;
+    void addNamespaceMemberAssign(const exlib::string& name);
     void parseImportDeclaration();
     void parseImportEqualsDeclaration();
     void parseExportDeclaration();
@@ -716,6 +724,7 @@ private:
     // scan rather than a parse)
     size_t matchingBrace(size_t openIndex) const;
     bool tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const;
+    bool declarationHasValue(size_t from, size_t closeIndex) const;
     
     // Decorator
     void parseDecorator();
@@ -3921,39 +3930,154 @@ size_t TsStrip::matchingBrace(size_t openIndex) const {
 }
 
 /**
+ * Does the declaration whose first token is `from` introduce a runtime value?
+ *
+ * A variable counts when it has an initializer and a function when it has a body.
+ * Declaration files are made of the opposite - `const x: T;`, `function f(): T;` -
+ * which declare a shape and nothing else, so a namespace holding only those has no
+ * runtime value either. Treating them as values would reject the file; treating
+ * them as types erases it, which is what the other strippers do.
+ */
+bool TsStrip::declarationHasValue(size_t from, size_t closeIndex) const {
+    SyntaxKind keyword = m_tokens[from].kind;
+    int paren = 0, bracket = 0, brace = 0;
+
+    // What a declaration means when the statement ends without an initializer and
+    // without a body: `let x;` and `var x;` are valid declarations whose value is
+    // undefined, so the namespace still exists. `const x;` and a function with no
+    // body are not valid JavaScript at all - only a declaration file writes them,
+    // and there they declare a shape and nothing else.
+    auto valueWithoutInitializer = [&]() { return keyword == SyntaxKind::LetKeyword || keyword == SyntaxKind::VarKeyword; };
+
+    for (size_t i = from + 1; i < closeIndex; i++) {
+        switch (m_tokens[i].kind) {
+        case SyntaxKind::OpenParenToken:
+            paren++;
+            break;
+        case SyntaxKind::CloseParenToken:
+            if (paren) paren--;
+            break;
+        case SyntaxKind::OpenBracketToken:
+            bracket++;
+            break;
+        case SyntaxKind::CloseBracketToken:
+            if (bracket) bracket--;
+            break;
+        case SyntaxKind::OpenBraceToken:
+            // For a function this is the body, unless it belongs to a destructured
+            // parameter.
+            if (keyword == SyntaxKind::FunctionKeyword && paren == 0) {
+                return true;
+            }
+            brace++;
+            break;
+        case SyntaxKind::CloseBraceToken:
+            if (brace == 0) {
+                return valueWithoutInitializer(); // the enclosing body ended
+            }
+            brace--;
+            break;
+        case SyntaxKind::EqualsToken:
+            if (keyword != SyntaxKind::FunctionKeyword && paren == 0 && bracket == 0 && brace == 0) {
+                return true;
+            }
+            break;
+        case SyntaxKind::SemicolonToken:
+            if (paren == 0 && bracket == 0 && brace == 0) {
+                return valueWithoutInitializer();
+            }
+            break;
+        case SyntaxKind::EndOfFileToken:
+            return valueWithoutInitializer();
+        default:
+            break;
+        }
+    }
+    return valueWithoutInitializer();
+}
+
+/**
  * Does the brace-delimited range hold only type declarations?
  *
  * `namespace N { export interface I {} }` has no runtime value at all, so every
  * other stripper drops it. Deciding that needs a look at the statements in the
- * body, and a token scan is enough: a namespace body is a plain list of
- * statements, and the ones that matter are recognisable from their first token.
+ * body, and a token scan is enough - with two things it has to get right:
  *
- * The answer is deliberately conservative - anything not recognised counts as a
- * runtime value, which keeps the namespace rejected rather than silently erasing
- * one that had members. Nested namespaces are scanned recursively, so a runtime
- * member two levels down is still found.
+ * 1. `const` / `let` / `var` / `function` / `class` / `enum` can only start a
+ *    statement at this level. Inside a type they would be a property name, and
+ *    property names live one brace deeper, so seeing one means the namespace
+ *    declares a value no matter what the statement tracking thinks.
+ * 2. A `}` closes a statement only when it closed a *statement's* brace. A type
+ *    like `type T = { a: number } | ...` has braces of its own, and treating their
+ *    `}` as the end of the statement makes the next line look like a statement
+ *    start - which is how `namespace partialUtil { export type DeepPartial<...> }`
+ *    used to be rejected even though it is all types.
+ *
+ * The answer stays conservative: anything not recognised counts as a runtime
+ * value, which keeps the namespace rejected rather than silently erasing one that
+ * had members. Nested namespaces are scanned recursively, so a runtime member two
+ * levels down is still found.
  */
 bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
     int depth = 0;
     bool atStatementStart = true;
+    SyntaxKind statementStart = SyntaxKind::Unknown;
+    // One entry per open brace: did it open a statement's body (so its `}` ends the
+    // statement) or is it part of a type or expression?
+    std::vector<bool> statementBrace;
 
     for (size_t i = openIndex; i < closeIndex; i++) {
         SyntaxKind k = m_tokens[i].kind;
 
         if (k == SyntaxKind::OpenBraceToken) {
             depth++;
-            // A statement starts right after the body's own `{`.
-            atStatementStart = (depth == 1);
+            if (depth == 1) {
+                // An interface body ends its statement; the braces inside a type
+                // alias or an object literal do not.
+                statementBrace.push_back(atStatementStart || statementStart == SyntaxKind::InterfaceKeyword);
+                atStatementStart = true; // a statement starts right after the body's `{`
+            } else {
+                statementBrace.push_back(false);
+            }
             continue;
         }
         if (k == SyntaxKind::CloseBraceToken) {
             depth--;
-            atStatementStart = true; // a nested block just ended a statement
+            if (depth == 0) {
+                return true; // end of the namespace body
+            }
+            bool endsStatement = !statementBrace.empty() && statementBrace.back();
+            if (!statementBrace.empty()) {
+                statementBrace.pop_back();
+            }
+            if (endsStatement) {
+                atStatementStart = true;
+            }
             continue;
         }
         if (depth != 1) {
             continue;
         }
+
+        // (1) A value keyword at this level is a statement, whatever else is going on.
+        switch (k) {
+        case SyntaxKind::ConstKeyword:
+        case SyntaxKind::LetKeyword:
+        case SyntaxKind::VarKeyword:
+        case SyntaxKind::FunctionKeyword:
+            // An ambient declaration has no initializer and no body, so it declares
+            // nothing at run time.
+            if (declarationHasValue(i, closeIndex)) {
+                return false;
+            }
+            break;
+        case SyntaxKind::ClassKeyword:
+        case SyntaxKind::EnumKeyword:
+            return false;
+        default:
+            break;
+        }
+
         if (k == SyntaxKind::SemicolonToken) {
             atStatementStart = true;
             continue;
@@ -3974,6 +4098,11 @@ bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
         case SyntaxKind::DeclareKeyword:
         case SyntaxKind::GlobalKeyword:
             break; // type-only on its own
+        case SyntaxKind::ConstKeyword:
+        case SyntaxKind::LetKeyword:
+        case SyntaxKind::VarKeyword:
+        case SyntaxKind::FunctionKeyword:
+            break; // ambient: declarationHasValue() above already said so
         case SyntaxKind::ImportKeyword:
             // `import type { A } from "m"` is type-only; any other import is not.
             if (next != SyntaxKind::TypeKeyword) {
@@ -3990,6 +4119,15 @@ bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
             case SyntaxKind::TypeKeyword:
             case SyntaxKind::DeclareKeyword:
                 break;
+            case SyntaxKind::ConstKeyword:
+            case SyntaxKind::LetKeyword:
+            case SyntaxKind::VarKeyword:
+            case SyntaxKind::FunctionKeyword:
+                // Ambient exports are type-only too.
+                if (declarationHasValue(i + 1, closeIndex)) {
+                    return false;
+                }
+                break;
             case SyntaxKind::NamespaceKeyword:
             case SyntaxKind::ModuleKeyword:
                 isNamespaceKeyword = true;
@@ -4001,7 +4139,7 @@ bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
             }
             break;
         default:
-            return false; // const / let / var / function / class / enum / expression
+            return false; // an expression statement, or a declaration this does not know
         }
 
         if (isNamespaceKeyword) {
@@ -4026,6 +4164,7 @@ bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
             continue;
         }
 
+        statementStart = k;
         atStatementStart = false;
     }
 
@@ -4033,27 +4172,187 @@ bool TsStrip::tokenRangeIsTypeOnly(size_t openIndex, size_t closeIndex) const {
 }
 
 /**
+ * The name of the member a declaration introduces, `offset` tokens ahead of the
+ * current one (1 for `function f` / `class C`, whose keyword is current).
+ */
+exlib::string TsStrip::namespaceMemberName(int offset) const {
+    size_t idx = m_tokenIndex + offset;
+    if (idx >= m_tokens.size()) {
+        return exlib::string();
+    }
+    const Token& t = m_tokens[idx];
+    if (t.kind != SyntaxKind::Identifier && !isKeyword(t.kind)) {
+        return exlib::string();
+    }
+    return exlib::string((const char*)m_src + t.pos, t.end - t.pos);
+}
+
+/**
+ * `function f() {}` and `class C {}` are already declarations inside the wrapper,
+ * so the namespace only needs the assignment TypeScript appends after them.
+ */
+void TsStrip::addNamespaceMemberAssign(const exlib::string& name) {
+    if (name.empty()) {
+        return;
+    }
+    exlib::string stmt = m_namespaceAlias + "." + name + " = " + name + ";";
+    m_insertions.push_back(Insertion(getPrevTokenEnd(), stmt));
+}
+
+/**
+ * `export const k = 1` inside a namespace body.
+ *
+ * TypeScript keeps the local binding and assigns it onto the namespace object, so
+ * each initializer gains a `_N.k = ` in front of it. The `export ` prefix is
+ * erased by the caller.
+ *
+ * Called with the current token on `const` / `let` / `var`.
+ */
+void TsStrip::parseNamespaceVariableExport() {
+    SyntaxKind keyword = token();
+    nextToken(); // const / let / var
+
+    while (!isEOF()) {
+        if (token() != SyntaxKind::Identifier && !isKeyword(token())) {
+            // Destructuring bindings would each need their own assignment.
+            throw std::runtime_error("TypeScript namespace member is not supported in strip-only mode.");
+        }
+        exlib::string name((const char*)m_src + currentToken().pos, currentToken().end - currentToken().pos);
+        nextToken();
+
+        // Type annotation
+        if (token() == SyntaxKind::ColonToken) {
+            int typeStart = getNodePos();
+            nextToken();
+            skipType();
+            addReplacement(typeStart, getNodePos());
+        }
+
+        if (token() == SyntaxKind::EqualsToken) {
+            nextToken();
+            exlib::string assign = m_namespaceAlias + "." + name + " = ";
+            m_insertions.push_back(Insertion(getNodePos(), assign));
+            parseAssignmentExpressionOrHigher();
+        } else if (keyword == SyntaxKind::ConstKeyword) {
+            // `const x;` is not valid JavaScript, and only an ambient body writes
+            // one - those are erased as a whole before they get here.
+            throw std::runtime_error("TypeScript namespace member is not supported in strip-only mode.");
+        }
+        // `let x;` / `var x;` keep their declaration and attach nothing, which is
+        // what TypeScript emits for them as well.
+
+        if (!parseOptional(SyntaxKind::CommaToken)) {
+            break;
+        }
+    }
+
+    tryParseSemicolon();
+}
+
+/**
+ * `namespace N { ... }`  ->  `let N;(function(_N){ ... })(N||(N={}));`
+ *
+ * The body stays exactly where it is. `namespace N ` (and a leading `export`) is
+ * erased to spaces, the wrapper is inserted around the body's braces, and every
+ * exported member gains an assignment onto the namespace object. Nothing inserted
+ * contains a line break, so the line count is unchanged.
+ *
+ * A nested namespace is mounted on its parent, the way TypeScript emits it:
+ * `})(B||(B=_A.B||(_A.B={})));`.
+ */
+void TsStrip::lowerNamespace(int start, const exlib::string& name) {
+    int bracePos = getNodePos();
+
+    // `export namespace N` has to keep exporting the binding.
+    bool isExported = false;
+    for (int p = start; p + 6 <= bracePos; p++) {
+        if (m_src[p] == ' ' || m_src[p] == '\t') {
+            continue;
+        }
+        isExported = memcmp(m_src + p, "export", 6) == 0;
+        break;
+    }
+
+    exlib::string alias("_");
+    alias += name;
+
+    bool nested = m_namespaceAlias.length() != 0;
+    // Only an exported nested namespace is mounted on its parent; a plain one stays
+    // private to the enclosing body, the way TypeScript emits it.
+    exlib::string mount;
+    if (nested && isExported) {
+        mount = m_namespaceAlias;
+        mount += ".";
+        mount += name;
+    }
+
+    // `namespace N ` -> spaces; the wrapper goes in front of the body's `{`.
+    addReplacement(start, bracePos);
+
+    exlib::string head;
+    if (!nested && isExported) {
+        head += "export var ";
+    } else {
+        head += "let ";
+    }
+    head += name;
+    head += ";(function(";
+    head += alias;
+    head += ")";
+    m_insertions.push_back(Insertion(bracePos, head));
+
+    // Parse the body with the alias in scope, so `export` members attach to it.
+    exlib::string savedAlias = m_namespaceAlias;
+    m_namespaceAlias = alias;
+    parseBlock();
+    m_namespaceAlias = savedAlias;
+
+    int closeEnd = getPrevTokenEnd();
+    // The namespace's own `}` is the function's closing brace, so the tail only
+    // adds the call.
+    exlib::string tail(")(");
+    tail += name;
+    tail += "||(";
+    tail += name;
+    tail += "=";
+    if (!mount.empty()) {
+        tail += mount;
+        tail += "||(";
+        tail += mount;
+        tail += "={})";
+    } else {
+        tail += "{}";
+    }
+    tail += "));";    m_insertions.push_back(Insertion(closeEnd, tail));
+}
+
+/**
  * parseModuleDeclaration - handle namespace/module
  * isDeclare: if true, we're in a declare context so just erase it
- *            if false, throw error for runtime namespace/module
  */
 void TsStrip::parseModuleDeclaration(int start, bool isDeclare) {
     // namespace/module Name { ... } or declare module "foo" { ... }
     // Name can be dotted: namespace Foo.Bar.Baz { ... }
     // "global" is a keyword but can be used as namespace name: namespace global { }
+    exlib::string nsName;
+    bool dotted = false;
+
     if (token() == SyntaxKind::Identifier || token() == SyntaxKind::GlobalKeyword || isKeyword(token())) {
+        nsName.assign((const char*)m_src + currentToken().pos, currentToken().end - currentToken().pos);
         nextToken();
         // Handle dotted names like Foo.Bar.Baz
         while (token() == SyntaxKind::DotToken) {
+            dotted = true;
             nextToken(); // consume .
             if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                nsName.assign((const char*)m_src + currentToken().pos, currentToken().end - currentToken().pos);
                 nextToken();
             }
         }
     } else if (token() == SyntaxKind::StringLiteral) {
         nextToken();
     }
-    
+
     if (token() == SyntaxKind::OpenBraceToken) {
         // Check if the body is empty (uninstantiated)
         // If empty, just erase it; if non-empty and not declare, throw error
@@ -4068,6 +4367,12 @@ void TsStrip::parseModuleDeclaration(int start, bool isDeclare) {
             // TypeScript, oxc and amaro all drop the whole declaration. Erasing it is
             // both correct and free: no insertion, no shift.
             skipBlock();
+        } else if (nsName.length() && !dotted) {
+            // A namespace with runtime members becomes the IIFE TypeScript emits.
+            // Dotted names (`namespace A.B`) would need the enclosing namespace
+            // synthesised as well, which nothing in practice needs.
+            lowerNamespace(start, nsName);
+            return;
         } else {
             // Runtime namespace/module with body - not supported
             throw std::runtime_error("TypeScript namespace/module with body is not supported in strip-only mode.");
@@ -4486,10 +4791,10 @@ void TsStrip::parseExportDeclaration() {
     int start = getNodePos();
     nextToken(); // 'export'
     
-    // export as namespace X; - UMD global namespace declaration, preserve it
+    // export as namespace X; - a UMD global declaration. It only tells the type
+    // checker about a global, so there is nothing to emit and leaving it behind
+    // produces JavaScript the engine rejects.
     if (token() == SyntaxKind::AsKeyword) {
-        // This is `export as namespace X;` syntax for UMD modules
-        // It's a runtime declaration, not a type-only construct, so preserve it
         nextToken(); // consume 'as'
         if (parseOptional(SyntaxKind::NamespaceKeyword)) {
             if (token() == SyntaxKind::Identifier) {
@@ -4497,6 +4802,8 @@ void TsStrip::parseExportDeclaration() {
             }
         }
         tryParseSemicolon();
+        addReplacement(start, getPrevTokenEnd());
+        fixASI(start, getPrevTokenEnd());
         return;
     }
     
@@ -4601,15 +4908,34 @@ void TsStrip::parseExportDeclaration() {
                 nextToken(); // const
                 nextToken(); // enum
                 parseEnumDeclaration(enumStart, false, true);
+            } else if (m_namespaceAlias.length()) {
+                // `export const k = 1` -> `const k = _N.k = 1`
+                addReplacement(start, getNodePos()); // the `export ` prefix
+                parseNamespaceVariableExport();
             } else {
                 parseVariableStatement();
             }
             break;
         case SyntaxKind::FunctionKeyword:
-            parseFunctionDeclaration(start);  // Pass export start for overload erasure
+            if (m_namespaceAlias.length()) {
+                // `export function f() {}` -> `function f() {} _N.f = f;`
+                exlib::string fname = namespaceMemberName(1);
+                addReplacement(start, getNodePos());
+                parseFunctionDeclaration();
+                addNamespaceMemberAssign(fname);
+            } else {
+                parseFunctionDeclaration(start);  // Pass export start for overload erasure
+            }
             break;
         case SyntaxKind::ClassKeyword:
-            parseClassDeclaration();
+            if (m_namespaceAlias.length()) {
+                exlib::string cname = namespaceMemberName(1);
+                addReplacement(start, getNodePos());
+                parseClassDeclaration();
+                addNamespaceMemberAssign(cname);
+            } else {
+                parseClassDeclaration();
+            }
             break;
         case SyntaxKind::AsyncKeyword:
             if (peekToken().kind == SyntaxKind::FunctionKeyword) {
@@ -4694,6 +5020,11 @@ void TsStrip::parseExportDeclaration() {
         case SyntaxKind::OpenBraceToken:
         parseNamedExports: {
             // export { ... }
+            if (m_namespaceAlias.length()) {
+                // Inside a namespace this re-exports members, which would have to
+                // become one assignment per specifier.
+                throw std::runtime_error("TypeScript namespace member is not supported in strip-only mode.");
+            }
             bool hasRuntimeSpecifier = false;
             nextToken();
             while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
@@ -4785,6 +5116,11 @@ void TsStrip::parseExportDeclaration() {
             // way Node's strip-only mode (amaro) does.
             throw std::runtime_error("TypeScript export assignment is not supported in strip-only mode.");
         default:
+            if (m_namespaceAlias.length()) {
+                // `export import X = Y`, `export * from` and the like are re-exports
+                // inside a namespace, each of which would need its own assignment.
+                throw std::runtime_error("TypeScript namespace member is not supported in strip-only mode.");
+            }
             break;
     }
 }
