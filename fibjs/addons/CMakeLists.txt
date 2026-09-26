@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 # N-API test addons.
 #
-# They are built when -DFIBJS_ADDONS=ON is passed to the top-level configure;
-# a single addon can always be built on demand:
+# They are part of the default build; a single addon can always be built on
+# demand:
 #
 #   cmake --build <build dir> --target test_buffer
 #

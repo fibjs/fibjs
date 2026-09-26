@@ -6,12 +6,12 @@ cmake_minimum_required(VERSION 3.10)
 #   vender (optional, in-tree or prebuilt dist)
 #     + fibjs library
 #     + program (fibjs executable, js shared library)
-#     + addons (optional)
+#     + addons (N-API test addons)
 #     + installer (release only)
 #
 # Configure:
 #   cmake -DBUILD_ARCH=x64 -DBUILD_TYPE=release -DBT_VENDER=in-tree \
-#         -DFIBJS_ADDONS=ON -S . -B out/Linux_x64_release
+#         -S . -B out/Linux_x64_release
 # Build:
 #   cmake --build out/Linux_x64_release -- -j8
 #
@@ -29,7 +29,6 @@ project(fibjs C CXX)
 include(${CMAKE_CURRENT_LIST_DIR}/vender/build_tools/cmake/option_config.cmake)
 bt_config_target()
 
-option(FIBJS_ADDONS "build the N-API test addons" OFF)
 set(BT_VENDER "in-tree" CACHE STRING "source of the vendored libraries: in-tree | dist")
 
 if(BT_VENDER STREQUAL "dist")
@@ -44,9 +43,10 @@ endif()
 add_subdirectory(fibjs)
 add_subdirectory(fibjs/program)
 
-if(FIBJS_ADDONS)
-    add_subdirectory(fibjs/addons)
-endif()
+# The N-API test addons are part of the default build: each one is an
+# independent shared library, so they compile in parallel with the rest of the
+# tree instead of extending the critical path.
+add_subdirectory(fibjs/addons)
 
 # The installer (and the release packaging targets) only exist for release builds.
 if("${BUILD_TYPE}" STREQUAL "release")

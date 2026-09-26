@@ -59,9 +59,6 @@ else
         export BUILD_CMAKE_EXTRA_ARGS="-DBT_VENDER=in-tree ${BUILD_CMAKE_EXTRA_ARGS}"
 fi
 
-# The addons are part of the default build (`dev` is gone).
-export BUILD_CMAKE_EXTRA_ARGS="${BUILD_CMAKE_EXTRA_ARGS} -DFIBJS_ADDONS=ON"
-
 . "${SOURCE_ROOT}/vender/build_tools/scripts/build_env.sh"
 . "${SOURCE_ROOT}/vender/build_tools/scripts/build"
 

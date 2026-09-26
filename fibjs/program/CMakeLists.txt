@@ -8,10 +8,14 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
 include_directories("${PROJECT_SOURCE_DIR}/../../vender/uv/include")
 
-# The vendored libraries are linked as CMake targets below: real targets in the
-# in-tree build, IMPORTED targets in the dist build (-DBT_VENDER=dist).
-# The dist handling itself is part of build_tools
-# (vender/build_tools/cmake/vender_dist.cmake).
+# The vendored libraries are reached through fibjs_vender (defined in
+# ../CMakeLists.txt): real targets in the in-tree build, IMPORTED targets in the
+# dist build (-DBT_VENDER=dist).  The dist handling itself is part of
+# build_tools (vender/build_tools/cmake/vender_dist.cmake).
+#
+# Only these two final links need the archives, so fibjs_core stays free of the
+# build-order dependency on them and its object files can be compiled while the
+# vendored libraries are still building.
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	if(NOT MSVC)
@@ -40,8 +44,8 @@ include_directories(
 	"${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-target_link_libraries(${name} fibjs_core)
-target_link_libraries(js fibjs_core)
+target_link_libraries(${name} fibjs_core fibjs_vender)
+target_link_libraries(js fibjs_core fibjs_vender)
 
 if(NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set(link_flags "${link_flags} -rdynamic")

@@ -17,13 +17,21 @@ if(TARGET bt_config)
 endif()
 
 # Vendored libraries: real targets in the in-tree build, IMPORTED targets in the
-# dist build (-DBT_VENDER=dist).  PUBLIC so that the program and the js
-# shared library inherit them, including the correct static link order.
+# dist build (-DBT_VENDER=dist).
+#
+# They are collected in an INTERFACE library instead of being linked to
+# fibjs_core directly.  A static library is never linked against them - the
+# headers it needs come from the include_directories below - but CMake turns
+# every target_link_libraries entry that names a target into a build-order
+# dependency (fibjs_core.dir/all: vender/v8.dir/all), which holds every fibjs
+# object file back until the whole vendored tree, libv8 above all, has been
+# built.  The archives are only needed by the final links, so the program and
+# the js shared library link fibjs_vender themselves; the list stays in one
+# place and the static link order is unchanged.
 include(${CMAKE_CURRENT_LIST_DIR}/../vender/libs.cmake)
 
-foreach(lib ${libs})
-	target_link_libraries(${name} ${lib})
-endforeach()
+add_library(fibjs_vender INTERFACE)
+target_link_libraries(fibjs_vender INTERFACE ${libs})
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"

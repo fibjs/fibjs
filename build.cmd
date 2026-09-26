@@ -46,9 +46,6 @@ if "%USE_VENDER_DIST%" == "1" (
     set BUILD_CMAKE_EXTRA_ARGS=-DBT_VENDER=in-tree !BUILD_CMAKE_EXTRA_ARGS!
 )
 
-REM The addons are part of the default build (`dev` is gone).
-set BUILD_CMAKE_EXTRA_ARGS=!BUILD_CMAKE_EXTRA_ARGS! -DFIBJS_ADDONS=ON
-
 cd /d "%SOURCE_ROOT%"
 call "%SOURCE_ROOT%\vender\build_tools\scripts\build.cmd" %new_args%
 if ERRORLEVEL 1 goto exitbuild
