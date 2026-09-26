@@ -5241,4 +5241,456 @@ describe('xml', () => {
             });
         });
     }
+
+    describe('deep documents', () => {
+        it('should query a moderately deep document', () => {
+            const depth = 300;
+            const doc = parse('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>');
+
+            assert.equal(doc.getElementsByTagName('d').length, depth);
+            assert.equal(doc.getElementsByTagNameNS('*', 'd').length, depth);
+            assert.equal(doc.querySelectorAll('d').length, depth);
+            assert.equal(doc.querySelector('root > d'), doc.documentElement.firstChild);
+            assert.equal(doc.querySelector('root leaf').tagName, 'leaf');
+        });
+
+        // The query walks used to be recursive (2 C++ frames per level) and
+        // killed the process with SIGSEGV at ~2500 levels instead of raising.
+        it('should query a 20000 level deep document without crashing', { skip: isBrowser }, () => {
+            const depth = 20000;
+            const doc = parse('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>');
+
+            assert.equal(doc.getElementsByTagName('*').length, depth + 2);
+            assert.equal(doc.getElementsByTagName('d').length, depth);
+            assert.equal(doc.getElementsByTagNameNS('*', 'd').length, depth);
+            assert.equal(doc.getElementsByClassName('nope').length, 0);
+            assert.equal(doc.getElementById('nope'), null);
+            assert.equal(doc.querySelectorAll('d').length, depth);
+            assert.equal(doc.querySelector('root leaf').tagName, 'leaf');
+            assert.equal(doc.documentElement.textContent, '');
+        });
+
+        it('should collect text content of a deep document in document order', () => {
+            const depth = 200;
+            const doc = parse('<root>' + '<d>'.repeat(depth) + '<t>deep</t>' + '</d>'.repeat(depth) + '</root>');
+
+            assert.equal(doc.documentElement.textContent, 'deep');
+        });
+    });
+
+    if (!isBrowser) {
+        // Document-level queries are served by lazily built indexes that are
+        // invalidated through an epoch counter.  These tests pin down that no
+        // mutation path is missed (a stale index would silently return old
+        // results).
+        describe('query index freshness', () => {
+            function ids(list) {
+                var a = [];
+                for (var i = 0; i < list.length; i++)
+                    a.push(list[i].getAttribute('id'));
+                return a.join(',');
+            }
+
+            function build() {
+                return parse('<data xmlns="urn:data"><record id="r1"><item id="a1" class="c"/>'
+                    + '<item id="a2"/></record><record id="r2"><item id="a3" class="c"/></record></data>');
+            }
+
+            it('should see appended, inserted and removed elements', () => {
+                var doc = build();
+
+                assert.equal(ids(doc.getElementsByTagName('item')), 'a1,a2,a3');
+
+                var extra = doc.createElement('item');
+                extra.setAttribute('id', 'a4');
+                doc.documentElement.appendChild(extra);
+                assert.equal(ids(doc.getElementsByTagName('item')), 'a1,a2,a3,a4');
+
+                var first = doc.createElement('item');
+                first.setAttribute('id', 'a0');
+                doc.documentElement.insertBefore(first, doc.documentElement.firstChild);
+                assert.equal(ids(doc.getElementsByTagName('item')), 'a0,a1,a2,a3,a4');
+
+                doc.documentElement.removeChild(first);
+                assert.equal(ids(doc.getElementsByTagName('item')), 'a1,a2,a3,a4');
+
+                var rep = doc.createElement('item');
+                rep.setAttribute('id', 'a5');
+                doc.documentElement.replaceChild(rep, doc.documentElement.lastChild);
+                assert.equal(ids(doc.getElementsByTagName('item')), 'a1,a2,a3,a5');
+            });
+
+            it('should see namespace and tag queries after a mutation', () => {
+                var doc = build();
+                assert.equal(doc.getElementsByTagNameNS('urn:data', 'item').length, 3);
+                assert.equal(doc.getElementsByTagNameNS('*', 'item').length, 3);
+                assert.equal(doc.getElementsByTagNameNS('urn:data', '*').length, 6);
+                assert.equal(doc.getElementsByTagName('nosuch').length, 0);
+
+                // createElement() produces an element without a namespace, so
+                // it shows up in the tag / wildcard-namespace queries only
+                doc.documentElement.appendChild(doc.createElement('item'));
+                assert.equal(doc.getElementsByTagName('item').length, 4);
+                assert.equal(doc.getElementsByTagNameNS('urn:data', 'item').length, 3);
+                assert.equal(doc.getElementsByTagNameNS('*', 'item').length, 4);
+                assert.equal(doc.getElementsByTagNameNS('urn:data', '*').length, 6);
+            });
+
+            it('should see id changes through every attribute path', () => {
+                var doc = build();
+                assert.equal(doc.getElementById('a1').tagName, 'item');
+
+                // setAttribute
+                doc.getElementById('a1').setAttribute('id', 'a1b');
+                assert.equal(doc.getElementById('a1'), null);
+                assert.equal(doc.getElementById('a1b').tagName, 'item');
+
+                // attribute value assignment
+                doc.getElementById('a1b').attributes[0].value = 'a1c';
+                assert.equal(doc.getElementById('a1b'), null);
+                assert.equal(doc.getElementById('a1c').tagName, 'item');
+
+                // removeAttribute
+                doc.getElementById('a1c').removeAttribute('id');
+                assert.equal(doc.getElementById('a1c'), null);
+
+                // new element with an id, then removed
+                var el = doc.createElement('item');
+                el.setAttribute('id', 'temp');
+                doc.documentElement.appendChild(el);
+                assert.equal(doc.getElementById('temp'), el);
+                doc.documentElement.removeChild(el);
+                assert.equal(doc.getElementById('temp'), null);
+            });
+
+            it('should return the first element in document order for duplicate ids', () => {
+                var doc = parse('<root><a id="dup"/><b id="dup"/></root>');
+
+                assert.equal(doc.getElementById('dup').tagName, 'a');
+                assert.equal(doc.getElementsByTagName('*').length, 3);
+            });
+
+            it('should see innerHTML replacement', () => {
+                var doc = parse('<root><p id="p1"/></root>');
+                assert.equal(ids(doc.getElementsByTagName('p')), 'p1');
+                assert.equal(doc.getElementById('p1').tagName, 'p');
+
+                doc.documentElement.innerHTML = '<p id="p2"/><p id="p3"/>';
+                assert.equal(ids(doc.getElementsByTagName('p')), 'p2,p3');
+                assert.equal(doc.getElementById('p1'), null);
+                assert.equal(doc.getElementById('p3').tagName, 'p');
+            });
+
+            it('should see adoptNode and importNode results', () => {
+                var doc = build();
+                var other = parse('<root><item id="imported"/></root>');
+
+                var imported = doc.importNode(other.documentElement.firstChild, true);
+                doc.documentElement.appendChild(imported);
+                assert.equal(doc.getElementById('imported').tagName, 'item');
+
+                var adopted = doc.adoptNode(other.documentElement.firstChild);
+                doc.documentElement.appendChild(adopted);
+                assert.equal(doc.getElementById('imported').tagName, 'item');
+                assert.equal(doc.getElementsByTagName('item').length, 5);
+                assert.equal(doc.getElementsByTagNameNS('*', 'item').length, 5);
+                assert.equal(doc.getElementsByTagNameNS('urn:data', 'item').length, 3);
+            });
+
+            it('should see a replaced document element', () => {
+                var doc = build();
+                assert.equal(doc.getElementsByTagName('item').length, 3);
+                assert.equal(doc.getElementById('a1').tagName, 'item');
+
+                // replacing the document element (load() only works on an
+                // empty document, so this is the real path)
+                doc.removeChild(doc.documentElement);
+                var other = doc.createElement('other');
+                other.setAttribute('id', 'newroot');
+                doc.appendChild(other);
+
+                assert.equal(doc.documentElement.tagName, 'other');
+                assert.equal(doc.getElementsByTagName('item').length, 0);
+                assert.equal(doc.getElementsByTagName('*').length, 1);
+                assert.equal(doc.getElementById('a1'), null);
+                assert.equal(doc.getElementById('newroot'), other);
+            });
+
+            it('should handle html tag case in the index', () => {
+                var doc = parseHtml('<html><body><div id="d1"><p id="p1"/></div></body></html>');
+
+                assert.equal(doc.getElementsByTagName('p').length, 1);
+                assert.equal(doc.getElementsByTagName('P').length, 1);
+                assert.equal(doc.getElementsByTagName('div').length, 1);
+                assert.equal(doc.getElementsByTagName('DIV').length, 1);
+
+                doc.body.appendChild(doc.createElement('P'));
+                assert.equal(doc.getElementsByTagName('p').length, 2);
+                assert.equal(doc.getElementsByTagName('P').length, 2);
+                assert.equal(doc.getElementsByTagName('span').length, 0);
+            });
+
+            it('should stay consistent when queried before and after mutations', () => {
+                var doc = build();
+
+                // query first (builds the index), then mutate, then query again
+                assert.equal(doc.getElementsByTagName('item').length, 3);
+                doc.documentElement.appendChild(doc.createElement('item'));
+                assert.equal(doc.getElementsByTagName('item').length, 4);
+                assert.equal(doc.getElementById('a1').tagName, 'item');
+
+                var first = doc.createElement('item');
+                first.setAttribute('id', 'zz');
+                doc.documentElement.insertBefore(first, doc.documentElement.firstChild);
+                assert.equal(doc.getElementsByTagName('item').length, 5);
+                assert.equal(doc.getElementById('zz'), first);
+                assert.equal(doc.getElementsByTagNameNS('*', 'item').length, 5);
+                assert.equal(doc.getElementsByTagNameNS('urn:data', 'item').length, 3);
+            });
+
+            it('should serve simple selectors from the index', () => {
+                var doc = build();
+
+                // #id -> id index (document order, first match)
+                assert.equal(doc.querySelector('#a1').tagName, 'item');
+                assert.equal(doc.querySelector('#nope'), null);
+
+                // tag -> tag index
+                assert.equal(doc.querySelectorAll('item').length, 3);
+                assert.equal(doc.querySelector('record').getAttribute('id'), 'r1');
+                assert.equal(doc.querySelectorAll('nosuch').length, 0);
+
+                // .class -> class index
+                assert.equal(ids(doc.querySelectorAll('.c')), 'a1,a3');
+
+                // tag.class -> tag index + component filter
+                assert.equal(ids(doc.querySelectorAll('item.c')), 'a1,a3');
+                assert.equal(ids(doc.querySelectorAll('item.nope')), '');
+
+                // universal / combinators / pseudo still work through the walk
+                assert.equal(doc.querySelectorAll('*').length, 6);
+                assert.equal(doc.querySelectorAll('record item').length, 3);
+                assert.equal(doc.querySelectorAll('record > item').length, 3);
+                assert.equal(doc.querySelectorAll('item:first-child').length, 2);
+
+                // and they must see mutations
+                var extra = doc.createElement('item');
+                extra.setAttribute('id', 'a9');
+                extra.setAttribute('class', 'c');
+                doc.documentElement.appendChild(extra);
+                assert.equal(doc.querySelector('#a9'), extra);
+                assert.equal(doc.querySelectorAll('item').length, 4);
+                assert.equal(ids(doc.querySelectorAll('.c')), 'a1,a3,a9');
+            });
+
+            it('should keep element level selectors descendant only', () => {
+                var doc = build();
+                var root = doc.documentElement;
+
+                assert.equal(root.querySelectorAll('data').length, 0);
+                assert.equal(root.querySelector('data'), null);
+                assert.equal(root.querySelectorAll('item').length, 3);
+                assert.equal(root.querySelectorAll('.c').length, 2);
+            });
+        });
+    }
+
+    if (!isBrowser) {
+        // Query results are snapshots that own a strong reference to every node
+        // they hold: a node that has been detached from the document (and is not
+        // referenced from JS) must stay alive while the list is reachable, and
+        // reading it back after a GC must never touch freed memory.
+        describe('result list lifetime', () => {
+            function forceGC() {
+                if (typeof gc === 'function')
+                    gc();
+            }
+
+            function build(n) {
+                return parse('<root>' + '<item id="x" class="c"/>'.repeat(n) + '</root>');
+            }
+
+            function detachAll(root) {
+                while (root.firstChild)
+                    root.removeChild(root.firstChild);
+            }
+
+            function checkAlive(name, doc, list, n) {
+                assert.equal(list.length, n, name + ': length');
+                for (var i = 0; i < n; i++) {
+                    var el = list[i];
+                    assert.equal(el.tagName, 'item', name + ': tagName at ' + i);
+                    assert.equal(el.getAttribute('id'), 'x', name + ': id at ' + i);
+                }
+            }
+
+            it('should keep detached nodes alive for every query api', () => {
+                var n = 64;
+                var doc = build(n);
+                var root = doc.documentElement;
+
+                var cases = [
+                    ['getElementsByTagName', doc.getElementsByTagName('item')],
+                    ['getElementsByTagNameNS', doc.getElementsByTagNameNS('*', 'item')],
+                    ['getElementsByClassName', doc.getElementsByClassName('c')],
+                    ['querySelectorAll', doc.querySelectorAll('item')],
+                    ['children', root.children]
+                ];
+
+                // remember the nodes from JS, then drop every JS reference so the
+                // only thing keeping them alive is the result list itself
+                cases.forEach(function (c) {
+                    c.push([]);
+                    for (var i = 0; i < c[1].length; i++)
+                        c[2].push(c[1][i]);
+                });
+
+                detachAll(root);
+                doc = null;
+                forceGC();
+
+                cases.forEach(function (c) {
+                    checkAlive(c[0], doc, c[1], n);
+                    for (var i = 0; i < c[1].length; i++)
+                        assert.equal(c[1][i], c[2][i], c[0] + ': identity at ' + i);
+                    c[2] = null;
+                });
+
+                // now the list is the only owner: force another GC and re-read
+                forceGC();
+                cases.forEach(function (c) {
+                    checkAlive(c[0], doc, c[1], n);
+                });
+            });
+
+            it('should keep detached nodes alive while iterating', () => {
+                var n = 256;
+                var doc = build(n);
+                var root = doc.documentElement;
+                var list = doc.querySelectorAll('item');
+
+                detachAll(root);
+                doc = null;
+                forceGC();
+
+                var count = 0;
+                for (var el of list) {
+                    assert.equal(el.getAttribute('id'), 'x', 'iterating at ' + count);
+                    if ((count % 32) === 0) {
+                        // allocate + collect while the list is the only owner
+                        var junk = [];
+                        for (var j = 0; j < 8; j++)
+                            junk.push({ s: 'j' + j, a: [j, j + 1] });
+                        forceGC();
+                    }
+                    count++;
+                }
+                assert.equal(count, n);
+            });
+
+            it('should release the nodes when the result list is dropped', () => {
+                var doc = build(1024);
+                var list = doc.getElementsByTagName('item');
+
+                // the list keeps the document alive through its nodes
+                doc = null;
+                forceGC();
+                assert.equal(list[1023].tagName, 'item');
+
+                list = null;
+                forceGC();
+                assert.ok(true);
+            });
+
+            it('should keep the subtree of a node that is still referenced', () => {
+                var doc = parse('<root><a><b><c/></b></a></root>');
+                var a = doc.documentElement.firstChild;
+                var b = a.firstChild;
+
+                doc = null;
+                forceGC();
+
+                // a is still reachable from JS: it must survive the teardown of
+                // the document together with its own subtree, and it must have
+                // lost its parent link
+                assert.equal(a.tagName, 'a');
+                assert.equal(a.parentNode, null);
+                assert.equal(a.childNodes.length, 1);
+                assert.equal(a.firstChild, b);
+                assert.equal(b.childNodes.length, 1);
+                assert.equal(b.firstChild.tagName, 'c');
+            });
+
+            it('should iterate a snapshot after the document changed', () => {
+                var doc = build(4);
+                var root = doc.documentElement;
+                var list = doc.getElementsByTagName('item');
+
+                root.appendChild(doc.createElement('item'));
+
+                var seen = 0;
+                for (var el of list)
+                    seen++;
+                assert.equal(seen, 4);
+                assert.equal(list.length, 4);
+            });
+
+            it('should keep keys/values/entries in sync and reusable', () => {
+                var doc = build(3);
+                var list = doc.getElementsByTagName('item');
+
+                var keys = [];
+                for (var k of list.keys())
+                    keys.push(k);
+                assert.deepEqual(keys, [0, 1, 2]);
+
+                var values = [];
+                for (var v of list.values())
+                    values.push(v);
+                assert.deepEqual(values, [list[0], list[1], list[2]]);
+
+                var entries = [];
+                for (var e of list.entries())
+                    entries.push(e);
+                assert.deepEqual(entries, [[0, list[0]], [1, list[1]], [2, list[2]]]);
+
+                // @@iterator must agree with values()
+                var it = list[Symbol.iterator]();
+                assert.deepEqual([it.next().value, it.next().value, it.next().value], values);
+                assert.equal(it.next().done, true);
+                assert.equal(it.next().done, true);
+            });
+
+            it('should stop iteration when the loop breaks', () => {
+                var doc = build(1000);
+                var list = doc.getElementsByTagName('item');
+
+                var seen = 0;
+                for (var el of list) {
+                    if (++seen === 10)
+                        break;
+                }
+                assert.equal(seen, 10);
+
+                // the iterator must stay usable after return()
+                var it = list[Symbol.iterator]();
+                assert.equal(it.next().value, list[0]);
+                it.return();
+                assert.equal(it.next().done, true);
+            });
+
+            it('should iterate an empty and a single element list', () => {
+                var doc = parse('<root/>');
+                assert.equal(doc.getElementsByTagName('nosuch').length, 0);
+                for (var el of doc.getElementsByTagName('nosuch'))
+                    assert.ok(false, 'empty list must not yield');
+
+                var one = parse('<root><item/></root>');
+                var count = 0;
+                for (var el2 of one.getElementsByTagName('item'))
+                    count++;
+                assert.equal(count, 1);
+            });
+        });
+    }
 });

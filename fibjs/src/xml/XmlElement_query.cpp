@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/xml.h"
 #include "XmlElement.h"
+#include "XmlDocument.h"
 #include "parse.h"
 #include "XmlNodeList.h"
 #include <vector>
@@ -763,20 +764,17 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
         switch (comp.type) {
         case SELECTOR_ELEMENT: {
             if (comp.value != "*") {
-                exlib::string tagName;
-                element->get_tagName(tagName);
+                // direct access: get_tagName() would copy the string (and
+                // upper-case it in HTML mode) for every element tested
+                const exlib::string& tagName = element->tagNameRef();
+
                 // Case insensitive for HTML, case sensitive for XML
-                // For HTML documents, convert to uppercase to match DOM standard
                 if (isXml) {
-                    if (tagName != comp.value) {
+                    if (tagName != comp.value)
                         return false;
-                    }
                 } else {
-                    // For HTML, comparison should be case insensitive
-                    // but tagName should be returned in uppercase according to DOM standard
-                    if (qstricmp(tagName.c_str(), comp.value.c_str()) != 0) {
+                    if (qstricmp(tagName.c_str(), comp.value.c_str()) != 0)
                         return false;
-                    }
                 }
             }
             break;
@@ -1484,6 +1482,24 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
     return true;
 }
 
+// Nearest preceding element sibling, walking the parent's child vector.
+// Direct XmlNodeImpl navigation: get_previousSibling()/get_parentNode() return
+// CALL_RETURN_NULL without clearing the out parameter, so a naive
+// `while (prev) { ...; get_previousSibling(prev); }` loop never terminates at
+// the first child -- that is why this walk used to carry an artificial
+// sibling/depth counter that silently dropped matches.
+static XmlNodeImpl* previousElementSibling(XmlNodeImpl* node)
+{
+    while (node->m_index > 0) {
+        XmlNodeImpl* prev = node->m_parent->m_childs->m_childs[node->m_index - 1];
+        if (prev->m_type == xml_base::C_ELEMENT_NODE)
+            return prev;
+        node = prev;
+    }
+
+    return NULL;
+}
+
 // Check if element matches complex selector
 static bool matchesComplexSelector(XmlElement* element, const ComplexSelector& complexSelector, bool isXml)
 {
@@ -1513,77 +1529,48 @@ static bool matchesComplexSelector(XmlElement* element, const ComplexSelector& c
         bool found = false;
 
         if (combinator.type == SELECTOR_DESCENDANT) {
-            // Space combinator - any ancestor
-            obj_ptr<XmlNode_base> parent;
-            currentElement->get_parentNode(parent);
-            int maxDepth = 100; // Prevent infinite loops
-            int depth = 0;
-            while (parent && depth < maxDepth) {
-                depth++;
-                int32_t nodeType;
-                parent->get_nodeType(nodeType);
-                if (nodeType == xml_base::C_ELEMENT_NODE) {
-                    XmlElement* parentElement = parent.As<XmlElement>();
-                    if (parentElement && matchesSimpleSelector(parentElement, targetSelector, isXml)) {
+            // Space combinator - any ancestor.  The m_parent chain terminates at
+            // the document node, so no artificial depth limit is needed (a limit
+            // here silently drops matches on deep trees).
+            XmlNodeImpl* parent = currentElement->m_parent;
+            while (parent) {
+                if (parent->m_type == xml_base::C_ELEMENT_NODE) {
+                    XmlElement* parentElement = static_cast<XmlElement*>(parent);
+                    if (matchesSimpleSelector(parentElement, targetSelector, isXml)) {
                         currentElement = parentElement;
                         found = true;
                         break;
                     }
                 }
-                parent->get_parentNode(parent);
+                parent = parent->m_parent;
             }
         } else if (combinator.type == SELECTOR_CHILD) {
             // > combinator - direct parent
-            obj_ptr<XmlNode_base> parent;
-            currentElement->get_parentNode(parent);
-            if (parent) {
-                int32_t nodeType;
-                parent->get_nodeType(nodeType);
-                if (nodeType == xml_base::C_ELEMENT_NODE) {
-                    XmlElement* parentElement = parent.As<XmlElement>();
-                    if (parentElement && matchesSimpleSelector(parentElement, targetSelector, isXml)) {
-                        currentElement = parentElement;
-                        found = true;
-                    }
+            XmlNodeImpl* parent = currentElement->m_parent;
+            if (parent && parent->m_type == xml_base::C_ELEMENT_NODE) {
+                XmlElement* parentElement = static_cast<XmlElement*>(parent);
+                if (matchesSimpleSelector(parentElement, targetSelector, isXml)) {
+                    currentElement = parentElement;
+                    found = true;
                 }
             }
         } else if (combinator.type == SELECTOR_ADJACENT_SIBLING) {
-            // + combinator - immediately preceding sibling
-            obj_ptr<XmlNode_base> prev;
-            currentElement->get_previousSibling(prev);
-            // Only check immediate element sibling, skip text nodes
-            while (prev) {
-                int32_t nodeType;
-                prev->get_nodeType(nodeType);
-                if (nodeType == xml_base::C_ELEMENT_NODE) {
-                    XmlElement* siblingElement = prev.As<XmlElement>();
-                    if (siblingElement && matchesSimpleSelector(siblingElement, targetSelector, isXml)) {
-                        currentElement = siblingElement;
-                        found = true;
-                    }
-                    break; // Only check immediate sibling element
-                }
-                prev->get_previousSibling(prev);
+            // + combinator - immediately preceding element sibling
+            XmlNodeImpl* prev = previousElementSibling(currentElement);
+            if (prev && matchesSimpleSelector(static_cast<XmlElement*>(prev), targetSelector, isXml)) {
+                currentElement = static_cast<XmlElement*>(prev);
+                found = true;
             }
         } else if (combinator.type == SELECTOR_GENERAL_SIBLING) {
-            // ~ combinator - any preceding sibling
-            obj_ptr<XmlNode_base> prev;
-            currentElement->get_previousSibling(prev);
-            int maxSiblings = 100; // Prevent infinite loops
-            int siblingCount = 0;
-            while (prev && siblingCount < maxSiblings) {
-                siblingCount++;
-                int32_t nodeType;
-                prev->get_nodeType(nodeType);
-                if (nodeType == xml_base::C_ELEMENT_NODE) {
-                    XmlElement* siblingElement = prev.As<XmlElement>();
-                    if (siblingElement && matchesSimpleSelector(siblingElement, targetSelector, isXml)) {
-                        currentElement = siblingElement;
-                        found = true;
-                        break;
-                    }
+            // ~ combinator - any preceding element sibling
+            XmlNodeImpl* prev = previousElementSibling(currentElement);
+            while (prev) {
+                if (matchesSimpleSelector(static_cast<XmlElement*>(prev), targetSelector, isXml)) {
+                    currentElement = static_cast<XmlElement*>(prev);
+                    found = true;
+                    break;
                 }
-                prev->get_previousSibling(prev);
+                prev = previousElementSibling(prev);
             }
         }
 
@@ -1597,64 +1584,170 @@ static bool matchesComplexSelector(XmlElement* element, const ComplexSelector& c
     return true;
 }
 
+// Helper: check a single element against every selector in the list and record
+// it once when it matches.  Returns true when the caller must stop (firstOnly
+// and the element matched).
+static bool queryElementSelf(XmlElement* element, const SelectorList& selectorList, obj_ptr<XmlNodeList>& results, bool firstOnly, bool isXml)
+{
+    for (size_t i = 0; i < selectorList.selectors.size(); i++) {
+        if (matchesComplexSelector(element, selectorList.selectors[i], isXml)) {
+            results->appendRef(element);
+            return firstOnly;
+        }
+    }
+
+    return false;
+}
+
 // Helper function to recursively check elements and their descendants
 static void queryElementsRecursive(XmlElement* element, const SelectorList& selectorList, obj_ptr<XmlNodeList>& results, bool firstOnly, bool isXml)
 {
-    // Check if current element matches any selector
-    bool elementMatched = false;
-
-    for (size_t i = 0; i < selectorList.selectors.size(); i++) {
-        const auto& complexSelector = selectorList.selectors[i];
-
-        if (matchesComplexSelector(element, complexSelector, isXml)) {
-            if (!elementMatched) {
-                results->appendChild(element);
-                elementMatched = true;
-                if (firstOnly) {
-                    return;
-                }
-            }
-        }
-    }
-
-    // Recursively check children
-    obj_ptr<XmlNodeList_base> childNodes;
-    element->get_childNodes(childNodes);
-    XmlNodeList* nodeList = childNodes.As<XmlNodeList>();
-    std::vector<XmlNodeImpl*>& childs = nodeList->m_childs;
-
-    for (XmlNodeImpl* child : childs) {
-        if (child->m_type == xml_base::C_ELEMENT_NODE) {
-            XmlElement* childElement = static_cast<XmlElement*>(child->m_node);
-            queryElementsRecursive(childElement, selectorList, results, firstOnly, isXml);
-            if (firstOnly && results->m_childs.size() > 0) {
-                return;
-            }
-        }
-    }
+    walkElements(element, true, [&](XmlNodeImpl* node) -> bool {
+        return queryElementSelf(static_cast<XmlElement*>(node), selectorList, results, firstOnly, isXml);
+    });
 }
 
-// Collect all matching elements from subtree (excluding the root element itself)
-static void queryElements(XmlElement* root, const SelectorList& selectorList, obj_ptr<XmlNodeList>& results, bool firstOnly, bool isXml)
+// Collect matching elements from the subtree.
+//
+// includeRoot selects the semantics of the query origin:
+//   false - element-level querySelector(All) searches descendants only (CSS spec)
+//   true  - a query started at a document must also match the document element
+//           itself, so that doc.querySelector('html') finds the root
+static void queryElements(XmlElement* root, const SelectorList& selectorList, obj_ptr<XmlNodeList>& results, bool firstOnly, bool isXml, bool includeRoot)
 {
-    // According to CSS spec, querySelector should only search in descendants, not the root element itself
-    // So we skip checking the root element and go directly to checking children
+    // walkElements() is iterative: a deep document must not overflow the C++
+    // stack here (the old recursive version crashed the process at ~2500 levels)
+    walkElements(root, includeRoot, [&](XmlNodeImpl* node) -> bool {
+        return queryElementSelf(static_cast<XmlElement*>(node), selectorList, results, firstOnly, isXml);
+    });
+}
 
-    // Recursively check children
-    obj_ptr<XmlNodeList_base> childNodes;
-    root->get_childNodes(childNodes);
-    XmlNodeList* nodeList = childNodes.As<XmlNodeList>();
-    std::vector<XmlNodeImpl*>& childs = nodeList->m_childs;
+// Fast path for the common selectors: answer a single compound simple selector
+// (no combinators, no pseudo-classes, no :has/:not/:is) from the document
+// indexes instead of walking the tree.
+//
+//   #id            -> byId (document-order first element)
+//   tag            -> byTag, then filter the candidates
+//   tag.class      -> same
+//
+// Anything else -- universal selector, class-only, attribute-only, pseudo
+// classes, combinators, or an element-level query root -- returns false and the
+// caller falls back to queryElements().  The index is document-level and its
+// results include the document element when it matches, so this only applies to
+// queries started at the document (includeRoot == true, decision D5).  An
+// element-level query such as doc.documentElement.querySelectorAll('root') must
+// stay descendant-only and therefore always uses the walk.
+//
+// Returns true when the query was answered (possibly with zero matches).
+static bool queryByIndex(XmlElement* root, const SelectorList& selectorList,
+    obj_ptr<XmlNodeList>& results, bool firstOnly, bool isXml, bool includeRoot)
+{
+    if (!includeRoot || !XmlDocument::useQueryIndex())
+        return false;
 
-    for (XmlNodeImpl* child : childs) {
-        if (child->m_type == xml_base::C_ELEMENT_NODE) {
-            XmlElement* childElement = static_cast<XmlElement*>(child->m_node);
-            queryElementsRecursive(childElement, selectorList, results, firstOnly, isXml);
-            if (firstOnly && results->m_childs.size() > 0) {
-                return;
-            }
+    XmlDocument* doc = root->document();
+    if (!doc || doc->documentElement() != root)
+        return false;
+
+    if (selectorList.selectors.size() != 1)
+        return false;
+
+    const ComplexSelector& cs = selectorList.selectors[0];
+    if (cs.selectors.size() != 1)
+        return false;
+
+    const SimpleSelector& simple = cs.selectors[0];
+    if (simple.components.empty())
+        return false;
+
+    const SelectorComponent* idComp = NULL;
+    const SelectorComponent* tagComp = NULL;
+
+    // A single-component selector is exactly what the index key matches, so the
+    // candidate does not have to be re-checked; with more components (tag.class,
+    // #id[attr], ...) matchesSimpleSelector() verifies the remaining ones.
+    bool needFilter = simple.components.size() > 1;
+
+    for (size_t i = 0; i < simple.components.size(); i++) {
+        const SelectorComponent& c = simple.components[i];
+
+        if (c.type == SELECTOR_ID) {
+            if (idComp)
+                return false; // several ids can never match
+            idComp = &c;
+        } else if (c.type == SELECTOR_ELEMENT) {
+            if (c.value == "*" || tagComp)
+                return false; // universal selector has no key
+            tagComp = &c;
+        } else if (c.type == SELECTOR_CLASS) {
+            continue; // verified by matchesSimpleSelector() below
+        } else
+            return false; // attribute / pseudo class / ...
+    }
+
+    if (idComp) {
+        // byId keeps only the first element in document order, which is exactly
+        // what querySelector() must return; a full list needs the walk
+        if (!firstOnly)
+            return false;
+
+        if (doc->m_idIndex.epoch != doc->m_queryEpoch)
+            doc->buildIdIndex();
+
+        auto it = doc->m_idIndex.byId.find(idComp->value);
+        if (it == doc->m_idIndex.byId.end())
+            return true;
+
+        if (!needFilter || matchesSimpleSelector(it->second, simple, isXml))
+            results->appendRef(it->second);
+
+        return true;
+    }
+
+    if (!tagComp) {
+        // class-only: a single class token is served by the class index
+        if (idComp || simple.components.size() != 1 || simple.components[0].type != SELECTOR_CLASS)
+            return false;
+
+        if (doc->m_classIndex.epoch != doc->m_queryEpoch)
+            doc->buildClassIndex();
+
+        auto it = doc->m_classIndex.byClass.find(simple.components[0].value);
+        if (it == doc->m_classIndex.byClass.end())
+            return true;
+
+        std::vector<XmlElement*>& els = it->second;
+        for (size_t i = 0; i < els.size(); i++) {
+            results->appendRef(els[i]);
+            if (firstOnly)
+                return true;
+        }
+
+        return true;
+    }
+
+    if (doc->m_tagIndex.epoch != doc->m_queryEpoch)
+        doc->buildTagIndex();
+
+    // HTML documents store the upper-case tag name in the index
+    exlib::string key(tagComp->value);
+    if (!isXml)
+        exlib::qstrupr(key);
+
+    auto it = doc->m_tagIndex.byTag.find(key);
+    if (it == doc->m_tagIndex.byTag.end())
+        return true;
+
+    std::vector<XmlElement*>& els = it->second;
+    for (size_t i = 0; i < els.size(); i++) {
+        if (!needFilter || matchesSimpleSelector(els[i], simple, isXml)) {
+            results->appendRef(els[i]);
+            if (firstOnly)
+                return true;
         }
     }
+
+    return true;
 }
 
 result_t XmlElement::matches(exlib::string selectors, bool& retVal)
@@ -1714,6 +1807,11 @@ result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& 
 
 result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
 {
+    return querySelectorImpl(selectors, false, retVal);
+}
+
+result_t XmlElement::querySelectorImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlElement_base>& retVal)
+{
     if (selectors.empty()) {
         return Runtime::setError("SyntaxError: Failed to execute 'querySelector': The provided selector is empty.");
     }
@@ -1724,7 +1822,8 @@ result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_b
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);
-    queryElements(this, selectorList, results, true, m_isXml);
+    if (!queryByIndex(this, selectorList, results, true, m_isXml, includeRoot))
+        queryElements(this, selectorList, results, true, m_isXml, includeRoot);
 
     if (results->m_childs.size() > 0) {
         XmlNodeImpl* firstMatch = results->m_childs[0];
@@ -1740,6 +1839,11 @@ result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_b
 
 result_t XmlElement::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal)
 {
+    return querySelectorAllImpl(selectors, false, retVal);
+}
+
+result_t XmlElement::querySelectorAllImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlNodeList_base>& retVal)
+{
     if (selectors.empty()) {
         return Runtime::setError("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is empty.");
     }
@@ -1750,7 +1854,8 @@ result_t XmlElement::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeLi
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);
-    queryElements(this, selectorList, results, false, m_isXml);
+    if (!queryByIndex(this, selectorList, results, false, m_isXml, includeRoot))
+        queryElements(this, selectorList, results, false, m_isXml, includeRoot);
 
     retVal = results;
     return 0;

@@ -85,6 +85,14 @@ public:
         return weak_;
     }
 
+    // Current strong reference count.  Used by the XML tree teardown to tell
+    // exclusively owned children (which die together with their parent) from
+    // shared ones (JS wrapper / query result still holds them).
+    intptr_t refCount()
+    {
+        return refs();
+    }
+
 protected:
     intptr_t internalRef()
     {

@@ -1815,4 +1815,82 @@ describe('querySelector', () => {
             assert.equal(main.matches('.site-header, .main-content'), true);
         });
     });
+
+    describe('Document level queries', () => {
+        it('should match the document element itself', () => {
+            const doc = parse('<root><a/><b/></root>');
+
+            assert.equal(doc.querySelector('root'), doc.documentElement);
+            assert.equal(doc.querySelectorAll('root').length, 1);
+            assert.equal(doc.querySelector('*'), doc.documentElement);
+            assert.equal(doc.querySelectorAll('*').length, doc.getElementsByTagName('*').length);
+            assert.equal(doc.querySelector('a'), doc.documentElement.firstChild);
+        });
+
+        it('should match the html element of an html document', () => {
+            const doc = parseHtml('<html><body><p>x</p></body></html>');
+
+            assert.equal(doc.querySelector('html'), doc.documentElement);
+            assert.equal(doc.querySelectorAll('html').length, 1);
+            assert.equal(doc.querySelectorAll('*').length, doc.getElementsByTagName('*').length);
+        });
+
+        it('should keep element level queries descendant only', () => {
+            const doc = parse('<root><a/></root>');
+
+            assert.equal(doc.documentElement.querySelector('root'), null);
+            assert.equal(doc.documentElement.querySelectorAll('root').length, 0);
+            assert.equal(doc.documentElement.querySelector('a'), doc.documentElement.firstChild);
+        });
+
+        it('should keep document order when the root matches', () => {
+            const doc = parse('<root><x/><x/></root>');
+            const all = doc.querySelectorAll('*');
+
+            assert.equal(all.length, 3);
+            assert.equal(all[0], doc.documentElement);
+            assert.equal(all[1], doc.documentElement.childNodes[0]);
+            assert.equal(all[2], doc.documentElement.childNodes[1]);
+        });
+    });
+
+    describe('Combinator depth and width limits', () => {
+        // These used to silently fail: the ancestor/sibling walks carried
+        // maxDepth = 100 / maxSiblings = 100 counters.
+        it('should match a descendant combinator over a deep tree', () => {
+            const depth = 150;
+            const doc = parse('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>');
+
+            assert.equal(doc.querySelectorAll('root leaf').length, 1);
+            assert.equal(doc.querySelectorAll('d leaf').length, 1);
+            assert.equal(doc.querySelectorAll('root > d').length, 1);
+        });
+
+        it('should match a general sibling combinator over many siblings', () => {
+            let items = '';
+            for (let i = 0; i < 150; i++)
+                items += '<i/>';
+            const doc = parse('<root>' + items + '<target/></root>');
+
+            assert.equal(doc.querySelectorAll('i ~ target').length, 1);
+            assert.equal(doc.querySelectorAll('target ~ i').length, 0);
+        });
+
+        it('should match an adjacent sibling combinator after many siblings', () => {
+            let items = '';
+            for (let i = 0; i < 150; i++)
+                items += '<i/>';
+            const doc = parse('<root>' + items + '<target/></root>');
+
+            assert.equal(doc.querySelectorAll('i + target').length, 1);
+            assert.equal(doc.querySelectorAll('target + i').length, 0);
+        });
+
+        it('should skip non-element siblings in sibling combinators', () => {
+            const doc = parse('<root><a/>text<!--c--><b/></root>');
+
+            assert.equal(doc.querySelectorAll('a + b').length, 1);
+            assert.equal(doc.querySelectorAll('a ~ b').length, 1);
+        });
+    });
 });

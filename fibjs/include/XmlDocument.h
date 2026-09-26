@@ -9,8 +9,12 @@
 
 #include "ifs/XmlDocument.h"
 #include "XmlNodeMixin.h"
+#include <unordered_map>
+#include <vector>
 
 namespace fibjs {
+
+class XmlElement;
 
 class XmlDocument : public XmlNodeMixin<XmlDocument, XmlDocument_base> {
 public:
@@ -91,6 +95,81 @@ public:
     }
 
     void create_root();
+
+public:
+    // ------------------------------------------------------------------
+    // Lazy document-level query indexes (remediation plan B3 / T8-T10)
+    //
+    // Document-level getElementsByTagName(NS) / getElementById used to walk
+    // the whole tree on every call.  The indexes below are built on the first
+    // such query and rebuilt lazily whenever the tree changes: every mutation
+    // funnels through XmlNodeImpl::setParent()/clearParent() (structure) or
+    // XmlNamedNodeMap / XmlAttr::set_value() (attributes), and all of them
+    // call bumpQueryEpoch().
+    //
+    // The indexes store raw pointers on purpose (no Ref): a node can only
+    // disappear together with an epoch bump, so an index can never outlive its
+    // nodes -- but it MUST be discarded (epoch mismatch) before it is used
+    // again.  Never read one of these maps without checking
+    // `epoch == m_queryEpoch`.
+    // ------------------------------------------------------------------
+    uint64_t m_queryEpoch = 1;
+
+    void bumpQueryEpoch()
+    {
+        m_queryEpoch++;
+    }
+
+    // tagName -> elements in document order (key already normalised: HTML mode
+    // stores the upper-case form, XML mode the exact one)
+    struct TagIndex {
+        uint64_t epoch = 0; // 0 = never built
+        std::unordered_map<exlib::string, std::vector<XmlElement*>> byTag;
+    };
+
+    // "namespaceURI \x1f localName" -> elements in document order
+    struct NsIndex {
+        uint64_t epoch = 0;
+        std::unordered_map<exlib::string, std::vector<XmlElement*>> byNsLocal;
+    };
+
+    // id attribute -> first element in document order
+    struct IdIndex {
+        uint64_t epoch = 0;
+        std::unordered_map<exlib::string, XmlElement*> byId;
+    };
+
+    // class token -> elements in document order
+    struct ClassIndex {
+        uint64_t epoch = 0;
+        std::unordered_map<exlib::string, std::vector<XmlElement*>> byClass;
+    };
+
+    TagIndex m_tagIndex;
+    NsIndex m_nsIndex;
+    IdIndex m_idIndex;
+    ClassIndex m_classIndex;
+
+    // Build the requested index if it is stale (one walk builds them all)
+    void buildTagIndex();
+    void buildNsIndex();
+    void buildIdIndex();
+    void buildClassIndex();
+
+    // document element (NULL when the document has none); used by the query
+    // fast path to tell document-level queries from element-level ones
+    XmlElement* documentElement()
+    {
+        return m_element.As<XmlElement>();
+    }
+
+    // Escape hatch (decision D6): FIBJS_DOM_INDEX=0 turns the indexes off so a
+    // missed invalidation can be worked around without a rebuild
+    static bool useQueryIndex();
+
+private:
+    void buildQueryIndexes(bool wantTag, bool wantNs, bool wantId, bool wantClass);
+    void addClassTokens(exlib::string& className, XmlElement* el);
 
 private:
     result_t checkNode(XmlNode_base* newChild);

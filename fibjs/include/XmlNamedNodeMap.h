@@ -15,6 +15,13 @@ namespace fibjs {
 
 class XmlNamedNodeMap : public XmlNamedNodeMap_base {
 public:
+    // owner: element holding this map; attribute mutations invalidate the
+    // document-level query indexes through it
+    XmlNamedNodeMap(XmlElement* owner = NULL)
+        : m_owner(owner)
+    {
+    }
+
     ~XmlNamedNodeMap()
     {
         int32_t sz = (int32_t)m_childs.size();
@@ -47,6 +54,13 @@ public:
 
 public:
     QuickArray<obj_ptr<XmlAttr>> m_childs;
+
+private:
+    // invalidate the owning document's query indexes (defined in the .cpp)
+    void bumpQueryEpoch();
+
+private:
+    XmlElement* m_owner;
 };
 
 } /* namespace fibjs */

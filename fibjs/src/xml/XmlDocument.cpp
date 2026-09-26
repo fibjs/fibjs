@@ -476,11 +476,61 @@ result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNod
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
     XmlElement* pEl = m_element.As<XmlElement>();
 
-    if (pEl)
-        pEl->getElementsByTagNameFromThis(tagName, ret);
+    if (pEl) {
+        // '*' has no key to look up, and the index can be disabled: walk
+        if (*tagName.c_str() == '*' || !useQueryIndex())
+            pEl->getElementsByTagNameFromThis(tagName, ret);
+        else {
+            if (m_tagIndex.epoch != m_queryEpoch)
+                buildTagIndex();
+
+            // HTML documents store the upper-case tag name and compare
+            // case-insensitively (exactly like the walk does)
+            exlib::string key(tagName);
+            if (!m_isXml)
+                exlib::qstrupr(key);
+
+            auto it = m_tagIndex.byTag.find(key);
+            if (it != m_tagIndex.byTag.end()) {
+                std::vector<XmlElement*>& els = it->second;
+                for (size_t i = 0; i < els.size(); i++)
+                    ret->appendRef(els[i]);
+            }
+        }
+    }
 
     retVal = ret;
     return 0;
+}
+
+// index key for the (namespaceURI, localName) index
+static void makeNsLocalKey(exlib::string& key, const exlib::string& ns, const exlib::string& local)
+{
+    key.assign(ns);
+    key.push_back('\x1f');
+    key.append(local);
+}
+
+// match an index key against a (possibly wildcarded) query
+static bool nsLocalKeyMatch(const exlib::string& key, const exlib::string& ns, const exlib::string& local)
+{
+    size_t pos = key.find('\x1f');
+    if (pos == exlib::string::npos)
+        return false;
+
+    if (*ns.c_str() != '*') {
+        exlib::string kNs = key.substr(0, pos);
+        if (kNs != ns)
+            return false;
+    }
+
+    if (*local.c_str() != '*') {
+        exlib::string kLocal = key.substr(pos + 1);
+        if (kLocal != local)
+            return false;
+    }
+
+    return true;
 }
 
 result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName,
@@ -489,8 +539,53 @@ result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
     XmlElement* pEl = m_element.As<XmlElement>();
 
-    if (pEl)
-        pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, ret);
+    if (pEl) {
+        bool wildNs = *namespaceURI.c_str() == '*';
+        bool wildLocal = *localName.c_str() == '*';
+
+        if (!useQueryIndex() || (wildNs && wildLocal))
+            pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, ret);
+        else {
+            if (m_nsIndex.epoch != m_queryEpoch)
+                buildNsIndex();
+
+            std::vector<XmlElement*>* hit = NULL;
+
+            if (!wildNs && !wildLocal) {
+                exlib::string key;
+                makeNsLocalKey(key, namespaceURI, localName);
+
+                auto it = m_nsIndex.byNsLocal.find(key);
+                if (it != m_nsIndex.byNsLocal.end())
+                    hit = &it->second;
+            } else {
+                // wildcard: the key set is small (one entry per distinct
+                // (ns, local) pair), so scan it.  A single matching key is a
+                // direct hit; several would need a document-order merge, so
+                // fall back to the walk instead.
+                size_t matches = 0;
+
+                for (auto& kv : m_nsIndex.byNsLocal) {
+                    if (nsLocalKeyMatch(kv.first, namespaceURI, localName)) {
+                        matches++;
+                        hit = &kv.second;
+                        if (matches > 1)
+                            break;
+                    }
+                }
+
+                if (matches > 1) {
+                    hit = NULL;
+                    pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, ret);
+                }
+            }
+
+            if (hit) {
+                for (size_t i = 0; i < hit->size(); i++)
+                    ret->appendRef((*hit)[i]);
+            }
+        }
+    }
 
     retVal = ret;
     return 0;
@@ -505,7 +600,157 @@ result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>&
     if (!pEl)
         return CHECK_ERROR(CALL_RETURN_NULL);
 
-    return pEl->getElementByIdFromThis(id, retVal);
+    if (!useQueryIndex())
+        return pEl->getElementByIdFromThis(id, retVal);
+
+    if (m_idIndex.epoch != m_queryEpoch)
+        buildIdIndex();
+
+    auto it = m_idIndex.byId.find(id);
+    if (it != m_idIndex.byId.end()) {
+        retVal = it->second;
+        return 0;
+    }
+
+    return CHECK_ERROR(CALL_RETURN_NULL);
+}
+
+bool XmlDocument::useQueryIndex()
+{
+    // Escape hatch (decision D6): FIBJS_DOM_INDEX=0 disables the indexes, so a
+    // missed invalidation can be worked around without rebuilding.
+    static int32_t s_use = -1;
+
+    if (s_use < 0) {
+        const char* env = getenv("FIBJS_DOM_INDEX");
+        s_use = (env && *env == '0') ? 0 : 1;
+    }
+
+    return s_use != 0;
+}
+
+void XmlDocument::buildTagIndex()
+{
+    buildQueryIndexes(true, false, false, false);
+}
+
+void XmlDocument::buildNsIndex()
+{
+    buildQueryIndexes(false, true, false, false);
+}
+
+void XmlDocument::buildIdIndex()
+{
+    buildQueryIndexes(false, false, true, false);
+}
+
+void XmlDocument::buildClassIndex()
+{
+    buildQueryIndexes(false, false, false, true);
+}
+
+// true when the same token already appeared earlier in the class attribute
+// (a value like "a b a" must add one entry, not two)
+static bool classTokenSeenBefore(const char* s, size_t start, size_t tokenLen)
+{
+    size_t i = 0;
+
+    while (i < start) {
+        while (i < start && qisspace(s[i]))
+            i++;
+
+        size_t t0 = i;
+        while (i < start && !qisspace(s[i]))
+            i++;
+
+        if (i - t0 == tokenLen && tokenLen > 0 && memcmp(s + t0, s + start, tokenLen) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+void XmlDocument::addClassTokens(exlib::string& className, XmlElement* el)
+{
+    const char* s = className.c_str();
+    size_t len = className.length();
+    size_t i = 0;
+
+    while (i < len) {
+        while (i < len && qisspace(s[i]))
+            i++;
+
+        size_t start = i;
+        while (i < len && !qisspace(s[i]))
+            i++;
+
+        size_t tokenLen = i - start;
+        if (tokenLen == 0)
+            break;
+
+        if (classTokenSeenBefore(s, start, tokenLen))
+            continue;
+
+        m_classIndex.byClass[exlib::string(s + start, tokenLen)].push_back(el);
+    }
+}
+
+void XmlDocument::buildQueryIndexes(bool wantTag, bool wantNs, bool wantId, bool wantClass)
+{
+    if (wantTag)
+        m_tagIndex.byTag.clear();
+    if (wantNs)
+        m_nsIndex.byNsLocal.clear();
+    if (wantId)
+        m_idIndex.byId.clear();
+    if (wantClass)
+        m_classIndex.byClass.clear();
+
+    XmlElement* pEl = m_element.As<XmlElement>();
+
+    if (pEl) {
+        exlib::string key;
+
+        walkElements(pEl, true, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* el = static_cast<XmlElement*>(node);
+
+            if (wantTag)
+                m_tagIndex.byTag[el->tagNameRef()].push_back(el);
+
+            if (wantNs) {
+                makeNsLocalKey(key, el->namespaceURIRef(), el->localNameRef());
+                m_nsIndex.byNsLocal[key].push_back(el);
+            }
+
+            if (wantId) {
+                exlib::string id;
+
+                el->get_id(id);
+                // first element in document order wins (same as the walk)
+                if (!id.empty() && m_idIndex.byId.find(id) == m_idIndex.byId.end())
+                    m_idIndex.byId[id] = el;
+            }
+
+            if (wantClass) {
+                exlib::string cls;
+
+                el->get_className(cls);
+                if (!cls.empty())
+                    addClassTokens(cls, el);
+            }
+
+            return false;
+        });
+    }
+
+    if (wantTag)
+        m_tagIndex.epoch = m_queryEpoch;
+    if (wantNs)
+        m_nsIndex.epoch = m_queryEpoch;
+    if (wantId)
+        m_idIndex.epoch = m_queryEpoch;
+    if (wantClass)
+        m_classIndex.epoch = m_queryEpoch;
 }
 
 result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
@@ -515,17 +760,26 @@ result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<Xm
 
     if (pEl) {
         std::vector<exlib::string> classNames;
-        _parser p(className);
-        exlib::string str;
 
-        p.skipSpace();
-        while (p.getWord(str)) {
-            classNames.push_back(str);
-            p.skipSpace();
+        XmlElement::parseClassNames(className, classNames);
+
+        if (classNames.size() > 0) {
+            // a single class token is served by the class index; several tokens
+            // would need an intersection in document order, so walk instead
+            if (!useQueryIndex() || classNames.size() != 1)
+                pEl->getElementsByClassNameFromThis(classNames, ret);
+            else {
+                if (m_classIndex.epoch != m_queryEpoch)
+                    buildClassIndex();
+
+                auto it = m_classIndex.byClass.find(classNames[0]);
+                if (it != m_classIndex.byClass.end()) {
+                    std::vector<XmlElement*>& els = it->second;
+                    for (size_t i = 0; i < els.size(); i++)
+                        ret->appendRef(els[i]);
+                }
+            }
         }
-
-        if (classNames.size() > 0)
-            pEl->getElementsByClassNameFromThis(classNames, ret);
     }
 
     retVal = ret;
@@ -537,7 +791,12 @@ result_t XmlDocument::querySelector(exlib::string selectors, obj_ptr<XmlElement_
     if (!m_element)
         return CALL_RETURN_NULL;
 
-    return m_element->querySelector(selectors, retVal);
+    XmlElement* pEl = m_element.As<XmlElement>();
+    if (!pEl)
+        return CALL_RETURN_NULL;
+
+    // document-level query: the document element itself is a match candidate
+    return pEl->querySelectorImpl(selectors, true, retVal);
 }
 
 result_t XmlDocument::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal)
@@ -545,7 +804,12 @@ result_t XmlDocument::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeL
     if (!m_element)
         return CALL_RETURN_NULL;
 
-    return m_element->querySelectorAll(selectors, retVal);
+    XmlElement* pEl = m_element.As<XmlElement>();
+    if (!pEl)
+        return CALL_RETURN_NULL;
+
+    // document-level query: the document element itself is a match candidate
+    return pEl->querySelectorAllImpl(selectors, true, retVal);
 }
 
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
