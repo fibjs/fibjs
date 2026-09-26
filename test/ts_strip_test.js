@@ -1178,6 +1178,48 @@ setup(cfg);
 
     });
 
+    describe('Keyword Type Names', () => {
+        // A keyword can name a type - `constructor` is the type of `Object`, and
+        // it turns up in declaration files. skipType() handled an identifier type
+        // name (qualified names and type arguments) but for a keyword it consumed
+        // one token and stopped, so `constructor<T, U>` left `<T, U>` behind and
+        // the declaration that followed was cut in half. `constructor<T>` only
+        // looked fine because the leftover parsed as a type assertion.
+
+        it('should skip type arguments after a keyword type name', () => {
+            assert.strictEqual(strip('let x: constructor<T, U>;'), 'let x                   ;');
+        });
+
+        itDiff('should not choke on a primitive given type arguments',
+            // `string<T, U>` is not valid TypeScript - a primitive takes no type
+            // arguments - so amaro refuses the file. fibjs skips it and erases the
+            // annotation, which is the lenient answer and the one worth pinning.
+            'let x: string<T, U>;',
+            'let x              ;',
+            null);
+
+        it('should skip a qualified keyword type name', () => {
+            assert.strictEqual(strip('let x: constructor.A.B<T>;'), 'let x                    ;');
+        });
+
+        it('should erase a declaration whose parameter type uses one', () => {
+            // The real shape, from tsyringe's lazy-helpers.d.ts.
+            const input = 'declare function f(x: () => constructor<T>): D<T>;';
+            assert.strictEqual(strip(input), ' '.repeat(input.length));
+        });
+
+        it('should erase the return type of a function that uses one', () => {
+            assert.strictEqual(strip('function f(x: constructor<T>): D<T> {}'),
+                'function f(x                )       {}');
+        });
+
+        it('should still skip type arguments after an identifier type name', () => {
+            assert.strictEqual(strip('let x: Other<T, U>;'), 'let x             ;');
+            assert.strictEqual(strip('let x: A<constructor<T, U>>;'), 'let x                      ;');
+        });
+
+    });
+
     describe('Declaration Merging', () => {
         // TypeScript merges declarations that share a name and emits one
         // binding; fibjs lowers each declaration where it stands. A second one

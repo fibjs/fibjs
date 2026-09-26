@@ -5506,6 +5506,12 @@ void TsStrip::skipType() {
         case SyntaxKind::NullKeyword:
         case SyntaxKind::ThisKeyword:
             nextToken();
+            // A keyword can still be given type arguments, and they have to be
+            // skipped: `constructor<T, U>` is real - it is the type of `Object` -
+            // and leaving the `<T, U>` behind splits whatever follows.
+            if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
+                skipTypeArguments();
+            }
             break;
         case SyntaxKind::Identifier:
             nextToken();
@@ -5698,7 +5704,19 @@ void TsStrip::skipType() {
             // Error recovery: ensure progress when asked to skip a type.
             // If we hit a likely terminator, leave it for the caller.
             if (isKeyword(token())) {
+                // A keyword used as a type name - `constructor` is the one that
+                // turns up - behaves like any other type reference: it can be
+                // qualified and it can take type arguments.
                 nextToken();
+                while (token() == SyntaxKind::DotToken) {
+                    nextToken();
+                    if (token() == SyntaxKind::Identifier || isKeyword(token())) {
+                        nextToken();
+                    }
+                }
+                if (token() == SyntaxKind::LessThanToken || token() == SyntaxKind::LessThanLessThanToken) {
+                    skipTypeArguments();
+                }
             } else {
                 switch (token()) {
                     case SyntaxKind::CloseParenToken:
