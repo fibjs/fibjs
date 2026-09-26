@@ -157,6 +157,42 @@ private:
         return currentToken();
     }
 
+    /**
+     * Can the regex body [start, p) have invalidated the tokens that follow it?
+     *
+     * scanAllTokens() only carries state for template literals (brace depth) and it
+     * consumes text inside strings / templates / comments. So the token stream after
+     * a regex literal is still valid unless the body contains a quote, a backtick, a
+     * brace, or a comment starter - i.e. regexes that match quotes, braces,
+     * backticks or slashes. Plain bodies (letters, digits, spaces, punctuation) need
+     * no repair at all.
+     */
+    bool regexBodyNeedsRescan(int start, int p) const {
+        // A `/` right after the regex (i.e. the closing slash followed by `*` or `/`)
+        // also starts a comment in the first pass, so it needs the rebuild too.
+        if (p < (int)m_length && (m_src[p] == '*' || m_src[p] == '/')) {
+            return true;
+        }
+        for (int i = start; i < p; i++) {
+            switch (m_src[i]) {
+                case '\'':
+                case '"':
+                case '`':
+                case '{':
+                case '}':
+                    return true;
+                case '/':
+                    if (i + 1 < p && (m_src[i + 1] == '/' || m_src[i + 1] == '*')) {
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return false;
+    }
+
     bool reScanSlashTokenAsRegularExpressionLiteral() {
         SyntaxKind k = token();
         if (k != SyntaxKind::SlashToken && k != SyntaxKind::SlashEqualsToken) {
@@ -247,7 +283,38 @@ private:
         // template expressions, where the scanner needs template nesting context to
         // correctly turn the closing `}` into TemplateMiddle/TemplateTail. Re-scan the
         // remaining suffix from the end of the regex with reconstructed template state.
+        //
+        // Re-scanning costs O(rest of file), so it is only done when the regex body can
+        // actually have changed the scanner's state (see regexBodyNeedsRescan): doing it
+        // for every regex made regex-heavy files quadratic (a 64 KB file with 4.5k
+        // regexes took minutes).
         if (p > oldEnd && m_tokenIndex + 1 < m_tokens.size()) {
+            if (!regexBodyNeedsRescan(start, p)) {
+                // Cheap path: the following tokens are still valid, and nextToken()
+                // already skips tokens whose pos falls inside the regex span. Absorb
+                // those leftovers into the regex token so that neighbour lookups
+                // (getPrevTokenEnd, fixASI) see a regex literal, exactly as they would
+                // after a rebuild.
+                for (size_t i = m_tokenIndex + 1; i < m_tokens.size(); i++) {
+                    Token& leftover = m_tokens[i];
+                    if (leftover.pos >= p) {
+                        break;
+                    }
+                    if (leftover.end > p) {
+                        // The closing slash of the regex merged with a following `=`
+                        // (`/re/=`): the only `/`-prefixed multi-char token left, since
+                        // `//` and `/*` are excluded above.
+                        if (leftover.kind == SyntaxKind::SlashEqualsToken) {
+                            leftover.kind = SyntaxKind::EqualsToken;
+                            leftover.pos = p;
+                        }
+                        break;
+                    }
+                    leftover = t;
+                }
+                return true;
+            }
+
             Scanner rescanner(m_src, m_length);
             rescanner.setTextPos(p);
 
@@ -327,6 +394,33 @@ private:
         }
         return 0;
     }
+    /**
+     * Index of the first token whose `pos` is >= `pos`, or m_tokens.size() when
+     * there is no such token.
+     *
+     * Tokens are ordered by source position, so start from the current parse
+     * cursor and walk outwards. Scanning from token 0 on every call used to make
+     * stripping O(n^2) on large files (one scan per erased type declaration /
+     * ASI fix): a 8 MB file took ~7 s instead of ~50 ms.
+     */
+    size_t tokenIndexAtOrAfter(int pos) const {
+        if (m_tokens.empty()) {
+            return 0;
+        }
+        const size_t last = m_tokens.size() - 1;
+        size_t i = m_tokenIndex < last ? m_tokenIndex : last;
+        while (i > 0 && m_tokens[i].pos >= pos) {
+            i--;
+        }
+        if (m_tokens[i].pos >= pos) {
+            return i; // reached index 0
+        }
+        while (i <= last && m_tokens[i].pos < pos) {
+            i++;
+        }
+        return i;
+    }
+
     bool isEOF() const { return token() == SyntaxKind::EndOfFileToken; }
     
     // ========== Replacement recording ==========
@@ -4690,14 +4784,7 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
     // regardless of line breaks
     if (isStatement && start > 0) {
         // Find the token before 'start'
-        size_t idx = 0;
-        for (size_t i = 0; i < m_tokens.size(); i++) {
-            if (m_tokens[i].pos >= start) {
-                idx = i;
-                break;
-            }
-            idx = i + 1;
-        }
+        size_t idx = tokenIndexAtOrAfter(start);
         
         if (idx > 0) {
             const Token& prevTok = m_tokens[idx - 1];
@@ -4820,14 +4907,7 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
         // 3. Otherwise, insert semicolon at start
         
         // Find the token that is at or starts before 'start'
-        size_t idx = 0;
-        for (size_t i = 0; i < m_tokens.size(); i++) {
-            if (m_tokens[i].pos >= start) {
-                idx = i;
-                break;
-            }
-            idx = i + 1;
-        }
+        size_t idx = tokenIndexAtOrAfter(start);
         
         // If this is the first token (no token before), skip
         if (idx == 0) {

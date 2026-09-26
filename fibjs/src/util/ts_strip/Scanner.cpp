@@ -4,100 +4,12 @@
  */
 
 #include "Scanner.h"
-#include <unordered_map>
+#include <cstring>
 
 namespace fibjs {
 namespace ts {
 
-// Keyword map using string_view as key for zero-copy lookup
-static const std::unordered_map<std::string_view, SyntaxKind>& getKeywordMap() {
-    static std::unordered_map<std::string_view, SyntaxKind> map = {
-        {"abstract", SyntaxKind::AbstractKeyword},
-        {"any", SyntaxKind::AnyKeyword},
-        {"as", SyntaxKind::AsKeyword},
-        {"asserts", SyntaxKind::AssertsKeyword},
-        {"assert", SyntaxKind::AssertKeyword},
-        {"async", SyntaxKind::AsyncKeyword},
-        {"await", SyntaxKind::AwaitKeyword},
-        {"bigint", SyntaxKind::BigIntKeyword},
-        {"boolean", SyntaxKind::BooleanKeyword},
-        {"break", SyntaxKind::BreakKeyword},
-        {"case", SyntaxKind::CaseKeyword},
-        {"catch", SyntaxKind::CatchKeyword},
-        {"class", SyntaxKind::ClassKeyword},
-        {"const", SyntaxKind::ConstKeyword},
-        {"constructor", SyntaxKind::ConstructorKeyword},
-        {"continue", SyntaxKind::ContinueKeyword},
-        {"debugger", SyntaxKind::DebuggerKeyword},
-        {"declare", SyntaxKind::DeclareKeyword},
-        {"default", SyntaxKind::DefaultKeyword},
-        {"delete", SyntaxKind::DeleteKeyword},
-        {"do", SyntaxKind::DoKeyword},
-        {"else", SyntaxKind::ElseKeyword},
-        {"enum", SyntaxKind::EnumKeyword},
-        {"export", SyntaxKind::ExportKeyword},
-        {"extends", SyntaxKind::ExtendsKeyword},
-        {"false", SyntaxKind::FalseKeyword},
-        {"finally", SyntaxKind::FinallyKeyword},
-        {"for", SyntaxKind::ForKeyword},
-        {"from", SyntaxKind::FromKeyword},
-        {"function", SyntaxKind::FunctionKeyword},
-        {"get", SyntaxKind::GetKeyword},
-        {"global", SyntaxKind::GlobalKeyword},
-        {"if", SyntaxKind::IfKeyword},
-        {"implements", SyntaxKind::ImplementsKeyword},
-        {"import", SyntaxKind::ImportKeyword},
-        {"in", SyntaxKind::InKeyword},
-        {"infer", SyntaxKind::InferKeyword},
-        {"instanceof", SyntaxKind::InstanceOfKeyword},
-        {"interface", SyntaxKind::InterfaceKeyword},
-        {"intrinsic", SyntaxKind::IntrinsicKeyword},
-        {"is", SyntaxKind::IsKeyword},
-        {"keyof", SyntaxKind::KeyOfKeyword},
-        {"let", SyntaxKind::LetKeyword},
-        {"module", SyntaxKind::ModuleKeyword},
-        {"namespace", SyntaxKind::NamespaceKeyword},
-        {"never", SyntaxKind::NeverKeyword},
-        {"new", SyntaxKind::NewKeyword},
-        {"null", SyntaxKind::NullKeyword},
-        {"number", SyntaxKind::NumberKeyword},
-        {"object", SyntaxKind::ObjectKeyword},
-        {"of", SyntaxKind::OfKeyword},
-        {"out", SyntaxKind::OutKeyword},
-        {"override", SyntaxKind::OverrideKeyword},
-        {"package", SyntaxKind::PackageKeyword},
-        {"private", SyntaxKind::PrivateKeyword},
-        {"protected", SyntaxKind::ProtectedKeyword},
-        {"public", SyntaxKind::PublicKeyword},
-        {"readonly", SyntaxKind::ReadonlyKeyword},
-        {"require", SyntaxKind::RequireKeyword},
-        {"return", SyntaxKind::ReturnKeyword},
-        {"satisfies", SyntaxKind::SatisfiesKeyword},
-        {"set", SyntaxKind::SetKeyword},
-        {"static", SyntaxKind::StaticKeyword},
-        {"string", SyntaxKind::StringKeyword},
-        {"super", SyntaxKind::SuperKeyword},
-        {"switch", SyntaxKind::SwitchKeyword},
-        {"symbol", SyntaxKind::SymbolKeyword},
-        {"this", SyntaxKind::ThisKeyword},
-        {"throw", SyntaxKind::ThrowKeyword},
-        {"true", SyntaxKind::TrueKeyword},
-        {"try", SyntaxKind::TryKeyword},
-        {"type", SyntaxKind::TypeKeyword},
-        {"typeof", SyntaxKind::TypeOfKeyword},
-        {"undefined", SyntaxKind::UndefinedKeyword},
-        {"unique", SyntaxKind::UniqueKeyword},
-        {"unknown", SyntaxKind::UnknownKeyword},
-        {"using", SyntaxKind::UsingKeyword},
-        {"var", SyntaxKind::VarKeyword},
-        {"void", SyntaxKind::VoidKeyword},
-        {"while", SyntaxKind::WhileKeyword},
-        {"with", SyntaxKind::WithKeyword},
-        {"yield", SyntaxKind::YieldKeyword},
-        {"accessor", SyntaxKind::AccessorKeyword},
-    };
-    return map;
-}
+// Keyword lookup: see getIdentifierToken() below.
 
 Scanner::Scanner(uint8_t* text, size_t length)
     : m_text(text)
@@ -241,10 +153,118 @@ void Scanner::setTextPos(int pos) {
 }
 
 SyntaxKind Scanner::getIdentifierToken(std::string_view text) const {
-    auto& map = getKeywordMap();
-    auto it = map.find(text);
-    if (it != map.end()) {
-        return it->second;
+    // Keywords are few and all ASCII lowercase, so comparing against the few
+    // candidates of the same length beats the hash lookup this replaces (that
+    // lookup was ~20% of strip time). Constant-size memcmp compiles to a
+    // single load + compare.
+    const size_t length = text.size();
+    const char* s = text.data();
+    switch (length) {
+        case 2:
+            if (std::memcmp(s, "as", 2) == 0) return SyntaxKind::AsKeyword;
+            if (std::memcmp(s, "do", 2) == 0) return SyntaxKind::DoKeyword;
+            if (std::memcmp(s, "if", 2) == 0) return SyntaxKind::IfKeyword;
+            if (std::memcmp(s, "in", 2) == 0) return SyntaxKind::InKeyword;
+            if (std::memcmp(s, "is", 2) == 0) return SyntaxKind::IsKeyword;
+            if (std::memcmp(s, "of", 2) == 0) return SyntaxKind::OfKeyword;
+            break;
+        case 3:
+            if (std::memcmp(s, "any", 3) == 0) return SyntaxKind::AnyKeyword;
+            if (std::memcmp(s, "for", 3) == 0) return SyntaxKind::ForKeyword;
+            if (std::memcmp(s, "get", 3) == 0) return SyntaxKind::GetKeyword;
+            if (std::memcmp(s, "let", 3) == 0) return SyntaxKind::LetKeyword;
+            if (std::memcmp(s, "new", 3) == 0) return SyntaxKind::NewKeyword;
+            if (std::memcmp(s, "out", 3) == 0) return SyntaxKind::OutKeyword;
+            if (std::memcmp(s, "set", 3) == 0) return SyntaxKind::SetKeyword;
+            if (std::memcmp(s, "try", 3) == 0) return SyntaxKind::TryKeyword;
+            if (std::memcmp(s, "var", 3) == 0) return SyntaxKind::VarKeyword;
+            break;
+        case 4:
+            if (std::memcmp(s, "case", 4) == 0) return SyntaxKind::CaseKeyword;
+            if (std::memcmp(s, "else", 4) == 0) return SyntaxKind::ElseKeyword;
+            if (std::memcmp(s, "enum", 4) == 0) return SyntaxKind::EnumKeyword;
+            if (std::memcmp(s, "from", 4) == 0) return SyntaxKind::FromKeyword;
+            if (std::memcmp(s, "null", 4) == 0) return SyntaxKind::NullKeyword;
+            if (std::memcmp(s, "this", 4) == 0) return SyntaxKind::ThisKeyword;
+            if (std::memcmp(s, "true", 4) == 0) return SyntaxKind::TrueKeyword;
+            if (std::memcmp(s, "type", 4) == 0) return SyntaxKind::TypeKeyword;
+            if (std::memcmp(s, "void", 4) == 0) return SyntaxKind::VoidKeyword;
+            if (std::memcmp(s, "with", 4) == 0) return SyntaxKind::WithKeyword;
+            break;
+        case 5:
+            if (std::memcmp(s, "async", 5) == 0) return SyntaxKind::AsyncKeyword;
+            if (std::memcmp(s, "await", 5) == 0) return SyntaxKind::AwaitKeyword;
+            if (std::memcmp(s, "break", 5) == 0) return SyntaxKind::BreakKeyword;
+            if (std::memcmp(s, "catch", 5) == 0) return SyntaxKind::CatchKeyword;
+            if (std::memcmp(s, "class", 5) == 0) return SyntaxKind::ClassKeyword;
+            if (std::memcmp(s, "const", 5) == 0) return SyntaxKind::ConstKeyword;
+            if (std::memcmp(s, "false", 5) == 0) return SyntaxKind::FalseKeyword;
+            if (std::memcmp(s, "infer", 5) == 0) return SyntaxKind::InferKeyword;
+            if (std::memcmp(s, "keyof", 5) == 0) return SyntaxKind::KeyOfKeyword;
+            if (std::memcmp(s, "never", 5) == 0) return SyntaxKind::NeverKeyword;
+            if (std::memcmp(s, "super", 5) == 0) return SyntaxKind::SuperKeyword;
+            if (std::memcmp(s, "throw", 5) == 0) return SyntaxKind::ThrowKeyword;
+            if (std::memcmp(s, "using", 5) == 0) return SyntaxKind::UsingKeyword;
+            if (std::memcmp(s, "while", 5) == 0) return SyntaxKind::WhileKeyword;
+            if (std::memcmp(s, "yield", 5) == 0) return SyntaxKind::YieldKeyword;
+            break;
+        case 6:
+            if (std::memcmp(s, "assert", 6) == 0) return SyntaxKind::AssertKeyword;
+            if (std::memcmp(s, "bigint", 6) == 0) return SyntaxKind::BigIntKeyword;
+            if (std::memcmp(s, "delete", 6) == 0) return SyntaxKind::DeleteKeyword;
+            if (std::memcmp(s, "export", 6) == 0) return SyntaxKind::ExportKeyword;
+            if (std::memcmp(s, "global", 6) == 0) return SyntaxKind::GlobalKeyword;
+            if (std::memcmp(s, "import", 6) == 0) return SyntaxKind::ImportKeyword;
+            if (std::memcmp(s, "module", 6) == 0) return SyntaxKind::ModuleKeyword;
+            if (std::memcmp(s, "number", 6) == 0) return SyntaxKind::NumberKeyword;
+            if (std::memcmp(s, "object", 6) == 0) return SyntaxKind::ObjectKeyword;
+            if (std::memcmp(s, "public", 6) == 0) return SyntaxKind::PublicKeyword;
+            if (std::memcmp(s, "return", 6) == 0) return SyntaxKind::ReturnKeyword;
+            if (std::memcmp(s, "static", 6) == 0) return SyntaxKind::StaticKeyword;
+            if (std::memcmp(s, "string", 6) == 0) return SyntaxKind::StringKeyword;
+            if (std::memcmp(s, "switch", 6) == 0) return SyntaxKind::SwitchKeyword;
+            if (std::memcmp(s, "symbol", 6) == 0) return SyntaxKind::SymbolKeyword;
+            if (std::memcmp(s, "typeof", 6) == 0) return SyntaxKind::TypeOfKeyword;
+            if (std::memcmp(s, "unique", 6) == 0) return SyntaxKind::UniqueKeyword;
+            break;
+        case 7:
+            if (std::memcmp(s, "asserts", 7) == 0) return SyntaxKind::AssertsKeyword;
+            if (std::memcmp(s, "boolean", 7) == 0) return SyntaxKind::BooleanKeyword;
+            if (std::memcmp(s, "declare", 7) == 0) return SyntaxKind::DeclareKeyword;
+            if (std::memcmp(s, "default", 7) == 0) return SyntaxKind::DefaultKeyword;
+            if (std::memcmp(s, "extends", 7) == 0) return SyntaxKind::ExtendsKeyword;
+            if (std::memcmp(s, "finally", 7) == 0) return SyntaxKind::FinallyKeyword;
+            if (std::memcmp(s, "package", 7) == 0) return SyntaxKind::PackageKeyword;
+            if (std::memcmp(s, "private", 7) == 0) return SyntaxKind::PrivateKeyword;
+            if (std::memcmp(s, "require", 7) == 0) return SyntaxKind::RequireKeyword;
+            if (std::memcmp(s, "unknown", 7) == 0) return SyntaxKind::UnknownKeyword;
+            break;
+        case 8:
+            if (std::memcmp(s, "abstract", 8) == 0) return SyntaxKind::AbstractKeyword;
+            if (std::memcmp(s, "accessor", 8) == 0) return SyntaxKind::AccessorKeyword;
+            if (std::memcmp(s, "continue", 8) == 0) return SyntaxKind::ContinueKeyword;
+            if (std::memcmp(s, "debugger", 8) == 0) return SyntaxKind::DebuggerKeyword;
+            if (std::memcmp(s, "function", 8) == 0) return SyntaxKind::FunctionKeyword;
+            if (std::memcmp(s, "override", 8) == 0) return SyntaxKind::OverrideKeyword;
+            if (std::memcmp(s, "readonly", 8) == 0) return SyntaxKind::ReadonlyKeyword;
+            break;
+        case 9:
+            if (std::memcmp(s, "interface", 9) == 0) return SyntaxKind::InterfaceKeyword;
+            if (std::memcmp(s, "intrinsic", 9) == 0) return SyntaxKind::IntrinsicKeyword;
+            if (std::memcmp(s, "namespace", 9) == 0) return SyntaxKind::NamespaceKeyword;
+            if (std::memcmp(s, "protected", 9) == 0) return SyntaxKind::ProtectedKeyword;
+            if (std::memcmp(s, "satisfies", 9) == 0) return SyntaxKind::SatisfiesKeyword;
+            if (std::memcmp(s, "undefined", 9) == 0) return SyntaxKind::UndefinedKeyword;
+            break;
+        case 10:
+            if (std::memcmp(s, "implements", 10) == 0) return SyntaxKind::ImplementsKeyword;
+            if (std::memcmp(s, "instanceof", 10) == 0) return SyntaxKind::InstanceOfKeyword;
+            break;
+        case 11:
+            if (std::memcmp(s, "constructor", 11) == 0) return SyntaxKind::ConstructorKeyword;
+            break;
+        default:
+            break;
     }
     return SyntaxKind::Identifier;
 }
@@ -256,15 +276,25 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     
     while (p < end) {
         uint8_t ch = *p;
-        if (isUnicodeLineBreakAt((int)(p - m_text))) {
-            break;
-        }
+        // Fast path: plain ASCII identifier characters (the overwhelming majority).
+        // The Unicode line-break check below is only relevant for bytes >= 0x80, so
+        // it does not have to run for every byte.
         if ((ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
             (ch >= '0' && ch <= '9') ||
-            ch == '_' || ch == '$' || ch > 127) {
+            ch == '_' || ch == '$') {
             p++;
-        } else if (ch == '\\') {
+            continue;
+        }
+        if (ch > 127) {
+            // U+2028/U+2029 are line terminators, not identifier characters.
+            if (isUnicodeLineBreakAt((int)(p - m_text))) {
+                break;
+            }
+            p++;
+            continue;
+        }
+        if (ch == '\\') {
             // Handle unicode escape sequences: \uXXXX or \u{XXXX}
             // Use lenient parsing - consume whatever looks like unicode escape
             if (p + 1 < end && *(p + 1) == 'u') {
@@ -296,10 +326,9 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
                     continue;
                 }
             }
-            break;
-        } else {
-            break;
+            break; // invalid escape - stop the identifier here
         }
+        break; // not an identifier character
     }
     m_pos = p - m_text;
     m_tokenValue = std::string_view((const char*)m_text + start, m_pos - start);
@@ -470,7 +499,23 @@ SyntaxKind Scanner::scan() {
     m_tokenValue = {};
 
 rescan:
-    skipTrivia();
+    // Fast path: most tokens are not preceded by trivia at all, and skipTrivia() is
+    // too large to be inlined, so check the current byte before calling it. (The
+    // position 0 case is excluded because skipTrivia() handles the shebang there.)
+    if (m_pos != 0) {
+        if (m_pos >= (int)m_length) {
+            m_tokenStart = m_pos;
+            m_token = SyntaxKind::EndOfFileToken;
+            return m_token;
+        }
+        uint8_t c = m_text[m_pos];
+        if (c == ' ' || c == '\t' || c == '\v' || c == '\f' ||
+            c == '\n' || c == '\r' || c == '/' || c > 127) {
+            skipTrivia();
+        }
+    } else {
+        skipTrivia();
+    }
     m_tokenStart = m_pos;
     
     if (m_pos >= (int)m_length) {
@@ -877,6 +922,9 @@ SyntaxKind Scanner::reScanSlashToken() {
 
 std::vector<Token> Scanner::scanAllTokens() {
     std::vector<Token> tokens;
+    // Rough estimate (a token plus its trivia averages a handful of bytes) to avoid
+    // repeatedly reallocating and copying the token vector on large files.
+    tokens.reserve(m_length / 8 + 16);
     setTextPos(0);
     
     // Track template literal nesting depth
