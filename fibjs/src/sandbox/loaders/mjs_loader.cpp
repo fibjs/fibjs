@@ -549,12 +549,12 @@ private:
                 TryCatch try_catch;
 
                 if (is_typescript(id)) {
-                    // Compute hash of original TypeScript content BEFORE stripping
-                    size_t hash = ts_cache_hash(data_->data(), data_->length());
+                    // Content key: identical sources share one entry, wherever they live
+                    size_t key = ts_cache_key(data_->data(), data_->length());
                     
                     // Try to get cached JS first (skips small files automatically)
                     obj_ptr<Buffer_base> cached_js;
-                    if (ts_cache_get(hash, data_->length(), cached_js)) {
+                    if (ts_cache_get(key, data_->length(), cached_js)) {
                         // Cache hit: use cached JS
                         data_ = Buffer::Cast(cached_js);
                     } else {
@@ -564,10 +564,10 @@ private:
                         } catch (const std::exception& e) {
                             exception = e.what();
                         }
-                        
+
                         // Async save to cache (fire and forget, zero copy with ref counting)
                         if (exception.empty())
-                            ts_cache_set(hash, data_);
+                            ts_cache_set(key, data_);
                     }
 
                     if (exception.empty()) {

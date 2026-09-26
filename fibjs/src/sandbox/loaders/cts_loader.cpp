@@ -18,11 +18,11 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
 {
     Buffer* buf = Buffer::Cast(src);
     
-    // Compute hash of original TypeScript content BEFORE stripping
-    size_t hash = ts_cache_hash(buf->data(), buf->length());
+    // Content key: identical sources share one entry, wherever they live
+    size_t key = ts_cache_key(buf->data(), buf->length());
     
     // Try to get cached JS first (skips small files automatically)
-    if (ts_cache_get(hash, buf->length(), retVal))
+    if (ts_cache_get(key, buf->length(), retVal))
         return 0;
     
     // Cache miss: strip TypeScript types in-place
@@ -33,7 +33,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     }
 
     // Async save to cache (fire and forget, zero copy with ref counting)
-    ts_cache_set(hash, src);
+    ts_cache_set(key, src);
 
     retVal = src;
 
