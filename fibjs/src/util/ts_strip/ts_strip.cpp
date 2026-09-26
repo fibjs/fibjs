@@ -2048,6 +2048,16 @@ void TsStrip::parsePrimaryExpression() {
                 skipTypeArguments();
                 addReplacement(start, getNodePos());
                 if (token() == SyntaxKind::OpenParenToken) {
+                    // `async` and the parameter list have to stay on one line -
+                    // JavaScript has a [no LineTerminator here] restriction between
+                    // them - and erasing a type parameter list that spans lines
+                    // leaves a line break in between. Put the `(` where the `<` was
+                    // and blank the original one, so the length and the line count
+                    // are both unchanged.
+                    if (hasLineTerminatorInRange(start, getNodePos())) {
+                        addOverwrite(start, '(');
+                        addOverwrite(getNodePos(), ' ');
+                    }
                     parseParameters();
                     if (token() == SyntaxKind::ColonToken) {
                         start = getNodePos();

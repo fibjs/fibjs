@@ -1178,6 +1178,57 @@ setup(cfg);
 
     });
 
+    describe('Async Generic Arrows', () => {
+        // JavaScript has a [no LineTerminator here] restriction between `async`
+        // and the parameter list of an async arrow. Erasing a type parameter list
+        // that spans lines leaves a line break exactly there, and the result is
+        // "Malformed arrow function parameter list". The fix is to put the `(`
+        // where the `<` was and blank the original, so `async (` stays together
+        // and neither the length nor the line count changes.
+        //
+        // Seen in @better-auth/core/src/context/transaction.ts.
+
+        it('should keep `async` and the parameter list on one line', () => {
+            const input =
+                'export const f = async <\n' +
+                '    T extends object = object,\n' +
+                '>(\n' +
+                '    a: T,\n' +
+                '): Promise<T> => a;';
+            const out = strip(input);
+
+            assert.strictEqual(out.split('\n').length, input.split('\n').length,
+                'line count changed: ' + JSON.stringify(out));
+            assert.strictEqual(out.length, input.length, 'length changed');
+
+            const first = out.split('\n')[0];
+            assert.match(first, /async\s*\(/, 'line 1 is ' + JSON.stringify(first));
+        });
+
+        it('should handle type parameters that span lines without a return type', () => {
+            const input = 'const f = async <\n  T\n>(a: T) => a;';
+            const out = strip(input);
+            assert.strictEqual(out.split('\n').length, input.split('\n').length);
+            assert.match(out.split('\n')[0], /async\s*\(/);
+            assert.ok(!/async\s*\n/.test(out), 'async still ends a line: ' + JSON.stringify(out));
+        });
+
+        it('should handle a comma-separated type parameter list across lines', () => {
+            const input = 'const f = async <T,\n  U\n>(a: T, b: U) => a;';
+            const out = strip(input);
+            assert.strictEqual(out.split('\n').length, input.split('\n').length);
+            assert.ok(!/async\s*\n/.test(out), 'async still ends a line: ' + JSON.stringify(out));
+        });
+
+        it('should leave a single-line type parameter list alone', () => {
+            // Nothing to move: `async <T>(` already has the `(` on the same line.
+            const input = 'const f = async <T>(a: T): Promise<T> => a;';
+            const out = strip(input);
+            assert.strictEqual(out, 'const f = async    (a   )             => a;');
+        });
+
+    });
+
     describe('Keyword Type Names', () => {
         // A keyword can name a type - `constructor` is the type of `Object`, and
         // it turns up in declaration files. skipType() handled an identifier type
