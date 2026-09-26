@@ -1137,8 +1137,58 @@ setup(cfg);
 
     });
 
-    describe('Shift Operators', () => {
-        // The scanner splits `>>` into two `>` tokens (the type-argument code needs
+    describe('Declaration Merging', () => {
+        // TypeScript merges declarations that share a name and emits one
+        // binding; fibjs lowers each declaration where it stands. A second one
+        // therefore collides, or - for enums, where both become `var E = {...}`
+        // and redeclaring a var is legal - silently replaces the first and its
+        // members are gone. Refusing is the only honest answer.
+        itThrowsDiff('should refuse two enums of the same name',
+            'enum E { A = 1 }\nenum E { B = 2 }',
+            /declaration merging/i,
+            /TypeScript enum.*not supported/i);
+
+        itThrowsDiff('should refuse two namespaces of the same name',
+            'namespace N { var x; }\nnamespace N { var y; }',
+            /declaration merging/i,
+            /TypeScript namespace.*not supported/i);
+
+        itThrowsDiff('should refuse an enum and a namespace of the same name',
+            'enum E { A = 1 }\nnamespace E { export const x = 1 }',
+            /declaration merging/i,
+            /not supported in strip-only/i);
+
+        it('should not confuse same-named enums in different scopes', () => {
+            if (USE_AMARO) return; // amaro rejects enums outright
+            // Each of these declares `E` twice, in scopes that have nothing to
+            // do with each other, so none of them is a merge.
+            const cases = [
+                'function a() { enum E { X } }\nfunction b() { enum E { Y } }',
+                'namespace A { enum E { X } }\nnamespace B { enum E { Y } }',
+                '{ enum E { X } }\n{ enum E { Y } }',
+                'namespace A { enum E { X } }\nfunction b() { enum E { Y } }',
+            ];
+            for (const input of cases) {
+                const out = strip(input);
+                assert.strictEqual(out.split('\n').length, input.split('\n').length,
+                    'line count changed for ' + JSON.stringify(input));
+            }
+        });
+
+        it('should not confuse same-named namespaces in different scopes', () => {
+            if (USE_AMARO) return; // amaro rejects namespaces outright
+            const input =
+                'namespace Outer {\n' +
+                '    namespace N { export const x = 1; }\n' +
+                '}\n' +
+                'namespace N { export const y = 2; }';
+            const out = strip(input);
+            assert.strictEqual(out.split('\n').length, input.split('\n').length);
+        });
+
+    });
+
+    describe('Shift Operators', () => {        // The scanner splits `>>` into two `>` tokens (the type-argument code needs
         // them separate to close `A<B<C>>`), so the expression parser has to merge
         // them back. Without that `a >> 1` parses as `a > (> 1)` and the expression
         // ends early, which leaves whatever follows it unstripped.

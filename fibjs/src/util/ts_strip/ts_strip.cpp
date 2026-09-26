@@ -570,6 +570,28 @@ private:
         }
     }
     
+    // Names declared so far in each scope currently being parsed, innermost
+    // last. TypeScript merges declarations that share a name - enum with enum,
+    // class with namespace, function with namespace - and emits them as one
+    // binding, but fibjs lowers each declaration where it stands. A second one
+    // therefore either collides or, worse, silently replaces the first:
+    //
+    //   enum E { A = 1 } enum E { B = 2 }   ->  var E={A:1}...; var E={B:2}...;
+    //
+    // The second `var` is legal JavaScript, so nothing complains and the first
+    // enum's members are gone. Refusing is the only honest answer until the
+    // merge is implemented.
+    std::vector<std::vector<exlib::string>> m_scopes;
+
+    void pushScope() { m_scopes.push_back(std::vector<exlib::string>()); }
+    void popScope()
+    {
+        if (!m_scopes.empty()) {
+            m_scopes.pop_back();
+        }
+    }
+    void declareName(const exlib::string& name);
+
     void addOverwrite(int pos, uint8_t value) {
         m_overwrites.push_back(Overwrite(pos, value));
     }
@@ -2454,6 +2476,9 @@ void TsStrip::parseExpressionOrLabeledStatement() {
  */
 void TsStrip::parseBlock() {
     parseExpected(SyntaxKind::OpenBraceToken);
+    // Every block is its own scope, which is what keeps `enum E {}` inside two
+    // different functions from looking like a merge.
+    pushScope();
     while (!isEOF() && token() != SyntaxKind::CloseBraceToken) {
         size_t beforeIndex = m_tokenIndex;
         parseStatement();
@@ -2461,6 +2486,7 @@ void TsStrip::parseBlock() {
             nextToken();
         }
     }
+    popScope();
     parseExpected(SyntaxKind::CloseBraceToken);
 }
 
@@ -3647,6 +3673,27 @@ bool TsStrip::parseNumericText(const uint8_t* text, size_t length, double& value
 }
 
 /**
+ * Record a name declared in the innermost scope, refusing a repeat.
+ *
+ * Only the declarations fibjs lowers are recorded - enums and namespaces. A
+ * class or function merging with a namespace is not caught here and still ends
+ * up as a plain `SyntaxError: Identifier 'X' has already been declared`, which
+ * is at least loud; the silent case is enum-with-enum.
+ */
+void TsStrip::declareName(const exlib::string& name)
+{
+    if (m_scopes.empty()) {
+        return;
+    }
+    std::vector<exlib::string>& scope = m_scopes.back();
+    if (std::find(scope.begin(), scope.end(), name) != scope.end()) {
+        throw std::runtime_error("TypeScript declaration merging (a second '" + name
+            + "' in the same scope) is not supported in strip-only mode.");
+    }
+    scope.push_back(name);
+}
+
+/**
  * Move `=>` up to sit just after the parameter list.
  *
  * JavaScript has a [no LineTerminator here] restriction between ArrowParameters
@@ -4030,6 +4077,7 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
     int nameStart = currentToken().pos;
     int nameEnd = currentToken().end;
     m_enumName.assign((const char*)m_src + nameStart, nameEnd - nameStart);
+    declareName(m_enumName);
 
     // 'enum' keyword position (previous token)
     int enumPos = m_tokens[m_tokenIndex - 1].pos;
@@ -4547,6 +4595,8 @@ void TsStrip::parseNamespaceVariableExport() {
  */
 void TsStrip::lowerNamespace(int start, const exlib::string& name) {
     int bracePos = getNodePos();
+
+    declareName(name);
 
     // `export namespace N` has to keep exporting the binding.
     bool isExported = false;
@@ -6216,6 +6266,7 @@ void TsStrip::fixASI(int start, int end, bool isStatement) {
 // ========================================================================
 
 void TsStrip::parseSourceFile() {
+    pushScope();
     while (!isEOF()) {
         size_t beforeIndex = m_tokenIndex;
         parseStatement();
@@ -6224,6 +6275,7 @@ void TsStrip::parseSourceFile() {
             nextToken();
         }
     }
+    popScope();
 }
 
 void TsStrip::applyReplacements() {
