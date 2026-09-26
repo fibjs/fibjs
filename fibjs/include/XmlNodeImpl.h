@@ -13,6 +13,8 @@
 
 namespace fibjs {
 
+class XmlDocument;
+
 class XmlNodeImpl {
 public:
     XmlNodeImpl(XmlDocument_base* document, XmlNode_base* node, int32_t type)
@@ -39,16 +41,22 @@ public:
 
     result_t get_parentNode(obj_ptr<XmlNode_base>& retVal)
     {
-        if (!m_parent)
+        if (!m_parent) {
+            // clear the out parameter: callers may loop on it
+            // (while (p) { ...; get_parentNode(p); }) -- see T16
+            retVal = NULL;
             return CALL_RETURN_NULL;
+        }
         retVal = m_parent->m_node;
         return 0;
     }
 
     result_t get_parentElement(obj_ptr<XmlElement_base>& retVal)
     {
-        if (!m_parent || m_parent->m_type != xml_base::C_ELEMENT_NODE)
+        if (!m_parent || m_parent->m_type != xml_base::C_ELEMENT_NODE) {
+            retVal = NULL;
             return CALL_RETURN_NULL;
+        }
         retVal = (XmlElement_base*)m_parent->m_node;
         return 0;
     }
@@ -66,15 +74,19 @@ public:
 
     result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal)
     {
-        if (!m_parent)
+        if (!m_parent) {
+            retVal = NULL;
             return CALL_RETURN_NULL;
+        }
         return m_parent->m_childs->item(m_index - 1, retVal);
     }
 
     result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal)
     {
-        if (!m_parent)
+        if (!m_parent) {
+            retVal = NULL;
             return CALL_RETURN_NULL;
+        }
         return m_parent->m_childs->item(m_index + 1, retVal);
     }
 
@@ -185,6 +197,8 @@ public:
         m_parent = parent;
         m_index = idx;
         m_node->Ref();
+
+        bumpQueryEpoch();
     }
 
     void clearParent()
@@ -192,10 +206,23 @@ public:
         ex_assert(m_parent != 0);
         ex_assert(m_index != -1);
 
+        // bump before the Unref below: it may be the last reference and would
+        // delete this node
+        bumpQueryEpoch();
+
         m_parent = NULL;
         m_index = -1;
         m_node->Unref();
     }
+
+    // Owning document as XmlDocument (the only XmlDocument_base implementation
+    // in this module), or NULL when the node is detached or the document is
+    // gone.  Defined in XmlNodeImpl.cpp: XmlDocument is not visible here.
+    XmlDocument* document();
+
+    // Invalidate the document-level query indexes (no-op when detached).
+    // Every structural mutation calls this through setParent()/clearParent().
+    void bumpQueryEpoch();
 
     result_t remove(obj_ptr<XmlNode_base>& retVal)
     {
@@ -573,5 +600,56 @@ public:
     XmlNodeImpl* m_parent;
     int32_t m_index;
 };
+
+// Iterative pre-order (document order) walk over an element subtree.
+//
+// The recursive query implementations used ~2 C++ frames per tree level and
+// overflowed the stack on deep documents (2500 levels already crash a release
+// build), killing the process with SIGSEGV instead of raising a JS error.  This
+// walker keeps the exact same order -- a node is visited before its children,
+// children in vector order -- using an explicit stack.
+//
+// The stack holds one frame per *level* (node + child cursor), not one entry
+// per pending sibling, so a document with millions of siblings in one parent
+// costs O(depth) memory instead of O(width).
+//
+// includeSelf: visit `root` itself first (document-level queries), or only its
+//              element descendants (element-level queries, per CSS spec).
+// fn:          called for every element node; return true to stop the walk
+//              early (used by querySelector / getFirstElementsByTagName).
+template <typename Fn>
+void walkElements(XmlNodeImpl* root, bool includeSelf, Fn&& fn)
+{
+    struct Frame {
+        XmlNodeImpl* node;
+        size_t index;
+    };
+
+    std::vector<Frame> stack;
+
+    if (includeSelf && fn(root))
+        return;
+
+    stack.push_back(Frame { root, 0 });
+
+    while (!stack.empty()) {
+        Frame& frame = stack.back();
+        std::vector<XmlNodeImpl*>& childs = frame.node->m_childs->m_childs;
+
+        if (frame.index >= childs.size()) {
+            stack.pop_back();
+            continue;
+        }
+
+        XmlNodeImpl* child = childs[frame.index++];
+        if (child->m_type != xml_base::C_ELEMENT_NODE)
+            continue;
+
+        if (fn(child))
+            return;
+
+        stack.push_back(Frame { child, 0 });
+    }
+}
 
 } /* namespace fibjs */

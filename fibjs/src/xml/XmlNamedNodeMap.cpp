@@ -8,10 +8,19 @@
 #include "object.h"
 #include "XmlNamedNodeMap.h"
 #include "XmlNodeImpl.h"
+#include "XmlElement.h"
 #include <string.h>
 #include "StringBuffer.h"
 
 namespace fibjs {
+
+// Attribute mutations invalidate the document-level query indexes (id/class
+// values are indexed); every path that changes m_childs calls this.
+void XmlNamedNodeMap::bumpQueryEpoch()
+{
+    if (m_owner)
+        m_owner->bumpQueryEpoch();
+}
 
 result_t XmlNamedNodeMap::get_length(int32_t& retVal)
 {
@@ -108,6 +117,7 @@ result_t XmlNamedNodeMap::removeNamedItem(exlib::string name)
     for (i = 0; i < sz; i++) {
         XmlAttr* node = m_childs[i];
         if (node->check(name)) {
+            bumpQueryEpoch();
             node->m_owner = NULL;
 
             while (i < sz - 1) {
@@ -131,6 +141,7 @@ result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::s
     for (i = 0; i < sz; i++) {
         XmlAttr* node = m_childs[i];
         if (node->check(namespaceURI, localName)) {
+            bumpQueryEpoch();
             node->m_owner = NULL;
 
             while (i < sz - 1) {
@@ -154,6 +165,7 @@ result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
 
     for (i = 0; i < sz; i++) {
         if (m_childs[i] == node) {
+            bumpQueryEpoch();
             node->m_owner = NULL;
 
             while (i < sz - 1) {
@@ -177,6 +189,7 @@ result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& 
     for (i = 0; i < sz; i++) {
         XmlAttr* node = m_childs[i];
         if (node->check(newNode)) {
+            bumpQueryEpoch();
             node->m_owner = NULL;
 
             retVal = m_childs[i];
@@ -185,6 +198,7 @@ result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& 
         }
     }
 
+    bumpQueryEpoch();
     m_childs.append((XmlAttr*)newNode);
     return CALL_RETURN_NULL;
 }

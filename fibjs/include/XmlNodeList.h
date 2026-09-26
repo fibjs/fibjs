@@ -47,6 +47,8 @@ public:
 public:
     void clean();
     void removeAll();
+    // Detach every child of this list without recursing into their subtrees
+    void detachChilds();
 
     result_t firstChild(obj_ptr<XmlNode_base>& retVal);
     result_t lastChild(obj_ptr<XmlNode_base>& retVal);
@@ -66,6 +68,15 @@ public:
         m_childs.push_back(newChild);
     }
 
+    // Append to a *result* list (m_this == NULL): the list owns a strong
+    // reference to every node it holds, so a node that has been detached from
+    // its document stays alive as long as the list is reachable.  This is what
+    // makes it safe to hand out the raw m_node pointer in the traversal paths
+    // (indexed getter / iterator): the receiver keeps the list alive for the
+    // whole call, and the list keeps the nodes alive, so a GC that runs inside
+    // wrap() (which allocates the JS wrapper) cannot free the node.
+    void appendRef(XmlNodeImpl* newChild);
+
     bool hasChildNodes()
     {
         return !!m_childs.size();
@@ -77,10 +88,24 @@ public:
 private:
     XmlNodeImpl* checkChild(XmlNode_base* child);
     bool checkNew(XmlNodeImpl* child);
+    // Collect the exclusively owned part of the subtree (reference count == 1),
+    // in pre-order; see removeAll()
+    void collectExclusive(std::vector<XmlNodeImpl*>& out);
 
 public:
     XmlNodeImpl* m_this;
     std::vector<XmlNodeImpl*> m_childs;
+    // true for result lists (m_this == NULL) built with appendRef(): every
+    // entry holds a reference that removeAll()/clean() must release
+    bool m_holdsRefs = false;
+
+private:
+    // Cached element-only view for get_children() (element.children): the
+    // property is read in loops and used to rebuild a list on every access.
+    // Invalidated by the owning document's query epoch, which any structural
+    // change bumps (same mechanism as the document query indexes).
+    obj_ptr<XmlNodeList> m_children;
+    uint64_t m_childrenEpoch = 0;
 };
 
 } /* namespace fibjs */

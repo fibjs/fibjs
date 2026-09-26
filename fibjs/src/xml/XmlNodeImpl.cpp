@@ -51,4 +51,22 @@ XmlNodeImpl* XmlNodeImpl::fromNode(XmlNode_base* pNode)
 
     return NULL;
 }
+
+XmlDocument* XmlNodeImpl::document()
+{
+    // m_document is a weak_ptr: it yields NULL once the document is gone.
+    // XmlDocument is the only XmlDocument_base implementation in this module
+    // (same assumption as m_element.As<XmlElement>() in XmlDocument.cpp).
+    XmlDocument_base* doc = m_document;
+
+    return doc ? static_cast<XmlDocument*>(doc) : NULL;
+}
+
+void XmlNodeImpl::bumpQueryEpoch()
+{
+    XmlDocument* doc = document();
+
+    if (doc)
+        doc->bumpQueryEpoch();
+}
 }

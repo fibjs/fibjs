@@ -63,6 +63,10 @@ result_t XmlAttr::get_value(exlib::string& retVal)
 
 result_t XmlAttr::set_value(exlib::string newVal)
 {
+    // id / class values are indexed by the document-level query indexes
+    if (m_owner)
+        m_owner->bumpQueryEpoch();
+
     m_value = newVal;
     return 0;
 }

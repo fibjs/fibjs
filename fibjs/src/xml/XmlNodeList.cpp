@@ -9,6 +9,7 @@
 #include "XmlNodeList.h"
 #include "XmlNodeImpl.h"
 #include "XmlElement.h"
+#include "XmlDocument.h"
 #include "ifs/XmlText.h"
 #include <string.h>
 #include "StringBuffer.h"
@@ -25,16 +26,21 @@ result_t XmlNodeList::get_length(int32_t& retVal)
 
 result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
 {
-    if (index < 0 || index >= (int32_t)m_childs.size())
+    if (index < 0 || index >= (int32_t)m_childs.size()) {
+        // clear the out parameter: callers may loop on it -- see T16
+        retVal = NULL;
         return CALL_RETURN_NULL;
+    }
     retVal = m_childs[index]->m_node;
     return 0;
 }
 
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal)
 {
-    if (index >= m_childs.size())
+    if (index >= m_childs.size()) {
+        retVal = NULL;
         return CALL_RETURN_NULL;
+    }
 
     retVal = m_childs[index]->m_node;
     return 0;
@@ -94,16 +100,101 @@ result_t XmlNodeList::toXmlString(exlib::string& retVal)
     return 0;
 }
 
+void XmlNodeList::appendRef(XmlNodeImpl* newChild)
+{
+    m_childs.push_back(newChild);
+    newChild->m_node->Ref();
+    m_holdsRefs = true;
+}
+
+void XmlNodeList::detachChilds()
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i++)
+        m_childs[i]->clearParent();
+
+    m_childs.resize(0);
+    m_holdsRefs = false;
+}
+
+// Collect the nodes below this list that are *exclusively* owned by their
+// parent (strong reference count == 1: no JS wrapper, no query result, no
+// document reference).  Those are the nodes that will be deleted together with
+// the parent, so their subtrees have to be flattened before the parent goes
+// away.  Descending stops at shared nodes -- they survive and keep their
+// subtree intact.  The result is in pre-order (parent before children).
+void XmlNodeList::collectExclusive(std::vector<XmlNodeImpl*>& out)
+{
+    struct Frame {
+        XmlNodeImpl* node;
+        size_t index;
+    };
+
+    std::vector<Frame> stack;
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i++) {
+        XmlNodeImpl* child = m_childs[i];
+        if (child->m_node->refCount() != 1)
+            continue;
+
+        out.push_back(child);
+        stack.push_back(Frame { child, 0 });
+
+        while (!stack.empty()) {
+            Frame& frame = stack.back();
+            std::vector<XmlNodeImpl*>& childs = frame.node->m_childs->m_childs;
+
+            if (frame.index >= childs.size()) {
+                stack.pop_back();
+                continue;
+            }
+
+            XmlNodeImpl* grandChild = childs[frame.index++];
+            if (grandChild->m_node->refCount() != 1)
+                continue;
+
+            out.push_back(grandChild);
+            stack.push_back(Frame { grandChild, 0 });
+        }
+    }
+}
+
 void XmlNodeList::removeAll()
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
-    if (sz > 0 && m_this)
-        for (i = 0; i < sz; i++)
-            m_childs[i]->clearParent();
+    if (sz > 0) {
+        if (m_holdsRefs) {
+            // result list: drop the references taken by appendRef()
+            for (i = 0; i < sz; i++)
+                m_childs[i]->m_node->Unref();
+        } else if (m_this) {
+            // Structural child list: detach every child.  A child that is only
+            // owned by this parent gets deleted, and its destructor would then
+            // detach (and delete) its own children recursively -- deep
+            // documents (>=10k levels) overflow the C++ stack and kill the
+            // process.  Flatten the exclusively owned part of the subtree first
+            // (deepest nodes first), so by the time a node is deleted its
+            // children have already been detached and the destructor chain
+            // stays O(1) deep.
+            std::vector<XmlNodeImpl*> exclusive;
+            collectExclusive(exclusive);
+
+            for (size_t k = exclusive.size(); k > 0; k--)
+                exclusive[k - 1]->m_childs->detachChilds();
+
+            detachChilds();
+            return;
+        }
+    }
 
     m_childs.resize(0);
+    m_holdsRefs = false;
 }
 
 void XmlNodeList::clean()
@@ -475,6 +566,16 @@ result_t XmlNodeList::hasChildNodes(bool& retVal)
 
 result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
 {
+    // children is a hot property (read in loops, and every read used to rebuild
+    // the list): cache the element-only view and invalidate it through the
+    // document query epoch, which every structural change bumps.
+    XmlDocument* doc = m_this ? m_this->document() : NULL;
+
+    if (doc && m_children && m_childrenEpoch == doc->m_queryEpoch) {
+        retVal = m_children;
+        return 0;
+    }
+
     obj_ptr<XmlNodeList> children = new XmlNodeList(NULL);
 
     int32_t sz = (int32_t)m_childs.size();
@@ -483,10 +584,15 @@ result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
     for (i = 0; i < sz; i++) {
         XmlNodeImpl* child = m_childs[i];
         if (child->m_type == xml_base::C_ELEMENT_NODE)
-            children->m_childs.push_back(child);
+            children->appendRef(child);
     }
 
     retVal = children;
+
+    if (doc) {
+        m_children = children;
+        m_childrenEpoch = doc->m_queryEpoch;
+    }
 
     return 0;
 }
@@ -501,6 +607,7 @@ result_t XmlNodeList::find_element(int32_t base, int32_t step, obj_ptr<XmlNode_b
         }
     }
 
+    retVal = NULL;
     return CALL_RETURN_NULL;
 }
 
@@ -526,6 +633,105 @@ result_t XmlNodeList::cloneChilds(XmlNode_base* to)
     return 0;
 }
 
+// Synchronous iterator over an XmlNodeList.
+//
+// The generic Iterator drives an AsyncCall round trip on every step: next()
+// returns CALL_E_NOSYNC in the sync state, AsyncCall::check_result() then
+// leaves the JS scope, calls invoke() (a second virtual dispatch into next())
+// and waits on an Event -- even though the value is produced inline.  An
+// XmlNodeList is an in-memory snapshot, so next() can produce the value
+// directly and return 0: AsyncCall::check_result() takes the `else` branch and
+// never touches the event, and the async/promise variant resolves from
+// AsyncCallBack::check_result() the same way.  That removes the LeaveJsScope,
+// the Event set/wait, one virtual dispatch and the std::function indirection
+// from every iteration step.
+//
+// GC safety (must not be broken): this iterator keeps the list alive (m_list),
+// and a result list owns a strong reference to every node it holds
+// (XmlNodeList::appendRef), so the node read below cannot be freed by a GC
+// running inside wrap() -- the wrapper allocation is the only GC point in this
+// path, and at that point the node is already referenced by the list.  The raw
+// read and the Variant assignment that takes the strong reference are adjacent
+// statements with no GC point in between; never reorder them or drop the
+// list-held reference model without redoing that analysis.
+class XmlNodeListIterator : public Iterator_base {
+public:
+    enum Kind {
+        kValues,
+        kKeys,
+        kEntries
+    };
+
+public:
+    XmlNodeListIterator(XmlNodeList* list, Kind kind)
+        : m_list(list)
+        , m_kind(kind)
+        , m_index(0)
+        , m_done(false)
+    {
+    }
+
+public:
+    // Iterator_base
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
+    {
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
+    {
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
+    {
+        retVal = new NextType();
+
+        if (m_done || m_index >= m_list->m_childs.size()) {
+            m_done = true;
+            retVal->done = true;
+            return 0;
+        }
+
+        size_t index = m_index++;
+        retVal->done = false;
+
+        switch (m_kind) {
+        case kKeys:
+            retVal->value = (int32_t)index;
+            break;
+        case kEntries: {
+            obj_ptr<NArray> array = new NArray();
+            array->append((int32_t)index);
+            array->append(m_list->m_childs[index]->m_node);
+            retVal->value = array;
+            break;
+        }
+        default:
+            retVal->value = m_list->m_childs[index]->m_node;
+            break;
+        }
+
+        return 0;
+    }
+
+    virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
+    {
+        m_done = true;
+        retVal = new ReturnType();
+        retVal->done = true;
+        return 0;
+    }
+
+private:
+    obj_ptr<XmlNodeList> m_list;
+    Kind m_kind;
+    size_t m_index;
+    bool m_done;
+};
+
 result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 {
     return values(retVal);
@@ -533,47 +739,19 @@ result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 
 result_t XmlNodeList::keys(obj_ptr<Iterator_base>& retVal)
 {
-    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
-        if (index >= m_childs.size()) {
-            cb(0, false);
-            return;
-        }
-
-        retVal = (int32_t)index;
-        cb(0, true);
-    });
+    retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kKeys);
     return 0;
 }
 
 result_t XmlNodeList::values(obj_ptr<Iterator_base>& retVal)
 {
-    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
-        if (index >= m_childs.size()) {
-            cb(0, false);
-            return;
-        }
-
-        retVal = m_childs[index]->m_node;
-        cb(0, true);
-    });
+    retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kValues);
     return 0;
 }
 
 result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
 {
-    retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
-        if (index >= m_childs.size()) {
-            cb(0, false);
-            return;
-        }
-
-        obj_ptr<NArray> array = new NArray();
-        array->append((int32_t)index);
-        array->append(m_childs[index]->m_node);
-
-        retVal = array;
-        cb(0, true);
-    });
+    retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kEntries);
     return 0;
 }
 

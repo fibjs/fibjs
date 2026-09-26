@@ -27,7 +27,7 @@ public:
         , m_isXml(isXml)
         , m_tagName(tagName)
         , m_localName(tagName)
-        , m_attrs(new XmlNamedNodeMap())
+        , m_attrs(new XmlNamedNodeMap(this))
     {
         if (!m_isXml)
             exlib::qstrupr(m_tagName);
@@ -38,7 +38,7 @@ public:
         , m_isXml(isXml)
         , m_tagName(qualifiedName)
         , m_namespaceURI(namespaceURI)
-        , m_attrs(new XmlNamedNodeMap())
+        , m_attrs(new XmlNamedNodeMap(this))
     {
         const char* c_str = qualifiedName.c_str();
         const char* p = qstrchr(c_str, ':');
@@ -60,7 +60,7 @@ public:
         , m_localName(from.m_localName)
         , m_prefix(from.m_prefix)
         , m_namespaceURI(from.m_namespaceURI)
-        , m_attrs(new XmlNamedNodeMap())
+        , m_attrs(new XmlNamedNodeMap(this))
     {
     }
 
@@ -139,6 +139,12 @@ public:
     virtual result_t getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
     virtual result_t querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal);
+    // Shared implementation of the two queries above.  includeRoot selects the
+    // semantics of the query origin: a query started at a document must also
+    // match the document element itself (doc.querySelector('html')), while an
+    // element-level query searches descendants only (CSS spec).
+    result_t querySelectorImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlElement_base>& retVal);
+    result_t querySelectorAllImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t matches(exlib::string selectors, bool& retVal);
     virtual result_t closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal);
     virtual result_t append(OptArgs nodes);
@@ -170,157 +176,239 @@ public:
         return 0;
     }
 
+    // includeSelf: document-level queries start at the root element itself,
+    // element-level ones only look at descendants.  All of these used to be
+    // recursive (2 frames per level) and crashed the process on deep documents;
+    // walkElements() keeps document order with an explicit stack.
     void getElementsByTagNameFromThis(exlib::string tagName, obj_ptr<XmlNodeList>& retVal)
     {
-        if (*tagName.c_str() == '*' || (m_isXml ? (m_tagName == tagName) : !qstricmp(m_tagName.c_str(), tagName.c_str()))) {
-            retVal->appendChild(this);
-            Ref();
-        }
-
-        getElementsByTagName(tagName, retVal);
+        getElementsByTagName(tagName, retVal, true);
     }
 
-    void getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList>& retVal)
+    void getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList>& retVal, bool includeSelf = false)
     {
-        std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
-        int32_t sz = (int32_t)childs.size();
-        int32_t i;
+        walkElements(this, includeSelf, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* pEl = static_cast<XmlElement*>(node);
 
-        for (i = 0; i < sz; i++)
-            if (childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
-                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
-                pEl->getElementsByTagNameFromThis(tagName, retVal);
-            }
+            if (*tagName.c_str() == '*' || (pEl->m_isXml ? (pEl->m_tagName == tagName) : !qstricmp(pEl->m_tagName.c_str(), tagName.c_str())))
+                retVal->appendRef(node);
+
+            return false;
+        });
     }
 
     result_t getFirstElementsByTagName(exlib::string tagName, obj_ptr<XmlElement_base>& retVal)
     {
-        if (m_isXml ? (m_tagName == tagName) : !qstricmp(m_tagName.c_str(), tagName.c_str())) {
-            retVal = this;
+        XmlElement* found = NULL;
+
+        walkElements(this, true, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* pEl = static_cast<XmlElement*>(node);
+
+            if (pEl->m_isXml ? (pEl->m_tagName == tagName) : !qstricmp(pEl->m_tagName.c_str(), tagName.c_str())) {
+                found = pEl;
+                return true;
+            }
+
+            return false;
+        });
+
+        if (found) {
+            retVal = found;
             return 0;
         }
-
-        std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
-        int32_t sz = (int32_t)childs.size();
-        int32_t i;
-
-        for (i = 0; i < sz; i++)
-            if (childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
-                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
-                if (pEl->getFirstElementsByTagName(tagName, retVal) == 0)
-                    return 0;
-            }
 
         return CALL_RETURN_NULL;
     }
 
     void getTextContent(StringBuffer& retVal)
     {
-        std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
-        int32_t sz = (int32_t)childs.size();
-        int32_t i;
+        // text content = every descendant text node in document order; text
+        // nodes are pushed onto the same explicit stack as elements
+        std::vector<XmlNodeImpl*> stack;
+        stack.push_back(this);
 
-        for (i = 0; i < sz; i++)
-            if (childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
-                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
-                pEl->getTextContent(retVal);
-            } else if (childs[i]->m_type == xml_base::C_TEXT_NODE) {
+        while (!stack.empty()) {
+            XmlNodeImpl* node = stack.back();
+            stack.pop_back();
+
+            if (node->m_type == xml_base::C_TEXT_NODE) {
                 exlib::string value;
-                childs[i]->m_node->get_nodeValue(value);
+                node->m_node->get_nodeValue(value);
                 retVal.append(value);
+                continue;
             }
+
+            std::vector<XmlNodeImpl*>& childs = node->m_childs->m_childs;
+            for (size_t i = childs.size(); i > 0; i--) {
+                XmlNodeImpl* child = childs[i - 1];
+                if (child->m_type == xml_base::C_ELEMENT_NODE || child->m_type == xml_base::C_TEXT_NODE)
+                    stack.push_back(child);
+            }
+        }
     }
 
     void getElementsByTagNameNSFromThis(exlib::string namespaceURI, exlib::string localName,
         obj_ptr<XmlNodeList>& retVal)
     {
-        if ((*namespaceURI.c_str() == '*' || (m_namespaceURI == namespaceURI)) && (*localName.c_str() == '*' || (m_localName == localName))) {
-            retVal->appendChild(this);
-            Ref();
-        }
-        getElementsByTagNameNS(namespaceURI, localName, retVal);
+        getElementsByTagNameNS(namespaceURI, localName, retVal, true);
     }
 
     void getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName,
-        obj_ptr<XmlNodeList>& retVal)
+        obj_ptr<XmlNodeList>& retVal, bool includeSelf = false)
     {
-        std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
-        int32_t sz = (int32_t)childs.size();
-        int32_t i;
+        walkElements(this, includeSelf, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* pEl = static_cast<XmlElement*>(node);
 
-        for (i = 0; i < sz; i++)
-            if (childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
-                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
-                pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, retVal);
-            }
+            if ((*namespaceURI.c_str() == '*' || (pEl->m_namespaceURI == namespaceURI)) && (*localName.c_str() == '*' || (pEl->m_localName == localName)))
+                retVal->appendRef(node);
+
+            return false;
+        });
     }
 
     result_t getElementByIdFromThis(exlib::string id, obj_ptr<XmlElement_base>& retVal)
     {
-        exlib::string _id;
-        get_id(_id);
+        return getElementByIdImpl(id, true, retVal);
+    }
 
-        if (_id == id) {
-            retVal = this;
+    // Pre-order (document order) search for the first element with a matching
+    // id attribute; iterative, so deep documents do not overflow the stack.
+    result_t getElementByIdImpl(exlib::string id, bool includeSelf, obj_ptr<XmlElement_base>& retVal)
+    {
+        XmlElement* found = NULL;
+
+        walkElements(this, includeSelf, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* pEl = static_cast<XmlElement*>(node);
+            exlib::string _id;
+
+            pEl->get_id(_id);
+            if (_id == id) {
+                found = pEl;
+                return true;
+            }
+
+            return false;
+        });
+
+        if (found) {
+            retVal = found;
             return 0;
         }
 
-        return getElementById(id, retVal);
+        return CALL_RETURN_NULL;
+    }
+
+    // split a class attribute / query into whitespace separated tokens,
+    // dropping duplicates: a repeated token must not be required twice
+    static void parseClassNames(const exlib::string& className, std::vector<exlib::string>& classNames)
+    {
+        _parser p(className);
+        exlib::string str;
+
+        p.skipSpace();
+        while (p.getWord(str)) {
+            bool dup = false;
+
+            for (size_t i = 0; i < classNames.size(); i++)
+                if (classNames[i] == str) {
+                    dup = true;
+                    break;
+                }
+
+            if (!dup)
+                classNames.push_back(str);
+
+            p.skipSpace();
+        }
+    }
+
+    // true when the class attribute contains every requested class token.
+    // In-place scan: the previous implementation split the attribute into a
+    // std::vector<exlib::string> for *every* element, which dominated
+    // getElementsByClassName() on large documents.
+    static bool hasClassNames(const exlib::string& className, std::vector<exlib::string>& classNames)
+    {
+        size_t need = classNames.size();
+        if (need == 0)
+            return false;
+
+        if (className.empty())
+            return false;
+
+        const char* s = className.c_str();
+        size_t len = className.length();
+        size_t i = 0;
+        size_t found = 0;
+
+        while (i < len) {
+            while (i < len && qisspace(s[i]))
+                i++;
+
+            size_t start = i;
+            while (i < len && !qisspace(s[i]))
+                i++;
+
+            size_t tokenLen = i - start;
+            if (tokenLen == 0)
+                break;
+
+            for (size_t k = 0; k < need; k++) {
+                const exlib::string& want = classNames[k];
+                if (want.length() == tokenLen && memcmp(want.c_str(), s + start, tokenLen) == 0) {
+                    found++;
+                    break;
+                }
+            }
+
+            if (found == need)
+                return true;
+        }
+
+        return found == need;
     }
 
     void getElementsByClassNameFromThis(std::vector<exlib::string>& classNames, obj_ptr<XmlNodeList>& retVal)
     {
-        exlib::string _class;
-        get_className(_class);
-
-        if (!_class.empty()) {
-            std::vector<exlib::string> _classNames;
-            _parser p(_class);
-            exlib::string str;
-
-            p.skipSpace();
-            while (p.getWord(str)) {
-                _classNames.push_back(str);
-                p.skipSpace();
-            }
-
-            int32_t i, j, cnt = 0;
-
-            for (i = 0; i < (int32_t)classNames.size(); i++) {
-                for (j = 0; j < (int32_t)_classNames.size(); j++) {
-                    if (_classNames[j] == classNames[i]) {
-                        cnt++;
-                        break;
-                    }
-                }
-            }
-
-            if (cnt == (int32_t)classNames.size()) {
-                retVal->appendChild(this);
-                Ref();
-            }
-        }
-
-        getElementsByClassName(classNames, retVal);
+        getElementsByClassName(classNames, retVal, true);
     }
 
-    void getElementsByClassName(std::vector<exlib::string>& classNames, obj_ptr<XmlNodeList>& retVal)
+    void getElementsByClassName(std::vector<exlib::string>& classNames, obj_ptr<XmlNodeList>& retVal, bool includeSelf = false)
     {
-        std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
-        int32_t sz = (int32_t)childs.size();
-        int32_t i;
+        walkElements(this, includeSelf, [&](XmlNodeImpl* node) -> bool {
+            XmlElement* pEl = static_cast<XmlElement*>(node);
+            exlib::string _class;
 
-        for (i = 0; i < sz; i++)
-            if (childs[i]->m_type == xml_base::C_ELEMENT_NODE) {
-                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
-                pEl->getElementsByClassNameFromThis(classNames, retVal);
-            }
+            pEl->get_className(_class);
+            if (hasClassNames(_class, classNames))
+                retVal->appendRef(node);
+
+            return false;
+        });
     }
 
     void fix_prefix(exlib::string namespaceURI, exlib::string& prefix);
 
 public:
     bool m_isXml;
+
+    // Raw tag name access without copying: get_tagName() copies the string and
+    // (in HTML mode) upper-cases it on every call, which the selector matcher
+    // and the document query index do not need.  m_tagName is already
+    // normalised (upper-case for HTML) by the constructors.
+    const exlib::string& tagNameRef() const
+    {
+        return m_tagName;
+    }
+
+    const exlib::string& localNameRef() const
+    {
+        return m_localName;
+    }
+
+    const exlib::string& namespaceURIRef() const
+    {
+        return m_namespaceURI;
+    }
 
 private:
     exlib::string m_tagName;
