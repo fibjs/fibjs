@@ -609,6 +609,18 @@ private:
     // `)` is on. See the definition for why the line break matters.
     void moveArrowUp(int colonPos, int arrowPos);
 
+    // Skip the return type of an arrow function.
+    //
+    // Unlike a type in any other position, this one ends at the `=>` that follows
+    // it, so a parenthesised type must not swallow that arrow:
+    //
+    //   var t = (): (void) => { }    the return type is `(void)`, the body is `{}`
+    //   type F = (void) => void;     here the arrow *is* part of the type
+    //
+    // The flag is what lets skipType() tell the two apart.
+    bool m_inArrowReturnType = false;
+    void skipArrowReturnType();
+
     // ========== Core parsing helpers (from TypeRunner) ==========
     
     /**
@@ -1515,7 +1527,7 @@ void TsStrip::parsePrimaryExpression() {
                     if (token() == SyntaxKind::ColonToken) {
                         int start = getNodePos();
                         nextToken();
-                        skipType();
+                        skipArrowReturnType();
                         int arrowPos = getNodePos();
                         addReplacement(start, arrowPos);
                         // If return type contains newlines, move => to right after )
@@ -1660,7 +1672,7 @@ void TsStrip::parsePrimaryExpression() {
                     size_t savedIndex = m_tokenIndex;
                     int start = getNodePos();
                     nextToken(); // consume ':'
-                    skipType();
+                    skipArrowReturnType();
                     
                     if (token() == SyntaxKind::EqualsGreaterThanToken) {
                         // We have `: Type =>` pattern
@@ -2036,7 +2048,7 @@ void TsStrip::parsePrimaryExpression() {
                 if (token() == SyntaxKind::ColonToken) {
                     int start = getNodePos();
                     nextToken();
-                    skipType();
+                    skipArrowReturnType();
                     addReplacement(start, getNodePos());
                 }
                 if (token() == SyntaxKind::OpenBraceToken) {
@@ -2062,7 +2074,7 @@ void TsStrip::parsePrimaryExpression() {
                     if (token() == SyntaxKind::ColonToken) {
                         start = getNodePos();
                         nextToken();
-                        skipType();
+                        skipArrowReturnType();
                         int arrowPos2 = getNodePos();
                         addReplacement(start, arrowPos2);
                         // If return type contains newlines, move => to right after )
@@ -2087,7 +2099,7 @@ void TsStrip::parsePrimaryExpression() {
                 if (token() == SyntaxKind::ColonToken) {
                     int start = getNodePos();
                     nextToken();
-                    skipType();
+                    skipArrowReturnType();
                     int arrowPos = getNodePos();
                     addReplacement(start, arrowPos);
                     // If return type contains newlines, move => to right after )
@@ -5441,6 +5453,40 @@ void TsStrip::parseExportDeclaration() {
 /**
  * skipType - skip over a type annotation
  */
+/**
+ * The keywords that name a built-in type and can never name a parameter, which
+ * is what makes `(void)` a parenthesised type rather than a parameter list.
+ * `this` is deliberately absent - it can be a `this` parameter.
+ */
+static bool isPrimitiveTypeKeyword(SyntaxKind kind)
+{
+    switch (kind) {
+    case SyntaxKind::VoidKeyword:
+    case SyntaxKind::NeverKeyword:
+    case SyntaxKind::AnyKeyword:
+    case SyntaxKind::UnknownKeyword:
+    case SyntaxKind::BooleanKeyword:
+    case SyntaxKind::NumberKeyword:
+    case SyntaxKind::StringKeyword:
+    case SyntaxKind::SymbolKeyword:
+    case SyntaxKind::BigIntKeyword:
+    case SyntaxKind::ObjectKeyword:
+    case SyntaxKind::UndefinedKeyword:
+    case SyntaxKind::NullKeyword:
+        return true;
+    default:
+        return false;
+    }
+}
+
+void TsStrip::skipArrowReturnType()
+{
+    bool saved = m_inArrowReturnType;
+    m_inArrowReturnType = true;
+    skipType();
+    m_inArrowReturnType = saved;
+}
+
 void TsStrip::skipType() {
     // Handle leading | or & for union/intersection types that start with operator
     // e.g., type X = | A | B; or type Y = & A & B;
@@ -5553,6 +5599,11 @@ void TsStrip::skipType() {
             
             bool isFunctionParams = false;
             bool contentStartsWithParen = false;
+            // `(void)` is a parenthesised type, not a parameter list: `void` cannot
+            // name a parameter. So a `=>` after it belongs to whatever is being
+            // annotated - `(): (void) => { }` is an arrow returning `void` whose body
+            // is `{}`, not a function type. TypeScript reads it that way too.
+            bool contentIsPrimitiveType = false;
             
             // Check if this looks like function parameters: starts with identifier (or keyword) followed by :
             // or is empty () or has rest parameter ...
@@ -5566,6 +5617,8 @@ void TsStrip::skipType() {
                 // Content starts with ( - likely a grouped type like (() => T)
                 contentStartsWithParen = true;
                 isFunctionParams = false;
+            } else if (isPrimitiveTypeKeyword(token()) && peekToken().kind == SyntaxKind::CloseParenToken) {
+                contentIsPrimitiveType = true;
             } else if (token() == SyntaxKind::Identifier || isKeyword(token())) {
                 // Check if followed by : or ? or , (parameter with type annotation or separator)
                 SyntaxKind next = peekToken().kind;
@@ -5586,6 +5639,10 @@ void TsStrip::skipType() {
                     // This is definitely function type: (params) => ReturnType
                     nextToken();
                     skipType();
+                } else if (contentIsPrimitiveType && m_inArrowReturnType) {
+                    // A parenthesised type, and we are skipping the return type of an
+                    // arrow function - so the `=>` is the arrow's, not this type's.
+                    // Leave it for the caller.
                 } else if (contentStartsWithParen && hasArrowInside) {
                     // Content starts with ( and has arrow inside - likely (() => T)
                     // The outer => is not part of this type

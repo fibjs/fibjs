@@ -1178,6 +1178,53 @@ setup(cfg);
 
     });
 
+    describe('Parenthesised Return Types', () => {
+        // A return type that is written in parentheses used to be read as a
+        // function type, so skipType() swallowed the arrow and the body with it:
+        // `var t = (): (void) => { }` became `var t = ()` and did not parse.
+        //
+        // `(void)` cannot be a parameter list - `void` cannot name a parameter -
+        // so the `=>` belongs to the arrow being annotated. That is also how
+        // TypeScript reads it. The rule only applies while skipping an arrow's
+        // return type: in `type F = (void) => void;` the arrow really is part of
+        // the type.
+
+        it('should keep the arrow when the return type is a parenthesised type', () => {
+            // amaro lays this out the same way, so it is a plain comparison.
+            assert.strictEqual(strip('var t = (): (void) => { }'), 'var t = ()         => { }');
+        });
+
+        itDiff('should keep the arrow for the other primitive keywords too',
+            // `(string)` and `(never)` are not parameter lists either, but amaro
+            // refuses both - a keyword there does not name a parameter for it.
+            'var t = (): (string) => { }',
+            'var t = ()           => { }',
+            null);
+
+        it('should keep the arrow when the parenthesised type is nested', () => {
+            assert.strictEqual(strip('var t = (): Promise<(void)> => { }'),
+                'var t = ()                  => { }');
+        });
+
+        itDiff('should still treat an arrow inside a type as part of the type',
+            // No arrow function here: `(void) => void` is a function type, so the
+            // whole annotation is erased. amaro refuses the file.
+            'type F = (void) => void;',
+            '                        ',
+            null);
+
+        itDiff('should treat a parenthesised function type in an annotation as a type',
+            'var t: (void) => void;',
+            'var t                ;',
+            null);
+
+        it('should leave a plain return type alone', () => {
+            assert.strictEqual(strip('var t = (): void => { }'), 'var t = ()       => { }');
+            assert.strictEqual(strip('function f(): (void) { }'), 'function f()         { }');
+        });
+
+    });
+
     describe('Async Generic Arrows', () => {
         // JavaScript has a [no LineTerminator here] restriction between `async`
         // and the parameter list of an async arrow. Erasing a type parameter list
