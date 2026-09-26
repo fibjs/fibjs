@@ -962,6 +962,107 @@ setup(cfg);
             'var  E={ A : f(), B:void 0, C:void 0 };E[E.A]="A";E[E.B]="B";E[E.C]="C";',
             null);
 
+        // TypeScript folds a constant initializer before asking either of the
+        // two questions it decides - "does the counter continue?" and "is this
+        // known to be a string, so it gets no reverse mapping?". Skipping the
+        // fold is silent: the enum keeps the right shape and the values drift.
+        // Every expectation below was taken from tsc's own emit.
+
+        itDiff('should fold a constant numeric initializer before continuing the counter',
+            'enum E { A = 1 + 2, B }',
+            'var  E={ A : 1 + 2, B:4 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should fold shift and power operators',
+            'enum E { A = 1 << 3, B = 2 ** 33, C }',
+            'var  E={ A : 1 << 3, B : 2 ** 33, C:8589934593 };E[E.A]="A";E[E.B]="B";E[E.C]="C";',
+            null);
+
+        itDiff('should respect operator precedence while folding',
+            'enum E { A = 1 + 2 * 3, B }',
+            'var  E={ A : 1 + 2 * 3, B:8 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should fold through parentheses',
+            'enum E { A = (1 + 2) * 3, B }',
+            'var  E={ A : (1 + 2) * 3, B:10 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should spell out Infinity and NaN the way JavaScript does',
+            'enum E { A = 1 / 0, B, C = 0 / 0, D }',
+            'var  E={ A : 1 / 0, B:Infinity, C : 0 / 0, D:NaN };E[E.A]="A";E[E.B]="B";E[E.C]="C";E[E.D]="D";',
+            null);
+
+        itDiff('should let a numeric initializer restart a counter that was broken',
+            'enum E { A = f(), B = 3, C }',
+            'var  E={ A : f(), B : 3, C:4 };E[E.A]="A";E[E.B]="B";E[E.C]="C";',
+            null);
+
+        itDiff('should let a numeric initializer restart after a string member',
+            'enum E { A = "x", B = 5, C }',
+            'var  E={ A : "x", B : 5, C:6 };E[E.B]="B";E[E.C]="C";',
+            null);
+
+        itDiff('should not treat a bigint as a number',
+            'enum E { A = 1n, B }',
+            'var  E={ A : 1n, B:void 0 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        itDiff('should see a concatenated string constant as a string',
+            'enum E { A = "1" + "2", B }',
+            'var  E={ A : "1" + "2", B:void 0 };E[E.B]="B";',
+            null);
+
+        itDiff('should see a template literal as a string',
+            'enum E { A = `x` + `y`, B }',
+            'var  E={ A : `x` + `y`, B:void 0 };E[E.B]="B";',
+            null);
+
+        itDiff('should still reverse-map a value whose type it cannot tell',
+            // `typeof x` is a string at run time, but TypeScript does not fold it,
+            // so the member keeps its reverse mapping - matching tsc, not JS.
+            'enum E { A = typeof x, B }',
+            'var  E={ A : typeof x, B:void 0 };E[E.A]="A";E[E.B]="B";',
+            null);
+
+        it('should produce the values TypeScript produces', () => {
+            if (USE_AMARO) return; // amaro rejects enums outright
+            // The object, not the text: this is what a mis-folded counter shows up in.
+            const cases = [
+                ['enum E { A = 1 + 2, B }', { A: 3, B: 4 }],
+                ['enum E { A = 1 + 2 * 3, B }', { A: 7, B: 8 }],
+                ['enum E { A = (1 + 2) * 3, B }', { A: 9, B: 10 }],
+                ['enum E { A = 10 % 3, B }', { A: 1, B: 2 }],
+                ['enum E { A = f(), B = 3, C }', { A: 0, B: 3, C: 4 }],
+                ['enum E { A = "x", B = 5, C }', { A: 'x', B: 5, C: 6 }],
+                ['enum E { A = 1 + 2, B = "s", C = 9, D }', { A: 3, B: 's', C: 9, D: 10 }],
+            ];
+            for (const [input, expected] of cases) {
+                const out = strip(input);
+                const E = new Function('f', out + '\nreturn E;')(() => 0);
+                for (const [key, want] of Object.entries(expected)) {
+                    assert.strictEqual(E[key], want, key + ' in ' + JSON.stringify(input));
+                }
+            }
+            // A constant string keeps the counter stopped and adds no numeric
+            // key. The member that got `void 0` is still reverse-mapped, which
+            // is how the key `"undefined"` appears - tsc does the same.
+            const E = new Function(strip('enum E { A = "1" + "2", B }') + '\nreturn E;')();
+            assert.deepEqual(Object.keys(E).sort(), ['A', 'B', 'undefined']);
+            assert.strictEqual(E.A, '12');
+            assert.strictEqual(E.B, undefined);
+            assert.strictEqual(E['undefined'], 'B');
+        });
+
+        it('should give Infinity and NaN the JavaScript spelling', () => {
+            if (USE_AMARO) return;
+            const E = new Function(strip('enum E { A = 1 / 0, B, C = 0 / 0, D }') + '\nreturn E;')();
+            assert.strictEqual(E.B, Infinity);
+            assert.ok(Number.isNaN(E.D), 'D should be NaN, got ' + E.D);
+            // C never got a value, so the counter is NaN from there on.
+            assert.ok(Number.isNaN(E.D));
+        });
+
         itDiff('should reverse-map a string-literal member name',
             'enum E { "a-b" = 1 }',
             'var  E={ "a-b" : 1 };E[E["a-b"]]="a-b";',

@@ -10,6 +10,7 @@
 #include "Scanner.h"
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -707,6 +708,10 @@ private:
         Other   // cannot tell: TypeScript reverse-maps it and breaks the counter
     };
     EnumValueKind classifyEnumValue(size_t first, size_t last, double& value, bool& referencesMember) const;
+    EnumValueKind evalConstExpr(size_t& i, size_t end, double& value) const;
+    EnumValueKind evalConstBinary(size_t& i, size_t end, double& value, int minPrecedence) const;
+    EnumValueKind evalConstUnary(size_t& i, size_t end, double& value) const;
+    static int constBinaryPrecedence(SyntaxKind kind);
     static bool parseNumericText(const uint8_t* text, size_t length, double& value);
     static exlib::string formatEnumNumber(double value);
 
@@ -3640,6 +3645,13 @@ bool TsStrip::parseNumericText(const uint8_t* text, size_t length, double& value
 
 exlib::string TsStrip::formatEnumNumber(double value) {
     char buf[48];
+    // JavaScript spells these out; C's %g would write "inf" and "nan".
+    if (std::isnan(value)) {
+        return exlib::string("NaN");
+    }
+    if (std::isinf(value)) {
+        return exlib::string(value > 0 ? "Infinity" : "-Infinity");
+    }
     if (value == (double)(long long)value && value >= -1e15 && value <= 1e15) {
         snprintf(buf, sizeof(buf), "%lld", (long long)value);
     } else {
@@ -3649,16 +3661,195 @@ exlib::string TsStrip::formatEnumNumber(double value) {
 }
 
 /**
+ * Precedence of the binary operators that can appear in a constant enum
+ * initialiser. Comparisons are deliberately absent: they evaluate to a boolean,
+ * which is neither a number nor a string, so the folder stops there and the
+ * member is treated as undecidable - the same answer as not folding at all.
+ */
+int TsStrip::constBinaryPrecedence(SyntaxKind kind) {
+    switch (kind) {
+    case SyntaxKind::BarToken:
+        return 1;
+    case SyntaxKind::CaretToken:
+        return 2;
+    case SyntaxKind::AmpersandToken:
+        return 3;
+    case SyntaxKind::LessThanLessThanToken:
+    case SyntaxKind::GreaterThanGreaterThanToken:
+    case SyntaxKind::GreaterThanGreaterThanGreaterThanToken:
+        return 5;
+    case SyntaxKind::PlusToken:
+    case SyntaxKind::MinusToken:
+        return 6;
+    case SyntaxKind::AsteriskToken:
+    case SyntaxKind::SlashToken:
+    case SyntaxKind::PercentToken:
+        return 7;
+    case SyntaxKind::AsteriskAsteriskToken:
+        return 8;
+    default:
+        return -1;
+    }
+}
+
+/**
+ * Fold one operand: a literal, a parenthesised expression, or a unary operator
+ * applied to one. Advances `i` past what it consumed.
+ */
+TsStrip::EnumValueKind TsStrip::evalConstUnary(size_t& i, size_t end, double& value) const {
+    if (i >= end) {
+        return EnumValueKind::Other;
+    }
+
+    SyntaxKind k = m_tokens[i].kind;
+
+    if (k == SyntaxKind::MinusToken || k == SyntaxKind::PlusToken || k == SyntaxKind::TildeToken) {
+        i++;
+        double v = 0;
+        if (evalConstUnary(i, end, v) != EnumValueKind::Number) {
+            return EnumValueKind::Other;
+        }
+        value = k == SyntaxKind::MinusToken ? -v : k == SyntaxKind::TildeToken ? (double)(~(long long)v) : v;
+        return EnumValueKind::Number;
+    }
+
+    if (k == SyntaxKind::OpenParenToken) {
+        i++;
+        EnumValueKind inner = evalConstExpr(i, end, value);
+        if (i < end && m_tokens[i].kind == SyntaxKind::CloseParenToken) {
+            i++;
+        }
+        return inner;
+    }
+
+    if (k == SyntaxKind::NumericLiteral) {
+        const Token& t = m_tokens[i];
+        i++;
+        // parseNumericText() rejects a trailing `n`, which is what TypeScript
+        // does too: a bigint member is not a number and the counter stops.
+        return parseNumericText(m_src + t.pos, t.end - t.pos, value) ? EnumValueKind::Number : EnumValueKind::Other;
+    }
+
+    if (k == SyntaxKind::StringLiteral || k == SyntaxKind::NoSubstitutionTemplateLiteral) {
+        i++;
+        return EnumValueKind::String;
+    }
+
+    // A template with substitutions is still a string; the value is not needed.
+    if (k == SyntaxKind::TemplateHead) {
+        i++;
+        while (i < end && m_tokens[i].kind != SyntaxKind::TemplateTail) {
+            i++;
+        }
+        if (i < end) {
+            i++;
+        }
+        return EnumValueKind::String;
+    }
+
+    // Not something we can fold - consume the rest so the caller cannot loop.
+    i = end;
+    return EnumValueKind::Other;
+}
+
+/**
+ * Fold a constant expression, precedence climbing so that `1 + 2 * 3` is 7 and
+ * not 9. Advances `i` past the whole expression.
+ */
+TsStrip::EnumValueKind TsStrip::evalConstExpr(size_t& i, size_t end, double& value) const {
+    return evalConstBinary(i, end, value, 0);
+}
+
+TsStrip::EnumValueKind TsStrip::evalConstBinary(size_t& i, size_t end, double& value, int minPrecedence) const {
+    EnumValueKind left = evalConstUnary(i, end, value);
+
+    while (i < end) {
+        SyntaxKind op = m_tokens[i].kind;
+        int prec = constBinaryPrecedence(op);
+        if (prec < 0 || prec < minPrecedence) {
+            break;
+        }
+        i++;
+
+        // `**` is right-associative, the rest are left-associative.
+        double rhs = 0;
+        EnumValueKind right = evalConstBinary(i, end, rhs, op == SyntaxKind::AsteriskAsteriskToken ? prec : prec + 1);
+
+        // `+` is the only operator that survives a string operand, and it
+        // produces a string: `"1" + 2` is `"12"`, so the member still gets no
+        // reverse mapping.
+        if (left == EnumValueKind::String || right == EnumValueKind::String) {
+            left = op == SyntaxKind::PlusToken ? EnumValueKind::String : EnumValueKind::Other;
+            continue;
+        }
+
+        if (left != EnumValueKind::Number || right != EnumValueKind::Number) {
+            left = EnumValueKind::Other;
+            continue;
+        }
+
+        double l = value;
+        switch (op) {
+        case SyntaxKind::PlusToken:
+            value = l + rhs;
+            break;
+        case SyntaxKind::MinusToken:
+            value = l - rhs;
+            break;
+        case SyntaxKind::AsteriskToken:
+            value = l * rhs;
+            break;
+        case SyntaxKind::SlashToken:
+            value = l / rhs;
+            break;
+        case SyntaxKind::PercentToken:
+            value = fmod(l, rhs);
+            break;
+        case SyntaxKind::AsteriskAsteriskToken:
+            value = pow(l, rhs);
+            break;
+        case SyntaxKind::LessThanLessThanToken:
+            value = (double)((long long)l << ((long long)rhs & 31));
+            break;
+        case SyntaxKind::GreaterThanGreaterThanToken:
+            value = (double)((long long)l >> ((long long)rhs & 31));
+            break;
+        case SyntaxKind::GreaterThanGreaterThanGreaterThanToken:
+            value = (double)((unsigned long long)l >> ((long long)rhs & 31));
+            break;
+        case SyntaxKind::AmpersandToken:
+            value = (double)((long long)l & (long long)rhs);
+            break;
+        case SyntaxKind::BarToken:
+            value = (double)((long long)l | (long long)rhs);
+            break;
+        case SyntaxKind::CaretToken:
+            value = (double)((long long)l ^ (long long)rhs);
+            break;
+        default:
+            left = EnumValueKind::Other;
+            continue;
+        }
+        left = EnumValueKind::Number;
+    }
+
+    return left;
+}
+
+/**
  * What does an enum member initialiser evaluate to?
  *
- * Only the shapes that decide the counter and the reverse mapping are recognised -
- * numeric and string constants, with the unary operators an enum can put in front
- * of a number. Everything else is `Other`, which is what TypeScript treats as
- * "reverse-map it, but the counter cannot continue".
+ * The answer decides two things: a numeric value continues the auto-increment
+ * counter, and a value known to be a string gets no reverse mapping. TypeScript
+ * folds constant expressions before asking either question, so `1 + 2` numbers
+ * like a literal and `"1" + "2"` is still a string - a member is only
+ * reverse-mapped when its value is *not known* to be a string.
  *
- * `referencesMember` is set when the initialiser names a sibling member or the enum
- * itself. Those cannot be written inside the object literal the enum becomes: the
- * name is not in scope there, so the output would throw at run time.
+ * Everything that cannot be folded is `Other`: reverse-map it, but the counter
+ * cannot continue. `referencesMember` is set when the initialiser names a
+ * sibling member or the enum itself. Those cannot be written inside the object
+ * literal the enum becomes: the name is not in scope there, so the output would
+ * throw at run time.
  */
 TsStrip::EnumValueKind TsStrip::classifyEnumValue(size_t first, size_t last, double& value, bool& referencesMember) const {
     referencesMember = false;
@@ -3682,33 +3873,12 @@ TsStrip::EnumValueKind TsStrip::classifyEnumValue(size_t first, size_t last, dou
         }
     }
 
-    if (last - first == 1) {
-        const Token& t = m_tokens[first];
-        if (t.kind == SyntaxKind::NumericLiteral) {
-            return parseNumericText(m_src + t.pos, t.end - t.pos, value) ? EnumValueKind::Number : EnumValueKind::Other;
-        }
-        if (t.kind == SyntaxKind::StringLiteral || t.kind == SyntaxKind::NoSubstitutionTemplateLiteral) {
-            return EnumValueKind::String;
-        }
-        return EnumValueKind::Other;
-    }
+    size_t i = first;
+    EnumValueKind kind = evalConstExpr(i, last, value);
 
-    if (last - first == 2) {
-        SyntaxKind op = m_tokens[first].kind;
-        const Token& t = m_tokens[first + 1];
-        if (t.kind == SyntaxKind::NumericLiteral
-            && (op == SyntaxKind::MinusToken || op == SyntaxKind::PlusToken || op == SyntaxKind::TildeToken)) {
-            double v = 0;
-            if (parseNumericText(m_src + t.pos, t.end - t.pos, v)) {
-                value = op == SyntaxKind::MinusToken ? -v
-                    : op == SyntaxKind::TildeToken ? (double)(~(long long)v)
-                                                   : v;
-                return EnumValueKind::Number;
-            }
-        }
-    }
-
-    return EnumValueKind::Other;
+    // Only fold when the whole initialiser was consumed: a trailing token means
+    // this is an expression the folder only understood in part.
+    return i == last ? kind : EnumValueKind::Other;
 }
 
 /**
@@ -3823,7 +3993,9 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
         EnumValueKind kind = EnumValueKind::Number;
         double value = 0;
         bool referencesMember = false;
-        bool hadInitializer = false;
+        // An auto member that got `void 0` is not a number, so it must not
+        // restart the counter the way a real numeric value does.
+        bool gotVoidZero = false;
 
         if (token() == SyntaxKind::EqualsToken) {
             // Overwrite '=' with ':'
@@ -3833,7 +4005,6 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
             parseAssignmentExpressionOrHigher();
             size_t last = m_tokenIndex;
             kind = classifyEnumValue(first, last, value, referencesMember);
-            hadInitializer = true;
         } else {
             // No initialiser: write out the value the counter reached. Once a member's
             // value is not a number TypeScript gives the rest `void 0` - and still
@@ -3846,6 +4017,7 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
                 text += "void 0";
             }
             kind = EnumValueKind::Number; // auto members are always reverse-mapped
+            gotVoidZero = !autoIsNumber;
             m_insertions.push_back(Insertion(nameTokenEnd, text));
         }
 
@@ -3880,11 +4052,15 @@ void TsStrip::parseEnumDeclaration(int start, bool isDeclare, bool isConst) {
             reverse += ';';
         }
 
-        // Advance the counter. A string or undecidable value breaks it for good.
+        // Advance the counter. Any value that is not a number breaks it, and it
+        // stays broken until a member states a numeric value again - that is
+        // what TypeScript does, so `enum E { A = f(), B, C }` gives B and C
+        // `void 0`, while `enum E { A = f(), B = 3, C }` gives C 4.
         if (kind == EnumValueKind::Number) {
             m_enumValues.push_back(std::make_pair(key, value));
-            if (hadInitializer || autoIsNumber) {
+            if (!gotVoidZero) {
                 nextAuto = value + 1;
+                autoIsNumber = true;
             }
         } else {
             autoIsNumber = false;
