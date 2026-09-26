@@ -11,6 +11,15 @@
 
 namespace fibjs {
 
+// Whether a failed CommonJS compilation should be retried as an ES module.
+//
+// The error message settles the unambiguous cases; the ambiguous ones are
+// settled by compiling the source as a module. `typescript` selects whether
+// that probe runs on the source as it is or on its stripped form - V8 cannot
+// compile TypeScript, so the raw source would fail the probe for the wrong
+// reason. Implemented in esm_detect.cpp; used by both the .js and .ts loaders.
+bool shouldRetryAsESM(exlib::string err_msg, Buffer_base* src, exlib::string name, bool typescript);
+
 class cjs_Loader : public SandBox::ExtLoader {
 public:
     cjs_Loader(const char* ext = ".cjs")

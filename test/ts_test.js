@@ -66,6 +66,71 @@ describe('TypeScript modules', () => {
         }
     });
 
+    // A `.ts` file is ambiguous in exactly the same way a `.js` file is: the
+    // extension is the plain one and nothing in package.json says which module
+    // system it wants. Both loaders have to recognise ES module syntax and
+    // retry as ESM, otherwise every TypeScript file written with import/export
+    // fails to load unless the nearest package.json happens to say
+    // "type": "module". Node.js reaches the same conclusion by itself.
+    describe('module system detection for .ts', () => {
+        const dir = path.join(__dirname, 'ts_files/esm');
+        const runFile = (file) => {
+            const r = child_process.spawnSync(process.execPath, [path.join(dir, file)]);
+            return { status: r.status, stdout: String(r.stdout), stderr: String(r.stderr) };
+        };
+
+        it("await import a .ts that uses export", async () => {
+            const m = await import('./ts_files/esm/mod.ts');
+            assert.strictEqual(m.v, 1);
+            assert.strictEqual(m.add(1, 2), 3);
+        });
+
+        it("require a .ts that uses export", () => {
+            const m = require('./ts_files/esm/mod.ts');
+            assert.strictEqual(m.v, 1);
+        });
+
+        it("a .ts imports another .ts", async () => {
+            const m = await import('./ts_files/esm/uses-import.ts');
+            assert.strictEqual(m.sum, 3);
+        });
+
+        it("a .mjs imports a .ts", async () => {
+            const m = await import('./ts_files/esm/from-mjs.mjs');
+            assert.strictEqual(m.fromMjs, 1);
+        });
+
+        it("runs a .ts entry point that uses export", () => {
+            const r = runFile('entry.ts');
+            assert.strictEqual(r.status, 0, r.stderr);
+            assert.match(r.stdout, /entry ok 3/);
+        });
+
+        it("runs a .ts entry point with top-level await", () => {
+            // Top-level await does not name the module system the way `import`
+            // does: the error it produces is only *possibly* an ESM problem, so
+            // the source has to be probed as a module - which means stripping it
+            // first, since V8 cannot compile TypeScript.
+            const r = runFile('top-level-await.ts');
+            assert.strictEqual(r.status, 0, r.stderr);
+            assert.match(r.stdout, /tla ok 7/);
+        });
+
+        it("still rejects a .cts that uses export", () => {
+            // `.cts` pins the module system down, so there is nothing to detect.
+            const r = runFile('pinned.cts');
+            assert.notStrictEqual(r.status, 0);
+            assert.match(r.stderr, /Unexpected token 'export'|Cannot use import statement/);
+        });
+
+        it("reports the strip error when the syntax cannot be erased", () => {
+            // The retry must not swallow the error the author needs to see.
+            const r = runFile('unsupported.ts');
+            assert.notStrictEqual(r.status, 0);
+            assert.match(r.stderr, /not supported in strip-only mode/);
+        });
+    });
+
     xdescribe('TypeScript error source display', () => {
         it("should show original TS source in CTS error", () => {
             const result = child_process.spawnSync(process.execPath, [
