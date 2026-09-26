@@ -129,6 +129,19 @@ describe('TypeScript modules', () => {
             assert.notStrictEqual(r.status, 0);
             assert.match(r.stderr, /not supported in strip-only mode/);
         });
+
+        it("does not detect syntax when package.json says type: commonjs", () => {
+            // Detection is for ambiguous files only. Here package.json has
+            // named the module system, so `export` is an error rather than a
+            // module to discover - Node.js draws the same line.
+            const pinned = path.join(__dirname, 'ts_files/pinned');
+            for (const file of ['typed.ts', 'plain.js']) {
+                const r = child_process.spawnSync(process.execPath, [path.join(pinned, file)]);
+                const stderr = String(r.stderr);
+                assert.notStrictEqual(r.status, 0, file + ' should not load');
+                assert.match(stderr, /Unexpected token 'export'/, file);
+            }
+        });
     });
 
     xdescribe('TypeScript error source display', () => {

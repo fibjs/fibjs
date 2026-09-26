@@ -453,19 +453,21 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
+result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
 {
     if (fname.length() > 4
         && (!qstricmp(fname.c_str() + fname.length() - 4, ".mjs")
             || !qstricmp(fname.c_str() + fname.length() - 4, ".mts"))) {
-        retVal = kESModule;
+        retVal.type = kESModule;
+        retVal.explicitType = true;
         return 0;
     }
 
     if (fname.length() > 4
         && (!qstricmp(fname.c_str() + fname.length() - 4, ".cjs")
             || !qstricmp(fname.c_str() + fname.length() - 4, ".cts"))) {
-        retVal = kCommonJS;
+        retVal.type = kCommonJS;
+        retVal.explicitType = true;
         return 0;
     }
 
@@ -509,12 +511,26 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
             if (!type_val->IsUndefined() && !type_val->IsNull())
                 GetArgumentValue(isolate, type_val, type, false);
 
-            retVal = type == "module" ? kESModule : kCommonJS;
+            // Only the two values Node.js recognises count as a decision. Any
+            // other value leaves the file ambiguous just like a missing field
+            // does - Node.js warns [MODULE_TYPELESS_PACKAGE_JSON] for those and
+            // still reparses as ESM when it finds module syntax.
+            if (type == "module") {
+                retVal.type = kESModule;
+                retVal.explicitType = true;
+            } else if (type == "commonjs") {
+                retVal.type = kCommonJS;
+                retVal.explicitType = true;
+            } else {
+                retVal.type = kCommonJS;
+                retVal.explicitType = false;
+            }
             return 0;
         }
     }
 
-    retVal = kCommonJS;
+    retVal.type = kCommonJS;
+    retVal.explicitType = false;
     return 0;
 }
 

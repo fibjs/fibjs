@@ -14,13 +14,13 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
     result_t hr;
-    SandBox::ModuleType type;
+    SandBox::ModuleTypeInfo info;
 
-    hr = ctx->m_sb->resolveModuleType(name, type);
+    hr = ctx->m_sb->resolveModuleType(name, info);
     if (hr)
         return hr;
 
-    if (type == SandBox::kCommonJS) {
+    if (info.type == SandBox::kCommonJS) {
         hr = m_cts.run(ctx, src, name, arg_names, args, in_cjs);
         if (hr >= 0)
             return hr;
@@ -34,7 +34,11 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         if (hr == CALL_E_EXCEPTION) {
             exlib::string err_msg = Runtime::errMessage();
 
-            if (shouldRetryAsESM(err_msg, src, name, true)) {
+            // Detection is only for files nothing else has classified. When
+            // package.json says "type": "commonjs", `export` in the file is an
+            // error rather than a module to discover - Node.js draws the same
+            // line and refuses to reparse such a file.
+            if (!info.explicitType && shouldRetryAsESM(err_msg, src, name, true)) {
                 if (in_cjs)
                     return m_mts.run(ctx, src, name, arg_names, args, in_cjs);
 
@@ -51,7 +55,7 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         }
 
         return hr;
-    } else if (type == SandBox::kESModule)
+    } else if (info.type == SandBox::kESModule)
         return m_mts.run(ctx, src, name, arg_names, args, in_cjs);
 
     return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));

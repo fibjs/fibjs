@@ -186,6 +186,24 @@ public:
         kESModule = 1,
     };
 
+    // What resolveModuleType() decided, and whether it was a decision at all.
+    struct ModuleTypeInfo {
+        ModuleType type;
+        // True when the module system was stated rather than inferred: the
+        // nearest package.json has a "type" field holding one of the two values
+        // Node.js recognises. Only an ambiguous file - no package.json, no
+        // "type" field, or a value Node.js does not know - is eligible for
+        // syntax detection, so this is what tells the loaders whether `export`
+        // in a CommonJS file is a module to detect or an error to report.
+        bool explicitType;
+
+        ModuleTypeInfo()
+            : type(kCommonJS)
+            , explicitType(false)
+        {
+        }
+    };
+
     void initGlobal(v8::Local<v8::Object> global);
 
     void initModule();
@@ -197,7 +215,7 @@ public:
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
     result_t realpath(exlib::string fname, exlib::string& retVal);
     int32_t file_type(exlib::string fname);
-    result_t resolveModuleType(exlib::string fname, ModuleType& retVal);
+    result_t resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal);
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Object>* retVal);

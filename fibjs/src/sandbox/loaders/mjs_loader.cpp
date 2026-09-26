@@ -288,13 +288,13 @@ private:
 
         if (IsEmpty(mod)) {
             result_t hr;
-            SandBox::ModuleType type;
+            SandBox::ModuleTypeInfo info;
 
-            hr = m_sb->resolveModuleType(id, type);
+            hr = m_sb->resolveModuleType(id, info);
             if (hr)
                 return hr;
 
-            if (type == SandBox::ModuleType::kCommonJS) {
+            if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
                 if (hr == CALL_E_EXCEPTION) {
                     exlib::string err_msg = Runtime::errMessage();
@@ -346,13 +346,13 @@ private:
 
         if (IsEmpty(mod)) {
             result_t hr;
-            SandBox::ModuleType type;
+            SandBox::ModuleTypeInfo info;
 
-            hr = m_sb->resolveModuleType(id, type);
+            hr = m_sb->resolveModuleType(id, info);
             if (hr)
                 return hr;
 
-            if (type == SandBox::ModuleType::kCommonJS) {
+            if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
                 if (hr == CALL_E_EXCEPTION) {
                     exlib::string err_msg = Runtime::errMessage();
