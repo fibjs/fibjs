@@ -1438,6 +1438,15 @@ describe('Buffer', () => {
                 assert.equal(new Date(data.toString()).toISOString(), "2016-03-09T07:58:57.000Z");
             });
 
+            it('missing arguments throw instead of hanging', () => {
+                // native 的参数下溢守卫：write/byteLength 的 while 循环在参数缺失时会
+                // 下溢到负数下标，旧实现直接挂死进程（见 plans/buffer-node-compat-audit.md P0）
+                assert.throws(() => Buffer.byteLength(), TypeError);
+                assert.throws(() => Buffer.byteLength(undefined), TypeError);
+                assert.throws(() => Buffer.from("ab").write(), TypeError);
+                assert.throws(() => Buffer.from("ab").write(undefined), TypeError);
+            });
+
             it('Buffer.from encoding with extended formats', () => {
                 // base32 support
                 assert.equal(Buffer.from("gezdgna=", "base32").toString(), "1234");

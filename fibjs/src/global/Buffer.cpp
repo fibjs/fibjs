@@ -560,7 +560,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->context();
 
     int32_t arg_cnt = args.Length();
-    while (args[arg_cnt - 1]->IsUndefined())
+    while (arg_cnt > 0 && args[arg_cnt - 1]->IsUndefined())
         --arg_cnt;
 
     if (arg_cnt == 0) {
@@ -655,7 +655,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t arg_cnt = args.Length();
-    while (args[arg_cnt - 1]->IsUndefined())
+    while (arg_cnt > 0 && args[arg_cnt - 1]->IsUndefined())
         --arg_cnt;
 
     if (arg_cnt == 0) {
