@@ -669,9 +669,15 @@ describe("vm", () => {
         function get_modules(sbox) {
             var mods = sbox.modules;
 
-            assert.equal(mods["buffer"], Buffer);
-            assert.equal(mods["node:buffer"], Buffer);
-            assert.equal(mods["fibjs:buffer"], Buffer);
+            // 整改后 require('buffer') 是 node 形态的模块对象（{ Buffer, SlowBuffer, … }），
+            // 不再是类本身；这里兼容两种形态：取 .Buffer 或值本身参
+            // 见 plans/buffer-node-compat-remediation-plan.md R12
+            ["buffer", "node:buffer", "fibjs:buffer"].forEach((m) => {
+                var v = mods[m];
+                assert.equal(typeof v, "object", m);
+                assert.equal(typeof v.Buffer, "function", m);
+                assert.equal(v.Buffer, Buffer, m);
+            });
             delete mods["buffer"];
             delete mods["node:buffer"];
             delete mods["fibjs:buffer"];

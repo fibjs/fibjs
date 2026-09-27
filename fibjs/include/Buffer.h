@@ -57,7 +57,17 @@ public:
     public:
         uint8_t* data()
         {
-            return (uint8_t*)m_store->Data() + m_offset;
+            // 0 长度的 backing store（如 Buffer.alloc(0)）在 V8 里 Data() 可能是 nullptr，
+            // 直接透传给 OpenSSL 等 API 会被拒绝（实测 aes-256-ccm 的 setAAD(Buffer.alloc(0)) 会报
+            // "cipher operation failed"），这里统一给一个可用的非空指针。
+            uint8_t* _data = (uint8_t*)m_store->Data();
+            return _data ? _data + m_offset : empty_data();
+        }
+
+        static uint8_t* empty_data()
+        {
+            static uint8_t s_empty = 0;
+            return &s_empty;
         }
 
         size_t length()

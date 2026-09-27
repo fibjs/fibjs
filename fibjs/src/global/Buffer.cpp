@@ -4,9 +4,14 @@
 #include "SandBox.h"
 #include "encoding.h"
 
+#include <cmath>
+
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 namespace fibjs {
+
+// 定义在 class_byteLength 之后；这里前置声明给「未知编码按 utf8 计长」用
+inline bool is_native_codec(exlib::string codec);
 
 inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t& end)
 {
@@ -252,13 +257,26 @@ v8::Local<v8::Value> Buffer::load_module()
         return v8::Undefined(isolate->m_isolate);
     }
 
-    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
+    // node 的 require('buffer') 是模块对象（{ Buffer, SlowBuffer, constants, kMaxLength, … }），
+    // 全局 Buffer 仍然是类本身。这里兼容两种形态：模块对象（取 .Buffer）或类本身。
+    v8::Local<v8::Value> _buffer_class = _buffer;
+    if (!_buffer->IsFunction()) {
+        if (!_buffer->IsObject())
+            return v8::Undefined(isolate->m_isolate);
 
-    if (!_buffer->IsFunction())
-        return v8::Undefined(isolate->m_isolate);
+        if (!_buffer.As<v8::Object>()->Get(context, isolate->NewString("Buffer")).ToLocal(&_buffer_class)
+            || !_buffer_class->IsFunction())
+            return v8::Undefined(isolate->m_isolate);
+    }
 
+    _global->Set(context, isolate->NewString("Buffer"), _buffer_class).IsJust();
+
+    // 取 prototype 用的探针实例：显式传 0（不能依赖 `new Buffer()`——node 语义下无参构造是
+    // TypeError，而这里必须成功，否则下面的 native 覆写（indexOf/write/…）装不上）
+    v8::Local<v8::Function> js_buffer_class = _buffer_class.As<v8::Function>();
+    v8::Local<v8::Value> ctor_args[1] = { v8::Integer::New(isolate->m_isolate, 0) };
     v8::Local<v8::Value> js_buffer_v;
-    if (!_buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).ToLocal(&js_buffer_v)
+    if (!js_buffer_class->CallAsConstructor(context, 1, ctor_args).ToLocal(&js_buffer_v)
         || js_buffer_v.IsEmpty() || !js_buffer_v->IsObject())
         return v8::Undefined(isolate->m_isolate);
 
@@ -270,22 +288,28 @@ v8::Local<v8::Value> Buffer::load_module()
 
     v8::Local<v8::Object> js_buffer_proto = js_buffer_proto_v.As<v8::Object>();
 
-    context->SetEmbedderData(kBufferClassIndex, _buffer);
+    context->SetEmbedderData(kBufferClassIndex, _buffer_class);
+    context->SetEmbedderData(kBufferModule, _buffer);
     context->SetEmbedderData(kBufferPrototype, js_buffer_proto);
 
-    js_buffer_proto->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", proto_compare)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("lastIndexOf"), isolate->NewFunction("lastIndexOf", proto_lastIndexOf)).IsJust();
-
-    v8::Local<v8::Object> js_buffer_class = _buffer.As<v8::Object>();
-    js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
-
-    // js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
+    // 检索/比较由 native 提供引擎，但**签名与 node 语义**由 JS 层（internal/buffer.js）包装：
+    // 以 Buffer.native_xxx.call(buf, …) 的形式暴露，避免 prototype 覆写把 JS 层的参数校验跳过。
+    js_buffer_class->Set(context, isolate->NewString("native_compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("native_equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("native_indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("native_lastIndexOf"), isolate->NewFunction("lastIndexOf", proto_lastIndexOf)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("native_write"), isolate->NewFunction("write", proto_write)).IsJust();
 
     js_buffer_class->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
-    js_buffer_class->Set(context, isolate->NewString("byteLength"), isolate->NewFunction("byteLength", class_byteLength)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("native_byteLength"), isolate->NewFunction("byteLength", class_byteLength)).IsJust();
+
+    // JS 层的 write 直接复用 native 实现（性能敏感的 utf8/ascii 快路径仍在 C++）
+    // —— 安装完后调一次模块的 __postInstall（把 native_* 改成不可枚举，避免污染 Object.keys(Buffer)）
+    v8::Local<v8::Value> post_install;
+    if (_buffer->IsObject()
+        && _buffer.As<v8::Object>()->Get(context, isolate->NewString("__postInstall")).ToLocal(&post_install)
+        && post_install->IsFunction())
+        post_install.As<v8::Function>()->Call(context, _buffer.As<v8::Object>(), 0, NULL).FromMaybe(v8::Local<v8::Value>());
 
     // js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
 
@@ -593,47 +617,57 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
             return;
         }
 
-        offset = args[1]->Int32Value(context).FromMaybe(0);
-        if (offset < 0 || offset > buf.length()) {
+        double offset_num = args[1]->NumberValue(context).FromMaybe(0);
+        if (std::floor(offset_num) != offset_num || offset_num < 0 || offset_num > (double)buf.length()) {
             ThrowResult(CALL_E_OUTRANGE);
             return;
         }
+
+        offset = (size_t)offset_num;
     }
 
-    size_t max_length = 0;
+    // node: length 必须是 [0, buffer.length - offset] 内的整数，负数/越界都抛 RangeError
+    size_t max_length = buf.length() - offset;
     if (arg_cnt > 2) {
         if (!args[2]->IsNumber() && !args[2]->IsNumberObject()) {
             ThrowResult(CALL_E_TYPEMISMATCH);
             return;
         }
-        max_length = args[2]->Int32Value(context).FromMaybe(0);
-        max_length = std::min(buf.length() - offset, max_length);
-    } else
-        max_length = buf.length() - offset;
+
+        double length_num = args[2]->NumberValue(context).FromMaybe(0);
+        if (std::floor(length_num) != length_num || length_num < 0 || length_num > (double)max_length) {
+            ThrowResult(CALL_E_OUTRANGE);
+            return;
+        }
+
+        max_length = (size_t)length_num;
+    }
 
     int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION | v8::String::REPLACE_INVALID_UTF8;
 
+    // 返回值必须是**实际写入的字节数**（旧实现返回 max_length = 容量）
     if (codec.IsEmpty()) {
-        data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, max_length, nullptr, flags);
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        int written = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, (int)max_length, nullptr, flags);
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
         return;
     }
 
     v8::String::Utf8Value codec_utf8(isolate->m_isolate, codec);
 
     if (!strcmp(*codec_utf8, "ascii") || !strcmp(*codec_utf8, "buffer")) {
+        int written;
         if (data->IsExternalOneByte()) {
             auto ext = data->GetExternalOneByteStringResource();
-            max_length = std::min(max_length, ext->length());
-            memcpy(buf.data() + offset, ext->data(), max_length);
+            written = (int)std::min(max_length, (size_t)ext->length());
+            memcpy(buf.data() + offset, ext->data(), written);
         } else
-            max_length = data->WriteOneByte(isolate->m_isolate, buf.data() + offset, 0, max_length, flags);
+            written = data->WriteOneByte(isolate->m_isolate, buf.data() + offset, 0, (int)max_length, flags);
 
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
         return;
     } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
-        max_length = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, max_length, nullptr, flags);
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        int written = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, (int)max_length, nullptr, flags);
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
         return;
     }
 
@@ -649,7 +683,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     max_length = std::min(max_length, strBuf.length());
     memcpy(buf.data() + offset, strBuf.c_str(), max_length);
-    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)max_length));
 }
 
 void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -678,6 +712,14 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         v8::Local<v8::ArrayBuffer> buf = args[0].As<v8::ArrayBuffer>();
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, buf->ByteLength()));
         return;
+    } else if (args[0]->IsDataView()) {
+        v8::Local<v8::DataView> view = args[0].As<v8::DataView>();
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, view->ByteLength()));
+        return;
+    } else if (args[0]->IsSharedArrayBuffer()) {
+        v8::Local<v8::SharedArrayBuffer> buf = args[0].As<v8::SharedArrayBuffer>();
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, buf->ByteLength()));
+        return;
     } else {
         ThrowResult(CALL_E_TYPEMISMATCH);
         return;
@@ -701,6 +743,10 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (!strcmp(*codec_utf8, "ascii") || !strcmp(*codec_utf8, "buffer")) {
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length()));
         return;
+    } else if (!strcmp(*codec_utf8, "hex")) {
+        // node: hex 的 byteLength 是 floor(len / 2)，**不校验内容**
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length() / 2));
+        return;
     } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
         return;
@@ -709,6 +755,12 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         || !strcmp(*codec_utf8, "utf16le") || !strcmp(*codec_utf8, "utf-16le")
         || !strcmp(*codec_utf8, "utf16be") || !strcmp(*codec_utf8, "utf-16be")) {
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length() * 2));
+        return;
+    }
+
+    // node: 未知编码按 utf8 计长（不抛错）；fibjs 的 charset 编码仍走真实换算
+    if (!is_native_codec(*codec_utf8) && !encoding_conv::is_encoding(*codec_utf8)) {
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
         return;
     }
 
@@ -722,7 +774,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, strBuf.length()));
+    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)strBuf.length()));
 }
 
 inline bool is_native_codec(exlib::string codec)

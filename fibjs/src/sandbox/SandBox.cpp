@@ -171,7 +171,9 @@ void SandBox::attachBuffer()
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Value> _buffer = context->GetEmbedderData(kBufferClassIndex);
+    v8::Local<v8::Value> _buffer = context->GetEmbedderData(kBufferModule);
+    if (_buffer.IsEmpty())
+        _buffer = context->GetEmbedderData(kBufferClassIndex);
 
     InstallModule("buffer", _buffer);
     InstallModule("fibjs:buffer", _buffer);

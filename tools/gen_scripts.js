@@ -43,7 +43,8 @@ function enc_folder(dir) {
         var pos = 0;
         var sz = 20;
 
-        var bin = zlib.deflate(new Buffer(code));
+        // node 兼容：不能再依赖已废弃的 `new Buffer(string)`（见 plans/buffer-node-compat-*）
+        var bin = zlib.deflate(Buffer.from(code, 'utf8'));
         var hex = bin.hex();
 
         var cnt = 0;
