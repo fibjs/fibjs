@@ -564,10 +564,14 @@ function run_module_scripts(pkg_path, pkg_info, is_root, skip) {
                 stdio: 'pipe'
             });
 
+            // what a script printed is the operator's business to see, whether it
+            // succeeded or not: a script that fails without a word (or one that
+            // quietly installs nothing) is otherwise invisible
+            if (result.stdout) install_log('  stdout:', result.stdout.toString().trim());
+            if (result.stderr) install_log('  stderr:', result.stderr.toString().trim());
+
             if (result.status !== 0) {
                 var msg = '[lifecycle] ' + pkgjson.name + ': ' + event + ' exited with code ' + result.status;
-                if (result.stdout) install_log('  stdout:', result.stdout.toString().trim());
-                if (result.stderr) install_log('  stderr:', result.stderr.toString().trim());
                 if (process.env.FIBJS_STRICT_SCRIPTS)
                     throw new Error(msg);
                 else
