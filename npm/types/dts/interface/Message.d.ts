@@ -101,6 +101,17 @@ declare class Class_Message extends Class_EventEmitter {
     readAllAsync(): Promise<Class_Buffer>;
 
     /**
+     * @description 设置消息体的编码方式，此方法为 body 相应方法的别名
+     *
+     *      设置后 `data` 事件与 `read()` 将返回字符串而非 Buffer 对象，与 Node 的
+     *      IncomingMessage.setEncoding 行为一致
+     *      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
+     *      @return 返回当前消息对象
+     *
+     */
+    setEncoding(encoding: string): Class_Message;
+
+    /**
      * @description 写入给定的数据，此方法为 body 相应方法的别名
      *      @param data 给定要写入的数据
      *      @return 返回实际写入的字节数

@@ -632,6 +632,36 @@ describe("mq", () => {
         });
     });
 
+    describe("Message setEncoding", () => {
+        function message_with(text) {
+            var msg = new mq.Message();
+            var ms = new io.MemoryStream();
+            ms.write(text);
+            ms.rewind();
+            msg.body = ms;
+
+            return msg;
+        }
+
+        it("returns the message and hands the encoding to the body", () => {
+            var msg = message_with("hello");
+
+            // returns the message, the way node returns its readable
+            assert.equal(msg.setEncoding("utf8"), msg);
+
+            // the body is what decodes: reading it hands back a string from then on
+            assert.equal(msg.read(), "hello");
+            assert.equal(msg.read(), null);
+        });
+
+        it("reads a Buffer without setEncoding", () => {
+            var data = message_with("hello").read();
+
+            assert.equal(Buffer.isBuffer(data), true);
+            assert.equal(data.toString(), "hello");
+        });
+    });
+
     after(test_util.cleanup);
 
     describe("function handler", () => {

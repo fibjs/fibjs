@@ -6955,6 +6955,56 @@ describe("http", () => {
                 }).end();
             });
 
+            it("res.setEncoding('utf8') makes data chunks strings", (done) => {
+                http.get(url("/hello"), (res) => {
+                    var chunks = [];
+
+                    // returns the response, the way node returns its readable
+                    assert.equal(res.setEncoding("utf8"), res);
+
+                    res.on("data", (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    res.on("end", () => {
+                        done(() => {
+                            assert.equal(chunks.every(chunk => typeof chunk === "string"), true);
+                            assert.equal(chunks.join(""), "/hello");
+                        });
+                    });
+                }).end();
+            });
+
+            it("data chunks stay Buffers without setEncoding", (done) => {
+                http.get(url("/hello"), (res) => {
+                    var chunks = [];
+
+                    res.on("data", (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    res.on("end", () => {
+                        done(() => {
+                            assert.equal(chunks.every(chunk => Buffer.isBuffer(chunk)), true);
+                            assert.equal(Buffer.concat(chunks).toString(), "/hello");
+                        });
+                    });
+                }).end();
+            });
+
+            it("sync response res.setEncoding('utf8') works", (done) => {
+                var resp = http.getSync(url("/hello"));
+                resp.setEncoding("utf8");
+
+                var chunks = [];
+                resp.on("data", (chunk) => {
+                    chunks.push(chunk);
+                });
+                resp.on("end", () => {
+                    done(() => {
+                        assert.equal(chunks.join(""), "/hello");
+                    });
+                });
+            });
+
             it("res.on('close') fires after end", (done) => {
                 http.get(url("/hello"), (res) => {
                     res.on("data", () => { });

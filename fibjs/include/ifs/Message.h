@@ -45,6 +45,7 @@ public:
     virtual result_t get_bodyUsed(bool& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal) = 0;
     virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac) = 0;
@@ -90,6 +91,7 @@ public:
     static void s_get_bodyUsed(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_text(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -150,6 +152,7 @@ inline ClassInfo& Message_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
+        { "setEncoding", s_setEncoding, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
         { "text", s_text, false, ClassData::ASYNC_ASYNC },
         { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_ASYNC },
@@ -388,6 +391,22 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->ac_readAll(vr);
 
     ASYNC_METHOD_RETURN();
+}
+
+inline void Message_base::s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Message_base> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->setEncoding(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -307,6 +307,15 @@ result_t HttpRequest::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return m_message->readAll(retVal, ac);
 }
 
+result_t HttpRequest::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Message_base> r;
+    m_message->setEncoding(encoding, r);
+
+    retVal = this;
+    return 0;
+}
+
 result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return m_message->write(data, retVal, ac);

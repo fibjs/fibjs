@@ -163,6 +163,13 @@ describe('ws', () => {
             });
         });
 
+        it("setEncoding forwards to the message body", () => {
+            var msg = new WebSocket.Message();
+
+            // the ws message exposes the body stream's setEncoding (node parity)
+            assert.equal(msg.setEncoding("utf8"), msg);
+        });
+
         it("sendTo", () => {
             function test_msg(n, masked, compress) {
                 var msg = new WebSocket.Message();

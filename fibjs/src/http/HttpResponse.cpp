@@ -110,6 +110,16 @@ result_t HttpResponse::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return m_message->readAll(retVal, ac);
 }
 
+result_t HttpResponse::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Message_base> r;
+    m_message->setEncoding(encoding, r);
+
+    // the caller keeps the response it called this on, like node's readable
+    retVal = this;
+    return 0;
+}
+
 result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return m_message->write(data, retVal, ac);

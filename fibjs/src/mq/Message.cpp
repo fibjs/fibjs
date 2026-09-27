@@ -463,6 +463,17 @@ result_t Message::clone(obj_ptr<Message_base>& retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
+result_t Message::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
+{
+    obj_ptr<Stream_base> body;
+    if (get_body(body) == 0 && body) {
+        obj_ptr<Stream_base> r;
+        body->setEncoding(encoding, r);
+    }
+    retVal = this;
+    return 0;
+}
+
 result_t Message::resume(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
@@ -473,7 +484,6 @@ result_t Message::resume(obj_ptr<Message_base>& retVal)
     retVal = this;
     return 0;
 }
-
 result_t Message::pause(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
