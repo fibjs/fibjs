@@ -662,7 +662,16 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(tree.indexOf('is-odd@3.0.1') > -1, 'transitive: ' + tree);
             assert.ok(tree.indexOf('is-negative@2.1.0') > -1, 'dev dependency is installed: ' + tree);
             assert.ok(tree.indexOf('local-pkg link') > -1, 'the file: dependency is linked: ' + tree);
-            assert.ok(tree.indexOf('@esbuild') === -1, 'a foreign platform optional stays out: ' + tree);
+
+            // the fixture's optional carries os:["linux"], cpu:["x64"]: a foreign
+            // platform optional everywhere but linux/x64, and there it lands at its
+            // scoped path (node_modules/@esbuild/linux-x64, never a doubled scope
+            // such as @esbuild/@esbuild/linux-x64, which treeOf would hide)
+            if (process.platform === 'linux' && process.arch === 'x64')
+                assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', '@esbuild', 'linux-x64', 'package.json')),
+                    'a matching platform optional installs into its scope: ' + tree + ' | ' + diag(targetDir, res));
+            else
+                assert.ok(tree.indexOf('@esbuild') === -1, 'a foreign platform optional stays out: ' + tree);
         });
 
         it('refuses a package.json that moved past the lockfile, without touching the disk', function () {

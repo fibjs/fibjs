@@ -1881,6 +1881,22 @@ function verify_tarball(buf, task, strict) {
 }
 
 /**
+ * @description the directory a package installs *into*: a package lands at
+ *              `<base>/<name>`, and a scoped name carries its own `/`, so the base
+ *              is the destination minus the name's own path segments
+ *              (`node_modules/@scope/pkg` -> `node_modules`, not `node_modules/@scope`)
+ */
+function package_base_dir(dest, name) {
+    let base = dest;
+    const parts = String(name || '').split('/');
+
+    for (let i = Math.max(parts.length, 1); i > 0; i--)
+        base = path.dirname(base);
+
+    return base;
+}
+
+/**
  * @description the header a fetch of that url needs, from the `.npmrc` entries the
  *              caller read (null when the url needs no credentials)
  */
@@ -2089,7 +2105,7 @@ function install_from_lock(lock, opts) {
                 pkg_install_typeinfo: { type: 'local', local_path: target },
                 bin: bin,
                 dist: null,
-                base_path: [path.dirname(dest)],
+                base_path: [package_base_dir(dest, entry.name)],
             };
             plan.link++;
             installed.push(p);
@@ -2125,7 +2141,7 @@ function install_from_lock(lock, opts) {
             base_path: [],
         });
 
-        task.base_path.push(path.dirname(dest));
+        task.base_path.push(package_base_dir(dest, entry.name));
         plan.registry++;
         installed.push(p);
     });
