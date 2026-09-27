@@ -3,6 +3,7 @@ const util = require('util');
 const coroutine = require('coroutine');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const ssl = require('ssl');
 const http = require('http');
 const zlib = require('zlib');
@@ -650,10 +651,6 @@ function run_lifecycle_scripts(level_info, base_path, is_root) {
 }
 
 // ---------------------- LIFECYCLE SCRIPTS :end ------------------------- //
-
-function sha1(data) {
-    return crypto.createHash('sha1').update(data).digest('hex');
-}
 
 const pkg_registrytype_module_infos = {};
 const pkg_githubtype_module_infos = {};
@@ -1466,7 +1463,8 @@ function download_module() {
 
             switch (mvm.pkg_install_typeinfo.type) {
                 case 'registry':
-                    let tgz;
+                    let tgz_path = null;
+                    let tgz_download = null;
                     for (let _dl = 0; _dl < 3; _dl++) {
                         try {
                             var r = http_get(mvm.dist.tarball, {
@@ -1476,15 +1474,21 @@ function download_module() {
                                 console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
                                 process.exit();
                             }
-                            tgz = r.bytes();
+                            // straight to the disk, hashed on the way: a big tarball
+                            // is never read into memory (see download_to_file)
+                            tgz_path = temp_path(mvm);
+                            tgz_download = download_to_file(r, tgz_path, mvm.dist);
                             r = null;
                             break;
                         } catch (e) {
+                            remove_temp(tgz_path);
+                            tgz_path = null;
+                            tgz_download = null;
                             console.log(e);
                             console.warn(`[download] retry ${_dl + 1}: ${mvm.dist.tarball}`);
                         }
                     }
-                    if (!tgz) {
+                    if (!tgz_path) {
                         console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
                         process.exit(-1);
                     }
@@ -1492,17 +1496,34 @@ function download_module() {
                     // the lockfile is what a frozen install trusts: an entry it cannot
                     // verify is refused (the resolve path only warns, npm does not
                     // verify at all there)
-                    if (!verify_tarball(tgz, mvm, mvm.frozen === true)) {
+                    if (!verify_digest(tgz_download.digest, mvm, mvm.frozen === true)) {
+                        remove_temp(tgz_path);
                         console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
                         process.exit(-1);
                     }
 
                     let t;
-                    if (tgz[0] === 0x1f && tgz[1] === 0x8b)
-                        t = zlib.gunzip(tgz);
-                    else
-                        t = tgz;
-                    tgz = null;
+                    if (tgz_download.gzip) {
+                        // only the unpacked tar has to be in memory: the compressed
+                        // payload goes through a scratch file as well
+                        const tar_path = tgz_path + '.tar';
+                        const gz_in = fs.createReadStream(tgz_path);
+                        const tar_out = fs.createWriteStream(tar_path);
+
+                        try {
+                            zlib.gunzipTo(gz_in, tar_out);
+                        } finally {
+                            gz_in.close();
+                            tar_out.close();
+                        }
+
+                        remove_temp(tgz_path);
+                        t = fs.readFile(tar_path);
+                        remove_temp(tar_path);
+                    } else {
+                        t = fs.readFile(tgz_path);
+                        remove_temp(tgz_path);
+                    }
 
                     const untar_files = untar(t.buffer);
 
@@ -1838,16 +1859,104 @@ function default_tarball_url(registry, entry) {
 }
 
 /**
- * @description verify a tarball against what the lockfile (or the registry
- *              metadata) says about it: the SRI string when there is one, the sha1
- *              `dist.shasum` otherwise. `strict` refuses an entry there is nothing
- *              to verify with, which is what a frozen install wants
+ * @description a scratch directory one install streams through. Tarballs are kept
+ *              on the disk while they are fetched so that a big package never has
+ *              to fit in memory (see `download_to_file`); the directory goes away
+ *              with the process, however the process ends
  */
-function verify_tarball(buf, task, strict) {
-    const dist = task.dist || {};
+let temp_dir_path = null;
+let temp_seq = 0;
 
-    if (dist.integrity) {
-        const res = lockfile.verify_integrity(buf, dist.integrity);
+function temp_dir() {
+    if (!temp_dir_path) {
+        temp_dir_path = path.join(os.tmpdir(), 'fibjs-install-' + process.pid);
+        fs.mkdir(temp_dir_path, { recursive: true });
+
+        process.on('exit', function () {
+            try {
+                rmdir_recursive(temp_dir_path);
+            } catch (e) {
+                // nothing useful can be done on the way out
+            }
+        });
+    }
+
+    return temp_dir_path;
+}
+
+function temp_path(task) {
+    return path.join(temp_dir(), (++temp_seq) + '-' +
+        String(task.name).replace(/[^\w.-]+/g, '_') + '.tgz');
+}
+
+function remove_temp(file_path) {
+    if (!file_path)
+        return;
+
+    try {
+        fs.unlink(file_path);
+    } catch (e) {
+        // a scratch file that is already gone is not an error
+    }
+}
+
+// the size of one streaming step: big enough to keep the syscall count low, small
+// enough that the copy never holds a large package
+const DOWNLOAD_CHUNK = 1 << 20;
+
+/**
+ * @description stream a response body into `file_path`, hashing it on the way.
+ *              Nothing holds the compressed payload whole: only the digest, the
+ *              file on the disk and one chunk grow with the download
+ * @returns {{ digest: null|string, gzip: boolean }} the hex digest of the algorithm
+ *          the entry has to be checked with (the strongest one it carries, null
+ *          when there is none) and whether the payload is a gzip stream
+ */
+function download_to_file(r, file_path, dist) {
+    dist = dist || {};
+
+    const plan = lockfile.integrity_plan(dist.integrity);
+    const algorithm = plan ? plan.algorithm : (dist.shasum ? 'sha1' : null);
+    const hash = algorithm ? crypto.createHash(algorithm) : null;
+    const out = fs.createWriteStream(file_path);
+    let head = null;
+
+    try {
+        let chunk;
+
+        while ((chunk = r.body.read(DOWNLOAD_CHUNK)) && chunk.length > 0) {
+            if (!head)
+                head = chunk.slice(0, 2);
+
+            if (hash)
+                hash.update(chunk);
+
+            out.write(chunk);
+        }
+    } finally {
+        out.close();
+    }
+
+    return {
+        digest: hash ? hash.digest('hex') : null,
+        gzip: !!head && head.length === 2 && head[0] === 0x1f && head[1] === 0x8b
+    };
+}
+
+/**
+ * @description the check a tarball has to pass against what the lockfile (or the
+ *              registry metadata) says about it: the SRI string when there is one,
+ *              the sha1 `dist.shasum` otherwise. It works on the digest the
+ *              streaming download computed instead of on the bytes. `strict`
+ *              refuses an entry there is nothing to verify with, which is what a
+ *              frozen install wants
+ */
+function verify_digest(digest, task, strict) {
+    const dist = task.dist || {};
+    const plan = lockfile.integrity_plan(dist.integrity);
+
+    if (plan) {
+        const res = lockfile.integrity_ok(digest, plan);
 
         if (!res.ok) {
             console.error(`[install] integrity mismatch: ${task.name}`);
@@ -1860,8 +1969,13 @@ function verify_tarball(buf, task, strict) {
         return true;
     }
 
+    // an SRI the helper cannot read (none of the algorithms npm writes) counts as
+    // nothing to compare against, which is what `verify_integrity` decided
+    if (dist.integrity)
+        return true;
+
     if (dist.shasum) {
-        if (sha1(buf) !== dist.shasum) {
+        if (digest !== dist.shasum) {
             console.error(`[install] shasum mismatch: ${task.name} ${dist.tarball}`);
             return false;
         }

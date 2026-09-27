@@ -115,6 +115,40 @@ function verify_integrity(buf, sri) {
     };
 }
 
+/**
+ * @description what a downloader has to hash while it streams a tarball, and how
+ *              to compare the result: npm checks only the strongest algorithm the
+ *              entry carries, so that is the one to hash with
+ * @returns {null | { algorithm, entries }} — null when there is nothing to verify
+ */
+function integrity_plan(sri) {
+    const entries = parse_sri(sri);
+    const algorithm = best_algorithm(entries);
+
+    if (!algorithm)
+        return null;
+
+    return {
+        algorithm: algorithm,
+        entries: entries.filter(e => e.algorithm === algorithm)
+    };
+}
+
+/**
+ * @description check a digest a streaming download computed (hex) against a plan
+ * @returns {{ ok, expected, actual }}
+ */
+function integrity_ok(hex, plan) {
+    const base64 = Buffer.from(hex, 'hex').toString('base64');
+    const ok = plan.entries.some(e => e.digest === (e.is_hex ? hex : base64));
+
+    return {
+        ok: ok,
+        expected: plan.entries.map(e => e.raw).join(' '),
+        actual: `${plan.algorithm}-${base64}`
+    };
+}
+
 // ---------------------- registry replacement :start ------------------------- //
 
 /**
@@ -1002,6 +1036,8 @@ module.exports = {
     parse_sri,
     best_algorithm,
     verify_integrity,
+    integrity_plan,
+    integrity_ok,
     apply_registry_replace,
     supported_version,
     read_lockfile,
