@@ -10,6 +10,7 @@
 #include "ifs/io.h"
 #include "TextEncoder.h"
 #include "Buffer.h"
+#include "StringBuffer.h"
 #include "StreamReader.h"
 #include "Isolate.h"
 #include "Fiber.h"
@@ -544,14 +545,14 @@ public:
         ON_STATE(AsyncReadAll, process)
         {
             if (n == CALL_RETURN_NULL) {
-                if (m_buf.empty())
+                if (m_buf.size() == 0)
                     return next(CALL_RETURN_NULL);
-                m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
+                m_retVal = m_buf.buffer();
                 return next(0);
             }
             if (m_chunk) {
                 Buffer* b = (Buffer*)m_chunk.get();
-                m_buf.append((const char*)b->data(), b->length());
+                m_buf.append((const char*)b->data(), (int32_t)b->length());
                 m_chunk.Release();
             }
             return next(doRead);
@@ -561,7 +562,11 @@ public:
         AsyncStream<T>* m_pThis;
         obj_ptr<Buffer_base>& m_retVal;
         obj_ptr<Buffer_base> m_chunk;
-        exlib::string m_buf;
+        // Chunks are collected and merged once at the end: appending into a single
+        // growing exlib::string reallocates and copies the whole prefix on every
+        // append, which is O(n^2) for streams that hand back small pieces (a
+        // chunked HTTP body is one HTTP chunk per read).
+        StringBuffer m_buf;
     };
 
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
