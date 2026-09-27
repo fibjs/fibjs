@@ -120,19 +120,25 @@ declare module 'xml' {
      * @description 解析 xml/html 文本，并创建 XmlDocument 对象，不支持多语种
      *      @param source 指定需要解析的 xml/html 文本
      *      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
-     *      @return 返回创建的 XmlDocument 对象
+     *      @param options 指定解析限制，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *       - maxElementDepth: 最大元素嵌套层数，根元素为 1，超出时报错；0 或负数表示不限制
+     *       - maxNodeCount: 最大节点数，包含元素、属性、文本、注释、CDATA、处理指令和文档类型，超出时报错；0 或负数表示不限制
+     *     @return 返回创建的 XmlDocument 对象
      *
      */
-    function parse(source: string, type?: string): Class_XmlDocument;
+    function parse(source: string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
      * @description 解析 xml/html，并创建 XmlDocument 对象，解析时会根据指定的语种转换
      *      @param source 指定需要解析的 xml/html 二进制数据
      *      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
+     *      @param options 指定解析限制，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *       - maxElementDepth: 最大元素嵌套层数，根元素为 1，超出时报错；0 或负数表示不限制
+     *       - maxNodeCount: 最大节点数，包含元素、属性、文本、注释、CDATA、处理指令和文档类型，超出时报错；0 或负数表示不限制
      *      @return 返回创建的 XmlDocument 对象
      *
      */
-    function parse(source: Class_Buffer, type?: string): Class_XmlDocument;
+    function parse(source: Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
      * @description 序列化 XmlNode 为字符串

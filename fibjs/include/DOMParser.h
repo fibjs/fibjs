@@ -15,7 +15,7 @@ class DOMParser : public DOMParser_base {
 public:
     // DOMParser_base
     virtual result_t parseFromString(exlib::string str, exlib::string mimeType,
-        obj_ptr<XmlDocument_base>& retVal);
+        v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal);
 };
 
 } // namespace fibjs

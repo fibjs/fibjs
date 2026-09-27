@@ -33,8 +33,8 @@ class XmlDocument_base : public XmlNode_base {
 public:
     // XmlDocument_base
     static result_t _new(exlib::string type, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t load(exlib::string source) = 0;
-    virtual result_t load(Buffer_base* source) = 0;
+    virtual result_t load(exlib::string source, v8::Local<v8::Object> options) = 0;
+    virtual result_t load(Buffer_base* source, v8::Local<v8::Object> options) = 0;
     virtual result_t get_inputEncoding(exlib::string& retVal) = 0;
     virtual result_t get_xmlStandalone(bool& retVal) = 0;
     virtual result_t set_xmlStandalone(bool newVal) = 0;
@@ -191,17 +191,19 @@ inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->load(v0);
+    hr = pInst->load(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->load(v0.get());
+    hr = pInst->load(v0.get(), v1);
 
     METHOD_VOID();
 }

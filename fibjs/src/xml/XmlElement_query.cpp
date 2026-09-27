@@ -1377,44 +1377,35 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                     SelectorList hasSelectorList;
                     if (parseSelectors(comp.hasContent, hasSelectorList)) {
                         for (const auto& complexSel : hasSelectorList.selectors) {
-                            std::function<bool(XmlElement*)> checkWithCombinators = [&](XmlElement* baseElement) -> bool {
-                                if (complexSel.selectors.empty()) {
-                                    return false;
-                                }
+                            if (complexSel.selectors.empty())
+                                continue;
 
-                                // For :has(), we start checking from the element's children
-                                obj_ptr<XmlNodeList_base> children;
-                                baseElement->get_childNodes(children);
-                                XmlNodeList* childList = children.As<XmlNodeList>();
+                            // The direct child combinator (>) only looks at the
+                            // immediate children; every other form matches any
+                            // descendant, which is what walkElements() visits
+                            // (document order, explicit stack: the recursive
+                            // form crashed the process on deep documents).
+                            if (complexSel.combinators.size() > 0 && complexSel.combinators[0].type == SELECTOR_CHILD) {
+                                std::vector<XmlNodeImpl*>& childs = element->m_childs->m_childs;
 
-                                for (XmlNodeImpl* child : childList->m_childs) {
-                                    if (child->m_type == xml_base::C_ELEMENT_NODE) {
-                                        XmlElement* childElement = static_cast<XmlElement*>(child->m_node);
-
-                                        // For direct child combinator (>), only check immediate children
-                                        if (complexSel.combinators.size() > 0 && complexSel.combinators[0].type == SELECTOR_CHILD) {
-                                            if (matchesSimpleSelector(childElement, complexSel.selectors[0], isXml)) {
-                                                return true;
-                                            }
-                                        } else {
-                                            // For descendant combinator or simple selector, check recursively
-                                            if (complexSel.selectors.size() > 0 && matchesSimpleSelector(childElement, complexSel.selectors[0], isXml)) {
-                                                return true;
-                                            }
-                                            // Also check descendants recursively
-                                            if (checkWithCombinators(childElement)) {
-                                                return true;
-                                            }
-                                        }
+                                for (size_t i = 0; i < childs.size(); i++)
+                                    if (childs[i]->m_type == xml_base::C_ELEMENT_NODE
+                                        && matchesSimpleSelector(static_cast<XmlElement*>(childs[i]->m_node), complexSel.selectors[0], isXml)) {
+                                        hasMatch = true;
+                                        break;
                                     }
-                                }
-                                return false;
-                            };
+                            } else
+                                walkElements(element, false, [&](XmlNodeImpl* node) -> bool {
+                                    if (matchesSimpleSelector(static_cast<XmlElement*>(node), complexSel.selectors[0], isXml)) {
+                                        hasMatch = true;
+                                        return true;
+                                    }
 
-                            if (checkWithCombinators(element)) {
-                                hasMatch = true;
+                                    return false;
+                                });
+
+                            if (hasMatch)
                                 break;
-                            }
                         }
                     }
                 }
@@ -1425,45 +1416,19 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                 SimpleSelector hasSelector;
                 hasSelector.components.push_back(hasComp);
 
-                // Recursively check all descendants
-                obj_ptr<XmlNodeList_base> descendants;
-                element->get_childNodes(descendants);
-                XmlNodeList* descendantList = descendants.As<XmlNodeList>();
-
-                std::function<bool(XmlElement*)> checkDescendants = [&](XmlElement* elem) -> bool {
-                    // Check current element
-                    if (matchesSimpleSelector(elem, hasSelector, isXml)) {
+                // Any descendant (the element's children and their subtrees),
+                // visited by the iterative walker.
+                walkElements(element, false, [&](XmlNodeImpl* node) -> bool {
+                    if (matchesSimpleSelector(static_cast<XmlElement*>(node), hasSelector, isXml)) {
+                        hasMatch = true;
                         return true;
                     }
 
-                    // Check children recursively
-                    obj_ptr<XmlNodeList_base> children;
-                    elem->get_childNodes(children);
-                    XmlNodeList* childList = children.As<XmlNodeList>();
-                    for (XmlNodeImpl* child : childList->m_childs) {
-                        if (child->m_type == xml_base::C_ELEMENT_NODE) {
-                            XmlElement* childElement = static_cast<XmlElement*>(child->m_node);
-                            if (checkDescendants(childElement)) {
-                                return true;
-                            }
-                        }
-                    }
                     return false;
-                };
+                });
 
-                for (XmlNodeImpl* child : descendantList->m_childs) {
-                    if (child->m_type == xml_base::C_ELEMENT_NODE) {
-                        XmlElement* childElement = static_cast<XmlElement*>(child->m_node);
-                        if (checkDescendants(childElement)) {
-                            hasMatch = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (hasMatch) {
+                if (hasMatch)
                     break;
-                }
             }
 
             if (!hasMatch) {

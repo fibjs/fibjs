@@ -28,7 +28,8 @@ interface DOMParser : object
     /*! @brief 将字符串解析为 DOM 文档
      @param string 要解析的 HTML 或 XML 字符串
      @param mimeType 指定文本类型，支持 "text/html", "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml"
+     @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
      @return 返回解析后的 XmlDocument 对象
     */
-    XmlDocument parseFromString(String string, String mimeType);
+    XmlDocument parseFromString(String string, String mimeType, Object options = {});
 };

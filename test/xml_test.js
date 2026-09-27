@@ -1,7 +1,15 @@
 if (typeof window === 'undefined') {
     var { describe, it, assert } = require('test');
+    var child_process = require('child_process');
     var xml = require('xml');
     var isBrowser = false;
+
+    function runFibjsEval(code, options) {
+        return child_process.execFileSync(process.execPath, ['-e', code], {
+            encoding: 'utf8',
+            ...options
+        }).trim();
+    }
 
     function newDoc() {
         return new xml.Document();
@@ -34,6 +42,15 @@ var parseHtml = (txt) => {
 var parse = (txt) => {
     const parser = new DOMParser();
     return parser.parseFromString(txt, "text/xml");
+};
+
+// fibjs bounds the depth and the node count of a parse by default (see the
+// options of xml.parse); the deep-document tests below raise the limits
+// explicitly, which is what a caller with a known-deep document has to do.
+// Browsers have neither the limits nor the native stack they protect.
+var parseDeep = (txt, depth) => {
+    const parser = new DOMParser();
+    return parser.parseFromString(txt, "text/xml", { maxElementDepth: depth, maxNodeCount: depth * 4 });
 };
 
 // Helper function for testing CharacterData interface
@@ -5256,9 +5273,12 @@ describe('xml', () => {
 
         // The query walks used to be recursive (2 C++ frames per level) and
         // killed the process with SIGSEGV at ~2500 levels instead of raising.
+        // fibjs bounds the depth of a parse by default, so the deep tests raise
+        // the limit explicitly -- that is the documented escape hatch of
+        // maxElementDepth.
         it('should query a 20000 level deep document without crashing', { skip: isBrowser }, () => {
             const depth = 20000;
-            const doc = parse('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>');
+            const doc = parseDeep('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>', depth + 2);
 
             assert.equal(doc.getElementsByTagName('*').length, depth + 2);
             assert.equal(doc.getElementsByTagName('d').length, depth);
@@ -5275,6 +5295,164 @@ describe('xml', () => {
             const doc = parse('<root>' + '<d>'.repeat(depth) + '<t>deep</t>' + '</d>'.repeat(depth) + '</root>');
 
             assert.equal(doc.documentElement.textContent, 'deep');
+        });
+
+        // Regression guard for XmlTreeWalk.h: every traversal of the module used
+        // to recurse once per level, so each of the operations below killed the
+        // process (SIGBUS/SIGSEGV, no JS exception) somewhere between 1200 and
+        // 20000 levels.  A new recursive helper fails this test.
+        it('should run every traversal on a 20000 level document', { skip: isBrowser }, () => {
+            const depth = 20000;
+            const text = '<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>';
+            const doc = parseDeep(text, depth + 2);
+            const root = doc.documentElement;
+
+            // serializer: toString, the XML serializer, innerHTML
+            assert.equal(doc.toString(), text);
+            assert.equal(serialize(doc), text);
+            assert.equal(root.innerHTML, '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth));
+
+            // deep clone, and the pairwise comparison that walks both trees
+            const copy = doc.cloneNode(true);
+            assert.equal(copy.getElementsByTagName('*').length, depth + 2);
+            assert.equal(doc.isEqualNode(copy), true);
+            copy.documentElement.setAttribute('mark', 'x');
+            assert.equal(doc.isEqualNode(copy), false);
+
+            // normalize (walks every child list), textContent, :has() matcher
+            doc.normalize();
+            assert.equal(root.textContent, '');
+            assert.equal(doc.querySelectorAll(':has(leaf)').length, depth + 1);
+            assert.equal(doc.querySelectorAll('d:has(leaf)').length, depth);
+
+            // teardown of a deep subtree
+            doc.removeChild(root);
+            assert.equal(doc.getElementsByTagName('*').length, 0);
+        });
+
+        it('should normalize a deep document without recursion', { skip: isBrowser }, () => {
+            const depth = 20000;
+            const doc = parseDeep('<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>', depth + 2);
+            const leaf = doc.getElementsByTagName('d').item(depth - 1);
+
+            // adjacent text nodes cannot come out of the parser (it appends to
+            // the open text node), so they are built through the DOM
+            leaf.appendChild(doc.createTextNode('a'));
+            leaf.appendChild(doc.createTextNode('b'));
+            leaf.appendChild(doc.createTextNode(''));
+
+            doc.normalize();
+
+            assert.equal(leaf.childNodes.length, 1);
+            assert.equal(leaf.firstChild.data, 'ab');
+        });
+
+        it('should move a deep subtree across documents without recursion', { skip: isBrowser }, () => {
+            const depth = 20000;
+            const src = parseDeep('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>', depth + 2);
+            const dst = newDoc();
+
+            const adopted = dst.adoptNode(src.documentElement);
+            assert.equal(adopted.getElementsByTagName('d').length, depth);
+            assert.equal(adopted.ownerDocument, dst);
+
+            const copy = dst.importNode(adopted, true);
+            assert.equal(copy.getElementsByTagName('*').length, depth + 1);
+            assert.equal(copy.ownerDocument, dst);
+        });
+
+        // The tree builder is iterative (XmlTreeWalk.h), and the vendored
+        // gumbo teardown is flattened too, so html now reaches the same deep
+        // nesting as xml.  The default limit is still 1000.
+        it('should parse a deep html document without recursion', { skip: isBrowser }, () => {
+            const depth = 20000;
+            const doc = xml.parse('<div>'.repeat(depth) + 'x' + '</div>'.repeat(depth), 'text/html', { maxElementDepth: depth + 10, maxNodeCount: depth * 4 });
+
+            assert.equal(doc.getElementsByTagName('div').length, depth);
+            assert.equal(doc.body.textContent, 'x');
+        });
+
+        // Dedicated gumbo regression: if the vendored HTML parser/tree teardown
+        // goes back to recursive form, this path crashes the process outright.
+        // Run it in a subprocess so the failure is reported as one red test
+        // instead of killing the whole suite.
+        it('should parse and tear down a deep html document in a subprocess', { skip: isBrowser }, () => {
+            const output = runFibjsEval(`
+                const xml = require('xml');
+                const depth = 20000;
+                const doc = xml.parse('<div>'.repeat(depth) + 'x' + '</div>'.repeat(depth), 'text/html', {
+                    maxElementDepth: depth + 10,
+                    maxNodeCount: depth * 4
+                });
+                console.log(doc.getElementsByTagName('div').length + ':' + doc.body.textContent);
+            `);
+
+            assert.equal(output, '20000:x');
+        });
+
+        // The default limits are what keeps an untrusted document from
+        // allocating unbounded memory or nesting deeper than the traversals can
+        // handle; both are reported as ordinary JS errors.
+        it('should reject a document deeper than maxElementDepth', { skip: isBrowser }, () => {
+            const depth = 5000;
+            const text = '<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>';
+
+            assert.throws(() => parse(text), /maxElementDepth/);
+
+            // 0 and negative values disable the limit, a larger one allows the
+            // document through
+            assert.equal(parseDeep(text, depth + 2).getElementsByTagName('*').length, depth + 1);
+            assert.equal(xml.parse(text, 'text/xml', { maxElementDepth: 0 }).getElementsByTagName('*').length, depth + 1);
+            assert.equal(xml.parse(text, 'text/xml', { maxElementDepth: -1 }).getElementsByTagName('*').length, depth + 1);
+            assert.equal(xml.parse(text, 'text/xml', { maxElementDepth: Infinity }).getElementsByTagName('*').length, depth + 1);
+        });
+
+        it('should reject a document with more nodes than maxNodeCount', { skip: isBrowser }, () => {
+            const text = '<root>' + '<i/>'.repeat(5000) + '</root>';
+
+            assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), /maxNodeCount/);
+            // attributes count as nodes
+            assert.throws(() => xml.parse('<root>' + '<i a="1" b="2" c="3"/>'.repeat(100) + '</root>', 'text/xml', { maxNodeCount: 150 }), /maxNodeCount/);
+            assert.equal(xml.parse(text, 'text/xml', { maxNodeCount: 0 }).getElementsByTagName('*').length, 5001);
+            assert.equal(xml.parse(text, 'text/xml', {}).getElementsByTagName('*').length, 5001);
+        });
+
+        it('should reject a non numeric limit', { skip: isBrowser }, () => {
+            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxElementDepth: 'deep' }), /maxElementDepth/);
+            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxNodeCount: 'many' }), /maxNodeCount/);
+        });
+
+        it('should apply the limits to the html parser and to load()', { skip: isBrowser }, () => {
+            const html = '<div>'.repeat(2000) + '</div>'.repeat(2000);
+            assert.throws(() => xml.parse(html, 'text/html'), /maxElementDepth/);
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), /maxElementDepth/);
+
+            // a rejected XML load leaves the partial tree behind (expat feeds
+            // the document as it goes, and that partial tree then owns the
+            // document element), so the accepted load needs its own document
+            const rejected = newDoc();
+            assert.throws(() => rejected.load(html), /maxElementDepth/);
+
+            const doc = newDoc();
+            doc.load(html, { maxElementDepth: 3000 });
+            assert.equal(doc.getElementsByTagName('div').length, 2000);
+
+            const htmlDoc = newHtmlDoc();
+            assert.throws(() => htmlDoc.load(html), /maxElementDepth/);
+            htmlDoc.load(html, { maxElementDepth: 3000 });
+            assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
+        });
+
+        it('should apply maxNodeCount to the html parser too', { skip: isBrowser }, () => {
+            const html = '<div data-x="1"></div>'.repeat(2000);
+
+            assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), /maxNodeCount/);
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html', { maxNodeCount: 1000 }), /maxNodeCount/);
+
+            const htmlDoc = newHtmlDoc();
+            assert.throws(() => htmlDoc.load(html, { maxNodeCount: 1000 }), /maxNodeCount/);
+            htmlDoc.load(html, { maxNodeCount: 10000 });
+            assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });
     });
 

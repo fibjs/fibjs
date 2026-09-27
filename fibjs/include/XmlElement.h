@@ -15,6 +15,7 @@
 #include "XmlNodeMixin.h"
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
+#include "XmlTreeWalk.h"
 #include "StringBuffer.h"
 #include "parse.h"
 
@@ -68,6 +69,16 @@ public:
     // object_base
     virtual result_t toString(exlib::string& retVal);
     result_t toXmlString(exlib::string& retVal);
+
+    // Markup of this element without / after its children.  Serialization is
+    // driven by XmlNodeImpl::serializeTo(), which keeps an explicit stack: the
+    // recursive form called child->toString() from XmlElement::toString(), i.e.
+    // 2 C++ frames per tree level, and a 1200 level document killed the process
+    // with SIGBUS instead of raising a JS error.
+    // writeOpen() emits the complete markup of a childless element, so
+    // writeClose() is only called for elements that have children.
+    void writeOpen(exlib::string& out, bool xmlMode);
+    void writeClose(exlib::string& out);
 
 public:
     // XmlNode_base - custom implementations
@@ -157,20 +168,28 @@ public:
     virtual result_t toggleAttribute(exlib::string name, bool force, bool& retVal);
 
 public:
+    // Default namespace in scope for this element (the parser uses it for
+    // unprefixed tags, the serializer to decide whether an xmlns="..."
+    // attribute can be omitted).  Iterative for the same reason as
+    // lookupNamespaceURI(): the recursive form cost one C++ frame per ancestor
+    // and a deep document overflowed the native stack.
     result_t get_defaultNamespace(exlib::string& def_ns)
     {
-        if (m_prefix.empty()) {
-            def_ns = m_namespaceURI;
-            return 0;
-        }
+        XmlNodeImpl* p = this;
 
-        result_t hr = getAttribute("xmlns", def_ns);
-        if (hr == CALL_RETURN_NULL && m_parent) {
-            int32_t type;
+        while (p && p->m_type == xml_base::C_ELEMENT_NODE) {
+            XmlElement* el = (XmlElement*)p->m_node;
 
-            m_parent->get_nodeType(type);
-            if (type == xml_base::C_ELEMENT_NODE)
-                return ((XmlElement*)m_parent->m_node)->get_defaultNamespace(def_ns);
+            if (el->m_prefix.empty()) {
+                def_ns = el->m_namespaceURI;
+                return 0;
+            }
+
+            result_t hr = el->getAttribute("xmlns", def_ns);
+            if (hr != CALL_RETURN_NULL)
+                return 0;
+
+            p = p->m_parent;
         }
 
         return 0;

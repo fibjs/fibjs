@@ -23,7 +23,7 @@ class DOMParser_base : public object_base {
 public:
     // DOMParser_base
     static result_t _new(obj_ptr<DOMParser_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parseFromString(exlib::string string, exlib::string mimeType, obj_ptr<XmlDocument_base>& retVal) = 0;
+    virtual result_t parseFromString(exlib::string string, exlib::string mimeType, v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -90,12 +90,13 @@ inline void DOMParser_base::s_parseFromString(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(DOMParser_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->parseFromString(v0, v1, vr);
+    hr = pInst->parseFromString(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

@@ -22,6 +22,9 @@ namespace fibjs {
 
 void XmlParser::newNode(XmlNode_base* node, bool enter)
 {
+    if (!countNodes(1))
+        return;
+
     obj_ptr<XmlNode_base> out;
     m_now->appendChild(node, out);
 
@@ -29,6 +32,54 @@ void XmlParser::newNode(XmlNode_base* node, bool enter)
         m_now = node;
         m_list.push_back(m_now);
     }
+}
+
+// " at line N" when expat is parsing (it tracks the position), empty for the
+// HTML tree builder, which has no line information.
+exlib::string XmlParser::location()
+{
+    char buf[64];
+
+    if (!m_xml_parser)
+        return exlib::string();
+
+    snprintf(buf, sizeof(buf), " at line %lu", XML_GetCurrentLineNumber((XML_Parser)m_xml_parser));
+    return exlib::string(buf);
+}
+
+void XmlParser::abort(exlib::string msg)
+{
+    if (m_aborted)
+        return;
+
+    m_aborted = true;
+    m_abort_msg = msg;
+
+    // Stop expat from feeding more callbacks; XML_Parse() then returns
+    // XML_ERROR_ABORTED and parse() reports m_abort_msg instead.  The HTML tree
+    // builder has no such switch: it checks aborted() and stops descending.
+    if (m_xml_parser)
+        XML_StopParser((XML_Parser)m_xml_parser, XML_FALSE);
+}
+
+bool XmlParser::countNodes(int64_t count)
+{
+    if (m_limits.max_node_count <= 0)
+        return true;
+
+    m_node_count += count;
+
+    if (m_node_count > m_limits.max_node_count) {
+        char msg[192];
+
+        snprintf(msg, sizeof(msg), "XmlParser: too many nodes, maxNodeCount is %lld%s",
+            (long long)m_limits.max_node_count, location().c_str());
+        abort(msg);
+
+        return false;
+    }
+
+    return true;
 }
 
 void XmlParser::leaveNode()
@@ -56,6 +107,18 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
     std::unordered_map<exlib::string, exlib::string> nss;
     exlib::string def_ns;
     bool has_def = false;
+
+    // m_list holds the open nodes with the document at the bottom, so its size
+    // is the depth this element is about to have (the document element is 1).
+    if (m_limits.max_element_depth > 0 && (int32_t)m_list.size() > m_limits.max_element_depth) {
+        char msg[192];
+
+        snprintf(msg, sizeof(msg), "XmlParser: document is nested too deeply, maxElementDepth is %d%s",
+            m_limits.max_element_depth, location().c_str());
+        abort(msg);
+
+        return;
+    }
 
     while (p[0] && p[1]) {
         const XML_Char* ns = p[0];
@@ -98,8 +161,15 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
 
     newNode(el, true);
 
+    if (m_aborted)
+        return;
+
     while (atts[0] && atts[1]) {
         name = atts[0];
+
+        // attributes are nodes too, and a document can carry millions of them
+        if (!countNodes(1))
+            return;
 
         str = qstrchr(name, ':');
         if (str && str[1]) {
@@ -177,14 +247,18 @@ void XmlParser::OnEndCdataSection()
     leaveNode();
 }
 
-result_t XmlParser::parse(XmlDocument* doc, exlib::string source)
+result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParseLimits& limits)
 {
-    XmlParser parser(doc, true);
+    XmlParser parser(doc, true, limits);
 
     parser.m_now = doc;
     parser.m_list.push_back(doc);
 
     XML_Parser xml_parser = XML_ParserCreate(NULL);
+    if (!xml_parser)
+        return CHECK_ERROR(Runtime::setError("XmlParser: unable to create Expat parser."));
+
+    parser.m_xml_parser = (XML_ParserStruct*)xml_parser;
 
     XML_SetParamEntityParsing(xml_parser, XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE);
     XML_SetUserData(xml_parser, &parser);
@@ -199,11 +273,20 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source)
 
     if (XML_Parse(xml_parser, source.c_str(), (int32_t)source.length(), true) != XML_STATUS_OK) {
         char msg[128];
+
+        // read the position and the error before freeing the parser
         snprintf(msg, sizeof(msg), "XmlParser: error on line %lu at column %lu: %s", XML_GetCurrentLineNumber(xml_parser),
             XML_GetCurrentColumnNumber(xml_parser) + 1,
             XML_ErrorString(XML_GetErrorCode(xml_parser)));
 
         XML_ParserFree(xml_parser);
+        parser.m_xml_parser = NULL;
+
+        // A limit aborted the parse; report the limit, not expat's "aborted"
+        // error code.
+        if (parser.m_aborted)
+            return CHECK_ERROR(Runtime::setError(parser.m_abort_msg));
+
         return CHECK_ERROR(Runtime::setError(msg));
     }
 

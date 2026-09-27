@@ -17,6 +17,7 @@
 #include "XmlDocumentFragment.h"
 #include "XmlParser.h"
 #include "encoding_conv.h"
+#include <cmath>
 
 namespace fibjs {
 
@@ -39,28 +40,91 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     return 0;
 }
 
-result_t xml_base::parse(exlib::string source, exlib::string type, obj_ptr<XmlDocument_base>& retVal)
+result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
 {
-    bool isXml = type == "text/xml";
+    limits = XmlParseLimits();
 
-    if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
+    if (options.IsEmpty() || !options->IsObject())
+        return 0;
 
-    retVal = new XmlDocument(isXml);
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
-    return retVal->load(source);
+    // One numeric limit: a missing/null property keeps its default, a
+    // non-number is rejected and a non-finite value (Infinity) disables the
+    // limit, as 0 and negative values do.
+    auto read = [&](const char* name, double& out) -> result_t {
+        v8::Local<v8::Value> v;
+
+        if (!options->Get(context, isolate->NewString(name)).ToLocal(&v) || v->IsUndefined() || v->IsNull())
+            return 0;
+
+        if (!v->IsNumber())
+            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "xml: option '%s' must be a number.", name));
+
+        double d = v->NumberValue(context).FromMaybe(0);
+
+        out = std::isfinite(d) ? d : 0;
+
+        return 0;
+    };
+
+    double depth = limits.max_element_depth;
+    double nodes = (double)limits.max_node_count;
+    result_t hr;
+
+    hr = read("maxElementDepth", depth);
+    if (hr < 0)
+        return hr;
+
+    hr = read("maxNodeCount", nodes);
+    if (hr < 0)
+        return hr;
+
+    limits.max_element_depth = (int32_t)depth;
+    limits.max_node_count = (int64_t)nodes;
+
+    return 0;
 }
 
-result_t xml_base::parse(Buffer_base* source, exlib::string type, obj_ptr<XmlDocument_base>& retVal)
+result_t xml_base::parse(exlib::string source, exlib::string type, v8::Local<v8::Object> options,
+    obj_ptr<XmlDocument_base>& retVal)
 {
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
 
-    retVal = new XmlDocument(isXml);
+    XmlParseLimits limits;
+    result_t hr = getParseLimits(options, limits);
+    if (hr < 0)
+        return hr;
 
-    return retVal->load(source);
+    // XmlDocument is the only XmlDocument_base implementation in this module
+    // (same assumption as XmlNodeImpl::document()).
+    obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
+    retVal = doc;
+
+    return doc->load(source, limits);
+}
+
+result_t xml_base::parse(Buffer_base* source, exlib::string type, v8::Local<v8::Object> options,
+    obj_ptr<XmlDocument_base>& retVal)
+{
+    bool isXml = type == "text/xml";
+
+    if (!isXml && (type != "text/html"))
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
+
+    XmlParseLimits limits;
+    result_t hr = getParseLimits(options, limits);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
+    retVal = doc;
+
+    return doc->load(source, limits);
 }
 
 result_t xml_base::serialize(XmlNode_base* node, exlib::string& retVal)
@@ -220,18 +284,38 @@ result_t XmlDocument::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::cloneNode(doc, deep, retVal);
 }
 
-result_t XmlDocument::load(exlib::string source)
+result_t XmlDocument::load(exlib::string source, v8::Local<v8::Object> options)
+{
+    XmlParseLimits limits;
+    result_t hr = getParseLimits(options, limits);
+    if (hr < 0)
+        return hr;
+
+    return load(source, limits);
+}
+
+result_t XmlDocument::load(exlib::string source, const XmlParseLimits& limits)
 {
     if (m_isXml)
-        return XmlParser::parse(this, source);
+        return XmlParser::parse(this, source, limits);
 
     m_childs->removeAll();
     m_element.Release();
 
-    return XmlParser::parseHtml(this, source);
+    return XmlParser::parseHtml(this, source, limits);
 }
 
-result_t XmlDocument::load(Buffer_base* source)
+result_t XmlDocument::load(Buffer_base* source, v8::Local<v8::Object> options)
+{
+    XmlParseLimits limits;
+    result_t hr = getParseLimits(options, limits);
+    if (hr < 0)
+        return hr;
+
+    return load(source, limits);
+}
+
+result_t XmlDocument::load(Buffer_base* source, const XmlParseLimits& limits)
 {
     exlib::string strBuf;
     result_t hr;
@@ -307,7 +391,7 @@ result_t XmlDocument::load(Buffer_base* source)
         }
     }
 
-    hr = load(strBuf);
+    hr = load(strBuf, limits);
     if (hr < 0)
         return hr;
 

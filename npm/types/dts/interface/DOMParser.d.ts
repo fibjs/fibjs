@@ -35,10 +35,11 @@ declare class Class_DOMParser extends Class_object {
      * @description 将字符串解析为 DOM 文档
      *      @param string 要解析的 HTML 或 XML 字符串
      *      @param mimeType 指定文本类型，支持 "text/html", "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml"
+     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *      @return 返回解析后的 XmlDocument 对象
      *
      */
-    parseFromString(string: string, mimeType: string): Class_XmlDocument;
+    parseFromString(string: string, mimeType: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
 }
 

@@ -21,7 +21,7 @@ result_t DOMParser_base::_new(obj_ptr<DOMParser_base>& retVal, v8::Local<v8::Obj
 }
 
 result_t DOMParser::parseFromString(exlib::string str, exlib::string mimeType,
-    obj_ptr<XmlDocument_base>& retVal)
+    v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal)
 {
     exlib::string type;
 
@@ -34,7 +34,7 @@ result_t DOMParser::parseFromString(exlib::string str, exlib::string mimeType,
         return CHECK_ERROR(Runtime::setError("DOMParser: Invalid MIME type: " + mimeType));
     }
 
-    return xml_base::parse(str, type, retVal);
+    return xml_base::parse(str, type, options, retVal);
 }
 
 } // namespace fibjs

@@ -50,16 +50,18 @@ declare class Class_XmlDocument extends Class_XmlNode {
     /**
      * @description 通过解析一个 XML/HTML 字符串来组成该文档，不支持多语种
      *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
+     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
-    load(source: string): void;
+    load(source: string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description 通过解析一个二进制 XML/HTML 字符串来组成该文档，并根据语种自动转换
      *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
+     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
-    load(source: Class_Buffer): void;
+    load(source: Class_Buffer, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description 返回用于文档的编码（在解析时）

@@ -146,6 +146,12 @@ public:
         return 0;
     }
 
+    // Serialize this node into retVal without recursion (see XmlNodeImpl.cpp).
+    // xmlMode selects the XML rules of XmlElement::toXmlString() over the legacy
+    // form of XmlElement::toString(); the two differ only in how a childless
+    // HTML element is closed.
+    void serializeTo(exlib::string& retVal, bool xmlMode);
+
     static const char* s_nss[][2];
     static bool globalNamespaceURI(exlib::string prefix, exlib::string& retVal)
     {
@@ -179,11 +185,27 @@ public:
     void setDocument(XmlDocument_base* doc)
     {
         if (m_document != doc) {
-            m_document = doc;
+            // Owner-document propagation used to recurse once per tree level,
+            // so moving a deep subtree across documents (adoptNode,
+            // importNode, appendChild between documents) could still overflow
+            // the native stack after the other deep-tree walks were flattened.
+            // Keep the same pre-order rewrite with an explicit stack.
+            std::vector<XmlNodeImpl*> stack;
+            stack.push_back(this);
 
-            int32_t sz = (int32_t)m_childs->m_childs.size();
-            for (int32_t i = 0; i < sz; i++)
-                m_childs->m_childs[i]->setDocument(doc);
+            while (!stack.empty()) {
+                XmlNodeImpl* node = stack.back();
+                stack.pop_back();
+
+                if (node->m_document == doc)
+                    continue;
+
+                node->m_document = doc;
+
+                std::vector<XmlNodeImpl*>& childs = node->m_childs->m_childs;
+                for (size_t i = childs.size(); i > 0; i--)
+                    stack.push_back(childs[i - 1]);
+            }
         }
     }
 
@@ -496,44 +518,39 @@ public:
         return 0;
     }
 
-    result_t isEqualNode(XmlNode_base* other, bool& retVal)
+    // Node-by-node comparison used by isEqualNode(): type, name, value,
+    // attributes (elements) and the child count.  The children themselves are
+    // compared by the caller, which walks both subtrees in lockstep.
+    bool isEqualNodeSelf(XmlNodeImpl* other)
     {
-        retVal = false;
-
-        if (!other)
-            return 0;
-
-        // Check node type
-        int32_t otherType;
-        other->get_nodeType(otherType);
-        if (otherType != m_type)
-            return 0;
+        if (other->m_type != m_type)
+            return false;
 
         // Check node name
         exlib::string thisName, otherName;
         m_node->get_nodeName(thisName);
-        other->get_nodeName(otherName);
+        other->m_node->get_nodeName(otherName);
         if (thisName != otherName)
-            return 0;
+            return false;
 
         // Check node value
         exlib::string thisValue, otherValue;
         m_node->get_nodeValue(thisValue);
-        other->get_nodeValue(otherValue);
+        other->m_node->get_nodeValue(otherValue);
         if (thisValue != otherValue)
-            return 0;
+            return false;
 
         // For Element nodes, compare attributes
         if (m_type == xml_base::C_ELEMENT_NODE) {
             obj_ptr<XmlNamedNodeMap_base> thisAttrs, otherAttrs;
             ((XmlElement_base*)m_node)->get_attributes(thisAttrs);
-            ((XmlElement_base*)other)->get_attributes(otherAttrs);
+            ((XmlElement_base*)other->m_node)->get_attributes(otherAttrs);
 
             int32_t thisAttrLen, otherAttrLen;
             thisAttrs->get_length(thisAttrLen);
             otherAttrs->get_length(otherAttrLen);
             if (thisAttrLen != otherAttrLen)
-                return 0;
+                return false;
 
             // Compare each attribute
             for (int32_t i = 0; i < thisAttrLen; i++) {
@@ -548,38 +565,66 @@ public:
                 obj_ptr<XmlAttr_base> otherAttr;
                 otherAttrs->getNamedItem(attrName, otherAttr);
                 if (!otherAttr)
-                    return 0;
+                    return false;
 
                 otherAttr->get_value(otherAttrValue);
                 if (thisAttrValue != otherAttrValue)
-                    return 0;
+                    return false;
             }
         }
 
-        // Check children count
-        obj_ptr<XmlNodeList_base> thisChildren, otherChildren;
-        m_node->get_childNodes(thisChildren);
-        other->get_childNodes(otherChildren);
+        return m_childs->m_childs.size() == other->m_childs->m_childs.size();
+    }
 
-        int32_t thisLen, otherLen;
-        thisChildren->get_length(thisLen);
-        otherChildren->get_length(otherLen);
-        if (thisLen != otherLen)
+    result_t isEqualNode(XmlNode_base* other, bool& retVal)
+    {
+        retVal = false;
+
+        if (!other)
             return 0;
 
-        // Compare children recursively
-        for (int32_t i = 0; i < thisLen; i++) {
-            obj_ptr<XmlNode_base> thisChild, otherChild;
-            thisChildren->item(i, thisChild);
-            otherChildren->item(i, otherChild);
+        XmlNodeImpl* otherImpl = fromNode(other);
+        if (!otherImpl)
+            return 0;
 
-            bool childEqual;
-            XmlNodeImpl* thisImpl = fromNode(thisChild);
-            if (!thisImpl)
+        // Pairwise walk.  Comparing two subtrees used to recurse once per level
+        // (2 C++ frames) and killed the process on a deep document; this is the
+        // one traversal that cannot use walkTree() (XmlTreeWalk.h), because the
+        // walker moves through a single tree while every frame here holds a
+        // node of *each* tree, in lockstep.  Same explicit-stack shape: one
+        // frame per level, O(depth) memory.
+        struct Frame {
+            XmlNodeImpl* a;
+            XmlNodeImpl* b;
+            size_t index;
+        };
+
+        if (!isEqualNodeSelf(otherImpl))
+            return 0;
+
+        std::vector<Frame> stack;
+        stack.push_back(Frame { this, otherImpl, 0 });
+
+        while (!stack.empty()) {
+            Frame& frame = stack.back();
+            std::vector<XmlNodeImpl*>& aChilds = frame.a->m_childs->m_childs;
+            std::vector<XmlNodeImpl*>& bChilds = frame.b->m_childs->m_childs;
+
+            // isEqualNodeSelf() already rejected unequal child counts
+            if (frame.index >= aChilds.size()) {
+                stack.pop_back();
+                continue;
+            }
+
+            XmlNodeImpl* aChild = aChilds[frame.index];
+            XmlNodeImpl* bChild = bChilds[frame.index];
+            frame.index++;
+
+            if (!aChild->isEqualNodeSelf(bChild))
                 return 0;
-            thisImpl->isEqualNode(otherChild, childEqual);
-            if (!childEqual)
-                return 0;
+
+            if (aChild->m_childs->hasChildNodes())
+                stack.push_back(Frame { aChild, bChild, 0 });
         }
 
         retVal = true;
@@ -601,55 +646,9 @@ public:
     int32_t m_index;
 };
 
-// Iterative pre-order (document order) walk over an element subtree.
-//
-// The recursive query implementations used ~2 C++ frames per tree level and
-// overflowed the stack on deep documents (2500 levels already crash a release
-// build), killing the process with SIGSEGV instead of raising a JS error.  This
-// walker keeps the exact same order -- a node is visited before its children,
-// children in vector order -- using an explicit stack.
-//
-// The stack holds one frame per *level* (node + child cursor), not one entry
-// per pending sibling, so a document with millions of siblings in one parent
-// costs O(depth) memory instead of O(width).
-//
-// includeSelf: visit `root` itself first (document-level queries), or only its
-//              element descendants (element-level queries, per CSS spec).
-// fn:          called for every element node; return true to stop the walk
-//              early (used by querySelector / getFirstElementsByTagName).
-template <typename Fn>
-void walkElements(XmlNodeImpl* root, bool includeSelf, Fn&& fn)
-{
-    struct Frame {
-        XmlNodeImpl* node;
-        size_t index;
-    };
-
-    std::vector<Frame> stack;
-
-    if (includeSelf && fn(root))
-        return;
-
-    stack.push_back(Frame { root, 0 });
-
-    while (!stack.empty()) {
-        Frame& frame = stack.back();
-        std::vector<XmlNodeImpl*>& childs = frame.node->m_childs->m_childs;
-
-        if (frame.index >= childs.size()) {
-            stack.pop_back();
-            continue;
-        }
-
-        XmlNodeImpl* child = childs[frame.index++];
-        if (child->m_type != xml_base::C_ELEMENT_NODE)
-            continue;
-
-        if (fn(child))
-            return;
-
-        stack.push_back(Frame { child, 0 });
-    }
-}
+// Every traversal over this tree lives in XmlTreeWalk.h (walkTree /
+// walkElements): they keep an explicit stack of O(depth) frames, because a
+// recursive walk over a deep document overflows the native stack and kills the
+// process instead of raising a JS error.  Do not add a recursive helper here.
 
 } /* namespace fibjs */

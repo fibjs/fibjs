@@ -9,6 +9,7 @@
 
 #include "ifs/XmlDocument.h"
 #include "XmlNodeMixin.h"
+#include "XmlParseLimits.h"
 #include <unordered_map>
 #include <vector>
 
@@ -58,8 +59,8 @@ public:
 
 public:
     // XmlDocument_base
-    virtual result_t load(exlib::string source);
-    virtual result_t load(Buffer_base* source);
+    virtual result_t load(exlib::string source, v8::Local<v8::Object> options = v8::Local<v8::Object>());
+    virtual result_t load(Buffer_base* source, v8::Local<v8::Object> options = v8::Local<v8::Object>());
     virtual result_t get_inputEncoding(exlib::string& retVal);
     virtual result_t get_xmlStandalone(bool& retVal);
     virtual result_t set_xmlStandalone(bool newVal);
@@ -95,6 +96,12 @@ public:
     }
 
     void create_root();
+
+    // Parse with explicit limits (XmlParseLimits.h).  The IDL-facing overloads
+    // above read them from their options argument; these are what the parser
+    // and the callers inside the module use.
+    result_t load(exlib::string source, const XmlParseLimits& limits);
+    result_t load(Buffer_base* source, const XmlParseLimits& limits);
 
 public:
     // ------------------------------------------------------------------

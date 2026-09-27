@@ -85,18 +85,37 @@ result_t XmlElement::set_textContent(exlib::string newVal)
     return 0;
 }
 
+// Both lookups walk up the ancestor chain looking for an xmlns declaration.
+// The walk is iterative on purpose: the previous form
+// (XmlElement -> XmlNodeImpl -> parent node -> XmlElement) spent 2+ C++ frames
+// per level, and the parser resolves every undeclared prefix this way while
+// opening a tag, so a deep prefixed document (~2700 levels) overflowed the
+// native stack and killed the process with no JS error at all.
+// Non-element ancestors (document, document fragment) carry no namespace
+// declarations and end the walk, which is what the recursive form did through
+// their own lookupNamespaceURI() implementations.
 result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
         return 0;
 
-    result_t hr = m_attrs->lookupPrefix(namespaceURI, retVal);
-    if (hr < 0)
-        return hr;
-    if (hr != CALL_RETURN_NULL)
-        return retVal.empty() ? CALL_RETURN_NULL : 0;
+    XmlNodeImpl* p = this;
 
-    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+    while (p->m_type == xml_base::C_ELEMENT_NODE) {
+        XmlElement* el = (XmlElement*)p->m_node;
+        result_t hr = el->m_attrs->lookupPrefix(namespaceURI, retVal);
+
+        if (hr < 0)
+            return hr;
+        if (hr != CALL_RETURN_NULL)
+            return retVal.empty() ? CALL_RETURN_NULL : 0;
+
+        p = p->m_parent;
+        if (!p)
+            break;
+    }
+
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
@@ -104,13 +123,23 @@ result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& ret
     if (globalNamespaceURI(prefix, retVal))
         return 0;
 
-    result_t hr = m_attrs->lookupNamespaceURI(prefix, retVal);
-    if (hr < 0)
-        return hr;
-    if (hr != CALL_RETURN_NULL)
-        return retVal.empty() ? CALL_RETURN_NULL : 0;
+    XmlNodeImpl* p = this;
 
-    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
+    while (p->m_type == xml_base::C_ELEMENT_NODE) {
+        XmlElement* el = (XmlElement*)p->m_node;
+        result_t hr = el->m_attrs->lookupNamespaceURI(prefix, retVal);
+
+        if (hr < 0)
+            return hr;
+        if (hr != CALL_RETURN_NULL)
+            return retVal.empty() ? CALL_RETURN_NULL : 0;
+
+        p = p->m_parent;
+        if (!p)
+            break;
+    }
+
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -609,78 +638,37 @@ static bool is_self_closing_tag(const char* tagName)
     return false;
 }
 
+// Both entry points serialize through XmlNodeImpl::serializeTo(), which walks
+// the subtree with an explicit stack; the recursive form overflowed the native
+// stack on a deep document (see writeOpen below).  They differ only in how a
+// childless HTML element is closed.
 result_t XmlElement::toString(exlib::string& retVal)
 {
-    retVal = "<";
-
-    exlib::string tagName(m_tagName);
-
-    if (!m_isXml)
-        exlib::qstrlwr(tagName);
-
-    if (m_prefix.empty()) {
-        if (!m_namespaceURI.empty()) {
-            bool skip_def_ns = false;
-
-            if (m_parent) {
-                int32_t type;
-
-                m_parent->get_nodeType(type);
-                if (type == xml_base::C_ELEMENT_NODE) {
-                    exlib::string def_ns;
-                    ((XmlElement*)m_parent->m_node)->get_defaultNamespace(def_ns);
-
-                    if (def_ns == m_namespaceURI)
-                        skip_def_ns = true;
-                }
-            }
-
-            if (!skip_def_ns)
-                setAttribute("xmlns", m_namespaceURI);
-        }
-        retVal.append(tagName);
-    } else {
-        fix_prefix(m_namespaceURI, m_prefix);
-
-        retVal.append(m_prefix);
-        retVal += ':';
-        retVal.append(m_localName);
-    }
-
-    exlib::string strAttr;
-    m_attrs->toString(strAttr);
-    retVal.append(strAttr);
-
-    if (m_childs->hasChildNodes()) {
-        exlib::string strChild;
-        m_childs->toString(strChild);
-
-        retVal += '>';
-        retVal.append(strChild);
-        retVal.append("</");
-        retVal.append(tagName);
-        retVal += '>';
-    } else if (!m_isXml) {
-        retVal += '>';
-        if (!is_self_closing_tag(tagName.c_str())) {
-            retVal.append("</");
-            retVal.append(tagName);
-            retVal += '>';
-        }
-    } else
-        retVal.append("/>");
+    retVal.clear();
+    serializeTo(retVal, false);
 
     return 0;
 }
 
 result_t XmlElement::toXmlString(exlib::string& retVal)
 {
-    retVal = "<";
+    retVal.clear();
+    serializeTo(retVal, true);
 
+    return 0;
+}
+
+// Markup before the children: the open tag, its attributes and -- for a
+// childless element -- the complete element, so that the driver only calls
+// writeClose() for elements it actually descended into.
+void XmlElement::writeOpen(exlib::string& out, bool xmlMode)
+{
     exlib::string tagName(m_tagName);
 
     if (!m_isXml)
         exlib::qstrlwr(tagName);
+
+    out += '<';
 
     if (m_prefix.empty()) {
         if (!m_namespaceURI.empty()) {
@@ -702,36 +690,46 @@ result_t XmlElement::toXmlString(exlib::string& retVal)
             if (!skip_def_ns)
                 setAttribute("xmlns", m_namespaceURI);
         }
-        retVal.append(tagName);
+        out.append(tagName);
     } else {
         fix_prefix(m_namespaceURI, m_prefix);
 
-        retVal.append(m_prefix);
-        retVal += ':';
-        retVal.append(m_localName);
+        out.append(m_prefix);
+        out += ':';
+        out.append(m_localName);
     }
 
     exlib::string strAttr;
     m_attrs->toString(strAttr);
-    retVal.append(strAttr);
+    out.append(strAttr);
 
-    if (m_childs->hasChildNodes()) {
-        exlib::string strChild;
-        m_childs->toXmlString(strChild);
-
-        retVal += '>';
-        retVal.append(strChild);
-        retVal.append("</");
-        retVal.append(tagName);
-        retVal += '>';
-    } else {
-        if (m_isXml)
-            retVal.append("/>");
-        else
-            retVal.append(" />");
+    if (m_childs->hasChildNodes())
+        out += '>';
+    else if (m_isXml)
+        out.append("/>");
+    else if (xmlMode)
+        out.append(" />");
+    else {
+        out += '>';
+        if (!is_self_closing_tag(tagName.c_str())) {
+            out.append("</");
+            out.append(tagName);
+            out += '>';
+        }
     }
+}
 
-    return 0;
+// Markup after the children of an element that has them.
+void XmlElement::writeClose(exlib::string& out)
+{
+    exlib::string tagName(m_tagName);
+
+    if (!m_isXml)
+        exlib::qstrlwr(tagName);
+
+    out.append("</");
+    out.append(tagName);
+    out += '>';
 }
 
 result_t XmlElement::append(OptArgs nodes)

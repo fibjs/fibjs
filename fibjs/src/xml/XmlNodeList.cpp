@@ -611,23 +611,49 @@ result_t XmlNodeList::find_element(int32_t base, int32_t step, obj_ptr<XmlNode_b
     return CALL_RETURN_NULL;
 }
 
+// Deep-clone every child of this list into `to`, without recursion.
+//
+// The previous form called child->cloneNode(true) for each entry, and
+// cloneNode() called back into this function for the children of that clone:
+// one pair of C++ frames per tree level, which overflowed the native stack
+// (~4000 levels) and killed the process instead of raising a JS error.  Here a
+// child is cloned shallow (cloneNode(false), which still copies attributes and
+// other per-node state) and appended, and its own children are processed by
+// this loop -- same tree, same document order, O(depth) stack frames.
 result_t XmlNodeList::cloneChilds(XmlNode_base* to)
 {
-    int32_t sz = (int32_t)m_childs.size();
-    int32_t i;
-    result_t hr;
+    struct Frame {
+        std::vector<XmlNodeImpl*>* childs;
+        XmlNode_base* dst;
+        size_t index;
+    };
 
-    for (i = 0; i < sz; i++) {
-        obj_ptr<XmlNode_base> child;
+    std::vector<Frame> stack;
+    stack.push_back(Frame { &m_childs, to, 0 });
+
+    while (!stack.empty()) {
+        Frame& frame = stack.back();
+
+        if (frame.index >= frame.childs->size()) {
+            stack.pop_back();
+            continue;
+        }
+
+        XmlNodeImpl* child = (*frame.childs)[frame.index++];
+        obj_ptr<XmlNode_base> clone;
         obj_ptr<XmlNode_base> out;
+        result_t hr;
 
-        hr = m_childs[i]->m_node->cloneNode(true, child);
+        hr = child->m_node->cloneNode(false, clone);
         if (hr < 0)
             return hr;
 
-        hr = to->appendChild(child, out);
+        hr = frame.dst->appendChild(clone, out);
         if (hr < 0)
             return hr;
+
+        if (child->m_childs->hasChildNodes())
+            stack.push_back(Frame { &child->m_childs->m_childs, clone, 0 });
     }
 
     return 0;
@@ -755,41 +781,71 @@ result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
     return 0;
 }
 
+// Merge adjacent text nodes and drop the empty ones in one child list.
+static void normalizeChilds(XmlNodeList* list)
+{
+    size_t i = 0;
+
+    while (i < list->m_childs.size()) {
+        XmlNodeImpl* child = list->m_childs[i];
+
+        if (child->m_type != xml_base::C_TEXT_NODE) {
+            i++;
+            continue;
+        }
+
+        XmlText_base* txt = (XmlText_base*)child->m_node;
+
+        while (i + 1 < list->m_childs.size()) {
+            XmlNodeImpl* next = list->m_childs[i + 1];
+
+            if (next->m_type != xml_base::C_TEXT_NODE)
+                break;
+
+            exlib::string val;
+            next->m_node->get_nodeValue(val);
+            txt->appendData(val);
+
+            obj_ptr<XmlNode_base> out;
+            list->removeChild(next->m_node, out);
+        }
+
+        exlib::string val;
+        child->m_node->get_nodeValue(val);
+        if (val.empty()) {
+            obj_ptr<XmlNode_base> out;
+            list->removeChild(child->m_node, out);
+            // the next sibling is at the same index now
+            continue;
+        }
+
+        i++;
+    }
+}
+
 result_t XmlNodeList::normalize()
 {
-    int32_t i;
-    int32_t type;
+    if (!m_this) {
+        // A result list has no parent to merge into -- removeChild() rejects it
+        // -- so only the subtrees of its entries are normalized.
+        for (size_t i = 0; i < m_childs.size(); i++)
+            walkTree(m_childs[i], false, WALK_ALL_NODES, [](XmlNodeImpl* node) -> int32_t {
+                normalizeChilds(node->m_childs);
+                return WALK_CONTINUE;
+            });
 
-    for (i = 0; i < (int32_t)m_childs.size(); i++) {
-        XmlNode_base* child = m_childs[i]->m_node;
-
-        child->get_nodeType(type);
-        if (type == xml_base::C_TEXT_NODE) {
-            XmlText_base* txt = (XmlText_base*)child;
-            exlib::string val;
-
-            while (i + 1 < (int32_t)m_childs.size()) {
-                XmlNode_base* next = m_childs[i + 1]->m_node;
-                next->get_nodeType(type);
-                if (type != xml_base::C_TEXT_NODE)
-                    break;
-
-                next->get_nodeValue(val);
-                txt->appendData(val);
-
-                obj_ptr<XmlNode_base> out;
-                removeChild(next, out);
-            }
-
-            child->get_nodeValue(val);
-            if (val.empty()) {
-                obj_ptr<XmlNode_base> out;
-                removeChild(child, out);
-                i--;
-            }
-        } else
-            child->normalize();
+        return 0;
     }
+
+    // Normalize every child list of the subtree, the root's included.  The walk
+    // is iterative (XmlTreeWalk.h): the recursive form -- child->normalize() per
+    // level -- overflowed the native stack on deep documents.  A callback runs
+    // before the walker starts iterating that node's children, so removing text
+    // nodes from the list it just normalized cannot invalidate a cursor.
+    walkTree(m_this, true, WALK_ALL_NODES, [](XmlNodeImpl* node) -> int32_t {
+        normalizeChilds(node->m_childs);
+        return WALK_CONTINUE;
+    });
 
     return 0;
 }
