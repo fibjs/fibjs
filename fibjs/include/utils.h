@@ -210,7 +210,8 @@ enum {
     kObjectPrototype = 0,
     kBufferClassIndex = 1,
     kBufferPrototype = 2,
-    kSandboxObject = 3
+    kSandboxObject = 3,
+    kBufferModule = 4
 };
 
 #if 1

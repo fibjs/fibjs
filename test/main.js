@@ -24,6 +24,7 @@ run("./console_test.js");
 run("./punycode_test.js");
 run("./timer_test.js");
 run("./buffer_test.js");
+run("./node_buffer_compat_test.js");
 run("./encoding_test.js");
 run("./atob_btoa_test.js");
 run("./path_test.js");

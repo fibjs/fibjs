@@ -3,16 +3,21 @@
 /**
  * @description 二进制数据缓存对象，用于 io 读写的数据处理
  *
- *  Buffer 对象为全局基础类，在任何时候都可以直接以 new Buffer(...) 创建：
+ *  Buffer 对象为全局基础类，可以以 `Buffer.alloc(...)` / `Buffer.from(...)` 创建：
  *  ```JavaScript
- *  var buf = new Buffer();
+ *  var buf = Buffer.from("abc");
  *  ```
  *
  *  Buffer 提供 `Buffer.alloc`、`Buffer.from`、`Buffer.concat` 等静态方法，以及读写、查找、切片、编码转换等实例方法。
  *
- *  注意：`slice` 方法返回的新缓存对象与原对象**不共享内存**，对新对象的修改不会影响原对象。
+ *  注意：`slice` 方法与 node 一致，返回与原对象**共享内存**的视图（`subarray` 同义）；
+ *  需要拷贝时请使用 `Buffer.from(buf)`。
  *
- *  支持的编码格式包括："hex"、"base32"、"base58"、"base64"、"utf8"，以及 iconv 模块支持的全部字符集。
+ *  `require('buffer')` 返回 node 形态的模块对象（`Buffer`/`SlowBuffer`/`constants`/`kMaxLength`/`transcode`/`atob`/
+ *  `btoa`/`isUtf8`/`isAscii`），全局 `Buffer` 仍是类本身。
+ *
+ *  支持的编码格式包括：node 标准编码（"utf8"、"utf16le"/"ucs2"、"latin1"、"ascii"、"base64"、"base64url"、"hex"），
+ *  以及 fibjs 扩展（"base32"、"base58"、"utf16be"/"utf32" 与 iconv 模块支持的全部字符集）。
  *
  */
 declare class Class_Buffer extends Class_object {
@@ -729,7 +734,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回一个新缓存对象，包含指定起始到缓存结尾的数据
      *
-     *      返回的新缓存对象与原对象不共享内存，修改互不影响。
+     *      返回的新缓存对象与原对象共享内存（与 node 的 `slice`/`subarray` 一致），修改互相影响。
      *      @param start 指定范围的起始，缺省从头开始
      *      @return 返回新的缓存对象
      *
@@ -739,7 +744,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
      *
-     *      返回的新缓存对象与原对象不共享内存，修改互不影响。
+     *      返回的新缓存对象与原对象共享内存（与 node 的 `slice`/`subarray` 一致），修改互相影响。
      *      @param start 指定范围的起始
      *      @param end 指定范围的结束
      *      @return 返回新的缓存对象

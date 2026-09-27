@@ -1430,12 +1430,34 @@ describe('Buffer', () => {
                 var buf = new Buffer(new Buffer("abcd"));
                 assert.equal(buf.length, 4);
                 assert.equal(buf.toString(), "abcd");
-                var buf = new Buffer({});
+                // legacy `new Buffer(obj)` 一直走 V8 的类数组转换（空对象 → 空 buffer）不改；
+                // node 的严格校验在 `Buffer.from(obj)` 上（见 test/node_buffer_compat_test.js R4）
+                assert.equal(new Buffer({}).length, 0);
+                // 无参在 node 里是 TypeError（fibjs 同步）
+                assert.throws(() => new Buffer(), TypeError);
             });
 
             it('new Buffer(date)', () => {
                 var data = Buffer.from(new Date("2016-03-09T07:58:57.303Z"));
                 assert.equal(new Date(data.toString()).toISOString(), "2016-03-09T07:58:57.000Z");
+            });
+
+            it('missing arguments throw instead of hanging', () => {
+                // native 的参数下溢守卫：write/byteLength 的 while 循环在参数缺失时会
+                // 下溢到负数下标，旧实现直接挂死进程（见 plans/buffer-node-compat-audit.md P0）
+                assert.throws(() => Buffer.byteLength(), TypeError);
+                assert.throws(() => Buffer.byteLength(undefined), TypeError);
+                assert.throws(() => Buffer.from("ab").write(), TypeError);
+                assert.throws(() => Buffer.from("ab").write(undefined), TypeError);
+            });
+
+            it('alias methods are non-enumerable', () => {
+                // fibjs 的 util.table/for-in 会遍历原型上的可枚举属性：readUint8 等别名与
+                // toLocaleString 必须是不可枚举的，否则工具输出会多出一堆方法名
+                // （node 里它们是可枚举的，属已知差异，见 plans/buffer-node-compat-remediation-plan.md）
+                ['readUint8', 'readUint16LE', 'writeUint32BE', 'readBigUint64LE', 'toLocaleString'].forEach((m) => {
+                    assert.equal(Object.getOwnPropertyDescriptor(Buffer.prototype, m).enumerable, false, m);
+                });
             });
 
             it('Buffer.from encoding with extended formats', () => {
