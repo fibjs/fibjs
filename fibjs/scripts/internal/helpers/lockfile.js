@@ -266,9 +266,15 @@ function name_from_path(p) {
  *              the nested tree, which becomes nested paths instead
  */
 function normalize_entry(entry, p, legacy) {
+    const path_name = name_from_path(p);
+
     const e = {
         path: p,
-        name: entry.name || name_from_path(p) || p,
+        // the name it is installed under — its path — and the name the package goes
+        // by, which npm writes only when the two differ (that is an alias:
+        // `node_modules/string-width-cjs` holding `string-width`)
+        name: entry.name || path_name || p,
+        real_name: entry.name && path_name && entry.name !== path_name ? entry.name : undefined,
         version: entry.version,
         resolved: entry.resolved,
         integrity: entry.integrity,
@@ -276,6 +282,7 @@ function normalize_entry(entry, p, legacy) {
         dev: entry.dev === true,
         optional: entry.optional === true,
         in_bundle: entry.inBundle === true,
+        has_install_script: entry.hasInstallScript === true,
         legacy: !!legacy,
         // the entry as the file had it: a write back keeps it for anything it does
         // not produce itself (license, engines, funding…)
@@ -370,9 +377,10 @@ function spec_satisfied(spec, entry, semver, from) {
         const at = target.lastIndexOf('@');
         const real = at > 0 ? target.slice(0, at) : target;
         const range = at > 0 ? target.slice(at + 1) : '';
+        const have = entry.real_name || entry.name;
 
-        if (entry.name !== real)
-            return { ok: false, reason: `alias points at ${entry.name}` };
+        if (have !== real)
+            return { ok: false, reason: `alias points at ${have}` };
 
         return range ? semver_satisfied(range, entry, semver) : { ok: true };
     }

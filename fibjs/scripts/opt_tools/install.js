@@ -88,8 +88,15 @@ function read_module(p, parent) {
                 const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
 
                 modules[name] = {
-                    name: minfo.name || name,
+                    // the name it is installed under — its directory, which is what the
+                    // tree, the hoisting and the lockfile key on — and the name the
+                    // package calls itself, which differs for an npm alias
+                    name: name,
+                    real_name: minfo.name && minfo.name !== name ? minfo.name : undefined,
                     version: minfo.version,
+                    // where it sits, in lockfile terms: the resolver looks a dependency
+                    // up along that path, the way npm does
+                    lock_path: lock_path_of(path.join(dir, n)),
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
                     opt_dep_vs: opt_dep_vs,
@@ -105,6 +112,16 @@ function read_module(p, parent) {
     }
 
     return modules;
+}
+
+/**
+ * @description a package directory as a lockfile path (`node_modules/a`,
+ *              `packages/member/node_modules/b`). The resolver walks a dependency up
+ *              that path, exactly like npm walks the directories of the package that
+ *              declares it
+ */
+function lock_path_of(dir) {
+    return path.relative(process.cwd(), dir).replace(/\\/g, '/');
 }
 
 /**
@@ -163,11 +180,37 @@ function json_parse_response(http_response) {
     return JSON.parse(http_response.text())
 }
 
+/**
+ * @description does a node satisfy a spec? A plain range compares versions; an npm
+ *              alias (`npm:string-width@^4.2.0`) compares the package the node really
+ *              is (`real_name`) and then the range. `semver.satisfies` on the alias
+ *              spec itself is always false, which made every alias edge resolve again
+ *              and throw the version the lockfile pinned away
+ */
+function node_satisfies(node, spec) {
+    if (!node || !node.version || typeof spec !== 'string')
+        return false;
+
+    if (spec.indexOf('npm:') === 0) {
+        const target = spec.slice(4);
+        const at = target.lastIndexOf('@');
+        const real = at > 0 ? target.slice(0, at) : target;
+        const range = at > 0 ? target.slice(at + 1) : '';
+
+        if ((node.real_name || node.name) !== real)
+            return false;
+
+        return !range || semver.satisfies(node.version, range);
+    }
+
+    return semver.satisfies(node.version, spec);
+}
+
 function find_version(m, v, parent) {
     while (parent !== undefined) {
         const info = parent.node_modules[m];
         if (info !== undefined)
-            return semver.satisfies(info.version, v);
+            return node_satisfies(info, v);
 
         parent = parent.parent;
     }
@@ -799,7 +842,10 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
             }
 
             return {
+                // the name it is installed under (the key the dependency was declared
+                // with) and, for an `npm:` alias, the package that name points at
                 name: m,
+                real_name: minfo.name && minfo.name !== m ? minfo.name : undefined,
                 version: minfo.version,
                 bin: minfo.bin,
                 binary: binary,
@@ -1011,16 +1057,20 @@ function locked_module_info(name, spec, level_info) {
     if (!ctx.lock_packages)
         return undefined;
 
-    const entry = lockfile.lookup_entry(ctx.lock_packages, name, spec, semver);
+    // the node the lockfile records for this dependency. `nested` keeps the plan's
+    // deterministic approximation (§4.2): resolving happens before hoisting, so a
+    // node has no final path yet; the sync check — which does know the paths — asks
+    // for the exact geometry instead
+    const entry = lockfile.lookup_entry(ctx.lock_packages, name, spec, semver,
+        level_info && level_info.lock_path, { nested: true });
 
     // only a registry entry can be used as it stands: a link is read from the
-    // directory it points at, a git entry is fetched by the resolve path (with the
-    // sha the lockfile pins), and a package with an install script may ship a
-    // prebuilt binary, which only its packument can be evaluated from
+    // directory it points at, and a git entry is fetched by the resolve path (with
+    // the sha the lockfile pins)
     if (!entry || entry.link || entry.target_only || is_git_entry(entry))
         return undefined;
 
-    if (!entry.version || !entry.resolved || entry.has_install_script)
+    if (!entry.version || !entry.resolved)
         return undefined;
 
     if (!lockfile.spec_satisfied(spec, entry, semver).ok)
@@ -1031,8 +1081,16 @@ function locked_module_info(name, spec, level_info) {
     const tarball = lockfile.apply_registry_replace(entry.resolved, ctx.registry);
 
     return {
-        name: entry.name || name,
+        // the name it is installed under — for an npm alias that is the alias — and
+        // the package it really is
+        name: name,
+        real_name: entry.name && entry.name !== name ? entry.name : undefined,
+        lock_path: entry.path,
         version: entry.version,
+        // a package with an install script may ship a prebuilt addon. The lockfile has
+        // no field for it (npm does not model it), so it is evaluated from the package
+        // once it is unpacked instead of asking the registry again just for that
+        binary_pending: entry.has_install_script === true,
         bin: entry.bin,
         dep_vs: util.clone(entry.dependencies || {}),
         // a lockfile records no devDependencies below the root: they are never
@@ -1143,7 +1201,7 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                     child_level_info = level_info.node_modules[dname] = locked;
             }
 
-            if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
+            if (child_level_info === undefined || !node_satisfies(child_level_info, v)) {
                 // `find_version` answers "an ancestor already provides this",
                 // which is not the answer a refresh is looking for
                 if (refresh || !find_version(dname, v, level_info))
@@ -1168,7 +1226,15 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 /**
                  * @todo deal with special installation name, such as 'fibjs/fib-graphql'
                  */
-                if (child_level_info && child_level_info.name !== dname) {
+                // a package whose own name differs from the one it was asked for: a
+                // registry package asked for under another name is an npm alias, and it
+                // keeps that name — it is its directory, and what a lockfile records —
+                // while a git/local spec that resolves to another name keeps the
+                // historical rename, because that name is what `--save` writes into
+                // package.json
+                if (child_level_info &&
+                    (child_level_info.pkg_install_typeinfo || {}).type !== 'registry' &&
+                    child_level_info.name !== dname) {
                     const pkg_name = child_level_info.name;
                     const installnation_name = dname;
                     child_level_info = level_info.node_modules[pkg_name] = level_info.node_modules[dname]
@@ -1378,6 +1444,10 @@ function generate_mv_paths(level_info, parent_p) {
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
                                 bin: lmod.bin,
                                 binary: lmod.binary,
+                                // the entry came from the lockfile and its package may
+                                // ship a prebuilt addon: read from the unpacked
+                                // manifest instead of asking the registry again
+                                binary_pending: lmod.binary_pending === true,
                                 dist: lmod.dist,
                                 base_path: [bp]
                             };
@@ -1487,7 +1557,7 @@ function download_binary_task(mvm) {
             }
 
             if (file.typeflag == "0") {
-                var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
+                var bpath = path.join(bp, task_dir(mvm), mvm.binary.module_path, file.filename.slice(archive_root_name.length));
                 fs.mkdir(path.dirname(bpath), { recursive: true });
                 fs.writeFile(bpath, file.fileData);
                 fs.chmod(bpath, parseInt(file.mode, 8));
@@ -1496,6 +1566,48 @@ function download_binary_task(mvm) {
     });
 
     install_log("extract addon:", mvm.binary.hosted_tarball);
+}
+
+/**
+ * @description the prebuilt addon of a package the lockfile describes: a lockfile has
+ *              no field for it (npm does not model it), so the package's own
+ *              package.json is asked once it is unpacked — the frozen install does the
+ *              same for what it puts in place
+ * @returns true when an addon was fetched
+ */
+function download_manifest_binary(mvm) {
+    if (!mvm.base_path.length)
+        return false;
+
+    let pkgjson;
+    try {
+        pkgjson = JSON.parse(fs.readTextFile(path.join(mvm.base_path[0], task_dir(mvm), 'package.json')));
+    } catch (e) {
+        return false;
+    }
+
+    if (!pkgjson.binary)
+        return false;
+
+    let binary;
+    try {
+        // relative `module_path`, see the note in the local package branch
+        binary = versioning.evaluate(pkgjson, { root: '/', module_root: '.' }, 3);
+    } catch (e) {
+        // a `binary` block that does not describe a node-pre-gyp package is the
+        // package's problem: the install goes on without the prebuilt addon
+        console.warn(`[install] ${mvm.name}: ignoring an unusable binary field` +
+            ` (${String(e.message).split('\n')[0]})`);
+        return false;
+    }
+
+    if (!binary || !binary.hosted_tarball)
+        return false;
+
+    mvm.binary = binary;
+    download_binary_task(mvm);
+
+    return true;
 }
 
 function download_module() {
@@ -1596,7 +1708,7 @@ function download_module() {
                             }
 
                             if (file.typeflag == "0") {
-                                const tpath = path.join(bp, mvm.name, file.filename.slice(archive_root_name.length));
+                                const tpath = path.join(bp, task_dir(mvm), file.filename.slice(archive_root_name.length));
                                 fs.mkdir(path.dirname(tpath), { recursive: true });
                                 fs.writeFile(tpath, file.fileData);
                                 fs.chmod(tpath, parseInt(file.mode, 8));
@@ -1645,7 +1757,7 @@ function download_module() {
                             const relpath = member.slice(archive_root_name.length);
                             if (!relpath) return;
 
-                            const tpath = path.join(bp, mvm.name, relpath);
+                            const tpath = path.join(bp, task_dir(mvm), relpath);
 
                             // skip directory
                             if (tpath.endsWith(SEP)) return;
@@ -1666,7 +1778,7 @@ function download_module() {
                 case 'local':
                     const localSrcPath = mvm.pkg_install_typeinfo.local_path;
                     mvm.base_path.forEach(bp => {
-                        const destPath = path.join(bp, mvm.name);
+                        const destPath = path.join(bp, task_dir(mvm));
 
                         // skip if already exists (symlink or directory)
                         if (fs.exists(destPath)) {
@@ -1685,9 +1797,11 @@ function download_module() {
 
             if (mvm.binary)
                 download_binary_task(mvm);
+            else if (mvm.binary_pending)
+                download_manifest_binary(mvm);
 
             if (mvm.bin)
-                link_bins(mvm.name, mvm.bin, mvm.base_path);
+                link_bins(task_dir(mvm), mvm.bin, mvm.base_path);
         },
         CST.DEFAULT_FIBERS
     );
@@ -2066,6 +2180,16 @@ function package_base_dir(dest, name) {
 }
 
 /**
+ * @description the directory a task installs its package *into*. A lockfile entry
+ *              lives at its path, and npm's alias entries (`node_modules/x` holding
+ *              the package `y`) show that the path — not the name the package calls
+ *              itself — is where it goes
+ */
+function task_dir(mvm) {
+    return mvm.dir_name || mvm.name;
+}
+
+/**
  * @description the header a fetch of that url needs, from the `.npmrc` entries the
  *              caller read (null when the url needs no credentials)
  */
@@ -2286,6 +2410,12 @@ function install_from_lock(lock, opts) {
 
         const dest = path.join(root, p);
 
+        // npm writes an alias as an entry whose `name` is the package and whose path
+        // is the name it is installed under (`node_modules/string-width-cjs` holding
+        // `string-width`): the path decides where it goes, the name only says what
+        // it is
+        const leaf = lockfile.name_from_path(p) || entry.name;
+
         if (entry.link) {
             const target = path.resolve(root, entry.resolved || '');
             let bin = entry.bin;
@@ -2301,10 +2431,11 @@ function install_from_lock(lock, opts) {
 
             mv_paths['link:' + p] = {
                 name: entry.name,
+                dir_name: leaf,
                 pkg_install_typeinfo: { type: 'local', local_path: target },
                 bin: bin,
                 dist: null,
-                base_path: [package_base_dir(dest, entry.name)],
+                base_path: [package_base_dir(dest, leaf)],
             };
             plan.link++;
             installed.push(p);
@@ -2322,9 +2453,12 @@ function install_from_lock(lock, opts) {
             ? lockfile.apply_registry_replace(entry.resolved, o.registry, o.registry_policy)
             : default_tarball_url(o.registry, entry);
 
-        const mv = entry.name + '@' + entry.version;
+        // one task per path, not per name@version: two entries can share a name and
+        // a version and still land in different directories
+        const mv = 'lock:' + p;
         const task = mv_paths[mv] || (mv_paths[mv] = {
             name: entry.name,
+            dir_name: leaf,
             pkg_install_typeinfo: { type: 'registry' },
             bin: entry.bin,
             binary: undefined,
@@ -2340,7 +2474,7 @@ function install_from_lock(lock, opts) {
             base_path: [],
         });
 
-        task.base_path.push(package_base_dir(dest, entry.name));
+        task.base_path.push(package_base_dir(dest, leaf));
         plan.registry++;
         installed.push(p);
     });
@@ -2380,43 +2514,17 @@ function install_lock_binaries(lock, root, only) {
         if (filter && !filter[p])
             return;
 
-        const pj = path.join(root, p, 'package.json');
-        if (!fs.exists(pj))
+        if (!fs.exists(path.join(root, p, 'package.json')))
             return;
 
-        let pkgjson;
-        try {
-            pkgjson = JSON.parse(fs.readTextFile(pj));
-        } catch (e) {
-            return;
-        }
-
-        if (!pkgjson.binary)
-            return;
-
-        // a registry/git package is keyed by name@version, a link by its path
-        const task = mv_paths[entry.name + '@' + entry.version] || mv_paths['link:' + p];
+        // a registry/git package is keyed by its path, a link by the same key
+        // (`link:` is kept for the entries an older write back may have left)
+        const task = mv_paths['lock:' + p] || mv_paths['link:' + p];
         if (!task)
             return;
 
-        let binary;
-        try {
-            // relative `module_path`, see the note in the local package branch
-            binary = versioning.evaluate(pkgjson, { root: '/', module_root: '.' }, 3);
-        } catch (e) {
-            // a `binary` block that does not describe a node-pre-gyp package is the
-            // package's problem: the install goes on without the prebuilt addon
-            console.warn(`[install] ${entry.name}: ignoring an unusable binary field` +
-                ` (${String(e.message).split('\n')[0]})`);
-            return;
-        }
-
-        if (!binary || !binary.hosted_tarball)
-            return;
-
-        task.binary = binary;
-        download_binary_task(task);
-        count++;
+        if (download_manifest_binary(task))
+            count++;
     });
 
     if (count)
@@ -2515,7 +2623,10 @@ function tree_entry(node, p) {
     };
 
     return {
-        name: node.name || lockfile.name_from_path(p),
+        // npm writes `name` only where the directory and the package disagree, which is
+        // how an alias is recorded (`node_modules/string-width-cjs` holding
+        // `string-width`); `lock_entry()` decides whether to write the field
+        name: node.real_name || node.name || lockfile.name_from_path(p),
         version: node.version,
         resolved: local ? undefined : (node.dist && node.dist.tarball),
         integrity: local ? undefined : (node.dist && node.dist.integrity),

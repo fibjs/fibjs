@@ -1266,6 +1266,81 @@ describe('opt_tools install lifecycle', function () {
                 'and the workspace links are created only once it passed');
         });
 
+        var NET = { skip: !process.env.FIBJS_TEST_NETWORK };
+
+        it('installs an npm alias at its own path and records it the way npm does', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'alias-proj', version: '1.0.0',
+                dependencies: { '@isaacs/cliui': '8.0.2' },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var lock = lockOf(targetDir).packages;
+            var alias = lock['node_modules/string-width-cjs'];
+
+            assert.ok(alias, 'the alias entry is there: ' + Object.keys(lock).filter(function (k) {
+                return k.indexOf('string-width') > -1;
+            }).join(', '));
+            assert.equal(alias.name, 'string-width', 'the name it goes by is what marks it an alias');
+
+            // and the package really sits at the alias path, not at its own name
+            assert.equal(versionAt(targetDir, 'node_modules/string-width-cjs'), '4.2.3');
+            assert.equal(versionAt(targetDir, 'node_modules/string-width'), '5.1.2',
+                'the package of that name is a different one and stays');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the installer accepts the lockfile it wrote:\n' + outputOf(ci));
+        });
+
+        it('keeps the version an alias edge pins', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'alias-pin-proj', version: '1.0.0',
+                dependencies: { 'string-width-cjs': 'npm:string-width@^4.2.0' },
+            });
+
+            var npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            var npmRes = child_process.spawnSync(npm, ['install', '--package-lock-only', '--no-audit', '--no-fund'], {
+                cwd: targetDir, stdio: 'pipe', shell: process.platform === 'win32',
+            });
+            assert.equal(npmRes.status, 0, String(npmRes.stderr || ''));
+
+            // pin the alias one release back, with the integrity of that release: the
+            // spec (`^4.2.0`) allows 4.2.3, and only the lockfile says 4.2.2 —
+            // `semver.satisfies` cannot read an alias spec, so this used to resolve
+            // again and install 4.2.3
+            var tarball = 'https://registry.npmjs.org/string-width/-/string-width-4.2.2.tgz';
+            var http = require('http');
+            var crypto = require('crypto');
+            var bytes = http.getSync(tarball).bytes();
+            var sri = 'sha512-' + crypto.createHash('sha512').update(bytes).digest('base64');
+
+            var raw = lockOf(targetDir);
+            raw.packages['node_modules/string-width-cjs'].version = '4.2.2';
+            raw.packages['node_modules/string-width-cjs'].resolved = tarball;
+            raw.packages['node_modules/string-width-cjs'].integrity = sri;
+            writeJSON(targetDir, 'package-lock.json', raw);
+
+            // a dependency the lockfile does not have: the install has to resolve, and
+            // that is exactly where the pin used to be thrown away
+            var pkgjson = JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'));
+            pkgjson.dependencies['is-odd'] = '3.0.1';
+            writeJSON(targetDir, 'package.json', pkgjson);
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.equal(versionAt(targetDir, 'node_modules/string-width-cjs'), '4.2.2',
+                'the version the lockfile pins is the one installed');
+            assert.equal(lockOf(targetDir).packages['node_modules/string-width-cjs'].version, '4.2.2',
+                'and the lockfile still says so');
+        });
+
         // a registry is needed for the rest of them: they install real packages
     });
 
@@ -2655,6 +2730,12 @@ if (isFibjs) (function () {
             assert.equal(lockfile.spec_satisfied('npm:real@^1.0.0', entry, semver).ok, true);
             assert.equal(lockfile.spec_satisfied('npm:other@^1.0.0', entry, semver).ok, false);
             assert.equal(lockfile.spec_satisfied('npm:real@^2.0.0', entry, semver).ok, false);
+
+            // an entry without `name` is not an alias, whatever its path says: npm
+            // writes the field only for one, and this is exactly how a lockfile the
+            // installer wrote came to be refused by its own check
+            var plain = map_of({ 'node_modules/alias': { version: '1.2.0' } })['node_modules/alias'];
+            assert.equal(lockfile.spec_satisfied('npm:real@^1.0.0', plain, semver).ok, false);
         });
 
         it('checks a file: spec against the target the link points at', function () {
@@ -2774,6 +2855,18 @@ if (isFibjs) (function () {
             }, { name: 'p', version: '1.0.0' }, { previous: previousLock(), root: '/proj' });
 
             assert.equal(newer.lock.packages['node_modules/a'].version, '1.0.1');
+        });
+
+        it('writes the name a package goes by when it differs from its directory', function () {
+            var built = lockfile.to_lock({
+                'node_modules/alias': {
+                    name: 'real', version: '1.2.0',
+                    resolved: 'https://registry.npmjs.org/real/-/real-1.2.0.tgz',
+                },
+            }, { name: 'p', version: '1.0.0' }, { root: '/proj' });
+
+            assert.equal(built.lock.packages['node_modules/alias'].name, 'real',
+                'npm records an alias as `name`, and nothing else marks it');
         });
     });
 
