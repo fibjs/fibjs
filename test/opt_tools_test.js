@@ -1765,6 +1765,228 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 12: the flags a lockfile does not carry =====
+    // a lockfile written before npm recorded `optional` describes a platform specific
+    // binary as a package every machine needs: it was downloaded and installed on a
+    // machine that cannot run it, and `npm ci` refuses the lock outright. The lockfile's
+    // own edges answer the question, and what they prove is written down
+    if (isFibjs) describe('install / lockfile flags (Phase 12)', function () {
+        var http = require('http');
+        var crypto = require('crypto');
+
+        var server = null;
+        var port = 0;
+        var requests = [];
+        var bin_tarball = null;
+        var bin_integrity = '';
+        var fixtureDir = '';
+
+        // an operating system this machine is not: the fixture has to fail the
+        // platform check wherever the suite runs
+        var OTHER_OS = ['linux', 'darwin', 'win32', 'freebsd', 'openbsd', 'sunos', 'netbsd', 'aix', 'android']
+            .filter(function (o) { return o !== process.platform; })[0];
+
+        function registry_url(p) {
+            return 'http://127.0.0.1:' + port + '/' + p;
+        }
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'flags_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+
+            var pkgDir = path.join(fixtureDir, 'package');
+            fs.mkdirSync(pkgDir, { recursive: true });
+            fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({
+                name: 'bin-pkg', version: '1.0.0', bin: { binpkg: 'cli.js' },
+            }));
+            fs.writeFileSync(path.join(pkgDir, 'cli.js'), '#!/usr/bin/env fibjs\nconsole.log("bin-pkg");\n');
+
+            var res = child_process.spawnSync('tar', ['czf', 'bin-pkg-1.0.0.tgz', 'package'], {
+                cwd: fixtureDir, stdio: 'pipe',
+            });
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            bin_tarball = fs.readFileSync(path.join(fixtureDir, 'bin-pkg-1.0.0.tgz'));
+            bin_integrity = 'sha512-' + crypto.createHash('sha512').update(bin_tarball).digest('base64');
+
+            function handler(r) {
+                requests.push(r.address);
+
+                if (r.address === '/bin-pkg/-/bin-pkg-1.0.0.tgz') {
+                    r.response.write(bin_tarball);
+                    return;
+                }
+
+                // a tarball of another platform: an install that asks for it is a
+                // failed install, so the test does not have to count anything
+                r.response.statusCode = 404;
+                r.response.write('not found');
+            }
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 41000 + Math.floor(Math.random() * 4000);
+                var candidateServer = http.createServer(handler);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        beforeEach(function () {
+            requests = [];
+        });
+
+        function offline() {
+            return { env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' } };
+        }
+
+        function lockEntry(dir, p) {
+            return JSON.parse(fs.readFileSync(path.join(dir, 'package-lock.json'), 'utf8')).packages[p];
+        }
+
+        it('leaves a platform package of another system out when the lockfile never said optional', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'flag-proj', version: '1.0.0',
+                optionalDependencies: { 'foreign-pkg': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'flag-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'flag-proj', version: '1.0.0',
+                        optionalDependencies: { 'foreign-pkg': '1.0.0' },
+                    },
+                    'node_modules/foreign-pkg': {
+                        version: '1.0.0',
+                        resolved: registry_url('foreign-pkg/-/foreign-pkg-1.0.0.tgz'),
+                        integrity: 'sha512-' + 'A'.repeat(86) + '==',
+                        os: [OTHER_OS], cpu: [process.arch],
+                    },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.equal(requests.length, 0, 'nothing was fetched: ' + requests.join(', '));
+            assert.ok(!fs.existsSync(path.join(targetDir, 'node_modules/foreign-pkg')),
+                'the package of the other system is not on disk: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            // the lockfile's own edge says the entry is optional, and now the file says so
+            assert.equal(lockEntry(targetDir, 'node_modules/foreign-pkg').optional, true,
+                'the entry carries the flag npm needs: ' + JSON.stringify(lockEntry(targetDir, 'node_modules/foreign-pkg')));
+            assert.equal(lockEntry(targetDir, 'node_modules/foreign-pkg').os[0], OTHER_OS, 'the platform is kept');
+
+            // and the file that already says what the graph proves is not rewritten
+            var text = fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8');
+            var again = runInstaller(targetDir, ['--install'], offline());
+
+            assert.equal(again.status, 0, diag(targetDir, again) + '\n' + outputOf(again));
+            assert.equal(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'), text,
+                'a second install leaves the lockfile alone');
+        });
+
+        it('leaves a dev dependency out on --omit=dev when the lockfile never said dev', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'dev-proj', version: '1.0.0',
+                devDependencies: { 'bin-pkg': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'dev-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'dev-proj', version: '1.0.0',
+                        devDependencies: { 'bin-pkg': '1.0.0' },
+                    },
+                    'node_modules/bin-pkg': {
+                        version: '1.0.0',
+                        resolved: registry_url('bin-pkg/-/bin-pkg-1.0.0.tgz'),
+                        integrity: bin_integrity,
+                        bin: { binpkg: 'cli.js' },
+                    },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install', '--omit=dev'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.equal(requests.length, 0, 'nothing was fetched: ' + requests.join(', '));
+            assert.ok(!fs.existsSync(path.join(targetDir, 'node_modules/bin-pkg')),
+                'the dev dependency is not on disk: ' + listDir(path.join(targetDir, 'node_modules')));
+            assert.equal(lockEntry(targetDir, 'node_modules/bin-pkg').dev, true,
+                'the entry carries the flag npm needs: ' + JSON.stringify(lockEntry(targetDir, 'node_modules/bin-pkg')));
+        });
+
+        it('keeps a bin link that already points where it should, and replaces a file in its way', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'bin-proj', version: '1.0.0', dependencies: { 'bin-pkg': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'bin-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'bin-proj', version: '1.0.0', dependencies: { 'bin-pkg': '1.0.0' } },
+                    'node_modules/bin-pkg': {
+                        version: '1.0.0',
+                        resolved: registry_url('bin-pkg/-/bin-pkg-1.0.0.tgz'),
+                        integrity: bin_integrity,
+                        bin: { binpkg: 'cli.js' },
+                    },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + outputOf(res));
+
+            var link = path.join(targetDir, 'node_modules/.bin/binpkg');
+
+            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the bin is linked: ' + listDir(path.join(targetDir, 'node_modules/.bin')));
+
+            // the package is gone, the link is not: installing it again meets the link
+            // it wrote itself, which npm's bin-links leaves alone
+            rmdirSync(path.join(targetDir, 'node_modules/bin-pkg'));
+
+            var second = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(second);
+
+            assert.equal(second.status, 0, diag(targetDir, second) + '\n' + out);
+            assert.ok(out.indexOf('EEXIST') < 0 && out.indexOf('File exists') < 0,
+                'linking what is already linked is not an error:\n' + out);
+            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the link is still there');
+
+            // a plain file in the way is replaced, the way npm replaces it
+            rmdirSync(path.join(targetDir, 'node_modules/bin-pkg'));
+            fs.unlinkSync(link);
+            fs.writeFileSync(link, 'a shim an older install wrote');
+
+            var third = runInstaller(targetDir, ['--install'], offline());
+
+            assert.equal(third.status, 0, diag(targetDir, third) + '\n' + outputOf(third));
+            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the file in the way is replaced by a link: ' +
+                listDir(path.join(targetDir, 'node_modules/.bin')));
+            assert.equal(fs.readlinkSync(link).replace(/\\/g, '/'), '../bin-pkg/cli.js');
+        });
+    });
+
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
     // a local https registry: the registry URL, the auth token and the certificate
     // handling are all exercised for real, and nothing leaves the machine
