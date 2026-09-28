@@ -2008,6 +2008,16 @@ describe('opt_tools install lifecycle', function () {
                 '1.0.1': pack('day2-extra', '1.0.1'),
             };
 
+            // a package that ships a binary for every platform as an optional
+            // dependency, the way esbuild and sharp do: only the entry that matches
+            // this machine is installed, and a lockfile describes them all
+            registry['plat-host'] = {
+                '1.0.0': pack('plat-host', '1.0.0', { optionalDependencies: { 'plat-bin': '1.0.0' } }),
+            };
+            registry['plat-bin'] = {
+                '1.0.0': pack('plat-bin', '1.0.0', { os: ['aix'], cpu: ['ppc64'] }),
+            };
+
             var keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
             var subject = { C: 'CN', O: 'fibjs', CN: 'localhost' };
             var certPem = crypto.createCertificateRequest({ key: keys.privateKey, subject: subject })
@@ -2238,6 +2248,65 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(out.indexOf('--update [package]') > -1, out);
             assert.ok(out.indexOf('--ci, --frozen-lockfile') > -1, out);
             assert.ok(out.indexOf('planned') === -1, 'the usage text describes what is there: ' + out);
+        });
+
+        /**
+         * @description a project that depends on the package with the optional
+         *              platform binary. `dev` puts that package in devDependencies,
+         *              which is the shape that pins both flags on the binary
+         */
+        function makePlatformProject(dev) {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'plat-proj', version: '1.0.0',
+                dependencies: dev ? undefined : { 'plat-host': '1.0.0' },
+                devDependencies: dev ? { 'plat-host': '1.0.0' } : undefined,
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'),
+                'registry=https://localhost:' + port + '/\nstrict-ssl=false\n');
+
+            return targetDir;
+        }
+
+        it('keeps an optional dependency of an installed package optional', function () {
+            var targetDir = makePlatformProject(false);
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var lock = lockOf(targetDir).packages;
+            var bin = lock['node_modules/plat-bin'];
+
+            assert.ok(bin, 'the lockfile describes every platform: ' +
+                Object.keys(lock).join(', ') + diag(targetDir, res));
+
+            // an optional edge hangs off a package a production edge reaches: npm
+            // still calls what it reaches optional, and `npm ci` refuses the lockfile
+            // when it is written as a required package this platform cannot run
+            assert.equal(bin.optional, true,
+                'a package only an optional edge reaches is optional: ' + JSON.stringify(bin));
+            assert.equal(bin.os.length, 1);
+            assert.equal(bin.dev, undefined, 'nothing dev reaches it');
+            assert.equal(bin.devOptional, undefined, 'the flag stands alone only when neither is set');
+            assert.equal(installed(targetDir, 'plat-bin'), null,
+                'nothing is installed for a platform this is not');
+        });
+
+        it('marks it dev as well when a dev dependency asks for it', function () {
+            var targetDir = makePlatformProject(true);
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var bin = lockOf(targetDir).packages['node_modules/plat-bin'];
+
+            // npm writes the overlap of the two trees as `dev` plus `optional`; a
+            // `devOptional` next to them is what makes npm and this rewrite the
+            // entry back and forth
+            assert.equal(bin.dev, true, 'a dev edge reaches it: ' + JSON.stringify(bin));
+            assert.equal(bin.optional, true);
+            assert.equal(bin.devOptional, undefined, 'not three flags where npm writes two');
         });
     });
 

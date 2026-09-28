@@ -1504,14 +1504,19 @@ function ensure_declared_deps_visible(level_info) {
 
 /**
  * @description mark the nodes a production edge cannot reach. npm answers the same
- *              question in its ideal tree, and the answer decides two things: what
- *              the lockfile says (`dev` / `optional`) and whether a package is
- *              installed at all — a lockfile always describes the whole graph (N14),
- *              an install may not
+ *              question in `calc-dep-flags.js`, starting every node in the dev and
+ *              optional trees and walking the edges it can reach; the answer decides
+ *              two things: what the lockfile says (`dev` / `optional` / `devOptional`
+ *              / `peer`) and whether a package is installed at all — a lockfile
+ *              always describes the whole graph (N14), an install may not
+ *
+ *              Read as paths, a flag means "no path from the root reaches this node
+ *              without an edge of that kind": a package only an optional edge reaches
+ *              is optional — even when that edge hangs off a package a production
+ *              edge reaches, which is every platform specific binary in a lockfile
  */
 function mark_reachability(rootsnap) {
     let next_id = 0;
-    const reach = { deps: {}, peer: {}, optional: {}, dev: {} };
 
     function id_of(node) {
         if (node._reach_id === undefined)
@@ -1534,55 +1539,85 @@ function mark_reachability(rootsnap) {
         return rootsnap.node_modules[name] || null;
     }
 
-    function visit(kind, name, from) {
-        const node = lookup(from, name);
-        if (!node)
-            return;
+    const EDGES = [
+        ['prod', node => node.dep_vs],
+        ['dev', node => node.dev_dep_vs],
+        ['optional', node => node.opt_dep_vs],
+        ['peer', node => node.peer_dep_vs],
+    ];
+    const FLAGS = [
+        ['dev', ['dev']],
+        ['optional', ['optional']],
+        ['devOptional', ['dev', 'optional']],
+        ['peer', ['peer']],
+    ];
 
-        const id = id_of(node);
-        if (reach[kind][id])
-            return;
-        reach[kind][id] = true;
+    // a workspace member is a project of its own: what it needs is part of the graph
+    // even when the root never asks for it
+    const roots = [rootsnap];
 
-        const deps = Object.assign({}, node.dep_vs, node.peer_dep_vs, node.opt_dep_vs);
-        Object.keys(deps).forEach(child => visit(kind, child, node));
-    }
-
-    [
-        ['deps', rootsnap.dep_vs || {}],
-        ['peer', rootsnap.peer_dep_vs || {}],
-        ['optional', rootsnap.opt_dep_vs || {}],
-        ['dev', rootsnap.dev_dep_vs || {}],
-    ].forEach(kind => {
-        Object.keys(kind[1]).forEach(name => visit(kind[0], name, rootsnap));
-    });
-
-    // a workspace member is a project of its own: its devDependencies are installed
-    // with the project (npm does the same), so `--omit=dev` has to know about them as
-    // well — they are not reachable from the root's own edges
     Object.keys(rootsnap.node_modules || {}).forEach(name => {
         const member = rootsnap.node_modules[name];
 
         if (member.workspace_package)
-            Object.keys(member.dev_dep_vs || {}).forEach(dep => visit('dev', dep, member));
+            roots.push(member);
     });
+
+    /**
+     * @description the nodes a path from a root reaches without using an edge of the
+     *              kinds in `skip`
+     */
+    function reachable(skip) {
+        const seen = {};
+        const stack = roots.slice();
+
+        roots.forEach(r => { seen[id_of(r)] = true; });
+
+        while (stack.length) {
+            const node = stack.pop();
+
+            EDGES.forEach(edge => {
+                if (skip.indexOf(edge[0]) > -1)
+                    return;
+
+                Object.keys(edge[1](node) || {}).forEach(name => {
+                    const child = lookup(node, name);
+                    if (!child)
+                        return;
+
+                    const id = id_of(child);
+
+                    if (seen[id])
+                        return;
+
+                    seen[id] = true;
+                    stack.push(child);
+                });
+            });
+        }
+
+        return seen;
+    }
+
+    const reach = { any: reachable([]) };
+
+    FLAGS.forEach(flag => { reach[flag[0]] = reachable(flag[1]); });
 
     (function mark(node) {
         Object.keys(node.node_modules || {}).forEach(name => {
             const child = node.node_modules[name];
             const id = id_of(child);
-            const deps = reach.deps[id] === true;
-            const peer = reach.peer[id] === true;
-            const optional = reach.optional[id] === true;
-            const dev = reach.dev[id] === true;
+            const known = reach.any[id] === true;
 
             // npm's `dev` / `optional` / `devOptional` say which kind of edge reaches
-            // an entry when nothing else does
-            child.dev_only = !deps && !peer && !optional && dev;
-            child.optional_only = !deps && !peer && optional;
-            child.dev_optional = !deps && !peer && dev && optional;
+            // an entry when the other kind does not: a node every path needs a dev
+            // edge for is a dev node, one every path needs an optional edge for is an
+            // optional node, and one that needs either is in the overlap
+            child.dev_only = known && reach.dev[id] !== true;
+            child.optional_only = known && reach.optional[id] !== true;
+            child.dev_optional = known && reach.devOptional[id] !== true;
             // what `--omit=peer` leaves out
-            child.peer_only = !deps && !optional && !dev && peer;
+            child.peer_only = known && reach.peer[id] !== true;
 
             mark(child);
         });
@@ -1613,12 +1648,17 @@ function should_update(name, level_info) {
 
 /**
  * @description does `omit` leave this node out of the install? The lockfile still
- *              describes it: npm's omit is about the disk, not about the graph (N14)
+ *              describes it: npm's omit is about the disk, not about the graph (N14).
+ *              The answers are npm's (`audit-report.js`): a node in the overlap of the
+ *              dev and the optional tree — a platform binary of a dev dependency, say
+ *              — is left out only when both are
  */
 function omitted_by(node) {
     if (node.dev_only && ctx.omit.dev)
         return true;
     if (node.optional_only && ctx.omit.optional)
+        return true;
+    if (node.dev_optional && ctx.omit.dev && ctx.omit.optional)
         return true;
     if (node.peer_only && ctx.omit.peer)
         return true;
@@ -2886,7 +2926,9 @@ function tree_entry(node, p) {
         local_path: local ? (node.local_path || node.workspace_path) : undefined,
         dev: node.dev_only === true,
         optional: node.optional_only === true,
-        dev_optional: node.dev_optional === true,
+        // npm writes the overlap of the two trees as `dev` plus `optional`, and the
+        // flag on its own only where neither of those is set
+        dev_optional: node.dev_optional === true && !node.dev_only && !node.optional_only,
         dependencies: declared('dep_vs', node.dep_vs),
         optionalDependencies: declared('opt_dep_vs', node.opt_dep_vs),
         peerDependencies: declared('peer_dep_vs', node.peer_dep_vs),
