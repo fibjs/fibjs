@@ -1467,6 +1467,37 @@ describe('opt_tools install lifecycle', function () {
                 'and the lockfile still says so');
         });
 
+        it('installs a dependency an installed package is missing', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'repair-proj', version: '1.0.0', dependencies: { 'xml-crypto': '^6.1.2' },
+            });
+
+            var npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            var npmRes = child_process.spawnSync(npm, ['install', '--no-audit', '--no-fund'], {
+                cwd: targetDir, stdio: 'pipe', shell: process.platform === 'win32',
+            });
+            assert.equal(npmRes.status, 0, String(npmRes.stderr || ''));
+
+            // the tree loses a dependency of an installed package. `pkg-a` stays on
+            // disk, so the walk has to look at what it declares — it used to stop at
+            // the packages this run created, and the hole was written into the lockfile
+            fs.rmSync(path.join(targetDir, 'node_modules/xpath'), { recursive: true, force: true });
+
+            var pkgjson = JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'));
+            pkgjson.dependencies['is-odd'] = '3.0.1';
+            writeJSON(targetDir, 'package.json', pkgjson);
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(versionAt(targetDir, 'node_modules/xpath'), 'the missing dependency is installed');
+            assert.ok(lockOf(targetDir).packages['node_modules/xpath'], 'and described');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it left is in sync:\n' + outputOf(ci));
+        });
+
         // a registry is needed for the rest of them: they install real packages
 
         it('refreshes a registry dependency without fetching a workspace sibling', NET, function () {
