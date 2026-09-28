@@ -1629,6 +1629,142 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 11: a download that stops early is a failed download =====
+    // the registry here is a raw socket: it is the only way to send a body that stops
+    // before the length it announced, which is what a connection dropping mid-tarball
+    // looks like from the client's side
+    if (isFibjs) describe('install / download integrity (Phase 11)', function () {
+        var net = require('net');
+        var crypto = require('crypto');
+
+        var server = null;
+        var port = 0;
+        var tarball = null;
+        var integrity = '';
+        var tarball_requests = 0;
+        var fixtureDir = '';
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'truncated_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+
+            var pkgDir = path.join(fixtureDir, 'package');
+            fs.mkdirSync(pkgDir, { recursive: true });
+            fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: 'trunc-pkg', version: '1.0.0' }));
+            fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = 42;\n');
+
+            var res = child_process.spawnSync('tar', ['czf', 'trunc-pkg-1.0.0.tgz', 'package'], {
+                cwd: fixtureDir, stdio: 'pipe',
+            });
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            tarball = fs.readFileSync(path.join(fixtureDir, 'trunc-pkg-1.0.0.tgz'));
+            integrity = 'sha512-' + crypto.createHash('sha512').update(tarball).digest('base64');
+
+            function head_ok(socket, length) {
+                socket.write('HTTP/1.1 200 OK\r\n' +
+                    'Content-Type: application/octet-stream\r\n' +
+                    'Content-Length: ' + length + '\r\n' +
+                    'Connection: close\r\n\r\n');
+            }
+
+            function serve(socket) {
+                var head = '';
+
+                for (;;) {
+                    var chunk = socket.read();
+                    if (!chunk || chunk.length === 0)
+                        break;
+
+                    head += chunk.toString();
+                    if (head.indexOf('\r\n\r\n') > -1)
+                        break;
+                }
+
+                var address = head.split(' ')[1] || '';
+
+                if (address.indexOf('/trunc-pkg/-/') === 0) {
+                    tarball_requests++;
+
+                    if (tarball_requests === 1) {
+                        // the whole tarball is announced, half of it is sent, and the
+                        // connection goes away
+                        head_ok(socket, tarball.length);
+                        socket.write(tarball.slice(0, Math.floor(tarball.length / 2)));
+                        socket.close();
+                        return;
+                    }
+
+                    head_ok(socket, tarball.length);
+                    socket.write(tarball);
+                    socket.close();
+                    return;
+                }
+
+                var metadata = JSON.stringify({
+                    name: 'trunc-pkg',
+                    'dist-tags': { latest: '1.0.0' },
+                    versions: {
+                        '1.0.0': {
+                            name: 'trunc-pkg', version: '1.0.0',
+                            dist: {
+                                tarball: 'http://127.0.0.1:' + port + '/trunc-pkg/-/trunc-pkg-1.0.0.tgz',
+                                integrity: integrity,
+                            },
+                        },
+                    },
+                });
+
+                head_ok(socket, Buffer.byteLength(metadata));
+                socket.write(metadata);
+                socket.close();
+            }
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 41000 + Math.floor(Math.random() * 4000);
+                var candidateServer = net.createServer(serve);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        it('fetches a body that stopped early again, instead of hashing it', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'trunc-proj', version: '1.0.0', dependencies: { 'trunc-pkg': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            tarball_requests = 0;
+
+            var res = runInstaller(targetDir, ['--install'], {
+                env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' },
+            });
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.ok(tarball_requests >= 2, 'the tarball was fetched again: ' + tarball_requests);
+            assert.ok(out.indexOf('retry') > -1, 'the retry is reported:\n' + out);
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules/trunc-pkg/index.js')),
+                'the package is installed with its files: ' + listDir(path.join(targetDir, 'node_modules')));
+            assert.equal(JSON.parse(fs.readFileSync(
+                path.join(targetDir, 'node_modules/trunc-pkg/package.json'), 'utf8')).version, '1.0.0');
+        });
+    });
+
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
     // a local https registry: the registry URL, the auth token and the certificate
     // handling are all exercised for real, and nothing leaves the machine

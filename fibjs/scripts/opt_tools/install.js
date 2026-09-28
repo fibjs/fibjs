@@ -1896,6 +1896,7 @@ function download_module() {
 
                     const untar_files = untar(t.buffer);
 
+
                     // most package from registry is archived with root directory `package`
                     archive_root_name = find_tar_home(untar_files);
 
@@ -2158,9 +2159,11 @@ function remove_path(p) {
 }
 
 /**
- * @description remove a directory tree
+ * @description remove a directory tree. `quiet` is for the way out: another fiber may
+ *              still be writing a scratch file, and a directory that outlives the
+ *              process sits in the OS temp directory where nobody minds it
  */
-function rmdir_recursive(dir) {
+function rmdir_recursive(dir, quiet) {
     if (!fs.exists(dir))
         return;
 
@@ -2170,18 +2173,20 @@ function rmdir_recursive(dir) {
         try {
             const st = fs.lstat(p);
             if (st.isDirectory() && !st.isSymbolicLink())
-                rmdir_recursive(p);
+                rmdir_recursive(p, quiet);
             else
                 fs.unlink(p);
         } catch (e) {
-            console.warn(`[install] could not remove ${p}: ${e.message}`);
+            if (!quiet)
+                console.warn(`[install] could not remove ${p}: ${e.message}`);
         }
     });
 
     try {
         fs.rmdir(dir);
     } catch (e) {
-        console.warn(`[install] could not remove ${dir}: ${e.message}`);
+        if (!quiet)
+            console.warn(`[install] could not remove ${dir}: ${e.message}`);
     }
 }
 
@@ -2244,11 +2249,9 @@ function temp_dir() {
         fs.mkdir(temp_dir_path, { recursive: true });
 
         process.on('exit', function () {
-            try {
-                rmdir_recursive(temp_dir_path);
-            } catch (e) {
-                // nothing useful can be done on the way out
-            }
+            // quiet: a fiber that is still streaming has a scratch file open, and the
+            // directory it leaves behind is in the OS temp directory
+            rmdir_recursive(temp_dir_path, true);
         });
     }
 
@@ -2288,30 +2291,77 @@ function download_to_file(r, file_path, dist) {
 
     const plan = lockfile.integrity_plan(dist.integrity);
     const algorithm = plan ? plan.algorithm : (dist.shasum ? 'sha1' : null);
-    const hash = algorithm ? crypto.createHash(algorithm) : null;
+
+    // `copyTo` runs the response to its end. A `read()` loop stops at the first moment
+    // the body has nothing buffered — which is how a partial download came to be hashed
+    // and reported as an integrity mismatch, with a retry passing because the bytes the
+    // registry serves were never the problem
     const out = fs.createWriteStream(file_path);
+    let copied;
+
+    try {
+        copied = r.body.copyTo(out);
+    } finally {
+        try {
+            out.close();
+        } catch (e) {
+            // a stream that is already closed is fine here
+        }
+    }
+
+    // a body that stopped early is a failed download, not a short one: retry it
+    const announced = parseInt(r.headers && r.headers['content-length'], 10);
+
+    if (!isNaN(announced) && copied !== announced)
+        throw new Error(`the body stopped early: ${copied} of ${announced} bytes`);
+
+    // the digest is computed from what landed on the disk, which is also what gets
+    // unpacked below
+    const read = digest_file(file_path, algorithm);
+
+    return {
+        digest: read.digest,
+        gzip: !!read.head && read.head.length === 2 && read.head[0] === 0x1f && read.head[1] === 0x8b
+    };
+}
+
+/**
+ * @description the digest of a scratch file, and its first two bytes, read in chunks:
+ *              the compressed payload is never held whole, and the check covers exactly
+ *              what the unpacker is about to read
+ */
+function digest_file(file_path, algorithm) {
+    const hash = algorithm ? crypto.createHash(algorithm) : null;
+    const fd = fs.open(file_path, 'r');
+    const buf = Buffer.alloc(DOWNLOAD_CHUNK);
     let head = null;
 
     try {
-        let chunk;
+        for (;;) {
+            const n = fs.read(fd, buf, 0, buf.length);
 
-        while ((chunk = r.body.read(DOWNLOAD_CHUNK)) && chunk.length > 0) {
-            if (!head)
-                head = chunk.slice(0, 2);
+            if (!n)
+                break;
+
+            const chunk = n === buf.length ? buf : buf.slice(0, n);
+
+            // the two bytes are *copied*: `slice` hands back a view into the buffer,
+            // which the next read overwrites — reading them later said "not a gzip"
+            // about a perfectly good tarball, and the unpacker was fed the compressed
+            // bytes
+            if (!head && n >= 2) {
+                head = Buffer.alloc(2);
+                chunk.copy(head, 0, 0, 2);
+            }
 
             if (hash)
                 hash.update(chunk);
-
-            out.write(chunk);
         }
     } finally {
-        out.close();
+        fs.close(fd);
     }
 
-    return {
-        digest: hash ? hash.digest('hex') : null,
-        gzip: !!head && head.length === 2 && head[0] === 0x1f && head[1] === 0x8b
-    };
+    return { digest: hash ? hash.digest('hex') : null, head: head };
 }
 
 /**
