@@ -1242,6 +1242,22 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             }
 
             if (child_level_info === undefined || !node_satisfies(child_level_info, v)) {
+                // a peer dependency is a placement requirement, not a second install:
+                // when the tree already holds the package at another version npm keeps
+                // that copy and warns, and nesting another one here is what put two
+                // instances of a module with a singleton in it on disk (a real project's
+                // drawing converter went from 7/7 to 1/7 on exactly that)
+                if (dep_type === 'peer_dep_vs') {
+                    const provided = find_provided_node(dname, level_info);
+
+                    if (provided) {
+                        console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
+                            `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
+                        _deps[dname] = provided.version;
+                        return;
+                    }
+                }
+
                 // `find_version` answers "an ancestor already provides this",
                 // which is not the answer a refresh is looking for
                 if (refresh || !find_version(dname, v, level_info))

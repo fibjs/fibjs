@@ -1497,6 +1497,36 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(out.indexOf('cannot fetch metadata'), -1, 'the workspace package is not a registry one:\n' + out);
             assert.ok(isLink(targetDir, 'node_modules/app-host'), 'it stays the link the workspace made');
         });
+        it('keeps one copy of a package a peer range does not accept', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'peer-proj', version: '1.0.0',
+                dependencies: {
+                    '@mlightcad/libredwg-converter': '3.14.6',
+                    '@mlightcad/data-model': '^1.14.6',
+                },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            // the converter's peer asks for data-model 1.14.6 exactly, the root for
+            // ^1.14.6: nesting a second copy is what broke a module level singleton
+            // downstream (npm keeps one, and so does this now)
+            var copies = [];
+            (function walk(dir) {
+                fs.readdirSync(dir, { withFileTypes: true }).forEach(function (e) {
+                    var full = path.join(dir, e.name);
+                    if (e.name === 'data-model' && path.basename(dir) === '@mlightcad')
+                        copies.push(path.relative(targetDir, full));
+                    else if (e.isDirectory())
+                        walk(full);
+                });
+            })(path.join(targetDir, 'node_modules'));
+
+            assert.equal(copies.length, 1, 'one copy of data-model: ' + copies.join(', '));
+        });
     });
 
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
