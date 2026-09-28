@@ -2530,8 +2530,7 @@ function test_net(eng, use_uv) {
                 svr.start();
                 test_util.push(svr.socket);
                 svr.stop();
-                for (var i = 0; i < 10 && !closed; i++)
-                    coroutine.sleep(0);
+                test_util.waitUntil(() => closed);
                 svr = null;
                 assert.strictEqual(closed, true);
             });
