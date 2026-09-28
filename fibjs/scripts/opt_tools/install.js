@@ -3398,6 +3398,44 @@ function write_back_lockfile(lock, rootsnap) {
 }
 
 /**
+ * @description the peer edges the lockfile cannot meet, in npm's words. npm refuses
+ *              such a tree (`ERESOLVE`), and `npm ci` refuses the lockfile of one even
+ *              when it was written with `--legacy-peer-deps`: a project npm would not
+ *              install is named here instead of installed in silence. The check reads
+ *              the lockfile, so it answers the same question on every path — the
+ *              frozen install (fatal), and an install that resolves (a warning)
+ * @returns the number of unmet edges
+ */
+function report_unmet_peers(lock, fatal) {
+    const unmet = lockfile.check_peers(lock, { semver: semver });
+
+    if (!unmet.length)
+        return 0;
+
+    const line = u => `peer ${u.name}@${u.spec} of ${u.path} is ` +
+        (u.found === null ? 'not in the lockfile' : `the installed ${u.found}`);
+
+    if (fatal) {
+        console.error(`[install] ${unmet.length} peer dependenc${unmet.length === 1 ? 'y' : 'ies'} cannot be met:`);
+        (ctx.verbose ? unmet : unmet.slice(0, 20)).forEach(u => console.error(`  ${line(u)}`));
+
+        if (!ctx.verbose && unmet.length > 20)
+            console.error(`  … and ${unmet.length - 20} more (--verbose lists them all)`);
+
+        console.error('  npm refuses to install this tree (ERESOLVE); ' +
+            'pass --no-strict-peer to install it anyway');
+        process.exit(1);
+    }
+
+    unmet.slice(0, 5).forEach(u => console.warn(`[install] ${line(u)} — npm refuses this tree (ERESOLVE)`));
+
+    if (unmet.length > 5)
+        console.warn(`[install] … and ${unmet.length - 5} more unmet peer dependencies`);
+
+    return unmet.length;
+}
+
+/**
  * @description the tree an install leaves has to be the tree the lockfile describes.
  *              A package's tarball carries copies of the dependencies it bundles
  *              (`bundleDependencies`), and one unpacked after them left the older copy
@@ -3474,6 +3512,10 @@ const ARG_SPECS = [
     { names: ['--no-package-lock'], flag: 'no_package_lock' },
     { names: ['--dry-run'], flag: 'dry_run' },
     { names: ['--no-strict-integrity'], flag: 'no_strict_integrity' },
+    // a peer edge the lockfile cannot meet is npm's ERESOLVE: `npm ci` refuses such
+    // a lockfile even when it was written with `--legacy-peer-deps`, and `--ci`
+    // does the same unless this is passed
+    { names: ['--no-strict-peer'], flag: 'no_strict_peer' },
 ];
 
 // The single source of truth for the installer's command line: every entry of
@@ -3505,6 +3547,8 @@ function usage_text() {
         '  --no-package-lock           ignore the lockfile',
         '  --no-strict-integrity       install lockfile entries that carry no',
         '                              integrity, instead of refusing them',
+        '  --no-strict-peer            install a lockfile whose peer dependencies',
+        '                              cannot be met, instead of refusing it',
         '  --dry-run                   report what would be written, write nothing',
         '  --verbose                   list every lockfile sync error, not just the',
         '                              first 20',
@@ -3774,6 +3818,10 @@ if (args.flags.frozen) {
 
     install_log(`[install] ${lock.filename} is in sync (lockfileVersion ${lock.lockfileVersion})`);
 
+    // npm ci refuses a lockfile whose peers cannot be met — before it touches the
+    // disk, and `--legacy-peer-deps` is how npm is told to install it anyway
+    report_unmet_peers(lock, !args.flags.no_strict_peer);
+
     if (args.flags.dry_run) {
         install_log('[install] --dry-run: nothing was written');
         process.exit(0);
@@ -3819,6 +3867,10 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
 
     if (sync.ok) {
         install_log(`[install] ${lock.filename} covers package.json (lockfileVersion ${lock.lockfileVersion})`);
+
+        // the tree this installs is the one the lockfile describes, so the answer is
+        // the same as the frozen install's: say it rather than install it in silence
+        report_unmet_peers(lock, false);
 
         if (args.flags.lockfile_only || args.flags.dry_run) {
             install_log('[install] the lockfile is already what package.json asks for, nothing to write');
@@ -3956,6 +4008,12 @@ if (ctx.update && !ctx.update.all && !ctx.update.matched)
 if (args.flags.lockfile_only) {
     write_back_lockfile(lock, rootsnap);
     install_log('[install] --lockfile-only: the lockfile is written, nothing is installed');
+
+    const written = lockfile.read_lockfile(process.cwd());
+
+    if (written)
+        report_unmet_peers(written, false);
+
     process.exit(0);
 }
 
@@ -4013,6 +4071,11 @@ if (!args.flags.no_package_lock && !ctx.new_pkgname) {
     // path whose copy on disk is not that version is put in place now, instead of
     // being left to the next install (or to `--ci`) to repair
     converge_with_lockfile(process.cwd());
+
+    const written = lockfile.read_lockfile(process.cwd());
+
+    if (written)
+        report_unmet_peers(written, false);
 } else if (ctx.new_pkgname && !args.flags.no_package_lock) {
     console.warn('[install] the lockfile was left alone: run `fibjs --install` to bring it back in sync');
 }

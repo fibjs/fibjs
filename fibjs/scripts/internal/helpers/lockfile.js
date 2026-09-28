@@ -713,6 +713,56 @@ function graph_flags(packages, root_entry, opts) {
 }
 
 /**
+ * @description the peer edges a lockfile does not satisfy. This is npm's own
+ *              question: `ERESOLVE` is asked while resolving, and `npm ci` refuses a
+ *              lockfile whose peers cannot be met — even one written with
+ *              `--legacy-peer-deps`. The answer is judged along the paths npm
+ *              resolves along, so a lockfile `npm ci` accepts is clean here as well
+ * @param opts { semver }
+ * @returns [{ path, name, spec, found, why }] — one entry per peer edge that is not
+ *          met, `found` null when the lockfile has no copy of it
+ */
+function check_peers(lock, opts) {
+    const o = opts || {};
+    const semver = o.semver || default_semver();
+    const packages = to_path_map(lock);
+    const unmet = [];
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        // a link's own manifest is the directory it points at (npm reads it there),
+        // and a bundled copy lives inside its parent's tarball
+        if (entry.target_only || entry.in_bundle)
+            return;
+
+        const peers = entry.peerDependencies || {};
+        const meta = entry.peerDependenciesMeta || {};
+
+        Object.keys(peers).forEach(name => {
+            // an optional peer stays uninstalled, npm does the same
+            if (meta[name] && meta[name].optional)
+                return;
+
+            const spec = peers[name];
+            const found = lookup_entry(packages, name, spec, semver, p);
+            const verdict = found ? spec_satisfied(spec, found, semver, p) : null;
+
+            if (!verdict || !verdict.ok)
+                unmet.push({
+                    path: p,
+                    name: name,
+                    spec: spec,
+                    found: found ? found.version : null,
+                    why: verdict ? verdict.reason : 'not in the lockfile',
+                });
+        });
+    });
+
+    return unmet;
+}
+
+/**
  * @description the offline sync check of the plan's §4.5, in two steps: the root
  *              edges (package.json and every workspace member against the lock),
  *              then the closure of the lock itself (everything an entry declares has
@@ -1383,6 +1433,7 @@ module.exports = {
     spec_satisfied,
     lookup_entry,
     graph_flags,
+    check_peers,
     check_sync,
     read_npmrc,
     parse_npmrc,
