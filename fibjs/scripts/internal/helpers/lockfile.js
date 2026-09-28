@@ -282,6 +282,8 @@ function normalize_entry(entry, p, legacy) {
         dev: entry.dev === true,
         optional: entry.optional === true,
         in_bundle: entry.inBundle === true,
+        bundle_dependencies: entry.bundleDependencies !== undefined ? entry.bundleDependencies
+            : entry.bundledDependencies,
         has_install_script: entry.hasInstallScript === true,
         legacy: !!legacy,
         // the entry as the file had it: a write back keeps it for anything it does
@@ -1115,19 +1117,51 @@ function relative_target(root, target) {
 }
 
 /**
+ * @description npm normalises what a package installs its commands from
+ *              (arborist's `normalizeBinPaths`): a path written as `./bin/x` is
+ *              recorded as `bin/x`, and a `bin` that is a single string becomes a map
+ *              under the package's own (unscoped) name. A lockfile that says otherwise
+ *              is rewritten
+ */
+function normalize_bin(bin, name) {
+    if (!bin)
+        return undefined;
+
+    if (typeof bin === 'string') {
+        const single = {};
+
+        single[String(name || '').replace(/^@[^\/]+\//, '')] = bin.replace(/^\.\//, '');
+
+        return single;
+    }
+
+    const out = {};
+
+    Object.keys(bin).forEach(k => { out[k] = String(bin[k]).replace(/^\.\//, ''); });
+
+    return out;
+}
+
+/**
  * @description one entry of the path table as a lockfile entry. `name` is written
  *              only when it differs from the path (an alias), the way npm does it
  */
 function lock_entry(entry, p) {
+    // a copy a package ships inside its own tarball has no source of its own: npm
+    // records the version, `inBundle` and the manifest fields, nothing else
+    const bundled = entry.in_bundle === true;
+
     return entry_order({
         name: entry.name !== name_from_path(p) ? entry.name : undefined,
         version: entry.version,
-        resolved: entry.resolved,
-        integrity: entry.integrity,
+        resolved: bundled ? undefined : entry.resolved,
+        integrity: bundled ? undefined : entry.integrity,
         link: entry.link ? true : undefined,
         dev: entry.dev ? true : undefined,
         optional: entry.optional ? true : undefined,
         devOptional: entry.dev_optional ? true : undefined,
+        bundleDependencies: entry.bundle_dependencies,
+        inBundle: bundled ? true : undefined,
         dependencies: entry.dependencies,
         peerDependencies: entry.peerDependencies,
         peerDependenciesMeta: entry.peerDependenciesMeta,
@@ -1139,7 +1173,7 @@ function lock_entry(entry, p) {
         libc: entry.libc,
         license: entry.license,
         hasInstallScript: entry.has_install_script ? true : undefined,
-        bin: entry.bin,
+        bin: normalize_bin(entry.bin, entry.name),
     });
 }
 
@@ -1277,16 +1311,21 @@ function merge_entry(previous, entry, p) {
 
     // the tree decides these, `undefined` included: an installed package with no
     // dependencies declares none
-    ['name', 'version', 'link', 'dev', 'optional', 'devOptional', 'dependencies',
+    ['name', 'version', 'link', 'dev', 'optional', 'devOptional', 'bundleDependencies',
+        'dependencies',
         'optionalDependencies', 'peerDependencies', 'bin', 'os', 'cpu', 'libc',
         'hasInstallScript'].forEach(k => { delete merged[k]; });
 
     // the source is the tree's when it fetched the package, and the lockfile's when it
-    // found the package on disk (nothing fetched it, so nothing knows better)
-    if (entry.resolved) {
+    // found the package on disk (nothing fetched it, so nothing knows better). A copy
+    // that came inside a parent's tarball has none, and keeps none
+    if (entry.resolved || entry.in_bundle) {
         delete merged.resolved;
         delete merged.integrity;
     }
+
+    if (entry.in_bundle)
+        merged.inBundle = true;
 
     Object.keys(fresh).forEach(k => { merged[k] = fresh[k]; });
 

@@ -101,8 +101,31 @@ function read_module(p, parent) {
                     dev_dep_vs: dev_dep_vs,
                     opt_dep_vs: opt_dep_vs,
                     peer_dep_vs: read_peer_dep_vs(minfo),
+                    bundle_deps: bundled_names(minfo),
+                    bundle_list: bundled_list(minfo),
+                    // what the entry a write back produces needs and the directory is
+                    // the only place it can come from: the platform it is for, and the
+                    // commands it installs. A node this run fetched has them from the
+                    // registry, and dropping them here made a kept entry lose `os`/`cpu`
+                    // (a lockfile that then installs another platform's package) and its
+                    // `bin` links
+                    os: minfo.os,
+                    cpu: minfo.cpu,
+                    libc: minfo.libc,
+                    bin: minfo.bin,
+                    license: minfo.license && typeof minfo.license === 'object'
+                        ? minfo.license.type : minfo.license,
+                    engines: minfo.engines,
+                    funding: minfo.funding,
                     parent: parent
                 };
+
+                // a copy the parent ships lives where the parent's tarball put it: it
+                // is read here, and never resolved or fetched — and a copy inside a copy
+                // came the same way (npm marks the whole subtree of a tarball)
+                if (parent && (parent.in_bundle ||
+                    (parent.parent && parent.bundle_deps && parent.bundle_deps[name])))
+                    modules[name].in_bundle = true;
 
                 modules[name].node_modules = read_module(path.join(dir, n), modules[name]);
             });
@@ -122,6 +145,44 @@ function read_module(p, parent) {
  */
 function lock_path_of(dir) {
     return path.relative(process.cwd(), dir).replace(/\\/g, '/');
+}
+
+/**
+ * @description the names a package ships inside its own tarball, which is npm's
+ *              `bundleDependencies` (also spelled `bundledDependencies`): `true`
+ *              means every declared dependency, the array form names them. npm
+ *              installs the copies the tarball carries instead of resolving those
+ *              names, and a lockfile records them with `inBundle`
+ */
+function bundled_names(manifest) {
+    const raw = manifest.bundleDependencies !== undefined ? manifest.bundleDependencies
+        : manifest.bundledDependencies;
+
+    if (raw === true)
+        return util.extend({}, manifest.dependencies, manifest.optionalDependencies);
+
+    const names = {};
+
+    (Array.isArray(raw) ? raw : Object.keys(raw || {})).forEach(n => { names[n] = true; });
+
+    return Object.keys(names).length ? names : undefined;
+}
+
+/**
+ * @description the same list as it goes into a lockfile: npm writes what the
+ *              manifest declared (`true`, or the names), and a file that says
+ *              something else makes npm rewrite the entry
+ */
+function bundled_list(manifest) {
+    const raw = manifest.bundleDependencies !== undefined ? manifest.bundleDependencies
+        : manifest.bundledDependencies;
+
+    if (raw === true)
+        return true;
+
+    const names = Array.isArray(raw) ? raw : Object.keys(raw || {});
+
+    return names.length ? names : undefined;
 }
 
 /**
@@ -843,6 +904,8 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
             const dev_dep_vs = util.clone(minfo.devDependencies || {});
             const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
             const peer_dep_vs = read_peer_dep_vs(minfo);
+            const bundle_deps = bundled_names(minfo);
+            const bundle_list = bundled_list(minfo);
 
             var binary;
             if (minfo.binary) {
@@ -877,6 +940,13 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dev_dep_vs: dev_dep_vs,
                 opt_dep_vs: opt_dep_vs,
                 peer_dep_vs: peer_dep_vs,
+                bundle_deps: bundle_deps,
+                bundle_list: bundle_list,
+                // what npm projects from the manifest of the package itself
+                license: minfo.license && typeof minfo.license === 'object'
+                    ? minfo.license.type : minfo.license,
+                engines: minfo.engines,
+                funding: minfo.funding,
                 os: minfo.os,
                 cpu: minfo.cpu,
                 libc: minfo.libc,
@@ -1125,6 +1195,8 @@ function locked_module_info(name, spec, level_info) {
         os: entry.os,
         cpu: entry.cpu,
         libc: entry.libc,
+        bundle_deps: bundled_names(entry.raw_entry || entry),
+        bundle_list: bundled_list(entry.raw_entry || entry),
         node_modules: {},
         parent: level_info,
         dist: {
@@ -1196,6 +1268,13 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
 
         function resolve_dep(dname) {
             const _deps = level_info[dep_type];
+
+            // what the package ships inside its own tarball is not resolved: npm keeps
+            // the copy the tarball carries, and a lockfile describes it with
+            // `inBundle`. The root project is the exception — its own bundled list is
+            // about what it publishes, and npm still installs those dependencies
+            if (level_info.parent && level_info.bundle_deps && level_info.bundle_deps[dname])
+                return;
 
             let v = _deps[dname];
             let child_level_info = level_info.node_modules[dname];
@@ -1481,6 +1560,10 @@ function ensure_declared_deps_visible(level_info) {
                 // a peer the tree does not satisfy is npm's invalid peer: the resolver
                 // keeps the copy it warned about, it does not duplicate it here
                 if (field === 'peer_dep_vs' && find_provided_node(name, level_info))
+                    return;
+
+                // what the package ships inside its own tarball needs no nesting
+                if (level_info.bundle_deps && level_info.bundle_deps[name])
                     return;
 
                 const spec = deps[name];
@@ -2924,7 +3007,7 @@ function install_from_lock(lock, opts) {
     const root = process.cwd();
     const git_entries = [];
     const installed = [];
-    const plan = { registry: 0, link: 0, git: 0, skipped: 0, kept: 0 };
+    const plan = { registry: 0, link: 0, git: 0, skipped: 0, kept: 0, bundled: 0 };
 
     // what the lockfile's own edges say about the kind of edge that reaches an entry.
     // A lockfile written before the flags were recorded leaves them out, and then a
@@ -2943,6 +3026,13 @@ function install_from_lock(lock, opts) {
         // a link target is not installed on its own
         if (entry.target_only)
             return;
+
+        // a copy the parent's tarball carries arrives with it: npm does not install
+        // one of those on its own, and a lockfile records them with no source
+        if (entry.in_bundle) {
+            plan.bundled++;
+            return;
+        }
 
         // the entry's own flags are what npm wrote; a lockfile that does not carry
         // them says nothing, and the graph is the answer then
@@ -3042,6 +3132,7 @@ function install_from_lock(lock, opts) {
 
     install_log(`[install] lockfile: ${plan.registry} registry, ${plan.link} link, ${plan.git} git` +
         (plan.skipped ? `, ${plan.skipped} skipped for this platform` : '') +
+        (plan.bundled ? `, ${plan.bundled} shipped inside a parent` : '') +
         (plan.kept ? `, ${plan.kept} already in place` : ''));
 
     download_module();
@@ -3049,6 +3140,77 @@ function install_from_lock(lock, opts) {
     install_lock_binaries(lock, root, installed);
 
     return { plan: plan, installed: installed, packages: packages, graph: graph };
+}
+
+/**
+ * @description the manifest a lockfile remembers for a node that ships copies of its
+ *              own (`bundleDependencies`) or came inside another's tarball. A packer
+ *              rewrites the manifest of what it bundles — npm@2's copy lost two
+ *              dependencies and its bundled copies lost their `optionalDependencies`,
+ *              which is also why npm marks those optional and this did not — while the
+ *              lockfile has the manifest that was published, the one npm reads a
+ *              candidate from. The version has to agree: a node on disk at another
+ *              version is the tree's own answer, and an ordinary node's manifest is the
+ *              tree's answer as well (a stale dependency list in the lockfile is what
+ *              made a repaired tree fail its own sync check)
+ */
+function declared_from_lock(node) {
+    const entry = ctx.lock_packages && ctx.lock_packages[node.lock_path];
+
+    if (!entry || entry.version !== node.version)
+        return;
+
+    // a lockfile that says the copy came inside a tarball is believed: the version
+    // alone cannot tell a shipped copy from an installed one
+    if (entry.in_bundle)
+        node.in_bundle = true;
+
+    node.dep_vs = util.clone(entry.dependencies || {});
+    node.opt_dep_vs = util.clone(entry.optionalDependencies || {});
+    node.peer_dep_vs = util.clone(entry.peerDependencies || {});
+    node.bundle_deps = bundled_names(entry.raw_entry || entry);
+    node.bundle_list = bundled_list(entry.raw_entry || entry) || node.bundle_list;
+
+    // the ranges a write back records are the declared ones, which the walk took from
+    // the directory: they have to follow the manifest this node now describes
+    if (node.declared) {
+        node.declared.dep_vs = util.clone(node.dep_vs);
+        node.declared.opt_dep_vs = util.clone(node.opt_dep_vs);
+        node.declared.peer_dep_vs = util.clone(node.peer_dep_vs);
+    }
+}
+
+/**
+ * @description what a package's tarball ships inside itself (npm's
+ *              `bundleDependencies`): the copies are on disk as soon as the parent is
+ *              unpacked, and the walk skipped them — nothing resolved them, nothing
+ *              fetched them. They are read here, once the downloads are done, so the
+ *              lockfile describes them the way npm does (`inBundle`, no source)
+ */
+function read_bundled_copies(level_info, dir) {
+    Object.keys(level_info.node_modules || {}).forEach(name => {
+        const node = level_info.node_modules[name];
+        // a link points at a directory of its own; everything else sits under this one
+        const node_dir = node.local_path || node.workspace_path || path.join(dir, 'node_modules', name);
+
+        // a package that ships copies of its own, or a copy that came inside another's
+        // tarball: its manifest is the packer's, and the lockfile remembers the one
+        // that was published
+        if (node.in_bundle || node.bundle_deps)
+            declared_from_lock(node);
+
+        if (node.bundle_deps) {
+            const read = read_module(node_dir, node);
+
+            Object.keys(read).forEach(k => {
+                // only the shipped copies: the resolved ones are already in the tree
+                if (node.bundle_deps[k] && !node.node_modules[k])
+                    node.node_modules[k] = read[k];
+            });
+        }
+
+        read_bundled_copies(node, node_dir);
+    });
 }
 
 /**
@@ -3189,6 +3351,9 @@ function tree_entry(node, p) {
         // `string-width`); `lock_entry()` decides whether to write the field
         name: node.real_name || node.name || lockfile.name_from_path(p),
         version: node.version,
+        // a copy that came inside a parent's tarball has no source of its own
+        in_bundle: node.in_bundle === true,
+        bundle_dependencies: node.bundle_list,
         resolved: local ? undefined : (node.dist && node.dist.tarball),
         integrity: local ? undefined : (node.dist && node.dist.integrity),
         link: local ? true : undefined,
@@ -3205,6 +3370,11 @@ function tree_entry(node, p) {
         os: node.os,
         cpu: node.cpu,
         libc: node.libc,
+        // what npm projects from the manifest of the package itself: a fresh entry
+        // without them makes npm rewrite the file
+        license: node.license,
+        engines: node.engines,
+        funding: node.funding,
         has_install_script: node.has_install_script,
     };
 }
@@ -3380,8 +3550,10 @@ function write_back_lockfile(lock, rootsnap) {
         const e = built.lock.packages[p];
 
         // only a package that installs into node_modules needs a source: the entry of
-        // the directory a link points at carries none by nature
-        return p.indexOf('node_modules/') === 0 && !e.link && !e.resolved && !e.integrity &&
+        // the directory a link points at carries none by nature, and neither does a
+        // copy a package ships inside its own tarball (npm records those with
+        // `inBundle`)
+        return p.indexOf('node_modules/') === 0 && !e.link && !e.inBundle && !e.resolved && !e.integrity &&
             e.version && /^\d/.test(String(e.version));
     });
 
@@ -4037,6 +4209,13 @@ link_workspace_packages();
 
 generate_mv_paths(rootsnap, process.cwd());
 download_module();
+
+// the copies the packages ship inside themselves are on disk now: the tree learns
+// about them before it is written out (npm describes them with `inBundle`), and the
+// marking is done again so that an entry the parent reaches through an optional edge
+// is not written as one every machine needs
+read_bundled_copies(rootsnap, process.cwd());
+mark_reachability(rootsnap);
 
 // create symlinks for local packages found during dependency walking
 (function create_local_package_symlinks(level_info, base_path) {

@@ -2157,7 +2157,7 @@ describe('opt_tools install lifecycle', function () {
             return JSON.parse(fs.readFileSync(p, 'utf8')).version;
         }
 
-        it('leaves the resolved copy where a tarball carries its own bundled one', function () {
+        it('keeps the copy a tarball ships, and describes it the way npm does', function () {
             var targetDir = makeTargetDir();
 
             // the root pins `helper@2`, so `bundler-pkg`'s `^1.0.0` cannot be hoisted
@@ -2176,15 +2176,26 @@ describe('opt_tools install lifecycle', function () {
 
             var nested = 'node_modules/bundler-pkg/node_modules/helper';
 
-            assert.equal(versionOnDisk(targetDir, nested), '1.1.0',
-                'the copy the install resolved is the one on disk (a bundled copy was unpacked over it): ' +
+            // npm keeps the copy the tarball carries (`bundleDependencies`) and never
+            // resolves the dependency: 1.1.0 is not fetched at all
+            assert.equal(versionOnDisk(targetDir, nested), '1.0.0',
+                'the copy the tarball ships is the one on disk: ' +
                 listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
+            assert.ok(!requests.some(u => u.indexOf('helper-1.1.0') > -1),
+                'the dependency it bundles was not fetched: ' + requests.join(', '));
 
-            // and the lockfile it wrote describes that tree
+            // and the lockfile it wrote describes that tree, the way npm does
             var lock = JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'));
 
-            assert.equal(lock.packages[nested].version, '1.1.0', 'the lockfile describes the copy on disk: ' +
+            assert.equal(lock.packages[nested].version, '1.0.0', 'the lockfile describes the copy on disk: ' +
                 JSON.stringify(lock.packages[nested]));
+            assert.equal(lock.packages[nested].inBundle, true, 'with `inBundle`, the way npm records it: ' +
+                JSON.stringify(lock.packages[nested]));
+            assert.ok(!lock.packages[nested].resolved, 'and no source of its own: ' +
+                JSON.stringify(lock.packages[nested]));
+            assert.deepEqual(lock.packages['node_modules/bundler-pkg'].bundleDependencies, ['helper'],
+                'the package it came inside says so: ' +
+                JSON.stringify(lock.packages['node_modules/bundler-pkg']));
 
             var disagreeing = [];
 
@@ -2201,6 +2212,46 @@ describe('opt_tools install lifecycle', function () {
             });
 
             assert.equal(disagreeing.length, 0, 'the tree and the lockfile agree: ' + disagreeing.join(', '));
+        });
+
+        it('installs a lockfile whose bundled entries carry no source', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'bundle-ci-proj', version: '1.0.0',
+                dependencies: { 'bundler-pkg': '1.0.0' },
+            }, null, 2));
+            // npm's own shape: the copy inside the tarball has no `resolved` and no
+            // `integrity`, and a frozen install has to let it arrive with its parent
+            // instead of asking the registry for it
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'bundle-ci-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'bundle-ci-proj', version: '1.0.0', dependencies: { 'bundler-pkg': '1.0.0' } },
+                    'node_modules/bundler-pkg': {
+                        version: '1.0.0',
+                        resolved: registry_url('bundler-pkg/-/bundler-pkg-1.0.0.tgz'),
+                        integrity: tarball_of('bundler-pkg', '1.0.0').integrity,
+                        dependencies: { helper: '^1.0.0' },
+                        bundleDependencies: ['helper'],
+                    },
+                    'node_modules/bundler-pkg/node_modules/helper': {
+                        version: '1.0.0', inBundle: true,
+                    },
+                },
+            }, null, 2));
+
+            var before = fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8');
+            var res = runInstaller(targetDir, ['--install', '--ci'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.ok(out.indexOf('1 shipped inside a parent') > -1, 'the copy is not fetched:\n' + out);
+            assert.equal(versionOnDisk(targetDir, 'node_modules/bundler-pkg/node_modules/helper'), '1.0.0',
+                'it is there, out of the tarball: ' +
+                listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
+            assert.equal(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'), before,
+                'a frozen install does not rewrite the lockfile');
         });
 
         it('refuses a lockfile whose peer cannot be met, the way npm ci does', function () {
