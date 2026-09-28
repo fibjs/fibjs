@@ -1024,6 +1024,151 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 10: the geometry of an install (the defect audit) =====
+    // plans/installer-lockfile-defect-audit-2026-09-28.md: scoped packages were
+    // invisible to the snapshot, a dependency an installed package was missing stayed
+    // missing, a write back dropped what it did not fetch itself, npm aliases lost the
+    // name that marks them, a peer conflict nested a second copy, and the sync check
+    // accepted entries the dependent cannot even see
+    if (isFibjs) describe('lockfile / install geometry (Phase 10)', function () {
+        function writeFile(dir, rel, content) {
+            var p = path.join(dir, rel);
+            fs.mkdirSync(path.dirname(p), { recursive: true });
+            fs.writeFileSync(p, content);
+        }
+
+        function writeJSON(dir, rel, value) {
+            writeFile(dir, rel, JSON.stringify(value, null, 2));
+        }
+
+        function lockOf(dir) {
+            return JSON.parse(fs.readFileSync(path.join(dir, 'package-lock.json'), 'utf8'));
+        }
+
+        function versionAt(dir, rel) {
+            var p = path.join(dir, rel, 'package.json');
+            if (!fs.existsSync(p)) return null;
+            return JSON.parse(fs.readFileSync(p, 'utf8')).version;
+        }
+
+        function isLink(dir, rel) {
+            try {
+                return fs.lstatSync(path.join(dir, rel)).isSymbolicLink();
+            } catch (e) {
+                return false;
+            }
+        }
+
+        var SRI = 'sha512-' + 'A'.repeat(86) + '==';
+
+        /**
+         * @description a project whose tree npm already laid out: `pkg-a` on disk, a
+         *              scoped dependency of it beside it, and a lockfile that describes
+         *              them (the shape the audit's foreign tree had)
+         */
+        function makeForeignTree(opts) {
+            var o = opts || {};
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'foreign-proj', version: '1.0.0',
+                dependencies: { 'pkg-a': '1.0.0' },
+            });
+
+            var lock = {
+                name: 'foreign-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'foreign-proj', version: '1.0.0', dependencies: { 'pkg-a': '1.0.0' } },
+                    'node_modules/pkg-a': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/pkg-a/-/pkg-a-1.0.0.tgz',
+                        integrity: SRI,
+                        engines: { node: '>=14' },
+                        dependencies: { '@scope/dep': '^1.0.0' },
+                    },
+                    'node_modules/@scope/dep': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/@scope/dep/-/dep-1.0.0.tgz',
+                        integrity: SRI,
+                    },
+                },
+            };
+
+            if (o.drop_scoped_lock_entry)
+                delete lock.packages['node_modules/@scope/dep'];
+
+            writeJSON(targetDir, 'package-lock.json', lock);
+
+            writeJSON(targetDir, 'node_modules/pkg-a/package.json', {
+                name: 'pkg-a', version: '1.0.0', dependencies: { '@scope/dep': '^1.0.0' },
+            });
+            writeJSON(targetDir, 'node_modules/@scope/dep/package.json', {
+                name: '@scope/dep', version: '1.0.0',
+            });
+
+            // a `file:` dependency the lockfile does not describe: it makes the check
+            // fail, which is what sends the install down the resolving path, and it
+            // resolves from the disk (no registry needed)
+            writeJSON(targetDir, 'local-pkg/package.json', { name: 'local-pkg', version: '1.0.0' });
+            if (!o.no_manifest_change) {
+                var pkgjson = JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'));
+                pkgjson.dependencies['local-pkg'] = 'file:local-pkg';
+                fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify(pkgjson, null, 2));
+            }
+
+            return targetDir;
+        }
+
+        it('sees a scoped package that is on disk, and keeps it when it writes the lockfile', function () {
+            var targetDir = makeForeignTree();
+            var res = runInstaller(targetDir, ['--install', '--lockfile-only']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var lock = lockOf(targetDir).packages;
+            var scoped = lock['node_modules/@scope/dep'];
+
+            assert.ok(scoped, 'the scoped dependency of an installed package is described: ' +
+                Object.keys(lock).length + ' entries');
+            assert.equal(scoped.version, '1.0.0');
+
+            // a node this run did not fetch keeps what the lockfile already said about
+            // it: dropping `resolved`/`integrity` (and the fields npm writes) is what
+            // made a write back unusable for `--ci`
+            assert.equal(scoped.resolved, 'https://registry.npmjs.org/@scope/dep/-/dep-1.0.0.tgz',
+                'the source survived the write back');
+            assert.equal(scoped.integrity, SRI, 'the integrity survived the write back');
+            assert.equal(lock['node_modules/pkg-a'].engines.node, '>=14', 'what npm wrote is kept');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync, what it is not:\n' + outputOf(ci));
+        });
+
+        it('installs a dependency an installed package declares and the tree lacks', function () {
+            var targetDir = makeForeignTree({ drop_scoped_lock_entry: true });
+
+            // `pkg-a` is on disk and asks for something the tree does not have, and the
+            // lockfile does not describe either: the walk has to look at what an
+            // installed package declares, or the hole is written into the lockfile
+            fs.rmSync(path.join(targetDir, 'node_modules/@scope/dep'), { recursive: true, force: true });
+            writeJSON(targetDir, 'node_modules/pkg-a/package.json', {
+                name: 'pkg-a', version: '1.0.0', dependencies: { 'local-dep': 'file:../../local-dep' },
+            });
+            writeJSON(targetDir, 'local-dep/package.json', { name: 'local-dep', version: '1.0.0' });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(isLink(targetDir, 'node_modules/local-dep'),
+                'the missing dependency is installed: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            var lock = lockOf(targetDir).packages;
+            assert.ok(lock['node_modules/local-dep'], 'and described: ' + Object.keys(lock).join(', '));
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it left is in sync:\n' + outputOf(ci));
+        });
+    });
+
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
     // a local https registry: the registry URL, the auth token and the certificate
     // handling are all exercised for real, and nothing leaves the machine
@@ -2442,6 +2587,65 @@ if (isFibjs) (function () {
         it('accepts a dist-tag on presence alone', function () {
             var entry = map_of({ 'node_modules/t': { version: '1.0.0' } })['node_modules/t'];
             assert.equal(lockfile.spec_satisfied('latest', entry, semver).ok, true);
+        });
+    });
+
+    describe('lockfile helper: writing the lockfile (Phase 2)', function () {
+        /**
+         * @description a lockfile as npm writes it: one registry package, with the
+         *              fields this installer does not produce itself
+         */
+        function previousLock() {
+            return {
+                name: 'p', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'p', version: '1.0.0', dependencies: { a: '^1.0.0' } },
+                    'node_modules/a': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/a/-/a-1.0.0.tgz',
+                        integrity: 'sha512-AAAA',
+                        engines: { node: '>=14' },
+                        dependencies: { b: '^1.0.0' },
+                    },
+                },
+            };
+        }
+
+        it('keeps what the previous lockfile said about a node this run did not fetch', function () {
+            // a node read from disk carries no `dist`, so its source is the one the
+            // lockfile already recorded. Rewriting it as `{version, dependencies}` is
+            // what dropped the integrity npm wrote — 835 of 1238 entries in the audit
+            var built = lockfile.to_lock({
+                'node_modules/a': { name: 'a', version: '1.0.0', dependencies: { b: '^1.0.0' } },
+            }, { name: 'p', version: '1.0.0' }, { previous: previousLock(), root: '/proj' });
+
+            var entry = built.lock.packages['node_modules/a'];
+            assert.equal(entry.resolved, 'https://registry.npmjs.org/a/-/a-1.0.0.tgz');
+            assert.equal(entry.integrity, 'sha512-AAAA');
+            assert.equal(entry.engines.node, '>=14', 'the fields npm writes are kept too');
+            assert.equal(built.kept.length, 1);
+        });
+
+        it('rewrites an entry whose source the tree did fetch, and one that moved', function () {
+            var moved = lockfile.to_lock({
+                'node_modules/a': {
+                    name: 'a', version: '1.0.0',
+                    resolved: 'https://mirror.example.com/a/-/a-1.0.0.tgz',
+                },
+            }, { name: 'p', version: '1.0.0' }, { previous: previousLock(), root: '/proj' });
+
+            assert.equal(moved.lock.packages['node_modules/a'].resolved,
+                'https://mirror.example.com/a/-/a-1.0.0.tgz', 'a source that changed is written');
+            assert.equal(moved.kept.length, 0);
+
+            var newer = lockfile.to_lock({
+                'node_modules/a': {
+                    name: 'a', version: '1.0.1',
+                    resolved: 'https://registry.npmjs.org/a/-/a-1.0.1.tgz',
+                },
+            }, { name: 'p', version: '1.0.0' }, { previous: previousLock(), root: '/proj' });
+
+            assert.equal(newer.lock.packages['node_modules/a'].version, '1.0.1');
         });
     });
 

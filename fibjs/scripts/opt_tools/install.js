@@ -49,20 +49,46 @@ http.setGlobalProxyFromEnv();
  */
 function read_module(p, parent) {
     const modules = {};
-    if (fs.exists(path.join(p, 'node_modules'))) {
-        const files = fs.readdir(path.join(p, 'node_modules'));
 
-        files.forEach(n => {
-            const f = path.join(p, 'node_modules', n, 'package.json');
-            if (fs.exists(f)) {
+    if (fs.exists(path.join(p, 'node_modules'))) {
+        const nm = path.join(p, 'node_modules');
+
+        // a directory under `node_modules` is either a package or a scope that
+        // holds packages (`node_modules/@scope/pkg`). The scope directory has no
+        // package.json of its own, so it is expanded one level and the package is
+        // registered under its full name — the key the resolver, the hoisting and
+        // the installer all use. Skipping it made every scoped package (and the
+        // whole subtree below it) invisible, which is how a write back lost them:
+        // the walk never repaired what it could not see
+        function read_entries(dir, prefix) {
+            fs.readdir(dir).forEach(n => {
+                if (prefix === '' && n.charAt(0) === '@') {
+                    const scope = path.join(dir, n);
+
+                    try {
+                        if (!fs.stat(scope).isDirectory())
+                            return;
+                    } catch (e) {
+                        return;
+                    }
+
+                    read_entries(scope, n + '/');
+                    return;
+                }
+
+                const name = prefix + n;
+                const f = path.join(dir, n, 'package.json');
+                if (!fs.exists(f))
+                    return;
+
                 const minfo = JSON.parse(fs.readTextFile(f));
 
                 const dep_vs = util.clone(minfo.dependencies || {});
                 const dev_dep_vs = util.clone(minfo.devDependencies || {});
                 const opt_dep_vs = util.clone(minfo.optionalDependencies || {});
 
-                modules[n] = {
-                    name: minfo.name || n,
+                modules[name] = {
+                    name: minfo.name || name,
                     version: minfo.version,
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
@@ -71,9 +97,11 @@ function read_module(p, parent) {
                     parent: parent
                 };
 
-                modules[n].node_modules = read_module(path.join(p, 'node_modules', n), modules[n]);
-            }
-        });
+                modules[name].node_modules = read_module(path.join(dir, n), modules[name]);
+            });
+        }
+
+        read_entries(nm, '');
     }
 
     return modules;
@@ -1020,177 +1048,184 @@ function locked_module_info(name, spec, level_info) {
  *                   not to the directory the installation was started from)
  */
 function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.cwd()) {
-    if (level_info.new_module) {
-        // the specs this level declares, before they are replaced below by the
-        // versions that were chosen for them. The tree keeps the latter — it is what
-        // `--save` writes into package.json — while a lockfile records the former
-        level_info.declared = {
-            dep_vs: util.clone(level_info.dep_vs || {}),
-            opt_dep_vs: util.clone(level_info.opt_dep_vs || {}),
-            peer_dep_vs: util.clone(level_info.peer_dep_vs || {}),
-        };
+    // every level is walked, not only the nodes this run created: a package that is
+    // already on disk still declares dependencies, and one of them may be missing (an
+    // interrupted install, a hand pruned tree, a lockfile written from an incomplete
+    // one). Walking the new nodes alone left such a hole alone and then wrote a
+    // lockfile that contradicted itself, while `npm install` repairs the tree
 
-        // `coroutine.parallel` swallows the exceptions raised inside its fibers and only
-        // reports '[20020] Internal error', so failures are collected here and rethrown
-        // once the whole dependency level has been walked through.
-        const dep_failures = [];
+    // the specs this level declares, before they are replaced below by the versions
+    // that were chosen for them. The tree keeps the latter — it is what `--save`
+    // writes into package.json — while a lockfile records the former
+    level_info.declared = {
+        dep_vs: util.clone(level_info.dep_vs || {}),
+        opt_dep_vs: util.clone(level_info.opt_dep_vs || {}),
+        peer_dep_vs: util.clone(level_info.peer_dep_vs || {}),
+    };
 
-        ;[
-            ['dep_vs', 'dependencies'],
-            ['opt_dep_vs', 'optionalDependencies'],
-            // npm (>= 7) installs the peer dependencies of every package it installs,
-            // the ones marked optional via `peerDependenciesMeta` excepted
-            ['peer_dep_vs', 'peerDependencies']
-        ].concat(
-            need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
-        ).forEach(([dep_type, dep_field]) => {
-            const deps_of_type = level_info[dep_type] || {};
+    // `coroutine.parallel` swallows the exceptions raised inside its fibers and only
+    // reports '[20020] Internal error', so failures are collected here and rethrown
+    // once the whole dependency level has been walked through.
+    const dep_failures = [];
 
-            coroutine.parallel(
-                Object.keys(deps_of_type),
-                dname => {
-                    try {
-                        resolve_dep(dname);
-                    } catch (e) {
-                        dep_failures.push({
-                            name: dname,
-                            spec: deps_of_type[dname],
-                            dep_field: dep_field,
-                            error: e
-                        });
-                    }
-                },
-                CST.DEFAULT_FIBERS
-            );
+    ;[
+        ['dep_vs', 'dependencies'],
+        ['opt_dep_vs', 'optionalDependencies'],
+        // npm (>= 7) installs the peer dependencies of every package it installs,
+        // the ones marked optional via `peerDependenciesMeta` excepted
+        ['peer_dep_vs', 'peerDependencies']
+    ].concat(
+        need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
+    ).forEach(([dep_type, dep_field]) => {
+        const deps_of_type = level_info[dep_type] || {};
 
-            function resolve_dep(dname) {
-                    const _deps = level_info[dep_type];
+        coroutine.parallel(
+            Object.keys(deps_of_type),
+            dname => {
+                try {
+                    resolve_dep(dname);
+                } catch (e) {
+                    dep_failures.push({
+                        name: dname,
+                        spec: deps_of_type[dname],
+                        dep_field: dep_field,
+                        error: e
+                    });
+                }
+            },
+            CST.DEFAULT_FIBERS
+        );
 
-                    let v = _deps[dname];
-                    let child_level_info = level_info.node_modules[dname];
+        function resolve_dep(dname) {
+            const _deps = level_info[dep_type];
 
-                    // For workspace packages, skip external fetch but still process their dependencies
-                    if (child_level_info && child_level_info.workspace_package) {
-                        // Ensure version matches for workspace packages
-                        if (child_level_info) _deps[dname] = child_level_info.version;
+            let v = _deps[dname];
+            let child_level_info = level_info.node_modules[dname];
+
+            // For workspace packages, skip external fetch but still process their dependencies
+            if (child_level_info && child_level_info.workspace_package) {
+                // Ensure version matches for workspace packages
+                if (child_level_info) _deps[dname] = child_level_info.version;
+                return;
+            }
+
+            // `--update`: ask the registry again instead of keeping what is
+            // already there, and pass that down to the subtree (npm's
+            // `update <pkg>` refreshes what that package needs too)
+            const refresh = should_update(dname, level_info);
+
+            if (refresh) {
+                level_info.updated = true;
+                child_level_info = undefined;
+            } else if (child_level_info === undefined) {
+                // nothing on disk to start from: the lockfile is the tree npm
+                // would have started from, and the version it pins is kept
+                // while it satisfies the spec
+                const locked = locked_module_info(dname, v, level_info);
+
+                if (locked)
+                    child_level_info = level_info.node_modules[dname] = locked;
+            }
+
+            if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
+                // `find_version` answers "an ancestor already provides this",
+                // which is not the answer a refresh is looking for
+                if (refresh || !find_version(dname, v, level_info))
+                    child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
+
+                // check platform compatibility; skip optional deps that don't match
+                if (child_level_info && !check_platform_match(child_level_info)) {
+                    if (dep_type === 'opt_dep_vs') {
+                        install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
+
+                        // npm keeps such a package in the tree — and in the
+                        // lockfile — and only skips it while installing: a
+                        // lockfile without it cannot be used on the platform
+                        // it was written for
+                        child_level_info.platform_mismatch = true;
+                        child_level_info.node_modules = {};
                         return;
                     }
+                    console.warn('platform mismatch for', dname, '- may not work');
+                }
 
-                    // `--update`: ask the registry again instead of keeping what is
-                    // already there, and pass that down to the subtree (npm's
-                    // `update <pkg>` refreshes what that package needs too)
-                    const refresh = should_update(dname, level_info);
+                /**
+                 * @todo deal with special installation name, such as 'fibjs/fib-graphql'
+                 */
+                if (child_level_info && child_level_info.name !== dname) {
+                    const pkg_name = child_level_info.name;
+                    const installnation_name = dname;
+                    child_level_info = level_info.node_modules[pkg_name] = level_info.node_modules[dname]
 
-                    if (refresh) {
-                        level_info.updated = true;
-                        child_level_info = undefined;
-                    } else if (child_level_info === undefined) {
-                        // nothing on disk to start from: the lockfile is the tree npm
-                        // would have started from, and the version it pins is kept
-                        // while it satisfies the spec
-                        const locked = locked_module_info(dname, v, level_info);
-
-                        if (locked)
-                            child_level_info = level_info.node_modules[dname] = locked;
-                    }
-
-                    if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
-                        // `find_version` answers "an ancestor already provides this",
-                        // which is not the answer a refresh is looking for
-                        if (refresh || !find_version(dname, v, level_info))
-                            child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
-
-                        // check platform compatibility; skip optional deps that don't match
-                        if (child_level_info && !check_platform_match(child_level_info)) {
-                            if (dep_type === 'opt_dep_vs') {
-                                install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
-
-                                // npm keeps such a package in the tree — and in the
-                                // lockfile — and only skips it while installing: a
-                                // lockfile without it cannot be used on the platform
-                                // it was written for
-                                child_level_info.platform_mismatch = true;
-                                child_level_info.node_modules = {};
-                                return;
-                            }
-                            console.warn('platform mismatch for', dname, '- may not work');
+                    if (child_level_info.parent) {
+                        if (child_level_info.parent.dep_vs[installnation_name]) {
+                            child_level_info.parent.dep_vs[pkg_name] = installnation_name
+                            delete child_level_info.parent.dep_vs[installnation_name]
+                            name_maps_installation2pkg[installnation_name] = pkg_name
                         }
-
-                        /**
-                         * @todo deal with special installation name, such as 'fibjs/fib-graphql'
-                         */
-                        if (child_level_info && child_level_info.name !== dname) {
-                            const pkg_name = child_level_info.name;
-                            const installnation_name = dname;
-                            child_level_info = level_info.node_modules[pkg_name] = level_info.node_modules[dname]
-
-                            if (child_level_info.parent) {
-                                if (child_level_info.parent.dep_vs[installnation_name]) {
-                                    child_level_info.parent.dep_vs[pkg_name] = installnation_name
-                                    delete child_level_info.parent.dep_vs[installnation_name]
-                                    name_maps_installation2pkg[installnation_name] = pkg_name
-                                }
-                                if (child_level_info.parent.dev_dep_vs[installnation_name]) {
-                                    child_level_info.parent.dev_dep_vs[installnation_name] = installnation_name
-                                    delete child_level_info.parent.dev_dep_vs[installnation_name]
-                                    name_maps_installation2pkg[installnation_name] = pkg_name
-                                }
-                            }
-
-                            delete level_info.node_modules[installnation_name]
-
-                            // the node now sits under the name it resolved to, and the
-                            // lockfile has to agree with it: the declared spec follows
-                            // the rename, falling back to what the tree records
-                            if (level_info.declared && level_info.declared[dep_type])
-                                delete level_info.declared[dep_type][installnation_name]
-
-                            dname = pkg_name
+                        if (child_level_info.parent.dev_dep_vs[installnation_name]) {
+                            child_level_info.parent.dev_dep_vs[installnation_name] = installnation_name
+                            delete child_level_info.parent.dev_dep_vs[installnation_name]
+                            name_maps_installation2pkg[installnation_name] = pkg_name
                         }
                     }
 
-                    if (child_level_info) _deps[dname] = child_level_info.version;
+                    delete level_info.node_modules[installnation_name]
+
+                    // the node now sits under the name it resolved to, and the
+                    // lockfile has to agree with it: the declared spec follows
+                    // the rename, falling back to what the tree records
+                    if (level_info.declared && level_info.declared[dep_type])
+                        delete level_info.declared[dep_type][installnation_name]
+
+                    dname = pkg_name
+                }
             }
-        });
 
-        if (dep_failures.length > 0)
-            throw new Error(format_dep_failures(level_info, dep_failures));
-
-        for (let k in level_info.node_modules) {
-            const child = level_info.node_modules[k];
-
-            walkthrough_deps(
-                child,
-                // only ask if need_dev_deps for installation's source root
-                false,
-                // a local package lives outside node_modules, so its own relative
-                // dependencies are resolved against its own directory
-                child.local_path || path.join(base_dir, 'node_modules', k)
-            );
+            if (child_level_info) _deps[dname] = child_level_info.version;
         }
+    });
+
+    if (dep_failures.length > 0)
+        throw new Error(format_dep_failures(level_info, dep_failures));
+
+    for (let k in level_info.node_modules) {
+        const child = level_info.node_modules[k];
+
+        walkthrough_deps(
+            child,
+            // only ask if need_dev_deps for installation's source root
+            false,
+            // a local package lives outside node_modules, so its own relative
+            // dependencies are resolved against its own directory
+            child.local_path || path.join(base_dir, 'node_modules', k)
+        );
     }
 }
 
 function move_up(level_info, parent) {
-    if (level_info.new_module) {
-        if (parent !== undefined)
-            for (let k in level_info.node_modules) {
-                const m = level_info.node_modules[k];
-                if (m.new_module && !m.workspace_package) { // don't move workspace packages
-                    const m1 = parent.node_modules[k];
-                    if (m1 === undefined || m1.version === m.version) {
-                        parent.node_modules[k] = m;
-                        delete level_info.node_modules[k];
+    // only what this run produced is hoisted; a package that was already on disk stays
+    // where npm put it, and the tree is not reshaped around it. A node a repair or a
+    // resolve just created, on the other hand, has to bubble up as far as its version
+    // allows — that is what keeps one instance of a package instead of a copy per
+    // dependent
+    if (parent !== undefined)
+        for (let k in level_info.node_modules) {
+            const m = level_info.node_modules[k];
+            if (m.new_module && !m.workspace_package) { // don't move workspace packages
+                const m1 = parent.node_modules[k];
+                if (m1 === undefined || m1.version === m.version) {
+                    parent.node_modules[k] = m;
+                    delete level_info.node_modules[k];
 
-                        parent.module_list.push(k);
-                    }
+                    parent.module_list.push(k);
                 }
             }
+        }
 
-        level_info.module_list = Object.keys(level_info.node_modules);
-        for (let i = 0; i < level_info.module_list.length; i++)
-            move_up(level_info.node_modules[level_info.module_list[i]], level_info);
-    }
+    level_info.module_list = Object.keys(level_info.node_modules);
+    for (let i = 0; i < level_info.module_list.length; i++)
+        move_up(level_info.node_modules[level_info.module_list[i]], level_info);
 }
 
 /**
@@ -2544,6 +2579,24 @@ function write_back_lockfile(lock, rootsnap) {
         return null;
 
     lockfile.write_lockfile(built.file, built.lock, built.indent);
+
+    // a registry entry without a source cannot be verified later: `--ci` refuses
+    // it, so say so now instead of letting the next frozen install fail. It happens
+    // when the tree holds a package no lockfile ever described (installed by hand,
+    // or left over from one written before the lockfile existed)
+    const unsourced = Object.keys(built.lock.packages).filter(p => {
+        const e = built.lock.packages[p];
+
+        // only a package that installs into node_modules needs a source: the entry of
+        // the directory a link points at carries none by nature
+        return p.indexOf('node_modules/') === 0 && !e.link && !e.resolved && !e.integrity &&
+            e.version && /^\d/.test(String(e.version));
+    });
+
+    if (unsourced.length)
+        console.warn(`[install] ${unsourced.length} lockfile entr${unsourced.length === 1 ? 'y has' : 'ies have'} no ` +
+            `source (${unsourced.slice(0, 3).join(', ')}${unsourced.length > 3 ? ', …' : ''}): ` +
+            '`--ci` will refuse them; `fibjs --install --update` fetches them again');
 
     install_log(`write: ${path.basename(built.file)}` +
         ` (${Object.keys(built.lock.packages).length - 1} packages)` +

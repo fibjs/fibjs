@@ -917,6 +917,38 @@ function root_entry(root_pkgjson) {
 }
 
 /**
+ * @description the entry of a package the lockfile already described and this run did
+ *              not fetch, with the fields the tree produces laid over it. What npm
+ *              wrote and the tree does not produce (license, engines, funding,
+ *              peerDependenciesMeta…) survives, while everything a package's own
+ *              manifest describes comes from the tree — a stale dependency list in the
+ *              lockfile is what made a repaired tree fail its own sync check
+ */
+function merge_entry(previous, entry, p) {
+    const fresh = lock_entry(entry, p);
+    const merged = {};
+
+    Object.keys(previous).forEach(k => { merged[k] = previous[k]; });
+
+    // the tree decides these, `undefined` included: an installed package with no
+    // dependencies declares none
+    ['name', 'version', 'link', 'dev', 'optional', 'devOptional', 'dependencies',
+        'optionalDependencies', 'peerDependencies', 'bin', 'os', 'cpu', 'libc',
+        'hasInstallScript'].forEach(k => { delete merged[k]; });
+
+    // the source is the tree's when it fetched the package, and the lockfile's when it
+    // found the package on disk (nothing fetched it, so nothing knows better)
+    if (entry.resolved) {
+        delete merged.resolved;
+        delete merged.integrity;
+    }
+
+    Object.keys(fresh).forEach(k => { merged[k] = fresh[k]; });
+
+    return order_keys(merged, ENTRY_KEY_ORDER);
+}
+
+/**
  * @description the lockfile a set of installed packages describes. An entry the
  *              previous lockfile already described (same version, same source) is
  *              reused as it is, so the fields npm writes and this does not produce
@@ -953,9 +985,19 @@ function to_lock(paths, root_pkgjson, opts) {
             return;
         }
 
+        // a node that this run did not fetch (it was already on disk) carries no
+        // `dist`, so its source is whatever the lockfile already recorded: asking
+        // for `resolved` to match would rewrite that entry into a stub and drop the
+        // integrity npm wrote (835 of 1238 entries in the audit's sample). A node
+        // that *was* fetched knows its source, and then it has to agree
+        const same_source = !entry.resolved || (previous && previous.resolved === entry.resolved);
+
+        // `link` is normalised to false on the previous side and left undefined by the
+        // tree, so comparing them directly never matched — the entry was rebuilt from
+        // scratch every time, and everything npm had written in it was dropped
         if (previous && previous.version === entry.version &&
-            previous.resolved === entry.resolved && previous.link === entry.link) {
-            packages[p] = previous.raw_entry;
+            !!previous.link === !!entry.link && same_source) {
+            packages[p] = merge_entry(previous.raw_entry, entry, p);
             kept.push(p);
             return;
         }
