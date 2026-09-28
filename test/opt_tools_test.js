@@ -2022,8 +2022,11 @@ describe('opt_tools install lifecycle', function () {
         function build_pkg(name, version, manifest, opts) {
             var o = opts || {};
             var bundled = o.bundled || {};
+            // npm's registry packs most packages under `package/`, and `@types/*` under
+            // the package's own name: the unpacker has to use each tarball's own root
+            var root = o.root || 'package';
             var dir = path.join(fixtureDir, name + '-' + version);
-            var pkg = path.join(dir, 'package');
+            var pkg = path.join(dir, root);
 
             fs.mkdirSync(pkg, { recursive: true });
             fs.writeFileSync(path.join(pkg, 'package.json'), JSON.stringify(manifest, null, 2));
@@ -2031,6 +2034,10 @@ describe('opt_tools install lifecycle', function () {
 
             if (o.blob)
                 fs.writeFileSync(path.join(pkg, 'blob.bin'), crypto.randomBytes(o.blob));
+
+            (o.files || []).forEach(f => {
+                fs.writeFileSync(path.join(pkg, f + '.txt'), name + ' ' + f + '\n');
+            });
 
             Object.keys(bundled).forEach(bundled_name => {
                 var src = path.join(fixtureDir, bundled_name + '-' + bundled[bundled_name], 'package');
@@ -2041,7 +2048,7 @@ describe('opt_tools install lifecycle', function () {
             });
 
             var file = name + '-' + version + '.tgz';
-            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+            var res = child_process.spawnSync('tar', ['czf', file, root], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
@@ -2252,6 +2259,53 @@ describe('opt_tools install lifecycle', function () {
                 listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
             assert.equal(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'), before,
                 'a frozen install does not rewrite the lockfile');
+        });
+
+        it('unpacks tarballs with different member roots at the same time', function () {
+            var targetDir = makeTargetDir();
+            var names = [];
+            var members = ['a', 'b', 'c'];
+
+            // one wave unpacks several tarballs at once, and each tarball's root is
+            // that task's own business: sharing it put one package's members inside
+            // another's directory
+            for (var i = 0; i < 8; i++) {
+                var name = 'root-pkg-' + i;
+
+                build_pkg(name, '1.0.0', {
+                    name: name, version: '1.0.0',
+                }, { root: i % 2 === 0 ? 'package' : name, files: members });
+
+                names.push(name);
+            }
+
+            var deps = {};
+
+            names.forEach(n => { deps[n] = '1.0.0'; });
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'roots-proj', version: '1.0.0', dependencies: deps,
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+
+            names.forEach(n => {
+                var dir = path.join(targetDir, 'node_modules', n);
+                var wrong = fs.readdirSync(dir).filter(f => members.every(m => f !== m + '.txt') &&
+                    f !== 'package.json' && f !== 'index.js');
+
+                assert.equal(versionOnDisk(targetDir, 'node_modules/' + n), '1.0.0',
+                    'the package is where it belongs: ' + listDir(dir));
+                members.forEach(m => {
+                    assert.ok(fs.existsSync(path.join(dir, m + '.txt')),
+                        n + ' has ' + m + '.txt: ' + listDir(dir));
+                });
+                assert.equal(wrong.length, 0, 'nothing else landed in ' + n + ': ' + wrong.join(', '));
+            });
         });
 
         it('refuses a lockfile whose peer cannot be met, the way npm ci does', function () {

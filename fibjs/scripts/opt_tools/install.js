@@ -1,3 +1,5 @@
+'use strict';
+
 const url = require('url');
 const util = require('util');
 const coroutine = require('coroutine');
@@ -1957,6 +1959,12 @@ function download_module() {
         keys,
         mkey => {
             const mvm = mv_paths[mkey];
+            // the root the members of this tarball are sliced by. It is *per task*: a
+            // wave runs many of them at once, and npm's tarballs do not all use the
+            // same one (`@types/*` are packed under the package's own name, everything
+            // else under `package`) — sharing it unpacked one package's members into
+            // another's directory
+            let archive_root_name;
 
             const registry_i_tuples = [];
             const git_i_tuples = [];
@@ -2051,9 +2059,18 @@ function download_module() {
 
                             if (file.typeflag == "0") {
                                 const tpath = path.join(bp, task_dir(mvm), file.filename.slice(archive_root_name.length));
-                                fs.mkdir(path.dirname(tpath), { recursive: true });
-                                fs.writeFile(tpath, file.fileData);
-                                fs.chmod(tpath, parseInt(file.mode, 8));
+
+                                // an extraction that fails has to say what it was unpacking:
+                                // the path alone does not tell which tarball wrote there
+                                try {
+                                    fs.mkdir(path.dirname(tpath), { recursive: true });
+                                    fs.writeFile(tpath, file.fileData);
+                                    fs.chmod(tpath, parseInt(file.mode, 8));
+                                } catch (e) {
+                                    console.error(`[install] ${mvm.name}@${mvm.version}: cannot unpack ` +
+                                        `${JSON.stringify(file.filename)} (root ${JSON.stringify(archive_root_name)}) to ${tpath}`);
+                                    throw e;
+                                }
                             }
                         });
                     });
