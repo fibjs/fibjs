@@ -1987,6 +1987,276 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 13: what a tarball carries, and what npm refuses =====
+    // two things an install has to get right at the end: a package that bundles its
+    // own copy of a dependency must not leave that older copy where the install
+    // resolved another one (the tree the lockfile describes is the tree on disk), and
+    // a peer edge that cannot be met is npm's ERESOLVE — `npm ci` refuses the lockfile
+    // of one even when it was written with `--legacy-peer-deps`
+    if (isFibjs) describe('install / bundles and peers (Phase 13)', function () {
+        var http = require('http');
+        var crypto = require('crypto');
+
+        var server = null;
+        var port = 0;
+        var requests = [];
+        var tarballs = {};
+        var packuments = {};
+        var fixtureDir = '';
+
+        function registry_url(p) {
+            return 'http://127.0.0.1:' + port + '/' + p;
+        }
+
+        function tarball_of(name, version) {
+            return tarballs[name + '-' + version];
+        }
+
+        /**
+         * @description build `<name>@<version>`: the manifest, the files, and what the
+         *              registry answers. `bundled` are the copies the tarball carries
+         *              itself (npm's `bundleDependencies`), `blob` a file big enough
+         *              that unpacking the tarball takes longer than fetching what goes
+         *              inside it (the race the waves rule out)
+         */
+        function build_pkg(name, version, manifest, opts) {
+            var o = opts || {};
+            var bundled = o.bundled || {};
+            var dir = path.join(fixtureDir, name + '-' + version);
+            var pkg = path.join(dir, 'package');
+
+            fs.mkdirSync(pkg, { recursive: true });
+            fs.writeFileSync(path.join(pkg, 'package.json'), JSON.stringify(manifest, null, 2));
+            fs.writeFileSync(path.join(pkg, 'index.js'), 'module.exports = "' + name + '@' + version + '";\n');
+
+            if (o.blob)
+                fs.writeFileSync(path.join(pkg, 'blob.bin'), crypto.randomBytes(o.blob));
+
+            Object.keys(bundled).forEach(bundled_name => {
+                var src = path.join(fixtureDir, bundled_name + '-' + bundled[bundled_name], 'package');
+                var dst = path.join(pkg, 'node_modules', bundled_name);
+
+                fs.mkdirSync(dst, { recursive: true });
+                copyDir(src, dst);
+            });
+
+            var file = name + '-' + version + '.tgz';
+            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            var buffer = fs.readFileSync(path.join(dir, file));
+
+            tarballs[name + '-' + version] = {
+                buffer: buffer,
+                integrity: 'sha512-' + crypto.createHash('sha512').update(buffer).digest('base64'),
+            };
+
+            var versions = packuments[name] || (packuments[name] = {
+                name: name, 'dist-tags': { latest: version }, versions: {},
+            });
+
+            // a registry answers with the manifest, dependencies and all
+            var entry = JSON.parse(JSON.stringify(manifest));
+
+            entry.dist = {};
+            // the port is not known until the server is bound: the URLs are filled
+            // in below
+            entry.dist.tarball = registry_url(name + '/-/' + file);
+            entry.dist.integrity = tarballs[name + '-' + version].integrity;
+            versions.versions[version] = entry;
+            versions['dist-tags'].latest = version;
+        }
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'bundle_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+
+            build_pkg('helper', '1.0.0', { name: 'helper', version: '1.0.0' });
+            build_pkg('helper', '1.1.0', { name: 'helper', version: '1.1.0' });
+            build_pkg('helper', '2.0.0', { name: 'helper', version: '2.0.0' });
+
+            // npm's `bundleDependencies`: the tarball carries its own copy of `helper`,
+            // and it is big enough that unpacking it takes longer than fetching the
+            // copy that belongs inside it
+            build_pkg('bundler-pkg', '1.0.0', {
+                name: 'bundler-pkg', version: '1.0.0',
+                dependencies: { helper: '^1.0.0' },
+                bundleDependencies: ['helper'],
+            }, { bundled: { helper: '1.0.0' }, blob: 12 * 1024 * 1024 });
+
+            build_pkg('core', '1.0.0', { name: 'core', version: '1.0.0' });
+            build_pkg('core', '2.0.0', { name: 'core', version: '2.0.0' });
+            build_pkg('peer-host', '1.0.0', {
+                name: 'peer-host', version: '1.0.0',
+                peerDependencies: { core: '^2.0.0' },
+            });
+
+            function handler(r) {
+                requests.push(r.address);
+
+                var m = /^\/([^\/]+)\/-\/([^\/]+)-(\d+\.\d+\.\d+)\.tgz$/.exec(r.address);
+
+                if (m) {
+                    var t = tarball_of(m[2], m[3]);
+
+                    if (t) {
+                        r.response.write(t.buffer);
+                        return;
+                    }
+                }
+
+                var packument = packuments[r.address.replace(/^\//, '')];
+
+                if (packument) {
+                    // the fixture is built before the port is bound, so the tarball
+                    // URLs are answered with it here (`127.0.0.1:0` is the placeholder)
+                    r.response.write(JSON.stringify(packument)
+                        .replace(/127\.0\.0\.1:0\//g, '127.0.0.1:' + port + '/'));
+                    return;
+                }
+
+                r.response.statusCode = 404;
+                r.response.write('not found');
+            }
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 41000 + Math.floor(Math.random() * 4000);
+                var candidateServer = http.createServer(handler);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        beforeEach(function () {
+            requests = [];
+        });
+
+        function offline() {
+            return { env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' } };
+        }
+
+        function versionOnDisk(dir, rel) {
+            var p = path.join(dir, rel, 'package.json');
+
+            if (!fs.existsSync(p))
+                return null;
+
+            return JSON.parse(fs.readFileSync(p, 'utf8')).version;
+        }
+
+        it('leaves the resolved copy where a tarball carries its own bundled one', function () {
+            var targetDir = makeTargetDir();
+
+            // the root pins `helper@2`, so `bundler-pkg`'s `^1.0.0` cannot be hoisted
+            // away: the install resolves 1.1.0 into the directory the tarball also
+            // carries a 1.0.0 in
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'bundle-proj', version: '1.0.0',
+                dependencies: { 'bundler-pkg': '1.0.0', helper: '2.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+
+            var nested = 'node_modules/bundler-pkg/node_modules/helper';
+
+            assert.equal(versionOnDisk(targetDir, nested), '1.1.0',
+                'the copy the install resolved is the one on disk (a bundled copy was unpacked over it): ' +
+                listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
+
+            // and the lockfile it wrote describes that tree
+            var lock = JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'));
+
+            assert.equal(lock.packages[nested].version, '1.1.0', 'the lockfile describes the copy on disk: ' +
+                JSON.stringify(lock.packages[nested]));
+
+            var disagreeing = [];
+
+            Object.keys(lock.packages).forEach(p => {
+                var entry = lock.packages[p];
+
+                if (p === '' || entry.link || p.indexOf('node_modules/') !== 0)
+                    return;
+
+                var on_disk = versionOnDisk(targetDir, p);
+
+                if (on_disk !== entry.version)
+                    disagreeing.push(p + ': ' + entry.version + ' vs ' + on_disk);
+            });
+
+            assert.equal(disagreeing.length, 0, 'the tree and the lockfile agree: ' + disagreeing.join(', '));
+        });
+
+        it('refuses a lockfile whose peer cannot be met, the way npm ci does', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'peer-proj', version: '1.0.0',
+                dependencies: { 'peer-host': '1.0.0', core: '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'peer-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'peer-proj', version: '1.0.0',
+                        dependencies: { 'peer-host': '1.0.0', core: '1.0.0' },
+                    },
+                    'node_modules/peer-host': {
+                        version: '1.0.0',
+                        resolved: registry_url('peer-host/-/peer-host-1.0.0.tgz'),
+                        integrity: tarball_of('peer-host', '1.0.0').integrity,
+                        peerDependencies: { core: '^2.0.0' },
+                    },
+                    // the root holds 1.0.0 where the peer asks for ^2.0.0: npm answers
+                    // ERESOLVE and refuses to install the tree
+                    'node_modules/core': {
+                        version: '1.0.0',
+                        resolved: registry_url('core/-/core-1.0.0.tgz'),
+                        integrity: tarball_of('core', '1.0.0').integrity,
+                    },
+                },
+            }, null, 2));
+
+            var strict = runInstaller(targetDir, ['--install', '--ci', '--dry-run'], offline());
+            var out = outputOf(strict);
+
+            assert.equal(strict.status, 1, 'the frozen install refuses it: ' + diag(targetDir, strict) + '\n' + out);
+            assert.ok(out.indexOf('cannot be met') > -1, 'and says why:\n' + out);
+            assert.ok(out.indexOf('ERESOLVE') > -1, 'in npm\'s words:\n' + out);
+            assert.ok(out.indexOf('--no-strict-peer') > -1, 'and how to accept it:\n' + out);
+
+            // npm is told to install it anyway with `--legacy-peer-deps`
+            var relaxed = runInstaller(targetDir, ['--install', '--ci', '--dry-run', '--no-strict-peer'], offline());
+
+            assert.equal(relaxed.status, 0, diag(targetDir, relaxed) + '\n' + outputOf(relaxed));
+
+            // an install that resolves says the same thing without stopping
+            var install = runInstaller(targetDir, ['--install'], offline());
+            var install_out = outputOf(install);
+
+            assert.equal(install.status, 0, diag(targetDir, install) + '\n' + install_out);
+            assert.ok(install_out.indexOf('peer core@^2.0.0 of node_modules/peer-host') > -1,
+                'the unmet peer is named:\n' + install_out);
+            assert.equal(versionOnDisk(targetDir, 'node_modules/peer-host'), '1.0.0');
+        });
+    });
+
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
     // a local https registry: the registry URL, the auth token and the certificate
     // handling are all exercised for real, and nothing leaves the machine
