@@ -1853,11 +1853,27 @@ function download_manifest_binary(mvm) {
 }
 
 function download_module() {
-    coroutine.parallel(
-        Object.keys(mv_paths),
+    // a package's tarball carries copies of the dependencies it bundles
+    // (`bundleDependencies`), so unpacking it after those were put in place left
+    // the bundled version on disk where the plan had another one: one pass per
+    // depth, a package before anything that goes inside it (npm reifies in
+    // dependency order for the same reason)
+    const waves = [];
+    let deepest = -1;
+
+    Object.keys(mv_paths).forEach(mkey => {
+        const d = mv_depth(mv_paths[mkey]);
+
+        (waves[d] = waves[d] || []).push(mkey);
+
+        if (d > deepest)
+            deepest = d;
+    });
+
+    const download_wave = keys => coroutine.parallel(
+        keys,
         mkey => {
             const mvm = mv_paths[mkey];
-            let archive_root_name;
 
             const registry_i_tuples = [];
             const git_i_tuples = [];
@@ -2048,6 +2064,226 @@ function download_module() {
         },
         CST.DEFAULT_FIBERS
     );
+
+    for (let d = 0; d <= deepest; d++) {
+        if (waves[d])
+            download_wave(waves[d]);
+    }
+}
+
+/**
+ * @description how deep the copies of a task go: the number of path segments below
+ *              the project. A parent's tarball may carry a copy of the dependency
+ *              that goes inside it, so the parent is unpacked first
+ */
+function mv_depth(mvm) {
+    const root = process.cwd();
+    let depth = 0;
+
+    (mvm.base_path || []).forEach(p => {
+        let n = 0;
+
+        path.relative(root, p).split(path.sep).forEach(seg => {
+            if (seg.length)
+                n++;
+        });
+
+        if (n > depth)
+            depth = n;
+    });
+
+    return depth;
+}
+
+function download_one(mkey) {
+    const mvm = mv_paths[mkey];
+
+    const registry_i_tuples = [];
+    const git_i_tuples = [];
+    const existed_dirs = {};
+    function ensure_dir(dirname) {
+        if (process.platform === 'win32')
+            if (existed_dirs[dirname]) return;
+
+        existed_dirs[dirname] = true;
+        fs.mkdir(dirname, { recursive: true });
+    }
+
+    switch (mvm.pkg_install_typeinfo.type) {
+        case 'registry':
+            let tgz_path = null;
+            let tgz_download = null;
+            for (let _dl = 0; _dl < 3; _dl++) {
+                try {
+                    var r = http_get(mvm.dist.tarball, {
+                        headers: mvm.dist.headers || auth_headers_for(mvm.dist.tarball)
+                    });
+                    if (r.statusCode !== 200) {
+                        console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
+                        process.exit();
+                    }
+                    // straight to the disk, hashed on the way: a big tarball
+                    // is never read into memory (see download_to_file)
+                    tgz_path = temp_path(mvm);
+                    tgz_download = download_to_file(r, tgz_path, mvm.dist);
+                    r = null;
+                    break;
+                } catch (e) {
+                    remove_temp(tgz_path);
+                    tgz_path = null;
+                    tgz_download = null;
+                    console.log(e);
+                    console.warn(`[download] retry ${_dl + 1}: ${mvm.dist.tarball}`);
+                }
+            }
+            if (!tgz_path) {
+                console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
+                process.exit(-1);
+            }
+
+            // the lockfile is what a frozen install trusts: an entry it cannot
+            // verify is refused (the resolve path only warns, npm does not
+            // verify at all there)
+            if (!verify_digest(tgz_download.digest, mvm, mvm.frozen === true)) {
+                remove_temp(tgz_path);
+                console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
+                process.exit(-1);
+            }
+
+            let t;
+            if (tgz_download.gzip) {
+                // only the unpacked tar has to be in memory: the compressed
+                // payload goes through a scratch file as well
+                const tar_path = tgz_path + '.tar';
+                const gz_in = fs.createReadStream(tgz_path);
+                const tar_out = fs.createWriteStream(tar_path);
+
+                try {
+                    zlib.gunzipTo(gz_in, tar_out);
+                } finally {
+                    gz_in.close();
+                    tar_out.close();
+                }
+
+                remove_temp(tgz_path);
+                t = fs.readFile(tar_path);
+                remove_temp(tar_path);
+            } else {
+                t = fs.readFile(tgz_path);
+                remove_temp(tgz_path);
+            }
+
+            const untar_files = untar(t.buffer);
+
+
+            // most package from registry is archived with root directory `package`
+            archive_root_name = find_tar_home(untar_files);
+
+            untar_files.forEach(file => {
+                mvm.base_path.forEach(bp => {
+                    if (file.typeflag == "1") {
+                        const read_files = untar_files.filter(f => f.filename == file.linkname);
+                        file.typeflag = "0";
+                        file.linkname = "";
+                        file.fileData = read_files[0].fileData;
+                        file.size = read_files[0].size;
+                    }
+
+                    if (file.typeflag == "0") {
+                        const tpath = path.join(bp, task_dir(mvm), file.filename.slice(archive_root_name.length));
+                        fs.mkdir(path.dirname(tpath), { recursive: true });
+                        fs.writeFile(tpath, file.fileData);
+                        fs.chmod(tpath, parseInt(file.mode, 8));
+                    }
+                });
+            });
+
+            install_log('extract:', mvm.dist.tarball);
+            break
+        case 'git':
+            const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
+            var git_r;
+            var git_zip_file;
+            for (let _dl = 0; _dl < 3; _dl++) {
+                try {
+                    git_r = http_get(git_archive_url);
+                    if (git_r.statusCode !== 200) {
+                        console.error('[download] error:', mvm.name, git_archive_url, `-> HTTP ${git_r.statusCode}`);
+                        process.exit();
+                    }
+                    git_zip_file = zip.open(git_r.bytes());
+                    git_r = null;
+                    break;
+                } catch (e) {
+                    console.log(e);
+                    console.warn(`[download] retry ${_dl + 1}: ${git_archive_url}`);
+                    git_r = null;
+                    git_zip_file = null;
+                }
+            }
+            if (!git_zip_file) {
+                console.error('[download] failed:', mvm.name, 'git archive', git_archive_url);
+                process.exit(-1);
+            }
+            const namelist = git_zip_file.namelist();
+
+            archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
+            if (namelist[0].indexOf(archive_root_name) !== 0) {
+                archive_root_name = helpers_string.ensure_unsuffx(
+                    helpers_string.find_least_common_str(namelist[0], namelist[1])
+                )
+            }
+
+            mvm.base_path.forEach(bp => {
+                namelist.forEach((member) => {
+                    const relpath = member.slice(archive_root_name.length);
+                    if (!relpath) return;
+
+                    const tpath = path.join(bp, task_dir(mvm), relpath);
+
+                    // skip directory
+                    if (tpath.endsWith(SEP)) return;
+                    ensure_dir(path.dirname(tpath));
+
+                    git_i_tuples.push([
+                        member, tpath
+                    ]);
+                })
+            });
+
+            git_i_tuples.forEach(([member, tpath]) => {
+                git_zip_file.extract(member, tpath);
+            });
+
+            install_log('extract:', git_archive_url);
+            break
+        case 'local':
+            const localSrcPath = mvm.pkg_install_typeinfo.local_path;
+            mvm.base_path.forEach(bp => {
+                const destPath = path.join(bp, task_dir(mvm));
+
+                // skip if already exists (symlink or directory)
+                if (fs.exists(destPath)) {
+                    try {
+                        const st = fs.lstat(destPath);
+                        if (st.isSymbolicLink() || st.isDirectory())
+                            return;
+                    } catch (e) { }
+                }
+
+                fs.mkdir(path.dirname(destPath), { recursive: true });
+                link_or_copy_dir(localSrcPath, destPath);
+            });
+            break
+    }
+
+    if (mvm.binary)
+        download_binary_task(mvm);
+    else if (mvm.binary_pending)
+        download_manifest_binary(mvm);
+
+    if (mvm.bin)
+        link_bins(task_dir(mvm), mvm.bin, mvm.base_path);
 }
 
 /**
@@ -3161,6 +3397,38 @@ function write_back_lockfile(lock, rootsnap) {
     return built;
 }
 
+/**
+ * @description the tree an install leaves has to be the tree the lockfile describes.
+ *              A package's tarball carries copies of the dependencies it bundles
+ *              (`bundleDependencies`), and one unpacked after them left the older copy
+ *              on disk while the lockfile kept the version it resolved: the next
+ *              install replaced it, and the frozen install does the same, but the run
+ *              that wrote the lockfile left the two disagreeing. Every path is looked
+ *              at, and the ones that disagree are put in place
+ * @returns { checked, placed } — paths looked at, paths put in place
+ */
+function converge_with_lockfile(root) {
+    const fresh = lockfile.read_lockfile(root);
+
+    if (!fresh)
+        return { checked: 0, placed: 0 };
+
+    const result = install_from_lock(fresh, {
+        registry: ctx.registry,
+        strict_integrity: false,
+        incremental: true,
+        omit: ctx.omit,
+    });
+
+    const placed = Object.keys(result.installed).length;
+
+    if (placed)
+        install_log(`[install] ${placed} paths were not what ${fresh.filename} describes ` +
+            '(a tarball carries the copies of the dependencies it bundles): put in place');
+
+    return { checked: Object.keys(result.packages).length, placed: placed };
+}
+
 // ---------------------- WRITING THE LOCKFILE :end ------------------------- //
 
 // ---------------------- CLI ARGUMENTS :start ------------------------- //
@@ -3740,6 +4008,11 @@ download_module();
 // everything else (npm re-resolves the whole project here instead)
 if (!args.flags.no_package_lock && !ctx.new_pkgname) {
     write_back_lockfile(lock, rootsnap);
+
+    // what one run leaves has to be what the lockfile it just wrote describes: a
+    // path whose copy on disk is not that version is put in place now, instead of
+    // being left to the next install (or to `--ci`) to repair
+    converge_with_lockfile(process.cwd());
 } else if (ctx.new_pkgname && !args.flags.no_package_lock) {
     console.warn('[install] the lockfile was left alone: run `fibjs --install` to bring it back in sync');
 }
