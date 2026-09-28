@@ -2090,7 +2090,24 @@ function link_bins(name, bin, base_paths) {
                     fs.writeFile(cli_link + ".cmd", scripts.cmd);
                     fs.writeFile(cli_link + ".ps1", scripts.ps1);
                 } else {
-                    fs.symlink(cli_file_r, cli_link);
+                    // npm's `bin-links` makes way for a link it has to write and
+                    // leaves one that already points where it should: a tree that
+                    // has them must not make a reinstall throw EEXIST, and a plain
+                    // file in the way (a shim an older install wrote) is replaced
+                    // the way npm replaces it
+                    let current = null;
+
+                    try {
+                        current = fs.readlink(cli_link);
+                    } catch (e) { }
+
+                    if (current !== cli_file_r) {
+                        if (current !== null || fs.exists(cli_link))
+                            fs.unlink(cli_link);
+
+                        fs.symlink(cli_file_r, cli_link);
+                    }
+
                     fs.chmod(cli_file, 0o755);
                 }
             } catch (e) {
