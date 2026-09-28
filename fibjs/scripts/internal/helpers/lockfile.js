@@ -580,6 +580,139 @@ function default_semver() {
 }
 
 /**
+ * @description the entry a dependency at `from` resolves to, or null: npm takes the
+ *              first entry along the directories of the dependent, outwards
+ */
+function resolve_path(packages, name, from) {
+    const paths = lookup_paths(name, from);
+
+    for (let i = 0; i < paths.length; i++) {
+        if (packages[paths[i]])
+            return paths[i];
+    }
+
+    return null;
+}
+
+/**
+ * @description which kind of edge the lockfile's own edges say reaches an entry —
+ *              `dev` / `optional` / `devOptional`, read the way npm reads them
+ *              (`calc-dep-flags.js`): "no path from a root arrives without an edge of
+ *              that kind". A lockfile written before the flags were recorded
+ *              describes a platform specific binary as a package every machine
+ *              needs: its `os`/`cpu` say where it belongs, and only a flag says it
+ *              may be left out — without one it is downloaded and installed on a
+ *              machine that cannot run it, and `npm ci` refuses the lock outright
+ *              (`EBADPLATFORM`)
+ * @param packages the `to_path_map` shape
+ * @param root_entry the root entry of the lockfile, which the path map leaves out:
+ *              it installs nothing, and every edge starts there
+ * @param opts { workspaces: [{ path, pkgjson }] } — a member's manifest, which a
+ *              lockfile written before members recorded their dependencies does not
+ *              carry: without it the tree a member reaches is not part of the graph
+ * @returns { dev, optional, devOptional } — each a `{ [path]: true }` map
+ */
+function graph_flags(packages, root_entry, opts) {
+    const o = opts || {};
+    const manifests = {};
+
+    (o.workspaces || []).forEach(w => {
+        if (w && w.path)
+            manifests[String(w.path).replace(/\/+$/, '')] = w.pkgjson || {};
+    });
+
+    const entry_at = p => {
+        if (p === '')
+            return root_entry || {};
+
+        // a member's manifest is what npm resolves its edges from: the tree has a
+        // link where the lockfile has an entry, and the manifest is the truth
+        if (manifests[p])
+            return manifests[p];
+
+        return packages[p] || {};
+    };
+
+    // a workspace member — the target of a link, that is — is a project of its own:
+    // no edge from the root arrives at it, yet what it needs is part of the graph
+    const roots = [''];
+
+    Object.keys(packages).forEach(p => {
+        if (packages[p].target_only)
+            roots.push(p);
+    });
+
+    const fields = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+
+    /**
+     * @description walk the edges the flag does not rule out. The nearest entry wins,
+     *              which is also what a require() at run time does
+     */
+    function reach(skip) {
+        const seen = {};
+        const stack = [];
+
+        roots.forEach(r => { seen[r] = true; stack.push(r); });
+
+        while (stack.length) {
+            const from = stack.pop();
+            const entry = entry_at(from);
+            // a link carries no edges of its own: what it depends on is installed
+            // inside the directory it points at
+            const target = entry.link && entry.resolved ? entry.resolved : from;
+            const node = entry_at(target);
+
+            if (target !== from && !seen[target]) {
+                seen[target] = true;
+                stack.push(target);
+            }
+
+            fields.forEach(field => {
+                if (skip.indexOf(field) > -1)
+                    return;
+
+                const map = node[field];
+
+                if (!map)
+                    return;
+
+                Object.keys(map).forEach(name => {
+                    const to = resolve_path(packages, name, target);
+
+                    if (!to || seen[to])
+                        return;
+
+                    seen[to] = true;
+                    stack.push(to);
+                });
+            });
+        }
+
+        return seen;
+    }
+
+    const any = reach([]);
+    const without = {
+        dev: reach(['devDependencies']),
+        optional: reach(['optionalDependencies']),
+        devOptional: reach(['devDependencies', 'optionalDependencies']),
+    };
+    const flags = { dev: {}, optional: {}, devOptional: {} };
+
+    Object.keys(any).forEach(p => {
+        if (!p)
+            return;
+
+        Object.keys(without).forEach(kind => {
+            if (!without[kind][p])
+                flags[kind][p] = true;
+        });
+    });
+
+    return flags;
+}
+
+/**
  * @description the offline sync check of the plan's §4.5, in two steps: the root
  *              edges (package.json and every workspace member against the lock),
  *              then the closure of the lock itself (everything an entry declares has
@@ -1249,6 +1382,7 @@ module.exports = {
     to_path_map,
     spec_satisfied,
     lookup_entry,
+    graph_flags,
     check_sync,
     read_npmrc,
     parse_npmrc,

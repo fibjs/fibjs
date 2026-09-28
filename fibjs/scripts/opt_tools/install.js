@@ -2673,6 +2673,17 @@ function install_from_lock(lock, opts) {
     const installed = [];
     const plan = { registry: 0, link: 0, git: 0, skipped: 0, kept: 0 };
 
+    // what the lockfile's own edges say about the kind of edge that reaches an entry.
+    // A lockfile written before the flags were recorded leaves them out, and then a
+    // platform specific binary looks like a package every machine needs: it is
+    // downloaded and installed on a machine that cannot run it. A member's manifest
+    // is part of the graph too — a lockfile of that vintage does not describe a
+    // member's dependencies at all
+    const graph = lockfile.graph_flags(packages, lock.raw && lock.raw.packages && lock.raw.packages[''], {
+        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces)
+            .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
+    });
+
     Object.keys(packages).forEach(p => {
         const entry = packages[p];
 
@@ -2680,15 +2691,20 @@ function install_from_lock(lock, opts) {
         if (entry.target_only)
             return;
 
+        // the entry's own flags are what npm wrote; a lockfile that does not carry
+        // them says nothing, and the graph is the answer then
+        const optional = entry.optional === true || graph.optional[p] === true;
+        const dev = entry.dev === true || graph.dev[p] === true;
+
         // `omit` is about the disk, not about the lockfile: the entry stays described
-        if ((entry.dev && o.omit && o.omit.dev) || (entry.optional && o.omit && o.omit.optional)) {
+        if ((dev && o.omit && o.omit.dev) || (optional && o.omit && o.omit.optional)) {
             plan.skipped++;
             install_log('skip (omit):', p);
             return;
         }
 
         // npm records every platform in the lockfile, only the matching entries land
-        if (entry.optional && !check_platform_match(entry)) {
+        if (optional && !check_platform_match(entry)) {
             plan.skipped++;
             install_log('skip (platform):', p);
             return;
@@ -2779,7 +2795,7 @@ function install_from_lock(lock, opts) {
     install_git_entries(git_entries);
     install_lock_binaries(lock, root, installed);
 
-    return { plan: plan, installed: installed };
+    return { plan: plan, installed: installed, packages: packages, graph: graph };
 }
 
 /**
@@ -2984,7 +3000,10 @@ function sync_lock_root(lock) {
 
     const want = lockfile.root_entry(rootsnap.pkgjson, lock.root);
 
-    if (JSON.stringify(lock.raw.packages['']) === JSON.stringify(want))
+    // written form, not field order: the manifest lists a dependency map in its own
+    // order, the file in npm's, and writing a file whose text comes out identical is
+    // a change a reader cannot see — the entry only moves when something differs
+    if (lockfile.stringify_lock(lock.raw.packages[''], 2) === lockfile.stringify_lock(want, 2))
         return false;
 
     const file = path.join(process.cwd(), lock.filename);
@@ -2995,6 +3014,65 @@ function sync_lock_root(lock) {
     install_log(`update: ${lock.filename} (the root entry follows package.json)`);
 
     return true;
+}
+
+/**
+ * @description the flags a lockfile written before npm recorded them leaves out: the
+ *              graph says which kind of edge reaches an entry, and without the flag
+ *              `npm ci` reads a platform specific binary as a package every machine
+ *              needs and refuses the whole lock (`EBADPLATFORM`). What the lockfile's
+ *              own edges prove is what npm would write, so write it — a flag is only
+ *              ever added, never taken away: the file belongs to npm, and a lockfile
+ *              that already carries what the graph says is left alone
+ * @returns the number of entries that gained a flag
+ */
+function sync_lock_flags(lock, packages, graph) {
+    if (!lock || !lock.raw || !lock.raw.packages || !packages || !graph)
+        return 0;
+
+    let fixed = 0;
+
+    Object.keys(packages).forEach(p => {
+        const raw = lock.raw.packages[p];
+
+        if (!raw)
+            return;
+
+        // npm's answer for the overlap of the two trees: `devOptional` only where
+        // neither `dev` nor `optional` is set
+        const want = [];
+
+        if (graph.optional[p] === true)
+            want.push('optional');
+        if (graph.dev[p] === true)
+            want.push('dev');
+        if (graph.devOptional[p] === true && graph.dev[p] !== true && graph.optional[p] !== true)
+            want.push('devOptional');
+
+        let touched = false;
+
+        want.forEach(k => {
+            if (raw[k] !== true) {
+                raw[k] = true;
+                touched = true;
+            }
+        });
+
+        if (touched)
+            fixed++;
+    });
+
+    if (!fixed)
+        return 0;
+
+    const file = path.join(process.cwd(), lock.filename);
+    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+    lockfile.write_lockfile(file, lock.raw, indent);
+    install_log(`update: ${lock.filename} (${fixed} ${fixed === 1 ? 'entry carries' : 'entries carry'} ` +
+        'the edge kind the lockfile\'s own graph shows)');
+
+    return fixed;
 }
 
 /**
@@ -3483,6 +3561,7 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         }
 
         sync_lock_root(lock);
+        sync_lock_flags(lock, result.packages, result.graph);
         remove_hidden_lock(process.cwd());
         process.exit(0);
     }
