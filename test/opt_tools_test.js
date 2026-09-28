@@ -1274,6 +1274,18 @@ describe('opt_tools install lifecycle', function () {
 
             var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
             assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
+
+            // a lockfile describes where everything goes, so emptying the tree and
+            // installing again has to put it all back — including what the member keeps
+            fs.rmSync(path.join(targetDir, 'node_modules'), { recursive: true, force: true });
+            fs.rmSync(path.join(targetDir, 'packages/member/node_modules'), { recursive: true, force: true });
+
+            var again = runInstaller(targetDir, ['--install']);
+            assert.equal(again.status, 0, diag(targetDir, again));
+            assert.ok(isLink(targetDir, 'packages/member/node_modules/dep-pkg'),
+                'the member dependency came back: ' + listDir(path.join(targetDir, 'packages/member')) +
+                ' | ' + listDir(path.join(targetDir, 'node_modules')));
+            assert.ok(isLink(targetDir, 'node_modules/dep-pkg'), 'so did the root one');
         });
 
         it('leaves a member dev dependency out of the tree with --omit=dev, and keeps it described', function () {
@@ -1470,6 +1482,58 @@ describe('opt_tools install lifecycle', function () {
                 'the version the lockfile pins is the one installed');
             assert.equal(lockOf(targetDir).packages['node_modules/string-width-cjs'].version, '4.2.2',
                 'and the lockfile still says so');
+        });
+
+        it('places a copy for every branch that needs one', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'n1-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+                dependencies: { 'is-number': '7.0.0' },
+            });
+            writeJSON(targetDir, 'packages/a/package.json', {
+                name: '@probe/a', version: '1.0.0',
+                dependencies: { 'is-odd': '3.0.1' },
+                devDependencies: { 'is-buffer': '2.0.5' },
+            });
+            // the exact pin is what makes the two branches need a copy each: the shared
+            // closure cannot hoist (the root has is-odd 3.0.1 for @probe/a), so the root
+            // branch and the member have to see one of their own
+            writeJSON(targetDir, 'packages/b/package.json', {
+                name: '@probe/b', version: '1.0.0',
+                dependencies: { '@probe/a': '*', 'is-even': '1.0.0', 'is-odd': '0.1.2' },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.equal(versionAt(targetDir, 'node_modules/is-even/node_modules/is-odd'), '0.1.2',
+                'the root branch gets the copy it needs: ' + listDir(path.join(targetDir, 'node_modules', 'is-even')));
+            assert.equal(versionAt(targetDir, 'packages/b/node_modules/is-odd'), '0.1.2',
+                'and so does the member: ' + listDir(path.join(targetDir, 'packages/b', 'node_modules')));
+
+            // npm is the judge of the shape: nothing may be missing, and the only
+            // complaint it is allowed to make is the peer this project cannot satisfy
+            // with one copy (npm resolves the root range to the peer's version, this
+            // keeps the installed one — the divergence the audit recorded)
+            var npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            var problems = String(child_process.spawnSync(npm, ['ls', '--all'], {
+                cwd: targetDir, stdio: 'pipe', shell: process.platform === 'win32',
+            }).stdout || '');
+
+            assert.equal(problems.indexOf('missing') < 0, true,
+                'npm ls finds nothing missing from the tree:\n' + problems);
+
+            problems.split('\n')
+                .filter(l => l.indexOf('invalid') > -1)
+                .forEach(l => assert.ok(l.indexOf('data-model') > -1, 'an unexpected invalid entry:\n' + l));
+
+            var again = runInstaller(targetDir, ['--install']);
+            assert.equal(again.status, 0, diag(targetDir, again));
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
         });
 
         it('installs a dependency an installed package is missing', NET, function () {
@@ -2845,6 +2909,29 @@ if (isFibjs) (function () {
             assert.equal(map['node_modules/a/node_modules/c'].name, 'c');
             assert.equal(map['node_modules/a'].target_only, false);
             assert.equal(map['packages/local'].target_only, true, 'a link target installs nothing');
+        });
+
+        it('installs a package a workspace member keeps nested', function () {
+            var map = lockfile.to_path_map({
+                lockfileVersion: 3,
+                packages: {
+                    '': { name: 'root' },
+                    'node_modules/member': { resolved: 'packages/member', link: true },
+                    'packages/member': { name: 'member', version: '1.0.0' },
+                    'packages/member/node_modules/a': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/a/-/a-1.0.0.tgz',
+                    },
+                },
+            });
+
+            // the member's own path is a link target (nothing to install there), but what
+            // it keeps nested is an installation target like any other: taking it for a
+            // link target is how a frozen install came to skip it, leaving a lockfile
+            // that describes a package the disk does not have
+            assert.equal(map['packages/member'].target_only, true);
+            assert.equal(map['packages/member/node_modules/a'].target_only, false);
+            assert.equal(map['packages/member/node_modules/a'].name, 'a');
         });
 
         it('converts a v1 lock into a path table', function () {

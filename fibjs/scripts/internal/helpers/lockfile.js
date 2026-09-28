@@ -295,9 +295,11 @@ function normalize_entry(entry, p, legacy) {
         optionalDependencies: legacy ? null : (entry.optionalDependencies || null),
         peerDependencies: legacy ? null : (entry.peerDependencies || null),
         peerDependenciesMeta: legacy ? null : (entry.peerDependenciesMeta || null),
-        // npm writes an entry for the directory a link points at too; only the
-        // node_modules one is an installation target
-        target_only: p.indexOf('node_modules/') !== 0,
+        // npm writes an entry for the directory a link points at too, and that one
+        // installs nothing itself — but a package a workspace member keeps nested
+        // (`packages/member/node_modules/x`) is an installation target like any other,
+        // and taking it for a link target is how a frozen install came to skip it
+        target_only: p.indexOf('node_modules/') < 0,
     };
 
     // a v1 entry keeps the source in `version` when it is not a registry version:

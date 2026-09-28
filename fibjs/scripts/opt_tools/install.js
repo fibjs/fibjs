@@ -1358,6 +1358,11 @@ function move_up(level_info, parent) {
                     parent.node_modules[k] = m;
                     delete level_info.node_modules[k];
 
+                    // where a node sits is what its dependencies are resolved against:
+                    // a parent pointer left pointing at the level it came from makes the
+                    // tree claim a copy is visible when it is not
+                    m.parent = parent;
+
                     parent.module_list.push(k);
                 }
             }
@@ -1366,6 +1371,135 @@ function move_up(level_info, parent) {
     level_info.module_list = Object.keys(level_info.node_modules);
     for (let i = 0; i < level_info.module_list.length; i++)
         move_up(level_info.node_modules[level_info.module_list[i]], level_info);
+}
+
+/**
+ * @description is that dependency served from where the node sits now? Its own
+ *              `node_modules` first, then every ancestor's
+ */
+function dep_provided(level_info, name, spec) {
+    let cur = level_info;
+
+    while (cur !== undefined) {
+        const info = cur.node_modules[name];
+
+        // a link is materialized at the root and is visible from anywhere
+        if (info !== undefined)
+            return info.local_package === true || info.workspace_package === true ||
+                node_satisfies(info, spec);
+
+        cur = cur.parent;
+    }
+
+    return false;
+}
+
+/**
+ * @description an installed copy somewhere in the tree that could serve that spec. The
+ *              copy to nest under a node is a copy of it, so it has to be something the
+ *              installer put there (registry or git) and something this platform can
+ *              run — a link is visible from everywhere and needs no copy
+ */
+function find_installable_node(name, spec) {
+    let found;
+
+    (function scan(node) {
+        const keys = Object.keys(node.node_modules || {});
+
+        for (let i = 0; i < keys.length && !found; i++) {
+            const child = node.node_modules[keys[i]];
+            const type = (child.pkg_install_typeinfo || {}).type;
+
+            if (keys[i] === name && (type === 'registry' || type === 'git') &&
+                !child.platform_mismatch && node_satisfies(child, spec))
+                found = child;
+            else
+                scan(child);
+        }
+    })(rootsnap);
+
+    return found;
+}
+
+/**
+ * @description a copy of an installed package under another node: the same version
+ *              from the same source, with its dependencies to be checked from its new
+ *              place in turn
+ */
+function copy_node_under(donor, parent) {
+    const declared = donor.declared;
+
+    return {
+        name: donor.name,
+        real_name: donor.real_name,
+        version: donor.version,
+        dep_vs: util.clone(donor.dep_vs || {}),
+        // devDependencies are never installed for a dependency
+        dev_dep_vs: {},
+        opt_dep_vs: util.clone(donor.opt_dep_vs || {}),
+        peer_dep_vs: util.clone(donor.peer_dep_vs || {}),
+        declared: declared ? {
+            dep_vs: util.clone(declared.dep_vs || {}),
+            opt_dep_vs: util.clone(declared.opt_dep_vs || {}),
+            peer_dep_vs: util.clone(declared.peer_dep_vs || {}),
+        } : undefined,
+        bin: donor.bin,
+        binary: donor.binary,
+        binary_pending: donor.binary_pending,
+        os: donor.os,
+        cpu: donor.cpu,
+        libc: donor.libc,
+        dist: donor.dist,
+        pkg_install_typeinfo: donor.pkg_install_typeinfo,
+        node_modules: {},
+        parent: parent,
+        new_module: true,
+    };
+}
+
+/**
+ * @description hoisting moves a package away from the copies it was resolved against.
+ *              A node inside a workspace member can be resolved against a copy that
+ *              sits beside it (the member's own `node_modules`), and hoisting then
+ *              takes it up to the root, where that copy is invisible: `npm ls` calls
+ *              the result `invalid` while the lockfile — written from the tree — looks
+ *              fine, and a second install does not repair it. Every declared edge is
+ *              checked from where its node ended up, and a copy of the provider is
+ *              nested under it when nothing above can serve it, which is the shape
+ *              npm's ideal tree arrives at as well
+ */
+function ensure_declared_deps_visible(level_info) {
+    const declared = level_info.declared;
+
+    if (declared) {
+        [
+            ['dep_vs', declared.dep_vs],
+            ['opt_dep_vs', declared.opt_dep_vs],
+            ['peer_dep_vs', declared.peer_dep_vs],
+        ].forEach(([field, deps]) => {
+            Object.keys(deps || {}).forEach(name => {
+                // a peer the tree does not satisfy is npm's invalid peer: the resolver
+                // keeps the copy it warned about, it does not duplicate it here
+                if (field === 'peer_dep_vs' && find_provided_node(name, level_info))
+                    return;
+
+                const spec = deps[name];
+
+                if (dep_provided(level_info, name, spec))
+                    return;
+
+                const donor = find_installable_node(name, spec);
+
+                if (!donor)
+                    return;
+
+                level_info.node_modules[name] = copy_node_under(donor, level_info);
+                install_log('nest:', name, '@', donor.version, '(the copy it was resolved against is out of reach)');
+            });
+        });
+    }
+
+    Object.keys(level_info.node_modules).forEach(k => ensure_declared_deps_visible(level_info.node_modules[k]));
 }
 
 /**
@@ -3352,6 +3486,11 @@ ctx.lock_packages = lock ? lockfile.to_path_map(lock) : null;
 // packages land on disk is `ctx.omit`'s business
 walkthrough_deps(rootsnap, true);
 move_up(rootsnap);
+
+// hoisting can take a package away from the copy it was resolved against: the edge is
+// checked from where it ended up, and a copy is nested when nothing above can serve it
+ensure_declared_deps_visible(rootsnap);
+
 mark_reachability(rootsnap);
 
 // a name that was never asked for is a silent no-op otherwise
