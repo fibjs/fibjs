@@ -3206,6 +3206,62 @@ if (isFibjs) (function () {
 
             assert.equal(kept.packageManager, 'pnpm@9', 'a field this does not project survives');
             assert.deepEqual(kept.workspaces, ['packages/*']);
+
+            // …but a projected field leaves with the manifest field that fed it: npm drops
+            // it on its next write, and keeping it here makes the two trade the file back
+            // and forth
+            var dropped = lockfile.root_entry({ name: 'p', version: '1.0.0' },
+                { name: 'p', version: '1.0.0', engines: { node: '>=18' }, workspaces: ['packages/*'] });
+
+            assert.equal(dropped.engines, undefined, 'an engine dropped from package.json leaves the entry');
+            assert.equal(dropped.workspaces, undefined, 'so does a workspace list');
+        });
+
+        it('orders the keys the way npm writes them', function () {
+            // npm serializes through `json-stringify-nice`: plain values first (the named
+            // keys among them in that order, the rest alphabetically), then the objects.
+            // The named keys are consulted inside a group, not across one — which is why
+            // `workspaces` (an array) comes before `dependencies` in a root entry
+            var root = lockfile.entry_order({
+                dependencies: { b: '^1.0.0' },
+                workspaces: ['packages/*'],
+                version: '1.0.0',
+                name: 'p',
+                engines: { node: '>=18' },
+                license: 'MIT',
+            });
+
+            assert.deepEqual(Object.keys(root),
+                ['name', 'version', 'license', 'workspaces', 'dependencies', 'engines'],
+                'the named keys first, then license and workspaces alphabetically, then the objects');
+        });
+
+        it('writes a lockfile with npm\'s key order all the way down', function () {
+            var text = lockfile.stringify_lock({
+                lockfileVersion: 3,
+                name: 'p',
+                version: '1.0.0',
+                packages: {
+                    'node_modules/a': {
+                        version: '1.0.0',
+                        dependencies: { z: '^1.0.0', a: '^1.0.0' },
+                        engines: { node: '>=18' },
+                        license: 'MIT',
+                    },
+                    '': { version: '1.0.0', dependencies: { a: '1.0.0' }, workspaces: ['packages/*'] },
+                },
+            });
+
+            var parsed = JSON.parse(text);
+
+            assert.deepEqual(Object.keys(parsed), ['name', 'version', 'lockfileVersion', 'packages']);
+            assert.deepEqual(Object.keys(parsed.packages['']), ['version', 'workspaces', 'dependencies']);
+            assert.deepEqual(Object.keys(parsed.packages['node_modules/a']),
+                ['version', 'license', 'dependencies', 'engines'],
+                'plain values first, then the objects, `dependencies` before `engines`');
+            assert.deepEqual(Object.keys(parsed.packages['node_modules/a'].dependencies), ['a', 'z'],
+                'a dependency map is sorted too');
+            assert.deepEqual(Object.keys(parsed.packages['node_modules/a'].engines), ['node']);
         });
     });
 

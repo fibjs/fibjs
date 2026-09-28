@@ -832,12 +832,15 @@ function auth_header_for_url(u, auth) {
 
 // npm's field order (arborist/lib/shrinkwrap.js): a lockfile written here reads
 // like one written by npm, which keeps the diff small when both tools touch it
-const ENTRY_KEY_ORDER = [
-    'name', 'version', 'resolved', 'integrity', 'link', 'dev', 'optional', 'devOptional',
-    'dependencies', 'peerDependencies', 'peerDependenciesMeta', 'optionalDependencies',
-    'bundleDependencies', 'acceptDependencies', 'funding', 'engines', 'os', 'cpu', 'libc',
-    'license', 'hasInstallScript', 'bin', 'deprecated', 'workspaces', 'inBundle',
-    'hasShrinkwrap',
+//
+// npm serializes through `json-stringify-nice` with that list of named keys: the
+// named keys first, in that order, then the rest of the plain values, then the
+// objects, each group in alphabetical order. A fixed list of all known keys gets a
+// one-object entry right and a rich one wrong — `engines`/`funding` before `cpu`
+// and `license`, say — and `npm install` rewrites the whole file just to reorder it
+const NAMED_KEY_ORDER = [
+    'name', 'version', 'lockfileVersion', 'resolved', 'integrity', 'requires', 'packages',
+    'dependencies',
 ];
 const TOP_KEY_ORDER = ['name', 'version', 'lockfileVersion', 'requires', 'packages', 'dependencies'];
 const LEGACY_KEY_ORDER = ['version', 'resolved', 'integrity', 'dev', 'optional', 'requires', 'dependencies'];
@@ -865,6 +868,61 @@ function order_keys(obj, order) {
 }
 
 /**
+ * @description the keys of a lockfile entry the way npm writes them. npm serializes
+ *              through `json-stringify-nice`, which sorts every object in the file:
+ *              the plain values first (the named keys among them in that order, the
+ *              rest alphabetically), then the objects, alphabetically as well — the
+ *              named keys are consulted inside a group, not across one, which is why
+ *              `workspaces` comes before `dependencies` in a root entry
+ */
+function entry_order(obj) {
+    const present = Object.keys(obj).filter(k => obj[k] !== undefined);
+    const plain = [];
+    const nested = [];
+
+    // an array counts as plain here: `json-stringify-nice` only defers objects
+    present.forEach(k => {
+        (obj[k] && typeof obj[k] === 'object' && !Array.isArray(obj[k]) ? nested : plain).push(k);
+    });
+
+    const named_index = k => NAMED_KEY_ORDER.indexOf(k);
+    const compare = (a, b) => {
+        const ia = named_index(a);
+        const ib = named_index(b);
+
+        if (ia > -1 && ib > -1)
+            return ia - ib;
+
+        if (ia > -1)
+            return -1;
+
+        if (ib > -1)
+            return 1;
+
+        return a.localeCompare(b, 'en');
+    };
+
+    const out = {};
+
+    plain.sort(compare).concat(nested.sort(compare)).forEach(k => { out[k] = obj[k]; });
+
+    return out;
+}
+
+/**
+ * @description the text of a lockfile the way npm would write it: the ordering
+ *              reaches every object in the file, the `packages` paths and the
+ *              dependency maps included, exactly as the serializer npm uses does
+ */
+function stringify_lock(lock, indent) {
+    return JSON.stringify(lock, function (key, value) {
+        return value && typeof value === 'object' && !Array.isArray(value)
+            ? entry_order(value)
+            : value;
+    }, indent === undefined ? 2 : indent);
+}
+
+/**
  * @description the path npm records for a link: relative to the project, `/` only
  */
 function relative_target(root, target) {
@@ -878,7 +936,7 @@ function relative_target(root, target) {
  *              only when it differs from the path (an alias), the way npm does it
  */
 function lock_entry(entry, p) {
-    return order_keys({
+    return entry_order({
         name: entry.name !== name_from_path(p) ? entry.name : undefined,
         version: entry.version,
         resolved: entry.resolved,
@@ -899,7 +957,7 @@ function lock_entry(entry, p) {
         license: entry.license,
         hasInstallScript: entry.has_install_script ? true : undefined,
         bin: entry.bin,
-    }, ENTRY_KEY_ORDER);
+    });
 }
 
 /**
@@ -909,11 +967,11 @@ function target_entry(entry, previous) {
     if (previous && previous.version === entry.version)
         return previous.raw_entry;
 
-    return order_keys({
+    return entry_order({
         name: entry.name,
         version: entry.version,
         hasInstallScript: entry.has_install_script ? true : undefined,
-    }, ENTRY_KEY_ORDER);
+    });
 }
 
 /**
@@ -969,7 +1027,7 @@ function root_entry(root_pkgjson, previous) {
     // npm projects a fixed list of package.json fields into a lock entry
     // (arborist's `pkgMetaKeys`), `workspaces` among them: a root entry written
     // without it makes npm and this rewrite the file back and forth
-    const entry = order_keys({
+    const entry = {
         name: root_pkgjson.name,
         version: root_pkgjson.version,
         license: license,
@@ -988,19 +1046,23 @@ function root_entry(root_pkgjson, previous) {
         deprecated: root_pkgjson.deprecated,
         hasInstallScript: has_install_script(root_pkgjson),
         workspaces: root_pkgjson.workspaces,
-    }, ENTRY_KEY_ORDER);
+    };
 
     if (!previous || typeof previous !== 'object')
-        return entry;
+        return entry_order(entry);
 
-    // the manifest decides the fields above; anything else the lockfile carried (a
-    // field a newer npm writes, one this does not project) is kept as it was
     const merged = {};
 
+    // everything the lockfile carried (a field a newer npm writes, one this does not
+    // project) is kept as it was …
     Object.keys(previous).forEach(k => { merged[k] = previous[k]; });
+
+    // … except the fields the manifest decides, absence included: a dependency or an
+    // engine dropped from package.json has to leave the entry, or npm and this write
+    // the field back and forth
     Object.keys(entry).forEach(k => { merged[k] = entry[k]; });
 
-    return order_keys(merged, ENTRY_KEY_ORDER);
+    return entry_order(merged);
 }
 
 /**
@@ -1045,7 +1107,7 @@ function merge_entry(previous, entry, p) {
 
     Object.keys(fresh).forEach(k => { merged[k] = fresh[k]; });
 
-    return order_keys(merged, ENTRY_KEY_ORDER);
+    return entry_order(merged);
 }
 
 /**
@@ -1075,13 +1137,13 @@ function to_lock(paths, root_pkgjson, opts) {
             const previous_ok = previous && previous.link === true && previous.resolved === target &&
                 previous.dev === entry.dev && previous.optional === entry.optional;
 
-            packages[p] = previous_ok ? previous.raw_entry : order_keys({
+            packages[p] = previous_ok ? previous.raw_entry : entry_order({
                 resolved: target,
                 link: true,
                 dev: entry.dev ? true : undefined,
                 optional: entry.optional ? true : undefined,
                 devOptional: entry.dev_optional ? true : undefined,
-            }, ENTRY_KEY_ORDER);
+            });
             return;
         }
 
@@ -1159,7 +1221,7 @@ function detect_indent(text) {
  *              the same reason)
  */
 function write_lockfile(file, lock, indent) {
-    const text = JSON.stringify(lock, null, indent === undefined ? 2 : indent) + '\n';
+    const text = stringify_lock(lock, indent) + '\n';
     const tmp = file + '.tmp';
     const rename = fs.renameSync || fs.rename;
 
@@ -1194,6 +1256,8 @@ module.exports = {
     auth_header_for_url,
     to_lock,
     root_entry,
+    entry_order,
+    stringify_lock,
     relative_target,
     write_lockfile,
     detect_indent,
