@@ -12,6 +12,13 @@ var win32 = process.platform === "win32";
 var darwin64 = process.platform === "darwin";
 var ios = process.platform === "ios";
 
+// Navigation tests need a real page served over the public network.  Use the
+// IANA reserved example.com: it is meant for exactly this, stays online, serves
+// one static document and neither redirects nor rewrites the landing URL by
+// region or user agent.  fibjs.org used to be the target, which turned every
+// website outage into a failure of this suite.
+const TEST_PAGE = "https://example.com";
+
 var gui_env = "gui";
 
 var vfb;
@@ -111,7 +118,7 @@ describe(gui_env, () => {
             const win = gui.open();
             wins.push(win);
 
-            win.loadUrl("http://fibjs.org");
+            win.loadUrl(TEST_PAGE);
 
             var isReady = false;
 
@@ -141,9 +148,9 @@ describe(gui_env, () => {
             win.waitFor();
             assert.isTrue(win.isReady());
 
-            win.loadUrl("http://fibjs.org");
+            win.loadUrl(TEST_PAGE);
             assert.isFalse(win.isReady());
-            win.waitFor("https://fibjs.org/");
+            win.waitFor(TEST_PAGE + "/");
             assert.isTrue(win.isReady());
 
             win.loadFile(path.join(__dirname, "gui_files", "test.html"));
@@ -333,7 +340,7 @@ describe(gui_env, () => {
                 loaded_url = ev.url;
             });
 
-            win.loadUrl("https://fibjs.org");
+            win.loadUrl(TEST_PAGE);
 
             for (var i = 0; i < 1000; i++) {
                 coroutine.sleep(50);
@@ -342,8 +349,8 @@ describe(gui_env, () => {
                 }
             }
 
-            assert.equal(loading_url, "https://fibjs.org/");
-            assert.equal(loaded_url, "https://fibjs.org/");
+            assert.equal(loading_url, TEST_PAGE + "/");
+            assert.equal(loaded_url, TEST_PAGE + "/");
 
             win.close();
         });
