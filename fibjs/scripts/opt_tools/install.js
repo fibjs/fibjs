@@ -2756,7 +2756,7 @@ function sync_lock_root(lock) {
     if (!lock || !lock.raw || !lock.raw.packages)
         return false;
 
-    const want = lockfile.root_entry(rootsnap.pkgjson);
+    const want = lockfile.root_entry(rootsnap.pkgjson, lock.root);
 
     if (JSON.stringify(lock.raw.packages['']) === JSON.stringify(want))
         return false;

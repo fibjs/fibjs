@@ -833,8 +833,9 @@ function auth_header_for_url(u, auth) {
 const ENTRY_KEY_ORDER = [
     'name', 'version', 'resolved', 'integrity', 'link', 'dev', 'optional', 'devOptional',
     'dependencies', 'peerDependencies', 'peerDependenciesMeta', 'optionalDependencies',
-    'funding', 'engines', 'os', 'cpu', 'libc', 'license', 'hasInstallScript', 'bin',
-    'inBundle', 'hasShrinkwrap',
+    'bundleDependencies', 'acceptDependencies', 'funding', 'engines', 'os', 'cpu', 'libc',
+    'license', 'hasInstallScript', 'bin', 'deprecated', 'workspaces', 'inBundle',
+    'hasShrinkwrap',
 ];
 const TOP_KEY_ORDER = ['name', 'version', 'lockfileVersion', 'requires', 'packages', 'dependencies'];
 const LEGACY_KEY_ORDER = ['version', 'resolved', 'integrity', 'dev', 'optional', 'requires', 'dependencies'];
@@ -958,16 +959,59 @@ function legacy_tree(packages) {
 /**
  * @description the root entry of a lockfile: what package.json declares
  */
-function root_entry(root_pkgjson) {
-    return order_keys({
+function root_entry(root_pkgjson, previous) {
+    const license = root_pkgjson.license && typeof root_pkgjson.license === 'object'
+        ? root_pkgjson.license.type
+        : root_pkgjson.license;
+
+    // npm projects a fixed list of package.json fields into a lock entry
+    // (arborist's `pkgMetaKeys`), `workspaces` among them: a root entry written
+    // without it makes npm and this rewrite the file back and forth
+    const entry = order_keys({
         name: root_pkgjson.name,
         version: root_pkgjson.version,
-        license: root_pkgjson.license,
+        license: license,
         dependencies: root_pkgjson.dependencies,
         devDependencies: root_pkgjson.devDependencies,
         optionalDependencies: root_pkgjson.optionalDependencies,
         peerDependencies: root_pkgjson.peerDependencies,
+        peerDependenciesMeta: root_pkgjson.peerDependenciesMeta,
+        bundleDependencies: root_pkgjson.bundleDependencies || root_pkgjson.bundledDependencies,
+        acceptDependencies: root_pkgjson.acceptDependencies,
+        funding: root_pkgjson.funding,
+        engines: root_pkgjson.engines,
+        os: root_pkgjson.os,
+        cpu: root_pkgjson.cpu,
+        bin: root_pkgjson.bin,
+        deprecated: root_pkgjson.deprecated,
+        hasInstallScript: has_install_script(root_pkgjson),
+        workspaces: root_pkgjson.workspaces,
     }, ENTRY_KEY_ORDER);
+
+    if (!previous || typeof previous !== 'object')
+        return entry;
+
+    // the manifest decides the fields above; anything else the lockfile carried (a
+    // field a newer npm writes, one this does not project) is kept as it was
+    const merged = {};
+
+    Object.keys(previous).forEach(k => { merged[k] = previous[k]; });
+    Object.keys(entry).forEach(k => { merged[k] = entry[k]; });
+
+    return order_keys(merged, ENTRY_KEY_ORDER);
+}
+
+/**
+ * @description does that package.json run an install script? npm records the answer
+ *              as `hasInstallScript`
+ */
+function has_install_script(pkgjson) {
+    const scripts = pkgjson && pkgjson.scripts;
+
+    if (!scripts)
+        return undefined;
+
+    return scripts.preinstall || scripts.install || scripts.postinstall ? true : undefined;
 }
 
 /**
@@ -1069,7 +1113,7 @@ function to_lock(paths, root_pkgjson, opts) {
         packages[target] = target_entry(entry, old[target]);
     });
 
-    packages[''] = root_entry(root_pkgjson);
+    packages[''] = root_entry(root_pkgjson, o.previous ? o.previous.root : null);
 
     // `""` first, then alphabetically — npm writes the path table that way
     const ordered = {};

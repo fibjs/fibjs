@@ -1234,6 +1234,11 @@ describe('opt_tools install lifecycle', function () {
                 'the member dev dependency is described: ' + Object.keys(lock).join(', '));
             assert.ok(lock['dev-pkg'], 'and so is the directory it points at');
 
+            // `workspaces` is one of the fields npm projects into the root entry: without
+            // it, npm and this rewrite the lockfile back and forth
+            assert.deepEqual(lock[''].workspaces, ['packages/*'],
+                'the root entry keeps the field npm writes');
+
             var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
             assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
         });
@@ -3083,6 +3088,37 @@ if (isFibjs) (function () {
 
             assert.equal(built.lock.packages['node_modules/alias'].name, 'real',
                 'npm records an alias as `name`, and nothing else marks it');
+        });
+
+        it('writes the fields npm projects from package.json into the root entry', function () {
+            var manifest = {
+                name: 'p', version: '1.0.0',
+                license: 'MIT',
+                engines: { node: '>=18' },
+                workspaces: ['packages/*'],
+                peerDependenciesMeta: { x: { optional: true } },
+                scripts: { postinstall: 'echo hi' },
+                dependencies: { a: '^1.0.0' },
+                devDependencies: { d: '^2.0.0' },
+            };
+
+            var root = lockfile.root_entry(manifest, null);
+
+            // `workspaces` among them: a root entry written without it makes npm and this
+            // rewrite the file back and forth
+            assert.deepEqual(root.workspaces, ['packages/*']);
+            assert.deepEqual(root.engines, { node: '>=18' });
+            assert.equal(root.license, 'MIT');
+            assert.deepEqual(root.peerDependenciesMeta, { x: { optional: true } });
+            assert.equal(root.hasInstallScript, true, 'npm records the presence of an install script');
+            assert.deepEqual(root.dependencies, { a: '^1.0.0' });
+            assert.deepEqual(root.devDependencies, { d: '^2.0.0' });
+
+            // what the lockfile already carried beyond those fields is kept
+            var kept = lockfile.root_entry(manifest, { name: 'p', version: '1.0.0', packageManager: 'pnpm@9' });
+
+            assert.equal(kept.packageManager, 'pnpm@9', 'a field this does not project survives');
+            assert.deepEqual(kept.workspaces, ['packages/*']);
         });
     });
 
