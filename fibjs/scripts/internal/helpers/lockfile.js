@@ -1148,6 +1148,7 @@ module.exports = {
     auth_header_for_url,
     to_lock,
     root_entry,
+    relative_target,
     write_lockfile,
     detect_indent,
 };

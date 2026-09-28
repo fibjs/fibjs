@@ -1168,6 +1168,132 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(ci.status, 0, 'the lockfile it left is in sync:\n' + outputOf(ci));
         });
 
+        it('materializes a workspace member a package on disk depends on', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'ws-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+                dependencies: { 'pkg-a': '1.0.0' },
+            });
+            writeJSON(targetDir, 'packages/sib/package.json', { name: 'sib', version: '0.1.0' });
+
+            // `pkg-a` is installed and asks for the workspace member. The lockfile does
+            // not describe `sib`, so the check fails and the install has to resolve the
+            // edge — a workspace package is provided by the workspace itself, never by a
+            // registry (that is how `--update` came to 404 on one)
+            writeJSON(targetDir, 'node_modules/pkg-a/package.json', {
+                name: 'pkg-a', version: '1.0.0', dependencies: { sib: '*' },
+            });
+            writeJSON(targetDir, 'package-lock.json', {
+                name: 'ws-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'ws-proj', version: '1.0.0', workspaces: ['packages/*'],
+                        dependencies: { 'pkg-a': '1.0.0' },
+                    },
+                    'node_modules/pkg-a': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/pkg-a/-/pkg-a-1.0.0.tgz',
+                        integrity: SRI,
+                        dependencies: { sib: '*' },
+                    },
+                },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(isLink(targetDir, 'node_modules/sib'), 'the member is linked at the root: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            var lock = lockOf(targetDir).packages;
+            assert.ok(lock['node_modules/sib'] && lock['node_modules/sib'].link === true,
+                'and the lockfile describes the link');
+        });
+
+        it('installs the devDependencies of a workspace member', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'member-dev-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0',
+                devDependencies: { 'dev-pkg': 'file:../../dev-pkg' },
+            });
+            writeJSON(targetDir, 'dev-pkg/package.json', { name: 'dev-pkg', version: '1.0.0' });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            // a member is a project of its own: its devDependencies are installed with the
+            // project (npm does the same), and a lockfile without them is refused by
+            // `--ci` — and by npm
+            var lock = lockOf(targetDir).packages;
+            assert.ok(lock['node_modules/dev-pkg'] && lock['node_modules/dev-pkg'].link === true,
+                'the member dev dependency is described: ' + Object.keys(lock).join(', '));
+            assert.ok(lock['dev-pkg'], 'and so is the directory it points at');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
+        });
+
+        it('keeps a member dependency that cannot hoist inside the member', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'member-nest-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+                dependencies: { 'dep-pkg': 'file:root-pkg' },
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0',
+                devDependencies: { 'dep-pkg': 'file:../../member-pkg' },
+            });
+            writeJSON(targetDir, 'root-pkg/package.json', { name: 'dep-pkg', version: '1.0.0' });
+            writeJSON(targetDir, 'member-pkg/package.json', { name: 'dep-pkg', version: '2.0.0' });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var lock = lockOf(targetDir).packages;
+
+            // the root's dep-pkg is 1.0.0 and the member's is another directory, so the
+            // member's copy cannot hoist. It belongs *inside the member* — the same thing
+            // on disk as `node_modules/member/node_modules/dep-pkg`, and the path npm
+            // writes
+            assert.ok(lock['packages/member/node_modules/dep-pkg'],
+                'described inside the member: ' + Object.keys(lock).join(', '));
+            assert.equal(lock['node_modules/member/node_modules/dep-pkg'], undefined,
+                'never under the link that stands for the member');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
+        });
+
+        it('leaves a member dev dependency out of the tree with --omit=dev, and keeps it described', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'member-omit-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0',
+                devDependencies: { 'dev-pkg': 'file:../../dev-pkg' },
+            });
+            writeJSON(targetDir, 'dev-pkg/package.json', { name: 'dev-pkg', version: '1.0.0' });
+
+            var res = runInstaller(targetDir, ['--install', '--omit=dev']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.ok(lockOf(targetDir).packages['node_modules/dev-pkg'],
+                'a lockfile describes the whole graph, `omit` is about the disk');
+            assert.ok(!fs.existsSync(path.join(targetDir, 'packages/member/node_modules/dev-pkg')) &&
+                !fs.existsSync(path.join(targetDir, 'node_modules/dev-pkg')),
+                'and it is not installed: ' + listDir(path.join(targetDir, 'node_modules')));
+        });
+
         it('refuses a lockfile that only an unrelated nested entry satisfies', function () {
             var targetDir = makeTargetDir();
 
@@ -1342,6 +1468,35 @@ describe('opt_tools install lifecycle', function () {
         });
 
         // a registry is needed for the rest of them: they install real packages
+
+        it('refreshes a registry dependency without fetching a workspace sibling', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'update-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'], dependencies: { 'is-odd': '3.0.1' },
+            });
+            writeJSON(targetDir, 'packages/file-tools/package.json', {
+                name: 'file-tools', version: '0.1.0',
+                // the named package first, so the refresh reaches the sibling after it:
+                // that is the order that used to 404
+                dependencies: { 'is-number': '6.0.0', 'app-host': '*' },
+            });
+            writeJSON(targetDir, 'packages/app-host/package.json', { name: 'app-host', version: '0.1.0' });
+
+            var npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            var npmRes = child_process.spawnSync(npm, ['install', '--no-audit', '--no-fund'], {
+                cwd: targetDir, stdio: 'pipe', shell: process.platform === 'win32',
+            });
+            assert.equal(npmRes.status, 0, String(npmRes.stderr || ''));
+
+            var res = runInstaller(targetDir, ['--install', '--update', 'is-number']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(out.indexOf('cannot fetch metadata'), -1, 'the workspace package is not a registry one:\n' + out);
+            assert.ok(isLink(targetDir, 'node_modules/app-host'), 'it stays the link the workspace made');
+        });
     });
 
     // ===== Phase 5: .npmrc, a private registry and its certificate =====

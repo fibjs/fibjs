@@ -216,6 +216,24 @@ function find_version(m, v, parent) {
     }
 }
 
+/**
+ * @description the node this level or one of its ancestors already holds for a name.
+ *              A workspace member or a `file:` package is materialized at the root,
+ *              so a sibling that declares it finds it up there — not in its own
+ *              `node_modules`, which is where the resolver used to look
+ */
+function find_provided_node(m, level_info) {
+    while (level_info !== undefined) {
+        const info = level_info.node_modules[m];
+        if (info !== undefined)
+            return info;
+
+        level_info = level_info.parent;
+    }
+
+    return undefined;
+}
+
 function normalize_registry_origin(registry) {
     const urlObj = url.parse(registry)
 
@@ -315,7 +333,13 @@ function registry_lookup_error(m, v, parent, registry_url, reason) {
     lines.push(`  reason      : ${reason}`);
 
     const candidates = find_local_pkg_candidates(m);
-    if (candidates.length > 0)
+    const named = candidates.filter(c => c.indexOf(`(package name: ${m})`) > 0);
+
+    if (named.length > 0)
+        // the name is right and the package is here: the lookup should not have gone to
+        // a registry at all (a workspace member is installed as a link)
+        lines.push(`  hint        : ${named.join(', ')} provides '${m}' — a local workspace package is linked, not fetched`);
+    else if (candidates.length > 0)
         lines.push(`  hint        : ${candidates.join(', ')} — a local workspace package is only recognised when its package.json "name" is exactly '${m}'`);
     else if (m.startsWith('@'))
         lines.push(`  hint        : scoped package, make sure it is published (and not unpublished), or point at your private registry via .npmrc / package.json "registry"`);
@@ -1183,6 +1207,22 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 return;
             }
 
+            if (child_level_info === undefined) {
+                // a workspace member or a local package is not a registry package, so
+                // neither a refresh nor a fetch may be aimed at it: `--update` used to
+                // refresh the whole level, which sent a sibling workspace package to the
+                // registry and failed with a 404. A `workspace:` spec only a member can
+                // answer, and a `file:` one is checked against the directory it names —
+                // another copy of the same name elsewhere is a different package
+                const provided = find_provided_node(dname, level_info);
+
+                if (provided && (provided.workspace_package || provided.local_package) &&
+                    (String(v).indexOf('workspace:') === 0 || node_satisfies(provided, v))) {
+                    _deps[dname] = provided.version;
+                    return;
+                }
+            }
+
             // `--update`: ask the registry again instead of keeping what is
             // already there, and pass that down to the subtree (npm's
             // `update <pkg>` refreshes what that package needs too)
@@ -1276,8 +1316,10 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
 
         walkthrough_deps(
             child,
-            // only ask if need_dev_deps for installation's source root
-            false,
+            // a workspace member is installed like a root of its own: npm installs the
+            // devDependencies of every member of the project, while a dependency's own
+            // devDependencies are never installed
+            child.workspace_package === true,
             // a local package lives outside node_modules, so its own relative
             // dependencies are resolved against its own directory
             child.local_path || path.join(base_dir, 'node_modules', k)
@@ -1363,6 +1405,16 @@ function mark_reachability(rootsnap) {
         ['dev', rootsnap.dev_dep_vs || {}],
     ].forEach(kind => {
         Object.keys(kind[1]).forEach(name => visit(kind[0], name, rootsnap));
+    });
+
+    // a workspace member is a project of its own: its devDependencies are installed
+    // with the project (npm does the same), so `--omit=dev` has to know about them as
+    // well — they are not reachable from the root's own edges
+    Object.keys(rootsnap.node_modules || {}).forEach(name => {
+        const member = rootsnap.node_modules[name];
+
+        if (member.workspace_package)
+            Object.keys(member.dev_dep_vs || {}).forEach(dep => visit('dev', dep, member));
     });
 
     (function mark(node) {
@@ -2660,7 +2712,17 @@ function tree_to_path_map(rootsnap, root) {
             const p = prefix + 'node_modules/' + name;
 
             paths[p] = tree_entry(child, p);
-            flatten(child, p + '/');
+
+            // what a link depends on is installed inside the directory it points at
+            // — the same directory on disk, and the path npm records
+            // (`packages/member/node_modules/x`, never
+            // `node_modules/member/node_modules/x`, which a reader of the lockfile
+            // would look for in vain)
+            const target = child.local_package || child.workspace_package
+                ? (child.local_path || child.workspace_path)
+                : null;
+
+            flatten(child, target ? lockfile.relative_target(root, target) + '/' : p + '/');
         });
     })(rootsnap, '');
 
