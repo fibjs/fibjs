@@ -611,7 +611,14 @@ describe('tls', () => {
                     bytesWritten = ss.write('');
                     assert.equal(bytesWritten, true);
 
-                    ss.close();
+                    // The echo server closes its side as soon as it has replied,
+                    // so on a slow run the peer can already be gone by the time
+                    // the socket is torn down; close() then reports the broken
+                    // connection (EPIPE / ECONNRESET).  write() is buffered and
+                    // reports success, which is what this case is about.
+                    try {
+                        ss.close();
+                    } catch (e) { }
                 });
 
                 it("connect with connectListener", () => {
@@ -1094,7 +1101,11 @@ describe('tls', () => {
 
                 it("emits 'connection' when a client connects", () => {
                     var conns = 0;
-                    svr = new tls.Server(ctx_svr, 9089 + base_port, (s) => { s.close(); });
+                    // the client below aborts right after the handshake, so the
+                    // accepted socket can already be gone when it is closed
+                    svr = new tls.Server(ctx_svr, 9089 + base_port, (s) => {
+                        try { s.close(); } catch (e) { }
+                    });
                     svr.on('connection', () => { conns++; });
                     svr.start();
                     test_util.push(svr.socket);
@@ -1147,7 +1158,11 @@ describe('tls', () => {
 
                 it("listen(port) binds and accepts TLS connections", () => {
                     var p = 9092 + base_port;
-                    svr = new tls.Server(ctx_svr, (s) => { s.close(); });
+                    // the client below aborts right after the handshake, so the
+                    // accepted socket can already be gone when it is closed
+                    svr = new tls.Server(ctx_svr, (s) => {
+                        try { s.close(); } catch (e) { }
+                    });
                     svr.listen(p);
                     test_util.push(svr.socket);
 
