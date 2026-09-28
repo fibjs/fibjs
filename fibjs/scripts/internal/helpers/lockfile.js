@@ -489,32 +489,72 @@ function git_repo_of(u) {
 }
 
 /**
- * @description find the entry a dependency resolves to, offline. npm looks up the
- *              nearest ancestor from the dependent's final path; the installer does
- *              not have final paths while resolving (hoisting comes later), so the
- *              plan fixes a deterministic approximation: the root entry first, then
- *              the shallowest nested entry that satisfies the spec
+ * @description the paths a dependency is looked up at, from the dependent outwards:
+ *              npm resolves `<dir>/node_modules/<name>` and then walks up, one
+ *              directory at a time, to the root. `from` is the lockfile path of the
+ *              dependent ('' for the project root, `packages/member` for a workspace
+ *              member, `node_modules/a` for a package)
  */
-function lookup_entry(packages, name, spec, semver, from) {
-    const direct = packages['node_modules/' + name];
+function lookup_paths(name, from) {
+    const paths = [];
+    let dir = String(from || '').replace(/\\/g, '/').replace(/\/+$/, '');
 
-    if (direct && spec_satisfied(spec, direct, semver, from).ok)
-        return direct;
+    for (;;) {
+        paths.push((dir ? dir + '/' : '') + 'node_modules/' + name);
 
-    const suffix = '/node_modules/' + name;
-    const nested = Object.keys(packages)
-        .filter(p => p.endsWith(suffix))
-        .sort((a, b) => a.split('/').length - b.split('/').length);
+        if (!dir)
+            break;
 
-    for (let i = 0; i < nested.length; i++) {
-        const entry = packages[nested[i]];
-        if (spec_satisfied(spec, entry, semver, from).ok)
+        const idx = dir.lastIndexOf('/node_modules/');
+        dir = idx < 0 ? '' : dir.slice(0, idx);
+    }
+
+    return paths;
+}
+
+/**
+ * @description find the entry a dependency resolves to, offline. npm walks the
+ *              directories of the dependent outwards and takes the first entry that
+ *              satisfies the spec; an entry that sits outside that path (nested under
+ *              an unrelated package) is not visible to it, and the sync check must not
+ *              count it either — that is how a manifest came to look "in sync" with a
+ *              lock that installs something else
+ * @param opts { nested } — also accept the shallowest nested entry that satisfies the
+ *              spec. Resolving runs before hoisting, so a node has no final path yet
+ *              and the plan's approximation (§4.2) is what is left; the sync check,
+ *              which does know the paths, asks for the exact geometry instead
+ */
+function lookup_entry(packages, name, spec, semver, from, opts) {
+    const o = opts || {};
+    const paths = lookup_paths(name, from);
+
+    for (let i = 0; i < paths.length; i++) {
+        const entry = packages[paths[i]];
+        if (entry && spec_satisfied(spec, entry, semver, from).ok)
             return entry;
     }
 
-    // the root entry is returned even when it does not satisfy the spec, so the
-    // caller can report "Invalid" (what npm says) instead of "Missing"
-    return direct || null;
+    if (o.nested) {
+        const suffix = '/node_modules/' + name;
+        const nested = Object.keys(packages)
+            .filter(p => p.endsWith(suffix))
+            .sort((a, b) => a.split('/').length - b.split('/').length);
+
+        for (let i = 0; i < nested.length; i++) {
+            const entry = packages[nested[i]];
+            if (spec_satisfied(spec, entry, semver, from).ok)
+                return entry;
+        }
+    }
+
+    // nothing along the path satisfies the spec: hand back the nearest entry that does
+    // exist, so the caller can report "Invalid" (npm's word) rather than "Missing"
+    for (let i = 0; i < paths.length; i++) {
+        if (packages[paths[i]])
+            return packages[paths[i]];
+    }
+
+    return null;
 }
 
 /**
@@ -593,7 +633,13 @@ function check_sync(root_pkgjson, lock, opts) {
         Object.keys(declared).forEach(name => {
             const spec = declared[name];
             const optional = !!(entry.optionalDependencies && entry.optionalDependencies[name] !== undefined);
-            const found = lookup_entry(packages, name, spec, semver, p);
+
+            // `nested` on purpose: npm writes lockfiles in which a package's edge is
+            // satisfied by a copy that sits beside it rather than above it (its own
+            // trees do this), and `npm ci` accepts those — only an entry that is
+            // missing from the whole table is a hole. A *manifest* edge is held to the
+            // path it resolves along (step 1), which is where a stale lockfile lies
+            const found = lookup_entry(packages, name, spec, semver, p, { nested: true });
 
             // a v1 `requires` mixes dependency kinds (npm 5/6 era), so a miss there is
             // reported without blocking: v2/v3 entries are checked strictly

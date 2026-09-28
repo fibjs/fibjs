@@ -1167,6 +1167,106 @@ describe('opt_tools install lifecycle', function () {
             var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
             assert.equal(ci.status, 0, 'the lockfile it left is in sync:\n' + outputOf(ci));
         });
+
+        it('refuses a lockfile that only an unrelated nested entry satisfies', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'geom-proj', version: '1.0.0', dependencies: { 'is-odd': '3.0.1', 'is-number': '6.0.0' },
+            });
+            writeJSON(targetDir, 'package-lock.json', {
+                name: 'geom-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'geom-proj', version: '1.0.0',
+                        dependencies: { 'is-odd': '3.0.1', 'is-number': '6.0.0' },
+                    },
+                    'node_modules/is-number': {
+                        version: '7.0.0',
+                        resolved: 'https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz',
+                        integrity: SRI,
+                    },
+                    // the 6.0.0 lives under is-odd, where nothing but is-odd can reach it
+                    'node_modules/is-odd': {
+                        version: '3.0.1',
+                        resolved: 'https://registry.npmjs.org/is-odd/-/is-odd-3.0.1.tgz',
+                        integrity: SRI,
+                        dependencies: { 'is-number': '^6.0.0' },
+                    },
+                    'node_modules/is-odd/node_modules/is-number': {
+                        version: '6.0.0',
+                        resolved: 'https://registry.npmjs.org/is-number/-/is-number-6.0.0.tgz',
+                        integrity: SRI,
+                    },
+                },
+            });
+
+            var res = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 1, 'npm refuses this lockfile, and so has to fibjs:\n' + out);
+            assert.ok(out.indexOf("Invalid: lock file's is-number@7.0.0 does not satisfy is-number@6.0.0") > -1,
+                'npm\'s own sentence:\n' + out);
+        });
+
+        it('summarizes a sync failure, and lists every entry with --verbose', function () {
+            var targetDir = makeTargetDir();
+            var deps = {};
+
+            for (var i = 0; i < 25; i++)
+                deps['missing-pkg-' + i] = '1.0.0';
+
+            writeJSON(targetDir, 'package.json', { name: 'loud-proj', version: '1.0.0', dependencies: deps });
+            writeJSON(targetDir, 'package-lock.json', {
+                name: 'loud-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: { '': { name: 'loud-proj', version: '1.0.0', dependencies: deps } },
+            });
+
+            var res = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 1, diag(targetDir, res));
+            assert.ok(out.indexOf('25 errors (Missing 25)') > -1, 'a summary first:\n' + out);
+            assert.ok(out.indexOf('and 5 more (--verbose lists them all)') > -1, 'the tail is counted:\n' + out);
+            assert.equal(out.split('Missing: missing-pkg-').length - 1, 20, '20 details by default');
+
+            var loud = outputOf(runInstaller(targetDir, ['--install', '--ci', '--dry-run', '--verbose']));
+            assert.equal(loud.split('Missing: missing-pkg-').length - 1, 25, '--verbose prints them all');
+        });
+
+        it('leaves node_modules alone when the check fails', function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'untouched-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'], dependencies: { 'is-odd': '3.0.1' },
+            });
+            writeJSON(targetDir, 'packages/member/package.json', { name: 'member', version: '0.1.0' });
+            writeJSON(targetDir, 'package-lock.json', {
+                name: 'untouched-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': {
+                        name: 'untouched-proj', version: '1.0.0', workspaces: ['packages/*'],
+                        dependencies: { 'is-odd': '3.0.1' },
+                    },
+                    'node_modules/is-odd': {
+                        version: '9.9.9',
+                        resolved: 'https://registry.npmjs.org/is-odd/-/is-odd-9.9.9.tgz',
+                        integrity: SRI,
+                    },
+                },
+            });
+            writeFile(targetDir, 'node_modules/sentinel.txt', 'this file has to survive a failed check');
+
+            var res = runInstaller(targetDir, ['--install', '--ci']);
+            assert.equal(res.status, 1, diag(targetDir, res));
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules/sentinel.txt')),
+                'a failed check never touches the disk: ' + listDir(path.join(targetDir, 'node_modules')));
+            assert.ok(!fs.existsSync(path.join(targetDir, 'node_modules/member')),
+                'and the workspace links are created only once it passed');
+        });
+
+        // a registry is needed for the rest of them: they install real packages
     });
 
     // ===== Phase 5: .npmrc, a private registry and its certificate =====
@@ -2491,14 +2591,42 @@ if (isFibjs) (function () {
             return lockfile.to_path_map({ lockfileVersion: 3, packages: packages });
         }
 
-        it('prefers the root entry, then the shallowest satisfying nested one', function () {
+        it('resolves along the path of the dependent, the way npm does', function () {
             var packages = map_of({
                 'node_modules/b': { version: '1.0.0' },
                 'node_modules/a/node_modules/b': { version: '2.0.0' },
             });
 
-            assert.equal(lockfile.lookup_entry(packages, 'b', '^1.0.0', semver).version, '1.0.0');
-            assert.equal(lockfile.lookup_entry(packages, 'b', '^2.0.0', semver).version, '2.0.0');
+            // the root reaches the root entry, and so does anything that has no copy of
+            // its own: the nested 2.0.0 is not visible to it, which is why a lockfile
+            // with it there is `Invalid` (the audit's D2 — this used to be accepted)
+            var root = lockfile.lookup_entry(packages, 'b', '^2.0.0', semver, '');
+            assert.equal(root.version, '1.0.0');
+
+            // `a` finds its own nested copy first
+            assert.equal(lockfile.lookup_entry(packages, 'b', '^2.0.0', semver, 'node_modules/a').version, '2.0.0');
+            assert.equal(lockfile.lookup_entry(packages, 'b', '^1.0.0', semver, 'node_modules/a').version, '1.0.0',
+                'a range the nested copy does not satisfy falls through to the root');
+
+            // a workspace member looks under itself, then at the root
+            var member = map_of({
+                'node_modules/b': { version: '1.0.0' },
+                'packages/member/node_modules/b': { version: '2.0.0' },
+            });
+            assert.equal(lockfile.lookup_entry(member, 'b', '^2.0.0', semver, 'packages/member').version, '2.0.0');
+            assert.equal(lockfile.lookup_entry(member, 'b', '^2.0.0', semver, '').version, '1.0.0');
+        });
+
+        it('takes a nested entry when the resolver asks for it, which has no path yet', function () {
+            var packages = map_of({
+                'node_modules/b': { version: '1.0.0' },
+                'node_modules/a/node_modules/b': { version: '2.0.0' },
+            });
+
+            // hoisting decides where a node ends up *after* it is resolved, so the
+            // resolver keeps the plan's approximation (§4.2) — the sync check, which
+            // does know the paths, must not
+            assert.equal(lockfile.lookup_entry(packages, 'b', '^2.0.0', semver, '', { nested: true }).version, '2.0.0');
         });
 
         it('returns the root entry so a mismatch is reported as Invalid', function () {

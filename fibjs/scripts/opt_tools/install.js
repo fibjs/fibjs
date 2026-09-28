@@ -475,6 +475,22 @@ function create_workspace_symlinks(root_path, workspace_packages) {
 }
 
 /**
+ * @description materialize the workspace members at the root. It happens once the
+ *              lockfile has been accepted, because it writes to node_modules: a check
+ *              that fails has to leave the disk alone (`npm ci` validates before it
+ *              removes anything, and the same promise is in the plan §4.5)
+ */
+function link_workspace_packages() {
+    if (!rootsnap.workspaces)
+        return;
+
+    const workspace_packages = find_workspace_packages(process.cwd(), rootsnap.workspaces);
+
+    if (workspace_packages.length > 0)
+        create_workspace_symlinks(process.cwd(), workspace_packages);
+}
+
+/**
  * @description add workspace packages to module snapshot
  */
 function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
@@ -918,10 +934,10 @@ function get_root_snapshot() {
         const workspace_packages = find_workspace_packages(pwd, m.workspaces);
 
         if (workspace_packages.length > 0) {
-            // create symlinks for workspace packages
-            create_workspace_symlinks(pwd, workspace_packages);
-
-            // add workspace packages to snapshot
+            // the members are part of the snapshot. The links that make them
+            // resolvable are created by link_workspace_packages(), once the lockfile
+            // has been accepted: creating them here wrote to node_modules before the
+            // frozen check had a chance to refuse it
             add_workspace_packages_to_snapshot(m, workspace_packages);
         }
     }
@@ -2146,8 +2162,38 @@ function describe_sync_error(e) {
         return `Missing: ${e.name}@${e.spec} from lock file` +
             (e.via && e.via !== 'package.json' ? ` (required by ${e.via})` : '');
 
-    return `Invalid: lock file's ${e.name}@${e.locked} does not satisfy ${e.name}@${e.spec}` +
-        (e.why ? ` (${e.why})` : '');
+    // npm's sentence is exactly this; the reason is only interesting when it is not the
+    // version that is off (a link that points elsewhere, an alias that is not one)
+    const why = e.why && e.why.indexOf('does not satisfy') < 0 ? ` (${e.why})` : '';
+
+    return `Invalid: lock file's ${e.name}@${e.locked} does not satisfy ${e.name}@${e.spec}${why}`;
+}
+
+/**
+ * @description report the errors of a sync check. A lockfile that fell behind produces
+ *              hundreds of them (the audit saw 217), so the shape of the problem comes
+ *              first; the details are there for the first few entries, and `--verbose`
+ *              prints them all
+ */
+function print_sync_errors(lock, sync) {
+    const counts = {};
+
+    sync.errors.forEach(e => {
+        const kind = e.optional ? `${e.kind} (optional)` : e.kind;
+        counts[kind] = (counts[kind] || 0) + 1;
+    });
+
+    const summary = Object.keys(counts).map(k => `${k} ${counts[k]}`).join(', ');
+    const shown = ctx.verbose ? sync.errors : sync.errors.slice(0, 20);
+
+    console.error(`[install] ${lock.filename} is not in sync with package.json:`);
+    console.error(`  ${sync.errors.length} error${sync.errors.length === 1 ? '' : 's'} (${summary})`);
+    shown.forEach(e => console.error(`  ${describe_sync_error(e)}`));
+
+    if (shown.length < sync.errors.length)
+        console.error(`  … and ${sync.errors.length - shown.length} more (--verbose lists them all)`);
+
+    console.error('  run `fibjs --install` to update the lockfile, then try again');
 }
 
 /**
@@ -2637,6 +2683,9 @@ const ARG_SPECS = [
     { names: ['--production'], flag: 'omit_dev', alias: '--omit=dev' },
     { names: ['--no-audit', '--no-fund', '--force', '--legacy-peer-deps', '--silent'], flag: 'npm_ignored' },
 
+    // list every sync error instead of the first screenful
+    { names: ['--verbose'], flag: 'verbose' },
+
     // planned, not implemented yet (rejected instead of silently ignored)
     { names: ['--lockfile-only'], flag: 'lockfile_only' },
     { names: ['--omit'], flag: 'omit', value: true, multiple: true },
@@ -2679,6 +2728,8 @@ function usage_text() {
         '  --no-strict-integrity       install lockfile entries that carry no',
         '                              integrity, instead of refusing them',
         '  --dry-run                   report what would be written, write nothing',
+        '  --verbose                   list every lockfile sync error, not just the',
+        '                              first 20',
         '',
         'What lands in node_modules:',
         '  --omit=dev,optional,peer    leave those types out of node_modules (the',
@@ -2846,6 +2897,9 @@ let need_add_newpkg_to_pkgjson = false
 let pkgjson_path_specified = false;
 let ignore_scripts = args.flags.ignore_scripts === true;
 
+// how much of a sync failure to print (see print_sync_errors)
+ctx.verbose = args.flags.verbose === true;
+
 // the precedence has always been --save > --save-dev > --target
 if (args.flags.save) {
     need_add_newpkg_to_pkgjson = true;
@@ -2936,9 +2990,7 @@ if (args.flags.frozen) {
             'neither npm nor this writes a peer mark into it');
 
     if (!sync.ok) {
-        console.error(`[install] ${lock.filename} is not in sync with package.json:`);
-        sync.errors.forEach(e => console.error(`  ${describe_sync_error(e)}`));
-        console.error('  run `fibjs --install` to update the lockfile, then try again');
+        print_sync_errors(lock, sync);
         process.exit(1);
     }
 
@@ -2956,6 +3008,9 @@ if (args.flags.frozen) {
     // the check passed, so this is where node_modules may be emptied (npm ci does
     // the same, and a failed check never touches the disk)
     clear_node_modules(process.cwd());
+
+    // the members are links at the root, recreated after the directory was emptied
+    link_workspace_packages();
 
     install_from_lock(lock, {
         registry: ctx.registry,
@@ -2995,6 +3050,10 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         // preinstall before anything is installed, like npm
         if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
             run_root_preinstall();
+
+        // the members are links at the root; the lockfile describes them too, this
+        // only saves the install from creating what is already there
+        link_workspace_packages();
 
         const result = install_from_lock(lock, {
             registry: ctx.registry,
@@ -3129,6 +3188,10 @@ if (args.flags.dry_run) {
 // preinstall before anything is installed, like npm
 if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
     run_root_preinstall();
+
+// the workspace members are links at the root, and they have to exist before the
+// tree is written (the snapshot carries them; this is what makes them resolvable)
+link_workspace_packages();
 
 generate_mv_paths(rootsnap, process.cwd());
 download_module();
