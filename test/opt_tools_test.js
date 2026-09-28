@@ -2261,6 +2261,32 @@ describe('opt_tools install lifecycle', function () {
                 'a frozen install does not rewrite the lockfile');
         });
 
+        it('heals a path of the other kind an earlier install left behind', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'heal-proj', version: '1.0.0',
+                dependencies: { core: '1.0.0', helper: '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            // what an install that stopped half way through leaves behind: a *file*
+            // where a package's directory has to go, and a *directory* where one of its
+            // files has to go. npm's tar clears both, and an install over such a tree
+            // has to put it right instead of failing on it
+            fs.mkdirSync(path.join(targetDir, 'node_modules/core/index.js'), { recursive: true });
+            fs.writeFileSync(path.join(targetDir, 'node_modules/helper'), 'a leftover file\n');
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.equal(versionOnDisk(targetDir, 'node_modules/core'), '1.0.0', listDir(path.join(targetDir, 'node_modules/core')));
+            assert.ok(!fs.lstatSync(path.join(targetDir, 'node_modules/core/index.js')).isDirectory(),
+                'the directory in the way of the file member is gone: ' + listDir(path.join(targetDir, 'node_modules/core')));
+            assert.equal(versionOnDisk(targetDir, 'node_modules/helper'), '1.0.0', listDir(path.join(targetDir, 'node_modules')));
+        });
+
         it('unpacks tarballs with different member roots at the same time', function () {
             var targetDir = makeTargetDir();
             var names = [];
@@ -2359,6 +2385,46 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(install_out.indexOf('peer core@^2.0.0 of node_modules/peer-host') > -1,
                 'the unmet peer is named:\n' + install_out);
             assert.equal(versionOnDisk(targetDir, 'node_modules/peer-host'), '1.0.0');
+        });
+
+        it('says nothing about a peer the tree already answers', function () {
+            var satisfiedDir = makeTargetDir();
+
+            // the peer asks for `^2.0.0` and the root holds 2.0.0: npm's ordinary
+            // hoisted placement, and an install has nothing to report about it
+            fs.writeFileSync(path.join(satisfiedDir, 'package.json'), JSON.stringify({
+                name: 'peer-quiet-proj', version: '1.0.0',
+                dependencies: { 'peer-host': '1.0.0', core: '2.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(satisfiedDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var quiet = runInstaller(satisfiedDir, ['--install'], offline());
+            var quiet_out = outputOf(quiet);
+
+            assert.equal(quiet.status, 0, diag(satisfiedDir, quiet) + '\n' + quiet_out);
+            assert.ok(quiet_out.indexOf('is not satisfied by the installed') === -1,
+                'a peer the copy above answers is not a conflict:\n' + quiet_out);
+            assert.equal(versionOnDisk(satisfiedDir, 'node_modules/core'), '2.0.0');
+            assert.ok(!fs.existsSync(path.join(satisfiedDir, 'node_modules/peer-host/node_modules/core')),
+                'and the copy above it is the one it uses: ' +
+                listDir(path.join(satisfiedDir, 'node_modules/peer-host')));
+
+            // the same peer with a root copy that does not answer it is the conflict
+            // npm warns about, and that warning stays
+            var conflictDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(conflictDir, 'package.json'), JSON.stringify({
+                name: 'peer-conflict-proj', version: '1.0.0',
+                dependencies: { 'peer-host': '1.0.0', core: '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(conflictDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var conflict = runInstaller(conflictDir, ['--install'], offline());
+            var conflict_out = outputOf(conflict);
+
+            assert.equal(conflict.status, 0, diag(conflictDir, conflict) + '\n' + conflict_out);
+            assert.ok(conflict_out.indexOf('is not satisfied by the installed 1.0.0') > -1,
+                'a peer the copy above does not answer is still reported:\n' + conflict_out);
         });
     });
 

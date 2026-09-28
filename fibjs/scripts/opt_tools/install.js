@@ -925,8 +925,13 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                         hosted_tarball: opt.hosted_tarball
                     }
                 } catch (e) {
-                    console.log("node-pre-gyp", e);
-                    // process.exit();
+                    // a `binary` block that does not describe a node-pre-gyp package is
+                    // the package's problem: npm ignores the field as well, and the
+                    // install goes on without the prebuilt addon (the package's own
+                    // install script is what builds it)
+                    if (ctx.verbose)
+                        install_log('[install]', `${m}@${minfo.version}`, 'has an unusable binary field:',
+                            String(e.message).split('\n')[0]);
                 }
             }
 
@@ -1332,8 +1337,14 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                     const provided = find_provided_node(dname, level_info);
 
                     if (provided) {
-                        console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
-                            `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
+                        // the nearest copy in the tree is what the requirement resolves
+                        // to. One that meets it is npm's ordinary placement — a hoisted
+                        // peer — and saying "not satisfied" about it is what printed two
+                        // hundred and sixty warnings over a healthy install
+                        if (!node_satisfies(provided, v))
+                            console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
+                                `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
+
                         _deps[dname] = provided.version;
                         return;
                     }
@@ -1347,7 +1358,13 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 // check platform compatibility; skip optional deps that don't match
                 if (child_level_info && !check_platform_match(child_level_info)) {
                     if (dep_type === 'opt_dep_vs') {
-                        install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
+                        ctx.platform_skips = (ctx.platform_skips || 0) + 1;
+
+                        // two hundred lines of this is how an install came to look like
+                        // it was full of errors: the shape is the same for every package,
+                        // and the count is what says something
+                        if (ctx.verbose)
+                            install_log('skip incompatible:', dname, '@', child_level_info.version, '(os/cpu mismatch)');
 
                         // npm keeps such a package in the tree — and in the
                         // lockfile — and only skips it while installing: a
@@ -1357,7 +1374,10 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                         child_level_info.node_modules = {};
                         return;
                     }
-                    console.warn('platform mismatch for', dname, '- may not work');
+                    ctx.platform_warns = (ctx.platform_warns || 0) + 1;
+
+                    if (ctx.verbose)
+                        console.warn('platform mismatch for', dname, '- may not work');
                 }
 
                 /**
@@ -1805,6 +1825,71 @@ function generate_mv_paths(level_info, parent_p) {
     }
 }
 
+/**
+ * @description a path of the other kind — a directory where a member is a file, a
+ *              file where a member's directory is — is what an install that did not
+ *              finish leaves behind, and what npm's tar clears as well. An install
+ *              over such a tree has to put it right instead of stopping half way
+ */
+function clear_kind_conflict(p) {
+    try {
+        if (fs.lstat(p).isDirectory())
+            rmdir_recursive(p);
+        else
+            fs.unlink(p);
+
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * @description `mkdir -p`, clearing a *file* that is in the way (or the deepest
+ *              path that is not a directory at all)
+ */
+function mkdir_or_clear(dirname) {
+    for (let attempt = 0; attempt < 8; attempt++) {
+        try {
+            fs.mkdir(dirname, { recursive: true });
+            return;
+        } catch (e) {
+            let blocker = null;
+            let cur = dirname;
+
+            while (cur && cur !== path.dirname(cur)) {
+                try {
+                    if (!fs.lstat(cur).isDirectory())
+                        blocker = cur;
+                } catch (e2) {
+                    // it does not exist (yet): not the blocker
+                }
+
+                cur = path.dirname(cur);
+            }
+
+            if (!blocker || !clear_kind_conflict(blocker))
+                throw e;
+        }
+    }
+}
+
+/**
+ * @description write one member of a tarball where it belongs
+ */
+function write_member(tpath, data, mode) {
+    try {
+        fs.writeFile(tpath, data);
+    } catch (e) {
+        if (!clear_kind_conflict(tpath))
+            throw e;
+
+        fs.writeFile(tpath, data);
+    }
+
+    fs.chmod(tpath, parseInt(mode, 8));
+}
+
 function find_tar_home(untar_files) {
     var archive_root_name;
     var first_file_name;
@@ -1885,9 +1970,8 @@ function download_binary_task(mvm) {
 
             if (file.typeflag == "0") {
                 var bpath = path.join(bp, task_dir(mvm), mvm.binary.module_path, file.filename.slice(archive_root_name.length));
-                fs.mkdir(path.dirname(bpath), { recursive: true });
-                fs.writeFile(bpath, file.fileData);
-                fs.chmod(bpath, parseInt(file.mode, 8));
+                mkdir_or_clear(path.dirname(bpath));
+                write_member(bpath, file.fileData, file.mode);
             }
         });
     });
@@ -2063,12 +2147,12 @@ function download_module() {
                                 // an extraction that fails has to say what it was unpacking:
                                 // the path alone does not tell which tarball wrote there
                                 try {
-                                    fs.mkdir(path.dirname(tpath), { recursive: true });
-                                    fs.writeFile(tpath, file.fileData);
-                                    fs.chmod(tpath, parseInt(file.mode, 8));
+                                    mkdir_or_clear(path.dirname(tpath));
+                                    write_member(tpath, file.fileData, file.mode);
                                 } catch (e) {
-                                    console.error(`[install] ${mvm.name}@${mvm.version}: cannot unpack ` +
-                                        `${JSON.stringify(file.filename)} (root ${JSON.stringify(archive_root_name)}) to ${tpath}`);
+                                    console.error(`[install] ${mvm.name}${mvm.version ? '@' + mvm.version : ''}: ` +
+                                        `cannot unpack ${JSON.stringify(file.filename)} ` +
+                                        `(root ${JSON.stringify(archive_root_name)}) to ${tpath}`);
                                     throw e;
                                 }
                             }
@@ -2291,9 +2375,8 @@ function download_one(mkey) {
 
                     if (file.typeflag == "0") {
                         const tpath = path.join(bp, task_dir(mvm), file.filename.slice(archive_root_name.length));
-                        fs.mkdir(path.dirname(tpath), { recursive: true });
-                        fs.writeFile(tpath, file.fileData);
-                        fs.chmod(tpath, parseInt(file.mode, 8));
+                        mkdir_or_clear(path.dirname(tpath));
+                        write_member(tpath, file.fileData, file.mode);
                     }
                 });
             });
@@ -4183,6 +4266,14 @@ ctx.lock_packages = lock ? lockfile.to_path_map(lock) : null;
 // packages land on disk is `ctx.omit`'s business
 walkthrough_deps(rootsnap, true);
 move_up(rootsnap);
+
+// the counts, not the lines: a big project skips a hundred of these, and one line
+// each is what made a healthy install look like a wall of errors
+if (ctx.platform_skips)
+    install_log(`[install] ${ctx.platform_skips} packages are for another platform: skipped`);
+
+if (ctx.platform_warns)
+    console.warn(`[install] ${ctx.platform_warns} required packages are for another platform and may not work`);
 
 // hoisting can take a package away from the copy it was resolved against: the edge is
 // checked from where it ended up, and a copy is nested when nothing above can serve it
