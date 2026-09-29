@@ -176,6 +176,62 @@ static void openCovFile(const char* filename)
     }
 }
 
+// Case insensitive match of a whole environment value against a keyword.
+static bool envValueIs(const char* value, const char* keyword)
+{
+    while (*value && *keyword) {
+        char c = *value++;
+        if (c >= 'A' && c <= 'Z')
+            c += 'a' - 'A';
+        if (c != *keyword++)
+            return false;
+    }
+
+    return *value == 0 && *keyword == 0;
+}
+
+// FIBJS_COV turns on code coverage from the environment, so that one global
+// export covers every process of a test suite instead of passing `--cov` at
+// each launch site: FIBJS_COV=1 uses the default file name, FIBJS_COV=<file>
+// writes there, FIBJS_COV=0|false|no|off (or an empty value) keeps it off.
+// The command line wins over the environment, and the variable is inherited by
+// child processes like any other.
+static void applyCovEnv()
+{
+    char value[4096];
+    size_t size = sizeof(value);
+
+    if (g_cov != nullptr)
+        return;
+
+    int32_t ret = uv_os_getenv("FIBJS_COV", value, &size);
+    if (ret == UV_ENOENT)
+        return;
+
+    if (ret != 0) {
+        fprintf(stderr, "FIBJS_COV is too long\n");
+        fflush(stderr);
+        _exit(1);
+    }
+
+    if (value[0] == 0
+        || envValueIs(value, "0") || envValueIs(value, "false")
+        || envValueIs(value, "no") || envValueIs(value, "off"))
+        return;
+
+    if (envValueIs(value, "1") || envValueIs(value, "true")
+        || envValueIs(value, "yes") || envValueIs(value, "on")) {
+        char name[64];
+
+        defaultCovFilename(name, sizeof(name));
+        openCovFile(name);
+
+        return;
+    }
+
+    openCovFile(value);
+}
+
 #ifdef DEBUG
 #define GUARD_SIZE 32
 #else
@@ -223,6 +279,8 @@ static void printHelp()
          "  --track-native-object       track native object counts.\n"
          "\n"
          "  --cov[=filename]            collect code coverage information (only work on the main Worker).\n"
+         "                              FIBJS_COV=<file> enables it from the environment,\n"
+         "                              FIBJS_COV=1 writes fibjs-<date>-<time>-<pid>.lcov.\n"
          "\n"
          "  --v8-options                print v8 command line options.\n"
          "\n"
@@ -390,6 +448,9 @@ void options(int32_t& pos, char* argv[])
 
     if (!env_files.empty())
         applyEnvFileOptions(env_files);
+
+    // after the env files: `--env-file=.env` carrying FIBJS_COV works too
+    applyCovEnv();
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
