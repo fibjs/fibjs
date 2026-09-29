@@ -107,6 +107,7 @@ if (process.platform != "android") {
     run("./ts_test.js");
     run("./icu_test.js");
     run("./workspaces_test.js");
+    run("./cov_test.js");
     run("./opt_tools_test.js");
     run("./scripts_test.js");
 
