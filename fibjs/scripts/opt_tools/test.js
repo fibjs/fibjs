@@ -246,6 +246,11 @@ const UNSUPPORTED = {
 // for the test engine (test.cpp reads it at run time). Non-enumerable.
 const NAME_PATTERNS_KEY = '__fibjs_test_name_patterns';
 
+// Key on the global holding the test files of this run, for the coverage writer
+// (lcov.cpp reads it when it writes the report at exit): a report about the
+// code under test should not count the tests themselves. Non-enumerable.
+const COV_EXCLUDE_KEY = '__fibjs_test_cov_exclude';
+
 function parseArgs(argv) {
     const opts = {
         patterns: [],
@@ -425,6 +430,13 @@ function main() {
 
     const cwd = process.cwd();
     const files = buildTestFileList(opts.patterns, cwd);
+
+    // Coverage is collected by the runtime (--cov / FIBJS_COV); tell its writer
+    // which files are the tests of this run.
+    Object.defineProperty(globalThis, COV_EXCLUDE_KEY, {
+        configurable: true,
+        value: files.slice()
+    });
 
     const runFile = (typeof run === 'function') ? run : global.run;
 
