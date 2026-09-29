@@ -15,7 +15,14 @@
 #include "unicode/locid.h"
 #include "unicode/timezone.h"
 #include "../util/dotenv_parser.h"
+#include <sys/stat.h>
+#include <time.h>
 #include <uv/include/uv.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#define mkdir(path, mode) _mkdir(path)
+#endif
 
 namespace fibjs {
 
@@ -104,6 +111,68 @@ static void applyEnvFileOptions(const std::vector<EnvFileOption>& env_files)
             continue;
 
         uv_os_setenv(entry.first.c_str(), entry.second.c_str());
+    }
+}
+
+// Default file name for `--cov` without a value and for FIBJS_COV=1:
+// fibjs-YYYYMMDD-HHMMSS-<pid>.lcov, local time (Node names its profiler files
+// the same way). One file per process, so parallel runs never interleave their
+// records into the same file; `--cov-process` merges the batch back into one
+// report.
+//
+// The name used to be `fibjs-%d.lcov` with `(int32_t)date_t::date()`: that is
+// the millisecond timestamp wrapped into int32, i.e. an unreadable (mostly
+// negative) number that changed every millisecond, so every run wrote a new
+// file and the append mode never accumulated anything.
+//
+// The OS is asked for the local time directly, because options() runs before
+// the runtime creates the DateCache that date_t::toLocal() relies on.
+static void defaultCovFilename(char* name, size_t size)
+{
+    time_t now = time(nullptr);
+    struct tm tmv;
+
+#ifdef _WIN32
+    localtime_s(&tmv, &now);
+#else
+    localtime_r(&now, &tmv);
+#endif
+
+    snprintf(name, size, "fibjs-%04d%02d%02d-%02d%02d%02d-%d.lcov",
+        tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday,
+        tmv.tm_hour, tmv.tm_min, tmv.tm_sec, (int32_t)uv_os_getpid());
+}
+
+// `mkdir -p` for the directory part of a coverage file path: FIBJS_COV and
+// --cov may point into a directory tree that does not exist yet (`cov/run.lcov`
+// in a fresh checkout), just like the output directory of --cov-process is
+// created on demand. A failure is not reported here, fopen below reports it if
+// the path is still unusable.
+static void makeCovDirs(const char* filename)
+{
+    exlib::string dir(filename);
+    size_t pos = 1;
+
+    while ((pos = dir.find_first_of("/\\", pos)) != exlib::string::npos) {
+        exlib::string sub = dir.substr(0, pos);
+
+        // skip the drive prefix of "C:\..." and a leading separator
+        if (!sub.empty() && sub[sub.length() - 1] != ':')
+            mkdir(sub.c_str(), 0755);
+
+        pos++;
+    }
+}
+
+static void openCovFile(const char* filename)
+{
+    makeCovDirs(filename);
+
+    g_cov = fopen(filename, "a");
+    if (g_cov == nullptr) {
+        fprintf(stderr, "Cannot open coverage file: %s\n", filename);
+        fflush(stderr);
+        _exit(1);
     }
 }
 
@@ -296,24 +365,13 @@ void options(int32_t& pos, char* argv[])
             g_openssl_legacy_provider = true;
             df++;
         } else if (!qstrcmp(arg, "--cov=", 6)) {
-            g_cov = fopen(arg + 6, "a");
-            if (g_cov == nullptr) {
-                printf("Invalid filename: %s\n", arg + 6);
-                fflush(stdout);
-                _exit(0);
-            }
+            openCovFile(arg + 6);
             df++;
         } else if (!qstrcmp(arg, "--cov")) {
-            char name[22];
-            date_t d;
-            d.now();
-            snprintf(name, sizeof(name), "fibjs-%d.lcov", (int32_t)d.date());
-            g_cov = fopen(name, "a");
-            if (g_cov == nullptr) {
-                printf("Can't open file: %s, please try again", name);
-                fflush(stdout);
-                _exit(0);
-            }
+            char name[64];
+
+            defaultCovFilename(name, sizeof(name));
+            openCovFile(name);
             df++;
         } else if (!qstrcmp(arg, "-e")) {
             if (i + 1 < pos) {
