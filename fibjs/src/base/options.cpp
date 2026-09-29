@@ -169,7 +169,11 @@ static void openCovFile(const char* filename)
 {
     makeCovDirs(filename);
 
-    g_cov = fopen(filename, "a");
+    // The log is written by the byte and read by readers of the lcov format, so
+    // a line of it ends with the `\n` the report wrote: the text mode of the
+    // platform would turn that into `\r\n` and make the log of a Windows run a
+    // different file from the log of a POSIX one.
+    g_cov = fopen(filename, "ab");
     if (g_cov == nullptr) {
         fprintf(stderr, "Cannot open coverage file: %s\n", filename);
         fflush(stderr);
