@@ -149,6 +149,50 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         assert.deepEqual(fs.readdirSync(cwd).sort(), ['demo.js', 'explicit.lcov']);
     });
 
+    it('writes an lcov record that describes the file and nothing else', () => {
+        var cwd = dir();
+        var r = run(cwd, ['--cov=out.lcov', 'demo.js', 'a']);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        var lcov = fs.readFileSync(path.join(cwd, 'out.lcov'), 'utf8');
+        var demo = fs.readFileSync(path.join(cwd, 'demo.js'), 'utf8').split('\n');
+        var fileLines = demo[demo.length - 1] === '' ? demo.length - 1 : demo.length;
+
+        // the file is named relative to the working directory, and the test
+        // file of a `--test` run is not in the record at all
+        assert.ok(lcov.indexOf('SF:demo.js\n') >= 0, lcov);
+        assert.equal(lcov.indexOf('SF:demo.test.js'), -1, lcov);
+
+        // the wrapper fibjs compiles the module with is not a function of the
+        // file, and line 0 does not exist
+        assert.equal(lcov.indexOf('FN:0,'), -1, lcov);
+        assert.ok(/^FN:\d+,/m.test(lcov), lcov);
+
+        // the summary lines are there, and they agree with the record
+        ['FNF:', 'FNH:', 'BRDA:', 'BRF:', 'BRH:', 'LH:', 'LF:'].forEach(k => {
+            assert.ok(lcov.indexOf(k) >= 0, k + ' is missing:\n' + lcov);
+        });
+
+        var das = [];
+        (lcov.match(/^DA:\d+,\d+$/gm) || []).forEach(line => {
+            var m = /^DA:(\d+),(\d+)$/.exec(line);
+
+            das.push(Number(m[1]));
+            assert.ok(Number(m[1]) <= fileLines, `line ${m[1]} is past the file (${fileLines}):\n` + lcov);
+        });
+
+        assert.equal(das.length, fileLines, 'one DA line per line of the file:\n' + lcov);
+        assert.equal(Number(/^LF:(\d+)$/m.exec(lcov)[1]), fileLines, lcov);
+
+        var lh = Number(/^LH:(\d+)$/m.exec(lcov)[1]);
+        assert.ok(lh > 0 && lh < fileLines, `LH must sit between 0 and ${fileLines}: ${lh}\n` + lcov);
+
+        (lcov.match(/^BRDA:\d+,/gm) || []).forEach(line => {
+            assert.ok(Number(/^BRDA:(\d+),/.exec(line)[1]) <= fileLines, lcov);
+        });
+    });
+
     it('--cov-process merges a glob of logs', () => {
         var cwd = dir();
 
