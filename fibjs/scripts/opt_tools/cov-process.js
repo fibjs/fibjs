@@ -1019,63 +1019,92 @@ hljs.registerLanguage('javascript', function (hljs) {
 
 //===================================================
 
-function read_lcov(lcov) {
-    var lines = fs.readLines(lcov);
+// Merge the lcov logs into one record per source file: coverage is additive,
+// several runs (or several processes of one run) each cover a part of the same
+// file, so line counts are summed by line number and function counts are
+// summed by function name. A record that merely repeats a file must not
+// replace the data of the earlier records (that is what it used to do, and the
+// report then only showed the last process that loaded the file).
+function read_lcov(files) {
     var info = {
         subs: {}
     };
-    var cur;
     var re = /^([^:]*):([^,]*)(,(.*))?/;
-    var cnt;
+    var records = {};
+    var cur;
 
-    lines.forEach(l => {
-        var m = re.exec(l);
-        if (m) {
+    files.forEach(f => {
+        cur = null;
+        fs.readLines(f).forEach(l => {
+            var m = re.exec(l);
+            if (!m)
+                return;
+
             switch (m[1]) {
                 case 'SF':
                     var fname = path.fullpath(m[2]);
-                    var ns = fname.replace(/[\\\/]+/g, '/').split('/');
-                    cur = info;
-                    ns.forEach(n => {
-                        var c = cur.subs[n];
-                        if (c === undefined) {
-                            c = {
-                                subs: {}
-                            };
-                            cur.subs[n] = c;
-                        }
-                        cur = c;
-                    });
-
-                    cur.src = fname;
-                    cur.stats = {
-                        line_cnt: 0,
-                        line_cov: 0,
-                        func_cnt: 0,
-                        func_cov: 0
-                    };
-                    cur.lines = [];
-
-                    break;
-                case 'DA':
-                    cnt = Number(m[4]);
-                    cur.lines[Number(m[2]) - 1] = cnt;
-                    cur.stats.line_cnt++;
-                    if (cnt > 0)
-                        cur.stats.line_cov++;
-                    break;
-                case 'FNDA':
-                    if (m[4] !== '') {
-                        cnt = Number(m[2]);
-                        cur.stats.func_cnt++;
-                        if (cnt > 0)
-                            cur.stats.func_cov++;
+                    cur = records[fname];
+                    if (cur === undefined) {
+                        cur = records[fname] = {
+                            src: fname,
+                            lines: [],
+                            funcs: {}
+                        };
                     }
                     break;
-                    // default:
-                    //     console.log(m);
+                case 'DA':
+                    if (cur !== null) {
+                        var ln = Number(m[2]) - 1;
+                        cur.lines[ln] = (cur.lines[ln] || 0) + Number(m[4]);
+                    }
+                    break;
+                case 'FNDA':
+                    if (cur !== null && m[4] !== '')
+                        cur.funcs[m[4]] = (cur.funcs[m[4]] || 0) + Number(m[2]);
+                    break;
             }
+        });
+    });
+
+    Object.keys(records).forEach(fname => {
+        var rec = records[fname];
+        var ns = fname.replace(/[\\\/]+/g, '/').split('/');
+
+        cur = info;
+        ns.forEach(n => {
+            var c = cur.subs[n];
+            if (c === undefined) {
+                c = {
+                    subs: {}
+                };
+                cur.subs[n] = c;
+            }
+            cur = c;
+        });
+
+        cur.src = fname;
+        cur.lines = rec.lines;
+        cur.stats = {
+            line_cnt: 0,
+            line_cov: 0,
+            func_cnt: 0,
+            func_cov: 0
+        };
+
+        // lines that no log reports count as not covered
+        for (var i = 0; i < rec.lines.length; i++) {
+            var cnt = rec.lines[i] || 0;
+            rec.lines[i] = cnt;
+            cur.stats.line_cnt++;
+            if (cnt > 0)
+                cur.stats.line_cov++;
         }
+
+        Object.keys(rec.funcs).forEach(name => {
+            cur.stats.func_cnt++;
+            if (rec.funcs[name] > 0)
+                cur.stats.func_cov++;
+        });
     });
 
     return info;
@@ -1470,17 +1499,55 @@ function gen_html(base_path, info) {
 
 function usage_text() {
     return [
-        'Usage: fibjs --cov-process <lcov-file> <output-dir>',
+        'Usage: fibjs --cov-process <lcov-file|glob>... <output-dir>',
         '',
-        'Generate an HTML code coverage report from the lcov file written by --cov,',
-        'and write it under <output-dir> together with the per file data the report',
-        'reads.',
+        'Generate an HTML code coverage report from the lcov files written by --cov.',
+        'Every argument but the last one is an input: a file name or a glob pattern',
+        '(expanded with fs.glob). The inputs are merged into one report, so the logs',
+        'written by repeated or parallel runs can be reported together. The report and',
+        'the per file data it reads are written under <output-dir>.',
         '',
         'Options:',
         '  -h, --help                  print this message',
         '',
         'Run `fibjs --help` for the global options.',
     ].join('\n');
+}
+
+function error_usage(msg) {
+    console.error('fibjs --cov-process: ' + msg);
+    console.error(usage_text());
+    process.exit(1);
+}
+
+// Expand one input argument: a glob pattern goes through fs.glob, anything
+// else is a literal path. Directories are dropped (a directory full of logs is
+// spelled `<dir>/*.lcov`), results are absolute paths.
+function expand_input(pattern) {
+    var matched;
+
+    if (/[*?[{]/.test(pattern))
+        matched = fs.glob(pattern, {});
+    else
+        matched = fs.exists(pattern) ? [pattern] : [];
+
+    var files = [];
+
+    matched.forEach(f => {
+        var full = path.fullpath(f);
+
+        try {
+            if (!fs.stat(full).isFile())
+                return;
+        } catch (e) {
+            return;
+        }
+
+        if (files.indexOf(full) < 0)
+            files.push(full);
+    });
+
+    return files;
 }
 
 var args = process.argv.slice(2);
@@ -1490,14 +1557,29 @@ if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
     process.exit(0);
 }
 
-if (args.length < 2) {
-    console.error('fibjs --cov-process: needs an lcov file and an output directory');
-    console.error(usage_text());
-    process.exit(1);
-}
+if (args.length < 2)
+    error_usage('needs an lcov file or a glob pattern and an output directory');
+
+var inputs = [];
+var seen = {};
+
+args.slice(0, -1).forEach(pattern => {
+    expand_input(pattern).forEach(f => {
+        if (seen[f])
+            return;
+
+        seen[f] = true;
+        inputs.push(f);
+    });
+});
+
+if (inputs.length == 0)
+    error_usage('no lcov file matched: ' + args.slice(0, -1).join(' '));
+
+inputs.sort();
 
 var i;
-var base_path = path.fullpath(args[1]);
+var base_path = path.fullpath(args[args.length - 1]);
 var a = base_path.replace(/[\\\/]+/g, '/').split('/');
 
 for (i = 1; i < a.length; i++)
@@ -1505,4 +1587,6 @@ for (i = 1; i < a.length; i++)
         fs.mkdir(a.slice(0, i + 1).join('/'));
     } catch (e) {}
 
-gen_html(base_path, read_lcov(args[0]));
+console.log('merging ' + inputs.length + ' lcov file(s)');
+
+gen_html(base_path, read_lcov(inputs));

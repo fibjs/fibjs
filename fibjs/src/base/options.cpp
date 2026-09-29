@@ -289,7 +289,7 @@ static void printHelp()
          "  --install [pkg]             install dependencies in the local node_modules folder.\n"
          "  --test [files|dirs|globs]   run test files with the built-in test module.\n"
          "  --check [files]             run the TypeScript checker (alias: -c).\n"
-         "  --cov-process <lcov> <dir>  generate an HTML code coverage report.\n"
+         "  --cov-process <glob> <dir>  merge lcov files and generate the coverage report.\n"
          "  --prof-process <log> <out>  render a --prof log as a flame graph SVG.\n"
          "\n"
          "Run `fibjs --<command> --help` for the options of a command.\n"
