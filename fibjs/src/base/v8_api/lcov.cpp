@@ -273,15 +273,58 @@ struct CovDir {
             dir += '/';
     }
 
+    // Whether the file is inside the working directory. Windows names a script
+    // with the separators of the platform and does not tell apart the case of a
+    // path, while the directory was folded above: both are folded here, and
+    // here only, because a `\` is a character of a file name like any other
+    // where it is not a separator.
+    static bool isInside(const std::string& file_name, const std::string& dir)
+    {
+        size_t n = dir.length();
+
+        if (file_name.length() < n)
+            return false;
+
+        for (size_t i = 0; i < n; i++) {
+            char a = file_name[i];
+            char b = dir[i];
+
+#ifdef _WIN32
+            if (a == '\\')
+                a = '/';
+
+            if (a >= 'A' && a <= 'Z')
+                a += 'a' - 'A';
+
+            if (b >= 'A' && b <= 'Z')
+                b += 'a' - 'A';
+#endif
+
+            if (a != b)
+                return false;
+        }
+
+        return true;
+    }
+
     // The report is read next to the project it describes, so a file inside the
     // working directory is named relative to it. A file outside keeps its
     // absolute path: there is nothing sensible to be relative to.
     std::string relative(const std::string& file_name) const
     {
-        if (!dir.empty() && file_name.compare(0, dir.size(), dir) == 0)
-            return file_name.substr(dir.size());
+        if (dir.empty() || !isInside(file_name, dir))
+            return file_name;
 
-        return file_name;
+        std::string relative = file_name.substr(dir.length());
+
+#ifdef _WIN32
+        for (size_t i = 0; i < relative.length(); i++) {
+            if (relative[i] == '\\')
+                relative[i] = '/';
+        }
+#endif
+
+        return relative;
     }
 };
 

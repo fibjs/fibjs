@@ -274,7 +274,8 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         // the assertion stays clear of symlinked scratch directories)
         var outside = /^SF:(.*outside\.js)$/m.exec(lcov);
         assert.ok(outside !== null, 'the outside file has no record:\n' + lcov);
-        assert.equal(outside[1][0], '/', 'a file outside the working directory keeps an absolute name:\n' + lcov);
+        assert.ok(path.isAbsolute(outside[1]),
+            'a file outside the working directory keeps an absolute name:\n' + lcov);
     });
 
     it('--cov-exclude matches a file outside the working directory by its absolute path', () => {
