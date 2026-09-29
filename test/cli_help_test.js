@@ -45,6 +45,13 @@ function stripAnsi(s) {
     return s.replace(ANSI_RE, '');
 }
 
+// The help is read as text and the convention is written with `\n`, while a
+// console writes the lines of it with the line ending of the platform: the
+// text is read the way the convention is written, on every platform.
+function asText(s) {
+    return (s || '').replace(/\r\n/g, '\n');
+}
+
 function run(args, cwd) {
     var r = child_process.spawnSync(process.execPath, args, {
         encoding: 'utf8',
@@ -52,7 +59,7 @@ function run(args, cwd) {
         input: ''
     });
 
-    return { code: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
+    return { code: r.status, stdout: asText(r.stdout), stderr: asText(r.stderr) };
 }
 
 // `fibjs --<command> --help` as the convention defines it, with the checks
