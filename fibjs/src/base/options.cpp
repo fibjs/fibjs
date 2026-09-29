@@ -36,6 +36,7 @@ bool g_prof = false;
 int32_t g_prof_interval = 1000;
 
 FILE* g_cov = nullptr;
+exlib::string g_cov_exclude;
 
 bool g_tcpdump = false;
 bool g_ssldump = false;
@@ -190,6 +191,56 @@ static bool envValueIs(const char* value, const char* keyword)
     return *value == 0 && *keyword == 0;
 }
 
+// `--cov-exclude=<glob>` may be repeated and FIBJS_COV_EXCLUDE carries a `;`
+// separated list, so the patterns are collected into one such list. An empty
+// entry is dropped, and the spaces around it are not part of the pattern.
+static void addCovExclude(const char* patterns)
+{
+    while (*patterns) {
+        const char* end = strchr(patterns, ';');
+        size_t len = end ? (size_t)(end - patterns) : strlen(patterns);
+
+        while (len > 0 && (*patterns == ' ' || *patterns == '\t')) {
+            patterns++;
+            len--;
+        }
+
+        while (len > 0 && (patterns[len - 1] == ' ' || patterns[len - 1] == '\t'))
+            len--;
+
+        if (len > 0) {
+            if (!g_cov_exclude.empty())
+                g_cov_exclude.append(1, ';');
+            g_cov_exclude.append(patterns, len);
+        }
+
+        if (end == nullptr)
+            break;
+
+        patterns = end + 1;
+    }
+}
+
+// FIBJS_COV_EXCLUDE is read on its own: it also applies to a `--cov` run, where
+// applyCovEnv() below returns before it would look at the environment.
+static void applyCovExcludeEnv()
+{
+    char value[4096];
+    size_t size = sizeof(value);
+
+    int32_t ret = uv_os_getenv("FIBJS_COV_EXCLUDE", value, &size);
+    if (ret == UV_ENOENT)
+        return;
+
+    if (ret != 0) {
+        fprintf(stderr, "FIBJS_COV_EXCLUDE is too long\n");
+        fflush(stderr);
+        _exit(1);
+    }
+
+    addCovExclude(value);
+}
+
 // FIBJS_COV turns on code coverage from the environment, so that one global
 // export covers every process of a test suite instead of passing `--cov` at
 // each launch site: FIBJS_COV=1 uses the default file name, FIBJS_COV=<file>
@@ -281,6 +332,8 @@ static void printHelp()
          "  --cov[=filename]            collect code coverage information (only work on the main Worker).\n"
          "                              FIBJS_COV=<file> enables it from the environment,\n"
          "                              FIBJS_COV=1 writes fibjs-<date>-<time>-<pid>.lcov.\n"
+         "  --cov-exclude=<glob>        leave the files the glob matches out of the report;\n"
+         "                              repeatable, FIBJS_COV_EXCLUDE=<glob>[;<glob>...] too.\n"
          "\n"
          "  --v8-options                print v8 command line options.\n"
          "\n"
@@ -425,6 +478,15 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--cov=", 6)) {
             openCovFile(arg + 6);
             df++;
+        } else if (!qstrcmp(arg, "--cov-exclude=", 14)) {
+            if (arg[14] == 0) {
+                fprintf(stderr, "%s requires a glob\n", "--cov-exclude");
+                fflush(stderr);
+                _exit(1);
+            }
+
+            addCovExclude(arg + 14);
+            df++;
         } else if (!qstrcmp(arg, "--cov")) {
             char name[64];
 
@@ -451,6 +513,7 @@ void options(int32_t& pos, char* argv[])
 
     // after the env files: `--env-file=.env` carrying FIBJS_COV works too
     applyCovEnv();
+    applyCovExcludeEnv();
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 

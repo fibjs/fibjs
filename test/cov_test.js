@@ -55,14 +55,18 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         return d;
     }
 
-    function run(cwd, args, cov) {
+    function run(cwd, args, cov, extraEnv) {
         var env = Object.assign({}, process.env);
 
-        // the value under test must never be inherited from the outer process
+        // the values under test must never be inherited from the outer process
         delete env.FIBJS_COV;
+        delete env.FIBJS_COV_EXCLUDE;
 
         if (cov !== undefined)
             env.FIBJS_COV = cov;
+
+        if (extraEnv !== undefined)
+            Object.assign(env, extraEnv);
 
         var r = child_process.spawnSync(process.execPath, args, {
             encoding: 'utf8',
@@ -233,6 +237,70 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         var both = run(cwd, ['--cov-process', '*.lcov', 'out_both']);
         assert.equal(both.code, 0, both.stderr);
         assert.deepEqual(readJson(path.join(cwd, 'out_both', 'coverage.json')), []);
+    });
+
+    it('--cov-exclude leaves the files a glob matches out of the report', () => {
+        var cwd = dir();
+
+        // a dependency next to the code under test, the shape of a monorepo
+        fs.mkdirSync(path.join(cwd, 'node_modules', 'dep'), { recursive: true });
+        fs.writeFileSync(path.join(cwd, 'node_modules', 'dep', 'index.js'),
+            "module.exports = function (n) {\n    return n + 1;\n};\n");
+        fs.writeFileSync(path.join(cwd, 'app.js'),
+            "var dep = require('./node_modules/dep/index.js');\nconsole.log(dep(1));\n");
+
+        // a file outside the working directory: the report names it by its
+        // absolute path, which is also the string a pattern is matched against
+        fs.writeFileSync(path.join(cwd, '..', 'outside.js'),
+            "module.exports = function (n) {\n    return n * 2;\n};\n");
+        fs.writeFileSync(path.join(cwd, 'app.js'),
+            "var dep = require('./node_modules/dep/index.js');\n" +
+                "var out = require('../outside.js');\nconsole.log(dep(out(1)));\n");
+
+        // the switch may be repeated, and the environment carries a `;`
+        // separated list that adds to what the command line asked for
+        var env = { FIBJS_COV_EXCLUDE: '**/nothing-here/**;**/other/**' };
+        var r = run(cwd, ['--cov=out.lcov', '--cov-exclude=**/node_modules/**', '--cov-exclude=never.js', 'app.js'], undefined, env);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        var lcov = fs.readFileSync(path.join(cwd, 'out.lcov'), 'utf8');
+
+        assert.ok(lcov.indexOf('SF:app.js\n') >= 0, lcov);
+        assert.equal(lcov.indexOf('node_modules'), -1,
+            'a glob must keep the file out of the report, not just out of the facts:\n' + lcov);
+
+        // the name is the absolute path of the file (resolved by the loader, so
+        // the assertion stays clear of symlinked scratch directories)
+        var outside = /^SF:(.*outside\.js)$/m.exec(lcov);
+        assert.ok(outside !== null, 'the outside file has no record:\n' + lcov);
+        assert.equal(outside[1][0], '/', 'a file outside the working directory keeps an absolute name:\n' + lcov);
+    });
+
+    it('--cov-exclude matches a file outside the working directory by its absolute path', () => {
+        var cwd = dir();
+
+        fs.writeFileSync(path.join(cwd, '..', 'outside.js'),
+            "module.exports = function (n) {\n    return n * 2;\n};\n");
+        fs.writeFileSync(path.join(cwd, 'app.js'), "console.log(require('../outside.js')(1));\n");
+
+        var r = run(cwd, ['--cov=out.lcov', '--cov-exclude=**/outside.js', 'app.js']);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        var lcov = fs.readFileSync(path.join(cwd, 'out.lcov'), 'utf8');
+
+        assert.ok(lcov.indexOf('SF:app.js\n') >= 0, lcov);
+        assert.equal(lcov.indexOf('outside.js'), -1, lcov);
+    });
+
+    it('--cov-exclude without a glob is an argument error', () => {
+        var cwd = dir();
+        var r = run(cwd, ['--cov-exclude=', 'demo.js', 'a']);
+
+        assert.equal(r.code, 1, r.stdout);
+        assert.equal(r.stdout, '');
+        assert.ok(r.stderr.indexOf('--cov-exclude requires a glob') >= 0, r.stderr);
     });
 
     it('counts the lines of a file from the source it was compiled with', () => {

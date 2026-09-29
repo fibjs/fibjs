@@ -20,6 +20,11 @@ extern int32_t g_prof_interval;
 
 extern FILE* g_cov;
 
+// `--cov-exclude=<glob>` (repeatable) and FIBJS_COV_EXCLUDE=<glob>[;<glob>...]:
+// the files a pattern matches are left out of the coverage report. Kept as one
+// `;` separated list, because a glob may carry a `,` in `{a,b}` itself.
+extern exlib::string g_cov_exclude;
+
 extern bool g_tcpdump;
 extern bool g_ssldump;
 extern bool g_pipedump;

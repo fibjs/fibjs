@@ -10,6 +10,7 @@
 #include "v8/src/api/api-inl.h"
 #include "v8_api.h"
 #include "Isolate.h"
+#include "options.h"
 #include "ifs/process.h"
 #include "../../fs/match/path_match.h"
 
@@ -284,9 +285,9 @@ struct CovDir {
     }
 };
 
-// A glob a `--test` run publishes, compiled once: matching a name against a
-// string would compile the pattern again for every file of the graph, which
-// costs more than the report itself.
+// A glob of `--cov-exclude` or one a `--test` run publishes, compiled once:
+// matching a name against a string would compile the pattern again for every
+// file of the graph, which costs more than the report itself.
 struct CovPatterns {
     std::vector<std::unique_ptr<MinimatchPattern>> patterns;
 
@@ -316,19 +317,21 @@ struct CovPatterns {
     }
 };
 
-// What a `--test` run must not count (the runner publishes it in
-// opt_tools/test.js): the files the runner was handed, and the patterns a test
-// file is recognised by. node leaves out every file matching those patterns,
-// whether the runner was handed it or a test imported it, because a report
-// about the code under test should not count the tests themselves. Any other
-// run has no such list and reports every script it loaded.
+// The files the report leaves out: the ones a `--test` run must not count, and
+// the ones the caller asked to drop.
 struct CovExcludes {
     std::set<std::string> files;
     CovPatterns tests;
+    CovPatterns excluded;
 
     bool hasPatterns() const
     {
-        return !tests.empty();
+        return !tests.empty() || !excluded.empty();
+    }
+
+    bool isExcluded(const std::string& relative, const std::string& flat) const
+    {
+        return excluded.matches(relative, flat);
     }
 
     bool isTest(const std::string& file_name, const std::string& relative, const std::string& flat) const
@@ -337,6 +340,22 @@ struct CovExcludes {
             return true;
 
         return tests.matches(relative, flat);
+    }
+
+    // the patterns of the caller, in the `;` separated form options.cpp keeps
+    void addExcluded(const exlib::string& list)
+    {
+        size_t start = 0;
+
+        while (start < list.length()) {
+            size_t end = list.find(';', start);
+
+            if (end == exlib::string::npos)
+                end = list.length();
+
+            excluded.add(std::string(list.c_str() + start, end - start));
+            start = end + 1;
+        }
     }
 };
 
@@ -501,6 +520,7 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
     CovExcludes excludes;
     CollectCovExcludes(isolate, excludes);
+    excludes.addExcluded(g_cov_exclude);
 
     CovDir dir;
     CovLogWriter out(file);
@@ -532,13 +552,13 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
         // the name the report carries, and - only when a pattern has to be
         // matched - the absolute path with the separators of the platform
         // flattened: the tests of a `--test` run are not what the report is
-        // about
+        // about, and the files of `--cov-exclude` are not wanted in it
         std::string relative = dir.relative(file_name);
 
         if (excludes.hasPatterns()) {
             std::string flat = FlattenPath(file_name);
 
-            if (excludes.isTest(file_name, relative, flat))
+            if (excludes.isTest(file_name, relative, flat) || excludes.isExcluded(relative, flat))
                 continue;
         } else if (excludes.isTest(file_name, relative, relative))
             continue;
