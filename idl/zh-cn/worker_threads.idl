@@ -13,6 +13,17 @@
  ```
 
  主线程中 `parentPort` 与 `workerData` 为 null；Worker 线程内通过 `parentPort` 与主线程通信。
+
+ 线程模型与 Addon 兼容性：
+
+ fibjs 缺省把一个 isolate 的全部 JS 固定在一条专属 OS 线程上执行（`--no-js-thread-affinity` 可关闭），
+ 以便与 Node.js 的「一个 napi_env 对应一条 OS 线程」契约一致，让把类构造器或运行时句柄缓存在线程本地存储
+ （TLS）里的 N-API 扩展可以正常工作。
+
+ - 缺省：一个 isolate 的 JS 始终在同一条 OS 线程上执行；
+ - `--no-js-thread-affinity`：JS fiber 回到共享线程池调度，CPU 密集场景并行度更高，但依赖 TLS 的扩展可能随机失败；
+ - 已知限制：扩展在来自 JS 的回调里对已满的 threadsafe function 使用 `napi_tsfn_blocking` 会阻塞这条唯一的 JS 线程，
+   而排空队列同样需要它，于是自锁（Node.js 的单线程事件循环有同样的限制），应改用 nonblocking。
  */
 module worker_threads
 {

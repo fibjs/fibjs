@@ -167,15 +167,28 @@ module http
      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      从而避免重复压缩带来服务器负载。
 
-     options 支持以下配置：
-     - autoIndex: 是否支持浏览目录文件，缺省为 false
-     - maxAge: 全局默认缓存时间（秒），大于 0 时自动为响应生成 Cache-Control: public, max-age=N，缺省为 0
-     - immutable: 为 true 时在自动生成的 Cache-Control 中附加 immutable 指令，仅当 maxAge 大于 0 时生效
-     - cacheControl: 是否自动生成 Cache-Control 头，缺省为 true，设为 false 时 maxAge/immutable 不生效
-     - headers: 按 glob 模式声明响应头，格式为 { pattern: { 头名: 值 } }，按声明顺序匹配，首个命中生效；
-       模式匹配相对 URL 路径（无前导 /），目录请求自动补 index.html，语法与 path.matchesGlob 相同
+     options 各字段的含义：
+     - autoIndex: Boolean, 是否支持浏览目录文件，缺省为 false，不支持
+     - maxAge: Integer, 缓存时间（秒），缺省为 0，即不自动生成缓存相关响应头
+     - immutable: Boolean, 为 true 时在自动生成的 Cache-Control 中附加 immutable 指令，缺省为 false
+     - cacheControl: Boolean, 是否自动生成 Cache-Control，缺省为 true；仅当 maxAge 大于 0 且响应尚未携带 Cache-Control 时生成 public, max-age=N
+     - headers: Object, 按 glob 模式声明响应头，形如 { '<模式>': { '<头名>': '<值>' } }；模式匹配相对 root 的请求路径
+       （不含前导 /，目录请求以 index.html 参与匹配），glob 语义与 path.matchesGlob 相同（* 不跨目录，** 可跨任意层级）；
+       规则按声明顺序匹配，首个命中生效
+
+     例如让入口页不缓存、带 hash 的静态资源长缓存：
+     ```JavaScript
+     http.fileHandler('/home/frontend/assets/', {
+         maxAge: 31536000,
+         immutable: true,
+         headers: {
+             'index.html': { 'Cache-Control': 'no-cache' },
+             'sw.js': { 'Cache-Control': 'no-cache' }
+         }
+     })
+     ```
      @param root 文件根路径
-     @param options 配置选项
+     @param options 配置选项，字段见上
      @return 返回一个静态文件处理器用于处理 http 消息
      */
     static Handler fileHandler(String root, Object options = {});

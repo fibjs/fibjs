@@ -195,7 +195,18 @@ declare module 'process' {
     function cwd(): string;
 
     /**
-     * @description 动态加载 C++ Addons
+     * @description 动态加载 C++ 扩展（Node-API / N-API 扩展）
+     *
+     *      先以 flags 打开动态库（缺省 1，即 os.constants.dlopen.RTLD_LAZY），再由扩展的注册函数完成初始化：
+     *      Node-API 扩展导出 napi_register_module_v1，该函数注册的导出对象写入 module.exports，require 一个 .node 文件最终也走这条路径。
+     *
+     *      兼容性说明：
+     *      - fibjs 缺省把一个 isolate 的全部 JS 固定在一条专属 OS 线程上执行，与 Node.js 的「一个 napi_env 对应一条 OS 线程」
+     *        契约一致，因此在模块加载时把类构造器或运行时句柄缓存在线程本地存储（TLS）中的扩展可以正常工作；
+     *      - 以 --no-js-thread-affinity 启动时，isolate 的 JS fiber 会回到共享线程池上调度，依赖 TLS 的扩展可能随机失败；
+     *      - 扩展如果在来自 JS 的回调内部对已满的 threadsafe function 使用 napi_tsfn_blocking，会阻塞当前 isolate 的唯一
+     *        JS 线程，而排空该队列同样需要这条线程，于是自锁；Node.js 的单线程事件循环有同样的限制。
+     *
      *      @param module 指定要加载的模块
      *      @param filename 指定要加载的模块文件名
      *      @param flags 指定加载模块的方式，缺省为 1
