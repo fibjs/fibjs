@@ -15,6 +15,32 @@
 
 #include <set>
 
+#ifdef _WIN32
+#include <io.h>
+
+static inline intptr_t cov_write(intptr_t fd, const char* data, size_t len)
+{
+    return _write((int32_t)fd, data, (unsigned int)len);
+}
+
+static inline intptr_t cov_fileno(FILE* file)
+{
+    return _fileno(file);
+}
+#else
+#include <unistd.h>
+
+static inline intptr_t cov_write(intptr_t fd, const char* data, size_t len)
+{
+    return ::write((int32_t)fd, data, len);
+}
+
+static inline intptr_t cov_fileno(FILE* file)
+{
+    return fileno(file);
+}
+#endif
+
 using namespace v8;
 
 namespace fibjs {
@@ -109,8 +135,13 @@ inline void BuildLines(const std::vector<uint16_t>& source, std::vector<CovLine>
 // The number of lines the file has, by the same rule BuildLines applies. The
 // compiled script carries the file with a wrapper around it (see cjs_Loader:
 // `arg_names + "\n" + source + "\n});"`), so its own line count is not the
-// file's, and the lines of the file are the ones the report is about. A file
-// that is gone meanwhile is left out, like node's test coverage leaves it out.
+// file's, and the lines of the file are the ones the report is about.
+//
+// This is the fallback of DeriveFileLineCount below: the rule there tells the
+// file's lines from the source the script was compiled with, and this one is
+// only needed when the rule cannot (a file whose text the script does not carry,
+// e.g. the placeholder of the byte code cache). A file that is gone meanwhile
+// is left out, like node's test coverage leaves it out.
 inline int32_t ReadFileLineCount(const std::string& file_name)
 {
     FILE* fp = fopen(file_name.c_str(), "rb");
@@ -120,20 +151,59 @@ inline int32_t ReadFileLineCount(const std::string& file_name)
 
     int32_t count = 0;
     bool last_is_eol = false;
-    int ch;
+    char buf[65536];
+    size_t len;
 
-    while ((ch = fgetc(fp)) != EOF) {
-        if (ch == '\n') {
-            count++;
-            last_is_eol = true;
-        } else
-            last_is_eol = false;
+    while ((len = fread(buf, 1, sizeof(buf), fp)) > 0) {
+        for (size_t i = 0; i < len; i++) {
+            if (buf[i] == '\n') {
+                count++;
+                last_is_eol = true;
+            } else
+                last_is_eol = false;
+        }
     }
 
     fclose(fp);
 
     if (!last_is_eol)
         count++;
+
+    return count;
+}
+
+// The lines of the file the report is about, told from the source the script
+// was compiled with instead of by reading the file again: every file of the
+// graph has been read once to compile it, and reading all of them a second time
+// to count their lines is the single most expensive part of a report of a large
+// graph (it was ~40% of it). The compiled source describes the same file, and
+// it is the one that ran, which is what the report is about.
+//
+// The loaders that wrap a file (see cjs_Loader::compile) put it between
+// `arg_names + "\n"` and `"\n});"`, and tell V8 about that one line in front of
+// it with a `-1` source offset. So the file's lines are the script's lines
+// without the wrapper's two parts, minus one more when the file ends with a line
+// ending: the wrapper's `\n` puts an empty line there, and an empty line is the
+// line ending and not a line of the file. A script without that offset carries
+// no wrapper and its lines are the file's.
+//
+// -1 marks the cases the rule cannot tell, and the caller reads the file then.
+inline int32_t DeriveFileLineCount(const std::vector<uint16_t>& source, size_t line_count, int32_t line_shift)
+{
+    if (line_shift <= 0)
+        return (int32_t)line_count;
+
+    size_t n = source.size();
+
+    // the wrapper's tail `"\n});"`, and the line ending of the file in front of
+    // it when there is one
+    if (n < 5 || source[n - 1] != ';' || source[n - 2] != ')' || source[n - 3] != '}' || source[n - 4] != '\n')
+        return -1;
+
+    int32_t count = (int32_t)line_count - line_shift - 1;
+
+    if (source[n - 5] == '\n')
+        count--;
 
     return count;
 }
@@ -179,31 +249,72 @@ inline void ApplyRange(std::vector<CovLine>& lines, const CovRange& range)
     }
 }
 
-// The report is read next to the project it describes, so a file inside the
-// working directory is named relative to it. A file outside keeps its absolute
-// path: there is nothing sensible to be relative to.
-inline std::string LcovPath(const std::string& file_name)
-{
-    exlib::string cwd;
+// The working directory a report is named relative to, read once: a per file
+// lookup would be a system call for every script of the graph.
+struct CovDir {
+    std::string dir;
 
-    if (process_base::cwd(cwd) < 0)
-        return file_name;
+    CovDir()
+    {
+        exlib::string cwd;
 
-    std::string dir(cwd.c_str());
+        if (process_base::cwd(cwd) < 0)
+            return;
 
-    for (size_t i = 0; i < dir.length(); i++) {
-        if (dir[i] == '\\')
-            dir[i] = '/';
+        dir.assign(cwd.c_str());
+
+        for (size_t i = 0; i < dir.length(); i++) {
+            if (dir[i] == '\\')
+                dir[i] = '/';
+        }
+
+        if (dir.empty() || dir[dir.length() - 1] != '/')
+            dir += '/';
     }
 
-    if (dir.empty() || dir[dir.length() - 1] != '/')
-        dir += '/';
+    // The report is read next to the project it describes, so a file inside the
+    // working directory is named relative to it. A file outside keeps its
+    // absolute path: there is nothing sensible to be relative to.
+    std::string relative(const std::string& file_name) const
+    {
+        if (!dir.empty() && file_name.compare(0, dir.size(), dir) == 0)
+            return file_name.substr(dir.size());
 
-    if (file_name.compare(0, dir.size(), dir) == 0)
-        return file_name.substr(dir.size());
+        return file_name;
+    }
+};
 
-    return file_name;
-}
+// A glob a `--test` run publishes, compiled once: matching a name against a
+// string would compile the pattern again for every file of the graph, which
+// costs more than the report itself.
+struct CovPatterns {
+    std::vector<std::unique_ptr<MinimatchPattern>> patterns;
+
+    void add(const std::string& pattern)
+    {
+        patterns.push_back(std::make_unique<MinimatchPattern>(pattern, false));
+    }
+
+    bool empty() const
+    {
+        return patterns.empty();
+    }
+
+    // a file inside the working directory is matched under the name the report
+    // carries, a file outside of it under its absolute path - the same string
+    // for a file outside, and then it is matched once
+    bool matches(const std::string& relative, const std::string& flat) const
+    {
+        bool same = (flat == relative);
+
+        for (size_t i = 0; i < patterns.size(); i++) {
+            if (patterns[i]->match(relative) || (!same && patterns[i]->match(flat)))
+                return true;
+        }
+
+        return false;
+    }
+};
 
 // What a `--test` run must not count (the runner publishes it in
 // opt_tools/test.js): the files the runner was handed, and the patterns a test
@@ -213,32 +324,34 @@ inline std::string LcovPath(const std::string& file_name)
 // run has no such list and reports every script it loaded.
 struct CovExcludes {
     std::set<std::string> files;
-    std::vector<std::string> patterns;
+    CovPatterns tests;
 
-    bool isTest(const std::string& file_name) const
+    bool hasPatterns() const
+    {
+        return !tests.empty();
+    }
+
+    bool isTest(const std::string& file_name, const std::string& relative, const std::string& flat) const
     {
         if (files.count(file_name) != 0)
             return true;
 
-        // the path a pattern is matched against is the one the report names,
-        // but a file outside the working directory stays absolute and has to be
-        // matched as such
-        std::string relative = LcovPath(file_name);
-        std::string flat = file_name;
-
-        for (size_t i = 0; i < flat.length(); i++) {
-            if (flat[i] == '\\')
-                flat[i] = '/';
-        }
-
-        for (size_t i = 0; i < patterns.size(); i++) {
-            if (matchesGlob(relative, patterns[i], false) || matchesGlob(flat, patterns[i], false))
-                return true;
-        }
-
-        return false;
+        return tests.matches(relative, flat);
     }
 };
+
+// the absolute path with the separators a pattern is written with
+inline std::string FlattenPath(const std::string& file_name)
+{
+    std::string flat = file_name;
+
+    for (size_t i = 0; i < flat.length(); i++) {
+        if (flat[i] == '\\')
+            flat[i] = '/';
+    }
+
+    return flat;
+}
 
 inline void CollectCovExcludes(v8::Isolate* isolate, CovExcludes& excludes)
 {
@@ -291,10 +404,95 @@ inline void CollectCovExcludes(v8::Isolate* isolate, CovExcludes& excludes)
             Local<Value> e = list->Get(context, i).FromMaybe(Local<Value>());
 
             if (!e.IsEmpty() && e->IsString())
-                excludes.patterns.push_back(ToSTLString(isolate, e.As<String>()));
+                excludes.tests.add(ToSTLString(isolate, e.As<String>()));
         }
     }
 }
+
+// The report of one file is built in memory and handed to the log in one piece:
+// every process of a run appends to the same file, and a line at a time lets the
+// lines of two processes interleave and tear (the log is line oriented, so a
+// torn line is a lost line). Formatting into a buffer also takes the per line
+// cost of the report, which for a large graph is what the coverage switch costs
+// at exit, from a `fprintf` call down to an `append`.
+class CovLogWriter {
+public:
+    CovLogWriter(FILE* file)
+        : m_fd(cov_fileno(file))
+    {
+        m_buffer.reserve(1024 * 1024);
+    }
+
+    // The report is line oriented and a line is a tag and a few numbers, so the
+    // lines are appended directly: a `printf` per line costs more than the write
+    // of a whole report of a large graph, and each call here is a plain copy.
+    CovLogWriter& put(const char* text)
+    {
+        m_buffer.append(text);
+
+        return *this;
+    }
+
+    CovLogWriter& comma()
+    {
+        m_buffer.push_back(',');
+
+        return *this;
+    }
+
+    CovLogWriter& endLine()
+    {
+        m_buffer.push_back('\n');
+
+        return *this;
+    }
+
+    CovLogWriter& number(uint32_t value)
+    {
+        char digits[10];
+        int32_t len = 0;
+
+        do {
+            digits[len++] = (char)('0' + value % 10);
+            value /= 10;
+        } while (value != 0);
+
+        while (len > 0)
+            m_buffer.push_back(digits[--len]);
+
+        return *this;
+    }
+
+    // called when a record is complete: the buffer holds no more than the
+    // largest file of the graph. The record goes out in one write, because the
+    // log is opened in append mode and the lines of two processes that append
+    // at the same time must not interleave inside a record. stdio itself is
+    // never used on the log, so the descriptor carries the whole record.
+    void flush()
+    {
+        if (m_buffer.empty())
+            return;
+
+        const char* data = m_buffer.data();
+        size_t left = m_buffer.size();
+
+        while (left > 0) {
+            intptr_t written = (intptr_t)cov_write(m_fd, data, left);
+
+            if (written <= 0)
+                break;
+
+            data += written;
+            left -= (size_t)written;
+        }
+
+        m_buffer.clear();
+    }
+
+private:
+    intptr_t m_fd;
+    std::string m_buffer;
+};
 
 void WriteLcovData(v8::Isolate* isolate, FILE* file)
 {
@@ -303,6 +501,18 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
     CovExcludes excludes;
     CollectCovExcludes(isolate, excludes);
+
+    CovDir dir;
+    CovLogWriter out(file);
+
+    // the report of a file is built in these, and they are kept across the files
+    // of the graph: a graph of thousands of files is otherwise thousands of
+    // allocations of the same buffers
+    std::vector<uint16_t> source;
+    std::vector<CovLine> lines;
+    std::vector<CovFunction> functions;
+    std::vector<int32_t> branch_lines;
+    std::vector<uint32_t> branch_counts;
 
     for (size_t i = 0; i < coverage.ScriptCount(); i++) {
         debug::Coverage::ScriptData script_data = coverage.GetScriptData(i);
@@ -315,18 +525,31 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
         std::string file_name = ToSTLString(isolate, name);
 
-        // embedded modules carry a pseudo path ("internal/..."), and the tests
-        // of a `--test` run are not what the report is about
-        if (!path_isAbsolute(file_name) || excludes.isTest(file_name))
+        // embedded modules carry a pseudo path ("internal/...")
+        if (!path_isAbsolute(file_name))
+            continue;
+
+        // the name the report carries, and - only when a pattern has to be
+        // matched - the absolute path with the separators of the platform
+        // flattened: the tests of a `--test` run are not what the report is
+        // about
+        std::string relative = dir.relative(file_name);
+
+        if (excludes.hasPatterns()) {
+            std::string flat = FlattenPath(file_name);
+
+            if (excludes.isTest(file_name, relative, flat))
+                continue;
+        } else if (excludes.isTest(file_name, relative, relative))
             continue;
 
         // a script whose source is gone (or never was there) cannot be mapped
         // to lines, so it is left out of the report
-        std::vector<uint16_t> source;
-        if (!ReadScriptSource(isolate, script, source))
+        bool has_source = ReadScriptSource(isolate, script, source);
+        if (!has_source)
             continue;
 
-        std::vector<CovLine> lines;
+        lines.clear();
         BuildLines(source, lines);
 
         // The compiled script carries the file one wrapper line further down,
@@ -339,10 +562,15 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
             line_shift = 0;
 
         // the lines of the file are the ones the report is about: neither the
-        // wrapper in front of them nor the `\n});` behind them belongs to it,
-        // and the count from the file keeps a file that shrank meanwhile in
-        // bounds
-        int32_t file_lines = ReadFileLineCount(file_name);
+        // wrapper in front of them nor the `\n});` behind them belongs to it
+        int32_t file_lines = DeriveFileLineCount(source, lines.size(), line_shift);
+
+        // the rule cannot tell (a source that is not the file's text, or a file
+        // with nothing in it): the file itself settles it, and a file that is
+        // gone is left out here
+        if (file_lines <= 0)
+            file_lines = ReadFileLineCount(file_name);
+
         int32_t known_lines = (int32_t)lines.size() - line_shift;
 
         if (file_lines > known_lines)
@@ -351,9 +579,9 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
         if (file_lines <= 0)
             continue;
 
-        std::vector<CovFunction> functions;
-        std::vector<int32_t> branch_lines;
-        std::vector<uint32_t> branch_counts;
+        functions.clear();
+        branch_lines.clear();
+        branch_counts.clear();
         uint32_t wrapper_count = 0;
         bool has_wrapper = false;
 
@@ -362,29 +590,31 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
             // the function itself first, its blocks after it: the inner ranges
             // are applied last and decide the lines they cover completely
-            std::vector<CovRange> ranges;
+            size_t block_count = function_data.BlockCount();
 
-            ranges.push_back({ (uint32_t)function_data.StartOffset(),
-                (uint32_t)function_data.EndOffset(), function_data.Count() });
+            for (size_t k = 0; k <= block_count; k++) {
+                uint32_t start, end, count;
 
-            for (size_t k = 0; k < function_data.BlockCount(); k++) {
-                debug::Coverage::BlockData block_data = function_data.GetBlockData(k);
+                if (k == 0) {
+                    start = (uint32_t)function_data.StartOffset();
+                    end = (uint32_t)function_data.EndOffset();
+                    count = function_data.Count();
+                } else {
+                    debug::Coverage::BlockData block_data = function_data.GetBlockData(k - 1);
 
-                ranges.push_back({ (uint32_t)block_data.StartOffset(),
-                    (uint32_t)block_data.EndOffset(), block_data.Count() });
-            }
-
-            for (size_t k = 0; k < ranges.size(); k++) {
-                const CovRange& range = ranges[k];
+                    start = (uint32_t)block_data.StartOffset();
+                    end = (uint32_t)block_data.EndOffset();
+                    count = block_data.Count();
+                }
 
                 // the wrapper a script is compiled with has no position of its
                 // own; the inner blocks of it may still have one
-                if ((int32_t)range.start < 0 || range.end <= range.start)
+                if ((int32_t)start < 0 || end <= start)
                     continue;
 
-                ApplyRange(lines, range);
+                ApplyRange(lines, { start, end, count });
 
-                int32_t line = script->GetSourceLocation((int32_t)range.start).GetLineNumber();
+                int32_t line = script->GetSourceLocation((int32_t)start).GetLineNumber();
 
                 if (line < 0) {
                     // a range on the wrapper line says how often the module body
@@ -393,8 +623,8 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
                     // probe for ESM syntax, the byte code cache), and those
                     // copies of the wrapper are one branch, taken from the run
                     // that executed it
-                    if (wrapper_count < range.count) {
-                        wrapper_count = range.count;
+                    if (wrapper_count < count) {
+                        wrapper_count = count;
                         has_wrapper = true;
                     }
 
@@ -405,7 +635,7 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
                     continue;
 
                 branch_lines.push_back(line + 1);
-                branch_counts.push_back(range.count);
+                branch_counts.push_back(count);
             }
 
             // a function without a position in the source, or without a name,
@@ -430,57 +660,64 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
             functions.push_back({ func_str, line + 1, function_data.Count() });
         }
 
-        fprintf(file, "SF:%s\n", LcovPath(file_name).c_str());
+        out.put("SF:").put(relative.c_str()).endLine();
 
         uint32_t func_hit = 0;
         for (size_t j = 0; j < functions.size(); j++) {
-            fprintf(file, "FN:%d,%s\n", functions[j].line, functions[j].name.c_str());
+            out.put("FN:").number(functions[j].line).comma().put(functions[j].name.c_str()).endLine();
 
             if (functions[j].count > 0)
                 func_hit++;
         }
 
         for (size_t j = 0; j < functions.size(); j++)
-            fprintf(file, "FNDA:%d,%s\n", functions[j].count, functions[j].name.c_str());
+            out.put("FNDA:").number(functions[j].count).comma().put(functions[j].name.c_str()).endLine();
 
-        fprintf(file, "FNF:%d\n", (int32_t)functions.size());
-        fprintf(file, "FNH:%d\n", (int32_t)func_hit);
+        out.put("FNF:").number((uint32_t)functions.size()).endLine();
+        out.put("FNH:").number(func_hit).endLine();
 
         uint32_t branch_hit = 0;
 
         // the module body comes first, like node reports it
         if (has_wrapper) {
-            fprintf(file, "BRDA:1,0,0,%d\n", (int32_t)wrapper_count);
+            out.put("BRDA:1,0,0,").number(wrapper_count).endLine();
 
             if (wrapper_count > 0)
                 branch_hit++;
         }
 
         for (size_t j = 0; j < branch_lines.size(); j++) {
-            fprintf(file, "BRDA:%d,%d,0,%d\n", branch_lines[j],
-                (int32_t)(j + (has_wrapper ? 1 : 0)), branch_counts[j]);
+            out.put("BRDA:").number(branch_lines[j]).comma()
+                .number((uint32_t)(j + (has_wrapper ? 1 : 0)))
+                .put(",0,")
+                .number(branch_counts[j])
+                .endLine();
 
             if (branch_counts[j] > 0)
                 branch_hit++;
         }
 
-        fprintf(file, "BRF:%d\n", (int32_t)branch_lines.size() + (has_wrapper ? 1 : 0));
-        fprintf(file, "BRH:%d\n", (int32_t)branch_hit);
+        out.put("BRF:").number((uint32_t)branch_lines.size() + (has_wrapper ? 1 : 0)).endLine();
+        out.put("BRH:").number(branch_hit).endLine();
 
         uint32_t line_hit = 0;
         for (int32_t j = 0; j < file_lines; j++) {
             uint32_t count = lines[line_shift + j].count;
 
-            fprintf(file, "DA:%d,%d\n", j + 1, count);
+            out.put("DA:").number((uint32_t)(j + 1)).comma().number(count).endLine();
 
             if (count > 0)
                 line_hit++;
         }
 
-        fprintf(file, "LH:%d\n", (int32_t)line_hit);
-        fprintf(file, "LF:%d\n", file_lines);
+        out.put("LH:").number(line_hit).endLine();
+        out.put("LF:").number((uint32_t)file_lines).endLine();
 
-        fprintf(file, "end_of_record\n");
+        out.put("end_of_record").endLine();
+
+        // one record, one write: a reader of a log that several processes
+        // appended to can never see half a record
+        out.flush();
     }
 
     fclose(file);

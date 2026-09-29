@@ -235,6 +235,75 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         assert.deepEqual(readJson(path.join(cwd, 'out_both', 'coverage.json')), []);
     });
 
+    it('counts the lines of a file from the source it was compiled with', () => {
+        var cwd = dir();
+
+        // the last line without a line ending, an empty file, and a file whose
+        // last line looks like the wrapper fibjs compiles a module with
+        fs.writeFileSync(path.join(cwd, 'noeol.js'), "var a = 1;\nvar b = 2;");
+        fs.writeFileSync(path.join(cwd, 'empty.js'), "");
+        fs.writeFileSync(path.join(cwd, 'closing.js'),
+            "module.exports = (function () {\n    return { ok: true };\n});\n");
+        fs.writeFileSync(path.join(cwd, 'main.js'),
+            "require('./noeol.js');\nrequire('./empty.js');\nrequire('./closing.js');\n");
+
+        var r = run(cwd, ['--cov=out.lcov', 'main.js']);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        var lcov = fs.readFileSync(path.join(cwd, 'out.lcov'), 'utf8');
+
+        function recordOf(name) {
+            var found = lcov.split('end_of_record\n').filter(rec => rec.indexOf(`SF:${name}\n`) === 0);
+
+            assert.equal(found.length, 1, `${name}: ${found.length} records\n` + lcov);
+
+            return found[0];
+        }
+
+        function linesOf(rec) {
+            return (rec.match(/^DA:\d+,\d+$/gm) || []).map(line => line.split(',')[1]);
+        }
+
+        // a file's last line is a line even without a line ending
+        var noeol = recordOf('noeol.js');
+        assert.equal(/^LF:(\d+)$/m.exec(noeol)[1], '2', noeol);
+        assert.equal(linesOf(noeol).length, 2, noeol);
+
+        // an empty file has the one empty line the reader counts for it
+        var empty = recordOf('empty.js');
+        assert.equal(/^LF:(\d+)$/m.exec(empty)[1], '1', empty);
+        assert.deepEqual(linesOf(empty), ['1'], empty);
+
+        // a file ending in `});` must not lose that line to the wrapper: the
+        // wrapper's `\n});` is behind the line ending of the file
+        var closing = recordOf('closing.js');
+        assert.equal(/^LF:(\d+)$/m.exec(closing)[1], '3', closing);
+        assert.equal(linesOf(closing).length, 3, closing);
+    });
+
+    it('every line of a log is a whole record', () => {
+        var cwd = dir();
+        var r = run(cwd, ['--cov=out.lcov', 'demo.js', 'a']);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        // a log several processes appended to must never carry half a line: the
+        // record is handed over in one piece
+        var lcov = fs.readFileSync(path.join(cwd, 'out.lcov'), 'utf8');
+
+        assert.ok(lcov.length > 0, 'the log must not be empty');
+        assert.ok(lcov.endsWith('end_of_record\n'), lcov.slice(-80));
+
+        lcov.split('\n').forEach((line, i) => {
+            if (line === '')
+                return;
+
+            assert.ok(/^(SF:|FN:|FNDA:|FNF:|FNH:|DA:|LH:|LF:|BRDA:|BRF:|BRH:|end_of_record$)/.test(line),
+                `line ${i + 1} of the log is torn or unknown: ${JSON.stringify(line)}`);
+        });
+    });
+
     it('--cov-process rejects an input it cannot match', () => {
         var cwd = dir();
 
