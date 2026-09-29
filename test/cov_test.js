@@ -159,10 +159,8 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         var demo = fs.readFileSync(path.join(cwd, 'demo.js'), 'utf8').split('\n');
         var fileLines = demo[demo.length - 1] === '' ? demo.length - 1 : demo.length;
 
-        // the file is named relative to the working directory, and the test
-        // file of a `--test` run is not in the record at all
+        // the file is named relative to the working directory
         assert.ok(lcov.indexOf('SF:demo.js\n') >= 0, lcov);
-        assert.equal(lcov.indexOf('SF:demo.test.js'), -1, lcov);
 
         // the wrapper fibjs compiles the module with is not a function of the
         // file, and line 0 does not exist
@@ -191,6 +189,32 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
         (lcov.match(/^BRDA:\d+,/gm) || []).forEach(line => {
             assert.ok(Number(/^BRDA:(\d+),/.exec(line)[1]) <= fileLines, lcov);
         });
+    });
+
+    it('leaves the tests of a --test run out of the record', () => {
+        var cwd = dir();
+
+        // an aggregate entry that imports a test module: neither the entry nor
+        // the imported module is what the report is about, the code they run is
+        fs.writeFileSync(path.join(cwd, 'impl.js'),
+            "module.exports = {\n    half: function (n) {\n        return n / 2;\n    }\n};\n");
+        fs.writeFileSync(path.join(cwd, 'inner.test.js'),
+            "var { test } = require('node:test');\n" +
+                "var { half } = require('./impl.js');\n" +
+                "test('inner', () => { require('node:assert').equal(half(4), 2); });\n");
+        fs.writeFileSync(path.join(cwd, 'all.test.js'), "require('./inner.test.js');\n");
+
+        var r = run(cwd, ['--cov=all.lcov', '--test', 'all.test.js']);
+
+        assert.equal(r.code, 0, r.stderr);
+
+        var lcov = fs.readFileSync(path.join(cwd, 'all.lcov'), 'utf8');
+
+        assert.ok(lcov.indexOf('SF:impl.js\n') >= 0, lcov);
+        assert.equal(lcov.indexOf('SF:inner.test.js'), -1,
+            'an imported test module must not be counted:\n' + lcov);
+        assert.equal(lcov.indexOf('SF:all.test.js'), -1,
+            'the entry of the run must not be counted:\n' + lcov);
     });
 
     it('--cov-process merges a glob of logs', () => {
