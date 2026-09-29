@@ -8,6 +8,13 @@ run("./assert_test.js");
 run("./assertion_error_test.js");
 run("./test_test.js");
 run("./test_proc_test.js");
+
+// CLI regression suites: they spawn the binary through process.execPath and
+// assert the command line contract and the behavior of the --test runner.
+run("./runner_filter_test.js");
+run("./runner_hook_test.js");
+run("./cli_help_test.js");
+
 run("./class_test.js");
 
 run("./abortcontroller_test.js");
@@ -35,6 +42,7 @@ run("./types_test.js");
 run("./promise_test.js");
 run("./unhandled_rejection_test.js");
 run("./microtask_test.js");
+run("./microtask_order_test.js");
 run("./xml_test.js");
 run("./querySelector_test.js");
 
@@ -84,6 +92,7 @@ run("./http_test.js");
 run("./http2_test.js");
 run("./fetch_test.js");
 run("./sse_test.js");
+run("./sse_ticket_test.js");
 run("./mq_test.js");
 run("./rtc_test.js");
 
