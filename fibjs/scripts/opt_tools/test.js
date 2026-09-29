@@ -246,10 +246,25 @@ const UNSUPPORTED = {
 // for the test engine (test.cpp reads it at run time). Non-enumerable.
 const NAME_PATTERNS_KEY = '__fibjs_test_name_patterns';
 
-// Key on the global holding the test files of this run, for the coverage writer
-// (lcov.cpp reads it when it writes the report at exit): a report about the
-// code under test should not count the tests themselves. Non-enumerable.
+// Key on the global holding what the coverage writer must leave out of a report
+// (lcov.cpp reads it when it writes at exit): the files this run was handed, and
+// the patterns a test file is recognised by. Non-enumerable.
 const COV_EXCLUDE_KEY = '__fibjs_test_cov_exclude';
+
+// What a coverage report must not count: the discovery patterns without a fixed
+// extension, because a project may import its test modules instead of naming
+// them, and those modules can be TypeScript (the discovery patterns themselves
+// stay javascript, like node's).
+function coverageExcludePatterns() {
+    return [
+        '**/*.test.*',
+        '**/*-test.*',
+        '**/*_test.*',
+        '**/test-*.*',
+        '**/test.*',
+        '**/test/**/*'
+    ];
+}
 
 function parseArgs(argv) {
     const opts = {
@@ -382,6 +397,11 @@ Run test files with the built-in test module.
                               recursively for test files; glob patterns are
                               also accepted
 
+A coverage run (--cov / FIBJS_COV) leaves the tests out of the report: the
+files this run was handed, and every file matching the test file patterns
+(**/*.test.*, **/*-test.*, **/*_test.*, **/test-*.*, **/test.* and
+**/test/**/*).
+
 Options:
   -h, --help                  print this message
   --test-name-pattern=<regex>
@@ -432,10 +452,14 @@ function main() {
     const files = buildTestFileList(opts.patterns, cwd);
 
     // Coverage is collected by the runtime (--cov / FIBJS_COV); tell its writer
-    // which files are the tests of this run.
+    // what a test run must not count: the files it was given, and whatever
+    // looks like a test file, imported or not (node leaves those out too).
     Object.defineProperty(globalThis, COV_EXCLUDE_KEY, {
         configurable: true,
-        value: files.slice()
+        value: {
+            files: files.slice(),
+            patterns: coverageExcludePatterns()
+        }
     });
 
     const runFile = (typeof run === 'function') ? run : global.run;

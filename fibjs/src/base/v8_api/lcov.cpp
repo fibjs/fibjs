@@ -11,6 +11,7 @@
 #include "v8_api.h"
 #include "Isolate.h"
 #include "ifs/process.h"
+#include "../../fs/match/path_match.h"
 
 #include <set>
 
@@ -204,11 +205,42 @@ inline std::string LcovPath(const std::string& file_name)
     return file_name;
 }
 
-// `--test` publishes the files it loaded (opt_tools/test.js), because a report
-// about the code under test should not count the tests themselves; the node
-// test runner leaves its own test files out for the same reason. Any other run
-// has no such list and reports every script it loaded.
-inline void CollectCovExcludes(v8::Isolate* isolate, std::set<std::string>& excludes)
+// What a `--test` run must not count (the runner publishes it in
+// opt_tools/test.js): the files the runner was handed, and the patterns a test
+// file is recognised by. node leaves out every file matching those patterns,
+// whether the runner was handed it or a test imported it, because a report
+// about the code under test should not count the tests themselves. Any other
+// run has no such list and reports every script it loaded.
+struct CovExcludes {
+    std::set<std::string> files;
+    std::vector<std::string> patterns;
+
+    bool isTest(const std::string& file_name) const
+    {
+        if (files.count(file_name) != 0)
+            return true;
+
+        // the path a pattern is matched against is the one the report names,
+        // but a file outside the working directory stays absolute and has to be
+        // matched as such
+        std::string relative = LcovPath(file_name);
+        std::string flat = file_name;
+
+        for (size_t i = 0; i < flat.length(); i++) {
+            if (flat[i] == '\\')
+                flat[i] = '/';
+        }
+
+        for (size_t i = 0; i < patterns.size(); i++) {
+            if (matchesGlob(relative, patterns[i], false) || matchesGlob(flat, patterns[i], false))
+                return true;
+        }
+
+        return false;
+    }
+};
+
+inline void CollectCovExcludes(v8::Isolate* isolate, CovExcludes& excludes)
 {
     fibjs::Isolate* current = fibjs::Isolate::current();
 
@@ -227,16 +259,40 @@ inline void CollectCovExcludes(v8::Isolate* isolate, std::set<std::string>& excl
                                              .ToLocalChecked())
                          .FromMaybe(Local<Value>());
 
-    if (v.IsEmpty() || !v->IsArray())
+    if (v.IsEmpty() || !v->IsObject())
         return;
 
-    Local<Array> files = v.As<Array>();
+    Local<Object> options = v.As<Object>();
+    Local<Value> files = options->Get(context, String::NewFromUtf8(isolate, "files",
+                                                     NewStringType::kNormal)
+                                                     .ToLocalChecked())
+                             .FromMaybe(Local<Value>());
 
-    for (uint32_t i = 0; i < files->Length(); i++) {
-        Local<Value> e = files->Get(context, i).FromMaybe(Local<Value>());
+    if (!files.IsEmpty() && files->IsArray()) {
+        Local<Array> list = files.As<Array>();
 
-        if (!e.IsEmpty() && e->IsString())
-            excludes.insert(ToSTLString(isolate, e.As<String>()));
+        for (uint32_t i = 0; i < list->Length(); i++) {
+            Local<Value> e = list->Get(context, i).FromMaybe(Local<Value>());
+
+            if (!e.IsEmpty() && e->IsString())
+                excludes.files.insert(ToSTLString(isolate, e.As<String>()));
+        }
+    }
+
+    Local<Value> patterns = options->Get(context, String::NewFromUtf8(isolate, "patterns",
+                                                         NewStringType::kNormal)
+                                                         .ToLocalChecked())
+                                .FromMaybe(Local<Value>());
+
+    if (!patterns.IsEmpty() && patterns->IsArray()) {
+        Local<Array> list = patterns.As<Array>();
+
+        for (uint32_t i = 0; i < list->Length(); i++) {
+            Local<Value> e = list->Get(context, i).FromMaybe(Local<Value>());
+
+            if (!e.IsEmpty() && e->IsString())
+                excludes.patterns.push_back(ToSTLString(isolate, e.As<String>()));
+        }
     }
 }
 
@@ -245,7 +301,7 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
     HandleScope handle_scope(isolate);
     debug::Coverage coverage = debug::Coverage::CollectPrecise(isolate);
 
-    std::set<std::string> excludes;
+    CovExcludes excludes;
     CollectCovExcludes(isolate, excludes);
 
     for (size_t i = 0; i < coverage.ScriptCount(); i++) {
@@ -259,9 +315,9 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
         std::string file_name = ToSTLString(isolate, name);
 
-        // embedded modules carry a pseudo path ("internal/..."), and the files
-        // the test run itself consists of are not what the report is about
-        if (!path_isAbsolute(file_name) || excludes.count(file_name) != 0)
+        // embedded modules carry a pseudo path ("internal/..."), and the tests
+        // of a `--test` run are not what the report is about
+        if (!path_isAbsolute(file_name) || excludes.isTest(file_name))
             continue;
 
         // a script whose source is gone (or never was there) cannot be mapped
