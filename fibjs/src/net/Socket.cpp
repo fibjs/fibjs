@@ -165,13 +165,13 @@ result_t Socket::create(int32_t family)
 #ifdef _WIN32
     m_aio.m_fd = WSASocketW(family, SOCK_STREAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("socket"));
 
     CreateIoCompletionPort((HANDLE)m_aio.m_fd, s_hIocp, 0, 0);
 #else
     m_aio.m_fd = socket(family, SOCK_STREAM, 0);
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("socket"));
 
     fcntl(m_aio.m_fd, F_SETFL, fcntl(m_aio.m_fd, F_GETFL, 0) | O_NONBLOCK);
     fcntl(m_aio.m_fd, F_SETFD, FD_CLOEXEC);
@@ -238,7 +238,7 @@ result_t Socket::get_remoteAddress(exlib::string& retVal)
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("getpeername"));
 
     retVal = addr_info.str();
 
@@ -254,7 +254,7 @@ result_t Socket::get_remotePort(int32_t& retVal)
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("getpeername"));
 
     retVal = addr_info.port();
 
@@ -270,7 +270,7 @@ result_t Socket::get_localAddress(exlib::string& retVal)
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("getsockname"));
 
     retVal = addr_info.str();
 
@@ -286,7 +286,7 @@ result_t Socket::get_localPort(int32_t& retVal)
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("getsockname"));
 
     retVal = addr_info.port();
 
@@ -355,7 +355,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 
     if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size())
         == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("bind"));
 
 #ifdef _WIN32
     m_bBind = TRUE;
@@ -378,24 +378,30 @@ result_t Socket::listen(int32_t backlog)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (::listen(m_aio.m_fd, backlog) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
+        return CHECK_ERROR(SocketError("listen"));
 
     return 0;
 }
 
 class connectWrapper : public AsyncEvent {
 public:
-    connectWrapper(Socket* sock, AsyncEvent* ac)
+    connectWrapper(Socket* sock, AsyncEvent* ac, exlib::string target, bool use_path, int32_t port)
         : m_sock(sock)
         , m_ac(ac)
+        , m_target(target)
+        , m_use_path(use_path)
+        , m_port(port)
     {
         setAsync();
     }
 
-    connectWrapper(Isolate* isolate, Socket* sock)
+    connectWrapper(Isolate* isolate, Socket* sock, exlib::string target, bool use_path, int32_t port)
         : AsyncEvent(isolate)
         , m_sock(sock)
         , m_ac(nullptr)
+        , m_target(target)
+        , m_use_path(use_path)
+        , m_port(port)
     {
         setAsync();
         m_sock->isolate_ref();
@@ -407,17 +413,44 @@ public:
             m_sock->isolate_unref();
     }
 
+    ErrorPayload error_payload(int32_t v) const
+    {
+        ErrorPayload payload = ErrorPayload::from_system(v).with_syscall("connect");
+
+        if (m_use_path)
+            payload.with_path(m_target).arg("path", m_target);
+        else
+            payload.with_hostname(m_target).arg("host", m_target).arg("port", m_port);
+
+        return payload;
+    }
+
     virtual int32_t post(int32_t v)
     {
         if (m_ac) {
+            ErrorPayload payload;
+            if (v < 0) {
+                payload = error_payload(v);
+                m_sock->setPendingErrorPayload(payload);
+            }
             m_sock->on_connected(v < 0 ? v : 0);
+
+            if (v < 0)
+                setErrorPayload(payload);
+
             m_ac->post(v);
         } else {
-            m_sock->on_connected(v < 0 ? v : 0);
-            if (v < 0)
+            if (v < 0) {
+                ErrorPayload payload = error_payload(v);
+
+                m_sock->setPendingErrorPayload(payload);
+                setErrorPayload(payload);
                 (new EventInfo(m_sock, "error", v))->emit();
-            else
+                m_sock->on_connected(v);
+            } else {
+                m_sock->on_connected(0);
                 (new EventInfo(m_sock, "connect"))->emit();
+            }
         }
         delete this;
         return 0;
@@ -426,6 +459,9 @@ public:
 private:
     obj_ptr<Socket> m_sock;
     AsyncEvent* m_ac;
+    exlib::string m_target;
+    bool m_use_path;
+    int32_t m_port;
 };
 
 result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
@@ -444,10 +480,11 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
 #endif
 
     retVal = this;
+    bool use_path = port == 0;
     if (!m_connect_event)
-        return m_aio.connect(host, port, new connectWrapper(this, ac), timeout);
+        return m_aio.connect(host, port, new connectWrapper(this, ac, host, use_path, port), timeout);
 
-    m_aio.connect(host, port, new connectWrapper(holder(), this), timeout);
+    m_aio.connect(host, port, new connectWrapper(holder(), this, host, use_path, port), timeout);
     return 0;
 }
 

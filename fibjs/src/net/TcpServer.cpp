@@ -292,12 +292,27 @@ result_t TcpServer::close(AsyncEvent* ac)
 
 result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
 {
-    if (m_running || m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    if (m_running || m_socket) {
+        // Node.js reports a second listen on the same server as
+        // ERR_SERVER_ALREADY_LISTEN; align code and message.
+        return Runtime::setError(ErrorPayload::make(errtype::kError)
+                .with_code("ERR_SERVER_ALREADY_LISTEN")
+                .with_message("Listen method has been called more than once without closing."));
+    }
 
     result_t hr = create(addr, port, m_hdlr);
-    if (hr < 0)
+    if (hr < 0) {
+        // Node.js reports a failed listen with syscall "listen"; the bind is an
+        // implementation detail of it.
+        if (hr > CALL_E_MAX) {
+            ErrorPayload payload = takeErrorPayload();
+
+            payload.with_syscall("listen");
+            setErrorPayload(payload);
+        }
+
         return hr;
+    }
 
     return start();
 }

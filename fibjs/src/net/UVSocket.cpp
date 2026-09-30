@@ -31,7 +31,7 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
             return uv_tcp_init(s_uv_loop, &sock->m_tcp);
     });
     if (hr < 0)
-        return hr;
+        return setSystemErrorPayload(hr, "socket");
 
     retVal = sock;
 
@@ -94,7 +94,7 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
 
     retVal = addr_info.str();
 
@@ -108,7 +108,7 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
 
     retVal = addr_info.port();
 
@@ -122,7 +122,7 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
 
     retVal = addr_info.str();
 
@@ -136,7 +136,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
 
     retVal = addr_info.port();
 
@@ -146,7 +146,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_family == net_base::C_AF_UNIX) {
-        return uv_pipe_bind(&m_pipe, addr.c_str());
+        return setSystemErrorPayload(uv_pipe_bind(&m_pipe, addr.c_str()), "bind");
     } else {
         inetAddr addr_info;
 
@@ -155,8 +155,9 @@ result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
         if (addr_info.addr(addr) < 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        return uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
-            m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+        return setSystemErrorPayload(uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
+                                         m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY)),
+            "bind");
     }
 }
 
@@ -206,7 +207,7 @@ void UVSocket::on_listen(uv_stream_t* server, int status)
 result_t UVSocket::listen(int32_t backlog)
 {
     return uv_call([&] {
-        return uv_listen(&m_stream, backlog, on_listen);
+        return setSystemErrorPayload(uv_listen(&m_stream, backlog, on_listen), "listen");
     });
 }
 
@@ -215,20 +216,26 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     class AsyncConnect : public uv_connect_t,
                          public UVTimeout {
     public:
-        AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncEvent* ac)
+        AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncEvent* ac, exlib::string target, bool use_path, int32_t port)
             : UVTimeout(pThis, timeout)
             , m_sock(pThis)
             , m_ac(ac)
+            , m_target(target)
+            , m_use_path(use_path)
+            , m_port(port)
         {
             // Already in uv loop thread, start timer immediately
             start_timer();
         }
 
-        AsyncConnect(Isolate* isolate, UVSocket* pThis, int32_t timeout)
+        AsyncConnect(Isolate* isolate, UVSocket* pThis, int32_t timeout, exlib::string target, bool use_path, int32_t port)
             : UVTimeout(pThis, timeout)
             , m_isolate(isolate)
             , m_sock(pThis)
             , m_ac(nullptr)
+            , m_target(target)
+            , m_use_path(use_path)
+            , m_port(port)
         {
             m_sock->isolate_ref();
             // Already in uv loop thread, start timer immediately
@@ -241,28 +248,85 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 m_sock->isolate_unref();
         }
 
+        ErrorPayload error_payload(int32_t status) const
+        {
+            ErrorPayload payload = ErrorPayload::from_system(status).with_syscall("connect");
+
+            if (m_use_path)
+                payload.with_path(m_target).arg("path", m_target);
+            else
+                payload.with_hostname(m_target).arg("host", m_target).arg("port", m_port);
+
+            return payload;
+        }
+
+        // The generic timeout handler closes the stream, which makes libuv
+        // cancel the pending connect request. Remember that the timeout fired
+        // so finish() can report the timeout instead of the internal
+        // UV_ECANCELED libuv uses to signal the cancellation.
+        virtual void on_timeout_handler() override
+        {
+            m_timedout = true;
+            UVTimeout::on_timeout_handler();
+        }
+
+        void finish(int status)
+        {
+            if (m_timedout && status == UV_ECANCELED)
+                status = CALL_E_TIMEOUT;
+
+            m_sock->on_connected(status < 0 ? status : 0);
+
+            if (m_ac) {
+                if (status < 0) {
+                    // The connect error also travels to the socket's own error
+                    // emission, which runs on the isolate thread: keep a copy
+                    // here (see AsyncStreamBase::takePendingErrorPayload).
+                    ErrorPayload payload = error_payload(status);
+
+                    m_sock->setPendingErrorPayload(payload);
+                    setErrorPayload(payload);
+                }
+
+                m_ac->apost(status);
+            } else {
+                if (status < 0) {
+                    ErrorPayload payload = error_payload(status);
+
+                    m_sock->setPendingErrorPayload(payload);
+                    setErrorPayload(payload);
+                    (new EventInfo(m_sock, "error", status))->emit();
+                } else {
+                    (new EventInfo(m_sock, "connect"))->emit();
+                }
+            }
+
+            if (m_timer_started)
+                uv_close((uv_handle_t*)(uv_timer_t*)this, on_timer_closed);
+            else
+                delete this;
+        }
+
         static void callback(uv_connect_t* req, int status)
         {
             AsyncConnect* pThis = (AsyncConnect*)req;
 
-            pThis->m_sock->on_connected(status < 0 ? status : 0);
+            if (pThis->m_timer_started)
+                uv_timer_stop((uv_timer_t*)pThis);
 
-            if (pThis->m_ac) {
-                pThis->m_ac->apost(status);
-            } else {
-                if (status < 0)
-                    (new EventInfo(pThis->m_sock, "error", status))->emit();
-                else
-                    (new EventInfo(pThis->m_sock, "connect"))->emit();
-            }
-
-            pThis->cancel_timer();
+            uv_post([pThis, status]() {
+                pThis->finish(status);
+            });
         }
 
     private:
         Isolate* m_isolate = nullptr;
         obj_ptr<UVSocket> m_sock;
         AsyncEvent* m_ac;
+        exlib::string m_target;
+        bool m_use_path;
+        int32_t m_port;
+        bool m_timedout = false;
     };
 
     startConnectEvent();
@@ -271,15 +335,16 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = this;
+    bool use_path = m_family == net_base::C_AF_UNIX || port == 0;
     if (m_family == net_base::C_AF_UNIX) {
         if (!m_connect_event)
             return uv_async([&] {
-                uv_pipe_connect(new AsyncConnect(this, timeout, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
+                uv_pipe_connect(new AsyncConnect(this, timeout, ac, host, use_path, port), &m_pipe, host.c_str(), AsyncConnect::callback);
                 return 0;
             });
 
         uv_async([&] {
-            uv_pipe_connect(new AsyncConnect(holder(), this, timeout), &m_pipe, host.c_str(), AsyncConnect::callback);
+            uv_pipe_connect(new AsyncConnect(holder(), this, timeout, host, use_path, port), &m_pipe, host.c_str(), AsyncConnect::callback);
             return 0;
         });
 
@@ -301,11 +366,11 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
         if (!m_connect_event)
             return uv_async([&] {
-                return uv_tcp_connect(new AsyncConnect(this, timeout, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+                return uv_tcp_connect(new AsyncConnect(this, timeout, ac, host, use_path, port), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
             });
 
         uv_async([&] {
-            return uv_tcp_connect(new AsyncConnect(holder(), this, timeout), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+            return uv_tcp_connect(new AsyncConnect(holder(), this, timeout, host, use_path, port), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
         });
 
         return 0;

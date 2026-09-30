@@ -75,12 +75,15 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     exlib::string& retVal, AsyncEvent* ac)
 {
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "resolve: invalid address family %d.", family));
+        return CHECK_ERROR(Runtime::setError(
+            ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
+                .format("resolve: invalid address family %d.", family)));
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
-        resolve_data(int32_t family, exlib::string& retVal, AsyncEvent* ac)
+        resolve_data(int32_t family, exlib::string name, exlib::string& retVal, AsyncEvent* ac)
             : _family(family)
+            , _name(name)
             , _retVal(retVal)
             , _ac(ac)
         {
@@ -88,6 +91,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
     public:
         int32_t _family;
+        exlib::string _name;
         exlib::string& _retVal;
         AsyncEvent* _ac;
     };
@@ -97,7 +101,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
-    resolve_data* resolver = new resolve_data(family, retVal, ac);
+    resolve_data* resolver = new resolve_data(family, name, retVal, ac);
     int r = uv_getaddrinfo(
         s_uv_loop, resolver,
         [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
@@ -107,8 +111,19 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 uv_freeaddrinfo(res);
                 // 先取用再释放：resolver 在 post 之前必须保持有效
                 AsyncEvent* ac = resolver->_ac;
+                exlib::string hostname = resolver->_name;
+                int32_t family = resolver->_family;
+                exlib::string code;
+                if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
+                    code = "ENOTFOUND";
                 delete resolver;
 
+                setErrorPayload(ErrorPayload::from_uv(status)
+                                    .with_syscall("getaddrinfo")
+                                    .with_hostname(hostname)
+                                    .with_code(code)
+                                    .arg("hostname", hostname)
+                                    .arg("family", family));
                 ac->post(status);
                 return;
             }
@@ -124,9 +139,22 @@ result_t net_base::resolve(exlib::string name, int32_t family,
             }
 
             if (ptr == NULL) {
+                exlib::string hostname = resolver->_name;
+                int32_t family = resolver->_family;
 #ifdef _WIN32
+                setErrorPayload(ErrorPayload::from_system(-WSAHOST_NOT_FOUND)
+                                    .with_syscall("getaddrinfo")
+                                    .with_hostname(hostname)
+                                    .with_code("ENOTFOUND")
+                                    .arg("hostname", hostname)
+                                    .arg("family", family));
                 resolver->_ac->post(-WSAHOST_NOT_FOUND);
 #else
+                setErrorPayload(ErrorPayload::from_system(-ETIME)
+                                    .with_syscall("getaddrinfo")
+                                    .with_hostname(hostname)
+                                    .arg("hostname", hostname)
+                                    .arg("family", family));
                 resolver->_ac->post(-ETIME);
 #endif
             } else
@@ -164,7 +192,9 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return tls_base::connect(url, timeout, retVal, ac);
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "connect: unknown protocol in url '%s'.", url.c_str()));
+        return CHECK_ERROR(Runtime::setError(
+            ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
+                .format("connect: unknown protocol in url '%s'.", url.c_str())));
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -178,7 +208,9 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
         exlib::string port = u->port();
         if (port.length() == 0)
-            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "connect: missing port in url '%s'.", url.c_str()));
+            return CHECK_ERROR(Runtime::setError(
+                ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
+                    .format("connect: missing port in url '%s'.", url.c_str())));
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;

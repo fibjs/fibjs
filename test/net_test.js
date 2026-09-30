@@ -115,6 +115,40 @@ function test_net(eng, use_uv) {
                 coroutine.start(accept, s);
             });
 
+            it("unconnected socket keeps getpeername syscall", () => {
+                var s1 = new net.Socket(net_config.family);
+
+                try {
+                    assert.throws(() => s1.remoteAddress, (err) => {
+                        assert.ok(err instanceof Error);
+                        assert.equal(err.syscall, 'getpeername');
+                        return true;
+                    });
+                } finally {
+                    s1.close();
+                }
+            });
+
+            it("unbound socket keeps the backend-specific getsockname shape", () => {
+                var s1 = new net.Socket(net_config.family);
+
+                try {
+                    if (use_uv) {
+                        assert.throws(() => s1.localAddress, (err) => {
+                            assert.ok(err instanceof Error);
+                            assert.equal(err.syscall, 'getsockname');
+                            assert.equal(err.code, 'EBADF');
+                            return true;
+                        });
+                    } else {
+                        assert.ok(s1.localAddress === '::' || s1.localAddress === '0.0.0.0');
+                        assert.equal(s1.localPort, 0);
+                    }
+                } finally {
+                    s1.close();
+                }
+            });
+
             it("socket.connect(port, address)", () => {
                 var s1 = new net.Socket(net_config.family);
                 s1.connect(_port, net_config.address);
@@ -358,6 +392,9 @@ function test_net(eng, use_uv) {
 
                 errorEvent.wait();
                 assert.ok(errorReceived !== null);
+                assert.equal(errorReceived.syscall, 'connect');
+                assert.equal(errorReceived.args.host, net_config.address);
+                assert.equal(errorReceived.args.port, String(unusedPort));
 
                 // Verify socket is released after error
                 s1 = null;
@@ -963,6 +1000,56 @@ function test_net(eng, use_uv) {
             });
         });
 
+        describe("closed socket error shape (backend split)", () => {
+            // The same close/read race ends in the fd check (ev backend,
+            // EBADF) or in the socket state check (uv backend, CALL_E_CLOSED_SOCKET
+            // -> EPERM). Both are measured to be deterministic per backend.
+            function raceReadError(useUv) {
+                // Measure a single backend, then restore the backend of the
+                // enclosing pass: test_net() runs the whole suite twice (ev
+                // and uv), so a leftover switch would leak into later tests.
+                var prev = net.use_uv_socket;
+                net.use_uv_socket = useUv;
+
+                var port = getPort();
+                var svr = new net.Socket();
+                svr.bind(port, '127.0.0.1');
+                svr.listen();
+
+                var c = new net.Socket();
+                c.timeout = 50;
+                c.connect(port, '127.0.0.1');
+
+                coroutine.start(() => {
+                    coroutine.sleep(5);
+                    c.close();
+                });
+
+                var err = null;
+                try {
+                    c.read();
+                } catch (e) {
+                    err = e;
+                }
+                svr.close();
+                net.use_uv_socket = prev;
+                return err;
+            }
+
+            it("ev backend reports EBADF", () => {
+                var err = raceReadError(false);
+                assert.ok(err, 'should throw');
+                assert.equal(err.code, 'EBADF');
+            });
+
+            it("uv backend reports EPERM (closed socket)", () => {
+                var err = raceReadError(true);
+                assert.ok(err, 'should throw');
+                assert.equal(err.code, 'EPERM');
+                assert.equal(err.number, 1);
+            });
+        });
+
         describe("timeout", () => {
             it("basic timeout", () => {
                 function accept4(s) {
@@ -992,7 +1079,7 @@ function test_net(eng, use_uv) {
                 c1.timeout = 300;
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
 
                 var t2 = new Date();
 
@@ -1003,6 +1090,13 @@ function test_net(eng, use_uv) {
                 var t1 = new Date();
                 assert.throws(() => {
                     c2.connect(8086 + base_port, '192.166.166.166', 300);
+                }, (err) => {
+                    // connect timeout; the uv backend implements it by closing
+                    // the socket, which cancels the pending request inside
+                    // libuv (UV_ECANCELED). The cancellation is normalized to
+                    // CALL_E_TIMEOUT so both backends report the timeout.
+                    assert.equal(err.number, 20021);
+                    return true;
                 });
                 var t2 = new Date();
 
@@ -1045,7 +1139,7 @@ function test_net(eng, use_uv) {
                 var t1 = new Date();
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 150);
@@ -1091,7 +1185,7 @@ function test_net(eng, use_uv) {
                 c1.timeout = 200;
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
 
                 // Socket should still be connected
                 assert.ok(c1.remotePort > 0);
@@ -1133,7 +1227,7 @@ function test_net(eng, use_uv) {
                     var t1 = new Date();
                     assert.throws(() => {
                         c1.recv();
-                    });
+                    }, { number: 20021 });
                     var t2 = new Date();
                     assert.greaterThan(t2 - t1, 150);
                     assert.lessThan(t2 - t1, 500);
@@ -1340,7 +1434,7 @@ function test_net(eng, use_uv) {
                 c1.close();
             });
 
-            it("connect timeout does not close socket", () => {
+            it("connect timeout reports CALL_E_TIMEOUT", () => {
                 // Use a non-routable IP for connect timeout
                 var c1 = new net.Socket();
 
@@ -1348,7 +1442,7 @@ function test_net(eng, use_uv) {
                 assert.throws(() => {
                     // 192.0.2.1 is TEST-NET-1, guaranteed to be non-routable
                     c1.connect(80, '192.0.2.1', 300);
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 250);
@@ -1427,7 +1521,7 @@ function test_net(eng, use_uv) {
                 c1.timeout = 100;
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
 
                 // Change timeout and try again
                 c1.timeout = 500;
@@ -1707,8 +1801,50 @@ function test_net(eng, use_uv) {
             var svr = new net.TcpServer(_port, (c) => { });
             assert.throws(() => {
                 new net.TcpServer(_port, (c) => { });
-            });
+            }, { code: 'EADDRINUSE' });
             test_util.push(svr.socket);
+        });
+
+        it("listen same port keeps listen syscall", () => {
+            var _port = getPort();
+            var svr = new net.TcpServer((c) => { });
+            svr.listen(_port);
+            test_util.push(svr.socket);
+
+            var svr2 = new net.TcpServer((c) => { });
+            assert.throws(() => {
+                svr2.listen(_port);
+            }, { code: 'EADDRINUSE', syscall: 'listen' });
+        });
+
+        it("resolve invalid family keeps TypeError shape", () => {
+            assert.throws(() => {
+                net.resolve('localhost', 123);
+            }, (err) => {
+                assert.ok(err instanceof TypeError);
+                assert.equal(err.message, 'resolve: invalid address family 123.');
+                return true;
+            });
+        });
+
+        it("connect unknown protocol keeps TypeError shape", () => {
+            assert.throws(() => {
+                net.connect('udp://127.0.0.1:80');
+            }, (err) => {
+                assert.ok(err instanceof TypeError);
+                assert.equal(err.message, "connect: unknown protocol in url 'udp://127.0.0.1:80'.");
+                return true;
+            });
+        });
+
+        it("connect missing port keeps TypeError shape", () => {
+            assert.throws(() => {
+                net.connect('tcp://127.0.0.1');
+            }, (err) => {
+                assert.ok(err instanceof TypeError);
+                assert.equal(err.message, "connect: missing port in url 'tcp://127.0.0.1'.");
+                return true;
+            });
         });
 
         describe("close Pending I/O", () => {
@@ -1722,7 +1858,7 @@ function test_net(eng, use_uv) {
                 coroutine.start(close_it, c1);
                 assert.throws(() => {
                     c1.connect(80, '12.0.0.1');
-                });
+                }, (err) => { assert.ok(err.code === 'ECONNREFUSED' || err.code === 'ECANCELED', 'unexpected: ' + err); return true; });
             });
 
             it("close accept", () => {
@@ -1734,6 +1870,18 @@ function test_net(eng, use_uv) {
 
                 assert.throws(() => {
                     c1.accept();
+                }, (err) => {
+                    // close racing accept: the ev backend hits the closed fd
+                    // (EBADF), the uv backend the closed socket state
+                    // (CALL_E_CLOSED_SOCKET, number 20009). Both are
+                    // deterministic per backend (measured).
+                    if (use_uv) {
+                        assert.equal(err.number, 20009);
+                    } else {
+                        assert.equal(err.code, 'EBADF');
+                        assert.equal(err.number, 9);
+                    }
+                    return true;
                 });
             });
 
@@ -1752,6 +1900,18 @@ function test_net(eng, use_uv) {
                 coroutine.start(close_it, c1);
                 assert.throws(() => {
                     c1.read();
+                }, (err) => {
+                    // close racing read: the ev backend reads a closed fd
+                    // (EBADF), the uv backend sees a closing handle (EPERM).
+                    // Both are deterministic per backend (measured).
+                    if (use_uv) {
+                        assert.equal(err.code, 'EPERM');
+                        assert.equal(err.number, 1);
+                    } else {
+                        assert.equal(err.code, 'EBADF');
+                        assert.equal(err.number, 9);
+                    }
+                    return true;
                 });
             });
         });
@@ -2059,7 +2219,7 @@ function test_net(eng, use_uv) {
                 c1.timeout = 100;
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
 
                 // Socket should still be connected
                 assert.ok(c1.remoteAddress);
@@ -2118,6 +2278,19 @@ function test_net(eng, use_uv) {
                 // Socket should be closed now
                 assert.throws(() => {
                     c1.send('test');
+                }, (err) => {
+                    // send after close: complementary to the read race — the
+                    // ev backend hits the closed socket state
+                    // (CALL_E_CLOSED_SOCKET, number 20009), the uv backend
+                    // the closed fd (EBADF). Both are deterministic per
+                    // backend (measured).
+                    if (use_uv) {
+                        assert.equal(err.code, 'EBADF');
+                        assert.equal(err.number, 9);
+                    } else {
+                        assert.equal(err.number, 20009);
+                    }
+                    return true;
                 });
             });
 
@@ -2157,7 +2330,7 @@ function test_net(eng, use_uv) {
                 c1.timeout = 50;
                 assert.throws(() => {
                     c1.recv();
-                });
+                }, { number: 20021 });
 
                 // Operation 2: successful with proper timeout
                 c1.timeout = 1000;
@@ -2390,7 +2563,7 @@ function test_net(eng, use_uv) {
                 assert.throws(() => {
                     var s1 = new net.Socket(net.AF_UNIX);
                     s1.connect(0, "999.999.999.999");
-                });
+                }, { code: 'ENOENT', syscall: 'connect' });
             });
 
             it("Server", () => {
@@ -2435,7 +2608,7 @@ function test_net(eng, use_uv) {
                 var s1 = new net.Socket(net.AF_UNIX);
                 assert.throws(() => {
                     s1.bind(_path);
-                });
+                }, { code: 'EADDRINUSE' });
             });
         });
 
@@ -2578,12 +2751,12 @@ function test_net(eng, use_uv) {
                 assert.strictEqual(fired, true);
             });
 
-            it("double listen() throws CALL_E_INVALID_CALL", () => {
+            it("double listen() throws ERR_SERVER_ALREADY_LISTEN", () => {
                 var p = getPort();
                 svr = new net.TcpServer((sock) => { sock.close(); });
                 svr.listen(p);
                 test_util.push(svr.socket);
-                assert.throws(() => { svr.listen(getPort()); });
+                assert.throws(() => { svr.listen(getPort()); }, { code: 'ERR_SERVER_ALREADY_LISTEN' });
             });
         });
 
@@ -2691,7 +2864,7 @@ function test_net(eng, use_uv) {
 
             it("throws before socket is bound", () => {
                 svr = new net.TcpServer((sock) => { sock.close(); });
-                assert.throws(() => { svr.address(); });
+                assert.throws(() => { svr.address(); }, { number: 20009 });
             });
         });
 

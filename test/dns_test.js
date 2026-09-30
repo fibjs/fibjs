@@ -50,6 +50,16 @@ describe('dns', () => {
                     });
                     assert.equal(result, '2602:fa20:1:40::201');
                 }
+
+                assert.throws(() => {
+                    dns.lookup('ipv6.com', {
+                        family: 'IPv5'
+                    });
+                }, (err) => {
+                    assert.ok(err instanceof TypeError);
+                    assert.equal(err.message, 'Invalid family: IPv5');
+                    return true;
+                });
             });
 
             it("all", () => {
@@ -108,6 +118,42 @@ describe('dns', () => {
         it('FIX: error result in dns.lookup when host is unknown', () => {
             assert.throws(() => {
                 dns.lookup('999.999.999.999');
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'ENOTFOUND');
+                assert.equal(err.errno, -3008);
+                assert.equal(err.syscall, 'getaddrinfo');
+                assert.equal(err.hostname, '999.999.999.999');
+                assert.equal(err.message, 'getaddrinfo ENOTFOUND 999.999.999.999');
+                assert.equal(err.args.hostname, '999.999.999.999');
+                assert.equal(err.args.family, '0');
+                return true;
+            });
+        });
+
+        it('error payload truncates long parameter summaries', () => {
+            var longName = 'a'.repeat(200) + '.invalid';
+
+            assert.throws(() => {
+                dns.lookup(longName, { family: 4 });
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                assert.equal(err.args.hostname.length, 128);
+                assert.ok(err.args.hostname.endsWith('...'));
+                assert.equal(err.args.family, '4');
+                assert.equal(err.args.all, 'false');
+                return true;
+            });
+        });
+
+        it('invalid family is a TypeError carrying the family summary', () => {
+            assert.throws(() => {
+                dns.lookup('127.0.0.1', { family: 5 });
+            }, (err) => {
+                assert.ok(err instanceof TypeError);
+                assert.equal(err.message, 'Invalid family: 5');
+                assert.equal(err.args.family, '5');
+                return true;
             });
         });
     });
@@ -119,7 +165,7 @@ describe('dns', () => {
     it('FIX: crash in dns.resolve when host is unknown', () => {
         assert.throws(() => {
             dns.resolve('999.999.999.999');
-        });
+        }, { code: 'EAI_NONAME' });
     });
 
     it('net.resolve', () => {
@@ -129,6 +175,15 @@ describe('dns', () => {
     it('FIX: crash in net.resolve when host is unknown', () => {
         assert.throws(() => {
             net.resolve('999.999.999.999');
+        }, (err) => {
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ENOTFOUND');
+            assert.equal(err.syscall, 'getaddrinfo');
+            assert.equal(err.hostname, '999.999.999.999');
+            assert.equal(err.message, 'getaddrinfo ENOTFOUND 999.999.999.999');
+            assert.equal(err.args.hostname, '999.999.999.999');
+            assert.equal(err.args.family, String(net.AF_INET));
+            return true;
         });
     });
 });

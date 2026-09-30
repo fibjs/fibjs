@@ -33,7 +33,8 @@ describe("url", () => {
         it("file url to path", () => {
             function testInvalidArgs(...args) {
                 for (const arg of args) {
-                    assert.throws(() => url.fileURLToPath(arg));
+                    // Node-aligned code (message keeps fibjs' own wording)
+                    assert.throws(() => url.fileURLToPath(arg), { name: 'TypeError', code: 'ERR_INVALID_URL_SCHEME' });
                 }
             }
 
@@ -41,7 +42,7 @@ describe("url", () => {
             testInvalidArgs(null, undefined, 1, {}, true);
 
             // Input must be a file URL
-            assert.throws(() => url.fileURLToPath('https://a/b/c'));
+            assert.throws(() => url.fileURLToPath('https://a/b/c'), { name: 'TypeError', code: 'ERR_INVALID_URL_SCHEME' });
 
             {
                 const withHost = new URL('file://host/a');
@@ -49,17 +50,18 @@ describe("url", () => {
                 if (isWindows) {
                     assert.strictEqual(url.fileURLToPath(withHost), '\\\\host\\a');
                 } else {
-                    assert.throws(() => url.fileURLToPath(withHost));
+                    assert.throws(() => url.fileURLToPath(withHost), { name: 'TypeError', code: 'ERR_INVALID_FILE_URL_HOST' });
                 }
             }
 
             {
                 if (isWindows) {
-                    assert.throws(() => url.fileURLToPath('file:///C:/a%2F/'));
-                    assert.throws(() => url.fileURLToPath('file:///C:/a%5C/'));
-                    assert.throws(() => url.fileURLToPath('file:///?:/'));
+                    // windows-only case
+                    assert.throws(() => url.fileURLToPath('file:///C:/a%2F/'), { name: 'TypeError', code: 'ERR_INVALID_FILE_URL_PATH' });
+                    assert.throws(() => url.fileURLToPath('file:///C:/a%5C/'), { name: 'TypeError', code: 'ERR_INVALID_FILE_URL_PATH' });
+                    assert.throws(() => url.fileURLToPath('file:///?:/'), { name: 'TypeError', code: 'ERR_INVALID_FILE_URL_PATH' });
                 } else {
-                    assert.throws(() => url.fileURLToPath('file:///a%2F/'));
+                    assert.throws(() => url.fileURLToPath('file:///a%2F/'), { name: 'TypeError', code: 'ERR_INVALID_FILE_URL_PATH' });
                 }
             }
 
