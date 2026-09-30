@@ -408,7 +408,7 @@ describe('encoding', () => {
         a.aa = a;
         assert.throws(() => {
             json.encode(a);
-        })
+        }, { name: 'TypeError' })
     });
 
     it('jsstr', () => {

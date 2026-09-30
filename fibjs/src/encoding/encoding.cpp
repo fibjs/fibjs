@@ -441,31 +441,7 @@ result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& re
 
 inline bool is_native_codec(exlib::string codec)
 {
-    return (codec == "hex")
-        || (codec == "base32") || (codec == "base58")
-        || (codec == "base64") || (codec == "base64url")
-
-        || (codec == "utf8") || (codec == "utf-8")
-
-        || (codec == "ucs2") || (codec == "ucs-2")
-        || (codec == "utf16") || (codec == "utf-16")
-
-        || (codec == "ucs2le") || (codec == "ucs-2le")
-        || (codec == "utf16le") || (codec == "utf-16le")
-
-        || (codec == "ucs2be") || (codec == "ucs-2be")
-        || (codec == "utf16be") || (codec == "utf-16be")
-
-        || (codec == "ucs4") || (codec == "ucs-4")
-        || (codec == "utf32") || (codec == "utf-32")
-
-        || (codec == "ucs4le") || (codec == "ucs-4le")
-        || (codec == "utf32le") || (codec == "utf-32le")
-
-        || (codec == "ucs4be") || (codec == "ucs-4be")
-        || (codec == "utf32be") || (codec == "utf-32be")
-
-        || (codec == "binary") || (codec == "latin1");
+    return encoding_conv::is_buffer_codec(codec);
 }
 
 inline bool static_is_safe_codec(exlib::string codec)

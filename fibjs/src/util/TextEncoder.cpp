@@ -16,51 +16,6 @@
 namespace fibjs {
 
 // Resolve encoding label to canonical WHATWG name, or validate via ICU
-static bool resolveEncoding(const exlib::string& label, exlib::string& canonicalName)
-{
-    // First try WHATWG mapping
-    const char* whatwgName = encoding_conv::normalizeEncoding(label);
-    if (whatwgName) {
-        canonicalName = whatwgName;
-        return true;
-    }
-
-    // Validate: label must only contain valid encoding name characters
-    // (ASCII printable, no control chars, no non-ASCII)
-    for (size_t i = 0; i < label.length(); i++) {
-        unsigned char c = (unsigned char)label[i];
-        if (c < 0x20 || c > 0x7E)
-            return false;
-    }
-
-    // Fallback: try ICU directly for non-WHATWG encodings (fibjs extension)
-    UErrorCode err = U_ZERO_ERROR;
-    UConverter* cnv = ucnv_open(label.c_str(), &err);
-    if (U_SUCCESS(err) && cnv) {
-        // Use ICU canonical name, lowercased
-        UErrorCode nameErr = U_ZERO_ERROR;
-        const char* icuName = ucnv_getName(cnv, &nameErr);
-        if (U_SUCCESS(nameErr) && icuName) {
-            exlib::string lower;
-            lower.reserve(strlen(icuName));
-            for (const char* p = icuName; *p; p++) {
-                char c = *p;
-                if (c >= 'A' && c <= 'Z')
-                    c = c - 'A' + 'a';
-                lower.append(1, c);
-            }
-            canonicalName = lower;
-        } else {
-            canonicalName = label;
-        }
-        ucnv_close(cnv);
-        return true;
-    }
-
-    if (cnv)
-        ucnv_close(cnv);
-    return false;
-}
 
 // ==================== TextEncoder ====================
 
@@ -68,12 +23,12 @@ result_t TextEncoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     v8::Local<v8::Object> This)
 {
     exlib::string canonicalName;
-    if (!resolveEncoding(codec, canonicalName)) {
-        Isolate* isolate = Isolate::current(opts);
-        isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-            isolate->NewString(("The encoding label provided ('" + codec + "') is invalid.").c_str())));
-        return CALL_E_JAVASCRIPT;
-    }
+    if (!encoding_conv::resolve(codec, canonicalName))
+        // Node.js: a bad label is ERR_ENCODING_NOT_SUPPORTED; fibjs resolves real
+        // codecs here (an extension - Node's TextEncoder ignores the label).
+        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
+                .with_code("ERR_ENCODING_NOT_SUPPORTED")
+                .format("The \"%s\" encoding is not supported", codec.c_str())));
 
     retVal = new TextEncoder(canonicalName);
     return 0;
@@ -171,12 +126,11 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     v8::Local<v8::Object> This)
 {
     exlib::string canonicalName;
-    if (!resolveEncoding(codec, canonicalName)) {
-        Isolate* isolate = Isolate::current(opts);
-        isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-            isolate->NewString(("The encoding label provided ('" + codec + "') is invalid.").c_str())));
-        return CALL_E_JAVASCRIPT;
-    }
+    if (!encoding_conv::resolve(codec, canonicalName))
+        // Node.js: RangeError + ERR_ENCODING_NOT_SUPPORTED
+        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
+                .with_code("ERR_ENCODING_NOT_SUPPORTED")
+                .format("The \"%s\" encoding is not supported", codec.c_str())));
 
     // Parse options
     bool fatal = false;
