@@ -108,9 +108,10 @@ describe("Headers API", () => {
         assert.strictEqual(headers.get('non-existent'), null);
 
         // Empty string header name should throw TypeError
+        // Node: 'Headers.get: "" is an invalid header name.' (message gap)
         assert.throws(() => {
             headers.get('');
-        });
+        }, { name: 'TypeError', number: 20004 });
     });
 
     it("Headers.has() method", () => {
@@ -127,7 +128,7 @@ describe("Headers API", () => {
         // Empty string header name should throw TypeError
         assert.throws(() => {
             headers.has('');
-        });
+        }, { name: 'TypeError', number: 20004 });
     });
 
     it("Headers.set() method", () => {
@@ -405,7 +406,7 @@ describe("Headers API", () => {
         assert.throws(() => {
             for (const v of iterator)
                 throw new Error('boom');
-        }, /boom/);
+        }, { message: 'boom' });
 
         // Iterator must be closed after the throw
         const r = iterator.next();
@@ -719,26 +720,27 @@ describe("Headers API", () => {
 
     it("Headers constructor with invalid init", () => {
         // Invalid init types should throw TypeError
+        // glue-level coercion error (Node: ERR_INVALID_ARG_TYPE; see plan)
         assert.throws(() => {
             new Headers('invalid string');
-        });
+        }, { name: 'TypeError', number: 20005 });
 
         assert.throws(() => {
             new Headers(123);
-        });
+        }, { name: 'TypeError', number: 20005 });
 
         assert.throws(() => {
             new Headers(true);
-        });
+        }, { name: 'TypeError', number: 20005 });
 
         // Invalid array structure
         assert.throws(() => {
             new Headers([['name']]);  // Missing value
-        });
+        }, { name: 'TypeError', number: 20005 });
 
         assert.throws(() => {
             new Headers([['name', 'value', 'extra']]);  // Too many elements
-        });
+        }, { name: 'TypeError', number: 20005 });
     });
 
     it("Headers forbidden header names", () => {

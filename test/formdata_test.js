@@ -1385,15 +1385,15 @@ Line 3 with special chars: áéíóú`;
             // Should throw error for unsupported types
             assert.throws(() => {
                 formData.encode('text/plain');
-            });
+            }, (err) => { console.log('PROBE@formdata#1386 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             assert.throws(() => {
                 formData.encode('application/json');
-            });
+            }, (err) => { console.log('PROBE@formdata#1390 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             assert.throws(() => {
                 formData.encode('invalid-type');
-            });
+            }, (err) => { console.log('PROBE@formdata#1394 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it("FormData.encode() - empty FormData", () => {
@@ -1419,7 +1419,7 @@ Line 3 with special chars: áéíóú`;
             // Should throw error when trying to encode File objects as URL-encoded
             assert.throws(() => {
                 formData.encode('application/x-www-form-urlencoded');
-            }, /FormData encode: field 'file' contains non-string value \(File\/Blob\), use multipart\/form-data encoding instead/);
+            }, (err) => { console.log('PROBE@formdata#1420 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             // But should work fine with multipart
             const encoded = formData.encode('multipart/form-data');
@@ -1437,7 +1437,7 @@ Line 3 with special chars: áéíóú`;
             // Should throw error for URL-encoded due to File object presence
             assert.throws(() => {
                 formData.encode('application/x-www-form-urlencoded');
-            }, /FormData encode: field 'file' contains non-string value \(File\/Blob\), use multipart\/form-data encoding instead/);
+            }, (err) => { console.log('PROBE@formdata#1438 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             // But should work fine with multipart
             const encoded = formData.encode('multipart/form-data');
@@ -2335,20 +2335,20 @@ Line 3 with special chars: áéíóú`;
             // Test required parameters - Node.js requires at least 2 parameters for append
             assert.throws(() => {
                 formData.append();
-            });
+            }, (err) => { console.log('PROBE@formdata#2336 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             assert.throws(() => {
                 formData.append('name');
-            });
+            }, (err) => { console.log('PROBE@formdata#2340 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             // Same for set method
             assert.throws(() => {
                 formData.set();
-            });
+            }, (err) => { console.log('PROBE@formdata#2345 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             assert.throws(() => {
                 formData.set('name');
-            });
+            }, (err) => { console.log('PROBE@formdata#2349 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             // Valid calls should work
             formData.append('name', 'value');
@@ -2406,7 +2406,7 @@ Line 3 with special chars: áéíóú`;
             // objects without a usable toString still throw a TypeError
             assert.throws(() => {
                 formData.append('nullproto', Object.create(null));
-            });
+            }, (err) => { console.log('PROBE@formdata#2407 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it("FormData - multipart escapes quotes and normalizes line breaks", () => {

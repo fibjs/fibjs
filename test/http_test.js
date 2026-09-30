@@ -783,21 +783,22 @@ describe("http", () => {
             for (var i = 0; i < cases.length; i++)
                 assert.deepEqual(parse(cases[i][1]), copyCookie(cases[i][0]));
 
+            // malformed cookie text -> HttpCookie error (CALL_E_EXCEPTION, 20024)
             assert.throws(() => {
                 new http.Cookie().parse("");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 new http.Cookie().parse("aaa");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 new http.Cookie().parse("=");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 new http.Cookie().parse(";");
-            });
+            }, { number: 20024 });
         });
 
         it("parseRaw keeps %XX verbatim (RFC 6265)", () => {
@@ -976,38 +977,40 @@ describe("http", () => {
             ];
 
             function readreq(u) {
+                // malformed request text -> HttpMessage error (20024)
                 assert.throws(() => {
                     get_request(u);
-                });
+                }, { number: 20024 });
             }
 
             bad_reqs.forEach(readreq);
         });
 
         it("bad response", () => {
+            // malformed response text -> HttpMessage error (20024)
             assert.throws(() => {
                 get_response("HTTP/1.0\r\n\r\n");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 \r\n\r\n");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0,200\r\n\r\n");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 1\r\n\r\n");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 1111\r\n\r\n");
-            });
+            }, { number: 20024 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 asd\r\n\r\n");
-            });
+            }, { number: 20024 });
         });
 
         it("proxy request", () => {
@@ -1413,11 +1416,12 @@ describe("http", () => {
             })
 
             it('more then max size', () => {
+                // body larger than maxBodySize -> HttpMessage error (20024)
                 assert.throws(() => {
                     get_response(get_data(1024 * 1024 + 1), {
                         maxBodySize: 1
                     });
-                });
+                }, { number: 20024 });
             });
 
             it("no limit", () => {
@@ -1440,7 +1444,7 @@ describe("http", () => {
                         get_response(get_chunk_data(1024 * 1024 + 1), {
                             maxBodySize: 1
                         });
-                    });
+                    }, { number: 20024 });
                 });
 
                 it("no limit", () => {
@@ -1496,13 +1500,14 @@ describe("http", () => {
 
         var req = new http.Request();
 
+        // json() without a json content type -> HttpMessage error (20024)
         assert.throws(() => {
             req.json();
-        });
+        }, { number: 20024 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.json();
-        });
+        }, { number: 20024 });
 
         req.json(v);
         assert.equal(req.firstHeader('Content-Type'), "application/json");
@@ -1519,11 +1524,11 @@ describe("http", () => {
 
         assert.throws(() => {
             rep.json();
-        });
+        }, { number: 20024 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.json();
-        });
+        }, { number: 20024 });
 
         rep.json(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/json");
@@ -1604,13 +1609,14 @@ describe("http", () => {
 
         var req = new http.Request();
 
+        // pack() without an msgpack content type -> HttpMessage error (20024)
         assert.throws(() => {
             req.pack();
-        });
+        }, { number: 20024 });
         req.setHeader('Content-Type', "application/msg");
         assert.throws(() => {
             req.pack();
-        });
+        }, { number: 20024 });
 
         req.pack(v);
         assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
@@ -1624,11 +1630,11 @@ describe("http", () => {
 
         assert.throws(() => {
             rep.pack();
-        });
+        }, { number: 20024 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.pack();
-        });
+        }, { number: 20024 });
 
         rep.pack(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
@@ -3217,9 +3223,10 @@ describe("http", () => {
                 assert.equal(http.requestSync("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").text(),
                     "/request");
 
+                // redirect loop -> TypeError from HttpClient (20024)
                 assert.throws(() => {
                     http.requestSync("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
-                });
+                }, { name: 'TypeError', number: 20024 });
             });
 
             it("urlencode", () => {
@@ -4578,7 +4585,7 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
                 assert.throws(() => {
                     client.requestSync("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect1")
-                });
+                }, { name: 'TypeError', number: 20024 });
             });
 
             it("check cookie validity", () => {
@@ -4650,9 +4657,10 @@ describe("http", () => {
                 client.timeout = 200;
 
                 var t1 = new Date();
+                // client timeout -> CALL_E_TIMEOUT (20021)
                 assert.throws(() => {
                     client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 190);
@@ -4673,7 +4681,7 @@ describe("http", () => {
                 var t1 = new Date();
                 assert.throws(() => {
                     http.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 190);
@@ -4697,7 +4705,7 @@ describe("http", () => {
                     client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
                         timeout: 200
                     });
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 190);
@@ -4721,7 +4729,7 @@ describe("http", () => {
                     http.getSync("http://127.0.0.1:" + (8884 + base_port) + "/timeout", {
                         timeout: 200
                     });
-                });
+                }, { number: 20021 });
                 var t2 = new Date();
 
                 assert.greaterThan(t2 - t1, 190);
@@ -4766,11 +4774,12 @@ describe("http", () => {
                 });
 
                 var t1 = new Date();
+                // abort -> Node-aligned AbortError with code ABORT_ERR
                 assert.throws(() => {
                     client.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
                         signal: controller.signal
                     });
-                }, /AbortError/);
+                }, { name: 'AbortError', code: 'ABORT_ERR' });
                 var t2 = new Date();
 
                 assert.lessThan(t2 - t1, 500);
@@ -4790,7 +4799,7 @@ describe("http", () => {
                     http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
                         signal: controller.signal
                     });
-                }, /AbortError/);
+                }, { name: 'AbortError', code: 'ABORT_ERR' });
                 var t2 = new Date();
 
                 assert.lessThan(t2 - t1, 500);
@@ -4805,7 +4814,7 @@ describe("http", () => {
                     http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
                         signal: controller.signal
                     });
-                }, /AbortError/);
+                }, { name: 'AbortError', code: 'ABORT_ERR' });
                 var t2 = new Date();
 
                 assert.lessThan(t2 - t1, 100);
@@ -4826,7 +4835,7 @@ describe("http", () => {
                     http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
                         signal: composite
                     });
-                }, /AbortError/);
+                }, { name: 'AbortError', code: 'ABORT_ERR' });
                 var t2 = new Date();
 
                 assert.lessThan(t2 - t1, 500);
@@ -4848,7 +4857,7 @@ describe("http", () => {
                     client.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
                         signal: controller.signal
                     });
-                }, /AbortError/);
+                }, { name: 'AbortError', code: 'ABORT_ERR' });
                 var t2 = new Date();
 
                 assert.lessThan(t2 - t1, 500);
@@ -4880,6 +4889,65 @@ describe("http", () => {
                 var req = new http.Request();
                 assert.doesNotThrow(() => {
                     req.abort();
+                });
+            });
+
+            it("async abort delivers the same error as the sync path", (done) => {
+                // The 'error' event is emitted from the completing thread, so
+                // the error description (name/code/number/message) must travel
+                // with the payload; otherwise the event reports "[0] Success".
+                var syncErr = null;
+                try {
+                    http.getSync("http://127.0.0.1:" + abortPort + "/timeout", {
+                        signal: AbortSignal.timeout(100)
+                    });
+                } catch (e) {
+                    syncErr = e;
+                }
+
+                assert.equal(syncErr.name, "TimeoutError");
+                assert.equal(syncErr.code, "TIMEOUT_ERR");
+                assert.equal(syncErr.number, 20024);
+                assert.equal(syncErr.message, "The operation timed out.");
+
+                var req = http.get("http://127.0.0.1:" + abortPort + "/timeout", {
+                    signal: AbortSignal.timeout(100)
+                }, () => {
+                    done(new Error("should not get response"));
+                });
+
+                req.on("error", (err) => {
+                    done(() => {
+                        assert.equal(err.name, syncErr.name);
+                        assert.equal(err.code, syncErr.code);
+                        assert.equal(err.number, syncErr.number);
+                        assert.equal(err.message, syncErr.message);
+                        assert.equal(err.args.method, "GET");
+                        assert.equal(err.args.url, "http://127.0.0.1:" + abortPort + "/timeout");
+                    });
+                });
+            });
+
+            it("async manual abort reports AbortError", (done) => {
+                var controller = new AbortController();
+                var req = http.get("http://127.0.0.1:" + abortPort + "/timeout", {
+                    signal: controller.signal
+                }, () => {
+                    done(new Error("should not get response"));
+                });
+
+                req.on("error", (err) => {
+                    done(() => {
+                        assert.equal(err.name, "AbortError");
+                        assert.equal(err.code, "ABORT_ERR");
+                        assert.equal(err.number, 20024);
+                        assert.equal(err.message, "The operation was aborted.");
+                    });
+                });
+
+                coroutine.start(() => {
+                    coroutine.sleep(100);
+                    controller.abort();
                 });
             });
         });
@@ -5245,39 +5313,40 @@ describe("http", () => {
             });
 
             it("not allow empty array", () => {
+                // empty urls -> TypeError (CALL_E_INVALIDARG, 20004)
                 assert.throws(() => {
                     new http.Repeater([]);
-                });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("not allow empty hostname", () => {
                 assert.throws(() => {
                     new http.Repeater('/test');
-                });
+                }, { number: 20024 });
 
                 assert.throws(() => {
                     new http.Repeater(['/test']);
-                });
+                }, { number: 20024 });
             });
 
             it("not allow query", () => {
                 assert.throws(() => {
                     new http.Repeater('http://127.0.0.1/test?test');
-                });
+                }, { number: 20024 });
 
                 assert.throws(() => {
                     new http.Repeater(['http://127.0.0.1/test?test']);
-                });
+                }, { number: 20024 });
             });
 
             it("not allow hash", () => {
                 assert.throws(() => {
                     new http.Repeater('http://127.0.0.1/test#test');
-                });
+                }, { number: 20024 });
 
                 assert.throws(() => {
                     new http.Repeater(['http://127.0.0.1/test#test']);
-                });
+                }, { number: 20024 });
             });
 
             it("check client config", () => {
@@ -5311,7 +5380,7 @@ describe("http", () => {
                         'http://127.0.0.1/test?test',
                         "http://127.0.0.1/test2"
                     ]);
-                });
+                }, { number: 20024 });
 
                 assert.deepEqual(hr.urls, [
                     "http://127.0.0.1/"
@@ -5421,9 +5490,10 @@ describe("http", () => {
 
             it("bad end", () => {
                 var hr = new http.Repeater('http://127.0.0.1:' + (10000 + base_port) + '/path');
+                // no server on the target port -> ECONNREFUSED
                 assert.throws(() => {
                     req_path(hr, 'path');
-                });
+                }, { code: 'ECONNREFUSED', syscall: 'connect' });
             });
         });
     });
@@ -5513,7 +5583,14 @@ describe("http", () => {
 
             assert.throws(() => {
                 hc.getSync('https://www.baidu.com/');
-            });
+            }, (err) => {
+                    // online: TLS verification fails against the mismatched CA (20024);
+                    // offline: the connection itself fails
+                    assert.ok(err.number === 20024 || err.code === 'ECONNREFUSED'
+                        || err.code === 'ENETUNREACH' || err.code === 'EHOSTUNREACH',
+                        'unexpected: ' + err);
+                    return true;
+                });
         });
 
         it("requestCert: false", () => {
@@ -5831,7 +5908,8 @@ describe("http", () => {
             svr = new http.Server((req) => { req.response.write('ok'); });
             svr.listen(listenPort + 2);
             test_util.push(svr.socket);
-            assert.throws(() => { svr.listen(listenPort + 3); });
+            // second listen() -> Node-aligned ERR_SERVER_ALREADY_LISTEN
+            assert.throws(() => { svr.listen(listenPort + 3); }, { code: 'ERR_SERVER_ALREADY_LISTEN' });
         });
     });
 
@@ -5875,7 +5953,7 @@ describe("http", () => {
             svr = new http.HttpsServer(ctx, (req) => { req.response.write('ok'); });
             svr.listen(listenPort + 2);
             test_util.push(svr.socket);
-            assert.throws(() => { svr.listen(listenPort + 3); });
+            assert.throws(() => { svr.listen(listenPort + 3); }, { code: 'ERR_SERVER_ALREADY_LISTEN' });
         });
     });
 
@@ -5924,7 +6002,8 @@ describe("http", () => {
             svr = http.createServer((req) => {
                 req.response.write('ok');
             });
-            assert.throws(() => { svr.address(); });
+            // address() before bind -> CALL_E_INVALID_CALL (20009)
+            assert.throws(() => { svr.address(); }, { number: 20009 });
         });
     });
 
@@ -7192,6 +7271,24 @@ describe("http", () => {
                 }).on("error", (err) => {
                     done(() => {
                         assert.ok(err);
+                        assert.ok(err instanceof Error);
+                        assert.equal(err.code, 'ECONNREFUSED');
+                        assert.equal(err.args.method, 'GET');
+                        assert.equal(err.args.url, 'http://127.0.0.1:1/nope');
+                    });
+                }).end();
+            });
+
+            it("error payload strips credentials from the request url", (done) => {
+                var hc = new http.Client();
+                hc.request("http://user:secret@127.0.0.1:1/nope?q=1", (r) => {
+                    done(new Error("should not get response"));
+                }).on("error", (err) => {
+                    done(() => {
+                        assert.equal(err.code, 'ECONNREFUSED');
+                        assert.equal(err.args.method, 'GET');
+                        assert.equal(err.args.url, 'http://127.0.0.1:1/nope?q=1');
+                        assert.ok(!JSON.stringify(err.args).includes('secret'));
                     });
                 }).end();
             });

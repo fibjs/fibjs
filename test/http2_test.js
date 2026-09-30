@@ -469,7 +469,7 @@ describe('http2', () => {
                 hc.getSync(`https://localhost:${h2_port}/delay/500`, {
                     signal: controller.signal
                 });
-            }, /AbortError/);
+            }, { number: 20024 });
             var t2 = Date.now();
 
             assert.ok(t2 - t1 < 500);
