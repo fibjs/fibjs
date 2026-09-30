@@ -66,6 +66,9 @@
 module.exports = Transform;
 const Duplex = require('_stream_duplex');
 const util = require('util');
+const {
+  createErrorWithCode,
+} = require('internal/errors');
 util.inherits(Transform, Duplex);
 
 
@@ -76,7 +79,7 @@ function afterTransform(er, data) {
   var cb = ts.writecb;
 
   if (cb === null) {
-    return this.emit('error', new Error('ERR_MULTIPLE_CALLBACK'));
+    return this.emit('error', createErrorWithCode(Error, 'ERR_MULTIPLE_CALLBACK', 'ERR_MULTIPLE_CALLBACK'));
   }
 
   ts.writechunk = null;
@@ -156,7 +159,7 @@ Transform.prototype.push = function (chunk, encoding) {
 // an error, then that'll put the hurt on the whole operation.  If you
 // never call cb(), then you'll never get another chunk.
 Transform.prototype._transform = function (chunk, encoding, cb) {
-  throw new Error('ERR_METHOD_NOT_IMPLEMENTED');
+  throw createErrorWithCode(Error, 'ERR_METHOD_NOT_IMPLEMENTED', 'ERR_METHOD_NOT_IMPLEMENTED');
 };
 
 Transform.prototype._write = function (chunk, encoding, cb) {
@@ -209,9 +212,9 @@ function done(stream, er, data) {
   // if there's nothing in the write buffer, then that means
   // that nothing more will ever be provided
   if (stream._writableState.length)
-    throw new Error('ERR_TRANSFORM_WITH_LENGTH_0');
+    throw createErrorWithCode(Error, 'ERR_TRANSFORM_WITH_LENGTH_0', 'ERR_TRANSFORM_WITH_LENGTH_0');
 
   if (stream._transformState.transforming)
-    throw new Error('ERR_TRANSFORM_ALREADY_TRANSFORMING');
+    throw createErrorWithCode(Error, 'ERR_TRANSFORM_ALREADY_TRANSFORMING', 'ERR_TRANSFORM_ALREADY_TRANSFORMING');
   return stream.push(null);
 }

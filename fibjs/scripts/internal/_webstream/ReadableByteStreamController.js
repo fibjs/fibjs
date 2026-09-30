@@ -48,25 +48,32 @@ const {
     readableStreamAddReadIntoRequest
 } = require('./helpers');
 
+const {
+    invalidArgType,
+    invalidState,
+    illegalConstructor,
+    invalidThis,
+} = require('internal/errors');
+
 // =============================================================================
 // ReadableStreamBYOBRequest Class
 // =============================================================================
 
 class ReadableStreamBYOBRequest {
     constructor() {
-        throw new TypeError('Illegal constructor');
+        throw illegalConstructor();
     }
 
     get view() {
         if (!isReadableStreamBYOBRequest(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamBYOBRequest');
         }
         return this[kView];
     }
 
     respond(bytesWritten) {
         if (!isReadableStreamBYOBRequest(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamBYOBRequest');
         }
         if (this[kController] === undefined) {
             throw new TypeError('This BYOB request has been invalidated');
@@ -79,7 +86,7 @@ class ReadableStreamBYOBRequest {
 
     respondWithNewView(view) {
         if (!isReadableStreamBYOBRequest(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamBYOBRequest');
         }
         if (this[kController] === undefined) {
             throw new TypeError('This BYOB request has been invalidated');
@@ -113,12 +120,12 @@ function createReadableStreamBYOBRequest(controller, view) {
 
 class ReadableByteStreamController {
     constructor() {
-        throw new TypeError('Illegal constructor');
+        throw illegalConstructor();
     }
 
     get byobRequest() {
         if (!isReadableByteStreamController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableByteStreamController');
         }
         if (this[kByobRequest] === null && this[kPendingPullIntos].length > 0) {
             const firstDescriptor = this[kPendingPullIntos][0];
@@ -135,49 +142,49 @@ class ReadableByteStreamController {
 
     get desiredSize() {
         if (!isReadableByteStreamController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableByteStreamController');
         }
         return readableByteStreamControllerGetDesiredSize(this);
     }
 
     close() {
         if (!isReadableByteStreamController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableByteStreamController');
         }
         if (this[kCloseRequested]) {
-            throw new TypeError('Controller is already closed');
+            throw invalidState('Controller is already closed');
         }
         if (this[kStream][kState] !== STATE.READABLE) {
-            throw new TypeError('ReadableStream is not readable');
+            throw invalidState('ReadableStream is not readable');
         }
         readableByteStreamControllerClose(this);
     }
 
     enqueue(chunk) {
         if (!isReadableByteStreamController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableByteStreamController');
         }
         if (!isArrayBufferView(chunk)) {
-            throw new TypeError('chunk must be an ArrayBufferView');
+            throw invalidArgType('chunk', 'ArrayBufferView', chunk);
         }
         if (chunk.byteLength === 0) {
-            throw new TypeError('chunk must have non-zero byteLength');
+            throw invalidState('chunk must have non-zero byteLength');
         }
         if (chunk.buffer.byteLength === 0) {
-            throw new TypeError('chunk buffer must have non-zero byteLength');
+            throw invalidState('chunk buffer must have non-zero byteLength');
         }
         if (this[kCloseRequested]) {
-            throw new TypeError('Controller is already closed');
+            throw invalidState('Controller is already closed');
         }
         if (this[kStream][kState] !== STATE.READABLE) {
-            throw new TypeError('ReadableStream is not readable');
+            throw invalidState('ReadableStream is not readable');
         }
         readableByteStreamControllerEnqueue(this, chunk);
     }
 
     error(e = undefined) {
         if (!isReadableByteStreamController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableByteStreamController');
         }
         readableByteStreamControllerError(this, e);
     }

@@ -422,17 +422,28 @@ class AssertionError extends Error {
             if (other.length > kMaxLongStringLength) {
               other = `${StringPrototypeSlice(other, 0, 509)}...`;
             }
+            let hasPrefixedReadableHeading = false;
             if (operator === 'deepEqual') {
               res = `${knownOperator}\n\n${res}\n\nshould loosely deep-equal\n\n`;
+              hasPrefixedReadableHeading = true;
             } else {
               const newOp = kReadableOperator[`${operator}Unequal`];
               if (newOp) {
                 res = `${newOp}\n\n${res}\n\nshould not loosely deep-equal\n\n`;
+                hasPrefixedReadableHeading = true;
               } else {
                 other = ` ${getOpteratorDescription(operator)} ${other}`;
               }
             }
-            super(`Expected ${res}${other}`);
+
+            // The deep-equality variants already include a complete readable
+            // heading (for example "Expected values to be loosely deep-equal:")
+            // so avoid prefixing them with a second "Expected ".
+            if (hasPrefixedReadableHeading) {
+              super(`${res}${other}`);
+            } else {
+              super(`Expected ${res}${other}`);
+            }
           }
         }
       }

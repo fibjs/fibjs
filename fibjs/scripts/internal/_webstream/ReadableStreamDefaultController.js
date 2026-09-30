@@ -39,45 +39,51 @@ const {
     readableStreamFulfillReadRequest
 } = require('./helpers');
 
+const {
+    illegalConstructor,
+    invalidThis,
+    invalidState,
+} = require('internal/errors');
+
 // =============================================================================
 // ReadableStreamDefaultController Class
 // =============================================================================
 
 class ReadableStreamDefaultController {
     constructor() {
-        throw new TypeError('Illegal constructor');
+        throw illegalConstructor();
     }
 
     get desiredSize() {
         if (!isReadableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamDefaultController');
         }
         return readableStreamDefaultControllerGetDesiredSize(this);
     }
 
     close() {
         if (!isReadableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamDefaultController');
         }
         if (!readableStreamDefaultControllerCanCloseOrEnqueue(this)) {
-            throw new TypeError('Cannot close stream');
+            throw invalidState('Cannot close stream');
         }
         readableStreamDefaultControllerClose(this);
     }
 
     enqueue(chunk = undefined) {
         if (!isReadableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamDefaultController');
         }
         if (!readableStreamDefaultControllerCanCloseOrEnqueue(this)) {
-            throw new TypeError('Cannot enqueue');
+            throw invalidState('Cannot enqueue');
         }
         readableStreamDefaultControllerEnqueue(this, chunk);
     }
 
     error(e = undefined) {
         if (!isReadableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamDefaultController');
         }
         readableStreamDefaultControllerError(this, e);
     }

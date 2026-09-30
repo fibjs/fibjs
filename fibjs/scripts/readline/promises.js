@@ -17,7 +17,7 @@ const {
 } = require('internal/readline/interface');
 
 const {
-  AbortError,
+  createError,
 } = require('internal/errors');
 const { validateAbortSignal } = require('internal/validators');
 
@@ -39,12 +39,12 @@ class Interface extends _Interface {
         validateAbortSignal(options.signal, 'options.signal');
         if (options.signal.aborted) {
           return reject(
-            new AbortError(undefined, { cause: options.signal.reason }));
+            createError('AbortError', undefined, { cause: options.signal.reason }));
         }
 
         const onAbort = () => {
           this[kQuestionCancel]();
-          reject(new AbortError(undefined, { cause: options.signal.reason }));
+          reject(createError('AbortError', undefined, { cause: options.signal.reason }));
         };
         addAbortListener ??= require('events').addAbortListener;
         const disposable = addAbortListener(options.signal, onAbort);

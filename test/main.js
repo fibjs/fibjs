@@ -16,6 +16,8 @@ run("./runner_hook_test.js");
 run("./cli_help_test.js");
 
 run("./class_test.js");
+run("./error_types_test.js");
+run("./error_payload_test.js");
 
 run("./abortcontroller_test.js");
 run("./async_local_storage_test.js");

@@ -198,7 +198,7 @@ function InterfaceConstructor(input, output, completer, terminal) {
     historySize = kHistorySize;
   }
 
-  validateNumber(historySize, 'historySize', 0);
+  validateUint32(historySize, 'historySize');
 
   // Backwards compat; check the isTTY prop of the output stream
   //  when `terminal` was not specified

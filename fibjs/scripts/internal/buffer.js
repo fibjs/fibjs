@@ -7,6 +7,14 @@ var {
     TypedArrayPrototypeSet
 } = require('internal/primordials.js');
 
+var {
+    typeErrorWithCode,
+    rangeErrorWithCode,
+    unknownEncoding,
+    bufferOutOfBounds,
+    invalidBufferSize,
+} = require('internal/errors');
+
 let defaultPoolSize = 8 * 1024;
 let poolOffset, allocPool;
 
@@ -29,9 +37,7 @@ function describeReceived(value) {
 }
 
 function makeInvalidArgType(msg) {
-    const err = new TypeError(msg);
-    err.code = 'ERR_INVALID_ARG_TYPE';
-    return err;
+    return typeErrorWithCode('ERR_INVALID_ARG_TYPE', msg);
 }
 
 function invalidArgType(name, expected, value) {
@@ -39,29 +45,11 @@ function invalidArgType(name, expected, value) {
 }
 
 function invalidArgValue(name, value) {
-    const err = new TypeError(`The argument '${name}' is invalid. Received ${describeReceived(value)}`);
-    err.code = 'ERR_INVALID_ARG_VALUE';
-    return err;
+    return typeErrorWithCode('ERR_INVALID_ARG_VALUE', `The argument '${name}' is invalid. Received ${describeReceived(value)}`);
 }
 
 function outOfRange(name, range, value) {
-    const err = new RangeError(`The value of "${name}" is out of range. It must be ${range}. Received ${value}`);
-    err.code = 'ERR_OUT_OF_RANGE';
-    return err;
-}
-
-function unknownEncoding(codec) {
-    const err = new TypeError('Unknown encoding: ' + codec);
-    err.code = 'ERR_UNKNOWN_ENCODING';
-    return err;
-}
-
-function bufferOutOfBounds(name) {
-    const err = new RangeError(name
-        ? `"${name}" is outside of buffer bounds`
-        : 'Attempt to access memory outside buffer bounds');
-    err.code = 'ERR_BUFFER_OUT_OF_BOUNDS';
-    return err;
+    return rangeErrorWithCode('ERR_OUT_OF_RANGE', `The value of "${name}" is out of range. It must be ${range}. Received ${value}`);
 }
 
 // node: size must be a number (TypeError); NaN/Infinity/negative/too large are RangeError;
@@ -211,12 +199,6 @@ function subRange(buf, start, end, startName, endName) {
         throw outOfRange(endName, `>= 0 and <= ${buf.length}`, end);
 
     return buf.subarray(s, e);
-}
-
-function invalidBufferSize(msg) {
-    const err = new RangeError(msg);
-    err.code = 'ERR_INVALID_BUFFER_SIZE';
-    return err;
 }
 
 function swapBytes(buf, width) {

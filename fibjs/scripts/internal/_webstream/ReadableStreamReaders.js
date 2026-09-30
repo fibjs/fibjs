@@ -41,6 +41,14 @@ const {
     readableByteStreamControllerPullInto
 } = require('./ReadableByteStreamController');
 
+const {
+    invalidArgType,
+    invalidArgValue,
+    invalidState,
+    invalidThis,
+    outOfRange,
+} = require('internal/errors');
+
 const ReadableStreamModule = require('./ReadableStream');
 
 // =============================================================================
@@ -53,7 +61,7 @@ class ReadableStreamDefaultReader {
             throw new TypeError('ReadableStreamDefaultReader requires a ReadableStream');
         }
         if (isReadableStreamLocked(stream)) {
-            throw new TypeError('This stream has already been locked for exclusive reading');
+            throw invalidState('This stream has already been locked for exclusive reading');
         }
 
         this[kIsReadableStreamDefaultReader] = true;
@@ -63,14 +71,14 @@ class ReadableStreamDefaultReader {
 
     get closed() {
         if (!isReadableStreamDefaultReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamDefaultReader'));
         }
         return this[kClosedPromise].promise;
     }
 
     read() {
         if (!isReadableStreamDefaultReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamDefaultReader'));
         }
         if (this[kStream] === undefined) {
             return Promise.reject(new TypeError('Reader has no stream'));
@@ -80,7 +88,7 @@ class ReadableStreamDefaultReader {
 
     releaseLock() {
         if (!isReadableStreamDefaultReader(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamDefaultReader');
         }
         if (this[kStream] === undefined) {
             return;
@@ -90,7 +98,7 @@ class ReadableStreamDefaultReader {
 
     cancel(reason = undefined) {
         if (!isReadableStreamDefaultReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamDefaultReader'));
         }
         if (this[kStream] === undefined) {
             return Promise.reject(new TypeError('Reader has no stream'));
@@ -117,7 +125,7 @@ class ReadableStreamBYOBReader {
             throw new TypeError('ReadableStreamBYOBReader requires a byte stream');
         }
         if (isReadableStreamLocked(stream)) {
-            throw new TypeError('This stream has already been locked for exclusive reading');
+            throw invalidState('This stream has already been locked for exclusive reading');
         }
 
         this[kIsReadableStreamBYOBReader] = true;
@@ -127,42 +135,42 @@ class ReadableStreamBYOBReader {
 
     get closed() {
         if (!isReadableStreamBYOBReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamBYOBReader'));
         }
         return this[kClosedPromise].promise;
     }
 
     read(view, options = {}) {
         if (!isReadableStreamBYOBReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamBYOBReader'));
         }
         if (!isArrayBufferView(view)) {
-            return Promise.reject(new TypeError('view must be an ArrayBufferView'));
+            return Promise.reject(invalidArgType('view', 'ArrayBufferView', view));
         }
         if (view.byteLength === 0) {
-            return Promise.reject(new TypeError('view must have non-zero byteLength'));
+            return Promise.reject(invalidState('view must have non-zero byteLength'));
         }
         if (view.buffer.byteLength === 0) {
-            return Promise.reject(new TypeError('view buffer must have non-zero byteLength'));
+            return Promise.reject(invalidState('view buffer must have non-zero byteLength'));
         }
         
         const min = options?.min ?? 1;
         if (typeof min !== 'number') {
-            return Promise.reject(new TypeError('options.min must be a number'));
+            return Promise.reject(invalidArgValue('options.min', min, 'must be a number'));
         }
         if (!Number.isInteger(min)) {
-            return Promise.reject(new TypeError('options.min must be an integer'));
+            return Promise.reject(invalidArgValue('options.min', min, 'must be an integer'));
         }
         if (min <= 0) {
-            return Promise.reject(new RangeError('options.min must be greater than 0'));
+            return Promise.reject(invalidArgValue('options.min', min, 'must be greater than 0'));
         }
         if (!isDataView(view)) {
             if (min > view.length) {
-                return Promise.reject(new RangeError('options.min must be <= view.length'));
+                return Promise.reject(outOfRange('options.min', '<= view.length', min));
             }
         } else {
             if (min > view.byteLength) {
-                return Promise.reject(new RangeError('options.min must be <= view.byteLength'));
+                return Promise.reject(outOfRange('options.min', '<= view.byteLength', min));
             }
         }
         
@@ -177,7 +185,7 @@ class ReadableStreamBYOBReader {
 
     releaseLock() {
         if (!isReadableStreamBYOBReader(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStreamBYOBReader');
         }
         if (this[kStream] === undefined) {
             return;
@@ -187,7 +195,7 @@ class ReadableStreamBYOBReader {
 
     cancel(reason = undefined) {
         if (!isReadableStreamBYOBReader(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStreamBYOBReader'));
         }
         if (this[kStream] === undefined) {
             return Promise.reject(new TypeError('Reader has no stream'));

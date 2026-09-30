@@ -30,6 +30,14 @@ const {
 } = require('./helpers');
 
 const {
+    createError,
+    invalidArgType,
+    invalidArgValue,
+    invalidState,
+    invalidThis,
+} = require('internal/errors');
+
+const {
     ReadableStreamDefaultController,
     createReadableStreamDefaultController,
     readableStreamDefaultControllerClose,
@@ -85,12 +93,12 @@ class ReadableStream {
     constructor(underlyingSource = {}, strategy = {}) {
         // Validate underlyingSource
         if (underlyingSource !== undefined && !isObject(underlyingSource)) {
-            throw new TypeError('underlyingSource must be an object');
+            throw invalidArgType('underlyingSource', 'Object', underlyingSource);
         }
 
         // Validate strategy
         if (strategy !== undefined && strategy !== null && !isObject(strategy)) {
-            throw new TypeError('strategy must be an object');
+            throw invalidArgType('strategy', 'Object', strategy);
         }
 
         this[kIsReadableStream] = true;
@@ -127,24 +135,24 @@ class ReadableStream {
 
     get locked() {
         if (!isReadableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStream');
         }
         return isReadableStreamLocked(this);
     }
 
     cancel(reason = undefined) {
         if (!isReadableStream(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStream'));
         }
         if (isReadableStreamLocked(this)) {
-            return Promise.reject(new TypeError('Cannot cancel a locked stream'));
+            return Promise.reject(invalidState('Cannot cancel a locked stream'));
         }
         return readableStreamCancel(this, reason);
     }
 
     getReader(options = {}) {
         if (!isReadableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStream');
         }
         
         // Validate options object type
@@ -161,33 +169,29 @@ class ReadableStream {
         if (mode === 'byob') {
             return new ReadableStreamBYOBReader(this);
         }
-        throw new TypeError('Invalid mode');
+        throw invalidArgValue('mode', mode);
     }
 
     pipeThrough(transform, options = {}) {
         if (!isReadableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStream');
         }
         if (!isObject(transform)) {
-            throw new TypeError('transform must be an object');
+            throw invalidArgType('transform', 'Object', transform);
         }
         const readable = transform.readable;
         const writable = transform.writable;
         if (readable === undefined) {
-            throw new TypeError('transform.readable is required');
+            throw invalidArgType('transform.readable', 'defined', readable);
         }
         if (writable === undefined) {
-            throw new TypeError('transform.writable is required');
+            throw invalidArgType('transform.writable', 'defined', writable);
         }
         if (isReadableStreamLocked(this)) {
-            const err = new TypeError('ReadableStream is locked');
-            err.code = 'ERR_INVALID_STATE';
-            throw err;
+            throw invalidState('ReadableStream is locked');
         }
         if (writable.locked) {
-            const err = new TypeError('WritableStream is locked');
-            err.code = 'ERR_INVALID_STATE';
-            throw err;
+            throw invalidState('WritableStream is locked');
         }
 
         // Start piping (ignore promise result as per spec)
@@ -198,20 +202,16 @@ class ReadableStream {
 
     pipeTo(destination, options = {}) {
         if (!isReadableStream(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('ReadableStream'));
         }
         if (!isObject(destination) || typeof destination.getWriter !== 'function') {
             return Promise.reject(new TypeError('destination must be a WritableStream'));
         }
         if (isReadableStreamLocked(this)) {
-            const err = new TypeError('ReadableStream is locked');
-            err.code = 'ERR_INVALID_STATE';
-            return Promise.reject(err);
+            return Promise.reject(invalidState('ReadableStream is locked'));
         }
         if (destination.locked) {
-            const err = new TypeError('WritableStream is locked');
-            err.code = 'ERR_INVALID_STATE';
-            return Promise.reject(err);
+            return Promise.reject(invalidState('WritableStream is locked'));
         }
 
         const preventClose = Boolean(options.preventClose);
@@ -230,14 +230,14 @@ class ReadableStream {
 
     tee() {
         if (!isReadableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStream');
         }
         return readableStreamTee(this, false);
     }
 
     values(options = {}) {
         if (!isReadableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('ReadableStream');
         }
         return readableStreamAsyncIterator(this, options);
     }
@@ -271,11 +271,11 @@ function readableStreamPipeTo(source, dest, preventClose, preventAbort, preventC
     // Handle abort signal
     if (signal !== undefined) {
         if (signal.aborted) {
-            return Promise.reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+            return Promise.reject(signal.reason || createError('DOMException', 'Aborted', { name: 'AbortError' }));
         }
 
         const abortAlgorithm = () => {
-            const error = signal.reason || new DOMException('Aborted', 'AbortError');
+            const error = signal.reason || createError('DOMException', 'Aborted', { name: 'AbortError' });
             const actions = [];
 
             if (!preventAbort) {

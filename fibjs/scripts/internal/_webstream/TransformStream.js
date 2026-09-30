@@ -28,6 +28,11 @@ const {
     createPromiseCapability
 } = require('./helpers');
 
+const {
+    illegalConstructor,
+    invalidThis,
+} = require('internal/errors');
+
 // Import internal interfaces from ReadableStream and WritableStream
 const {
     kState: kReadableState,
@@ -57,24 +62,36 @@ const {
 
 class TransformStreamDefaultController {
     constructor() {
-        throw new TypeError('Illegal constructor');
+        throw illegalConstructor();
     }
 
     get desiredSize() {
+        if (this[kStream] === undefined) {
+            throw invalidThis('TransformStreamDefaultController');
+        }
         const stream = this[kStream];
         const readableController = stream[kReadable][kReadableController];
         return readableStreamDefaultControllerGetDesiredSize(readableController);
     }
 
     enqueue(chunk = undefined) {
+        if (this[kStream] === undefined) {
+            throw invalidThis('TransformStreamDefaultController');
+        }
         transformStreamDefaultControllerEnqueue(this, chunk);
     }
 
     error(reason = undefined) {
+        if (this[kStream] === undefined) {
+            throw invalidThis('TransformStreamDefaultController');
+        }
         transformStreamDefaultControllerError(this, reason);
     }
 
     terminate() {
+        if (this[kStream] === undefined) {
+            throw invalidThis('TransformStreamDefaultController');
+        }
         transformStreamDefaultControllerTerminate(this);
     }
 }
@@ -414,14 +431,14 @@ class TransformStream {
 
     get readable() {
         if (!isTransformStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('TransformStream');
         }
         return this[kReadable];
     }
 
     get writable() {
         if (!isTransformStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('TransformStream');
         }
         return this[kWritable];
     }

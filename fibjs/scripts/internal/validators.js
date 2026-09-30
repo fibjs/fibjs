@@ -9,6 +9,12 @@ const {
   NumberIsNaN,
 } = primordials;
 
+const {
+  invalidArgType,
+  invalidArgValue,
+  outOfRange,
+} = require('internal/errors');
+
 function hideStackFrames(fn) {
   return fn;
 }
@@ -18,101 +24,74 @@ const validateAbortSignal = hideStackFrames((signal, name) => {
       (signal === null ||
        typeof signal !== 'object' ||
        !('aborted' in signal))) {
-    throw new TypeError(
-      `The "${name}" argument must be an instance of AbortSignal. Received ${signal === null ? 'null' : typeof signal}`
-    );
+    throw invalidArgType(name, 'an instance of AbortSignal', signal);
   }
 });
 
 const validateArray = hideStackFrames((value, name, minLength = 0) => {
   if (!ArrayIsArray(value)) {
-    throw new TypeError(
-      `The "${name}" argument must be an instance of Array. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'an instance of Array', value);
   }
   if (value.length < minLength) {
-    throw new TypeError(
-      `The "${name}" argument must have a length of at least ${minLength}. Received ${value.length}`
-    );
+    throw invalidArgValue(name, value.length, `must have a length of at least ${minLength}`);
   }
 });
 
 const validateString = hideStackFrames((value, name) => {
   if (typeof value !== 'string') {
-    throw new TypeError(
-      `The "${name}" argument must be of type string. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'string', value);
   }
 });
 
 const validateNumber = hideStackFrames((value, name, min = undefined, max) => {
   if (typeof value !== 'number') {
-    throw new TypeError(
-      `The "${name}" argument must be of type number. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'number', value);
   }
 
   if ((min != null && value < min) || (max != null && value > max) ||
       ((min != null || max != null) && NumberIsNaN(value))) {
-    throw new RangeError(
-      `The value of "${name}" is out of range. It must be ${min != null ? `>= ${min}` : ''}${min != null && max != null ? ' && ' : ''}${max != null ? `<= ${max}` : ''}. Received ${value}`
-    );
+    throw invalidArgValue(name, value,
+      `must be ${min != null ? `>= ${min}` : ''}${min != null && max != null ? ' && ' : ''}${max != null ? `<= ${max}` : ''}`);
   }
 });
 
 const validateBoolean = hideStackFrames((value, name) => {
   if (typeof value !== 'boolean') {
-    throw new TypeError(
-      `The "${name}" argument must be of type boolean. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'boolean', value);
   }
 });
 
 const validateInteger = hideStackFrames(
   (value, name, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) => {
     if (typeof value !== 'number') {
-      throw new TypeError(
-        `The "${name}" argument must be of type number. Received type ${typeof value}`
-      );
+      throw invalidArgType(name, 'number', value);
     }
     if (!NumberIsInteger(value)) {
-      throw new RangeError(
-        `The "${name}" argument must be an integer. Received ${value}`
-      );
+      throw outOfRange(name, 'an integer', value);
     }
     if (value < min || value > max) {
-      throw new RangeError(
-        `The value of "${name}" is out of range. It must be >= ${min} && <= ${max}. Received ${value}`
-      );
+      throw outOfRange(name, `>= ${min} && <= ${max}`, value);
     }
   }
 );
 
 const validateUint32 = hideStackFrames((value, name, positive = false) => {
   if (typeof value !== 'number') {
-    throw new TypeError(
-      `The "${name}" argument must be of type number. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'number', value);
   }
   if (!NumberIsInteger(value)) {
-    throw new RangeError(
-      `The "${name}" argument must be an integer. Received ${value}`
-    );
+    throw outOfRange(name, 'an integer', value);
   }
   const min = positive ? 1 : 0;
   const max = 4294967295; // 2 ** 32 - 1
   if (value < min || value > max) {
-    throw new RangeError(
-      `The value of "${name}" is out of range. It must be >= ${min} && <= ${max}. Received ${value}`
-    );
+    throw outOfRange(name, `>= ${min} && <= ${max}`, value);
   }
 });
 
 const validateFunction = hideStackFrames((value, name) => {
   if (typeof value !== 'function') {
-    throw new TypeError(
-      `The "${name}" argument must be of type function. Received type ${typeof value}`
-    );
+    throw invalidArgType(name, 'function', value);
   }
 });
 

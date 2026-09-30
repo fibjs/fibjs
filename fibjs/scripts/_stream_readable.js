@@ -33,6 +33,10 @@ const util = require('util');
 const debug = function () {};
 const BufferList = require('internal/streams/BufferList');
 const destroyImpl = require('internal/streams/destroy');
+const {
+  createErrorWithCode,
+  typeErrorWithCode,
+} = require('internal/errors');
 var StringDecoder;
 
 util.inherits(Readable, Stream);
@@ -236,11 +240,11 @@ function readableAddChunk(stream, chunk, encoding, addToFront, skipChunkCheck) {
       if (addToFront) {
         if (state.endEmitted)
           stream.emit('error',
-            new Error('ERR_STREAM_UNSHIFT_AFTER_END_EVENT'));
+            createErrorWithCode(Error, 'ERR_STREAM_UNSHIFT_AFTER_END_EVENT', 'ERR_STREAM_UNSHIFT_AFTER_END_EVENT'));
         else
           addChunk(stream, state, chunk, true);
       } else if (state.ended) {
-        stream.emit('error', new Error('ERR_STREAM_PUSH_AFTER_EOF'));
+        stream.emit('error', createErrorWithCode(Error, 'ERR_STREAM_PUSH_AFTER_EOF', 'ERR_STREAM_PUSH_AFTER_EOF'));
       } else {
         state.reading = false;
         if (state.decoder && !encoding) {
@@ -285,7 +289,7 @@ function chunkInvalid(state, chunk) {
     typeof chunk !== 'string' &&
     chunk !== undefined &&
     !state.objectMode) {
-    er = new TypeError('ERR_INVALID_ARG_TYPE');
+    er = typeErrorWithCode('ERR_INVALID_ARG_TYPE', 'ERR_INVALID_ARG_TYPE');
   }
   return er;
 }
@@ -552,7 +556,7 @@ function maybeReadMore_(stream, state) {
 // for virtual (non-string, non-buffer) streams, "length" is somewhat
 // arbitrary, and perhaps not very meaningful.
 Readable.prototype._read = function (n) {
-  this.emit('error', new Error('ERR_STREAM_READ_NOT_IMPLEMENTED'));
+  this.emit('error', createErrorWithCode(Error, 'ERR_STREAM_READ_NOT_IMPLEMENTED', 'ERR_STREAM_READ_NOT_IMPLEMENTED'));
 };
 
 Readable.prototype.pipe = function (dest, pipeOpts) {

@@ -28,6 +28,11 @@ const {
     kWriter
 } = require('./symbols');
 
+const {
+    invalidArgType,
+    invalidArgValue,
+} = require('internal/errors');
+
 const STATE = READABLE_STATE;
 
 // =============================================================================
@@ -127,7 +132,7 @@ function createIterResultObject(value, done) {
 function validateAndNormalizeHighWaterMark(highWaterMark) {
     const hwm = Number(highWaterMark);
     if (Number.isNaN(hwm) || hwm < 0) {
-        throw new RangeError('Invalid highWaterMark');
+        throw invalidArgValue('highWaterMark', highWaterMark);
     }
     return hwm;
 }
@@ -137,7 +142,7 @@ function makeSizeAlgorithmFromSizeFunction(size) {
         return () => 1;
     }
     if (typeof size !== 'function') {
-        throw new TypeError('size must be a function');
+        throw invalidArgType('size', 'function', size);
     }
     return (chunk) => size(chunk);
 }
@@ -148,7 +153,7 @@ function makeSizeAlgorithmFromSizeFunction(size) {
 
 function enqueueValueWithSize(container, value, size) {
     if (!Number.isFinite(size) || size < 0) {
-        throw new RangeError('Invalid size');
+        throw invalidArgValue('size', size);
     }
     container[kQueue].push({ value, size });
     container[kQueueTotalSize] += size;

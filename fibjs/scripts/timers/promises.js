@@ -3,6 +3,10 @@
 // timers/promises - Promise-based timer functions (Node.js compatibility)
 // Usage: import { setTimeout, setImmediate } from 'node:timers/promises';
 
+const {
+    createError,
+} = require('internal/errors');
+
 /**
  * Returns a Promise that resolves after the given delay in milliseconds.
  * @param {number} delay - Milliseconds to wait. Default: 1.
@@ -13,10 +17,10 @@ function setTimeout(delay = 1, value, options) {
     return new Promise((resolve, reject) => {
         if (options && options.signal) {
             if (options.signal.aborted) {
-                return reject(options.signal.reason || new Error('AbortError'));
+                return reject(options.signal.reason || createError('AbortError'));
             }
             options.signal.addEventListener('abort', () => {
-                reject(options.signal.reason || new Error('AbortError'));
+                reject(options.signal.reason || createError('AbortError'));
             }, { once: true });
         }
         global.setTimeout(() => resolve(value), delay);
@@ -32,10 +36,10 @@ function setImmediate(value, options) {
     return new Promise((resolve, reject) => {
         if (options && options.signal) {
             if (options.signal.aborted) {
-                return reject(options.signal.reason || new Error('AbortError'));
+                return reject(options.signal.reason || createError('AbortError'));
             }
             options.signal.addEventListener('abort', () => {
-                reject(options.signal.reason || new Error('AbortError'));
+                reject(options.signal.reason || createError('AbortError'));
             }, { once: true });
         }
         global.setImmediate(() => resolve(value));

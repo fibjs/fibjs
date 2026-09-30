@@ -33,6 +33,11 @@ const Stream = require('stream');
 const {
   Buffer
 } = require('buffer');
+const {
+  createErrorWithCode,
+  typeErrorWithCode,
+  codes,
+} = require('internal/errors');
 const destroyImpl = require('internal/streams/destroy');
 
 util.inherits(Writable, Stream);
@@ -232,12 +237,12 @@ function Writable(options) {
 
 // Otherwise people can pipe Writable streams, which is just wrong.
 Writable.prototype.pipe = function () {
-  this.emit('error', new Error('ERR_STREAM_CANNOT_PIPE'));
+  this.emit('error', createErrorWithCode(Error, 'ERR_STREAM_CANNOT_PIPE', 'ERR_STREAM_CANNOT_PIPE'));
 };
 
 
 function writeAfterEnd(stream, cb) {
-  var er = new Error('ERR_STREAM_WRITE_AFTER_END');
+  var er = createErrorWithCode(Error, 'ERR_STREAM_WRITE_AFTER_END', 'ERR_STREAM_WRITE_AFTER_END');
   // TODO: defer error events consistently everywhere, not just the cb
   stream.emit('error', er);
   process.nextTick(cb, er);
@@ -251,11 +256,11 @@ function validChunk(stream, state, chunk, cb) {
   var er = false;
 
   if (chunk === null) {
-    er = new TypeError('ERR_STREAM_NULL_VALUES');
+    er = typeErrorWithCode('ERR_STREAM_NULL_VALUES', 'ERR_STREAM_NULL_VALUES');
   } else if (typeof chunk !== 'string' &&
     chunk !== undefined &&
     !state.objectMode) {
-    er = new TypeError('ERR_INVALID_ARG_TYPE');
+    er = typeErrorWithCode('ERR_INVALID_ARG_TYPE', 'ERR_INVALID_ARG_TYPE');
   }
   if (er) {
     stream.emit('error', er);
@@ -323,7 +328,7 @@ Writable.prototype.setDefaultEncoding = function setDefaultEncoding(encoding) {
   if (typeof encoding === 'string')
     encoding = encoding.toLowerCase();
   if (!Buffer.isEncoding(encoding))
-    throw new TypeError('ERR_UNKNOWN_ENCODING');
+    throw codes.ERR_UNKNOWN_ENCODING(encoding);
   this._writableState.defaultEncoding = encoding;
   return this;
 };
@@ -550,7 +555,7 @@ function clearBuffer(stream, state) {
 }
 
 Writable.prototype._write = function (chunk, encoding, cb) {
-  cb(new Error('ERR_METHOD_NOT_IMPLEMENTED'));
+  cb(createErrorWithCode(Error, 'ERR_METHOD_NOT_IMPLEMENTED', 'ERR_METHOD_NOT_IMPLEMENTED'));
 };
 
 Writable.prototype._writev = null;

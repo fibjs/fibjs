@@ -44,7 +44,7 @@ const emitKeypressEvents = require('internal/readline/emitKeypressEvents');
 const promises = require('readline/promises');
 
 const {
-  AbortError,
+  createError,
 } = require('internal/errors');
 const {
   inspect,
@@ -166,7 +166,7 @@ Interface.prototype.question[promisify.custom] = function question(query, option
 
   if (options.signal && options.signal.aborted) {
     return PromiseReject(
-      new AbortError(undefined, { cause: options.signal.reason }));
+      createError('AbortError', undefined, { cause: options.signal.reason }));
   }
 
   return new Promise((resolve, reject) => {
@@ -174,7 +174,7 @@ Interface.prototype.question[promisify.custom] = function question(query, option
 
     if (options.signal) {
       const onAbort = () => {
-        reject(new AbortError(undefined, { cause: options.signal.reason }));
+        reject(createError('AbortError', undefined, { cause: options.signal.reason }));
       };
       addAbortListener ??= require('events').addAbortListener;
       const disposable = addAbortListener(options.signal, onAbort);

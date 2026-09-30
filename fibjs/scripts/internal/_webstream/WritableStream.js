@@ -47,6 +47,12 @@ const {
     resetQueue
 } = require('./helpers');
 
+const {
+    illegalConstructor,
+    invalidState,
+    invalidThis,
+} = require('internal/errors');
+
 const STATE = WRITABLE_STATE;
 
 // =============================================================================
@@ -55,19 +61,19 @@ const STATE = WRITABLE_STATE;
 
 class WritableStreamDefaultController {
     constructor() {
-        throw new TypeError('Illegal constructor');
+        throw illegalConstructor();
     }
 
     get signal() {
         if (!isWritableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStreamDefaultController');
         }
         return this._abortController?.signal;
     }
 
     error(e = undefined) {
         if (!isWritableStreamDefaultController(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStreamDefaultController');
         }
         const state = this[kStream][kState];
         if (state !== STATE.WRITABLE) {
@@ -252,7 +258,7 @@ class WritableStreamDefaultWriter {
             throw new TypeError('WritableStreamDefaultWriter requires a WritableStream');
         }
         if (isWritableStreamLocked(stream)) {
-            throw new TypeError('This stream has already been locked for exclusive writing');
+            throw invalidState('This stream has already been locked for exclusive writing');
         }
 
         this[kIsWritableStreamDefaultWriter] = true;
@@ -311,14 +317,14 @@ class WritableStreamDefaultWriter {
 
     get closed() {
         if (!isWritableStreamDefaultWriter(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStreamDefaultWriter'));
         }
         return this[kClosedPromise].promise;
     }
 
     get desiredSize() {
         if (!isWritableStreamDefaultWriter(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStreamDefaultWriter');
         }
         if (this[kStream] === undefined) {
             throw new TypeError('Writer has no stream');
@@ -328,14 +334,14 @@ class WritableStreamDefaultWriter {
 
     get ready() {
         if (!isWritableStreamDefaultWriter(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStreamDefaultWriter'));
         }
         return this[kReadyPromise].promise;
     }
 
     abort(reason = undefined) {
         if (!isWritableStreamDefaultWriter(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStreamDefaultWriter'));
         }
         if (this[kStream] === undefined) {
             return Promise.reject(new TypeError('Writer has no stream'));
@@ -345,7 +351,7 @@ class WritableStreamDefaultWriter {
 
     close() {
         if (!isWritableStreamDefaultWriter(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStreamDefaultWriter'));
         }
         const stream = this[kStream];
         if (stream === undefined) {
@@ -359,7 +365,7 @@ class WritableStreamDefaultWriter {
 
     releaseLock() {
         if (!isWritableStreamDefaultWriter(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStreamDefaultWriter');
         }
         const stream = this[kStream];
         if (stream === undefined) {
@@ -370,7 +376,7 @@ class WritableStreamDefaultWriter {
 
     write(chunk = undefined) {
         if (!isWritableStreamDefaultWriter(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStreamDefaultWriter'));
         }
         if (this[kStream] === undefined) {
             return Promise.reject(new TypeError('Writer has no stream'));
@@ -734,27 +740,27 @@ class WritableStream {
 
     get locked() {
         if (!isWritableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStream');
         }
         return isWritableStreamLocked(this);
     }
 
     abort(reason = undefined) {
         if (!isWritableStream(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStream'));
         }
         if (isWritableStreamLocked(this)) {
-            return Promise.reject(new TypeError('Cannot abort a locked stream'));
+            return Promise.reject(invalidState('Cannot abort a locked stream'));
         }
         return writableStreamAbort(this, reason);
     }
 
     close() {
         if (!isWritableStream(this)) {
-            return Promise.reject(new TypeError('Invalid receiver'));
+            return Promise.reject(invalidThis('WritableStream'));
         }
         if (isWritableStreamLocked(this)) {
-            return Promise.reject(new TypeError('Cannot close a locked stream'));
+            return Promise.reject(invalidState('Cannot close a locked stream'));
         }
         if (writableStreamCloseQueuedOrInFlight(this)) {
             return Promise.reject(new TypeError('Cannot close an already closing stream'));
@@ -764,7 +770,7 @@ class WritableStream {
 
     getWriter() {
         if (!isWritableStream(this)) {
-            throw new TypeError('Invalid receiver');
+            throw invalidThis('WritableStream');
         }
         return new WritableStreamDefaultWriter(this);
     }

@@ -86,7 +86,4 @@ DOMException.TIMEOUT_ERR = 23;
 DOMException.INVALID_NODE_TYPE_ERR = 24;
 DOMException.DATA_CLONE_ERR = 25;
 
-// Register as global (same pattern as webstream.js)
-globalThis.DOMException = DOMException;
-
 module.exports = DOMException;
